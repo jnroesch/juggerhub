@@ -89,16 +89,16 @@ description: "Task list for Project Scaffold (Walking Skeleton)"
 
 ### Tests for User Story 2
 
-- [ ] T026 [P] [US2] Integration test in `backend/tests/JuggerHub.Api.IntegrationTests/DiagnosticsEndpointTests.cs`: `GET /api/v1/diagnostics/whoami` → 401 without auth; body is `ProblemDetails` with no stack trace/secret
+- [X] T026 [P] [US2] Integration test in `backend/tests/JuggerHub.Api.IntegrationTests/DiagnosticsEndpointTests.cs`: `GET /api/v1/diagnostics/whoami` → 401 without auth; body is `ProblemDetails` with no stack trace/secret
 
 ### Implementation for User Story 2
 
-- [ ] T027 [P] [US2] Implement argon2id `IPasswordHasher<User>` in `backend/Services/Security/Argon2PasswordHasher.cs` and register it in DI (overrides Identity default)
-- [ ] T028 [P] [US2] Implement `backend/Services/Security/IJwtTokenService.cs` + `JwtTokenService.cs` (issue/validate config) and `backend/Common/AuthCookieDefaults.cs` (cookie name `jh_access`, HttpOnly/SameSite/Secure options)
-- [ ] T029 [US2] In `backend/Program.cs`: configure Identity password + lockout policy (per constitution), add JwtBearer auth reading the token from the httpOnly cookie (`OnMessageReceived`), and enable the authentication/authorization pipeline (depends on T027, T028)
-- [ ] T030 [US2] Create `backend/Dtos/WhoAmIDto.cs` and the `[Authorize]` `backend/Controllers/DiagnosticsController.cs` → `GET /api/v1/diagnostics/whoami` (depends on T029)
-- [ ] T031 [P] [US2] Create `frontend/apps/web/src/app/core/interceptors/auth.interceptor.ts` (`withCredentials`, 401 → refresh → redirect-to-sign-in) + `frontend/apps/web/src/app/core/services/auth.service.ts` (stub: token/refresh/sign-out surface, no endpoints yet); register the interceptor in `app.config.ts`. Use "sign-in" consistently (not "login") across guard, interceptor, and service.
-- [ ] T032 [P] [US2] Create `frontend/apps/web/src/app/core/guards/auth.guard.ts` redirecting unauthenticated access toward sign-in, and apply it to one guarded sample route
+- [X] T027 [P] [US2] Implement argon2id `IPasswordHasher<User>` in `backend/Services/Security/Argon2PasswordHasher.cs` and register it in DI (overrides Identity default)
+- [X] T028 [P] [US2] Implement `backend/Services/Security/IJwtTokenService.cs` + `JwtTokenService.cs` (issue/validate config) and `backend/Common/AuthCookieDefaults.cs` (cookie name `jh_access`, HttpOnly/SameSite/Secure options)
+- [X] T029 [US2] In `backend/Program.cs`: configure Identity password + lockout policy (per constitution), add JwtBearer auth reading the token from the httpOnly cookie (`OnMessageReceived`), and enable the authentication/authorization pipeline (depends on T027, T028)
+- [X] T030 [US2] Create `backend/Dtos/WhoAmIDto.cs` and the `[Authorize]` `backend/Controllers/DiagnosticsController.cs` → `GET /api/v1/diagnostics/whoami` (depends on T029)
+- [X] T031 [P] [US2] Create `frontend/apps/web/src/app/core/interceptors/auth.interceptor.ts` (`withCredentials`, 401 → refresh → redirect-to-sign-in) + `frontend/apps/web/src/app/core/services/auth.service.ts` (stub: token/refresh/sign-out surface, no endpoints yet); register the interceptor in `app.config.ts`. Use "sign-in" consistently (not "login") across guard, interceptor, and service.
+- [X] T032 [P] [US2] Create `frontend/apps/web/src/app/core/guards/auth.guard.ts` redirecting unauthenticated access toward sign-in, and apply it to one guarded sample route
 
 **Checkpoint**: The security boundary is enforced and demonstrable; future auth feature only adds endpoints + UI.
 

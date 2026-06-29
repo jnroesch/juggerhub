@@ -1,10 +1,16 @@
+using System.Text;
+using System.Text.Json;
 using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Entities;
 using JuggerHub.Services.Health;
+using JuggerHub.Services.Security;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,11 +30,98 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
     options.AddInterceptors(sp.GetRequiredService<AuditFieldsInterceptor>());
 });
 
-// --- Identity (foundation only; auth flows deferred to a later feature) -----
+// --- Identity (foundation + auth pipeline; no auth endpoints/UI yet) --------
 builder.Services
-    .AddIdentity<User, IdentityRole<Guid>>()
+    .AddIdentity<User, IdentityRole<Guid>>(options =>
+    {
+        // Password policy (constitution Principle IV). Enforced once auth flows
+        // land; no endpoint exercises it in the walking skeleton.
+        options.Password.RequireDigit = true;
+        options.Password.RequireLowercase = true;
+        options.Password.RequireUppercase = true;
+        options.Password.RequireNonAlphanumeric = true;
+        options.Password.RequiredLength = 8;
+        options.Password.RequiredUniqueChars = 3;
+
+        options.User.RequireUniqueEmail = true;
+        options.SignIn.RequireConfirmedEmail = false;
+
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.AllowedForNewUsers = true;
+    })
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
+
+// Replace Identity's default PBKDF2 hasher with argon2id (constitution IV).
+builder.Services.AddSingleton<IPasswordHasher<User>, Argon2PasswordHasher>();
+
+// --- Authentication: JWT carried in an httpOnly cookie ----------------------
+// Bind JwtOptions from config so the validation parameters are resolved lazily
+// (honours config layered in after composition, e.g. by the test host).
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer();
+
+builder.Services
+    .AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+    .Configure<IOptions<JwtOptions>>((bearer, jwtAccessor) =>
+    {
+        var jwt = jwtAccessor.Value;
+        bearer.MapInboundClaims = false;
+        bearer.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = jwt.Issuer,
+            ValidateAudience = true,
+            ValidAudience = jwt.Audience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.FromSeconds(30),
+        };
+        bearer.Events = new JwtBearerEvents
+        {
+            // Read the token from the httpOnly cookie instead of the
+            // Authorization header (constitution Principle IV).
+            OnMessageReceived = context =>
+            {
+                if (context.Request.Cookies.TryGetValue(AuthCookieDefaults.AccessTokenCookie, out var token)
+                    && !string.IsNullOrEmpty(token))
+                {
+                    context.Token = token;
+                }
+
+                return Task.CompletedTask;
+            },
+            // Emit a generic ProblemDetails body on 401 (no internals leaked).
+            OnChallenge = async context =>
+            {
+                context.HandleResponse();
+                if (!context.Response.HasStarted)
+                {
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    context.Response.ContentType = "application/problem+json";
+                    var problem = new
+                    {
+                        type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                        title = "Unauthorized",
+                        status = StatusCodes.Status401Unauthorized,
+                        detail = "Authentication is required to access this resource.",
+                    };
+                    var json = JsonSerializer.Serialize(
+                        problem,
+                        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+                    await context.Response.WriteAsync(json);
+                }
+            },
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 // --- Mapping (Mapster) -----------------------------------------------------
 builder.Services.AddMappingConfig();
