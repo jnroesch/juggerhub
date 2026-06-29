@@ -1,0 +1,53 @@
+<main class="min-h-screen p-md sm:p-xl">
+  <div class="mx-auto w-full max-w-3xl">
+    <header>
+      <h1 class="text-heading-lg font-semibold text-ink">Dashboard</h1>
+      <p class="mt-xs text-body-sm text-subtle">
+        JuggerHub walking skeleton — live system health
+      </p>
+    </header>
+
+    <section
+      class="mt-xl rounded-lg border border-border bg-surface p-xl shadow-card"
+      data-testid="health-card"
+    >
+      @if (loading()) {
+        <p class="text-body-md text-subtle" data-testid="health-loading">
+          Checking system health…
+        </p>
+      } @else if (failed() || !health()) {
+        <p class="text-body-md text-danger" data-testid="health-error">
+          Unable to reach the backend.
+        </p>
+      } @else {
+        <div class="flex items-center gap-sm">
+          <span
+            class="inline-block h-3 w-3 shrink-0 rounded-full"
+            [class.bg-success]="health()!.status === 'healthy'"
+            [class.bg-danger]="health()!.status !== 'healthy'"
+            aria-hidden="true"
+          ></span>
+          <span
+            class="text-heading-md font-semibold capitalize text-ink"
+            data-testid="health-status"
+          >
+            {{ health()!.status }}
+          </span>
+        </div>
+
+        <dl class="mt-md grid grid-cols-1 gap-md sm:grid-cols-2">
+          <div>
+            <dt class="text-body-sm text-subtle">Database</dt>
+            <dd class="text-body-md capitalize text-text" data-testid="health-database">
+              {{ health()!.database }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-body-sm text-subtle">API version</dt>
+            <dd class="text-body-md text-text">{{ health()!.version }}</dd>
+          </div>
+        </dl>
+      }
+    </section>
+  </div>
+</main>

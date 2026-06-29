@@ -66,16 +66,16 @@ description: "Task list for Project Scaffold (Walking Skeleton)"
 
 ### Tests for User Story 1
 
-- [ ] T019 [P] [US1] Integration test in `backend/tests/JuggerHub.Api.IntegrationTests/HealthEndpointTests.cs`: `GET /api/v1/health` → 200 with `database: reachable` against the Testcontainers Postgres
-- [ ] T020 [P] [US1] e2e test in `frontend/apps/web-e2e/src/health.spec.ts`: dashboard loads and renders the health status
+- [X] T019 [P] [US1] Integration test in `backend/tests/JuggerHub.Api.IntegrationTests/HealthEndpointTests.cs`: `GET /api/v1/health` → 200 with `database: reachable` against the Testcontainers Postgres
+- [X] T020 [P] [US1] e2e test in `frontend/apps/web-e2e/src/health.spec.ts`: dashboard loads and renders the health status
 
 ### Implementation for User Story 1
 
-- [ ] T021 [P] [US1] Create `backend/Dtos/HealthDto.cs` (`status`, `database`, `version`, `timestamp`)
-- [ ] T022 [US1] Create `backend/Services/Health/IHealthService.cs` + `HealthService.cs` — checks DB connectivity (health check / `CanConnectAsync`), returns `HealthDto` (`version` from the API assembly's informational version); never throws on DB-down (FR-004)
-- [ ] T023 [US1] Create thin `backend/Controllers/HealthController.cs` → `GET /api/v1/health` (public, delegates to `IHealthService` and returns the `HealthDto` directly — Mapster is registered for the DTO pattern, but trivial read models like this are constructed directly rather than mapped)
-- [ ] T024 [P] [US1] Create `frontend/apps/web/src/app/core/services/health.service.ts` calling relative `/api/v1/health`
-- [ ] T025 [US1] Create `frontend/apps/web/src/app/features/dashboard/dashboard.component.{ts,html,css}` displaying the health status and route it as a default page (depends on T024)
+- [X] T021 [P] [US1] Create `backend/Dtos/HealthDto.cs` (`status`, `database`, `version`, `timestamp`)
+- [X] T022 [US1] Create `backend/Services/Health/IHealthService.cs` + `HealthService.cs` — checks DB connectivity (health check / `CanConnectAsync`), returns `HealthDto` (`version` from the API assembly's informational version); never throws on DB-down (FR-004)
+- [X] T023 [US1] Create thin `backend/Controllers/HealthController.cs` → `GET /api/v1/health` (public, delegates to `IHealthService` and returns the `HealthDto` directly — Mapster is registered for the DTO pattern, but trivial read models like this are constructed directly rather than mapped)
+- [X] T024 [P] [US1] Create `frontend/apps/web/src/app/core/services/health.service.ts` calling relative `/api/v1/health`
+- [X] T025 [US1] Create `frontend/apps/web/src/app/features/dashboard/dashboard.component.{ts,html,css}` displaying the health status and route it as a default page (depends on T024)
 
 **Checkpoint**: US1 is independently demoable — the walking skeleton's core slice works end-to-end.
 

@@ -2,6 +2,7 @@ using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Entities;
+using JuggerHub.Services.Health;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,6 +32,9 @@ builder.Services
 
 // --- Mapping (Mapster) -----------------------------------------------------
 builder.Services.AddMappingConfig();
+
+// --- Application services --------------------------------------------------
+builder.Services.AddScoped<IHealthService, HealthService>();
 
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services
