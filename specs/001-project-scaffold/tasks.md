@@ -159,7 +159,7 @@ description: "Task list for Project Scaffold (Walking Skeleton)"
 - [X] T044 [P] Verify no host-only/`.sh` project scripts were added by this feature; any new tooling scripts are PowerShell `.ps1` (Principle VI)
 - [X] T045 Run the full `quickstart.md` validation (all 9 steps) end-to-end and record pass/fail per success criterion
 - [X] T046 [P] Run the changed diff through `/code-review` (or `/speckit-analyze` for spec↔code drift) and address findings
-- [ ] T047 Trigger the Graphify rebuild, record a claude-mem note of the key scaffolding decisions, and update the Backlog item status
+- [X] T047 Trigger the Graphify rebuild, record a claude-mem note of the key scaffolding decisions, and update the Backlog item status
 
 ---
 
