@@ -12,8 +12,8 @@ is** (if any).
 ## Structure
 
 ```
-├── backend/              # Backend application (.NET: Dockerfile, EmailTemplates, Services)
-├── frontend/             # Frontend application (Dockerfile)
+├── backend/              # .NET 10 API (JuggerHub.Api: Controllers/Services/Entities/Data/Dtos/Common, tests/, Dockerfile)
+├── frontend/             # Nx + Angular workspace (apps/web, apps/web-e2e, nginx.conf, Dockerfile)
 ├── .specify/             # Spec-Kit: specs, plans, tasks, constitution (source of truth)
 ├── backlog/              # Backlog.md: tasks, drafts, decisions, docs
 ├── .claude/              # Claude Code: Spec-Kit skills + settings (GSD agents/commands/hooks are git-ignored, regenerated)
@@ -152,14 +152,51 @@ Never store secrets in code, specs, Backlog.md, Graphify, or claude-mem.
 
 ---
 
-## Docker development
+## Running the application & tests (Docker-only)
 
-```bash
-docker compose up -d            # Start all services
-docker compose logs -f          # View logs
-docker compose up -d --build    # Rebuild after changes
-docker compose down             # Stop all services
+The application and **all** tests run in containers — there is no host-level
+dev-server workflow (no `ng serve`) and no host .NET/Node runtime is required.
+You only need **Docker + Docker Compose**.
+
+### Start the stack
+
+```pwsh
+Copy-Item .env.sample .env      # review values; defaults work for local
+docker compose up -d --build    # database, backend, frontend, mailpit
+docker compose ps               # all services Up; backend/frontend become healthy
+docker compose down             # stop (add -v to also drop the db volume)
 ```
+
+The backend **auto-applies EF Core migrations on startup** against the (initially
+empty) PostgreSQL 18 database — no manual migration step.
+
+| Surface | URL |
+|---------|-----|
+| Web app (dashboard) | http://localhost:3000 |
+| API (same-origin via the app proxy) | http://localhost:3000/api/v1/health |
+| API (direct) | http://localhost:8080/api/v1/health |
+| **Scalar** API reference (Development only) | http://localhost:8080/scalar/v1 |
+| Mailpit (local email capture) | http://localhost:8025 |
+
+> Interactive API docs are served by **Scalar** over the built-in
+> `Microsoft.AspNetCore.OpenApi` document (no Swagger UI), and only in the
+> Development environment.
+
+### Run the test suites — all in containers
+
+A `docker-compose.test.yml` overlay runs each suite with no host runtimes:
+
+```pwsh
+$test = "docker compose -f docker-compose.yml -f docker-compose.test.yml"
+
+iex "$test run --rm backend-test"    # xUnit + Testcontainers (real Postgres)
+iex "$test run --rm frontend-test"   # Jest unit tests
+iex "$test run --rm playwright"      # Playwright e2e (desktop + mobile) vs the running stack
+```
+
+`backend-test` mounts the Docker socket so Testcontainers can spin up a sibling
+Postgres; `playwright` targets the running `frontend` container, so start the
+stack first.
 
 ---
 
