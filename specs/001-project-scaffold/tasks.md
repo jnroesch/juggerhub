@@ -112,14 +112,14 @@ description: "Task list for Project Scaffold (Walking Skeleton)"
 
 ### Tests for User Story 3
 
-- [ ] T033 [P] [US3] Responsive e2e in `frontend/apps/web-e2e/src/responsive.spec.ts`: dashboard renders and nav stays reachable with no clipped content / horizontal scroll at both desktop (~1280×800) and mobile (~375px) projects
-- [ ] T034 [P] [US3] Replace the placeholder Jest smoke spec (from T018) with a real sample unit test in `frontend/apps/web/src/app/...` (e.g. `health.service` or a shell component) proving the unit harness runs against real code
+- [X] T033 [P] [US3] Responsive e2e in `frontend/apps/web-e2e/src/responsive.spec.ts`: dashboard renders and nav stays reachable with no clipped content / horizontal scroll at both desktop (~1280×800) and mobile (~375px) projects
+- [X] T034 [P] [US3] Replace the placeholder Jest smoke spec (from T018) with a real sample unit test in `frontend/apps/web/src/app/...` (e.g. `health.service` or a shell component) proving the unit harness runs against real code
 
 ### Implementation for User Story 3
 
-- [ ] T035 [US3] Expose the OpenAPI document + **Scalar** UI (Development-only) at `/scalar/v1` integrated with the versioning ApiExplorer, in `backend/Program.cs`
-- [ ] T036 [P] [US3] Build the responsive app shell — `frontend/apps/web/src/app/layout/shell/`, `layout/top-nav/`, `layout/sidebar/` (each `.ts`/`.html`/`.css`) — sidebar collapses to a drawer below a breakpoint; styled from DESIGN.md tokens
-- [ ] T037 [US3] Mount the dashboard inside the shell and set it as the default authed route (depends on T036, and on T025)
+- [X] T035 [US3] Expose the OpenAPI document + **Scalar** UI (Development-only) at `/scalar/v1` integrated with the versioning ApiExplorer, in `backend/Program.cs`
+- [X] T036 [P] [US3] Build the responsive app shell — `frontend/apps/web/src/app/layout/shell/`, `layout/top-nav/`, `layout/sidebar/` (each `.ts`/`.html`/`.css`) — sidebar collapses to a drawer below a breakpoint; styled from DESIGN.md tokens
+- [X] T037 [US3] Mount the dashboard inside the shell and set it as the default authed route (depends on T036, and on T025)
 
 **Checkpoint**: The shell + conventions are demonstrable and responsive; new features have a clear pattern to follow.
 

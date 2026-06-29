@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -144,6 +145,9 @@ builder.Services
         options.SubstituteApiVersionInUrl = true;
     });
 
+// --- OpenAPI document (rendered by Scalar in Development) -------------------
+builder.Services.AddOpenApi("v1");
+
 var app = builder.Build();
 
 // --- Auto-apply EF migrations on startup (fail-fast) -----------------------
@@ -155,6 +159,14 @@ await ApplyMigrationsAsync(app);
 // --- Middleware pipeline ----------------------------------------------------
 // Exception handler is registered first so it wraps the whole pipeline.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// Interactive API reference (Scalar over the built-in OpenAPI document),
+// Development-only so the schema/UI is never exposed in Prod.
+if (app.Environment.IsDevelopment())
+{
+    app.MapOpenApi();
+    app.MapScalarApiReference();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
