@@ -9,6 +9,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=database;Port=5432;Database=${DB_NAME:-appdb};Username=${DB_USER:-postgres};Password=${DB_PASSWORD:-postgres}
+      - Jwt__Issuer=${JWT_ISSUER:-juggerhub}
+      - Jwt__Audience=${JWT_AUDIENCE:-juggerhub}
+      - Jwt__SigningKey=${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set in .env}
+      - Jwt__AccessTokenLifetimeMinutes=${JWT_ACCESS_TOKEN_LIFETIME_MINUTES:-15}
       - Email__SmtpHost=mailpit
       - Email__SmtpPort=1025
       - Email__Provider=Smtp
@@ -19,6 +23,12 @@ services:
         condition: service_healthy
       mailpit:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
 
   frontend:
     build:
@@ -30,10 +40,19 @@ services:
     networks:
       - juggerhub-network
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      # Use 127.0.0.1 (not localhost) — nginx listens on IPv4 only, and busybox
+      # wget would otherwise try IPv6 ::1 and get connection-refused.
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   database:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: juggerhub-database
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}

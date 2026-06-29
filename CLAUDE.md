@@ -7,12 +7,14 @@ This project uses:
 * **Backlog.md** for intake and prioritization only.
 * **Graphify** for codebase understanding and impact analysis.
 * **claude-mem** for historical session memory.
-* **GSD** for implementation execution.
 * **Custom skills** for specialist workflows.
+
+Implementation is executed directly — task-by-task with small commits and
+verification — or, for a Spec-Kit `tasks.md`, via the `/speckit-implement` skill.
 
 Core rule:
 
-> Spec-Kit decides. DESIGN.md styles. Backlog.md queues. Graphify maps. claude-mem remembers. Skills specialize. GSD executes.
+> Spec-Kit decides. DESIGN.md styles. Backlog.md queues. Graphify maps. claude-mem remembers. Skills specialize.
 
 ---
 
@@ -29,7 +31,7 @@ When sources conflict, use this priority order:
 7. claude-mem memory
 8. General model knowledge
 
-Never let Backlog.md, Graphify, claude-mem, GSD, or skills override Spec-Kit.
+Never let Backlog.md, Graphify, claude-mem, or skills override Spec-Kit.
 
 Never let claude-mem override current code, tests, specs, or explicit user instructions.
 
@@ -59,7 +61,7 @@ Before significant implementation, prefer:
 3. Clarify requirements
 4. Create or update plan
 5. Create tasks
-6. Execute with GSD
+6. Execute the tasks via `/speckit-implement`
 
 Do not implement significant behavior changes directly from Backlog.md.
 
@@ -111,11 +113,11 @@ When a backlog item is selected, classify it:
 
 Then route it:
 
-* Tiny fix → Graphify or direct inspection → GSD → verify
-* UI fix → DESIGN.md → Graphify → UI skill → GSD → verify
-* Bug → Graphify → inspect code/tests → GSD → verify
-* Feature → Spec-Kit → Graphify → DESIGN.md if needed → skills → GSD → verify
-* Architecture/refactor → Spec-Kit if architecture changes → Graphify → skills → GSD → verify
+* Tiny fix → Graphify or direct inspection → implement → verify
+* UI fix → DESIGN.md → Graphify → UI skill → implement → verify
+* Bug → Graphify → inspect code/tests → implement → verify
+* Feature → Spec-Kit → Graphify → DESIGN.md if needed → skills → implement → verify
+* Architecture/refactor → Spec-Kit if architecture changes → Graphify → skills → implement → verify
 * Research → Graphify/claude-mem/specs → summarize findings, no code changes
 
 Promote a backlog item into Spec-Kit only when it changes behavior, APIs, schema, auth, permissions, billing, architecture, or has unclear acceptance criteria.
@@ -178,22 +180,21 @@ At the end of meaningful work, allow memory of:
 
 ---
 
-### GSD
+### Execution
 
-Use GSD to execute known work.
-
-GSD should:
+Execute known work directly — or, for a Spec-Kit `tasks.md`, via the
+`/speckit-implement` skill. When executing:
 
 * read relevant Spec-Kit files first
 * read DESIGN.md before UI work
 * query Graphify before unfamiliar code edits
 * check claude-mem when continuing work
 * use relevant skills
-* work in small phases
+* work in small phases with small commits
 * verify changes
 * report spec drift
 
-Do not use GSD to invent requirements or silently change scope.
+Do not invent requirements or silently change scope.
 
 ---
 
@@ -218,7 +219,7 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 7. Read DESIGN.md if UI is involved
 8. Check claude-mem if continuing prior work
 9. Select skills
-10. Execute with GSD
+10. Execute via `/speckit-implement`
 11. Verify
 12. Report changes and spec drift
 
@@ -229,7 +230,7 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 3. Inspect code/tests
 4. Determine expected behavior
 5. Use Spec-Kit only if expected behavior is unclear
-6. Fix with GSD
+6. Fix it
 7. Add/update tests when useful
 8. Verify
 
@@ -239,7 +240,7 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 2. Query Graphify for affected components/routes/state
 3. Use UI/design skill
 4. Use Spec-Kit if behavior changes
-5. Execute with GSD
+5. Execute the change
 6. Verify layout, responsiveness, states, and basic accessibility
 
 ### Refactor
@@ -247,7 +248,7 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 1. Query Graphify for dependencies and impact
 2. Use Spec-Kit if architecture changes
 3. Preserve behavior unless explicitly told otherwise
-4. Execute in small GSD phases
+4. Execute in small phases
 5. Verify after meaningful changes
 
 ### Research
@@ -320,9 +321,9 @@ Never claim verification passed if it was not run.
 
 * “What should I work on next?” → Backlog.md
 * “Build this feature” → Spec-Kit first
-* “Implement this task” → Spec-Kit/Backlog.md context → Graphify → GSD
-* “Fix this bug” → Graphify → inspect code/tests → GSD
-* “Change this UI” → DESIGN.md → Graphify → UI skill → GSD
+* “Implement this task” → Spec-Kit/Backlog.md context → Graphify → implement
+* “Fix this bug” → Graphify → inspect code/tests → implement
+* “Change this UI” → DESIGN.md → Graphify → UI skill → implement
 * “Refactor this” → Graphify first, Spec-Kit if architecture changes
 * “Continue from last time” → claude-mem, then validate against specs/code
 
@@ -330,7 +331,8 @@ Always choose the smallest responsible process.
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+shell commands, and other important information, read the current plan:
+`specs/001-project-scaffold/plan.md` (Project Scaffold — walking skeleton).
 <!-- SPECKIT END -->
 
 <!-- BACKLOG.MD GUIDELINES START -->

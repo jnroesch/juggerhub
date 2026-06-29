@@ -1,0 +1,30 @@
+<!-- Backdrop: only on mobile when the drawer is open. -->
+@if (open()) {
+  <button
+    type="button"
+    class="fixed inset-0 z-30 bg-ink/40 md:hidden"
+    aria-label="Close navigation"
+    data-testid="sidebar-backdrop"
+    (click)="closed.emit()"
+  ></button>
+}
+
+<aside
+  class="fixed inset-y-0 left-0 z-40 w-64 -translate-x-full border-r border-border bg-surface p-md transition-transform duration-200 md:static md:z-auto md:translate-x-0 md:transition-none"
+  [class.translate-x-0]="open()"
+  data-testid="sidebar"
+>
+  <nav class="flex flex-col gap-xs" aria-label="Primary">
+    @for (item of items; track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="bg-surface-subtle text-ink"
+        [routerLinkActiveOptions]="{ exact: item.path === '/' }"
+        class="rounded-md px-sm py-xs text-body-md text-text hover:bg-surface-subtle"
+        (click)="closed.emit()"
+      >
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+</aside>

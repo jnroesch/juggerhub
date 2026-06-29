@@ -1,0 +1,147 @@
+openapi: 3.0.3
+info:
+  title: JuggerHub API
+  version: "1.0.0"
+  description: >-
+    Walking-skeleton API surface. Only the two endpoints proving the stack and the
+    auth boundary are defined here. Auth endpoints (register/login/forgot) and the
+    Teams/Tournaments/Forum domains are out of scope for this feature.
+servers:
+  - url: /api/v1
+    description: Version 1 (same-origin; reached via the frontend /api proxy)
+
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: System health (public)
+      description: >-
+        Reports overall status and database reachability. Always returns 200 with a
+        body describing status (even when the database is unreachable) so the
+        dashboard can render the condition rather than receive a raw error.
+      security: []   # public — no authentication
+      responses:
+        "200":
+          description: Health status (healthy, degraded, or unhealthy)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthDto"
+              examples:
+                healthy:
+                  value:
+                    status: healthy
+                    database: reachable
+                    version: "1.0.0"
+                    timestamp: "2026-06-29T12:00:00Z"
+                dbDown:
+                  value:
+                    status: unhealthy
+                    database: unreachable
+                    version: "1.0.0"
+                    timestamp: "2026-06-29T12:00:00Z"
+
+  /diagnostics/whoami:
+    get:
+      operationId: getWhoAmI
+      summary: Protected sample endpoint (proves the auth pipeline)
+      description: >-
+        Returns the authenticated principal's id. Exists solely to demonstrate that
+        the [Authorize] pipeline is enforced. No auth UI/endpoint issues the cookie
+        yet, so in the walking skeleton this returns 401 in normal use.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: The authenticated caller's identity
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WhoAmIDto"
+        "401":
+          description: No valid authentication cookie present
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetails"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jh_access
+      description: >-
+        JWT carried in a secure httpOnly cookie. Never readable by client scripts;
+        never placed in localStorage. Issued by the future auth feature.
+
+  schemas:
+    HealthDto:
+      type: object
+      required: [status, database, version, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        database:
+          type: string
+          enum: [reachable, unreachable]
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    WhoAmIDto:
+      type: object
+      required: [userId, authenticated]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        authenticated:
+          type: boolean
+
+    ProblemDetails:
+      type: object
+      description: RFC7231-style generic error. Never contains stack traces or secrets.
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+
+    PaginationRequest:
+      type: object
+      description: >-
+        Shared paging input for future list endpoints (not used by the two
+        endpoints above; documented as a reusable primitive).
+      properties:
+        skip:
+          type: integer
+          default: 0
+          minimum: 0
+        take:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+
+    PagedResult:
+      type: object
+      description: Shared paged-list envelope for future list endpoints.
+      required: [items, totalCount, skip, take]
+      properties:
+        items:
+          type: array
+          items: {}
+        totalCount:
+          type: integer
+        skip:
+          type: integer
+        take:
+          type: integer

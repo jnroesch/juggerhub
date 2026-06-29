@@ -1,0 +1,17 @@
+# Keep the build context small and free of stale build artifacts.
+# NOTE: tests/ is intentionally NOT excluded — the Dockerfile's `test` stage
+# compiles and runs it. The runtime stage stays lean because it only copies the
+# publish output (which never includes the test project).
+bin/
+obj/
+
+# IDE / OS noise
+.vs/
+*.user
+.DS_Store
+Thumbs.db
+
+# Local env (never bake secrets into an image)
+.env
+.env.*
+!.env.sample

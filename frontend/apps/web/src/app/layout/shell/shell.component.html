@@ -1,0 +1,11 @@
+<div class="flex min-h-screen flex-col bg-background">
+  <jh-top-nav (menuToggle)="toggleSidebar()" />
+
+  <div class="flex flex-1">
+    <jh-sidebar [open]="sidebarOpen()" (closed)="closeSidebar()" />
+
+    <main class="min-w-0 flex-1">
+      <router-outlet />
+    </main>
+  </div>
+</div>

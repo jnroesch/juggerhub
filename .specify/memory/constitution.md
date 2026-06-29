@@ -376,7 +376,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 
 ## Development Workflow & Quality Gates
 
-These gates apply to all changes and integrate with the Spec-Kit → GSD workflow in
+These gates apply to all changes and integrate with the Spec-Kit workflow in
 [CLAUDE.md](../../CLAUDE.md):
 
 1. **Architecture**: controllers stay thin; logic lives in DI'd services behind
