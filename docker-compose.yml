@@ -3,7 +3,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: app-backend
+    container_name: juggerhub-backend
     ports:
       - "8080:8080"
     environment:
@@ -13,7 +13,7 @@ services:
       - Email__SmtpPort=1025
       - Email__Provider=Smtp
     networks:
-      - app-network
+      - juggerhub-network
     depends_on:
       database:
         condition: service_healthy
@@ -24,17 +24,17 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: app-frontend
+    container_name: juggerhub-frontend
     ports:
       - "3000:80"
     networks:
-      - app-network
+      - juggerhub-network
     depends_on:
       - backend
 
   database:
     image: postgres:16-alpine
-    container_name: app-database
+    container_name: juggerhub-database
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
@@ -44,7 +44,7 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
-      - app-network
+      - juggerhub-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-appdb}"]
       interval: 5s
@@ -59,7 +59,7 @@ services:
       - "1025:1025"
 
 networks:
-  app-network:
+  juggerhub-network:
     driver: bridge
 
 volumes:

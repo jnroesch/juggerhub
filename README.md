@@ -1,8 +1,7 @@
-# Project Template
+# JuggerHub
 
-A base repository template for new applications with a Docker-based development
-setup, CI/CD workflows, and an integrated **AI-assisted development toolchain**
-for use with Claude Code.
+The JuggerHub repository, with a Docker-based development setup, CI/CD workflows,
+and an integrated **AI-assisted development toolchain** for use with Claude Code.
 
 The full workflow rules and routing live in [CLAUDE.md](CLAUDE.md) — read that
 first. This README focuses on **what each tool is, how it runs, and where its UI

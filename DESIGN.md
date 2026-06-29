@@ -1,8 +1,8 @@
 ---
 version: alpha
-name: Cursor Template Design System
+name: JuggerHub Design System
 description: >-
-  Visual identity for the Cursor Template application. Tokens are derived from
+  Visual identity for the JuggerHub application. Tokens are derived from
   the existing transactional email templates (backend/EmailTemplates) and map to
   the standard Tailwind palette. This is the starting baseline — extend it as the
   frontend evolves, and keep it as the single source of truth for UI/visual work.
@@ -97,7 +97,7 @@ components:
 
 ## Overview
 
-The Cursor Template visual identity is clean, modern, and calm: a neutral gray
+The JuggerHub visual identity is clean, modern, and calm: a neutral gray
 foundation, generous whitespace on an 8px rhythm, and an indigo→violet brand
 accent reserved for primary actions and key moments. The goal is clarity and
 trust — interfaces should feel uncluttered and legible, with color used

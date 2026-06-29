@@ -71,7 +71,7 @@
         "processId": "${command:pickRemoteProcess}",
         "pipeTransport": {
           "pipeProgram": "docker",
-          "pipeArgs": ["exec", "-i", "app-backend"],
+          "pipeArgs": ["exec", "-i", "juggerhub-backend"],
           "debuggerPath": "/remote_debugger/vsdbg",
           "pipeCwd": "${workspaceFolder}",
           "quoteArgs": false
@@ -152,7 +152,7 @@
       {
         "label": "Install vsdbg",
         "type": "shell",
-        "command": "docker exec -i app-backend bash -c 'curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /remote_debugger'",
+        "command": "docker exec -i juggerhub-backend bash -c 'curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /remote_debugger'",
         "group": "build",
         "presentation": {
           "reveal": "always",

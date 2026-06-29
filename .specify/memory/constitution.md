@@ -1,4 +1,4 @@
-# Project Template Constitution
+# JuggerHub Constitution
 
 This constitution is the single source of truth for architecture, security, and
 engineering conventions in this repository. It consolidates the guidance that

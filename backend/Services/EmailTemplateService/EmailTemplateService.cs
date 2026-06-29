@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Templixir.Services;
+namespace JuggerHub.Services;
 
 public class EmailTemplateService : IEmailTemplateService
 {
@@ -27,11 +27,11 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var variables = new Dictionary<string, object>
         {
-            ["EMAIL_TITLE"] = "Reset Your Password - Templixir",
+            ["EMAIL_TITLE"] = "Reset Your Password - JuggerHub",
             ["RESET_URL"] = resetUrl,
             ["RESET_TOKEN"] = resetToken,
             ["USER_EMAIL"] = userEmail,
-            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.templixir.com")
+            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")
         };
 
         return await GenerateEmailAsync("password-reset", variables);
@@ -89,7 +89,7 @@ public class EmailTemplateService : IEmailTemplateService
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
             {"COMPANY_NAME", companyName},
-            {"DASHBOARD_URL", GetConfigValue("EmailSettings:FrontendUrl", "https://app.templixir.com")},
+            {"DASHBOARD_URL", GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")},
             {"CREATED_DATE", createdDate.ToString("MMMM dd, yyyy")}
         };
 
@@ -106,7 +106,7 @@ public class EmailTemplateService : IEmailTemplateService
             ["CHANGE_DATE"] = changeDate.ToString("MMMM dd, yyyy"),
             ["CHANGE_TIME"] = changeDate.ToString("HH:mm:ss UTC"),
             ["IP_ADDRESS"] = ipAddress,
-            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.templixir.com")
+            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")
         };
 
         return await GenerateEmailAsync("password-change-notification", variables);
@@ -130,7 +130,7 @@ public class EmailTemplateService : IEmailTemplateService
             ["LOGIN_STATUS"] = isSuccessful ? "Successful" : "Failed",
             ["STATUS_STYLE"] = statusStyle,
             ["UNUSUAL_REASONS"] = unusualReasons,
-            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.templixir.com")
+            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")
         };
 
         return await GenerateEmailAsync("unusual-login", variables);
@@ -141,13 +141,13 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var variables = new Dictionary<string, object>
         {
-            ["EMAIL_TITLE"] = "Access Request - Templixir",
+            ["EMAIL_TITLE"] = "Access Request - JuggerHub",
             ["OWNER_NAME"] = ownerName,
             ["OWNER_EMAIL"] = ownerEmail,
             ["TEMPLATE_NAME"] = templateName,
             ["REQUESTER_EMAIL"] = string.IsNullOrWhiteSpace(requesterEmail) ? "anonymous" : requesterEmail,
             ["REQUEST_MESSAGE"] = message,
-            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.templixir.com"),
+            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com"),
             ["CURRENT_YEAR"] = DateTime.Now.Year
         };
 

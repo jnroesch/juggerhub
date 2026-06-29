@@ -1,4 +1,4 @@
-namespace Templixir.Services;
+namespace JuggerHub.Services;
 
 public interface IEmailTemplateService
 {
