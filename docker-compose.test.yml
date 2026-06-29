@@ -1,0 +1,48 @@
+# Test overlay — runs every suite in containers (no host runtimes).
+# Compose with the base file, e.g.:
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm backend-test
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm frontend-test
+#   docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm playwright
+
+services:
+  # Backend integration tests (xUnit + WebApplicationFactory + Testcontainers).
+  # The Docker socket is mounted so Testcontainers can spin up a sibling Postgres
+  # via the host daemon; HOST_OVERRIDE makes the returned connection address
+  # resolve from inside this container.
+  backend-test:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: test
+    environment:
+      - TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal
+      - TESTCONTAINERS_RYUK_DISABLED=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - juggerhub-network
+
+  # Frontend unit tests (Jest), headless.
+  frontend-test:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: test
+    networks:
+      - juggerhub-network
+
+  # Frontend e2e (Playwright) at desktop + mobile, against the running stack.
+  playwright:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: playwright
+    environment:
+      - BASE_URL=http://frontend:80
+    depends_on:
+      frontend:
+        condition: service_healthy
+    networks:
+      - juggerhub-network

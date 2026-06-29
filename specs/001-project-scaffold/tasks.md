@@ -133,11 +133,11 @@ description: "Task list for Project Scaffold (Walking Skeleton)"
 
 ### Implementation for User Story 4
 
-- [ ] T038 [US4] Flesh out `backend/Dockerfile` as multi-stage: `build` → `test` target (runs `dotnet test`) → `runtime` (ENTRYPOINT `JuggerHub.Api.dll`); ensure it builds from `backend/` context with the root `.csproj`
-- [ ] T039 [US4] Flesh out `frontend/Dockerfile` as multi-stage: Nx `build` → `nginx` runtime (with `nginx.conf`); plus a `test` target (Jest) and a Playwright stage (official Playwright image) for e2e
-- [ ] T040 [US4] Add root `docker-compose.test.yml` overlay with `backend-test` (mounts `/var/run/docker.sock` for Testcontainers), `frontend-test` (Jest), and `playwright` (e2e vs the running `frontend`, desktop+mobile) services
-- [ ] T041 [US4] Validate container-only run + auto-migrate against an empty DB per quickstart steps 1–3 (single-command up; healthy; DB-down degrades) and record results
-- [ ] T042 [US4] Run the full suite entirely via the Docker overlay (`backend-test`, `frontend-test`, `playwright`) and confirm green — no host runtimes used (SC-006, SC-010)
+- [X] T038 [US4] Flesh out `backend/Dockerfile` as multi-stage: `build` → `test` target (runs `dotnet test`) → `runtime` (ENTRYPOINT `JuggerHub.Api.dll`); ensure it builds from `backend/` context with the root `.csproj`
+- [X] T039 [US4] Flesh out `frontend/Dockerfile` as multi-stage: Nx `build` → `nginx` runtime (with `nginx.conf`); plus a `test` target (Jest) and a Playwright stage (official Playwright image) for e2e
+- [X] T040 [US4] Add root `docker-compose.test.yml` overlay with `backend-test` (mounts `/var/run/docker.sock` for Testcontainers), `frontend-test` (Jest), and `playwright` (e2e vs the running `frontend`, desktop+mobile) services
+- [X] T041 [US4] Validate container-only run + auto-migrate against an empty DB per quickstart steps 1–3 (single-command up; healthy; DB-down degrades) and record results
+- [X] T042 [US4] Run the full suite entirely via the Docker overlay (`backend-test`, `frontend-test`, `playwright`) and confirm green — no host runtimes used (SC-006, SC-010)
 
 **Checkpoint**: Reproducible, Docker-only environment proven; all tests green in containers.
 

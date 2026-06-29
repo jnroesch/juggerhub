@@ -1,6 +1,7 @@
-# Keep the build context small and the runtime image free of test/build cruft.
-# The runtime stage must not contain the test project.
-tests/
+# Keep the build context small and free of stale build artifacts.
+# NOTE: tests/ is intentionally NOT excluded — the Dockerfile's `test` stage
+# compiles and runs it. The runtime stage stays lean because it only copies the
+# publish output (which never includes the test project).
 bin/
 obj/
 

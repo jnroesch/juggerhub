@@ -3,8 +3,10 @@ import { nxE2EPreset } from '@nx/playwright/preset';
 import { workspaceRoot } from '@nx/devkit';
 
 // Base URL of the app under test. Locally this is the Nx dev server; in the
-// Docker test overlay (US4) it is overridden to the running frontend container.
+// Docker test overlay (US4) BASE_URL points at the running frontend container,
+// in which case we do NOT start a dev server.
 const baseURL = process.env['BASE_URL'] || 'http://localhost:4200';
+const usesExternalServer = Boolean(process.env['BASE_URL']);
 
 /**
  * Generated as a .mts file so Node forces ESM regardless of workspace `type`.
@@ -20,14 +22,17 @@ export default defineConfig({
     /* Collect trace when retrying the failed test. */
     trace: 'on-first-retry',
   },
-  /* Run the local dev server before tests. When BASE_URL points at an already
-     running stack (the Docker overlay), reuseExistingServer short-circuits this. */
-  webServer: {
-    command: 'npx nx run web:serve',
-    url: 'http://localhost:4200',
-    reuseExistingServer: true,
-    cwd: workspaceRoot,
-  },
+  /* Run the local dev server before tests — but only when targeting localhost.
+     In the Docker overlay BASE_URL points at the running frontend container, so
+     no dev server is started. */
+  webServer: usesExternalServer
+    ? undefined
+    : {
+        command: 'npx nx run web:serve',
+        url: 'http://localhost:4200',
+        reuseExistingServer: true,
+        cwd: workspaceRoot,
+      },
   projects: [
     {
       name: 'desktop-chromium',
