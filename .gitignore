@@ -62,6 +62,15 @@ yarn-error.log*
 dist/
 build/
 
+# Nx / Angular caches & test output
+.nx/
+.angular/
+coverage/
+test-output/
+playwright-report/
+blob-report/
+.playwright/
+
 # Environment files
 .env
 .env.local
