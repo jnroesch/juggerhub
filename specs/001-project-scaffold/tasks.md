@@ -41,16 +41,16 @@ description: "Task list for Project Scaffold (Walking Skeleton)"
 
 **⚠️ CRITICAL**: No user story work begins until this phase is complete.
 
-- [ ] T007 [P] Create `backend/Entities/BaseEntity.cs` — `Guid Id = Guid.CreateVersion7()`, `DateTime CreatedDate`, `DateTime ModifiedDate`
-- [ ] T008 [P] Create `backend/Entities/User.cs` — `User : IdentityUser<Guid>` (no custom profile fields yet)
-- [ ] T009 Create `backend/Data/AuditFieldsInterceptor.cs` — `SaveChangesInterceptor` setting `CreatedDate` on Added and `ModifiedDate` on Added/Modified (UTC)
-- [ ] T010 Create `backend/Data/AppDbContext.cs` — `IdentityDbContext<User, IdentityRole<Guid>, Guid>`, registering the audit interceptor (depends on T007–T009)
-- [ ] T011 Register data + mapping services in `backend/Program.cs` — `AddDbContext` (Npgsql, connection string from config), ASP.NET Core Identity, and Mapster config in `backend/Common/MappingConfig.cs` (depends on T010)
-- [ ] T012 Generate the initial EF Core migration in `backend/Data/Migrations/` (Identity schema with `uuid` keys) (depends on T011)
-- [ ] T013 Auto-apply migrations on startup with fail-fast (log generic error + exit non-zero on failure) in `backend/Program.cs` (depends on T012)
-- [ ] T014 [P] Create shared primitives `backend/Dtos/PaginationRequest.cs` and `backend/Dtos/PagedResult.cs` (normalization + max page size per constitution)
-- [ ] T015 Create `backend/Common/ExceptionHandlingMiddleware.cs` (RFC7231 `ProblemDetails`, generic detail, no leaks) and register it early in the `backend/Program.cs` pipeline
-- [ ] T016 Configure URL API versioning (`/api/v{n}`, default v1) via `Asp.Versioning` in `backend/Program.cs`
+- [X] T007 [P] Create `backend/Entities/BaseEntity.cs` — `Guid Id = Guid.CreateVersion7()`, `DateTime CreatedDate`, `DateTime ModifiedDate`
+- [X] T008 [P] Create `backend/Entities/User.cs` — `User : IdentityUser<Guid>` (no custom profile fields yet)
+- [X] T009 Create `backend/Data/AuditFieldsInterceptor.cs` — `SaveChangesInterceptor` setting `CreatedDate` on Added and `ModifiedDate` on Added/Modified (UTC)
+- [X] T010 Create `backend/Data/AppDbContext.cs` — `IdentityDbContext<User, IdentityRole<Guid>, Guid>`, registering the audit interceptor (depends on T007–T009)
+- [X] T011 Register data + mapping services in `backend/Program.cs` — `AddDbContext` (Npgsql, connection string from config), ASP.NET Core Identity, and Mapster config in `backend/Common/MappingConfig.cs` (depends on T010)
+- [X] T012 Generate the initial EF Core migration in `backend/Data/Migrations/` (Identity schema with `uuid` keys) (depends on T011)
+- [X] T013 Auto-apply migrations on startup with fail-fast (log generic error + exit non-zero on failure) in `backend/Program.cs` (depends on T012)
+- [X] T014 [P] Create shared primitives `backend/Dtos/PaginationRequest.cs` and `backend/Dtos/PagedResult.cs` (normalization + max page size per constitution)
+- [X] T015 Create `backend/Common/ExceptionHandlingMiddleware.cs` (RFC7231 `ProblemDetails`, generic detail, no leaks) and register it early in the `backend/Program.cs` pipeline
+- [X] T016 Configure URL API versioning (`/api/v{n}`, default v1) via `Asp.Versioning` in `backend/Program.cs`
 - [ ] T017 Frontend app composition: `frontend/apps/web/src/app/app.config.ts`, `app.routes.ts`, `main.ts`, `index.html`, plus `frontend/nginx.conf` serving the SPA and `proxy_pass`ing `/api/` → `http://backend:8080`
 - [ ] T018 Stand up test-harness skeletons: `backend/tests/JuggerHub.Api.IntegrationTests/` (xUnit + `WebApplicationFactory` + `Testcontainers.PostgreSql`, make `Program` partial/public, one trivial passing test); Jest config for `web` plus a placeholder smoke spec (upgraded to a real sample in T034); and `frontend/playwright.config.ts` with **desktop + mobile** projects and one trivial passing spec
 
