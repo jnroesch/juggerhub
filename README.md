@@ -16,7 +16,7 @@ is** (if any).
 ├── frontend/             # Nx + Angular workspace (apps/web, apps/web-e2e, nginx.conf, Dockerfile)
 ├── .specify/             # Spec-Kit: specs, plans, tasks, constitution (source of truth)
 ├── backlog/              # Backlog.md: tasks, drafts, decisions, docs
-├── .claude/              # Claude Code: Spec-Kit skills + settings (GSD agents/commands/hooks are git-ignored, regenerated)
+├── .claude/              # Claude Code: Spec-Kit skills + settings.json
 ├── .githooks/            # Git hooks: auto-rebuild Graphify graph on commit/pull/checkout
 ├── .github/workflows/    # CI/CD pipelines
 ├── CLAUDE.md             # Workflow rules & tool routing — read first
@@ -29,9 +29,9 @@ is** (if any).
 
 ## AI Development Toolchain
 
-Six tools cooperate under the rules in [CLAUDE.md](CLAUDE.md). In one line:
+Five tools cooperate under the rules in [CLAUDE.md](CLAUDE.md). In one line:
 
-> **Spec-Kit** decides · **DESIGN.md** styles · **Backlog.md** queues · **Graphify** maps · **claude-mem** remembers · **GSD** executes.
+> **Spec-Kit** decides · **DESIGN.md** styles · **Backlog.md** queues · **Graphify** maps · **claude-mem** remembers.
 
 | Tool | Version | Role | How it runs | Dedicated UI |
 |------|---------|------|-------------|--------------|
@@ -40,7 +40,9 @@ Six tools cooperate under the rules in [CLAUDE.md](CLAUDE.md). In one line:
 | **Backlog.md** | 1.47.1 | Intake & prioritization (Kanban) | On-demand CLI | ✅ Web UI + terminal Kanban |
 | **Graphify** | 0.9.1 | Codebase knowledge graph / impact analysis | 🔄 **Auto-rebuild on git ops** + on-demand CLI / `/graphify` | ✅ Interactive graph (HTML) |
 | **claude-mem** | 13.8.1 | Cross-session memory | 🔄 **Background worker (auto-starts)** + lifecycle hooks | ✅ Web viewer |
-| **GSD** | 1.6.0 | Implementation execution / meta-prompting | 🔄 **Background hooks (automatic)** + `/gsd-*` slash commands | — |
+
+Implementation is executed directly (task-by-task with small commits and
+verification) or, for a Spec-Kit `tasks.md`, via the `/speckit-implement` skill.
 
 ---
 
@@ -57,19 +59,12 @@ These need no manual start once Claude Code is open in this project:
   - Manual controls if needed: `npx claude-mem status` · `start` · `stop` · `restart` · `doctor`.
   - It only runs while Claude Code is open (which is all that's needed for memory
     capture). For an always-on viewer, add a logon task that runs `claude-mem start`.
-- **GSD hooks** — run automatically on Claude Code tool/lifecycle events:
-  context-window monitor, prompt-injection guard, read-before-edit guard,
-  update check, and more. No UI; they guard and steer execution silently.
-  Hook wiring is in `.claude/settings.local.json` (machine-specific, gitignored).
 - **Graphify auto-rebuild** — tracked git hooks in `.githooks/` run
   `graphify update .` (fast, no-LLM) in the background after **commit, pull,
   branch switch, and rebase**, keeping `graphify-out/` fresh. Editor-agnostic and
   non-blocking; single-flighted via a PID lock; logs to `graphify-out/.rebuild.log`.
   Enable once per clone with `git config core.hooksPath .githooks` (see Setup).
   Community *labels* still need an occasional full build — see the on-demand list.
-  - *Alternative/extra:* GSD also ships an opt-in `graphify.auto_update` flag
-    (`.planning/config.json`) that rebuilds after git ops run **through Claude
-    Code** and feeds the GSD planner's staleness signal.
 
 ### 🖥️ Tools with a dedicated UI
 
@@ -92,8 +87,6 @@ No background process; invoke when needed.
   `/speckit-specify`, `/speckit-clarify`, `/speckit-plan`, `/speckit-tasks`,
   `/speckit-analyze`, `/speckit-checklist`, `/speckit-implement`,
   `/speckit-converge`.
-- **GSD** — primarily Claude slash commands (`/gsd-new-project`, `/gsd-*`); the
-  workflow driver. (Its hooks are the background part above.)
 - **Graphify** — `graphify .` (full build, with LLM community labels),
   `graphify update .` (fast re-extract, no LLM — what the git hooks run),
   `graphify label .` (re-name clusters), `graphify watch <path>` (live rebuild on
@@ -120,19 +113,13 @@ uv   tool install graphifyy && graphify install --platform claude
 # Claude Code plugin (registers + enables; worker auto-starts thereafter)
 npx claude-mem install
 
-# GSD: re-run locally so hooks get correct machine paths (settings.local.json is per-machine)
-npx @opengsd/gsd-core@latest --local --claude
-
 # Enable Graphify auto-rebuild git hooks (tracked in .githooks/)
 git config core.hooksPath .githooks
 ```
 
 Committed config that *does* travel with the repo: `.specify/`, `backlog/`,
 `.claude/skills/` (Spec-Kit) and `.claude/settings.json`, `.githooks/`,
-`CLAUDE.md`, `DESIGN.md`, `.claudeignore`. **GSD's generated output**
-(`.claude/agents/`, `commands/`, `gsd-core/`, `hooks/`, …) is **git-ignored** —
-it embeds absolute machine paths, so each clone regenerates it via the
-`npx @opengsd/gsd-core@latest --local --claude` step above.
+`CLAUDE.md`, `DESIGN.md`, `.claudeignore`.
 
 ---
 

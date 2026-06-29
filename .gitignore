@@ -90,20 +90,7 @@ Thumbs.db
 .docker/
 
 # Claude Code / AI tooling
-# Local, machine-specific settings (GSD writes absolute hook paths here) — keep per-machine
+# Local, machine-specific Claude Code settings — keep per-machine
 .claude/settings.local.json
 # Graphify generated knowledge-graph output
 graphify-out/
-# GSD (Get Stuff Done) — installed per-machine; these files embed absolute,
-# machine-specific paths. Do NOT commit; regenerate in each clone with:
-#   npx @opengsd/gsd-core@latest --local --claude
-.claude/agents/gsd-*
-.claude/commands/gsd-*
-.claude/hooks/
-.claude/gsd-core/
-.claude/scripts/
-.claude/gsd-migration-journal/
-.claude/.gsd-profile
-.claude/gsd-file-manifest.json
-.claude/gsd-install-state.json
-.claude/package.json

@@ -67,6 +67,5 @@ Thumbs.db
 # --- AI tooling: local & generated (keep specs/backlog/design readable) ---
 graphify-out/
 .claude/settings.local.json
-.claude/gsd-migration-journal/
 # Do NOT ignore: .specify/, backlog/, DESIGN.md, CLAUDE.md — these are the
 # source-of-truth context the workflow depends on.
