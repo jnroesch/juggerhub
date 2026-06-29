@@ -1,0 +1,16 @@
+# Keep the build context small and the runtime image free of test/build cruft.
+# The runtime stage must not contain the test project.
+tests/
+bin/
+obj/
+
+# IDE / OS noise
+.vs/
+*.user
+.DS_Store
+Thumbs.db
+
+# Local env (never bake secrets into an image)
+.env
+.env.*
+!.env.sample

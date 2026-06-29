@@ -28,8 +28,8 @@ description: "Task list for Project Scaffold (Walking Skeleton)"
 - [X] T002 [P] Add backend NuGet references to `backend/JuggerHub.Api.csproj`: `Microsoft.EntityFrameworkCore`, `Npgsql.EntityFrameworkCore.PostgreSQL`, `Microsoft.AspNetCore.Identity.EntityFrameworkCore`, `Mapster`, `Asp.Versioning.Mvc`, `Asp.Versioning.Mvc.ApiExplorer`, `Microsoft.AspNetCore.Authentication.JwtBearer`, `Microsoft.AspNetCore.OpenApi`, `Scalar.AspNetCore`, `Konscious.Security.Cryptography.Argon2`, `AspNetCore.HealthChecks.NpgSql`
 - [X] T003 [P] Initialize the Nx workspace in `frontend/` with a standalone Angular app `web` (`frontend/apps/web/`) and a Playwright e2e project `web-e2e` (`frontend/apps/web-e2e/`); commit `frontend/nx.json`, `frontend/package.json`, `frontend/tsconfig.base.json`
 - [X] T004 [P] Configure Tailwind and map DESIGN.md tokens (colors, spacing, rounded, typography) into `frontend/apps/web/tailwind.config.js` and expose them as CSS variables in `frontend/apps/web/src/styles.css`
-- [ ] T005 [P] Align infra config: bump `docker-compose.yml` Postgres image `postgres:16-alpine` → `postgres:18-alpine`; extend `.env.sample` with DB + JWT keys (signing key, issuer, audience, lifetime) and confirm `docker-compose.yml` passes them to the `backend` service env
-- [ ] T006 [P] Add `backend/.dockerignore` excluding `tests/`, `bin/`, `obj/`
+- [X] T005 [P] Align infra config: bump `docker-compose.yml` Postgres image `postgres:16-alpine` → `postgres:18-alpine`; extend `.env.sample` with DB + JWT keys (signing key, issuer, audience, lifetime) and confirm `docker-compose.yml` passes them to the `backend` service env
+- [X] T006 [P] Add `backend/.dockerignore` excluding `tests/`, `bin/`, `obj/`
 
 **Checkpoint**: Both projects exist, build, and boot in isolation; dependencies resolved.
 
