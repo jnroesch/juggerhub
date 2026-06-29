@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./**/.env)",
+      "Read(./**/.env.*)",
+      "Read(./**/*.pem)",
+      "Read(./**/*.key)",
+      "Read(./**/*.pfx)",
+      "Read(./**/*.p12)",
+      "Read(./**/*.crt)",
+      "Read(./secrets/**)",
+      "Read(./.secrets)",
+      "Read(~/.ssh/**)",
+      "Read(~/.aws/**)",
+      "Read(~/AppData/Roaming/Microsoft/UserSecrets/**)"
+    ]
+  }
+}

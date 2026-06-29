@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Refresh the Graphify knowledge graph after history rewrite (rebase, commit --amend).
+cat >/dev/null 2>&1 || true   # drain stdin (the list of rewritten commits)
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec "$DIR/graphify-rebuild.sh"

@@ -1,0 +1,227 @@
+{
+  "folders": [
+    {
+      "path": "."
+    }
+  ],
+  "settings": {
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    "terminal.integrated.profiles.windows": {
+      "PowerShell": {
+        "source": "PowerShell",
+        "icon": "terminal-powershell"
+      },
+      "Docker Compose Up": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "docker compose up -d; docker compose logs -f"],
+        "icon": "play",
+        "color": "terminal.ansiGreen"
+      },
+      "Docker Compose Debug": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d; docker compose -f docker-compose.yml -f docker-compose.debug.yml logs -f"],
+        "icon": "debug-alt",
+        "color": "terminal.ansiYellow"
+      },
+      "Docker Compose Down": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "docker compose down"],
+        "icon": "debug-stop",
+        "color": "terminal.ansiRed"
+      },
+      "claude-mem: Memory Viewer": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "npx --yes claude-mem start; Start-Process http://localhost:37777"],
+        "icon": "history",
+        "color": "terminal.ansiMagenta"
+      },
+      "Backlog: Web Board": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "backlog browser"],
+        "icon": "checklist",
+        "color": "terminal.ansiBlue"
+      },
+      "Backlog: Kanban (Terminal)": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "backlog board"],
+        "icon": "layout",
+        "color": "terminal.ansiBlue"
+      },
+      "Graphify: View Graph": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "Start-Process \"$PWD/graphify-out/graph.html\""],
+        "icon": "graph",
+        "color": "terminal.ansiGreen"
+      },
+      "Graphify: Rebuild + View": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "graphify update .; Start-Process \"$PWD/graphify-out/graph.html\""],
+        "icon": "sync",
+        "color": "terminal.ansiGreen"
+      }
+    }
+  },
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": ".NET Core Attach (Docker)",
+        "type": "coreclr",
+        "request": "attach",
+        "processId": "${command:pickRemoteProcess}",
+        "pipeTransport": {
+          "pipeProgram": "docker",
+          "pipeArgs": ["exec", "-i", "app-backend"],
+          "debuggerPath": "/remote_debugger/vsdbg",
+          "pipeCwd": "${workspaceFolder}",
+          "quoteArgs": false
+        },
+        "sourceFileMap": {
+          "/src": "${workspaceFolder}/backend"
+        }
+      },
+      {
+        "name": "Node.js Attach (Docker)",
+        "type": "node",
+        "request": "attach",
+        "port": 9229,
+        "address": "localhost",
+        "localRoot": "${workspaceFolder}/frontend",
+        "remoteRoot": "/app",
+        "sourceMaps": true,
+        "restart": true
+      },
+      {
+        "name": "Chrome: Frontend",
+        "type": "chrome",
+        "request": "launch",
+        "url": "http://localhost:3000",
+        "webRoot": "${workspaceFolder}/frontend"
+      }
+    ],
+    "compounds": [
+      {
+        "name": "Full Stack Debug",
+        "configurations": [".NET Core Attach (Docker)", "Node.js Attach (Docker)", "Chrome: Frontend"]
+      }
+    ]
+  },
+  "tasks": {
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Docker Compose Up",
+        "type": "shell",
+        "command": "docker compose up -d",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
+        "label": "Docker Compose Debug",
+        "type": "shell",
+        "command": "docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
+        "label": "Docker Compose Down",
+        "type": "shell",
+        "command": "docker compose down",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
+        "label": "Docker Compose Logs",
+        "type": "shell",
+        "command": "docker compose logs -f",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
+        "label": "Install vsdbg",
+        "type": "shell",
+        "command": "docker exec -i app-backend bash -c 'curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /remote_debugger'",
+        "group": "build",
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
+        "label": "🧠 claude-mem: Open Memory Viewer",
+        "detail": "Start the claude-mem worker (idempotent) and open the web viewer at http://localhost:37777",
+        "type": "shell",
+        "command": "npx --yes claude-mem start; xdg-open http://localhost:37777",
+        "windows": {
+          "command": "npx --yes claude-mem start; Start-Process http://localhost:37777"
+        },
+        "osx": {
+          "command": "npx --yes claude-mem start; open http://localhost:37777"
+        },
+        "icon": { "id": "history", "color": "terminal.ansiMagenta" },
+        "problemMatcher": [],
+        "presentation": { "reveal": "silent", "panel": "shared", "close": true }
+      },
+      {
+        "label": "📋 Backlog.md: Open Board (Web)",
+        "detail": "Run `backlog browser` — web Kanban/task UI on http://localhost:6420 (auto-opens browser)",
+        "type": "shell",
+        "command": "backlog browser",
+        "icon": { "id": "checklist", "color": "terminal.ansiBlue" },
+        "problemMatcher": [],
+        "presentation": { "reveal": "always", "panel": "dedicated" }
+      },
+      {
+        "label": "📋 Backlog.md: Kanban (Terminal)",
+        "detail": "Run `backlog board` — interactive Kanban board in the integrated terminal",
+        "type": "shell",
+        "command": "backlog board",
+        "icon": { "id": "layout", "color": "terminal.ansiBlue" },
+        "problemMatcher": [],
+        "presentation": { "reveal": "always", "panel": "dedicated" }
+      },
+      {
+        "label": "🕸️ Graphify: View Graph",
+        "detail": "Open the interactive knowledge graph (graphify-out/graph.html) in your browser",
+        "type": "shell",
+        "command": "xdg-open \"${workspaceFolder}/graphify-out/graph.html\"",
+        "windows": {
+          "command": "Start-Process \"${workspaceFolder}/graphify-out/graph.html\""
+        },
+        "osx": {
+          "command": "open \"${workspaceFolder}/graphify-out/graph.html\""
+        },
+        "icon": { "id": "graph", "color": "terminal.ansiGreen" },
+        "problemMatcher": [],
+        "presentation": { "reveal": "silent", "panel": "shared", "close": true }
+      },
+      {
+        "label": "🕸️ Graphify: Rebuild + View Graph",
+        "detail": "Run `graphify update .` (fast, no-LLM) then open the refreshed graph",
+        "type": "shell",
+        "command": "graphify update . ; xdg-open \"${workspaceFolder}/graphify-out/graph.html\"",
+        "windows": {
+          "command": "graphify update . ; Start-Process \"${workspaceFolder}/graphify-out/graph.html\""
+        },
+        "osx": {
+          "command": "graphify update . ; open \"${workspaceFolder}/graphify-out/graph.html\""
+        },
+        "icon": { "id": "sync", "color": "terminal.ansiGreen" },
+        "problemMatcher": [],
+        "presentation": { "reveal": "always", "panel": "dedicated" }
+      }
+    ]
+  }
+}

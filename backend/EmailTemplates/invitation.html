@@ -1,0 +1,42 @@
+<div class="content">
+    <h1>You're Invited to Join {{ORGANIZATION_NAME}}</h1>
+    
+    <p>Hello,</p>
+    
+    <p><strong>{{INVITER_NAME}}</strong> ({{INVITER_EMAIL}}) has invited you to join the <strong>{{ORGANIZATION_NAME}}</strong> organization on TEMPLATE as a <strong>{{USER_ROLE}}</strong>.</p>
+    
+    <div class="highlight-box">
+        <h4>🎉 What you'll get access to:</h4>
+        <ul>
+            <li>Professional template management tools</li>
+            <li>Collaborative workspace features</li>
+            <li>Advanced template editor with multiple syntax support</li>
+            <li>Secure template sharing and version control</li>
+        </ul>
+    </div>
+    
+    <p>Click the button below to accept the invitation and create your account:</p>
+    
+    <p style="text-align: center;">
+        <a href="{{INVITATION_URL}}" class="button">Accept Invitation</a>
+    </p>
+    
+    <div class="info-box">
+        <p><strong>⏰ Invitation Details:</strong></p>
+        <p>
+            <strong>Organization:</strong> {{ORGANIZATION_NAME}}<br>
+            <strong>Your Role:</strong> {{USER_ROLE}}<br>
+            <strong>Invited By:</strong> {{INVITER_NAME}}<br>
+            <strong>Expires:</strong> {{EXPIRATION_DATE}} at {{EXPIRATION_TIME}} UTC
+        </p>
+    </div>
+    
+    <p>If you can't click the button above, copy and paste this URL into your browser:</p>
+    <div class="url-box">{{INVITATION_URL}}</div>
+    
+    <hr class="divider">
+    
+    <p style="color: #6b7280; font-size: 14px;">
+        Don't want to join this organization? You can simply ignore this email, and the invitation will expire automatically.
+    </p>
+</div> 

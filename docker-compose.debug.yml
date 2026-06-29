@@ -1,0 +1,43 @@
+# Debug override - use with: docker compose -f docker-compose.yml -f docker-compose.debug.yml up
+# Adds debugging capabilities, hot reload, and development tools
+
+services:
+  backend:
+    environment:
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      - DOTNET_RUNNING_IN_CONTAINER=true
+    ports:
+      - "5005:5005"  # .NET debugger port (vsdbg)
+    volumes:
+      - ./backend:/src
+      - ~/.vsdbg:/remote_debugger:rw
+
+  frontend:
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+    ports:
+      - "9229:9229"   # Node.js debugger port
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: app-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    networks:
+      - app-network
+    depends_on:
+      - database
+
+volumes:
+  pgadmin-data:

@@ -1,0 +1,32 @@
+# Deterministic line endings across clones. Without this, shell scripts and git
+# hooks committed on Windows can pick up CRLF and break on Linux/macOS and in CI.
+
+# Default: detect text vs binary; store normalized LF in the repository.
+* text=auto
+
+# Must be LF — these run under bash/sh (incl. git-bash on Windows, and CI):
+*.sh         text eol=lf
+.githooks/*  text eol=lf
+
+# PowerShell: CRLF is friendliest for Windows PowerShell (pwsh handles both).
+*.ps1        text eol=crlf
+
+# Windows batch/cmd require CRLF:
+*.cmd        text eol=crlf
+*.bat        text eol=crlf
+
+# Binaries — never normalize:
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.pdf  binary
+*.zip  binary
+*.gz   binary
+*.pfx  binary
+*.p12  binary
+*.snk  binary
+*.dll  binary
+*.exe  binary

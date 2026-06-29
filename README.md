@@ -1,0 +1,172 @@
+# Project Template
+
+A base repository template for new applications with a Docker-based development
+setup, CI/CD workflows, and an integrated **AI-assisted development toolchain**
+for use with Claude Code.
+
+The full workflow rules and routing live in [CLAUDE.md](CLAUDE.md) — read that
+first. This README focuses on **what each tool is, how it runs, and where its UI
+is** (if any).
+
+---
+
+## Structure
+
+```
+├── backend/              # Backend application (.NET: Dockerfile, EmailTemplates, Services)
+├── frontend/             # Frontend application (Dockerfile)
+├── .specify/             # Spec-Kit: specs, plans, tasks, constitution (source of truth)
+├── backlog/              # Backlog.md: tasks, drafts, decisions, docs
+├── .claude/              # Claude Code: Spec-Kit skills + settings (GSD agents/commands/hooks are git-ignored, regenerated)
+├── .githooks/            # Git hooks: auto-rebuild Graphify graph on commit/pull/checkout
+├── .github/workflows/    # CI/CD pipelines
+├── CLAUDE.md             # Workflow rules & tool routing — read first
+├── DESIGN.md             # Visual identity / design tokens (UI source of truth)
+├── .claudeignore         # Context-exclusion hints (see Security & ignore rules)
+└── docker-compose*.yml   # Local development orchestration
+```
+
+---
+
+## AI Development Toolchain
+
+Six tools cooperate under the rules in [CLAUDE.md](CLAUDE.md). In one line:
+
+> **Spec-Kit** decides · **DESIGN.md** styles · **Backlog.md** queues · **Graphify** maps · **claude-mem** remembers · **GSD** executes.
+
+| Tool | Version | Role | How it runs | Dedicated UI |
+|------|---------|------|-------------|--------------|
+| **Spec-Kit** | 0.11.9 | Specs, plans, tasks, constitution | On-demand CLI + `/speckit-*` slash commands | — |
+| **DESIGN.md** (design.md) | 0.3.0 | Visual identity / design tokens | On-demand CLI (`designmd`) + the `DESIGN.md` file | — |
+| **Backlog.md** | 1.47.1 | Intake & prioritization (Kanban) | On-demand CLI | ✅ Web UI + terminal Kanban |
+| **Graphify** | 0.9.1 | Codebase knowledge graph / impact analysis | 🔄 **Auto-rebuild on git ops** + on-demand CLI / `/graphify` | ✅ Interactive graph (HTML) |
+| **claude-mem** | 13.8.1 | Cross-session memory | 🔄 **Background worker (auto-starts)** + lifecycle hooks | ✅ Web viewer |
+| **GSD** | 1.6.0 | Implementation execution / meta-prompting | 🔄 **Background hooks (automatic)** + `/gsd-*` slash commands | — |
+
+---
+
+### 🔄 Runs automatically in the background
+
+These need no manual start once Claude Code is open in this project:
+
+- **claude-mem worker** — a persistent service on **`http://localhost:37777`**.
+  It **auto-starts on every Claude Code launch** via the plugin's `SessionStart`
+  hook (also on `/clear` and `/compact`), and captures observations passively as
+  Claude reads, edits, and runs commands. Its lifecycle hooks
+  (`UserPromptSubmit`, `PostToolUse`, `PreToolUse:Read`, `Stop`) also fire
+  automatically. Data lives in `~/.claude-mem` (outside the repo).
+  - Manual controls if needed: `npx claude-mem status` · `start` · `stop` · `restart` · `doctor`.
+  - It only runs while Claude Code is open (which is all that's needed for memory
+    capture). For an always-on viewer, add a logon task that runs `claude-mem start`.
+- **GSD hooks** — run automatically on Claude Code tool/lifecycle events:
+  context-window monitor, prompt-injection guard, read-before-edit guard,
+  update check, and more. No UI; they guard and steer execution silently.
+  Hook wiring is in `.claude/settings.local.json` (machine-specific, gitignored).
+- **Graphify auto-rebuild** — tracked git hooks in `.githooks/` run
+  `graphify update .` (fast, no-LLM) in the background after **commit, pull,
+  branch switch, and rebase**, keeping `graphify-out/` fresh. Editor-agnostic and
+  non-blocking; single-flighted via a PID lock; logs to `graphify-out/.rebuild.log`.
+  Enable once per clone with `git config core.hooksPath .githooks` (see Setup).
+  Community *labels* still need an occasional full build — see the on-demand list.
+  - *Alternative/extra:* GSD also ships an opt-in `graphify.auto_update` flag
+    (`.planning/config.json`) that rebuilds after git ops run **through Claude
+    Code** and feeds the GSD planner's staleness signal.
+
+### 🖥️ Tools with a dedicated UI
+
+- **claude-mem — web viewer:** `http://localhost:37777` (live stream of captured
+  observations). Open it in a browser while working.
+- **Backlog.md — web UI & terminal board:**
+  - `backlog browser` → web Kanban/task UI on **port 6420** (auto-opens browser).
+  - `backlog board` → Kanban board in the terminal.
+  - Both are launched on demand and run only while open.
+- **Graphify — interactive graph:** building the graph writes
+  **`graphify-out/graph.html`** (an interactive visualization), plus
+  `GRAPH_REPORT.md` and `graph.json`. Open the HTML in a browser. `graphify-out/`
+  is gitignored.
+
+### ⌨️ On-demand: CLIs & Claude slash commands
+
+No background process; invoke when needed.
+
+- **Spec-Kit** — `specify` CLI; in Claude: `/speckit-constitution`,
+  `/speckit-specify`, `/speckit-clarify`, `/speckit-plan`, `/speckit-tasks`,
+  `/speckit-analyze`, `/speckit-checklist`, `/speckit-implement`,
+  `/speckit-converge`.
+- **GSD** — primarily Claude slash commands (`/gsd-new-project`, `/gsd-*`); the
+  workflow driver. (Its hooks are the background part above.)
+- **Graphify** — `graphify .` (full build, with LLM community labels),
+  `graphify update .` (fast re-extract, no LLM — what the git hooks run),
+  `graphify label .` (re-name clusters), `graphify watch <path>` (live rebuild on
+  file changes, foreground), `graphify explain "X"`, `graphify path "A" "B"`; in
+  Claude: `/graphify`. Run a full build occasionally to refresh community labels.
+- **Backlog.md** — `backlog task|draft|doc|decision|milestone`, `backlog search`,
+  `backlog overview`, `backlog instructions <guide>`. (Also exposes `backlog mcp`.)
+- **design.md** — `designmd lint DESIGN.md`, `designmd diff`, `designmd export`
+  (Tailwind / W3C tokens). *Note: `designmd spec` is broken upstream in v0.3.0.*
+
+---
+
+## Setup on a new machine
+
+Global CLIs and the Claude plugin are **not** committed, so after cloning,
+reinstall the toolchain. Requires **Node 20+**, **uv**, and **git**.
+
+```bash
+# Global CLIs
+npm  install -g backlog.md @google/design.md
+uv   tool install specify-cli --from git+https://github.com/github/spec-kit.git@v0.11.9
+uv   tool install graphifyy && graphify install --platform claude
+
+# Claude Code plugin (registers + enables; worker auto-starts thereafter)
+npx claude-mem install
+
+# GSD: re-run locally so hooks get correct machine paths (settings.local.json is per-machine)
+npx @opengsd/gsd-core@latest --local --claude
+
+# Enable Graphify auto-rebuild git hooks (tracked in .githooks/)
+git config core.hooksPath .githooks
+```
+
+Committed config that *does* travel with the repo: `.specify/`, `backlog/`,
+`.claude/skills/` (Spec-Kit) and `.claude/settings.json`, `.githooks/`,
+`CLAUDE.md`, `DESIGN.md`, `.claudeignore`. **GSD's generated output**
+(`.claude/agents/`, `commands/`, `gsd-core/`, `hooks/`, …) is **git-ignored** —
+it embeds absolute machine paths, so each clone regenerates it via the
+`npx @opengsd/gsd-core@latest --local --claude` step above.
+
+---
+
+## Security & ignore rules
+
+- **`.gitignore`** — respected by Claude Code's file discovery by default. Also
+  excludes machine-specific/generated tooling output (`.claude/settings.local.json`,
+  `graphify-out/`).
+- **`.claudeignore`** — soft "don't auto-pull into context" hints (deps, build
+  output, logs, secrets, cruft). ⚠️ Claude Code does **not** natively enforce this
+  yet — it's a shared convention / honored by some hooks and other agents.
+- **`permissions.deny` in `.claude/settings.json`** — the **enforced** block: Claude
+  cannot read `.env*`, `*.pem/key/pfx/p12/crt`, `secrets/`, `~/.ssh`, `~/.aws`, or
+  .NET user-secrets. This is what actually protects credentials.
+
+Never store secrets in code, specs, Backlog.md, Graphify, or claude-mem.
+
+---
+
+## Docker development
+
+```bash
+docker compose up -d            # Start all services
+docker compose logs -f          # View logs
+docker compose up -d --build    # Rebuild after changes
+docker compose down             # Stop all services
+```
+
+---
+
+## Documentation
+
+- [CLAUDE.md](CLAUDE.md) — workflow rules, source-of-truth priority, tool routing.
+- [DESIGN.md](DESIGN.md) — colors, typography, spacing, components.
+- `.specify/memory/constitution.md` — project principles (Spec-Kit).
+- `backlog instructions overview` — Backlog.md workflow guidance.

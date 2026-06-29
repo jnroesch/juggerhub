@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Refresh the Graphify knowledge graph after a commit.
+DIR="$(cd "$(dirname "$0")" && pwd)"
+exec "$DIR/graphify-rebuild.sh"

@@ -1,0 +1,72 @@
+# .claudeignore — files Claude Code should not pull into context.
+#
+# NOTE: Claude Code does not (yet) natively enforce this file. It is honored as a
+# shared convention and by some community PreToolUse hooks / other agents, and is
+# here for forward-compatibility. The mechanisms that ARE enforced today:
+#   - .gitignore (respected by the @ picker / discovery via respectGitignore)
+#   - permissions.deny "Read(...)" rules in .claude/settings.json  <-- hard block
+# Security-sensitive paths below are ALSO denied in .claude/settings.json so they
+# are actually blocked, not just hinted.
+
+# --- Dependencies & package manager noise ---
+node_modules/
+.npm/
+*.lock
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# --- Build output / generated artifacts ---
+bin/
+obj/
+dist/
+build/
+out/
+artifacts/
+[Dd]ebug/
+[Rr]elease/
+publish/
+*.dll
+*.exe
+*.pdb
+*.binlog
+
+# --- Test / coverage output ---
+TestResults/
+coverage/
+*.trx
+
+# --- Logs & temp ---
+*.log
+logs/
+*.tmp
+*.cache
+tmp/
+
+# --- Secrets & credentials (ALSO hard-blocked via permissions.deny) ---
+.env
+.env.*
+*.pem
+*.key
+*.pfx
+*.p12
+*.crt
+secrets/
+.secrets
+
+# --- OS / IDE cruft ---
+.DS_Store
+Thumbs.db
+.idea/
+*.swp
+*.swo
+
+# --- VCS internals ---
+.git/
+
+# --- AI tooling: local & generated (keep specs/backlog/design readable) ---
+graphify-out/
+.claude/settings.local.json
+.claude/gsd-migration-journal/
+# Do NOT ignore: .specify/, backlog/, DESIGN.md, CLAUDE.md — these are the
+# source-of-truth context the workflow depends on.

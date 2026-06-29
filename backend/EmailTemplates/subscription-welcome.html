@@ -1,0 +1,56 @@
+<div class="content">
+    <h1>Welcome to TEMPLATE {{PLAN_NAME}}! 🎉</h1>
+    
+    <p>Hi {{USER_NAME}},</p>
+    
+    <p>Congratulations! You've successfully upgraded to <strong>TEMPLATE {{PLAN_NAME}}</strong>. Your new features are now active and ready to use.</p>
+    
+    <div class="highlight-box">
+        <h4>🚀 Your {{PLAN_NAME}} Features:</h4>
+        {{PLAN_FEATURES}}
+    </div>
+    
+    <p style="text-align: center; margin: 32px 0;">
+        <a href="{{DASHBOARD_URL}}" class="button">Start Using Your New Features →</a>
+    </p>
+    
+    <div class="info-box">
+        <h4>💡 Quick Start Tips:</h4>
+        <ul style="margin: 12px 0; padding-left: 20px; color: #374151;">
+            <li>Explore your expanded workspace and user limits</li>
+            <li>Try out the advanced template editor features</li>
+            <li>Set up team collaboration with your new user allowance</li>
+            <li>Check out the template sharing features</li>
+            {{#if HAS_API_ACCESS}}
+            <li>Review the API documentation for integration opportunities</li>
+            {{/if}}
+        </ul>
+    </div>
+    
+    <h2>📊 Your Subscription Details</h2>
+    <div class="info-box">
+        <p>
+            <strong>Plan:</strong> {{PLAN_NAME}}<br>
+            <strong>Price:</strong> ${{PLAN_PRICE}}/month<br>
+            <strong>Billing Date:</strong> {{NEXT_BILLING_DATE}}<br>
+            <strong>Upgrade Date:</strong> {{UPGRADE_DATE}}
+        </p>
+    </div>
+    
+    <h2>🆘 Need Help Getting Started?</h2>
+    <p>Our support team is here to help you make the most of your new features:</p>
+    
+    <p style="text-align: center;">
+        <a href="mailto:info@TEMPLATE.com" class="button button-secondary">Contact Support</a>
+    </p>
+    
+    <hr class="divider">
+    
+    <p style="font-size: 14px; color: #6b7280;">
+        <strong>Thank you for choosing TEMPLATE!</strong> We're excited to see what you'll create with your enhanced template management capabilities.
+    </p>
+    
+    <p style="font-size: 13px; color: #9ca3af;">
+        You can manage your subscription and billing settings at any time from your account dashboard.
+    </p>
+</div> 
