@@ -61,7 +61,7 @@ Before significant implementation, prefer:
 3. Clarify requirements
 4. Create or update plan
 5. Create tasks
-6. Execute the tasks (directly, or via `/speckit-implement`)
+6. Execute the tasks via `/speckit-implement`
 
 Do not implement significant behavior changes directly from Backlog.md.
 
@@ -219,7 +219,7 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 7. Read DESIGN.md if UI is involved
 8. Check claude-mem if continuing prior work
 9. Select skills
-10. Execute (directly or via `/speckit-implement`)
+10. Execute via `/speckit-implement`
 11. Verify
 12. Report changes and spec drift
 

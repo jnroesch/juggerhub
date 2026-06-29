@@ -1,5 +1,4 @@
 import { Injectable, signal } from '@angular/core';
-import { Observable, of } from 'rxjs';
 
 /**
  * Client-side session state. This is a UX convenience only — never the security
@@ -13,14 +12,6 @@ export class AuthService {
 
   isAuthenticated(): boolean {
     return this.authenticated();
-  }
-
-  /**
-   * Attempt to renew the session. No refresh endpoint exists yet, so this
-   * reports failure; the auth feature will call the refresh endpoint here.
-   */
-  refresh(): Observable<boolean> {
-    return of(false);
   }
 
   signOut(): void {

@@ -1,5 +1,4 @@
 using System.Text;
-using System.Text.Json;
 using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Data;
@@ -63,8 +62,15 @@ builder.Services.AddSingleton<IPasswordHasher<User>, Argon2PasswordHasher>();
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
+// AddIdentity (above) points the default authenticate/challenge schemes at the
+// Identity cookie. Override them back to JwtBearer so a bare [Authorize] endpoint
+// validates the JWT-in-cookie and challenges with 401 — never a cookie redirect.
 builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddAuthentication(options =>
+    {
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
     .AddJwtBearer();
 
 builder.Services
@@ -99,25 +105,20 @@ builder.Services
                 return Task.CompletedTask;
             },
             // Emit a generic ProblemDetails body on 401 (no internals leaked).
-            OnChallenge = async context =>
+            OnChallenge = context =>
             {
                 context.HandleResponse();
-                if (!context.Response.HasStarted)
+                if (context.Response.HasStarted)
                 {
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    context.Response.ContentType = "application/problem+json";
-                    var problem = new
-                    {
-                        type = "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-                        title = "Unauthorized",
-                        status = StatusCodes.Status401Unauthorized,
-                        detail = "Authentication is required to access this resource.",
-                    };
-                    var json = JsonSerializer.Serialize(
-                        problem,
-                        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
-                    await context.Response.WriteAsync(json);
+                    return Task.CompletedTask;
                 }
+
+                return ProblemResponse.WriteAsync(
+                    context.HttpContext,
+                    StatusCodes.Status401Unauthorized,
+                    "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                    "Unauthorized",
+                    "Authentication is required to access this resource.");
             },
         };
     });

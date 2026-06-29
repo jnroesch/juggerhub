@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text.Json;
 
 namespace JuggerHub.Common;
 
@@ -10,11 +9,6 @@ namespace JuggerHub.Common;
 /// </summary>
 public sealed class ExceptionHandlingMiddleware
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
 
@@ -41,26 +35,20 @@ public sealed class ExceptionHandlingMiddleware
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context)
+    private static Task HandleExceptionAsync(HttpContext context)
     {
         // If the response has already started we cannot safely rewrite it.
         if (context.Response.HasStarted)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         context.Response.Clear();
-        context.Response.ContentType = "application/problem+json";
-        context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-
-        var problem = new
-        {
-            type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
-            title = "An error occurred",
-            status = (int)HttpStatusCode.InternalServerError,
-            detail = "An unexpected error occurred. Please try again later.",
-        };
-
-        await context.Response.WriteAsync(JsonSerializer.Serialize(problem, SerializerOptions));
+        return ProblemResponse.WriteAsync(
+            context,
+            (int)HttpStatusCode.InternalServerError,
+            "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+            "An error occurred",
+            "An unexpected error occurred. Please try again later.");
     }
 }
