@@ -11,10 +11,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 // --- Data access (EF Core + Npgsql) ----------------------------------------
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+// Resolve the connection string lazily from IConfiguration (not a build-time
+// local) so test hosts / overrides that layer config in after composition are
+// honoured.
 builder.Services.AddSingleton<AuditFieldsInterceptor>();
 builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 {
+    var connectionString = sp.GetRequiredService<IConfiguration>()
+        .GetConnectionString("DefaultConnection");
     options.UseNpgsql(connectionString);
     options.AddInterceptors(sp.GetRequiredService<AuditFieldsInterceptor>());
 });

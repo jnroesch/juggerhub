@@ -51,8 +51,8 @@ description: "Task list for Project Scaffold (Walking Skeleton)"
 - [X] T014 [P] Create shared primitives `backend/Dtos/PaginationRequest.cs` and `backend/Dtos/PagedResult.cs` (normalization + max page size per constitution)
 - [X] T015 Create `backend/Common/ExceptionHandlingMiddleware.cs` (RFC7231 `ProblemDetails`, generic detail, no leaks) and register it early in the `backend/Program.cs` pipeline
 - [X] T016 Configure URL API versioning (`/api/v{n}`, default v1) via `Asp.Versioning` in `backend/Program.cs`
-- [ ] T017 Frontend app composition: `frontend/apps/web/src/app/app.config.ts`, `app.routes.ts`, `main.ts`, `index.html`, plus `frontend/nginx.conf` serving the SPA and `proxy_pass`ing `/api/` → `http://backend:8080`
-- [ ] T018 Stand up test-harness skeletons: `backend/tests/JuggerHub.Api.IntegrationTests/` (xUnit + `WebApplicationFactory` + `Testcontainers.PostgreSql`, make `Program` partial/public, one trivial passing test); Jest config for `web` plus a placeholder smoke spec (upgraded to a real sample in T034); and `frontend/playwright.config.ts` with **desktop + mobile** projects and one trivial passing spec
+- [X] T017 Frontend app composition: `frontend/apps/web/src/app/app.config.ts`, `app.routes.ts`, `main.ts`, `index.html`, plus `frontend/nginx.conf` serving the SPA and `proxy_pass`ing `/api/` → `http://backend:8080`
+- [X] T018 Stand up test-harness skeletons: `backend/tests/JuggerHub.Api.IntegrationTests/` (xUnit + `WebApplicationFactory` + `Testcontainers.PostgreSql`, make `Program` partial/public, one trivial passing test); Jest config for `web` plus a placeholder smoke spec (upgraded to a real sample in T034); and `frontend/playwright.config.ts` with **desktop + mobile** projects and one trivial passing spec
 
 **Checkpoint**: App boots against a real (auto-migrated) Postgres; shared conventions and empty test harnesses exist. User stories can begin.
 
