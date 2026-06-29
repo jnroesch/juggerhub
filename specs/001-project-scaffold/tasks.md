@@ -18,6 +18,14 @@ description: "Task list for Project Scaffold (Walking Skeleton)"
 - **[Story]**: US1–US4, mapping to the spec's user stories
 - All paths are repo-relative. Backend `.csproj` is at `backend/` root (namespace `JuggerHub`); frontend is an Nx workspace under `frontend/`.
 
+> **Implementation notes (filenames that differ from the prose below):** .NET 10
+> emits the modern solution file `backend/JuggerHub.slnx` (not `.sln`). Nx places
+> the Playwright config at `frontend/apps/web-e2e/playwright.config.mts` (not
+> `frontend/playwright.config.ts`). `backend/.dockerignore` does **not** exclude
+> `tests/` — the Dockerfile `test` stage compiles them, and `.dockerignore` is
+> build-context-wide; the runtime image stays lean because it only copies the
+> publish output.
+
 ---
 
 ## Phase 1: Setup (Shared Infrastructure)
@@ -150,7 +158,7 @@ description: "Task list for Project Scaffold (Walking Skeleton)"
 - [X] T043 [P] Update `README.md` setup/run/test sections to the Docker-only workflow and Scalar (remove any Swagger / `ng serve` references)
 - [X] T044 [P] Verify no host-only/`.sh` project scripts were added by this feature; any new tooling scripts are PowerShell `.ps1` (Principle VI)
 - [X] T045 Run the full `quickstart.md` validation (all 9 steps) end-to-end and record pass/fail per success criterion
-- [ ] T046 [P] Run the changed diff through `/code-review` (or `/speckit-analyze` for spec↔code drift) and address findings
+- [X] T046 [P] Run the changed diff through `/code-review` (or `/speckit-analyze` for spec↔code drift) and address findings
 - [ ] T047 Trigger the Graphify rebuild, record a claude-mem note of the key scaffolding decisions, and update the Backlog item status
 
 ---
