@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { AuthService } from '../../core/services/auth.service';
 
 /**
  * Guarded sample page — reachable only when authenticated (see authGuard). It
@@ -11,4 +12,8 @@ import { Component } from '@angular/core';
   templateUrl: './account.component.html',
   styleUrl: './account.component.css',
 })
-export class AccountComponent {}
+export class AccountComponent {
+  private readonly auth = inject(AuthService);
+
+  protected readonly user = this.auth.currentUser;
+}

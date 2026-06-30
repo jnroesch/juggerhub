@@ -4,5 +4,10 @@
     <p class="mt-xs text-body-sm text-subtle">
       Protected sample page — you only see this when signed in.
     </p>
+    @if (user(); as currentUser) {
+      <p class="mt-md text-body-md text-text" data-testid="account-email">
+        Signed in as <span class="font-medium text-ink">{{ currentUser.email }}</span>.
+      </p>
+    }
   </div>
 </div>

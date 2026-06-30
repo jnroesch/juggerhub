@@ -169,6 +169,31 @@ empty) PostgreSQL 18 database — no manual migration step.
 > `Microsoft.AspNetCore.OpenApi` document (no Swagger UI), and only in the
 > Development environment.
 
+### Authentication (try it locally)
+
+The first product feature is **email + password authentication** (spec:
+[`specs/002-authentication`](specs/002-authentication)). Everything is enforced
+server-side; access/refresh tokens live only in `httpOnly` cookies (never
+`localStorage`). With the stack up, you can run the whole cycle locally:
+
+1. **Register** at http://localhost:3000/register — the password meter shows the
+   live policy (8+ chars, upper/lower/digit/symbol, 3 unique). You land on a neutral
+   "check your email" screen.
+2. **Verify** — open the **Mailpit inbox** at http://localhost:8025, click the link
+   in the "Verify your email" message. (Sign-in is **blocked until verified**.)
+3. **Sign in** at http://localhost:3000/sign-in (with optional "remember me"). Wrong
+   credentials return a single generic error; 5 failures lock the account for 15 min.
+4. **Sign out** from the top nav — the session is revoked server-side and cookies cleared.
+5. **Forgot / reset** via http://localhost:3000/forgot-password → open the reset link
+   in Mailpit → set a new password. Existing sessions are invalidated and a
+   change-notification email is sent.
+
+Endpoints live under `/api/v1/auth/*` (see
+[`contracts/openapi.yaml`](specs/002-authentication/contracts/openapi.yaml)).
+Registration, forgot-password, and resend-verification are **enumeration-neutral**
+(identical responses whether or not the account exists). Local mail is captured by
+**Mailpit**; deployed environments send via **Resend** (selected by `Email__Provider`).
+
 ### Run the test suites — all in containers
 
 A `docker-compose.test.yml` overlay runs each suite with no host runtimes:
