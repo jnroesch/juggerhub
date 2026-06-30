@@ -1,0 +1,319 @@
+openapi: 3.0.3
+info:
+  title: JuggerHub API — Authentication
+  version: "1.0.0"
+  description: >-
+    Authentication & account access surface (feature 002). All endpoints are under
+    /api/v1 and are reached same-origin via the frontend /api proxy, so the access
+    (jh_access) and refresh (jh_refresh) tokens are first-party httpOnly cookies and
+    never appear in request/response bodies. Register, forgot-password, and
+    resend-verification are deliberately enumeration-neutral: identical responses
+    whether or not the account exists.
+servers:
+  - url: /api/v1
+    description: Version 1 (same-origin; reached via the frontend /api proxy)
+
+tags:
+  - name: Auth
+    description: Registration, verification, sign-in/out, recovery, session refresh.
+
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      operationId: register
+      summary: Register a new account (enumeration-neutral)
+      description: >-
+        Creates an unverified account and sends a verification email. Always returns
+        the same neutral confirmation whether or not the address is already
+        registered; never creates a duplicate.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RegisterRequest" }
+      responses:
+        "200":
+          description: Neutral "check your email" confirmation (existing or new address).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MessageResponse" }
+        "400":
+          description: Password violates policy or email malformed (validation).
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetails" }
+
+  /auth/verify-email:
+    post:
+      tags: [Auth]
+      operationId: verifyEmail
+      summary: Confirm email ownership via the emailed token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/VerifyEmailRequest" }
+      responses:
+        "200":
+          description: Email confirmed (or already confirmed — idempotent neutral message).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MessageResponse" }
+        "400":
+          description: Expired, used, or tampered token (neutral; offers a fresh link).
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetails" }
+
+  /auth/resend-verification:
+    post:
+      tags: [Auth]
+      operationId: resendVerification
+      summary: Resend the verification email (enumeration-neutral)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResendVerificationRequest" }
+      responses:
+        "200":
+          description: Neutral confirmation (regardless of existence/verification state).
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MessageResponse" }
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      summary: Sign in with email + password
+      description: >-
+        On success sets the jh_access and jh_refresh httpOnly cookies and returns the
+        authenticated user. Unknown email, wrong password, and lockout all collapse to
+        a single generic 401. A correct password on an unverified account returns 403
+        with an "email not verified" signal (revealed only because the password was
+        correct) plus a resend path.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LoginRequest" }
+      responses:
+        "200":
+          description: Authenticated. Sets Set-Cookie jh_access (Path=/) and jh_refresh (Path=/api/v1/auth).
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+              description: jh_access and jh_refresh httpOnly cookies.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthUserDto" }
+        "401":
+          description: Generic invalid credentials (unknown email / wrong password / locked).
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetails" }
+        "403":
+          description: Credentials correct but email not verified; resend available.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/VerificationRequiredResponse" }
+
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      operationId: refresh
+      summary: Rotate the session (silent renewal)
+      description: >-
+        Reads the jh_refresh cookie, validates + rotates it (single-use), and issues a
+        fresh access token. Reuse of an already-rotated/expired token revokes the whole
+        token family and returns 401 with cookies cleared.
+      security:
+        - refreshCookie: []
+      responses:
+        "200":
+          description: Renewed. Sets new jh_access and rotated jh_refresh cookies.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthUserDto" }
+        "401":
+          description: Missing/expired/reused refresh token. Cookies cleared; re-login required.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetails" }
+
+  /auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logout
+      summary: Sign out (revoke refresh + clear cookies)
+      security:
+        - cookieAuth: []
+      responses:
+        "204":
+          description: Signed out. Refresh token revoked server-side; both cookies cleared.
+
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      operationId: forgotPassword
+      summary: Request a password-reset link (enumeration-neutral)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ForgotPasswordRequest" }
+      responses:
+        "200":
+          description: Neutral "if an account exists, a reset link has been sent".
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MessageResponse" }
+
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      operationId: resetPassword
+      summary: Set a new password via the emailed reset token
+      description: >-
+        On success updates the password, revokes all of the account's sessions, and
+        sends a change-notification email.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ResetPasswordRequest" }
+      responses:
+        "200":
+          description: Password updated; existing sessions invalidated.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/MessageResponse" }
+        "400":
+          description: Expired/used/tampered token, or new password violates policy.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetails" }
+
+  /auth/password-policy:
+    get:
+      tags: [Auth]
+      operationId: getPasswordPolicy
+      summary: Published password policy (public; rendered live by the frontend)
+      security: []
+      responses:
+        "200":
+          description: The active password rules.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PasswordPolicyDto" }
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      operationId: getMe
+      summary: The current authenticated user (session probe)
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: The authenticated user.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthUserDto" }
+        "401":
+          description: Not authenticated.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetails" }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jh_access
+      description: Access-token JWT in an httpOnly cookie (Path=/).
+    refreshCookie:
+      type: apiKey
+      in: cookie
+      name: jh_refresh
+      description: Rotating refresh token in an httpOnly cookie (Path=/api/v1/auth).
+
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email, maxLength: 256 }
+        password: { type: string, format: password, writeOnly: true }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password, writeOnly: true }
+        rememberMe: { type: boolean, default: false }
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+    ResendVerificationRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email }
+    VerifyEmailRequest:
+      type: object
+      required: [userId, token]
+      properties:
+        userId: { type: string, format: uuid }
+        token: { type: string, description: Base64Url-encoded Identity confirmation token. }
+    ResetPasswordRequest:
+      type: object
+      required: [userId, token, newPassword]
+      properties:
+        userId: { type: string, format: uuid }
+        token: { type: string, description: Base64Url-encoded Identity reset token. }
+        newPassword: { type: string, format: password, writeOnly: true }
+    MessageResponse:
+      type: object
+      properties:
+        message: { type: string, example: "If an account exists for that address, we've sent an email." }
+    VerificationRequiredResponse:
+      type: object
+      properties:
+        status: { type: string, enum: [email_not_verified] }
+        message: { type: string, example: "Please verify your email to sign in." }
+    AuthUserDto:
+      type: object
+      description: The authenticated user. Never contains token material.
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        emailConfirmed: { type: boolean }
+    PasswordPolicyDto:
+      type: object
+      properties:
+        minLength: { type: integer, example: 8 }
+        requireDigit: { type: boolean, example: true }
+        requireLowercase: { type: boolean, example: true }
+        requireUppercase: { type: boolean, example: true }
+        requireNonAlphanumeric: { type: boolean, example: true }
+        requiredUniqueChars: { type: integer, example: 3 }
+    ProblemDetails:
+      type: object
+      description: RFC7231 generic error envelope. Never carries stack traces, secrets, or tokens.
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }

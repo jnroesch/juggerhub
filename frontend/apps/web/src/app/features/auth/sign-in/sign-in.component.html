@@ -1,0 +1,76 @@
+<main class="grid min-h-screen place-items-center p-md">
+  <section
+    class="w-full max-w-md rounded-lg border border-border bg-surface p-xl shadow-card"
+    data-testid="sign-in"
+  >
+    <h1 class="text-heading-md font-semibold text-ink">Sign in</h1>
+    <p class="mt-xs text-body-sm text-subtle">Welcome back to JuggerHub.</p>
+
+    <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="submit()">
+      <div>
+        <label for="email" class="block text-body-sm font-medium text-text">Email</label>
+        <input
+          id="email"
+          type="email"
+          autocomplete="email"
+          formControlName="email"
+          data-testid="sign-in-email"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between">
+          <label for="password" class="block text-body-sm font-medium text-text">Password</label>
+          <a routerLink="/forgot-password" class="text-body-sm font-medium text-primary hover:text-primary-hover">
+            Forgot password?
+          </a>
+        </div>
+        <input
+          id="password"
+          type="password"
+          autocomplete="current-password"
+          formControlName="password"
+          data-testid="sign-in-password"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
+
+      <label class="flex items-center gap-xs text-body-sm text-text">
+        <input type="checkbox" formControlName="rememberMe" data-testid="sign-in-remember" class="h-4 w-4 rounded border-border-strong" />
+        Remember me
+      </label>
+
+      @if (error()) {
+        <p class="text-body-sm text-danger" data-testid="sign-in-error" role="alert">{{ error() }}</p>
+      }
+
+      @if (needsVerification()) {
+        <div class="rounded-md border border-warning/40 bg-warning/10 p-md text-body-sm text-text" data-testid="sign-in-verify">
+          <p>Please verify your email address before signing in.</p>
+          @if (resent()) {
+            <p class="mt-xs text-success">If that account needs it, a new verification email is on its way.</p>
+          } @else {
+            <button type="button" class="mt-xs font-medium text-primary hover:text-primary-hover" (click)="resendVerification()">
+              Resend verification email
+            </button>
+          }
+        </div>
+      }
+
+      <button
+        type="submit"
+        data-testid="sign-in-submit"
+        [disabled]="form.invalid || submitting()"
+        class="w-full rounded-md bg-primary px-md py-xs text-body-md font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        {{ submitting() ? 'Signing in…' : 'Sign in' }}
+      </button>
+    </form>
+
+    <p class="mt-lg text-center text-body-sm text-subtle">
+      New to JuggerHub?
+      <a routerLink="/register" class="font-medium text-primary hover:text-primary-hover">Create an account</a>
+    </p>
+  </section>
+</main>

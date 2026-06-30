@@ -1,0 +1,57 @@
+<main class="grid min-h-screen place-items-center p-md">
+  <section
+    class="w-full max-w-md rounded-lg border border-border bg-surface p-xl text-center shadow-card"
+    data-testid="verify-email"
+  >
+    @switch (state()) {
+      @case ('verifying') {
+        <h1 class="text-heading-md font-semibold text-ink">Verifying your email…</h1>
+        <p class="mt-sm text-body-md text-text-muted">One moment while we confirm your address.</p>
+      }
+      @case ('success') {
+        <h1 class="text-heading-md font-semibold text-ink">Email verified</h1>
+        <p class="mt-sm text-body-md text-text-muted">
+          Your account is active. You can now sign in.
+        </p>
+        <a
+          routerLink="/sign-in"
+          data-testid="verify-success-signin"
+          class="mt-lg inline-block rounded-md bg-primary px-md py-xs text-body-md font-semibold text-surface hover:bg-primary-hover"
+        >
+          Sign in
+        </a>
+      }
+      @case ('failed') {
+        <h1 class="text-heading-md font-semibold text-ink">Verification failed</h1>
+        <p class="mt-sm text-body-md text-text-muted">
+          This verification link is invalid or has expired. Enter your email to get a new one.
+        </p>
+
+        @if (resent()) {
+          <p class="mt-md text-body-sm text-success" data-testid="verify-resent">
+            If that account needs verifying, a new link is on its way.
+          </p>
+        } @else {
+          <form class="mt-md space-y-md text-left" [formGroup]="resendForm" (ngSubmit)="resend()">
+            <input
+              type="email"
+              autocomplete="email"
+              formControlName="email"
+              placeholder="you@example.com"
+              data-testid="verify-resend-email"
+              class="w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            />
+            <button
+              type="submit"
+              data-testid="verify-resend-submit"
+              [disabled]="resendForm.invalid"
+              class="w-full rounded-md bg-primary px-md py-xs text-body-md font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Resend verification email
+            </button>
+          </form>
+        }
+      }
+    }
+  </section>
+</main>

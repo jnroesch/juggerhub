@@ -21,8 +21,28 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
     }
 
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<RefreshToken>(entity =>
+        {
+            entity.Property(t => t.TokenHash).HasMaxLength(64).IsRequired();
+            entity.Property(t => t.CreatedByIp).HasMaxLength(64);
+            entity.Property(t => t.RevokedReason).HasMaxLength(64);
+
+            // Lookups hash the presented cookie value and match here; uniqueness also
+            // guards against (astronomically unlikely) collisions.
+            entity.HasIndex(t => t.TokenHash).IsUnique();
+            entity.HasIndex(t => t.UserId);
+            entity.HasIndex(t => t.FamilyId);
+
+            entity.HasOne(t => t.User)
+                .WithMany()
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
     }
 }

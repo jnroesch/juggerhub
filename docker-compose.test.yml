@@ -41,8 +41,12 @@ services:
       target: playwright
     environment:
       - BASE_URL=http://frontend:80
+      # The auth journey reads verification/reset links from the Mailpit API.
+      - MAILPIT_URL=http://mailpit:8025
     depends_on:
       frontend:
         condition: service_healthy
+      mailpit:
+        condition: service_started
     networks:
       - juggerhub-network

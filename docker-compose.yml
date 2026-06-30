@@ -13,9 +13,12 @@ services:
       - Jwt__Audience=${JWT_AUDIENCE:-juggerhub}
       - Jwt__SigningKey=${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set in .env}
       - Jwt__AccessTokenLifetimeMinutes=${JWT_ACCESS_TOKEN_LIFETIME_MINUTES:-15}
+      - Email__Provider=${EMAIL_PROVIDER:-Smtp}
       - Email__SmtpHost=mailpit
       - Email__SmtpPort=1025
-      - Email__Provider=Smtp
+      - Email__FromAddress=${EMAIL_FROM_ADDRESS:-no-reply@juggerhub.local}
+      - Email__FrontendBaseUrl=${EMAIL_FRONTEND_BASE_URL:-http://localhost:3000}
+      - Email__Resend__ApiKey=${EMAIL_RESEND_API_KEY:-}
     networks:
       - juggerhub-network
     depends_on:
@@ -76,9 +79,12 @@ services:
 
   mailpit:
     image: axllent/mailpit
+    container_name: juggerhub-mailpit
     ports:
       - "8025:8025"
       - "1025:1025"
+    networks:
+      - juggerhub-network
 
 networks:
   juggerhub-network:

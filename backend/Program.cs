@@ -3,6 +3,9 @@ using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Entities;
+using JuggerHub.Services;
+using JuggerHub.Services.Auth;
+using JuggerHub.Services.Email;
 using JuggerHub.Services.Health;
 using JuggerHub.Services.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -44,14 +47,24 @@ builder.Services
         options.Password.RequiredUniqueChars = 3;
 
         options.User.RequireUniqueEmail = true;
+
+        // Verify-before-login is enforced MANUALLY in AuthService.LoginAsync, AFTER a
+        // correct password, so "unverified" is never revealed to someone who doesn't
+        // know the password (enumeration protection — research §1). Leaving
+        // RequireConfirmedEmail = false keeps Identity's pre-sign-in check from
+        // short-circuiting on unverified accounts before the password is even checked.
         options.SignIn.RequireConfirmedEmail = false;
 
         options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(15);
         options.Lockout.MaxFailedAccessAttempts = 5;
         options.Lockout.AllowedForNewUsers = true;
+
+        // Password-reset links expire faster than email-confirmation links.
+        options.Tokens.PasswordResetTokenProvider = "ResetPasswordProvider";
     })
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddTokenProvider<ResetPasswordTokenProvider<User>>("ResetPasswordProvider");
 
 // Replace Identity's default PBKDF2 hasher with argon2id (constitution IV).
 builder.Services.AddSingleton<IPasswordHasher<User>, Argon2PasswordHasher>();
@@ -130,6 +143,27 @@ builder.Services.AddMappingConfig();
 
 // --- Application services --------------------------------------------------
 builder.Services.AddScoped<IHealthService, HealthService>();
+
+// --- Email (transactional auth mail) ---------------------------------------
+builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailOptions.SectionName));
+builder.Services.Configure<ResetPasswordTokenProviderOptions>(_ => { }); // ctor sets name + 1h lifespan
+builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>(); // existing service, now registered
+builder.Services.AddScoped<AuthEmailService>();
+
+// Pick the sender by configured provider: Mailpit (SMTP) locally, Resend on Dev/Prod.
+var emailProvider = builder.Configuration.GetValue<string>("Email:Provider") ?? "Smtp";
+if (string.Equals(emailProvider, "Resend", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddHttpClient<IEmailSender, ResendEmailSender>();
+}
+else
+{
+    builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
+}
+
+// --- Auth flows + session (refresh token) ----------------------------------
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services
