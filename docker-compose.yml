@@ -61,7 +61,10 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - db-data:/var/lib/postgresql/data
+      # Postgres 18+ stores data in a major-version-specific subdirectory and
+      # expects the volume mounted at /var/lib/postgresql (not .../data, which
+      # was the convention up to Postgres 16). See docker-library/postgres#1259.
+      - db-data:/var/lib/postgresql
     networks:
       - juggerhub-network
     healthcheck:
