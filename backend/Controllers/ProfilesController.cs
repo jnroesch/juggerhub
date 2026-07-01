@@ -88,6 +88,21 @@ public sealed class ProfilesController : ControllerBase
         };
     }
 
+    [HttpPost("me/onboarding/complete")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<IActionResult> CompleteOnboarding(CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        // Idempotent + owner-only: acts on the authenticated subject alone. Called on
+        // ANY terminal exit of the flow (finish or dismiss) — see specs/004-onboarding.
+        var status = await _profiles.CompleteOnboardingAsync(userId, ct);
+        return status == CompleteOnboardingStatus.Completed ? NoContent() : NotFound();
+    }
+
     // --- Public (anonymous) ----------------------------------------------------
 
     [HttpGet("{handle}")]

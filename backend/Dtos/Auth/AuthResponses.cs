@@ -14,8 +14,12 @@ public sealed record VerificationRequiredResponse(string Status, string Message)
         new("email_not_verified", "Please verify your email address to sign in.");
 }
 
-/// <summary>The authenticated user. Never contains token material.</summary>
-public sealed record AuthUserDto(Guid Id, string Email, bool EmailConfirmed);
+/// <summary>
+/// The authenticated user. Never contains token material. <see cref="OnboardingCompleted"/>
+/// is server-derived (<c>PlayerProfile.OnboardingCompletedAt != null</c>) and is a UX
+/// routing hint only — never the authority for gating the onboarding flow (SC-008).
+/// </summary>
+public sealed record AuthUserDto(Guid Id, string Email, bool EmailConfirmed, bool OnboardingCompleted);
 
 /// <summary>The published password policy, rendered live by the frontend.</summary>
 public sealed record PasswordPolicyDto(

@@ -72,6 +72,36 @@ public sealed class ProfileService : IProfileService
             projection.Description, projection.HasAvatar, projection.Pompfen, activity);
     }
 
+    public async Task<bool> HasCompletedOnboardingAsync(Guid userId, CancellationToken ct = default)
+    {
+        // Projected boolean read — no entity tracked, only the one column considered.
+        // No profile row → false (treated as not yet onboarded).
+        return await _db.PlayerProfiles
+            .AsNoTracking()
+            .Where(p => p.UserId == userId)
+            .Select(p => p.OnboardingCompletedAt != null)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<CompleteOnboardingStatus> CompleteOnboardingAsync(Guid userId, CancellationToken ct = default)
+    {
+        var profile = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId, ct);
+        if (profile is null)
+        {
+            return CompleteOnboardingStatus.ProfileNotFound;
+        }
+
+        // Idempotent: set the timestamp only if unset, so the first completion stands
+        // and repeat calls are no-ops. The AuditFieldsInterceptor updates ModifiedDate.
+        if (profile.OnboardingCompletedAt is null)
+        {
+            profile.OnboardingCompletedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+        }
+
+        return CompleteOnboardingStatus.Completed;
+    }
+
     public async Task<PublicProfileDto?> GetPublicAsync(string handle, CancellationToken ct = default)
     {
         var normalized = HandlePolicy.Normalize(handle);

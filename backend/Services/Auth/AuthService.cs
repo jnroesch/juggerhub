@@ -190,7 +190,7 @@ public sealed class AuthService : IAuthService
         // LoginResult with PendingTwoFactor instead of issuing tokens (research §7).
 
         var tokens = await IssueTokensAsync(user, request.RememberMe, ip, familyId: null, ct);
-        return LoginResult.Success(user.Adapt<AuthUserDto>(), tokens);
+        return LoginResult.Success(await ToAuthUserDtoAsync(user, ct), tokens);
     }
 
     public async Task<RefreshResult> RefreshAsync(string? rawRefreshToken, string? ip, CancellationToken ct = default)
@@ -217,7 +217,7 @@ public sealed class AuthService : IAuthService
         var tokens = new IssuedTokens(
             accessToken, accessExpires,
             issued.RawToken, ToUtcOffset(issued.ExpiresAt), issued.IsPersistent);
-        return RefreshResult.Success(user.Adapt<AuthUserDto>(), tokens);
+        return RefreshResult.Success(await ToAuthUserDtoAsync(user, ct), tokens);
     }
 
     public Task LogoutAsync(string? rawRefreshToken, CancellationToken ct = default)
@@ -298,8 +298,16 @@ public sealed class AuthService : IAuthService
     public async Task<AuthUserDto?> GetUserAsync(Guid userId, CancellationToken ct = default)
     {
         var user = await _userManager.FindByIdAsync(userId.ToString());
-        return user?.Adapt<AuthUserDto>();
+        return user is null ? null : await ToAuthUserDtoAsync(user, ct);
     }
+
+    /// <summary>
+    /// Map a user to <see cref="AuthUserDto"/> and fill the onboarding flag from the
+    /// profile. The UserManager lookups don't eager-load the Profile nav, so the flag
+    /// is resolved by a lightweight projection rather than via Mapster (research §3).
+    /// </summary>
+    private async Task<AuthUserDto> ToAuthUserDtoAsync(User user, CancellationToken ct) =>
+        user.Adapt<AuthUserDto>() with { OnboardingCompleted = await _profiles.HasCompletedOnboardingAsync(user.Id, ct) };
 
     private async Task<IssuedTokens> IssueTokensAsync(User user, bool rememberMe, string? ip, Guid? familyId, CancellationToken ct)
     {
