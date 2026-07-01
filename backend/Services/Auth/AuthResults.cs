@@ -14,6 +14,8 @@ public enum RegisterStatus
 {
     Accepted,
     PasswordPolicyViolation,
+    HandleInvalid,
+    HandleTaken,
 }
 
 public enum ResetStatus
@@ -42,6 +44,12 @@ public sealed record RegisterResult(RegisterStatus Status, IReadOnlyList<string>
     public static RegisterResult Accepted() => new(RegisterStatus.Accepted, []);
     public static RegisterResult PolicyViolation(IReadOnlyList<string> errors) =>
         new(RegisterStatus.PasswordPolicyViolation, errors);
+    // Handle rejections are NOT enumeration-sensitive: handles are public identifiers
+    // by design (they appear in shareable URLs), so reporting them is expected UX.
+    public static RegisterResult HandleInvalid(string reason) =>
+        new(RegisterStatus.HandleInvalid, [reason]);
+    public static RegisterResult HandleTaken(string reason) =>
+        new(RegisterStatus.HandleTaken, [reason]);
 }
 
 public sealed class LoginResult

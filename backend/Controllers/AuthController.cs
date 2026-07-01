@@ -3,7 +3,9 @@ using System.Security.Claims;
 using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Dtos.Auth;
+using JuggerHub.Dtos.Profile;
 using JuggerHub.Services.Auth;
+using JuggerHub.Services.Profile;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -26,11 +28,13 @@ public sealed class AuthController : ControllerBase
     private const string NeutralResetSent = "If an account exists for that address, we've sent a password reset link.";
 
     private readonly IAuthService _auth;
+    private readonly IProfileService _profiles;
     private readonly IWebHostEnvironment _env;
 
-    public AuthController(IAuthService auth, IWebHostEnvironment env)
+    public AuthController(IAuthService auth, IProfileService profiles, IWebHostEnvironment env)
     {
         _auth = auth;
+        _profiles = profiles;
         _env = env;
     }
 
@@ -38,11 +42,27 @@ public sealed class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
     {
         var result = await _auth.RegisterAsync(request, ct);
-        return result.Status == RegisterStatus.PasswordPolicyViolation
-            ? Problem(statusCode: StatusCodes.Status400BadRequest, title: "Password does not meet the policy",
-                detail: string.Join(" ", result.Errors))
-            : Ok(new MessageResponse(NeutralCheckEmail));
+        return result.Status switch
+        {
+            RegisterStatus.PasswordPolicyViolation => Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Password does not meet the policy", detail: string.Join(" ", result.Errors)),
+            RegisterStatus.HandleInvalid => Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Handle is not valid", detail: string.Join(" ", result.Errors)),
+            RegisterStatus.HandleTaken => Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Handle unavailable", detail: string.Join(" ", result.Errors)),
+            _ => Ok(new MessageResponse(NeutralCheckEmail)),
+        };
     }
+
+    /// <summary>
+    /// Live handle availability/format check for the registration UI. Anonymous by
+    /// design — handles are public identifiers, so this is not an account oracle.
+    /// UX aid only; uniqueness is still enforced server-side at registration.
+    /// </summary>
+    [HttpGet("handle-available")]
+    [AllowAnonymous]
+    public async Task<ActionResult<HandleAvailabilityDto>> HandleAvailable([FromQuery] string handle, CancellationToken ct)
+        => Ok(await _profiles.CheckHandleAsync(handle ?? string.Empty, ct));
 
     [HttpPost("verify-email")]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request, CancellationToken ct)

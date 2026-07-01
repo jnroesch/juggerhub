@@ -1,0 +1,136 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Asp.Versioning;
+using JuggerHub.Common;
+using JuggerHub.Dtos.Profile;
+using JuggerHub.Services.Events;
+using JuggerHub.Services.Profile;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace JuggerHub.Controllers;
+
+/// <summary>
+/// Player-profile endpoints. Owner routes (<c>/me*</c>) require the JWT-in-cookie
+/// scheme and act ONLY on the authenticated subject (never a client-supplied id).
+/// Public routes (<c>/{handle}*</c>) are anonymous by design and return DTOs that
+/// carry no email/account/security data (constitution Principle I; SC-002).
+/// </summary>
+[ApiController]
+[ApiVersion("1.0")]
+[Route("api/v{version:apiVersion}/profiles")]
+public sealed class ProfilesController : ControllerBase
+{
+    private readonly IProfileService _profiles;
+    private readonly IEventActivityService _activity;
+
+    public ProfilesController(IProfileService profiles, IEventActivityService activity)
+    {
+        _profiles = profiles;
+        _activity = activity;
+    }
+
+    // --- Owner (authenticated) -------------------------------------------------
+
+    [HttpGet("me")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<ActionResult<OwnerProfileDto>> GetMine(CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var profile = await _profiles.GetOwnerAsync(userId, ct);
+        return profile is null ? NotFound() : Ok(profile);
+    }
+
+    [HttpPut("me")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<ActionResult<OwnerProfileDto>> UpdateMine([FromBody] UpdateProfileRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var updated = await _profiles.UpdateAsync(userId, request, ct);
+        return updated is null ? NotFound() : Ok(updated);
+    }
+
+    [HttpPut("me/avatar")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [RequestSizeLimit(8 * 1024 * 1024)]
+    public async Task<IActionResult> UploadAvatar(IFormFile file, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        if (file is null || file.Length == 0)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: "No image",
+                detail: "No image was provided.");
+        }
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, ct);
+        var result = await _profiles.SetAvatarAsync(userId, ms.ToArray(), file.ContentType, ct);
+
+        return result.Status switch
+        {
+            AvatarSetStatus.Success => NoContent(),
+            AvatarSetStatus.ProfileNotFound => NotFound(),
+            _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid image",
+                detail: result.Reason),
+        };
+    }
+
+    // --- Public (anonymous) ----------------------------------------------------
+
+    [HttpGet("{handle}")]
+    [AllowAnonymous]
+    public async Task<ActionResult<PublicProfileDto>> GetPublic(string handle, CancellationToken ct)
+    {
+        var profile = await _profiles.GetPublicAsync(handle, ct);
+        return profile is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Profile not found",
+                detail: "No profile exists for that handle.")
+            : Ok(profile);
+    }
+
+    [HttpGet("{handle}/avatar")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetAvatar(string handle, CancellationToken ct)
+    {
+        var avatar = await _profiles.GetAvatarAsync(handle, ct);
+        return avatar is null ? NotFound() : File(avatar.Value.Bytes, avatar.Value.ContentType);
+    }
+
+    [HttpGet("{handle}/activity")]
+    [AllowAnonymous]
+    public async Task<ActionResult<PagedResult<ActivityItemDto>>> GetActivity(
+        string handle, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        var profileId = await _profiles.GetProfileIdAsync(handle, ct);
+        if (profileId is null)
+        {
+            return Problem(statusCode: StatusCodes.Status404NotFound, title: "Profile not found",
+                detail: "No profile exists for that handle.");
+        }
+
+        var page = await _activity.GetRecentAsync(profileId.Value, pagination, ct);
+        return Ok(page);
+    }
+
+    // --- Helpers ---------------------------------------------------------------
+
+    private bool TryGetUserId(out Guid userId)
+    {
+        var subject = User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(subject, out userId);
+    }
+}

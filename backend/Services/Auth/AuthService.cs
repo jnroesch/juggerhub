@@ -1,9 +1,11 @@
 using JuggerHub.Dtos.Auth;
 using JuggerHub.Entities;
 using JuggerHub.Services.Email;
+using JuggerHub.Services.Profile;
 using JuggerHub.Services.Security;
 using Mapster;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Services.Auth;
@@ -21,6 +23,7 @@ public sealed class AuthService : IAuthService
     private readonly IJwtTokenService _jwt;
     private readonly IRefreshTokenService _refreshTokens;
     private readonly AuthEmailService _authEmail;
+    private readonly IProfileService _profiles;
     private readonly IdentityOptions _identityOptions;
     private readonly ILogger<AuthService> _logger;
 
@@ -30,6 +33,7 @@ public sealed class AuthService : IAuthService
         IJwtTokenService jwt,
         IRefreshTokenService refreshTokens,
         AuthEmailService authEmail,
+        IProfileService profiles,
         IOptions<IdentityOptions> identityOptions,
         ILogger<AuthService> logger)
     {
@@ -38,6 +42,7 @@ public sealed class AuthService : IAuthService
         _jwt = jwt;
         _refreshTokens = refreshTokens;
         _authEmail = authEmail;
+        _profiles = profiles;
         _identityOptions = identityOptions.Value;
         _logger = logger;
     }
@@ -54,6 +59,20 @@ public sealed class AuthService : IAuthService
             return RegisterResult.PolicyViolation(policyErrors);
         }
 
+        // Handle is a PUBLIC identifier (it appears in shareable URLs), so — unlike
+        // the email — reporting "invalid" or "taken" is expected UX, not an
+        // enumeration oracle. Resolve it before touching the account.
+        var handleCheck = await _profiles.ResolveHandleForRegistrationAsync(request.Handle, ct);
+        if (handleCheck.Status == HandleCheckStatus.Invalid)
+        {
+            return RegisterResult.HandleInvalid(handleCheck.Reason ?? "That handle isn't available.");
+        }
+
+        if (handleCheck.Status == HandleCheckStatus.Taken)
+        {
+            return RegisterResult.HandleTaken(handleCheck.Reason ?? "That handle isn't available.");
+        }
+
         var existing = await _userManager.FindByEmailAsync(email);
         if (existing is not null)
         {
@@ -67,8 +86,27 @@ public sealed class AuthService : IAuthService
             return RegisterResult.Accepted();
         }
 
+        // Create the account AND its profile atomically: the profile is set on the
+        // navigation so Identity's CreateAsync persists both in one SaveChanges.
+        // DisplayName defaults to the handle so the public page is never blank.
         var user = new User { UserName = email, Email = email };
-        var created = await _userManager.CreateAsync(user, request.Password);
+        user.Profile = new PlayerProfile
+        {
+            Handle = handleCheck.Normalized,
+            DisplayName = handleCheck.Normalized,
+        };
+
+        IdentityResult created;
+        try
+        {
+            created = await _userManager.CreateAsync(user, request.Password);
+        }
+        catch (DbUpdateException)
+        {
+            // The unique-handle index guards against a race the pre-check missed.
+            return RegisterResult.HandleTaken("That handle isn't available.");
+        }
+
         if (!created.Succeeded)
         {
             // Password was pre-validated, so this is a race/duplicate or similar —

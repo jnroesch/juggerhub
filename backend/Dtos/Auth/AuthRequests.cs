@@ -6,10 +6,11 @@ namespace JuggerHub.Dtos.Auth;
 // `property:` target). MVC reads parameter-level metadata for positional records
 // and throws if it's on the generated property instead.
 
-/// <summary>Register a new account with email + password.</summary>
+/// <summary>Register a new account with email + password + an immutable handle (feature 003).</summary>
 public sealed record RegisterRequest(
     [Required, EmailAddress, MaxLength(256)] string Email,
-    [Required] string Password);
+    [Required] string Password,
+    [Required, MaxLength(30)] string Handle);
 
 /// <summary>Sign in. <see cref="RememberMe"/> drives persistent vs session cookies.</summary>
 public sealed record LoginRequest(

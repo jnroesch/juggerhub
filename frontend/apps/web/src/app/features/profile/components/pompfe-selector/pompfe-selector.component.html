@@ -1,0 +1,22 @@
+<div class="flex flex-wrap gap-xs" role="group" aria-label="Favorite pompfen">
+  @for (entry of catalog; track entry.value) {
+    <button
+      type="button"
+      (click)="toggle(entry.value)"
+      [attr.aria-pressed]="isSelected(entry.value)"
+      [attr.data-testid]="'pompfe-' + entry.value"
+      [attr.data-selected]="isSelected(entry.value)"
+      class="rounded-full border px-md py-xs text-body-sm transition-colors"
+      [class.border-primary]="isSelected(entry.value)"
+      [class.bg-primary]="isSelected(entry.value)"
+      [class.text-surface]="isSelected(entry.value)"
+      [class.border-dashed]="!isSelected(entry.value)"
+      [class.border-border-strong]="!isSelected(entry.value)"
+      [class.text-subtle]="!isSelected(entry.value)"
+      [class.bg-surface]="!isSelected(entry.value)"
+    >
+      {{ entry.de }}<span class="opacity-60"> / {{ entry.en }}</span>
+      @if (entry.isPosition) { <span class="ml-xs text-[10px] uppercase opacity-70">pos</span> }
+    </button>
+  }
+</div>

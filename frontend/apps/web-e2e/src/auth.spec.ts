@@ -43,6 +43,9 @@ test('register → verify → sign in → sign out → reset password', async ({
   // 1. Register
   await page.goto('/register');
   await page.getByTestId('register-email').fill(email);
+  // Feature 003: a unique, immutable handle is claimed at registration.
+  await page.getByTestId('register-handle').fill(`e2e-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+  await expect(page.getByTestId('handle-available')).toBeVisible();
   await page.getByTestId('register-password').fill(PASSWORD);
   await page.getByTestId('register-confirm-password').fill(PASSWORD);
   await expect(page.getByTestId('register-submit')).toBeEnabled();

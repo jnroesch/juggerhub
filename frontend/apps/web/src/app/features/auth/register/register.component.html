@@ -33,6 +33,35 @@
         </div>
 
         <div>
+          <label for="handle" class="block text-body-sm font-medium text-text">Handle</label>
+          <div class="mt-xs flex items-center rounded-md border border-border-strong bg-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+            <span class="pl-md text-body-md text-subtle">@</span>
+            <input
+              id="handle"
+              type="text"
+              autocomplete="off"
+              autocapitalize="none"
+              spellcheck="false"
+              formControlName="handle"
+              data-testid="register-handle"
+              placeholder="your-handle"
+              class="w-full rounded-md bg-transparent px-xs py-xs text-body-md text-text outline-none"
+            />
+            @switch (handleState()) {
+              @case ('checking') { <span class="pr-md text-body-sm text-subtle">…</span> }
+              @case ('available') { <span class="pr-md text-body-sm text-success" data-testid="handle-available">✓</span> }
+              @case ('unavailable') { <span class="pr-md text-body-sm text-danger" data-testid="handle-unavailable">✕</span> }
+            }
+          </div>
+          <p class="mt-xs text-body-sm text-subtle">
+            Your permanent profile link: <span class="font-medium text-text">jugger.app/u/{{ form.controls.handle.value || 'your-handle' }}</span> — this can't be changed later.
+          </p>
+          @if (handleState() === 'unavailable' && handleReason()) {
+            <p class="mt-xs text-body-sm text-danger" role="alert">{{ handleReason() }}</p>
+          }
+        </div>
+
+        <div>
           <label for="password" class="block text-body-sm font-medium text-text">Password</label>
           <input
             id="password"

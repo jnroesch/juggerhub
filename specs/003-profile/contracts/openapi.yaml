@@ -1,0 +1,204 @@
+openapi: 3.0.3
+info:
+  title: JuggerHub — Player Profile API
+  version: "1.0"
+  description: >-
+    Profile + public share surface for feature 003. Extends /auth/register with a
+    handle and adds /profiles/*. Public endpoints are intentionally anonymous and
+    MUST NOT expose email or account/security data.
+servers:
+  - url: /api/v1
+
+paths:
+  /auth/register:
+    post:
+      tags: [auth]
+      summary: Register a new account (EXTENDED with handle)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+      responses:
+        '200': { description: Accepted (enumeration-neutral message for email), content: { application/json: { schema: { $ref: '#/components/schemas/MessageResponse' } } } }
+        '400': { description: Password policy or handle format/reserved violation, content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+        '409': { description: Handle already taken, content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+
+  /auth/handle-available:
+    get:
+      tags: [auth]
+      summary: Check handle availability + format (UX aid; not a security boundary)
+      security: []
+      parameters:
+        - in: query
+          name: handle
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Result, content: { application/json: { schema: { $ref: '#/components/schemas/HandleAvailabilityDto' } } } }
+
+  /profiles/me:
+    get:
+      tags: [profiles]
+      summary: Get the authenticated owner's profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: Owner profile, content: { application/json: { schema: { $ref: '#/components/schemas/OwnerProfileDto' } } } }
+        '401': { description: Unauthenticated }
+    put:
+      tags: [profiles]
+      summary: Update the owner's profile (handle is immutable and NOT accepted here)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProfileRequest' }
+      responses:
+        '200': { description: Updated owner profile, content: { application/json: { schema: { $ref: '#/components/schemas/OwnerProfileDto' } } } }
+        '400': { description: Validation error, content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+        '401': { description: Unauthenticated }
+
+  /profiles/me/avatar:
+    put:
+      tags: [profiles]
+      summary: Upload/replace the owner's avatar (validated server-side)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+              required: [file]
+      responses:
+        '204': { description: Stored }
+        '400': { description: Wrong type (magic-byte sniff) or oversize; existing avatar unchanged, content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+        '401': { description: Unauthenticated }
+
+  /profiles/{handle}:
+    get:
+      tags: [profiles]
+      summary: Public profile (anonymous; no email/account data)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Handle'
+      responses:
+        '200': { description: Public profile, content: { application/json: { schema: { $ref: '#/components/schemas/PublicProfileDto' } } } }
+        '404': { description: Unknown handle (generic), content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+
+  /profiles/{handle}/avatar:
+    get:
+      tags: [profiles]
+      summary: Serve avatar bytes (anonymous)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Handle'
+      responses:
+        '200': { description: Image bytes, content: { image/*: { schema: { type: string, format: binary } } } }
+        '404': { description: No avatar / unknown handle }
+
+  /profiles/{handle}/activity:
+    get:
+      tags: [profiles]
+      summary: Public recent activity (paginated + capped, newest first)
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/Handle'
+        - { in: query, name: skip, schema: { type: integer, default: 0, minimum: 0 } }
+        - { in: query, name: take, schema: { type: integer, default: 20, minimum: 1, maximum: 100 } }
+      responses:
+        '200': { description: Paged activity, content: { application/json: { schema: { $ref: '#/components/schemas/PagedActivity' } } } }
+        '404': { description: Unknown handle }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: JWT delivered via the httpOnly jh_access cookie; owner endpoints require it.
+  parameters:
+    Handle:
+      in: path
+      name: handle
+      required: true
+      schema: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$', minLength: 3, maxLength: 30 }
+  schemas:
+    Pompfe:
+      type: string
+      enum: [Stab, Langpompfe, Schild, QTip, Kette, DoppelKurz, Laeufer]
+    RegisterRequest:
+      type: object
+      required: [email, password, handle]
+      properties:
+        email: { type: string, format: email, maxLength: 256 }
+        password: { type: string }
+        handle: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$', minLength: 3, maxLength: 30 }
+    UpdateProfileRequest:
+      type: object
+      required: [displayName, pompfen]
+      properties:
+        displayName: { type: string, minLength: 1, maxLength: 50 }
+        hometown: { type: string, maxLength: 80, nullable: true }
+        description: { type: string, maxLength: 280, nullable: true }
+        pompfen:
+          type: array
+          items: { $ref: '#/components/schemas/Pompfe' }
+          description: The full desired selection set; server replaces existing selections.
+    OwnerProfileDto:
+      type: object
+      properties:
+        handle: { type: string }
+        displayName: { type: string }
+        hometown: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        hasAvatar: { type: boolean }
+        pompfen: { type: array, items: { $ref: '#/components/schemas/Pompfe' } }
+        recentActivity: { type: array, items: { $ref: '#/components/schemas/ActivityItemDto' } }
+    PublicProfileDto:
+      type: object
+      description: Anonymous view. MUST NOT contain email, account status, security data, or raw account id.
+      properties:
+        handle: { type: string }
+        displayName: { type: string }
+        hometown: { type: string, nullable: true }
+        description: { type: string, nullable: true }
+        hasAvatar: { type: boolean }
+        selectedPompfen: { type: array, items: { $ref: '#/components/schemas/Pompfe' } }
+        recentActivity: { type: array, items: { $ref: '#/components/schemas/ActivityItemDto' } }
+    ActivityItemDto:
+      type: object
+      properties:
+        eventName: { type: string }
+        date: { type: string, format: date }
+        location: { type: string }
+        teamLabel: { type: string }
+    PagedActivity:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: '#/components/schemas/ActivityItemDto' } }
+        totalCount: { type: integer }
+        skip: { type: integer }
+        take: { type: integer }
+    HandleAvailabilityDto:
+      type: object
+      properties:
+        handle: { type: string }
+        normalized: { type: string }
+        available: { type: boolean }
+        reason: { type: string, nullable: true }
+    MessageResponse:
+      type: object
+      properties:
+        message: { type: string }
+    ProblemDetails:
+      type: object
+      description: RFC 7807; generic — never carries stack traces, secrets, or account internals.
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }

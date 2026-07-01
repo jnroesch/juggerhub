@@ -6,7 +6,9 @@ using JuggerHub.Entities;
 using JuggerHub.Services;
 using JuggerHub.Services.Auth;
 using JuggerHub.Services.Email;
+using JuggerHub.Services.Events;
 using JuggerHub.Services.Health;
+using JuggerHub.Services.Profile;
 using JuggerHub.Services.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -18,7 +20,12 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // --- MVC / controllers -----------------------------------------------------
-builder.Services.AddControllers();
+// Serialize/accept enums (e.g. Pompfe) as their names, so the API contract and
+// the Angular client speak "Stab"/"Schild" rather than opaque integers.
+builder.Services
+    .AddControllers()
+    .AddJsonOptions(options =>
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter()));
 
 // --- Data access (EF Core + Npgsql) ----------------------------------------
 // Resolve the connection string lazily from IConfiguration (not a build-time
@@ -165,6 +172,11 @@ else
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
+// --- Player profile + activity (feature 003) -------------------------------
+builder.Services.Configure<ProfileOptions>(builder.Configuration.GetSection(ProfileOptions.SectionName));
+builder.Services.AddScoped<IProfileService, ProfileService>();
+builder.Services.AddScoped<IEventActivityService, EventActivityService>();
+
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services
     .AddApiVersioning(options =>
@@ -190,6 +202,14 @@ var app = builder.Build();
 // a failure logs a generic error and exits non-zero rather than serving against
 // a broken/half-migrated schema. See specs/001-project-scaffold/research.md §5.
 await ApplyMigrationsAsync(app);
+
+// Development-only sample data for demonstrable "recent activity" (never in Prod).
+if (app.Environment.IsDevelopment())
+{
+    using var seedScope = app.Services.CreateScope();
+    var seedDb = seedScope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DevDataSeeder.SeedAsync(seedDb);
+}
 
 // --- Middleware pipeline ----------------------------------------------------
 // Exception handler is registered first so it wraps the whole pipeline.
