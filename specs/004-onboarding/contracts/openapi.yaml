@@ -1,0 +1,104 @@
+openapi: 3.0.3
+info:
+  title: JuggerHub — Onboarding (feature 004) surface delta
+  version: "1.0"
+  description: >
+    The one new endpoint and the AuthUserDto delta introduced by the first-login
+    onboarding flow. Profile persistence reuses feature 003 endpoints (see
+    specs/003-profile/contracts/openapi.yaml). Design contract for planning/tests.
+servers:
+  - url: /api/v1
+
+paths:
+  /profiles/me/onboarding/complete:
+    post:
+      summary: Mark the signed-in user's onboarding as complete (idempotent)
+      description: >
+        Sets OnboardingCompletedAt on the authenticated subject's profile if not
+        already set; a second call is a no-op that leaves the original timestamp
+        intact. Called by the client on ANY terminal exit of the flow — finishing
+        the last step OR dismissing via "I'll do this later"/skip.
+      operationId: completeOnboarding
+      security:
+        - cookieAuth: []
+      responses:
+        "204":
+          description: Onboarding marked complete (or was already complete).
+        "401":
+          description: No valid session.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetails" }
+        "404":
+          description: The authenticated user has no profile.
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/ProblemDetails" }
+
+  # --- Referenced only to show the AuthUserDto delta (not redefined here) ---
+  /auth/login:
+    post:
+      summary: Sign in (EXTENDED response — AuthUserDto now carries onboardingCompleted)
+      operationId: login
+      responses:
+        "200":
+          description: Authenticated. Cookie set; body is the AuthUserDto.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthUserDto" }
+        "403":
+          description: Correct password but email unverified (feature 002).
+        "401":
+          description: Invalid credentials (generic).
+
+  /auth/me:
+    get:
+      summary: Current user (EXTENDED — AuthUserDto now carries onboardingCompleted)
+      operationId: me
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: The authenticated user.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AuthUserDto" }
+        "401":
+          description: No valid session.
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: auth_token
+      description: JWT in an httpOnly cookie (never readable by JS; feature 002).
+
+  schemas:
+    AuthUserDto:
+      type: object
+      description: The authenticated user. Never contains token material.
+      required: [id, email, emailConfirmed, onboardingCompleted]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        emailConfirmed:
+          type: boolean
+        onboardingCompleted:
+          type: boolean
+          description: >
+            Server-derived (OnboardingCompletedAt != null). UX-only routing hint;
+            never the security authority for gating the flow.
+
+    ProblemDetails:
+      type: object
+      description: RFC 7807 problem response from the global exception/omission middleware.
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
