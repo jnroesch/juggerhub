@@ -14,8 +14,13 @@ internal static class AuthTestHelpers
 
     public static string NewEmail() => $"user-{Guid.NewGuid():N}@example.com";
 
-    public static Task<HttpResponseMessage> RegisterAsync(HttpClient client, string email, string? password = null) =>
-        client.PostAsJsonAsync("/api/v1/auth/register", new { email, password = password ?? ValidPassword });
+    /// <summary>A unique, valid handle (lowercase alphanumeric, ≤30 chars) for registration.</summary>
+    public static string NewHandle() => $"p{Guid.NewGuid():N}"[..20];
+
+    public static Task<HttpResponseMessage> RegisterAsync(
+        HttpClient client, string email, string? password = null, string? handle = null) =>
+        client.PostAsJsonAsync("/api/v1/auth/register",
+            new { email, password = password ?? ValidPassword, handle = handle ?? NewHandle() });
 
     public static Task<HttpResponseMessage> LoginAsync(HttpClient client, string email, string password, bool rememberMe = false) =>
         client.PostAsJsonAsync("/api/v1/auth/login", new { email, password, rememberMe });
@@ -32,10 +37,10 @@ internal static class AuthTestHelpers
 
     /// <summary>Registers, reads the captured verification email, and confirms the account.</summary>
     public static async Task<(Guid UserId, string Email)> RegisterAndVerifyAsync(
-        HttpClient client, JuggerHubApiFactory factory, string? email = null, string? password = null)
+        HttpClient client, JuggerHubApiFactory factory, string? email = null, string? password = null, string? handle = null)
     {
         email ??= NewEmail();
-        var register = await RegisterAsync(client, email, password);
+        var register = await RegisterAsync(client, email, password, handle);
         register.EnsureSuccessStatusCode();
 
         var mail = factory.EmailSender.LatestFor(email)

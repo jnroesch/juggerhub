@@ -2,15 +2,22 @@ import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
+import { ProfileService } from '../../../core/services/profile.service';
 import { passwordsMatch } from '../../../core/utils/passwords-match.validator';
 import { problemDetail } from '../../../core/utils/problem';
 import { PasswordRulesComponent } from '../password-policy/password-rules.component';
 
+/** URL-safe handle: lowercase alphanumeric segments joined by single hyphens. */
+const HANDLE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+type HandleState = 'idle' | 'checking' | 'available' | 'unavailable';
+
 /**
- * US1 — registration. Live password-policy feedback plus a confirm-password field
- * gate submit; on success shows a neutral "check your email" state (the response is
- * identical whether or not the address already exists).
+ * US1 — registration. Live password-policy feedback, a confirm-password field, and
+ * a live handle-availability check gate submit; on success shows a neutral "check
+ * your email" state. The chosen handle is immutable once the account exists.
  */
 @Component({
   selector: 'jh-register',
@@ -20,11 +27,13 @@ import { PasswordRulesComponent } from '../password-policy/password-rules.compon
 })
 export class RegisterComponent {
   private readonly auth = inject(AuthService);
+  private readonly profiles = inject(ProfileService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly form = this.fb.nonNullable.group(
     {
       email: ['', [Validators.required, Validators.email]],
+      handle: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30), Validators.pattern(HANDLE_PATTERN)]],
       password: ['', [Validators.required]],
       confirmPassword: ['', [Validators.required]],
     },
@@ -38,8 +47,38 @@ export class RegisterComponent {
   protected readonly sent = signal(false);
   protected readonly error = signal<string | null>(null);
 
+  // Live handle availability (UX only — the server is the real uniqueness boundary).
+  protected readonly handleState = signal<HandleState>('idle');
+  protected readonly handleReason = signal<string | null>(null);
+
+  constructor() {
+    const handle = this.form.controls.handle;
+    handle.valueChanges
+      .pipe(
+        debounceTime(350),
+        distinctUntilChanged(),
+        switchMap((value) => {
+          const v = (value ?? '').trim().toLowerCase();
+          if (!v || handle.invalid) {
+            this.handleState.set(v ? 'unavailable' : 'idle');
+            this.handleReason.set(v ? 'Use lowercase letters, numbers, and single hyphens.' : null);
+            return of(null);
+          }
+          this.handleState.set('checking');
+          return this.profiles.checkHandle(v);
+        }),
+      )
+      .subscribe((result) => {
+        if (!result) {
+          return;
+        }
+        this.handleState.set(result.available ? 'available' : 'unavailable');
+        this.handleReason.set(result.reason);
+      });
+  }
+
   protected get canSubmit(): boolean {
-    return this.form.valid && this.passwordValid() && !this.submitting();
+    return this.form.valid && this.passwordValid() && this.handleState() === 'available' && !this.submitting();
   }
 
   submit(): void {
@@ -49,9 +88,9 @@ export class RegisterComponent {
 
     this.submitting.set(true);
     this.error.set(null);
-    // Only the password is sent — the confirmation is a client-side UX check.
-    const { email, password } = this.form.getRawValue();
-    this.auth.register({ email, password }).subscribe({
+    // Confirmation is a client-side UX check; only the fields the API needs are sent.
+    const { email, password, handle } = this.form.getRawValue();
+    this.auth.register({ email, password, handle: handle.trim().toLowerCase() }).subscribe({
       next: () => {
         this.submitting.set(false);
         this.sent.set(true);

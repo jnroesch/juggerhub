@@ -332,7 +332,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/002-authentication/plan.md` (Authentication & Account Access).
+`specs/003-profile/plan.md` (Player Profile & Public Share Link).
 <!-- SPECKIT END -->
 
 <!-- BACKLOG.MD GUIDELINES START -->

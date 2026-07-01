@@ -12,6 +12,8 @@ export interface AuthUser {
 export interface RegisterRequest {
   email: string;
   password: string;
+  /** Immutable, unique handle claimed at registration (feature 003). */
+  handle: string;
 }
 
 export interface LoginRequest {

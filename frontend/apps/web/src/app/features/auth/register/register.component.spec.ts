@@ -41,7 +41,7 @@ describe('RegisterComponent', () => {
     const fixture = createComponent();
     const form = (fixture.componentInstance as unknown as { form: import('@angular/forms').FormGroup }).form;
 
-    form.setValue({ email: 'a@example.com', password: 'Str0ng!Pass', confirmPassword: 'nope' });
+    form.setValue({ email: 'a@example.com', handle: 'nik', password: 'Str0ng!Pass', confirmPassword: 'nope' });
     expect(form.hasError('passwordMismatch')).toBe(true);
 
     form.get('confirmPassword')!.setValue('Str0ng!Pass');
@@ -52,7 +52,7 @@ describe('RegisterComponent', () => {
     const fixture = createComponent();
     const form = (fixture.componentInstance as unknown as { form: import('@angular/forms').FormGroup }).form;
 
-    form.setValue({ email: 'a@example.com', password: 'Str0ng!Pass', confirmPassword: 'mismatch' });
+    form.setValue({ email: 'a@example.com', handle: 'nik', password: 'Str0ng!Pass', confirmPassword: 'mismatch' });
     fixture.detectChanges();
 
     const button = fixture.nativeElement.querySelector('[data-testid="register-submit"]') as HTMLButtonElement;

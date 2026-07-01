@@ -8,6 +8,8 @@ import { RegisterComponent } from './features/auth/register/register.component';
 import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
 import { VerifyEmailComponent } from './features/auth/verify-email/verify-email.component';
+import { ProfileOwnerComponent } from './features/profile/profile-owner/profile-owner.component';
+import { ProfilePublicComponent } from './features/profile/profile-public/profile-public.component';
 
 export const appRoutes: Route[] = [
   {
@@ -17,6 +19,8 @@ export const appRoutes: Route[] = [
       { path: '', component: DashboardComponent },
       // Guarded sample route — unauthenticated access redirects toward sign-in.
       { path: 'account', component: AccountComponent, canActivate: [authGuard] },
+      // Owner profile view/edit lives inside the shell, behind the auth guard.
+      { path: 'profile', component: ProfileOwnerComponent, canActivate: [authGuard] },
     ],
   },
   // Auth screens are full-screen, outside the shell.
@@ -25,4 +29,6 @@ export const appRoutes: Route[] = [
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'verify-email', component: VerifyEmailComponent },
+  // Public, unauthenticated share page — full-screen, outside the shell.
+  { path: 'u/:handle', component: ProfilePublicComponent },
 ];

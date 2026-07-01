@@ -14,4 +14,9 @@ namespace JuggerHub.Entities;
 /// </remarks>
 public class User : IdentityUser<Guid>
 {
+    /// <summary>
+    /// The player's profile (1:1). Created atomically with the account at
+    /// registration (feature 003); see <see cref="Entities.PlayerProfile"/>.
+    /// </summary>
+    public PlayerProfile? Profile { get; set; }
 }
