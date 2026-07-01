@@ -1,5 +1,6 @@
 import { Route } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { onboardingGuard } from './core/guards/onboarding.guard';
 import { ShellComponent } from './layout/shell/shell.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { AccountComponent } from './features/account/account.component';
@@ -10,6 +11,7 @@ import { ResetPasswordComponent } from './features/auth/reset-password/reset-pas
 import { VerifyEmailComponent } from './features/auth/verify-email/verify-email.component';
 import { ProfileOwnerComponent } from './features/profile/profile-owner/profile-owner.component';
 import { ProfilePublicComponent } from './features/profile/profile-public/profile-public.component';
+import { OnboardingComponent } from './features/onboarding/onboarding.component';
 
 export const appRoutes: Route[] = [
   {
@@ -29,6 +31,9 @@ export const appRoutes: Route[] = [
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'verify-email', component: VerifyEmailComponent },
+  // First-login onboarding — full-screen, outside the shell. authGuard requires a
+  // session; onboardingGuard bounces already-onboarded users to the dashboard.
+  { path: 'onboarding', component: OnboardingComponent, canActivate: [authGuard, onboardingGuard] },
   // Public, unauthenticated share page — full-screen, outside the shell.
   { path: 'u/:handle', component: ProfilePublicComponent },
 ];

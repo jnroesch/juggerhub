@@ -7,7 +7,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { authInterceptor } from './auth.interceptor';
 
-const USER = { id: 'u1', email: 'a@example.com', emailConfirmed: true };
+const USER = { id: 'u1', email: 'a@example.com', emailConfirmed: true, onboardingCompleted: true };
 const unauthorized = { status: 401, statusText: 'Unauthorized' };
 
 describe('authInterceptor', () => {

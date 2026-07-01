@@ -64,12 +64,16 @@ test('register → verify → sign in → sign out → reset password', async ({
   await page.goto(toPath(verifyLink));
   await expect(page.getByTestId('verify-email')).toContainText(/verified/i);
 
-  // 4. Sign in → reach the protected area.
+  // 4. Sign in → first-login onboarding (feature 004); dismiss it, then reach the protected area.
   await page.goto('/sign-in');
   await page.getByTestId('sign-in-email').fill(email);
   await page.getByTestId('sign-in-password').fill(PASSWORD);
   await page.getByTestId('sign-in-remember').check();
   await page.getByTestId('sign-in-submit').click();
+  await expect(page).toHaveURL(/onboarding/);
+  await page.getByTestId('onboarding-dismiss').click();
+  await expect(page).not.toHaveURL(/onboarding/);
+  await page.goto('/account');
   await expect(page.getByTestId('account-email')).toContainText(email);
 
   // 5. Sign out → protected area no longer reachable.
@@ -94,9 +98,12 @@ test('register → verify → sign in → sign out → reset password', async ({
   await expect(page.getByTestId('reset-password')).toContainText(/password reset/i);
 
   // 8. The new password works; the old one would not (it was changed server-side).
+  //    Onboarding was already dismissed in step 4 → sign-in goes straight to the app.
   await page.goto('/sign-in');
   await page.getByTestId('sign-in-email').fill(email);
   await page.getByTestId('sign-in-password').fill(NEW_PASSWORD);
   await page.getByTestId('sign-in-submit').click();
+  await expect(page).not.toHaveURL(/onboarding/);
+  await page.goto('/account');
   await expect(page.getByTestId('account-email')).toContainText(email);
 });

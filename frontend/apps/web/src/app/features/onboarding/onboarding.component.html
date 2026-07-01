@@ -1,0 +1,306 @@
+<main
+  class="mx-auto flex min-h-screen w-full max-w-sm flex-col bg-background px-lg py-xl"
+  data-testid="onboarding"
+>
+  @switch (step()) {
+    <!-- Welcome ---------------------------------------------------------------->
+    @case ('welcome') {
+      <div class="flex flex-1 flex-col items-center justify-center text-center">
+        <div
+          class="grid h-16 w-16 place-items-center rounded-lg bg-gradient-to-br from-primary to-accent text-display text-surface"
+          aria-hidden="true"
+        >
+          J
+        </div>
+        <h1 class="mt-lg text-heading-lg font-semibold text-ink">Welcome to Jugger</h1>
+        <p class="mt-xs max-w-xs text-body-md text-subtle">
+          Let's set up your player profile — takes about a minute.
+        </p>
+      </div>
+      <div class="space-y-sm">
+        <button
+          type="button"
+          data-testid="onboarding-start"
+          (click)="next()"
+          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover"
+        >
+          Get started
+        </button>
+        <button
+          type="button"
+          data-testid="onboarding-dismiss"
+          (click)="dismiss()"
+          [disabled]="saving()"
+          class="w-full py-xs text-body-sm font-medium text-subtle hover:text-text disabled:opacity-50"
+        >
+          I'll do this later
+        </button>
+      </div>
+    }
+
+    <!-- 1 · Display name (required) -------------------------------------------->
+    @case ('name') {
+      <ng-container [ngTemplateOutlet]="backBar" />
+      <div class="flex-1">
+        <h1 class="text-heading-lg font-semibold text-ink">What should we call you?</h1>
+        <p class="mt-xs text-body-md text-subtle">Your display name — change it anytime.</p>
+        <input
+          type="text"
+          data-testid="onboarding-name"
+          [ngModel]="displayName()"
+          (ngModelChange)="displayName.set($event)"
+          placeholder="Player name"
+          class="mt-lg w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+        <p class="mt-sm text-body-sm text-subtle">Handle &#64;{{ handle() }} stays the same</p>
+      </div>
+      <div class="space-y-sm">
+        <ng-container [ngTemplateOutlet]="progress" />
+        <button
+          type="button"
+          data-testid="onboarding-continue"
+          (click)="next()"
+          [disabled]="nameEmpty()"
+          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Continue
+        </button>
+      </div>
+    }
+
+    <!-- 2 · City --------------------------------------------------------------->
+    @case ('city') {
+      <ng-container [ngTemplateOutlet]="backBar" />
+      <div class="flex-1">
+        <h1 class="text-heading-lg font-semibold text-ink">Where are you based?</h1>
+        <p class="mt-xs text-body-md text-subtle">Your hometown or current city.</p>
+        <input
+          type="text"
+          data-testid="onboarding-city"
+          [ngModel]="hometown()"
+          (ngModelChange)="hometown.set($event)"
+          placeholder="e.g. Berlin"
+          class="mt-lg w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+        />
+      </div>
+      <div class="space-y-sm">
+        <ng-container [ngTemplateOutlet]="progress" />
+        <button
+          type="button"
+          data-testid="onboarding-continue"
+          (click)="next()"
+          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover"
+        >
+          Continue
+        </button>
+        <ng-container [ngTemplateOutlet]="skipLink" />
+      </div>
+    }
+
+    <!-- 3 · Pompfen ------------------------------------------------------------>
+    @case ('pompfen') {
+      <ng-container [ngTemplateOutlet]="backBar" />
+      <div class="flex-1">
+        <h1 class="text-heading-lg font-semibold text-ink">Which do you play?</h1>
+        <p class="mt-xs text-body-md text-subtle">Pick any — including Läufer.</p>
+        <div class="mt-lg">
+          <jh-pompfe-selector
+            [selected]="selectedPompfen()"
+            (selectionChange)="selectedPompfen.set($event)"
+          />
+        </div>
+      </div>
+      <div class="space-y-sm">
+        <ng-container [ngTemplateOutlet]="progress" />
+        <button
+          type="button"
+          data-testid="onboarding-continue"
+          (click)="next()"
+          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover"
+        >
+          Continue
+        </button>
+        <ng-container [ngTemplateOutlet]="skipLink" />
+      </div>
+    }
+
+    <!-- 4 · Team (visual stub — persists nothing) ------------------------------>
+    @case ('team') {
+      <ng-container [ngTemplateOutlet]="backBar" />
+      <div class="flex-1">
+        <h1 class="text-heading-lg font-semibold text-ink">Find your team</h1>
+        <p class="mt-xs text-body-md text-subtle">Search by name — skip if you're not on one yet.</p>
+
+        <input
+          type="text"
+          data-testid="onboarding-team-search"
+          placeholder="Search teams…"
+          disabled
+          class="mt-lg w-full cursor-not-allowed rounded-md border border-border-strong bg-surface-subtle px-md py-xs text-body-md text-subtle"
+        />
+
+        <div class="mt-sm space-y-xs">
+          @for (team of [{ name: 'Team A', city: 'Berlin' }, { name: 'Team B', city: 'Hamburg' }]; track team.name) {
+            <button
+              type="button"
+              (click)="teamStub.set(team.name)"
+              [attr.data-testid]="'onboarding-team-' + team.name"
+              class="flex w-full items-center gap-md rounded-md border bg-surface px-md py-sm text-left"
+              [class.border-primary]="teamStub() === team.name"
+              [class.border-border]="teamStub() !== team.name"
+            >
+              <span class="h-8 w-8 rounded-full bg-surface-subtle"></span>
+              <span>
+                <span class="block text-body-md text-text">{{ team.name }}</span>
+                <span class="block text-body-sm text-subtle">{{ team.city }}</span>
+              </span>
+            </button>
+          }
+        </div>
+
+        <p class="mt-sm text-body-sm text-faint">
+          Teams are coming soon — your pick here isn't saved yet.
+        </p>
+      </div>
+      <div class="space-y-sm">
+        <ng-container [ngTemplateOutlet]="progress" />
+        <button
+          type="button"
+          data-testid="onboarding-continue"
+          (click)="next()"
+          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover"
+        >
+          Continue
+        </button>
+        <button
+          type="button"
+          data-testid="onboarding-skip"
+          (click)="next()"
+          class="w-full py-xs text-body-sm font-medium text-subtle underline hover:text-text"
+        >
+          I'm not on a team yet
+        </button>
+      </div>
+    }
+
+    <!-- 5 · Photo + bio -------------------------------------------------------->
+    @case ('photo') {
+      <div class="flex items-center justify-between">
+        <button type="button" (click)="back()" class="text-body-sm text-subtle hover:text-text">‹ Back</button>
+        <span class="rounded-full border border-border px-sm py-[2px] text-body-sm text-subtle">Optional</span>
+      </div>
+      <div class="mt-lg flex-1">
+        <h1 class="text-heading-lg font-semibold text-ink">Make it yours</h1>
+        <p class="mt-xs text-body-md text-subtle">Add a photo and a short bio — or do it later.</p>
+
+        <div class="mt-lg flex flex-col items-center">
+          <label
+            for="onboarding-photo"
+            class="grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle"
+          >
+            @if (avatarPreview()) {
+              <img [src]="avatarPreview()" alt="Selected photo preview" class="h-full w-full object-cover" />
+            } @else {
+              <span>Add photo</span>
+            }
+          </label>
+          <input
+            id="onboarding-photo"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            data-testid="onboarding-photo"
+            (change)="onAvatarPicked($event)"
+            class="sr-only"
+          />
+        </div>
+
+        <textarea
+          data-testid="onboarding-bio"
+          [ngModel]="description()"
+          (ngModelChange)="description.set($event)"
+          rows="3"
+          maxlength="280"
+          placeholder="A short bio…"
+          class="mt-lg w-full resize-none rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+        ></textarea>
+
+        @if (error()) {
+          <p class="mt-sm text-body-sm text-danger" data-testid="onboarding-error" role="alert">{{ error() }}</p>
+        }
+      </div>
+      <div class="space-y-sm">
+        <ng-container [ngTemplateOutlet]="progress" />
+        <button
+          type="button"
+          data-testid="onboarding-finish"
+          (click)="finish()"
+          [disabled]="saving()"
+          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {{ saving() ? 'Saving…' : 'Finish' }}
+        </button>
+        <button
+          type="button"
+          data-testid="onboarding-skip"
+          (click)="finish()"
+          [disabled]="saving()"
+          class="w-full py-xs text-body-sm font-medium text-subtle underline hover:text-text disabled:opacity-50"
+        >
+          Skip for now
+        </button>
+      </div>
+    }
+
+    <!-- Done ------------------------------------------------------------------->
+    @case ('done') {
+      <div class="flex flex-1 flex-col items-center justify-center text-center">
+        <div class="grid h-16 w-16 place-items-center rounded-full bg-primary text-surface" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" class="h-8 w-8" stroke="currentColor" stroke-width="3">
+            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </div>
+        <h1 class="mt-lg text-heading-lg font-semibold text-ink">You're all set!</h1>
+        <p class="mt-xs text-body-md text-subtle">Welcome to the community.</p>
+      </div>
+      <button
+        type="button"
+        data-testid="onboarding-enter"
+        (click)="enterApp()"
+        class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover"
+      >
+        3… 2… 1… Jugger!
+      </button>
+    }
+  }
+</main>
+
+<!-- Shared: back bar, progress knobs, and a plain Skip link ------------------->
+<ng-template #backBar>
+  <button type="button" (click)="back()" class="text-body-sm text-subtle hover:text-text">‹ Back</button>
+</ng-template>
+
+<ng-template #progress>
+  <div class="flex justify-center gap-xs" aria-hidden="true" data-testid="onboarding-progress">
+    @for (s of coreSteps; track s; let i = $index) {
+      <span
+        class="h-2.5 w-2.5 rounded-full transition-colors"
+        [class.bg-primary]="i < coreIndex()"
+        [class.border-2]="i === coreIndex()"
+        [class.border-primary]="i === coreIndex()"
+        [class.bg-background]="i === coreIndex()"
+        [class.bg-border-strong]="i > coreIndex()"
+      ></span>
+    }
+  </div>
+</ng-template>
+
+<ng-template #skipLink>
+  <button
+    type="button"
+    data-testid="onboarding-skip"
+    (click)="next()"
+    class="w-full py-xs text-body-sm font-medium text-subtle underline hover:text-text"
+  >
+    Skip
+  </button>
+</ng-template>

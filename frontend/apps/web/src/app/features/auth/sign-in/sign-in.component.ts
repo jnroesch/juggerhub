@@ -42,9 +42,11 @@ export class SignInComponent {
     this.resent.set(false);
 
     this.auth.login(this.form.getRawValue()).subscribe({
-      next: () => {
+      next: (user) => {
         this.submitting.set(false);
-        this.router.navigate(['/account']);
+        // First-login gate: new (not-yet-onboarded) users start the guided flow;
+        // everyone else goes to the app. The server is the authority for the flag.
+        this.router.navigate([user.onboardingCompleted ? '/' : '/onboarding']);
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);

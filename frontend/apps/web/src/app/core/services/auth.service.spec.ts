@@ -7,7 +7,7 @@ import { TestBed } from '@angular/core/testing';
 import { AuthUser } from '../models/auth.models';
 import { AuthService } from './auth.service';
 
-const USER: AuthUser = { id: 'u1', email: 'a@example.com', emailConfirmed: true };
+const USER: AuthUser = { id: 'u1', email: 'a@example.com', emailConfirmed: true, onboardingCompleted: true };
 
 describe('AuthService', () => {
   let service: AuthService;
