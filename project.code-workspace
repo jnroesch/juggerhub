@@ -13,13 +13,13 @@
       },
       "Docker Compose Up": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "docker compose up -d; docker compose logs -f"],
+        "args": ["-NoExit", "-Command", "docker compose up --build -d; docker compose logs -f"],
         "icon": "play",
         "color": "terminal.ansiGreen"
       },
       "Docker Compose Debug": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d; docker compose -f docker-compose.yml -f docker-compose.debug.yml logs -f"],
+        "args": ["-NoExit", "-Command", "docker compose -f docker-compose.yml -f docker-compose.debug.yml up --build -d; docker compose -f docker-compose.yml -f docker-compose.debug.yml logs -f"],
         "icon": "debug-alt",
         "color": "terminal.ansiYellow"
       },
@@ -39,12 +39,6 @@
         "path": "pwsh.exe",
         "args": ["-NoExit", "-Command", "backlog browser"],
         "icon": "checklist",
-        "color": "terminal.ansiBlue"
-      },
-      "Backlog: Kanban (Terminal)": {
-        "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "backlog board"],
-        "icon": "layout",
         "color": "terminal.ansiBlue"
       },
       "Graphify: View Graph": {
@@ -112,7 +106,7 @@
       {
         "label": "Docker Compose Up",
         "type": "shell",
-        "command": "docker compose up -d",
+        "command": "docker compose up --build -d",
         "group": "build",
         "presentation": {
           "reveal": "always",
@@ -122,7 +116,7 @@
       {
         "label": "Docker Compose Debug",
         "type": "shell",
-        "command": "docker compose -f docker-compose.yml -f docker-compose.debug.yml up -d",
+        "command": "docker compose -f docker-compose.yml -f docker-compose.debug.yml up --build -d",
         "group": "build",
         "presentation": {
           "reveal": "always",
@@ -180,15 +174,6 @@
         "type": "shell",
         "command": "backlog browser",
         "icon": { "id": "checklist", "color": "terminal.ansiBlue" },
-        "problemMatcher": [],
-        "presentation": { "reveal": "always", "panel": "dedicated" }
-      },
-      {
-        "label": "📋 Backlog.md: Kanban (Terminal)",
-        "detail": "Run `backlog board` — interactive Kanban board in the integrated terminal",
-        "type": "shell",
-        "command": "backlog board",
-        "icon": { "id": "layout", "color": "terminal.ansiBlue" },
         "problemMatcher": [],
         "presentation": { "reveal": "always", "panel": "dedicated" }
       },
