@@ -1,0 +1,57 @@
+<section class="mx-auto max-w-md px-md py-lg" data-testid="team-settings">
+  <a [routerLink]="['/t', slug()]" class="text-body-sm text-subtle hover:text-text">‹ Back</a>
+  <h1 class="mt-md text-heading-lg font-bold text-ink">Team settings</h1>
+
+  @if (loading()) {
+    <p class="mt-md text-body-md text-subtle">Loading…</p>
+  } @else if (notFound()) {
+    <p class="mt-md text-body-md text-danger">This team doesn't exist, or you're not a member.</p>
+  } @else if (detail(); as t) {
+    @if (error()) {
+      <p class="mt-md text-body-sm text-danger" role="alert" data-testid="settings-error">{{ error() }}</p>
+    }
+
+    @if (isAdmin()) {
+      <div class="mt-lg">
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Your role</p>
+        <button type="button" (click)="stepDown()" [disabled]="soleAdmin() || working()" data-testid="step-down"
+          class="mt-xs flex w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-60">
+          <span>Step down to member</span>
+          <span class="text-subtle">›</span>
+        </button>
+        @if (soleAdmin()) {
+          <p class="mt-xs rounded-md border border-dashed border-warning-border bg-warning-bg px-md py-sm text-body-sm text-warning-fg" data-testid="sole-admin-warning">
+            You're the only admin. Make someone else an admin before you step down or leave.
+          </p>
+        }
+      </div>
+
+      <hr class="my-lg border-border" />
+
+      <div>
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-danger">Danger zone</p>
+        @if (!confirmingDelete()) {
+          <button type="button" (click)="confirmingDelete.set(true)" data-testid="delete-team"
+            class="mt-xs w-full rounded-md border border-danger-border px-md py-sm text-body-md font-semibold text-danger transition-colors hover:bg-danger-bg">
+            Delete team
+          </button>
+        } @else {
+          <div class="mt-xs rounded-md border border-danger-border bg-danger-bg p-md">
+            <p class="text-body-sm text-danger">Delete <strong>{{ t.name }}</strong> for everyone? This removes the team, its news and roster. It can't be undone.</p>
+            <div class="mt-sm flex gap-xs">
+              <button type="button" (click)="deleteTeam()" [disabled]="working()" data-testid="delete-confirm"
+                class="flex-1 rounded-md bg-danger-fg px-md py-sm text-body-sm font-semibold text-white disabled:opacity-60">
+                {{ working() ? 'Deleting…' : 'Yes, delete team' }}
+              </button>
+              <button type="button" (click)="confirmingDelete.set(false)" [disabled]="working()"
+                class="rounded-md border border-border-strong px-md py-sm text-body-sm font-medium text-subtle hover:bg-surface-sunken">Cancel</button>
+            </div>
+          </div>
+        }
+        <p class="mt-xs text-body-sm text-faint">Admins only · removes the team, its news and roster for everyone. Can't be undone.</p>
+      </div>
+    } @else {
+      <p class="mt-lg text-body-md text-subtle">Only admins can change team settings.</p>
+    }
+  }
+</section>

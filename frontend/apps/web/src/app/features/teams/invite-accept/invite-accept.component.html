@@ -1,0 +1,49 @@
+<main class="grid min-h-screen place-items-center bg-hero px-md py-lg">
+  <div class="w-full max-w-sm rounded-xl border border-border-muted bg-surface-card p-lg text-center shadow-md" data-testid="invite-accept">
+    @if (loading()) {
+      <p class="text-body-md text-subtle">Loading invite…</p>
+    } @else if (notFound() || preview()?.state === 'Invalid') {
+      <div data-testid="invite-invalid">
+        <div class="mx-auto grid h-16 w-16 place-items-center rounded-lg border border-dashed border-border-strong bg-surface-subtle text-heading-md text-faint">✕</div>
+        <h1 class="mt-md text-heading-md font-bold text-ink">This invite isn't valid</h1>
+        <p class="mt-sm text-body-md text-subtle">Ask a team admin to send you a fresh one.</p>
+        <a routerLink="/" class="mt-lg inline-block rounded-md border border-border-strong px-lg py-sm text-body-md font-medium text-body hover:bg-surface-sunken">Back to JuggerHub</a>
+      </div>
+    } @else if (preview()?.state === 'Expired') {
+      <div data-testid="invite-expired">
+        <div class="mx-auto grid h-16 w-16 place-items-center rounded-lg border border-dashed border-border-strong bg-surface-subtle text-heading-md text-faint">✕</div>
+        <h1 class="mt-md text-heading-md font-bold text-ink">This invite has expired</h1>
+        <p class="mt-sm text-body-md text-subtle">Invite links last 7 days. Ask a team admin to send you a fresh one.</p>
+        <a routerLink="/" class="mt-lg inline-block rounded-md border border-border-strong px-lg py-sm text-body-md font-medium text-body hover:bg-surface-sunken">Back to JuggerHub</a>
+      </div>
+    } @else if (preview(); as p) {
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">You're invited</p>
+      <div class="mx-auto mt-md grid h-16 w-16 place-items-center rounded-lg border border-border-strong bg-surface-subtle text-body-md font-semibold text-subtle">
+        {{ p.teamName.slice(0, 2) }}
+      </div>
+      <h1 class="mt-md text-heading-md font-bold text-ink">Join {{ p.teamName }}</h1>
+      <p class="mt-xs inline-flex items-center gap-xs text-body-sm text-text-muted">
+        @if (p.type === 'CityTeam') {
+          <svg class="h-3.5 w-3.5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          {{ p.city }} ·
+        }
+        <span class="font-mono">{{ p.memberCount }} {{ p.memberCount === 1 ? 'member' : 'members' }}</span>
+      </p>
+      <p class="mt-sm text-body-md text-text-muted">{{ p.inviterDisplayName }} invited you to join. New members join as players.</p>
+
+      @if (error()) {
+        <p class="mt-md text-body-sm text-danger" role="alert" data-testid="accept-error">{{ error() }}</p>
+      }
+
+      <button type="button" (click)="accept()" [disabled]="working()" data-testid="accept-join"
+        class="mt-lg w-full rounded-md bg-ink px-lg py-sm text-body-md font-semibold text-on-inverse transition-colors hover:bg-sand-8 active:translate-y-px disabled:opacity-60">
+        {{ working() ? 'Joining…' : 'Accept & join' }}
+      </button>
+      <button type="button" (click)="decline()" [disabled]="working()" data-testid="decline"
+        class="mt-xs w-full rounded-md border border-border-strong px-lg py-sm text-body-md font-medium text-subtle hover:bg-surface-sunken disabled:opacity-60">
+        Decline
+      </button>
+      <p class="mt-sm text-body-sm text-faint">This invite expires in 7 days.</p>
+    }
+  </div>
+</main>

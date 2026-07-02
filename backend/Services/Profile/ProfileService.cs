@@ -57,7 +57,7 @@ public sealed class ProfileService : IProfileService
             .AsNoTracking()
             .Where(p => p.UserId == userId)
             .Select(p => new ProfileProjection(
-                p.Id, p.Handle, p.DisplayName, p.Hometown, p.Description,
+                p.Id, p.UserId, p.Handle, p.DisplayName, p.Hometown, p.Description,
                 p.Avatar != null,
                 p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList()))
             .FirstOrDefaultAsync(ct);
@@ -68,8 +68,9 @@ public sealed class ProfileService : IProfileService
         }
 
         var activity = await _activity.GetRecentCappedAsync(projection.Id, EmbedActivityCap, ct);
+        var teams = await GetTeamsAsync(projection.UserId, ct);
         return new OwnerProfileDto(projection.Handle, projection.DisplayName, projection.Hometown,
-            projection.Description, projection.HasAvatar, projection.Pompfen, activity);
+            projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams);
     }
 
     public async Task<bool> HasCompletedOnboardingAsync(Guid userId, CancellationToken ct = default)
@@ -112,7 +113,7 @@ public sealed class ProfileService : IProfileService
             .AsNoTracking()
             .Where(p => p.Handle == normalized)
             .Select(p => new ProfileProjection(
-                p.Id, p.Handle, p.DisplayName, p.Hometown, p.Description,
+                p.Id, p.UserId, p.Handle, p.DisplayName, p.Hometown, p.Description,
                 p.Avatar != null,
                 p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList()))
             .FirstOrDefaultAsync(ct);
@@ -123,8 +124,9 @@ public sealed class ProfileService : IProfileService
         }
 
         var activity = await _activity.GetRecentCappedAsync(projection.Id, EmbedActivityCap, ct);
+        var teams = await GetTeamsAsync(projection.UserId, ct);
         return new PublicProfileDto(projection.Handle, projection.DisplayName, projection.Hometown,
-            projection.Description, projection.HasAvatar, projection.Pompfen, activity);
+            projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams);
     }
 
     public async Task<Guid?> GetProfileIdAsync(string handle, CancellationToken ct = default)
@@ -245,6 +247,17 @@ public sealed class ProfileService : IProfileService
         return data is null ? null : new AvatarData(data.Bytes, data.ContentType);
     }
 
+    private async Task<IReadOnlyList<ProfileTeamDto>> GetTeamsAsync(Guid userId, CancellationToken ct)
+    {
+        // Teams the player belongs to (feature 005) — shown on both the owner and public profile.
+        return await _db.TeamMemberships
+            .AsNoTracking()
+            .Where(m => m.UserId == userId)
+            .OrderBy(m => m.Team.Name)
+            .Select(m => new ProfileTeamDto(m.Team.Slug, m.Team.Name, m.Team.Type, m.Team.City, m.Role))
+            .ToListAsync(ct);
+    }
+
     private static string? BlankToNull(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 
@@ -279,6 +292,7 @@ public sealed class ProfileService : IProfileService
 
     private sealed record ProfileProjection(
         Guid Id,
+        Guid UserId,
         string Handle,
         string DisplayName,
         string? Hometown,

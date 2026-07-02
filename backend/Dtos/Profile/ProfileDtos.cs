@@ -20,6 +20,9 @@ public sealed record UpdateProfileRequest(
 /// <summary>One recent-activity item: an event the player took part in, with team.</summary>
 public sealed record ActivityItemDto(string EventName, DateOnly Date, string Location, string TeamLabel);
 
+/// <summary>A team the player belongs to, shown on the profile (public + owner). Feature 005.</summary>
+public sealed record ProfileTeamDto(string Slug, string Name, TeamType Type, string? City, TeamRole Role);
+
 /// <summary>
 /// The authenticated owner's own profile (editable fields + selections + recent
 /// activity). Never contains token material.
@@ -31,7 +34,8 @@ public sealed record OwnerProfileDto(
     string? Description,
     bool HasAvatar,
     IReadOnlyList<Pompfe> Pompfen,
-    IReadOnlyList<ActivityItemDto> RecentActivity);
+    IReadOnlyList<ActivityItemDto> RecentActivity,
+    IReadOnlyList<ProfileTeamDto> Teams);
 
 /// <summary>
 /// The public profile served anonymously at <c>/u/&lt;handle&gt;</c>. MUST NOT
@@ -45,7 +49,8 @@ public sealed record PublicProfileDto(
     string? Description,
     bool HasAvatar,
     IReadOnlyList<Pompfe> SelectedPompfen,
-    IReadOnlyList<ActivityItemDto> RecentActivity);
+    IReadOnlyList<ActivityItemDto> RecentActivity,
+    IReadOnlyList<ProfileTeamDto> Teams);
 
 /// <summary>Result of a live handle availability/format check (UX aid; not a security boundary).</summary>
 public sealed record HandleAvailabilityDto(string Handle, string Normalized, bool Available, string? Reason);

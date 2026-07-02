@@ -59,10 +59,25 @@
 
     <hr class="my-lg border-border" />
 
-    <!-- Teams (stub) -->
+    <!-- Teams -->
     <section>
       <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Teams · clubs</p>
-      <p class="mt-xs text-body-sm text-faint">Joining and creating teams is coming soon.</p>
+      @if (p.teams.length === 0) {
+        <p class="mt-xs text-body-sm text-faint">You're not on a team yet. <a routerLink="/teams/new" class="font-medium text-link hover:text-link-hover">Create one ↗</a></p>
+      } @else {
+        <ul class="mt-sm flex flex-wrap gap-xs">
+          @for (t of p.teams; track t.slug) {
+            <li>
+              <a [routerLink]="['/t', t.slug]" [attr.data-testid]="'owner-team-' + t.slug"
+                class="inline-flex items-center gap-xs rounded-pill border border-border-strong bg-surface px-md py-xs text-body-sm transition-colors duration-fast hover:bg-surface-sunken">
+                <span class="font-medium text-ink">{{ t.name }}</span>
+                @if (t.city) { <span class="text-subtle">· {{ t.city }}</span> }
+                @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand">admin</span> }
+              </a>
+            </li>
+          }
+        </ul>
+      }
     </section>
 
     <hr class="my-lg border-border" />

@@ -72,6 +72,9 @@ namespace JuggerHub.Data.Migrations
                     b.Property<Guid>("ProfileId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("TeamId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("TeamLabel")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -80,6 +83,8 @@ namespace JuggerHub.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("EventId");
+
+                    b.HasIndex("TeamId");
 
                     b.HasIndex("ProfileId", "EventId")
                         .IsUnique();
@@ -245,6 +250,166 @@ namespace JuggerHub.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.Team", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Teams");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TeamInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("TargetUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("TargetUserId");
+
+                    b.HasIndex("TeamId")
+                        .IsUnique()
+                        .HasFilter("\"Kind\" = 0 AND \"Status\" = 0");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("TeamId", "TargetUserId")
+                        .IsUnique()
+                        .HasFilter("\"Kind\" = 1 AND \"Status\" = 0");
+
+                    b.ToTable("TeamInvitations");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TeamMembership", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("JoinedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TeamId", "Role");
+
+                    b.HasIndex("TeamId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("TeamMemberships");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TeamNewsPost", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("TeamId", "CreatedDate");
+
+                    b.ToTable("TeamNewsPosts");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.User", b =>
@@ -456,9 +621,16 @@ namespace JuggerHub.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("JuggerHub.Entities.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Event");
 
                     b.Navigation("Profile");
+
+                    b.Navigation("Team");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.PlayerProfile", b =>
@@ -503,6 +675,70 @@ namespace JuggerHub.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TeamInvitation", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "TargetUser")
+                        .WithMany()
+                        .HasForeignKey("TargetUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("JuggerHub.Entities.Team", "Team")
+                        .WithMany("Invitations")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("TargetUser");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TeamMembership", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.Team", "Team")
+                        .WithMany("Memberships")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Team");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TeamNewsPost", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.Team", "Team")
+                        .WithMany("News")
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Team");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -568,6 +804,15 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("Participations");
 
                     b.Navigation("Pompfen");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.Team", b =>
+                {
+                    b.Navigation("Invitations");
+
+                    b.Navigation("Memberships");
+
+                    b.Navigation("News");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.User", b =>

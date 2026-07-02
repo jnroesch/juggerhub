@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 
 /**
@@ -19,6 +19,7 @@ export class SignInComponent {
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -45,8 +46,13 @@ export class SignInComponent {
       next: (user) => {
         this.submitting.set(false);
         // First-login gate: new (not-yet-onboarded) users start the guided flow;
-        // everyone else goes to the app. The server is the authority for the flag.
-        this.router.navigate([user.onboardingCompleted ? '/' : '/onboarding']);
+        // everyone else goes to the app — or back to a pending returnUrl (e.g. an
+        // invite opened while signed out). The server is the authority for the flag.
+        if (!user.onboardingCompleted) {
+          this.router.navigate(['/onboarding']);
+          return;
+        }
+        this.router.navigateByUrl(this.safeReturnUrl() ?? '/');
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
@@ -57,6 +63,12 @@ export class SignInComponent {
         }
       },
     });
+  }
+
+  /** Only internal, single-slash paths are honoured (guards against open redirects). */
+  private safeReturnUrl(): string | null {
+    const url = this.route.snapshot.queryParamMap.get('returnUrl');
+    return url && url.startsWith('/') && !url.startsWith('//') ? url : null;
   }
 
   resendVerification(): void {

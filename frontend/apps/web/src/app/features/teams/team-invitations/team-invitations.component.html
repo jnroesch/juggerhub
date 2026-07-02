@@ -1,0 +1,94 @@
+<section class="mx-auto max-w-xl px-md py-lg" data-testid="team-invitations">
+  <a [routerLink]="['/t', slug()]" class="text-body-sm text-subtle hover:text-text">‹ Members</a>
+  <h1 class="mt-md text-heading-lg font-bold text-ink">Invite people</h1>
+
+  @if (loading()) {
+    <p class="mt-md text-body-md text-subtle">Loading…</p>
+  } @else if (denied()) {
+    <p class="mt-md text-body-md text-danger" data-testid="invitations-denied">Only admins can manage invitations.</p>
+  } @else {
+    @if (error()) {
+      <p class="mt-md text-body-sm text-danger" role="alert">{{ error() }}</p>
+    }
+
+    <!-- Shareable link -->
+    <div class="mt-lg">
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Share your invite link</p>
+      @if (link(); as l) {
+        <div class="mt-xs flex items-center gap-xs rounded-md border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
+          <span class="min-w-0 flex-1 truncate font-mono text-body-sm text-body" data-testid="invite-link">{{ l.url }}</span>
+        </div>
+        <div class="mt-xs flex gap-xs">
+          <button type="button" (click)="copyLink()" data-testid="copy-link"
+            class="flex-1 rounded-md bg-ink px-md py-sm text-body-sm font-semibold text-on-inverse transition-colors hover:bg-sand-8">
+            {{ copied() ? 'Copied!' : 'Copy link' }}
+          </button>
+          <button type="button" (click)="rotate()" data-testid="rotate-link"
+            class="rounded-md border border-border-strong px-md py-sm text-body-sm font-medium text-subtle hover:bg-surface-sunken">New link</button>
+        </div>
+        <p class="mt-xs rounded-md border border-dashed border-warning-border bg-warning-bg px-md py-xs text-body-sm text-warning-fg">
+          {{ expiresIn(l.expiresDate) }} · anyone with it can accept and join as a player.
+        </p>
+      } @else {
+        <button type="button" (click)="rotate()" data-testid="create-link"
+          class="mt-xs w-full rounded-md bg-ink px-md py-sm text-body-sm font-semibold text-on-inverse hover:bg-sand-8">Create an invite link</button>
+      }
+    </div>
+
+    <!-- Add someone directly -->
+    <div class="mt-lg">
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Or add someone directly</p>
+      <input type="text" [formControl]="searchControl" placeholder="Search players by name…" data-testid="user-search"
+        autocomplete="off"
+        class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
+      @if (searching()) {
+        <p class="mt-xs text-body-sm text-subtle">Searching…</p>
+      }
+      <ul class="mt-sm divide-y divide-border">
+        @for (u of results(); track u.userId) {
+          <li class="flex items-center gap-sm py-sm">
+            <div class="h-8 w-8 rounded-full border border-dashed border-border-strong bg-surface-subtle"></div>
+            <div class="min-w-0 flex-1">
+              <p class="truncate text-body-md text-ink">{{ u.displayName }}</p>
+              <p class="truncate text-body-sm text-subtle">&#64;{{ u.handle }}{{ u.city ? ' · ' + u.city : '' }}</p>
+            </div>
+            @switch (u.relation) {
+              @case ('Member') {
+                <span class="text-body-sm text-faint">Member</span>
+              }
+              @case ('Invited') {
+                <span class="rounded-md border border-dashed border-border-strong px-md py-xs text-body-sm text-subtle">Invited ✓</span>
+              }
+              @default {
+                <button type="button" (click)="invite(u)" [attr.data-testid]="'invite-' + u.handle"
+                  class="rounded-md border border-brand px-md py-xs text-body-sm font-semibold text-brand transition-colors hover:bg-surface-accent-soft">Invite</button>
+              }
+            }
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Pending -->
+    <div class="mt-lg">
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Sent to people · {{ pending().length }}</p>
+      @if (pending().length === 0) {
+        <p class="mt-xs text-body-sm text-faint">No pending invites yet.</p>
+      } @else {
+        <ul class="mt-sm divide-y divide-border" data-testid="pending-invites">
+          @for (i of pending(); track i.id) {
+            <li class="flex items-center gap-sm py-sm">
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-body-md text-ink">{{ i.kind === 'Link' ? 'Invite link' : i.targetDisplayName }}</p>
+                <p class="text-body-sm text-subtle">{{ expiresIn(i.expiresDate) }}</p>
+              </div>
+              <button type="button" (click)="revoke(i.id)" [attr.data-testid]="'revoke-' + i.id"
+                class="rounded-md border border-danger-border px-md py-xs text-body-sm font-medium text-danger hover:bg-danger-bg">Revoke</button>
+            </li>
+          }
+        </ul>
+        <p class="mt-xs text-body-sm text-faint">Revoke cancels an invite before it's accepted.</p>
+      }
+    </div>
+  }
+</section>

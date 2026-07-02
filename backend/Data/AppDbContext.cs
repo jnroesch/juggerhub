@@ -33,6 +33,14 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<EventParticipation> EventParticipations => Set<EventParticipation>();
 
+    public DbSet<Team> Teams => Set<Team>();
+
+    public DbSet<TeamMembership> TeamMemberships => Set<TeamMembership>();
+
+    public DbSet<TeamInvitation> TeamInvitations => Set<TeamInvitation>();
+
+    public DbSet<TeamNewsPost> TeamNewsPosts => Set<TeamNewsPost>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -99,6 +107,88 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany(e => e.Participations)
                 .HasForeignKey(ep => ep.EventId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Feature 005 — real team attribution; SetNull preserves activity history on team delete.
+            entity.HasOne(ep => ep.Team)
+                .WithMany()
+                .HasForeignKey(ep => ep.TeamId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasIndex(ep => ep.TeamId);
+        });
+
+        builder.Entity<Team>(entity =>
+        {
+            entity.Property(t => t.Slug).HasMaxLength(30).IsRequired();
+            entity.Property(t => t.Name).HasMaxLength(50).IsRequired();
+            entity.Property(t => t.City).HasMaxLength(80);
+
+            // Slug addresses the team (/t/<slug>) — unique & the true uniqueness guarantee.
+            entity.HasIndex(t => t.Slug).IsUnique();
+        });
+
+        builder.Entity<TeamMembership>(entity =>
+        {
+            // One membership per user per team; (TeamId, Role) backs admin-count checks.
+            entity.HasIndex(m => new { m.TeamId, m.UserId }).IsUnique();
+            entity.HasIndex(m => new { m.TeamId, m.Role });
+            entity.HasIndex(m => m.UserId);
+
+            entity.HasOne(m => m.Team)
+                .WithMany(t => t.Memberships)
+                .HasForeignKey(m => m.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(m => m.User)
+                .WithMany()
+                .HasForeignKey(m => m.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TeamInvitation>(entity =>
+        {
+            entity.Property(i => i.Token).HasMaxLength(64).IsRequired();
+
+            entity.HasIndex(i => i.Token).IsUnique();
+            entity.HasIndex(i => i.TeamId);
+            // At most one active (pending) shared link per team (Kind=Link=0, Status=Pending=0).
+            entity.HasIndex(i => i.TeamId)
+                .IsUnique()
+                .HasFilter("\"Kind\" = 0 AND \"Status\" = 0");
+            // At most one pending targeted invite per (team, user) (Kind=Targeted=1, Status=Pending=0).
+            entity.HasIndex(i => new { i.TeamId, i.TargetUserId })
+                .IsUnique()
+                .HasFilter("\"Kind\" = 1 AND \"Status\" = 0");
+
+            entity.HasOne(i => i.Team)
+                .WithMany(t => t.Invitations)
+                .HasForeignKey(i => i.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(i => i.CreatedBy)
+                .WithMany()
+                .HasForeignKey(i => i.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(i => i.TargetUser)
+                .WithMany()
+                .HasForeignKey(i => i.TargetUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TeamNewsPost>(entity =>
+        {
+            entity.Property(n => n.Body).HasMaxLength(1000).IsRequired();
+            entity.HasIndex(n => new { n.TeamId, n.CreatedDate });
+
+            entity.HasOne(n => n.Team)
+                .WithMany(t => t.News)
+                .HasForeignKey(n => n.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(n => n.Author)
+                .WithMany()
+                .HasForeignKey(n => n.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<RefreshToken>(entity =>
