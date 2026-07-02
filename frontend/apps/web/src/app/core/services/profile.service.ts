@@ -37,6 +37,14 @@ export class ProfileService {
     return this.http.put<void>(`${this.base}/me/avatar`, form);
   }
 
+  /**
+   * Mark first-login onboarding complete (feature 004). Idempotent, owner-only.
+   * Called on any terminal exit of the flow — finishing or dismissing.
+   */
+  completeOnboarding(): Observable<void> {
+    return this.http.post<void>(`${this.base}/me/onboarding/complete`, {});
+  }
+
   // --- Public --------------------------------------------------------------
 
   getPublic(handle: string): Observable<PublicProfile> {

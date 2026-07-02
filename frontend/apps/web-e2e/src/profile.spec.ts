@@ -53,6 +53,11 @@ test('register with handle → edit profile → public page hides email', async 
   await page.getByTestId('sign-in-email').fill(email);
   await page.getByTestId('sign-in-password').fill(PASSWORD);
   await page.getByTestId('sign-in-submit').click();
+  // A fresh, not-yet-onboarded account is redirected into /onboarding on first
+  // sign-in (feature 004). Wait for that redirect so the session cookie is set
+  // before navigating on; otherwise the goto below races login and the authGuard
+  // bounces it back to /sign-in.
+  await expect(page).toHaveURL(/onboarding/);
 
   // 3. Edit the profile.
   await page.goto('/profile');

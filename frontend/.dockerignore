@@ -1,0 +1,15 @@
+# Build context is ./frontend (see docker-compose.yml). Keep host-only and
+# generated artifacts out of the image so the build is reproducible: node_modules
+# is installed fresh via `npm ci` in the deps stage, and the Nx/Angular caches
+# otherwise corrupt the in-container project graph (`nx build` fails on
+# .angular/cache/**/vite/deps having "no name provided").
+node_modules
+.angular
+.nx
+dist
+tmp
+out-tsc
+test-output
+playwright-report
+coverage
+*.log

@@ -31,6 +31,15 @@ public sealed class PlayerProfile : BaseEntity
     /// <summary>Optional short bio (≤ 280 chars).</summary>
     public string? Description { get; set; }
 
+    /// <summary>
+    /// When the owner finished (or dismissed) first-login onboarding, in UTC.
+    /// <c>null</c> = not yet onboarded (the guided flow still shows on sign-in);
+    /// a value = onboarded. Set once and idempotently (see specs/004-onboarding);
+    /// there is no reset path. Exposed to the owner as the <c>OnboardingCompleted</c>
+    /// boolean on <c>AuthUserDto</c>, never as an editable profile field.
+    /// </summary>
+    public DateTime? OnboardingCompletedAt { get; set; }
+
     public User User { get; set; } = null!;
 
     public ICollection<ProfilePompfe> Pompfen { get; set; } = [];

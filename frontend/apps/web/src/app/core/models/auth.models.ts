@@ -7,6 +7,11 @@ export interface AuthUser {
   id: string;
   email: string;
   emailConfirmed: boolean;
+  /**
+   * Server-derived (feature 004). Drives the first-login redirect into
+   * `/onboarding`. UX-only; the server is the authority for the gate.
+   */
+  onboardingCompleted: boolean;
 }
 
 export interface RegisterRequest {

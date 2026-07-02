@@ -23,6 +23,13 @@ public enum HandleCheckStatus
     Taken,
 }
 
+/// <summary>Outcome of marking a profile's onboarding complete.</summary>
+public enum CompleteOnboardingStatus
+{
+    Completed,
+    ProfileNotFound,
+}
+
 /// <summary>Result of resolving a handle for registration, incl. its normalized form.</summary>
 public readonly record struct HandleCheck(HandleCheckStatus Status, string Normalized, string? Reason);
 
@@ -48,6 +55,15 @@ public interface IProfileService
 
     /// <summary>The authenticated owner's profile, or null if they have none.</summary>
     Task<OwnerProfileDto?> GetOwnerAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>True iff the user's profile has completed onboarding (<c>OnboardingCompletedAt != null</c>); false if no profile.</summary>
+    Task<bool> HasCompletedOnboardingAsync(Guid userId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Mark the owner's onboarding complete. Idempotent: sets the timestamp only if
+    /// currently unset, so the first completion stands and repeats are no-ops.
+    /// </summary>
+    Task<CompleteOnboardingStatus> CompleteOnboardingAsync(Guid userId, CancellationToken ct = default);
 
     /// <summary>Update the owner's editable fields + pompfen selection; null if no profile.</summary>
     Task<OwnerProfileDto?> UpdateAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct = default);
