@@ -1,0 +1,272 @@
+using JuggerHub.Common;
+using JuggerHub.Data;
+using JuggerHub.Dtos.Teams;
+using JuggerHub.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Npgsql;
+
+namespace JuggerHub.Services.Teams;
+
+/// <summary>
+/// EF-Core-direct implementation of <see cref="ITeamService"/>. Reads use projections +
+/// <c>AsNoTracking</c>; all lists paginate. Membership/role mutations run in a
+/// <see cref="IsolationLevel.Serializable"/> transaction so the last-admin invariant holds
+/// under concurrency (constitution Principle I/III).
+/// </summary>
+public sealed class TeamService : ITeamService
+{
+    private readonly AppDbContext _db;
+    private readonly TeamMembershipGuard _guard;
+    private readonly TeamOptions _options;
+
+    public TeamService(AppDbContext db, TeamMembershipGuard guard, IOptions<TeamOptions> options)
+    {
+        _db = db;
+        _guard = guard;
+        _options = options.Value;
+    }
+
+    public async Task<SlugAvailabilityDto> CheckSlugAsync(string rawSlug, CancellationToken ct = default)
+    {
+        var normalized = TeamSlugPolicy.Normalize(rawSlug);
+        var rejection = TeamSlugPolicy.Validate(normalized, _options.SlugMinLength, _options.SlugMaxLength);
+        if (rejection != SlugRejection.None)
+        {
+            return new SlugAvailabilityDto(rawSlug, normalized, false,
+                TeamSlugPolicy.Describe(rejection, _options.SlugMinLength, _options.SlugMaxLength));
+        }
+
+        var taken = await _db.Teams.AsNoTracking().AnyAsync(t => t.Slug == normalized, ct);
+        return new SlugAvailabilityDto(rawSlug, normalized, !taken,
+            taken ? "That team address isn't available." : null);
+    }
+
+    public async Task<CreateTeamResult> CreateAsync(Guid userId, CreateTeamRequest request, CancellationToken ct = default)
+    {
+        var name = (request.Name ?? string.Empty).Trim();
+        if (name.Length < 2 || name.Length > _options.NameMaxLength)
+        {
+            return CreateTeamResult.Fail(CreateTeamStatus.InvalidName, $"Use a team name of 2–{_options.NameMaxLength} characters.");
+        }
+
+        var slug = TeamSlugPolicy.Normalize(request.Slug);
+        var rejection = TeamSlugPolicy.Validate(slug, _options.SlugMinLength, _options.SlugMaxLength);
+        if (rejection != SlugRejection.None)
+        {
+            return CreateTeamResult.Fail(CreateTeamStatus.InvalidSlug,
+                TeamSlugPolicy.Describe(rejection, _options.SlugMinLength, _options.SlugMaxLength) ?? "Invalid team address.");
+        }
+
+        string? city = null;
+        if (request.Type == TeamType.CityTeam)
+        {
+            city = (request.City ?? string.Empty).Trim();
+            if (city.Length == 0)
+            {
+                return CreateTeamResult.Fail(CreateTeamStatus.InvalidCity, "A city team needs a city.");
+            }
+
+            if (city.Length > 80)
+            {
+                return CreateTeamResult.Fail(CreateTeamStatus.InvalidCity, "Use a city of at most 80 characters.");
+            }
+        }
+        else if (!string.IsNullOrWhiteSpace(request.City))
+        {
+            return CreateTeamResult.Fail(CreateTeamStatus.InvalidCity, "A Mixteam doesn't have a city.");
+        }
+
+        if (await _db.Teams.AsNoTracking().AnyAsync(t => t.Slug == slug, ct))
+        {
+            return CreateTeamResult.Fail(CreateTeamStatus.SlugTaken, "That team address is already taken.");
+        }
+
+        // Explicit DbSet.Add for both rows (client-set UUIDv7 nav-insert gotcha); one
+        // SaveChanges wraps them in a single transaction.
+        var team = new Team { Slug = slug, Name = name, Type = request.Type, City = city };
+        _db.Teams.Add(team);
+        _db.TeamMemberships.Add(new TeamMembership
+        {
+            TeamId = team.Id,
+            UserId = userId,
+            Role = TeamRole.Admin,
+            JoinedDate = DateTime.UtcNow,
+        });
+
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        {
+            // Lost the slug race to a concurrent create.
+            return CreateTeamResult.Fail(CreateTeamStatus.SlugTaken, "That team address is already taken.");
+        }
+
+        return CreateTeamResult.Ok(new TeamDetailDto(team.Slug, team.Name, team.Type, team.City, 1, TeamRole.Admin));
+    }
+
+    public async Task<TeamDetailDto?> GetDetailAsync(string slug, Guid userId, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(slug, userId, ct);
+        if (access is not { IsMember: true } a)
+        {
+            return null;
+        }
+
+        var header = await _db.Teams.AsNoTracking()
+            .Where(t => t.Id == a.TeamId)
+            .Select(t => new { t.Slug, t.Name, t.Type, t.City, MemberCount = t.Memberships.Count })
+            .FirstAsync(ct);
+
+        return new TeamDetailDto(header.Slug, header.Name, header.Type, header.City, header.MemberCount, a.Role!.Value);
+    }
+
+    public async Task<TeamPublicDto?> GetPublicAsync(string slug, CancellationToken ct = default)
+    {
+        var normalized = TeamSlugPolicy.Normalize(slug);
+        return await _db.Teams.AsNoTracking()
+            .Where(t => t.Slug == normalized)
+            .Select(t => new TeamPublicDto(t.Slug, t.Name, t.Type, t.City, t.Memberships.Count))
+            .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<PagedResult<TeamMemberDto>?> GetRosterAsync(string slug, Guid userId, PaginationRequest pagination, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(slug, userId, ct);
+        if (access is not { IsMember: true } a)
+        {
+            return null;
+        }
+
+        var query = _db.TeamMemberships.AsNoTracking().Where(m => m.TeamId == a.TeamId);
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderByDescending(m => m.Role) // admins first
+            .ThenBy(m => m.JoinedDate)
+            .Skip(pagination.NormalizedSkip)
+            .Take(pagination.NormalizedTake)
+            .Select(m => new TeamMemberDto(
+                m.UserId,
+                m.User.Profile!.Handle,
+                m.User.Profile!.DisplayName,
+                m.Role,
+                m.User.Profile!.Avatar != null,
+                m.User.Profile!.Pompfen.Select(p => p.Pompfe).ToList()))
+            .ToListAsync(ct);
+
+        return new PagedResult<TeamMemberDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
+    }
+
+    public Task<MemberOpResult> SetRoleAsync(string slug, Guid actorUserId, Guid targetUserId, TeamRole role, CancellationToken ct = default) =>
+        MutateMembershipAsync(slug, actorUserId, targetUserId, newRole: role, remove: false, ct);
+
+    public Task<MemberOpResult> RemoveMemberAsync(string slug, Guid actorUserId, Guid targetUserId, CancellationToken ct = default) =>
+        MutateMembershipAsync(slug, actorUserId, targetUserId, newRole: null, remove: true, ct);
+
+    public Task<MemberOpResult> StepDownAsync(string slug, Guid actorUserId, CancellationToken ct = default) =>
+        MutateMembershipAsync(slug, actorUserId, actorUserId, newRole: TeamRole.Member, remove: false, ct);
+
+    public async Task<DeleteTeamStatus> DeleteAsync(string slug, Guid actorUserId, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(slug, actorUserId, ct);
+        if (access is not { IsMember: true } a)
+        {
+            return DeleteTeamStatus.NotFoundOrNotMember;
+        }
+
+        if (!a.IsAdmin)
+        {
+            return DeleteTeamStatus.Forbidden;
+        }
+
+        // DB-level ON DELETE CASCADE removes memberships/invites/news; participations SET NULL
+        // (event history preserved). ExecuteDelete is a single statement.
+        await _db.Teams.Where(t => t.Id == a.TeamId).ExecuteDeleteAsync(ct);
+        return DeleteTeamStatus.Deleted;
+    }
+
+    /// <summary>
+    /// Apply a role change or removal, enforcing the last-admin guard. Serializes membership
+    /// mutations for the team on the team row (<c>SELECT … FOR UPDATE</c>) so the admin-count
+    /// check + write is atomic — the concurrent "two admins demote each other" race can never
+    /// drop the team below one admin (the second waiter blocks, then sees the committed change).
+    /// </summary>
+    private async Task<MemberOpResult> MutateMembershipAsync(
+        string slug, Guid actorUserId, Guid targetUserId, TeamRole? newRole, bool remove, CancellationToken ct)
+    {
+        var access = await _guard.ResolveAsync(slug, actorUserId, ct);
+        if (access is not { IsMember: true } a)
+        {
+            return MemberOpResult.Fail(MemberOpStatus.NotFoundOrNotMember);
+        }
+
+        var isSelf = targetUserId == actorUserId;
+        // Admin-only, except a member may remove themselves (leave).
+        if (!a.IsAdmin && !(remove && isSelf))
+        {
+            return MemberOpResult.Fail(MemberOpStatus.Forbidden, "Only admins can manage members.");
+        }
+
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+        // Pessimistic lock on the team row serializes concurrent membership mutations for it.
+        await _db.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT 1 FROM \"Teams\" WHERE \"Id\" = {a.TeamId} FOR UPDATE", ct);
+
+        var target = await _db.TeamMemberships
+            .FirstOrDefaultAsync(m => m.TeamId == a.TeamId && m.UserId == targetUserId, ct);
+        if (target is null)
+        {
+            return MemberOpResult.Fail(MemberOpStatus.MemberNotFound);
+        }
+
+        var removesAdmin = target.Role == TeamRole.Admin
+            && (remove || (newRole is { } r && r != TeamRole.Admin));
+        if (removesAdmin)
+        {
+            var adminCount = await _db.TeamMemberships
+                .CountAsync(m => m.TeamId == a.TeamId && m.Role == TeamRole.Admin, ct);
+            if (adminCount <= 1)
+            {
+                return MemberOpResult.Fail(MemberOpStatus.LastAdmin,
+                    "Make someone else an admin before you step down or leave.");
+            }
+        }
+
+        if (remove)
+        {
+            _db.TeamMemberships.Remove(target);
+        }
+        else if (newRole is { } nr)
+        {
+            target.Role = nr;
+        }
+
+        await _db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        if (remove)
+        {
+            return MemberOpResult.Ok();
+        }
+
+        var dto = await _db.TeamMemberships.AsNoTracking()
+            .Where(m => m.TeamId == a.TeamId && m.UserId == targetUserId)
+            .Select(m => new TeamMemberDto(
+                m.UserId,
+                m.User.Profile!.Handle,
+                m.User.Profile!.DisplayName,
+                m.Role,
+                m.User.Profile!.Avatar != null,
+                m.User.Profile!.Pompfen.Select(p => p.Pompfe).ToList()))
+            .FirstOrDefaultAsync(ct);
+
+        return MemberOpResult.Ok(dto);
+    }
+
+    private static bool IsUniqueViolation(Exception ex) =>
+        ex is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation }
+        || (ex.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation });
+}

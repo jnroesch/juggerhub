@@ -10,6 +10,7 @@ using JuggerHub.Services.Events;
 using JuggerHub.Services.Health;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Security;
+using JuggerHub.Services.Teams;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -176,6 +177,15 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.Configure<ProfileOptions>(builder.Configuration.GetSection(ProfileOptions.SectionName));
 builder.Services.AddScoped<IProfileService, ProfileService>();
 builder.Services.AddScoped<IEventActivityService, EventActivityService>();
+
+// --- Teams + memberships + invitations (feature 005) -----------------------
+builder.Services.Configure<TeamOptions>(builder.Configuration.GetSection(TeamOptions.SectionName));
+builder.Services.AddScoped<TeamMembershipGuard>();
+builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<ITeamInvitationService, TeamInvitationService>();
+builder.Services.AddScoped<ITeamActivityService, TeamActivityService>();
+builder.Services.AddScoped<ITeamNewsService, TeamNewsService>();
+builder.Services.AddScoped<TeamEmailService>();
 
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services
