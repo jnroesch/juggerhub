@@ -12,6 +12,14 @@ export interface ActivityItem {
   teamLabel: string;
 }
 
+export interface ProfileTeam {
+  slug: string;
+  name: string;
+  type: 'CityTeam' | 'Mixteam';
+  city: string | null;
+  role: 'Member' | 'Admin';
+}
+
 export interface OwnerProfile {
   handle: string;
   displayName: string;
@@ -20,6 +28,7 @@ export interface OwnerProfile {
   hasAvatar: boolean;
   pompfen: Pompfe[];
   recentActivity: ActivityItem[];
+  teams: ProfileTeam[];
 }
 
 export interface PublicProfile {
@@ -30,6 +39,7 @@ export interface PublicProfile {
   hasAvatar: boolean;
   selectedPompfen: Pompfe[];
   recentActivity: ActivityItem[];
+  teams: ProfileTeam[];
 }
 
 export interface UpdateProfileRequest {

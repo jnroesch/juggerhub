@@ -358,6 +358,27 @@ public sealed class TeamTests
         Assert.Equal(HttpStatusCode.Forbidden, (await member.DeleteAsync($"/api/v1/teams/{slug}")).StatusCode);
     }
 
+    // --- Profile integration (teams on the profile) ---------------------------
+
+    [Fact]
+    public async Task Profile_lists_the_players_teams_on_owner_and_public_views()
+    {
+        var (client, _, handle, _) = await NewUserAsync();
+        var slug = NewSlug();
+        await CreateTeamAsync(client, slug);
+
+        var mine = await client.GetFromJsonAsync<JsonElement>("/api/v1/profiles/me");
+        var owned = mine.GetProperty("teams").EnumerateArray().ToArray();
+        var team = owned.First(t => t.GetProperty("slug").GetString() == slug);
+        Assert.Equal("Admin", team.GetProperty("role").GetString());
+        Assert.Equal("Rheinfeuer", team.GetProperty("name").GetString());
+
+        var pub = await _factory.CreateClient().GetFromJsonAsync<JsonElement>($"/api/v1/profiles/{handle}");
+        var publicTeams = pub.GetProperty("teams").EnumerateArray()
+            .Select(t => t.GetProperty("slug").GetString()).ToArray();
+        Assert.Contains(slug, publicTeams);
+    }
+
     // --- helpers --------------------------------------------------------------
 
     private async Task<(HttpClient Client, Guid UserId, string Handle, string Email)> NewUserAsync()

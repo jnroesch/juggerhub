@@ -49,10 +49,22 @@
 
             <hr class="border-border" />
 
-            <!-- Teams (stub) -->
+            <!-- Teams -->
             <section>
               <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Teams · clubs</p>
-              <p class="mt-xs text-body-sm text-faint">No teams listed yet.</p>
+              @if (p.teams.length === 0) {
+                <p class="mt-xs text-body-sm text-faint">No teams listed yet.</p>
+              } @else {
+                <ul class="mt-sm flex flex-wrap gap-xs">
+                  @for (t of p.teams; track t.slug) {
+                    <li class="inline-flex items-center gap-xs rounded-pill border border-border-strong bg-surface px-md py-xs text-body-sm" [attr.data-testid]="'public-team-' + t.slug">
+                      <span class="font-medium text-ink">{{ t.name }}</span>
+                      @if (t.city) { <span class="text-subtle">· {{ t.city }}</span> }
+                      @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand">admin</span> }
+                    </li>
+                  }
+                </ul>
+              }
             </section>
 
             <hr class="border-border" />
