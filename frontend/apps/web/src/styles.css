@@ -4,57 +4,196 @@
  * Design tokens are defined here as CSS custom properties, sourced from the
  * repo-root DESIGN.md (the single source of truth for visual identity). They are
  * mapped onto Tailwind utilities in apps/web/tailwind.config.js. Do not hard-code
- * colors/spacing/radii in components — use the tokens (e.g. `bg-primary`,
- * `text-ink`, `rounded-lg`, `p-md`) and add new tokens to DESIGN.md first.
+ * colors/spacing/radii in components — use the tokens (e.g. `bg-brand`,
+ * `text-heading`, `rounded-lg`, `font-display`) and add new tokens to DESIGN.md
+ * first.
+ *
+ * Identity: warm sand neutrals, coral primary + sage secondary, generous
+ * rounding, soft warm-tinted shadows. Mobile-first. See DESIGN.md.
  */
 
+/* Open-source GitHub fonts (Mona Sans / Hubot Sans) via @fontsource.
+ * The stacks below fall back to system-ui if these fail to load. */
+@import '@fontsource/mona-sans/400.css';
+@import '@fontsource/mona-sans/500.css';
+@import '@fontsource/mona-sans/600.css';
+@import '@fontsource/mona-sans/700.css';
+@import '@fontsource/hubot-sans/700.css';
+@import '@fontsource/hubot-sans/800.css';
+
 :root {
-  /* Colors */
-  --color-primary: #4f46e5;
-  --color-primary-hover: #4338ca;
-  --color-accent: #7c3aed;
-  --color-accent-hover: #6d28d9;
-  --color-info: #3b82f6;
-  --color-info-strong: #1e40af;
-  --color-success: #16a34a;
-  --color-warning: #d97706;
-  --color-danger: #dc2626;
-  --color-ink: #111827;
-  --color-text: #374151;
-  --color-text-muted: #4b5563;
-  --color-subtle: #6b7280;
-  --color-faint: #9ca3af;
-  --color-surface: #ffffff;
-  --color-surface-subtle: #f3f4f6;
-  --color-background: #f9fafb;
-  --color-border: #e5e7eb;
-  --color-border-strong: #d1d5db;
+  /* ---- Raw scales ---------------------------------------------------- */
+  /* Warm sand neutrals (page → ink) */
+  --sand-0: #fbf8f3;
+  --sand-1: #f4eee3;
+  --sand-2: #eae1d2;
+  --sand-3: #dbceb9;
+  --sand-4: #c7b79c;
+  --sand-5: #a6957a;
+  --sand-6: #82725b;
+  --sand-7: #5f5343;
+  --sand-8: #3e362b;
+  --sand-9: #241f18;
+  --white: #ffffff;
+  --black: #1a160f;
 
-  /* Spacing — 8px rhythm */
-  --space-xs: 8px;
-  --space-sm: 12px;
-  --space-md: 16px;
-  --space-lg: 20px;
-  --space-xl: 24px;
-  --space-2xl: 32px;
-  --space-3xl: 40px;
+  /* Coral — primary brand */
+  --coral-0: #fff1ec;
+  --coral-1: #ffd8c9;
+  --coral-2: #ffb69c;
+  --coral-3: #ff8e68;
+  --coral-4: #f5623a;
+  --coral-5: #db4a22;
+  --coral-6: #b93a17;
+  --coral-7: #8f2c12;
+  --coral-8: #6a2210;
+  --coral-9: #401307;
 
-  /* Radius */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-full: 9999px;
+  /* Sage / teal — secondary */
+  --teal-0: #eef3ef;
+  --teal-1: #dbe6de;
+  --teal-2: #c1d3c6;
+  --teal-3: #9fbaa7;
+  --teal-4: #7a9b87;
+  --teal-5: #5f8070;
+  --teal-6: #4a6558;
+  --teal-7: #3b5145;
+  --teal-8: #2c3b33;
+  --teal-9: #1f2924;
 
-  /* Typography */
-  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
-    Ubuntu, Cantarell, sans-serif;
-  --font-mono: 'SF Mono', Monaco, 'Cascadia Code', monospace;
-  --text-display: 28px;
-  --text-heading-lg: 24px;
-  --text-heading-md: 20px;
-  --text-body-md: 16px;
-  --text-body-sm: 14px;
-  --text-code: 13px;
+  /* Lemon — playful highlight */
+  --lemon-0: #fffbe0;
+  --lemon-1: #fff0a8;
+  --lemon-2: #ffe066;
+  --lemon-3: #f7ce33;
+  --lemon-4: #e0b211;
+  --lemon-5: #b88c05;
+  --lemon-6: #8f6b03;
+
+  /* Semantic status scales */
+  --green-0: #e6f7ed;
+  --green-1: #a7e9c1;
+  --green-4: #1fa860;
+  --green-5: #16824a;
+  --green-6: #0f6438;
+  --red-0: #ffecea;
+  --red-1: #ffc7c2;
+  --red-4: #f0463f;
+  --red-5: #cc2e28;
+  --red-6: #a11f1b;
+  --blue-0: #e9f1ff;
+  --blue-1: #bfd6ff;
+  --blue-4: #3b7df0;
+  --blue-5: #2660cc;
+  --blue-6: #1b489c;
+
+  /* ---- Semantic aliases (use these in components) -------------------- */
+  --surface-page: var(--sand-0);
+  --surface-raised: var(--white);
+  --surface-card: var(--white);
+  --surface-sunken: var(--sand-1);
+  --surface-muted: var(--sand-2);
+  --surface-inverse: var(--sand-9);
+  --surface-accent-soft: var(--coral-0);
+  --surface-secondary-soft: var(--teal-0);
+
+  --text-heading: var(--sand-9);
+  --text-body: var(--sand-8);
+  --text-muted: var(--sand-6);
+  --text-subtle: var(--sand-5);
+  --text-on-accent: var(--white);
+  --text-on-inverse: var(--sand-1);
+  --text-link: var(--coral-6);
+  --text-link-hover: var(--coral-7);
+
+  --brand-primary: var(--coral-4);
+  --brand-primary-hover: var(--coral-5);
+  --brand-primary-active: var(--coral-6);
+  --brand-secondary: var(--teal-4);
+  --brand-secondary-hover: var(--teal-5);
+  --brand-highlight: var(--lemon-2);
+
+  --border-default: var(--sand-3);
+  --border-muted: var(--sand-2);
+  --border-strong: var(--sand-4);
+  --border-accent: var(--coral-3);
+  --border-focus: var(--coral-4);
+
+  --success-fg: var(--green-6);
+  --success-bg: var(--green-0);
+  --success-border: var(--green-1);
+  --danger-fg: var(--red-6);
+  --danger-bg: var(--red-0);
+  --danger-border: var(--red-1);
+  --warning-fg: var(--lemon-6);
+  --warning-bg: var(--lemon-0);
+  --warning-border: var(--lemon-1);
+  --info-fg: var(--blue-6);
+  --info-bg: var(--blue-0);
+  --info-border: var(--blue-1);
+
+  /* Gradients */
+  --brand-gradient: linear-gradient(105deg, var(--coral-4), var(--teal-4));
+  --brand-gradient-soft: linear-gradient(135deg, var(--coral-1), var(--teal-1));
+  --hero-gradient: linear-gradient(135deg, var(--coral-0), var(--teal-0));
+
+  /* ---- Typography ---------------------------------------------------- */
+  --font-display: 'Hubot Sans', 'Mona Sans', ui-sans-serif, system-ui,
+    sans-serif;
+  --font-body: 'Mona Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI',
+    Roboto, sans-serif;
+  --font-mono: 'Mona Sans Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Type scale (desktop; scaled down on mobile below) */
+  --text-display: 4rem;
+  --text-h1: 3rem;
+  --text-h2: 2.25rem;
+  --text-h3: 1.75rem;
+  --text-h4: 1.375rem;
+  --text-lead: 1.25rem;
+  --text-body-lg: 1.125rem;
+  --text-body-md: 1rem;
+  --text-body-sm: 0.875rem;
+  --text-caption: 0.75rem;
+  --text-eyebrow: 0.8125rem;
+
+  /* ---- Radius -------------------------------------------------------- */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 36px;
+  --radius-pill: 999px;
+
+  /* ---- Shadows (warm-tinted, soft) ----------------------------------- */
+  --shadow-xs: 0 1px 2px rgba(64, 46, 24, 0.06);
+  --shadow-sm: 0 2px 6px rgba(64, 46, 24, 0.08);
+  --shadow-md: 0 6px 16px rgba(64, 46, 24, 0.1);
+  --shadow-lg: 0 14px 32px rgba(64, 46, 24, 0.12);
+  --shadow-xl: 0 24px 56px rgba(64, 46, 24, 0.16);
+  --shadow-coral: 0 8px 20px rgba(245, 98, 58, 0.28);
+  --shadow-teal: 0 8px 20px rgba(122, 155, 135, 0.28);
+  --focus-ring: 0 0 0 3px var(--coral-1);
+
+  /* ---- Motion -------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+}
+
+/* Mobile-first: step the display scale down on small screens */
+@media (max-width: 640px) {
+  :root {
+    --text-display: 2.75rem;
+    --text-h1: 2.125rem;
+    --text-h2: 1.625rem;
+    --text-h3: 1.375rem;
+    --text-h4: 1.1875rem;
+  }
 }
 
 @tailwind base;
@@ -69,11 +208,21 @@
 
   body {
     margin: 0;
-    background-color: var(--color-background);
-    color: var(--color-text-muted);
-    font-family: var(--font-sans);
+    background-color: var(--surface-page);
+    color: var(--text-body);
+    font-family: var(--font-body);
     font-size: var(--text-body-md);
-    line-height: 1.6;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* Headings use the expressive display face by default. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    color: var(--text-heading);
+    letter-spacing: -0.02em;
   }
 }

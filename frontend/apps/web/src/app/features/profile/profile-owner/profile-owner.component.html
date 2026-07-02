@@ -7,8 +7,9 @@
       <a routerLink="/" class="text-body-sm text-subtle hover:text-text">‹ Back</a>
       @if (!editing()) {
         <button type="button" (click)="startEdit()" data-testid="profile-edit"
-          class="inline-flex items-center gap-xs rounded-full border border-primary px-md py-xs text-body-sm font-medium text-primary hover:bg-surface-subtle">
-          ✎ Edit
+          class="inline-flex items-center gap-xs rounded-pill border border-brand px-md py-xs text-body-sm font-medium text-brand transition-colors duration-fast hover:bg-surface-accent-soft">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          Edit
         </button>
       } @else {
         <button type="button" (click)="cancelEdit()" data-testid="profile-cancel"
@@ -27,8 +28,8 @@
           <div class="grid h-24 w-24 place-items-center rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle">Photo</div>
         }
         @if (editing()) {
-          <label class="absolute -bottom-1 -right-1 cursor-pointer rounded-full bg-primary px-sm py-xs text-body-sm font-semibold text-surface hover:bg-primary-hover">
-            ✎
+          <label class="absolute -bottom-1 -right-1 grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-brand text-on-accent shadow-coral transition-colors duration-fast hover:bg-brand-hover" aria-label="Change photo">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
             <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" data-testid="avatar-input" (change)="onAvatarSelected($event)" />
           </label>
         }
@@ -38,7 +39,7 @@
         <h1 class="mt-md text-heading-lg font-bold text-ink">{{ p.displayName }}</h1>
         <p class="text-body-md text-subtle">&#64;{{ p.handle }}</p>
         @if (p.hometown) {
-          <p class="mt-xs inline-flex items-center gap-xs text-body-sm text-text-muted"><span class="text-faint">📍</span>{{ p.hometown }}</p>
+          <p class="mt-xs inline-flex items-center gap-xs text-body-sm text-text-muted"><svg class="h-3.5 w-3.5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{{ p.hometown }}</p>
         }
         @if (p.description) {
           <p class="mt-sm max-w-md text-body-md text-text-muted">{{ p.description }}</p>
@@ -46,12 +47,12 @@
       } @else {
         <form class="mt-md w-full max-w-sm space-y-sm text-left" [formGroup]="form">
           <input type="text" formControlName="displayName" placeholder="Display name" data-testid="profile-displayname"
-            class="w-full rounded-md border border-border-strong bg-surface px-md py-xs text-center text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
+            class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-center text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
           <p class="text-center text-body-sm text-subtle">&#64;{{ p.handle }}</p>
           <input type="text" formControlName="hometown" placeholder="Hometown" data-testid="profile-hometown"
-            class="w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary" />
+            class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
           <textarea rows="2" formControlName="description" maxlength="280" placeholder="Short bio" data-testid="profile-description"
-            class="w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"></textarea>
+            class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
         </form>
       }
     </header>
@@ -60,7 +61,7 @@
 
     <!-- Teams (stub) -->
     <section>
-      <p class="text-body-sm font-semibold uppercase tracking-wide text-subtle">Teams · clubs</p>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Teams · clubs</p>
       <p class="mt-xs text-body-sm text-faint">Joining and creating teams is coming soon.</p>
     </section>
 
@@ -68,7 +69,7 @@
 
     <!-- Plays -->
     <section>
-      <p class="text-body-sm font-semibold uppercase tracking-wide text-subtle">Plays</p>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Plays</p>
       @if (editing()) {
         <p class="mb-sm text-body-sm text-subtle">Pick favorites · filled = selected · dotted = available</p>
         <jh-pompfe-selector [selected]="selectedPompfen()" (selectionChange)="onPompfenChange($event)" />
@@ -77,7 +78,7 @@
       } @else {
         <div class="mt-sm flex flex-wrap gap-xs">
           @for (pompfe of p.pompfen; track pompfe) {
-            <span class="rounded-full bg-primary px-md py-xs text-body-sm font-medium text-surface">{{ pompfeName(pompfe) }}</span>
+            <span class="rounded-pill bg-teal-1 px-md py-xs text-body-sm font-medium text-teal-7">{{ pompfeName(pompfe) }}</span>
           }
         </div>
       }
@@ -87,7 +88,7 @@
 
     <!-- Badges (stub) -->
     <section>
-      <p class="text-body-sm font-semibold uppercase tracking-wide text-subtle">Badges</p>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Badges</p>
       <div class="mt-sm flex items-center gap-sm">
         @for (i of [0, 1, 2]; track i) {
           <div class="h-9 w-9 rounded-full border border-dashed border-border-strong bg-surface-subtle"></div>
@@ -100,14 +101,14 @@
 
     <!-- Recent activity -->
     <section>
-      <p class="text-body-sm font-semibold uppercase tracking-wide text-subtle">Recent activity</p>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Recent activity</p>
       @if (p.recentActivity.length === 0) {
         <p class="mt-xs text-body-sm text-faint" data-testid="activity-empty">No events yet.</p>
       } @else {
         <ul class="mt-sm divide-y divide-border">
           @for (item of p.recentActivity; track $index) {
             <li class="flex gap-md py-sm">
-              <span class="w-14 shrink-0 pt-0.5 text-body-sm text-faint">{{ item.date }}</span>
+              <span class="w-14 shrink-0 pt-0.5 font-mono text-body-sm text-faint">{{ item.date }}</span>
               <div>
                 <p class="text-body-md text-ink">{{ item.eventName }}</p>
                 <p class="text-body-sm text-subtle">{{ item.location }} · with {{ item.teamLabel }}</p>
@@ -128,14 +129,14 @@
     @if (editing()) {
       <div class="sticky bottom-0 mt-lg flex justify-end gap-sm bg-background/80 py-md backdrop-blur">
         <button type="button" (click)="save()" [disabled]="form.invalid || saving()" data-testid="profile-save"
-          class="rounded-md bg-primary px-lg py-xs text-body-md font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50">
+          class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none">
           {{ saving() ? 'Saving…' : 'Save changes' }}
         </button>
       </div>
     }
 
     <div class="mt-lg text-center">
-      <a [routerLink]="['/u', p.handle]" class="text-body-sm font-medium text-primary hover:text-primary-hover">View public profile ↗</a>
+      <a [routerLink]="['/u', p.handle]" class="text-body-sm font-medium text-link hover:text-link-hover">View public profile ↗</a>
     </div>
   } @else {
     <p class="text-body-md text-danger">{{ error() ?? 'Could not load your profile.' }}</p>

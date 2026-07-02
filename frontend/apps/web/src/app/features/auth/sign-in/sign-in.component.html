@@ -1,9 +1,10 @@
 <main class="grid min-h-screen place-items-center p-md">
   <section
-    class="w-full max-w-md rounded-lg border border-border bg-surface p-xl shadow-card"
+    class="relative w-full max-w-md overflow-hidden rounded-lg border border-border-muted bg-surface-card p-xl shadow-sm"
     data-testid="sign-in"
   >
-    <h1 class="text-heading-md font-semibold text-ink">Sign in</h1>
+    <span class="absolute inset-x-0 top-0 h-1 bg-brand-gradient" aria-hidden="true"></span>
+    <h1 class="text-heading-md text-ink">Sign in</h1>
     <p class="mt-xs text-body-sm text-subtle">Welcome back to JuggerHub.</p>
 
     <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="submit()">
@@ -15,14 +16,14 @@
           autocomplete="email"
           formControlName="email"
           data-testid="sign-in-email"
-          class="mt-xs w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
         />
       </div>
 
       <div>
         <div class="flex items-center justify-between">
           <label for="password" class="block text-body-sm font-medium text-text">Password</label>
-          <a routerLink="/forgot-password" class="text-body-sm font-medium text-primary hover:text-primary-hover">
+          <a routerLink="/forgot-password" class="text-body-sm font-medium text-link hover:text-link-hover">
             Forgot password?
           </a>
         </div>
@@ -32,7 +33,7 @@
           autocomplete="current-password"
           formControlName="password"
           data-testid="sign-in-password"
-          class="mt-xs w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
         />
       </div>
 
@@ -46,12 +47,12 @@
       }
 
       @if (needsVerification()) {
-        <div class="rounded-md border border-warning/40 bg-warning/10 p-md text-body-sm text-text" data-testid="sign-in-verify">
+        <div class="rounded-md border border-warning-border bg-warning-bg p-md text-body-sm text-warning-fg" data-testid="sign-in-verify">
           <p>Please verify your email address before signing in.</p>
           @if (resent()) {
             <p class="mt-xs text-success">If that account needs it, a new verification email is on its way.</p>
           } @else {
-            <button type="button" class="mt-xs font-medium text-primary hover:text-primary-hover" (click)="resendVerification()">
+            <button type="button" class="mt-xs font-medium text-link hover:text-link-hover" (click)="resendVerification()">
               Resend verification email
             </button>
           }
@@ -62,7 +63,7 @@
         type="submit"
         data-testid="sign-in-submit"
         [disabled]="form.invalid || submitting()"
-        class="w-full rounded-md bg-primary px-md py-xs text-body-md font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+        class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
       >
         {{ submitting() ? 'Signing in…' : 'Sign in' }}
       </button>
@@ -70,7 +71,7 @@
 
     <p class="mt-lg text-center text-body-sm text-subtle">
       New to JuggerHub?
-      <a routerLink="/register" class="font-medium text-primary hover:text-primary-hover">Create an account</a>
+      <a routerLink="/register" class="font-medium text-link hover:text-link-hover">Create an account</a>
     </p>
   </section>
 </main>

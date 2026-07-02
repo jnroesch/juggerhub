@@ -13,14 +13,22 @@
     </svg>
   </button>
 
-  <span class="text-heading-md font-semibold text-ink">JuggerHub</span>
+  <span class="flex items-center gap-xs">
+    <span
+      class="grid h-7 w-7 place-items-center rounded-md bg-brand-gradient shadow-sm"
+      aria-hidden="true"
+    >
+      <span class="h-1.5 w-1.5 rounded-full bg-highlight"></span>
+    </span>
+    <span class="font-display text-heading-md font-bold text-ink">JuggerHub</span>
+  </span>
 
   <div class="ml-auto flex items-center gap-sm">
     @if (user(); as currentUser) {
       <span class="hidden text-body-sm text-subtle sm:inline" data-testid="nav-user">{{ currentUser.email }}</span>
       <button
         type="button"
-        class="rounded-md border border-border-strong bg-surface-subtle px-md py-xs text-body-sm font-medium text-text hover:bg-border"
+        class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         data-testid="sign-out"
         (click)="signOut()"
       >
@@ -29,7 +37,7 @@
     } @else {
       <a
         routerLink="/sign-in"
-        class="rounded-md bg-primary px-md py-xs text-body-sm font-semibold text-surface hover:bg-primary-hover"
+        class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         data-testid="nav-sign-in"
       >
         Sign in

@@ -1,8 +1,9 @@
 <main class="grid min-h-screen place-items-center p-md">
   <section
-    class="w-full max-w-md rounded-lg border border-border bg-surface p-xl shadow-card"
+    class="relative w-full max-w-md overflow-hidden rounded-lg border border-border-muted bg-surface-card p-xl shadow-sm"
     data-testid="register"
   >
+    <span class="absolute inset-x-0 top-0 h-1 bg-brand-gradient" aria-hidden="true"></span>
     @if (sent()) {
       <h1 class="text-heading-md font-semibold text-ink">Check your email</h1>
       <p class="mt-sm text-body-md text-text-muted">
@@ -11,7 +12,7 @@
       </p>
       <a
         routerLink="/sign-in"
-        class="mt-lg inline-block rounded-md bg-primary px-md py-xs text-body-md font-semibold text-surface hover:bg-primary-hover"
+        class="mt-lg inline-block rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         Back to sign in
       </a>
@@ -28,13 +29,13 @@
             autocomplete="email"
             formControlName="email"
             data-testid="register-email"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
           />
         </div>
 
         <div>
           <label for="handle" class="block text-body-sm font-medium text-text">Handle</label>
-          <div class="mt-xs flex items-center rounded-md border border-border-strong bg-surface focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+          <div class="mt-xs flex items-center rounded-md border border-border-strong bg-surface-card transition-shadow duration-fast focus-within:border-brand focus-within:ring-2 focus-within:ring-focus">
             <span class="pl-md text-body-md text-subtle">@</span>
             <input
               id="handle"
@@ -69,7 +70,7 @@
             autocomplete="new-password"
             formControlName="password"
             data-testid="register-password"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
           />
           <jh-password-rules [password]="password()" (validChange)="passwordValid.set($event)" />
         </div>
@@ -82,7 +83,7 @@
             autocomplete="new-password"
             formControlName="confirmPassword"
             data-testid="register-confirm-password"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
           />
           @if (form.hasError('passwordMismatch') && form.controls.confirmPassword.value && form.controls.confirmPassword.touched) {
             <p class="mt-xs text-body-sm text-danger" data-testid="register-mismatch" role="alert">Passwords don't match.</p>
@@ -97,7 +98,7 @@
           type="submit"
           data-testid="register-submit"
           [disabled]="!canSubmit"
-          class="w-full rounded-md bg-primary px-md py-xs text-body-md font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
         >
           {{ submitting() ? 'Creating account…' : 'Create account' }}
         </button>
@@ -105,7 +106,7 @@
 
       <p class="mt-lg text-center text-body-sm text-subtle">
         Already have an account?
-        <a routerLink="/sign-in" class="font-medium text-primary hover:text-primary-hover">Sign in</a>
+        <a routerLink="/sign-in" class="font-medium text-link hover:text-link-hover">Sign in</a>
       </p>
     }
   </section>

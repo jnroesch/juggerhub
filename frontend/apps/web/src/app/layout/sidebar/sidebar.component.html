@@ -18,9 +18,9 @@
     @for (item of items; track item.path) {
       <a
         [routerLink]="item.path"
-        routerLinkActive="bg-surface-subtle text-ink"
+        routerLinkActive="bg-surface-accent-soft font-semibold text-brand-active"
         [routerLinkActiveOptions]="{ exact: item.path === '/' }"
-        class="rounded-md px-sm py-xs text-body-md text-text hover:bg-surface-subtle"
+        class="rounded-md px-sm py-xs text-body-md font-medium text-text transition-colors duration-fast hover:bg-surface-sunken"
         (click)="closed.emit()"
       >
         {{ item.label }}

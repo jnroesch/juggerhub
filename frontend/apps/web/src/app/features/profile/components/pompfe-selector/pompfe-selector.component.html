@@ -6,14 +6,14 @@
       [attr.aria-pressed]="isSelected(entry.value)"
       [attr.data-testid]="'pompfe-' + entry.value"
       [attr.data-selected]="isSelected(entry.value)"
-      class="rounded-full border px-md py-xs text-body-sm transition-colors"
-      [class.border-primary]="isSelected(entry.value)"
-      [class.bg-primary]="isSelected(entry.value)"
-      [class.text-surface]="isSelected(entry.value)"
+      class="rounded-pill border px-md py-xs text-body-sm font-medium transition-colors duration-fast hover:border-teal-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      [class.border-teal-3]="isSelected(entry.value)"
+      [class.bg-teal-1]="isSelected(entry.value)"
+      [class.text-teal-7]="isSelected(entry.value)"
       [class.border-dashed]="!isSelected(entry.value)"
       [class.border-border-strong]="!isSelected(entry.value)"
       [class.text-subtle]="!isSelected(entry.value)"
-      [class.bg-surface]="!isSelected(entry.value)"
+      [class.bg-surface-card]="!isSelected(entry.value)"
     >
       {{ entry.de }}<span class="opacity-60"> / {{ entry.en }}</span>
       @if (entry.isPosition) { <span class="ml-xs text-[10px] uppercase opacity-70">pos</span> }

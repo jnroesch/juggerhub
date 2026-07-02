@@ -7,7 +7,7 @@
     @case ('welcome') {
       <div class="flex flex-1 flex-col items-center justify-center text-center">
         <div
-          class="grid h-16 w-16 place-items-center rounded-lg bg-gradient-to-br from-primary to-accent text-display text-surface"
+          class="grid h-16 w-16 place-items-center rounded-lg bg-brand-gradient font-display text-display font-bold text-on-accent shadow-coral"
           aria-hidden="true"
         >
           J
@@ -22,7 +22,7 @@
           type="button"
           data-testid="onboarding-start"
           (click)="next()"
-          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover"
+          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
           Get started
         </button>
@@ -50,7 +50,7 @@
           [ngModel]="displayName()"
           (ngModelChange)="displayName.set($event)"
           placeholder="Player name"
-          class="mt-lg w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          class="mt-lg w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
         />
         <p class="mt-sm text-body-sm text-subtle">Handle &#64;{{ handle() }} stays the same</p>
       </div>
@@ -61,7 +61,7 @@
           data-testid="onboarding-continue"
           (click)="next()"
           [disabled]="nameEmpty()"
-          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
         >
           Continue
         </button>
@@ -80,7 +80,7 @@
           [ngModel]="hometown()"
           (ngModelChange)="hometown.set($event)"
           placeholder="e.g. Berlin"
-          class="mt-lg w-full rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          class="mt-lg w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
         />
       </div>
       <div class="space-y-sm">
@@ -89,7 +89,7 @@
           type="button"
           data-testid="onboarding-continue"
           (click)="next()"
-          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover"
+          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
           Continue
         </button>
@@ -116,7 +116,7 @@
           type="button"
           data-testid="onboarding-continue"
           (click)="next()"
-          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover"
+          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
           Continue
         </button>
@@ -168,7 +168,7 @@
           type="button"
           data-testid="onboarding-continue"
           (click)="next()"
-          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover"
+          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         >
           Continue
         </button>
@@ -221,7 +221,7 @@
           rows="3"
           maxlength="280"
           placeholder="A short bio…"
-          class="mt-lg w-full resize-none rounded-md border border-border-strong bg-surface px-md py-xs text-body-md text-text outline-none focus:border-primary focus:ring-1 focus:ring-primary"
+          class="mt-lg w-full resize-none rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
         ></textarea>
 
         @if (error()) {
@@ -235,7 +235,7 @@
           data-testid="onboarding-finish"
           (click)="finish()"
           [disabled]="saving()"
-          class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-50"
+          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
         >
           {{ saving() ? 'Saving…' : 'Finish' }}
         </button>
@@ -254,7 +254,7 @@
     <!-- Done ------------------------------------------------------------------->
     @case ('done') {
       <div class="flex flex-1 flex-col items-center justify-center text-center">
-        <div class="grid h-16 w-16 place-items-center rounded-full bg-primary text-surface" aria-hidden="true">
+        <div class="grid h-16 w-16 place-items-center rounded-full bg-brand text-on-accent shadow-coral" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" class="h-8 w-8" stroke="currentColor" stroke-width="3">
             <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
           </svg>

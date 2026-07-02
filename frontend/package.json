@@ -12,6 +12,8 @@
     "@angular/platform-browser": "21.2.9",
     "@angular/platform-browser-dynamic": "21.2.9",
     "@angular/router": "21.2.9",
+    "@fontsource/hubot-sans": "^5.2.8",
+    "@fontsource/mona-sans": "^5.2.8",
     "rxjs": "~7.8.0",
     "zone.js": "0.16.0"
   },

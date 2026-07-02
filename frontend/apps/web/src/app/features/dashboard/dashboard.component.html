@@ -8,9 +8,10 @@
     </header>
 
     <section
-      class="mt-xl rounded-lg border border-border bg-surface p-xl shadow-card"
+      class="relative mt-xl overflow-hidden rounded-lg border border-border-muted bg-surface-card p-xl shadow-sm transition-shadow duration-base hover:shadow-md"
       data-testid="health-card"
     >
+      <span class="absolute inset-x-0 top-0 h-1 bg-brand-gradient" aria-hidden="true"></span>
       @if (loading()) {
         <p class="text-body-md text-subtle" data-testid="health-loading">
           Checking system health…
@@ -44,7 +45,7 @@
           </div>
           <div>
             <dt class="text-body-sm text-subtle">API version</dt>
-            <dd class="text-body-md text-text">{{ health()!.version }}</dd>
+            <dd class="font-mono text-body-md text-text">{{ health()!.version }}</dd>
           </div>
         </dl>
       }
