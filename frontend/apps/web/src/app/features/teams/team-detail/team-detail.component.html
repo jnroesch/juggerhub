@@ -69,17 +69,21 @@
       <ul class="mt-md divide-y divide-border" data-testid="team-roster">
         @for (m of members(); track m.userId) {
           <li class="relative flex items-center gap-sm py-sm">
-            @if (m.hasAvatar) {
-              <img [src]="avatarUrl(m.handle)" alt="" class="h-9 w-9 rounded-full border border-border object-cover" />
-            } @else {
-              <div class="h-9 w-9 rounded-full border border-dashed border-border-strong bg-surface-subtle"></div>
-            }
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-body-md text-ink">{{ m.displayName }}</p>
-              @if (m.pompfen.length) {
-                <p class="truncate text-body-sm text-subtle">{{ positions(m) }}</p>
+            <a [routerLink]="['/u', m.handle]" [attr.data-testid]="'member-' + m.handle"
+              [attr.aria-label]="'View profile of ' + m.displayName"
+              class="-mx-1 flex min-w-0 flex-1 items-center gap-sm rounded-md px-1 py-0.5 transition-colors duration-fast hover:bg-surface-sunken">
+              @if (m.hasAvatar) {
+                <img [src]="avatarUrl(m.handle)" alt="" class="h-9 w-9 rounded-full border border-border object-cover" />
+              } @else {
+                <div class="h-9 w-9 rounded-full border border-dashed border-border-strong bg-surface-subtle"></div>
               }
-            </div>
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-body-md text-ink">{{ m.displayName }}</p>
+                @if (m.pompfen.length) {
+                  <p class="truncate text-body-sm text-subtle">{{ positions(m) }}</p>
+                }
+              </div>
+            </a>
             <span class="rounded-pill px-2 py-0.5 text-caption font-semibold"
               [class]="m.role === 'Admin' ? 'bg-ink text-on-inverse' : 'border border-border-strong text-muted'">
               {{ m.role === 'Admin' ? 'ADMIN' : 'MEMBER' }}
