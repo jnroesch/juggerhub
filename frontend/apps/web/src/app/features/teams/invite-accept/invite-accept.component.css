@@ -1,0 +1,4 @@
+/* Invite accept — full-screen landing; styling from Tailwind utilities + DESIGN.md tokens. */
+:host {
+  display: block;
+}

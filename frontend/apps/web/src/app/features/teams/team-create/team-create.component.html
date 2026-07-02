@@ -1,0 +1,73 @@
+<section class="mx-auto max-w-md px-md py-lg" data-testid="team-create">
+  <a routerLink="/" class="text-body-sm text-subtle hover:text-text">‹ Back</a>
+
+  <h1 class="mt-md text-heading-lg font-bold text-ink">Create a team</h1>
+  <p class="text-body-md text-subtle">You'll be the team's first admin.</p>
+
+  <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="submit()">
+    <div>
+      <label for="team-name" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Team name</label>
+      <input id="team-name" type="text" formControlName="name" placeholder="Rheinfeuer" data-testid="team-name"
+        class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
+    </div>
+
+    <div>
+      <label for="team-slug" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Team address</label>
+      <div class="mt-xs flex items-center rounded-md border border-border-strong bg-surface-card px-md focus-within:border-brand focus-within:ring-2 focus-within:ring-focus">
+        <span class="font-mono text-body-sm text-faint">/t/</span>
+        <input id="team-slug" type="text" formControlName="slug" placeholder="rheinfeuer" data-testid="team-slug"
+          autocapitalize="none" autocomplete="off" spellcheck="false" (input)="onSlugInput($event)"
+          class="w-full bg-transparent py-sm pl-0.5 font-mono text-body-md text-body outline-none" />
+      </div>
+      @if (checkingSlug()) {
+        <p class="mt-xs text-body-sm text-subtle">Checking…</p>
+      } @else if (slugStatus(); as s) {
+        @if (s.available) {
+          <p class="mt-xs text-body-sm text-success" data-testid="slug-ok">✓ /t/{{ s.normalized }} is available</p>
+        } @else {
+          <p class="mt-xs text-body-sm text-danger" data-testid="slug-bad">{{ s.reason ?? 'That address isn\'t available.' }}</p>
+        }
+      } @else {
+        <p class="mt-xs text-body-sm text-faint">Your permanent link — lowercase letters, numbers, hyphens. Can't be changed later.</p>
+      }
+    </div>
+
+    <div>
+      <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Team type</span>
+      <div class="mt-xs grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" aria-label="Team type">
+        <button type="button" (click)="setType('CityTeam')" data-testid="type-city"
+          class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+          [class]="type() === 'CityTeam' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">
+          City team
+        </button>
+        <button type="button" (click)="setType('Mixteam')" data-testid="type-mix"
+          class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+          [class]="type() === 'Mixteam' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">
+          Mixteam
+        </button>
+      </div>
+    </div>
+
+    @if (type() === 'CityTeam') {
+      <div>
+        <label for="team-city" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">City</label>
+        <input id="team-city" type="text" formControlName="city" placeholder="e.g. Berlin" data-testid="team-city"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
+        <p class="mt-xs text-body-sm text-faint">City teams show up when players search their area.</p>
+      </div>
+    } @else {
+      <div class="rounded-md border border-dashed border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg" data-testid="mixteam-note">
+        No city needed. A Mixteam is players from different cities who enter tournaments together.
+      </div>
+    }
+
+    @if (error()) {
+      <p class="text-body-sm text-danger" role="alert" data-testid="team-create-error">{{ error() }}</p>
+    }
+
+    <button type="submit" [disabled]="form.invalid || submitting() || slugStatus()?.available === false" data-testid="team-create-submit"
+      class="w-full rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none">
+      {{ submitting() ? 'Creating…' : 'Create team' }}
+    </button>
+  </form>
+</section>

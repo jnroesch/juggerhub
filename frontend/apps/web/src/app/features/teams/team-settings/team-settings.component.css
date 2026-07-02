@@ -1,0 +1,4 @@
+/* Team settings — layout & styling come from Tailwind utilities + DESIGN.md tokens. */
+:host {
+  display: block;
+}
