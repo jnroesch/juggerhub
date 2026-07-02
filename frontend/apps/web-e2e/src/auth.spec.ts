@@ -103,7 +103,11 @@ test('register → verify → sign in → sign out → reset password', async ({
   await page.getByTestId('sign-in-email').fill(email);
   await page.getByTestId('sign-in-password').fill(NEW_PASSWORD);
   await page.getByTestId('sign-in-submit').click();
-  await expect(page).not.toHaveURL(/onboarding/);
+  // Wait for the login to actually land before navigating on: an onboarded user
+  // is redirected to the app (neither /sign-in nor /onboarding). Asserting only
+  // `not /onboarding` would pass instantly while still on /sign-in and race the
+  // session cookie, bouncing the next goto back to sign-in.
+  await expect(page).not.toHaveURL(/sign-in|onboarding/);
   await page.goto('/account');
   await expect(page.getByTestId('account-email')).toContainText(email);
 });
