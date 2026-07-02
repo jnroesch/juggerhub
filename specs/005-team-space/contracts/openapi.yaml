@@ -1,0 +1,391 @@
+openapi: 3.0.3
+info:
+  title: JuggerHub — Team Space API
+  version: "1.0"
+  description: >-
+    Team space + member handling for feature 005. Teams have a unique immutable
+    slug (like the profile handle) and free, non-unique names. Internal surfaces
+    (roster, news, management) require an authenticated MEMBER; public info
+    (name/type/city/member count) and the invite preview are anonymous. All
+    admin-only actions are enforced server-side; all lists are paginated.
+servers:
+  - url: /api/v1
+
+paths:
+  /teams:
+    post:
+      tags: [teams]
+      summary: Create a team (creator becomes its first admin)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateTeamRequest' } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/TeamDetailDto' } } } }
+        '400': { description: Validation (name length, slug format/reserved, city rule), content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+        '409': { description: Slug already taken, content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+        '401': { description: Unauthenticated }
+
+  /teams/slug-available:
+    get:
+      tags: [teams]
+      summary: Check team-slug availability + format (UX aid; not a security boundary)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: query, name: slug, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Result, content: { application/json: { schema: { $ref: '#/components/schemas/SlugAvailabilityDto' } } } }
+
+  /teams/{slug}:
+    get:
+      tags: [teams]
+      summary: Team detail header (members only)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/Slug' }]
+      responses:
+        '200': { description: Team detail, content: { application/json: { schema: { $ref: '#/components/schemas/TeamDetailDto' } } } }
+        '401': { description: Unauthenticated }
+        '404': { description: Unknown team OR caller is not a member (indistinguishable — no leak), content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+    delete:
+      tags: [teams]
+      summary: Delete the team (admin only; irreversible; cascades roster/invites/news)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/Slug' }]
+      responses:
+        '204': { description: Deleted }
+        '401': { description: Unauthenticated }
+        '403': { description: Not an admin, content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+        '404': { description: Unknown team / not a member }
+
+  /teams/{slug}/public:
+    get:
+      tags: [teams]
+      summary: Public team info (anonymous — name/type/city/member count only)
+      security: []
+      parameters: [{ $ref: '#/components/parameters/Slug' }]
+      responses:
+        '200': { description: Public info, content: { application/json: { schema: { $ref: '#/components/schemas/TeamPublicDto' } } } }
+        '404': { description: Unknown team, content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+
+  /teams/{slug}/members:
+    get:
+      tags: [members]
+      summary: Roster (members only, paginated)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Slug' }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: Paged roster, content: { application/json: { schema: { $ref: '#/components/schemas/PagedMembers' } } } }
+        '401': { description: Unauthenticated }
+        '404': { description: Unknown team / not a member }
+
+  /teams/{slug}/members/{userId}/role:
+    patch:
+      tags: [members]
+      summary: Change a member's role (admin only; blocked if it would drop the last admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Slug' }
+        - { in: path, name: userId, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/SetMemberRoleRequest' } } }
+      responses:
+        '200': { description: Updated member, content: { application/json: { schema: { $ref: '#/components/schemas/TeamMemberDto' } } } }
+        '403': { description: Not an admin }
+        '404': { description: Unknown team/member / not a member }
+        '409': { description: Would leave the team with no admin (last-admin guard), content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+
+  /teams/{slug}/members/{userId}:
+    delete:
+      tags: [members]
+      summary: Remove a member (admin only) or leave (self); blocked if it would drop the last admin
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Slug' }
+        - { in: path, name: userId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed / left }
+        '403': { description: Not an admin (and not removing self) }
+        '404': { description: Unknown team/member / not a member }
+        '409': { description: Would leave the team with no admin (last-admin guard), content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+
+  /teams/{slug}/activity:
+    get:
+      tags: [activity]
+      summary: Events the team took part in (members only, paginated, newest first)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Slug' }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: Paged activity, content: { application/json: { schema: { $ref: '#/components/schemas/PagedActivity' } } } }
+        '404': { description: Unknown team / not a member }
+
+  /teams/{slug}/news:
+    get:
+      tags: [news]
+      summary: Read-only team news feed (members only, paginated, newest first)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Slug' }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: Paged news, content: { application/json: { schema: { $ref: '#/components/schemas/PagedNews' } } } }
+        '404': { description: Unknown team / not a member }
+
+  /teams/{slug}/invitations:
+    get:
+      tags: [invitations]
+      summary: Pending invitations — link + targeted (admin only, paginated)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Slug' }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: Paged invitations, content: { application/json: { schema: { $ref: '#/components/schemas/PagedInvitations' } } } }
+        '403': { description: Not an admin }
+        '404': { description: Unknown team / not a member }
+    post:
+      tags: [invitations]
+      summary: Create a targeted invite for a user (admin only; emails the accept link)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/Slug' }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateTargetedInviteRequest' } } }
+      responses:
+        '201': { description: Invite created (email sent), content: { application/json: { schema: { $ref: '#/components/schemas/TeamInvitationDto' } } } }
+        '200': { description: User already invited (no duplicate created), content: { application/json: { schema: { $ref: '#/components/schemas/TeamInvitationDto' } } } }
+        '400': { description: User already a member, content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+        '403': { description: Not an admin }
+
+  /teams/{slug}/invitations/link:
+    get:
+      tags: [invitations]
+      summary: The current active invite link (admin only)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/Slug' }]
+      responses:
+        '200': { description: Active link, content: { application/json: { schema: { $ref: '#/components/schemas/InviteLinkDto' } } } }
+        '204': { description: No active link }
+        '403': { description: Not an admin }
+    post:
+      tags: [invitations]
+      summary: Create or rotate the active invite link (admin only; revokes the previous)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/Slug' }]
+      responses:
+        '201': { description: New active link, content: { application/json: { schema: { $ref: '#/components/schemas/InviteLinkDto' } } } }
+        '403': { description: Not an admin }
+
+  /teams/{slug}/invitations/{invitationId}:
+    delete:
+      tags: [invitations]
+      summary: Revoke a pending invitation (admin only)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Slug' }
+        - { in: path, name: invitationId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Revoked }
+        '403': { description: Not an admin }
+        '404': { description: Unknown invitation }
+
+  /teams/{slug}/invitations/user-search:
+    get:
+      tags: [invitations]
+      summary: Search users to invite (admin only, paginated; annotates member/invited)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/Slug' }
+        - { in: query, name: q, required: true, schema: { type: string, minLength: 1 } }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: Paged candidates, content: { application/json: { schema: { $ref: '#/components/schemas/PagedInvitableUsers' } } } }
+        '403': { description: Not an admin }
+
+  /invitations/{token}:
+    get:
+      tags: [accept]
+      summary: Invite preview (anonymous) — public team info + inviter + usable/expired/invalid state
+      security: []
+      parameters: [{ in: path, name: token, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Preview (check `state`), content: { application/json: { schema: { $ref: '#/components/schemas/InvitePreviewDto' } } } }
+        '404': { description: Unknown token (generic) }
+
+  /invitations/{token}/accept:
+    post:
+      tags: [accept]
+      summary: Accept an invite and join as a member (authenticated)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: token, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Joined (or already a member), content: { application/json: { schema: { $ref: '#/components/schemas/AcceptInviteResultDto' } } } }
+        '401': { description: Unauthenticated (sign in / register, then return) }
+        '409': { description: Expired / revoked / already-used invite, content: { application/json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+
+  /invitations/{token}/decline:
+    post:
+      tags: [accept]
+      summary: Decline an invite (authenticated)
+      security: [{ bearerAuth: [] }]
+      parameters: [{ in: path, name: token, required: true, schema: { type: string } }]
+      responses:
+        '204': { description: Declined }
+        '401': { description: Unauthenticated }
+        '409': { description: Not in a declinable state }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: JWT delivered via the httpOnly access cookie; internal + admin endpoints require it.
+  parameters:
+    Slug:
+      in: path
+      name: slug
+      required: true
+      schema: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$', minLength: 3, maxLength: 30 }
+    Skip: { in: query, name: skip, schema: { type: integer, default: 0, minimum: 0 } }
+    Take: { in: query, name: take, schema: { type: integer, default: 20, minimum: 1, maximum: 100 } }
+  schemas:
+    TeamType: { type: string, enum: [CityTeam, Mixteam] }
+    TeamRole: { type: string, enum: [Member, Admin] }
+    InvitationKind: { type: string, enum: [Link, Targeted] }
+    InvitationStatus: { type: string, enum: [Pending, Accepted, Declined, Revoked] }
+    Pompfe: { type: string, enum: [Stab, Langpompfe, Schild, QTip, Kette, DoppelKurz, Laeufer] }
+    InviteState: { type: string, enum: [Usable, Expired, Invalid] }
+    UserRelation: { type: string, enum: [Invitable, Invited, Member] }
+
+    CreateTeamRequest:
+      type: object
+      required: [name, slug, type]
+      properties:
+        name: { type: string, minLength: 2, maxLength: 50 }
+        slug: { type: string, pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$', minLength: 3, maxLength: 30 }
+        type: { $ref: '#/components/schemas/TeamType' }
+        city: { type: string, maxLength: 80, nullable: true, description: Required when type=CityTeam; must be null for Mixteam. }
+    SetMemberRoleRequest:
+      type: object
+      required: [role]
+      properties: { role: { $ref: '#/components/schemas/TeamRole' } }
+    CreateTargetedInviteRequest:
+      type: object
+      required: [userId]
+      properties: { userId: { type: string, format: uuid } }
+
+    TeamDetailDto:
+      type: object
+      description: Members-only header. Roster/news are fetched from their own endpoints.
+      properties:
+        slug: { type: string }
+        name: { type: string }
+        type: { $ref: '#/components/schemas/TeamType' }
+        city: { type: string, nullable: true }
+        memberCount: { type: integer }
+        myRole: { $ref: '#/components/schemas/TeamRole' }
+    TeamPublicDto:
+      type: object
+      description: Anonymous. MUST NOT contain roster identities or news.
+      properties:
+        slug: { type: string }
+        name: { type: string }
+        type: { $ref: '#/components/schemas/TeamType' }
+        city: { type: string, nullable: true }
+        memberCount: { type: integer }
+    TeamMemberDto:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        handle: { type: string }
+        displayName: { type: string }
+        role: { $ref: '#/components/schemas/TeamRole' }
+        hasAvatar: { type: boolean }
+        pompfen: { type: array, items: { $ref: '#/components/schemas/Pompfe' } }
+    TeamNewsDto:
+      type: object
+      properties:
+        authorDisplayName: { type: string }
+        authorHandle: { type: string }
+        authorRole: { $ref: '#/components/schemas/TeamRole' }
+        createdDate: { type: string, format: date-time }
+        body: { type: string }
+    ActivityItemDto:
+      type: object
+      properties:
+        eventName: { type: string }
+        date: { type: string, format: date }
+        location: { type: string }
+        teamLabel: { type: string }
+    TeamInvitationDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        kind: { $ref: '#/components/schemas/InvitationKind' }
+        targetDisplayName: { type: string, nullable: true }
+        createdDate: { type: string, format: date-time }
+        expiresDate: { type: string, format: date-time }
+        status: { $ref: '#/components/schemas/InvitationStatus' }
+    InviteLinkDto:
+      type: object
+      properties:
+        url: { type: string, description: '{FrontendBaseUrl}/join/{slug}/{token}' }
+        token: { type: string }
+        expiresDate: { type: string, format: date-time }
+    InvitableUserDto:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        handle: { type: string }
+        displayName: { type: string }
+        city: { type: string, nullable: true }
+        relation: { $ref: '#/components/schemas/UserRelation' }
+    InvitePreviewDto:
+      type: object
+      description: Anonymous. Public team info + inviter only; no roster/news.
+      properties:
+        teamName: { type: string }
+        teamSlug: { type: string }
+        type: { $ref: '#/components/schemas/TeamType' }
+        city: { type: string, nullable: true }
+        memberCount: { type: integer }
+        inviterDisplayName: { type: string }
+        state: { $ref: '#/components/schemas/InviteState' }
+    AcceptInviteResultDto:
+      type: object
+      properties: { teamSlug: { type: string } }
+    SlugAvailabilityDto:
+      type: object
+      properties:
+        slug: { type: string }
+        normalized: { type: string }
+        available: { type: boolean }
+        reason: { type: string, nullable: true }
+
+    PagedMembers:        { allOf: [ { $ref: '#/components/schemas/Paged' }, { properties: { items: { type: array, items: { $ref: '#/components/schemas/TeamMemberDto' } } } } ] }
+    PagedActivity:       { allOf: [ { $ref: '#/components/schemas/Paged' }, { properties: { items: { type: array, items: { $ref: '#/components/schemas/ActivityItemDto' } } } } ] }
+    PagedNews:           { allOf: [ { $ref: '#/components/schemas/Paged' }, { properties: { items: { type: array, items: { $ref: '#/components/schemas/TeamNewsDto' } } } } ] }
+    PagedInvitations:    { allOf: [ { $ref: '#/components/schemas/Paged' }, { properties: { items: { type: array, items: { $ref: '#/components/schemas/TeamInvitationDto' } } } } ] }
+    PagedInvitableUsers: { allOf: [ { $ref: '#/components/schemas/Paged' }, { properties: { items: { type: array, items: { $ref: '#/components/schemas/InvitableUserDto' } } } } ] }
+    Paged:
+      type: object
+      properties:
+        totalCount: { type: integer }
+        skip: { type: integer }
+        take: { type: integer }
+    ProblemDetails:
+      type: object
+      description: RFC 7807; generic — never carries stack traces, secrets, or account internals.
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }

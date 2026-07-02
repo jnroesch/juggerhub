@@ -332,7 +332,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/004-onboarding/plan.md` (First-Login Onboarding Flow).
+`specs/005-team-space/plan.md` (Team Space & Member Handling).
 <!-- SPECKIT END -->
 
 <!-- BACKLOG.MD GUIDELINES START -->
