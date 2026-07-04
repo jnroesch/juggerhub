@@ -24,11 +24,25 @@ public sealed class EventsController : ControllerBase
 {
     private readonly IEventService _events;
     private readonly IEventSignupService _signups;
+    private readonly IEventNewsService _news;
+    private readonly IEventContactService _contacts;
+    private readonly IEventAdminService _admins;
+    private readonly IEventInvitationService _invitations;
 
-    public EventsController(IEventService events, IEventSignupService signups)
+    public EventsController(
+        IEventService events,
+        IEventSignupService signups,
+        IEventNewsService news,
+        IEventContactService contacts,
+        IEventAdminService admins,
+        IEventInvitationService invitations)
     {
         _events = events;
         _signups = signups;
+        _news = news;
+        _contacts = contacts;
+        _admins = admins;
+        _invitations = invitations;
     }
 
     // --- Create ---------------------------------------------------------------
@@ -117,7 +131,324 @@ public sealed class EventsController : ControllerBase
         };
     }
 
+    // --- Admin: edit + participant administration -----------------------------
+
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<EventDetailDto>> Edit(Guid id, [FromBody] EditEventRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _events.EditAsync(id, userId, request, ct);
+        return result.Status switch
+        {
+            EditEventStatus.Updated => Ok(result.Event),
+            EditEventStatus.NotFound => EventNotFound(),
+            EditEventStatus.Forbidden => Forbidden(result.Reason ?? "Not allowed."),
+            EditEventStatus.LimitBelowOccupied => Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Limit too low", detail: result.Reason),
+            _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid event", detail: result.Reason),
+        };
+    }
+
+    [HttpPost("{id:guid}/participants/{signupId:guid}/approve")]
+    public async Task<ActionResult<SignupDto>> Approve(Guid id, Guid signupId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return MapAdmit(await _signups.ApproveAsync(id, signupId, userId, ct));
+    }
+
+    [HttpPost("{id:guid}/participants/{signupId:guid}/promote")]
+    public async Task<ActionResult<SignupDto>> Promote(Guid id, Guid signupId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return MapAdmit(await _signups.PromoteAsync(id, signupId, userId, ct));
+    }
+
+    // --- News (public read, admin post) ---------------------------------------
+
+    [HttpGet("{id:guid}/news")]
+    [AllowAnonymous]
+    public async Task<ActionResult<PagedResult<EventNewsDto>>> GetNews(
+        Guid id, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        var page = await _news.GetFeedAsync(id, pagination, ct);
+        return page is null ? EventNotFound() : Ok(page);
+    }
+
+    [HttpPost("{id:guid}/news")]
+    public async Task<ActionResult<EventNewsDto>> PostNews(Guid id, [FromBody] CreateNewsRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _news.PostAsync(id, userId, request.Body, ct);
+        return result.Status switch
+        {
+            PostNewsStatus.Posted => Created($"/api/v1/events/{id}/news", result.Post),
+            PostNewsStatus.Forbidden => Forbidden("Only an event admin can post news."),
+            _ => EventNotFound(),
+        };
+    }
+
+    // --- Contacts (public read, admin CUD) ------------------------------------
+
+    [HttpGet("{id:guid}/contacts")]
+    [AllowAnonymous]
+    public async Task<ActionResult<PagedResult<EventContactDto>>> GetContacts(
+        Guid id, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        var page = await _contacts.ListAsync(id, pagination, ct);
+        return page is null ? EventNotFound() : Ok(page);
+    }
+
+    [HttpPost("{id:guid}/contacts")]
+    public async Task<ActionResult<EventContactDto>> AddContact(Guid id, [FromBody] CreateContactRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return MapContact(await _contacts.AddAsync(id, userId, request, ct), created: $"/api/v1/events/{id}/contacts");
+    }
+
+    [HttpPatch("{id:guid}/contacts/{contactId:guid}")]
+    public async Task<ActionResult<EventContactDto>> UpdateContact(
+        Guid id, Guid contactId, [FromBody] CreateContactRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return MapContact(await _contacts.UpdateAsync(id, contactId, userId, request, ct), created: null);
+    }
+
+    [HttpDelete("{id:guid}/contacts/{contactId:guid}")]
+    public async Task<IActionResult> DeleteContact(Guid id, Guid contactId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var status = await _contacts.RemoveAsync(id, contactId, userId, ct);
+        return status switch
+        {
+            ContactOpStatus.Ok => NoContent(),
+            ContactOpStatus.Forbidden => Forbidden("Only an event admin can manage contacts."),
+            ContactOpStatus.NotFound => EventNotFound(),
+            _ => Problem(statusCode: StatusCodes.Status404NotFound, title: "Contact not found", detail: "No such contact."),
+        };
+    }
+
+    // --- Cancel ---------------------------------------------------------------
+
+    [HttpPost("{id:guid}/cancel")]
+    public async Task<IActionResult> Cancel(Guid id, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var status = await _events.CancelAsync(id, userId, ct);
+        return status switch
+        {
+            CancelEventStatus.Cancelled => NoContent(),
+            CancelEventStatus.Forbidden => Forbidden("Only an event admin can cancel it."),
+            CancelEventStatus.AlreadyCancelled => Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Already cancelled", detail: "This event is already cancelled."),
+            _ => EventNotFound(),
+        };
+    }
+
+    // --- Admins ---------------------------------------------------------------
+
+    [HttpGet("{id:guid}/admins")]
+    public async Task<ActionResult<PagedResult<EventAdminDto>>> GetAdmins(
+        Guid id, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _admins.ListAsync(id, userId, pagination, ct);
+        return result.Gate switch
+        {
+            EventAdminGate.Ok => Ok(result.Page),
+            EventAdminGate.Forbidden => Forbidden("Only an event admin can view the admin list."),
+            _ => EventNotFound(),
+        };
+    }
+
+    [HttpDelete("{id:guid}/admins/{targetUserId:guid}")]
+    public async Task<IActionResult> RemoveAdmin(Guid id, Guid targetUserId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var status = await _admins.RemoveAsync(id, userId, targetUserId, ct);
+        return status switch
+        {
+            AdminOpStatus.Ok => NoContent(),
+            AdminOpStatus.Forbidden => Forbidden("Only an event admin can manage admins."),
+            AdminOpStatus.LastAdmin => Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Last admin", detail: "Appoint another admin before removing the last one."),
+            AdminOpStatus.AdminNotFound => Problem(statusCode: StatusCodes.Status404NotFound,
+                title: "Admin not found", detail: "That user isn't an admin of this event."),
+            _ => EventNotFound(),
+        };
+    }
+
+    // --- Co-admin invitations (admin) -----------------------------------------
+
+    [HttpGet("{id:guid}/invitations/link")]
+    public async Task<ActionResult<EventInviteLinkDto>> GetInviteLink(Guid id, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return MapLink(await _invitations.GetActiveLinkAsync(id, userId, ct));
+    }
+
+    [HttpPost("{id:guid}/invitations/link")]
+    public async Task<ActionResult<EventInviteLinkDto>> RotateInviteLink(Guid id, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return MapLink(await _invitations.CreateOrRotateLinkAsync(id, userId, ct));
+    }
+
+    [HttpGet("{id:guid}/invitations")]
+    public async Task<ActionResult<PagedResult<EventInvitationDto>>> GetInvitations(
+        Guid id, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _invitations.ListPendingAsync(id, userId, pagination, ct);
+        return result.Gate switch
+        {
+            EventAdminGate.Ok => Ok(result.Page),
+            EventAdminGate.Forbidden => Forbidden("Only an event admin can view invitations."),
+            _ => EventNotFound(),
+        };
+    }
+
+    [HttpPost("{id:guid}/invitations")]
+    public async Task<ActionResult<EventInvitationDto>> CreateInvitation(
+        Guid id, [FromBody] CreateEventInviteRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _invitations.CreateTargetedAsync(id, userId, request.UserId, ct);
+        return result.Outcome switch
+        {
+            TargetedInviteOutcome.Created => Created($"/api/v1/events/{id}/invitations", result.Invitation),
+            TargetedInviteOutcome.AlreadyInvited => Ok(result.Invitation),
+            TargetedInviteOutcome.AlreadyAdmin => Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Already an admin", detail: "That user already administers this event."),
+            TargetedInviteOutcome.TargetNotFound => Problem(statusCode: StatusCodes.Status404NotFound,
+                title: "User not found", detail: "No such user."),
+            TargetedInviteOutcome.Forbidden => Forbidden("Only an event admin can invite co-admins."),
+            _ => EventNotFound(),
+        };
+    }
+
+    [HttpDelete("{id:guid}/invitations/{invitationId:guid}")]
+    public async Task<IActionResult> RevokeInvitation(Guid id, Guid invitationId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var outcome = await _invitations.RevokeAsync(id, userId, invitationId, ct);
+        return outcome switch
+        {
+            RevokeOutcome.Revoked => NoContent(),
+            RevokeOutcome.Forbidden => Forbidden("Only an event admin can revoke invitations."),
+            RevokeOutcome.InviteNotFound => Problem(statusCode: StatusCodes.Status404NotFound,
+                title: "Invitation not found", detail: "No pending invitation with that id."),
+            _ => EventNotFound(),
+        };
+    }
+
+    [HttpGet("{id:guid}/invitations/user-search")]
+    public async Task<ActionResult<PagedResult<EventInvitableUserDto>>> SearchUsers(
+        Guid id, [FromQuery] string query, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _invitations.SearchUsersAsync(id, userId, query, pagination, ct);
+        return result.Gate switch
+        {
+            EventAdminGate.Ok => Ok(result.Page),
+            EventAdminGate.Forbidden => Forbidden("Only an event admin can search users."),
+            _ => EventNotFound(),
+        };
+    }
+
     // --- Helpers --------------------------------------------------------------
+
+    private ActionResult<EventInviteLinkDto> MapLink(EventInviteLinkResult result) => result.Gate switch
+    {
+        EventAdminGate.Ok => Ok(result.Link),
+        EventAdminGate.Forbidden => Forbidden("Only an event admin can manage the invite link."),
+        _ => EventNotFound(),
+    };
+
+    private ActionResult<EventContactDto> MapContact(ContactOpResult result, string? created) => result.Status switch
+    {
+        ContactOpStatus.Ok when created is not null => Created(created, result.Contact),
+        ContactOpStatus.Ok => Ok(result.Contact),
+        ContactOpStatus.Forbidden => Forbidden(result.Reason ?? "Not allowed."),
+        ContactOpStatus.Invalid => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid contact", detail: result.Reason),
+        ContactOpStatus.ContactNotFound => Problem(statusCode: StatusCodes.Status404NotFound, title: "Contact not found", detail: "No such contact."),
+        _ => EventNotFound(),
+    };
+
+    private ActionResult<SignupDto> MapAdmit(AdmitResult result) => result.Outcome switch
+    {
+        AdmitOutcome.Ok => Ok(result.Signup),
+        AdmitOutcome.NotFound => EventNotFound(),
+        AdmitOutcome.Forbidden => Forbidden(result.Reason ?? "Not allowed."),
+        AdmitOutcome.CapacityExceeded => Problem(statusCode: StatusCodes.Status409Conflict,
+            title: "No open spot", detail: result.Reason),
+        AdmitOutcome.EventClosed => Problem(statusCode: StatusCodes.Status409Conflict,
+            title: "Event closed", detail: result.Reason),
+        _ => Problem(statusCode: StatusCodes.Status409Conflict, title: "Not applicable", detail: result.Reason),
+    };
 
     private static bool TryParseGroup(string? group, out SignupStatus status)
     {

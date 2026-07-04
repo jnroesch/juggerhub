@@ -3,6 +3,7 @@ using JuggerHub.Data;
 using JuggerHub.Dtos.Events;
 using JuggerHub.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Services.Events;
@@ -18,12 +19,24 @@ public sealed class EventService : IEventService
     private readonly AppDbContext _db;
     private readonly EventOptions _options;
     private readonly EventCapacity _capacity;
+    private readonly EventAdminGuard _guard;
+    private readonly Email.EventEmailService _email;
+    private readonly ILogger<EventService> _logger;
 
-    public EventService(AppDbContext db, IOptions<EventOptions> options, EventCapacity capacity)
+    public EventService(
+        AppDbContext db,
+        IOptions<EventOptions> options,
+        EventCapacity capacity,
+        EventAdminGuard guard,
+        Email.EventEmailService email,
+        ILogger<EventService> logger)
     {
         _db = db;
         _options = options.Value;
         _capacity = capacity;
+        _guard = guard;
+        _email = email;
+        _logger = logger;
     }
 
     public async Task<CreateEventResult> CreateAsync(Guid userId, CreateEventRequest request, CancellationToken ct = default)
@@ -62,7 +75,8 @@ public sealed class EventService : IEventService
             return CreateEventResult.Fail($"Set a participation limit between 1 and {_options.MaxParticipationLimit}.");
         }
 
-        var locationResult = ResolveLocation(request);
+        var locationResult = ResolveLocation(request.LocationKind, request.VenueName, request.Street,
+            request.PostalCode, request.City, request.Country, request.VirtualLink);
         if (locationResult.Reason is not null)
         {
             return CreateEventResult.Fail(locationResult.Reason);
@@ -179,11 +193,175 @@ public sealed class EventService : IEventService
         return ToDetail(ev, occupied, viewer);
     }
 
-    public Task<EditEventResult> EditAsync(Guid eventId, Guid actorUserId, EditEventRequest request, CancellationToken ct = default) =>
-        throw new NotImplementedException("EditAsync is implemented in User Story 4.");
+    public async Task<EditEventResult> EditAsync(Guid eventId, Guid actorUserId, EditEventRequest request, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(eventId, actorUserId, ct);
+        if (access is null)
+        {
+            return EditEventResult.Fail(EditEventStatus.NotFound);
+        }
 
-    public Task<CancelEventStatus> CancelAsync(Guid eventId, Guid actorUserId, CancellationToken ct = default) =>
-        throw new NotImplementedException("CancelAsync is implemented in User Story 8.");
+        if (!access.Value.IsAdmin)
+        {
+            return EditEventResult.Fail(EditEventStatus.Forbidden, "Only an event admin can edit it.");
+        }
+
+        var ev = await _db.Events.FirstAsync(e => e.Id == eventId, ct);
+
+        var name = (request.Name ?? string.Empty).Trim();
+        if (name.Length < _options.NameMinLength || name.Length > _options.NameMaxLength)
+        {
+            return EditEventResult.Fail(EditEventStatus.Invalid, $"Use an event name of {_options.NameMinLength}–{_options.NameMaxLength} characters.");
+        }
+
+        string? customLabel = null;
+        if (request.Type == EventType.Other)
+        {
+            customLabel = (request.CustomTypeLabel ?? string.Empty).Trim();
+            if (customLabel.Length is 0 or > 40)
+            {
+                return EditEventResult.Fail(EditEventStatus.Invalid, "A custom event type needs a short label (1–40 characters).");
+            }
+        }
+
+        var description = (request.Description ?? string.Empty).Trim();
+        if (description.Length is 0 || description.Length > _options.DescriptionMaxLength)
+        {
+            return EditEventResult.Fail(EditEventStatus.Invalid, $"Add a description of up to {_options.DescriptionMaxLength} characters.");
+        }
+
+        var startsAt = ToUtc(request.StartsAt);
+        var endsAt = ToUtc(request.EndsAt);
+        if (endsAt < startsAt)
+        {
+            return EditEventResult.Fail(EditEventStatus.Invalid, "The event must end on or after it starts.");
+        }
+
+        if (request.ParticipationLimit < 1 || request.ParticipationLimit > _options.MaxParticipationLimit)
+        {
+            return EditEventResult.Fail(EditEventStatus.Invalid, $"Set a participation limit between 1 and {_options.MaxParticipationLimit}.");
+        }
+
+        // The limit may rise freely but never drop below the current occupied count.
+        var occupied = await _capacity.OccupiedCountAsync(eventId, ct);
+        if (request.ParticipationLimit < occupied)
+        {
+            return EditEventResult.Fail(EditEventStatus.LimitBelowOccupied,
+                $"There are already {occupied} taking part — the limit can't be lower than that.");
+        }
+
+        var locationResult = ResolveLocation(request.LocationKind, request.VenueName, request.Street,
+            request.PostalCode, request.City, request.Country, request.VirtualLink);
+        if (locationResult.Reason is not null)
+        {
+            return EditEventResult.Fail(EditEventStatus.Invalid, locationResult.Reason);
+        }
+
+        var feeResult = ResolveFee(request.IsPaid, request.FeeAmount, request.FeeCurrency, request.FeeRecipientName, request.FeeIban);
+        if (feeResult.Reason is not null)
+        {
+            return EditEventResult.Fail(EditEventStatus.Invalid, feeResult.Reason);
+        }
+
+        // ParticipantMode is intentionally absent from the edit contract — it is immutable after
+        // creation (a stricter form of "mode locked once sign-ups exist", spec FR-030).
+        ev.Name = name;
+        ev.Type = request.Type;
+        ev.CustomTypeLabel = customLabel;
+        ev.Description = description;
+        ev.StartsAt = startsAt;
+        ev.EndsAt = endsAt;
+        ev.LocationKind = request.LocationKind;
+        ev.VenueName = locationResult.VenueName;
+        ev.Street = locationResult.Street;
+        ev.PostalCode = locationResult.PostalCode;
+        ev.City = locationResult.City;
+        ev.Country = locationResult.Country;
+        ev.VirtualLink = locationResult.VirtualLink;
+        ev.Location = locationResult.LegacyLocation;
+        ev.ParticipationLimit = request.ParticipationLimit;
+        ev.IsPaid = feeResult.IsPaid;
+        ev.FeeAmount = feeResult.Amount;
+        ev.FeeCurrency = feeResult.Currency;
+        ev.FeeRecipientName = feeResult.RecipientName;
+        ev.FeeIban = feeResult.Iban;
+        ev.FeePaymentDeadline = request.IsPaid ? request.FeePaymentDeadline : null;
+        await _db.SaveChangesAsync(ct);
+
+        var viewer = new ViewerRelationDto(true, true, null, null, []);
+        return EditEventResult.Ok(ToDetail(ev, occupied, viewer));
+    }
+
+    public async Task<CancelEventStatus> CancelAsync(Guid eventId, Guid actorUserId, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(eventId, actorUserId, ct);
+        if (access is null)
+        {
+            return CancelEventStatus.NotFound;
+        }
+
+        if (!access.Value.IsAdmin)
+        {
+            return CancelEventStatus.Forbidden;
+        }
+
+        if (access.Value.IsCancelled)
+        {
+            return CancelEventStatus.AlreadyCancelled;
+        }
+
+        var ev = await _db.Events.FirstAsync(e => e.Id == eventId, ct);
+        ev.Status = EventStatus.Cancelled;
+        ev.CancelledDate = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        await NotifyCancellationAsync(eventId, ev.Name, ct);
+        return CancelEventStatus.Cancelled;
+    }
+
+    /// <summary>
+    /// Email everyone joined/awaiting/waiting that the event is cancelled: individual sign-ups →
+    /// the user; team sign-ups → the team's admins. Best-effort (a mail failure never rolls back
+    /// the cancel — FR-032).
+    /// </summary>
+    private async Task NotifyCancellationAsync(Guid eventId, string eventName, CancellationToken ct)
+    {
+        // Individual participants.
+        var individuals = await _db.EventSignups.AsNoTracking()
+            .Where(s => s.EventId == eventId && s.UserId != null)
+            .Select(s => new { Email = s.User!.Email, Name = s.User!.Profile!.DisplayName })
+            .ToListAsync(ct);
+
+        // Team participants → each team's admins.
+        var teamIds = await _db.EventSignups.AsNoTracking()
+            .Where(s => s.EventId == eventId && s.TeamId != null)
+            .Select(s => s.TeamId!.Value)
+            .ToListAsync(ct);
+
+        var teamAdmins = teamIds.Count == 0
+            ? []
+            : await _db.TeamMemberships.AsNoTracking()
+                .Where(m => teamIds.Contains(m.TeamId) && m.Role == Entities.TeamRole.Admin)
+                .Select(m => new { Email = m.User.Email, Name = m.User.Profile!.DisplayName })
+                .ToListAsync(ct);
+
+        var recipients = individuals.Concat(teamAdmins)
+            .Where(r => !string.IsNullOrEmpty(r.Email))
+            .GroupBy(r => r.Email!, StringComparer.OrdinalIgnoreCase)
+            .Select(g => g.First());
+
+        foreach (var r in recipients)
+        {
+            try
+            {
+                await _email.SendCancellationEmailAsync(r.Email!, r.Name ?? "there", eventName, eventId, ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send cancellation email to a recipient for event {EventId}", eventId);
+            }
+        }
+    }
 
     // --- Helpers --------------------------------------------------------------
 
@@ -191,27 +369,29 @@ public sealed class EventService : IEventService
         string? VenueName, string? Street, string? PostalCode, string? City, string? Country,
         string? VirtualLink, string LegacyLocation, string? Reason);
 
-    private static LocationResult ResolveLocation(CreateEventRequest r)
+    private static LocationResult ResolveLocation(
+        LocationKind kind, string? venueName, string? street, string? postalCode,
+        string? city, string? country, string? virtualLink)
     {
-        if (r.LocationKind == LocationKind.InPerson)
+        if (kind == LocationKind.InPerson)
         {
-            var venue = Trimmed(r.VenueName);
-            var street = Trimmed(r.Street);
-            var postal = Trimmed(r.PostalCode);
-            var city = Trimmed(r.City);
-            var country = Trimmed(r.Country);
-            if (street is null || postal is null || city is null || country is null)
+            var venue = Trimmed(venueName);
+            var streetValue = Trimmed(street);
+            var postalValue = Trimmed(postalCode);
+            var cityValue = Trimmed(city);
+            var countryValue = Trimmed(country);
+            if (streetValue is null || postalValue is null || cityValue is null || countryValue is null)
             {
                 return new LocationResult(null, null, null, null, null, null, string.Empty,
                     "An in-person event needs a full address, including country.");
             }
 
             // Legacy free-text location (still read by activity): "City, Country".
-            var legacy = $"{city}, {country}";
-            return new LocationResult(venue, street, postal, city, country, null, legacy, null);
+            var legacy = $"{cityValue}, {countryValue}";
+            return new LocationResult(venue, streetValue, postalValue, cityValue, countryValue, null, legacy, null);
         }
 
-        var link = Trimmed(r.VirtualLink);
+        var link = Trimmed(virtualLink);
         if (link is null || !Uri.TryCreate(link, UriKind.Absolute, out var uri)
             || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
         {

@@ -341,7 +341,293 @@ public sealed class EventTests
         Assert.Equal(4, waitlist.GetProperty("totalCount").GetInt32());
     }
 
+    // --- US4: participant administration + edit --------------------------------
+
+    [Fact]
+    public async Task Admin_approves_awaiting_signup_and_non_admin_cannot()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsPaid(4));
+        var (u, _, _, _) = await NewUserAsync();
+
+        var join = await u.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+        var sid = (await join.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+
+        var byNonAdmin = await u.PostAsync($"/api/v1/events/{id}/participants/{sid}/approve", null);
+        Assert.Equal(HttpStatusCode.Forbidden, byNonAdmin.StatusCode);
+
+        var byAdmin = await org.PostAsync($"/api/v1/events/{id}/participants/{sid}/approve", null);
+        Assert.Equal(HttpStatusCode.OK, byAdmin.StatusCode);
+        Assert.Equal("Joined", (await byAdmin.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task Promote_respects_capacity_and_admits_when_a_spot_opens()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(1));
+        var (u1, _, _, _) = await NewUserAsync();
+        var (u2, _, _, _) = await NewUserAsync();
+
+        var j1 = await u1.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+        var sid1 = (await j1.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        var j2 = await u2.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+        var sid2 = (await j2.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+
+        // Full: promoting the waitlisted entry has no open spot.
+        var whenFull = await org.PostAsync($"/api/v1/events/{id}/participants/{sid2}/promote", null);
+        Assert.Equal(HttpStatusCode.Conflict, whenFull.StatusCode);
+
+        // Free a spot, then promotion admits into it.
+        var remove = await org.DeleteAsync($"/api/v1/events/{id}/signup/{sid1}");
+        Assert.Equal(HttpStatusCode.NoContent, remove.StatusCode);
+
+        var promoted = await org.PostAsync($"/api/v1/events/{id}/participants/{sid2}/promote", null);
+        Assert.Equal(HttpStatusCode.OK, promoted.StatusCode);
+        Assert.Equal("Joined", (await promoted.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString());
+    }
+
+    [Fact]
+    public async Task Non_admin_cannot_remove_another_participant()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+        var (u1, _, _, _) = await NewUserAsync();
+        var (u2, _, _, _) = await NewUserAsync();
+
+        var j1 = await u1.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+        var sid1 = (await j1.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+
+        var forbidden = await u2.DeleteAsync($"/api/v1/events/{id}/signup/{sid1}");
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+    }
+
+    [Fact]
+    public async Task Edit_raises_limit_but_refuses_below_occupied_and_non_admin()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+
+        var raise = await PatchJsonAsync(org, $"/api/v1/events/{id}", EditBody(10));
+        Assert.Equal(HttpStatusCode.OK, raise.StatusCode);
+        Assert.Equal(10, (await raise.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("participationLimit").GetInt32());
+
+        var (a, _, _, _) = await NewUserAsync();
+        var (b, _, _, _) = await NewUserAsync();
+        await a.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+        await b.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+
+        var lower = await PatchJsonAsync(org, $"/api/v1/events/{id}", EditBody(1));
+        Assert.Equal(HttpStatusCode.Conflict, lower.StatusCode);
+
+        var (outsider, _, _, _) = await NewUserAsync();
+        var forbidden = await PatchJsonAsync(outsider, $"/api/v1/events/{id}", EditBody(5));
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+    }
+
+    // --- US5: news ------------------------------------------------------------
+
+    [Fact]
+    public async Task Admin_posts_news_visible_to_everyone_and_non_admin_cannot()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+
+        var post = await org.PostAsJsonAsync($"/api/v1/events/{id}/news", new { body = "First whistle 10:00 sharp." });
+        Assert.Equal(HttpStatusCode.Created, post.StatusCode);
+
+        var anon = _factory.CreateClient();
+        var feed = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/news");
+        Assert.Equal(1, feed.GetProperty("totalCount").GetInt32());
+        Assert.Equal("First whistle 10:00 sharp.", feed.GetProperty("items")[0].GetProperty("body").GetString());
+
+        var (outsider, _, _, _) = await NewUserAsync();
+        var forbidden = await outsider.PostAsJsonAsync($"/api/v1/events/{id}/news", new { body = "nope" });
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+    }
+
+    [Fact]
+    public async Task News_feed_is_empty_for_a_new_event()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+        var anon = _factory.CreateClient();
+
+        var feed = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/news");
+
+        Assert.Equal(0, feed.GetProperty("totalCount").GetInt32());
+    }
+
+    // --- US6: contacts --------------------------------------------------------
+
+    [Fact]
+    public async Task Admin_manages_contacts_shown_publicly()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+
+        var add = await org.PostAsJsonAsync($"/api/v1/events/{id}/contacts",
+            new { name = "Ada K.", role = "Location host", phone = (string?)null, email = "ada@example.org" });
+        Assert.Equal(HttpStatusCode.Created, add.StatusCode);
+        var contactId = (await add.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+
+        var anon = _factory.CreateClient();
+        var list = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/contacts");
+        Assert.Equal(1, list.GetProperty("totalCount").GetInt32());
+
+        var update = await PatchJsonAsync(org, $"/api/v1/events/{id}/contacts/{contactId}",
+            new { name = "Ada K.", role = "Location host", phone = "+49 30 123456", email = "ada@example.org" });
+        Assert.Equal(HttpStatusCode.OK, update.StatusCode);
+
+        var remove = await org.DeleteAsync($"/api/v1/events/{id}/contacts/{contactId}");
+        Assert.Equal(HttpStatusCode.NoContent, remove.StatusCode);
+
+        var after = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/contacts");
+        Assert.Equal(0, after.GetProperty("totalCount").GetInt32());
+    }
+
+    [Fact]
+    public async Task Contact_without_any_method_is_rejected_and_non_admin_forbidden()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+
+        var noMethod = await org.PostAsJsonAsync($"/api/v1/events/{id}/contacts",
+            new { name = "Nobody", role = "Ghost", phone = (string?)null, email = (string?)null });
+        Assert.Equal(HttpStatusCode.BadRequest, noMethod.StatusCode);
+
+        var (outsider, _, _, _) = await NewUserAsync();
+        var forbidden = await outsider.PostAsJsonAsync($"/api/v1/events/{id}/contacts",
+            new { name = "X", role = "Y", phone = "123", email = (string?)null });
+        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+    }
+
+    // --- US7: co-admins -------------------------------------------------------
+
+    [Fact]
+    public async Task Coadmin_link_can_be_created_and_rotated()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+
+        var create = await org.PostAsync($"/api/v1/events/{id}/invitations/link", null);
+        Assert.Equal(HttpStatusCode.OK, create.StatusCode);
+        var token1 = (await create.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString();
+
+        var rotate = await org.PostAsync($"/api/v1/events/{id}/invitations/link", null);
+        var token2 = (await rotate.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("token").GetString();
+        Assert.NotEqual(token1, token2);
+
+        var active = await org.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/invitations/link");
+        Assert.Equal(token2, active.GetProperty("token").GetString());
+    }
+
+    [Fact]
+    public async Task Targeted_invite_emails_and_accept_grants_admin()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+        var (target, targetId, _, targetEmail) = await NewUserAsync();
+        _factory.EmailSender.Clear();
+
+        var invite = await org.PostAsJsonAsync($"/api/v1/events/{id}/invitations", new { userId = targetId });
+        Assert.Equal(HttpStatusCode.Created, invite.StatusCode);
+
+        var mail = _factory.EmailSender.LatestFor(targetEmail);
+        Assert.NotNull(mail);
+        var token = ExtractInviteToken(mail!.HtmlBody);
+
+        var anon = _factory.CreateClient();
+        var preview = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/event-invitations/{token}");
+        Assert.Equal("Usable", preview.GetProperty("state").GetString());
+
+        var accept = await target.PostAsync($"/api/v1/event-invitations/{token}/accept", null);
+        Assert.Equal(HttpStatusCode.OK, accept.StatusCode);
+
+        var detail = await target.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}");
+        Assert.True(detail.GetProperty("viewer").GetProperty("isAdmin").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Non_admin_cannot_invite_coadmin()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+        var (outsider, outsiderId, _, _) = await NewUserAsync();
+
+        var resp = await outsider.PostAsJsonAsync($"/api/v1/events/{id}/invitations", new { userId = outsiderId });
+
+        Assert.Equal(HttpStatusCode.Forbidden, resp.StatusCode);
+    }
+
+    [Fact]
+    public async Task Last_admin_cannot_step_down_until_another_exists()
+    {
+        var (org, orgId, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+
+        var soleAdmin = await org.DeleteAsync($"/api/v1/events/{id}/admins/{orgId}");
+        Assert.Equal(HttpStatusCode.Conflict, soleAdmin.StatusCode);
+
+        await AddCoAdminAsync(org, id);
+
+        var stepDown = await org.DeleteAsync($"/api/v1/events/{id}/admins/{orgId}");
+        Assert.Equal(HttpStatusCode.NoContent, stepDown.StatusCode);
+    }
+
+    // --- US8: cancel ----------------------------------------------------------
+
+    [Fact]
+    public async Task Cancel_blocks_signups_notifies_and_non_admin_forbidden()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+        var (u, _, _, uEmail) = await NewUserAsync();
+        await u.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+        _factory.EmailSender.Clear();
+
+        var byNonAdmin = await u.PostAsync($"/api/v1/events/{id}/cancel", null);
+        Assert.Equal(HttpStatusCode.Forbidden, byNonAdmin.StatusCode);
+
+        var byAdmin = await org.PostAsync($"/api/v1/events/{id}/cancel", null);
+        Assert.Equal(HttpStatusCode.NoContent, byAdmin.StatusCode);
+
+        Assert.NotNull(_factory.EmailSender.LatestFor(uEmail));
+
+        var (u2, _, _, _) = await NewUserAsync();
+        var again = await u2.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+        Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
+
+        var detail = await _factory.CreateClient().GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}");
+        Assert.Equal("Cancelled", detail.GetProperty("status").GetString());
+    }
+
     // --- Helpers --------------------------------------------------------------
+
+    private static string ExtractInviteToken(string html)
+    {
+        const string marker = "/event-invite/";
+        var start = html.IndexOf(marker, StringComparison.Ordinal) + marker.Length;
+        var end = html.IndexOfAny(['"', '<', ' ', '\''], start);
+        return html[start..end];
+    }
+
+    private async Task AddCoAdminAsync(HttpClient adminClient, Guid eventId)
+    {
+        var (target, targetId, _, targetEmail) = await NewUserAsync();
+        _factory.EmailSender.Clear();
+        var invite = await adminClient.PostAsJsonAsync($"/api/v1/events/{eventId}/invitations", new { userId = targetId });
+        invite.EnsureSuccessStatusCode();
+        var token = ExtractInviteToken(_factory.EmailSender.LatestFor(targetEmail)!.HtmlBody);
+        var accept = await target.PostAsync($"/api/v1/event-invitations/{token}/accept", null);
+        accept.EnsureSuccessStatusCode();
+    }
+
+    private static Task<HttpResponseMessage> PatchJsonAsync(HttpClient client, string url, object body) =>
+        client.SendAsync(new HttpRequestMessage(HttpMethod.Patch, url) { Content = JsonContent.Create(body) });
+
+    private static object EditBody(int limit) =>
+        Merge(ValidVirtualFreeIndividuals(), new { participationLimit = limit });
 
     private async Task<Guid> CreateTeamAsync(HttpClient client)
     {

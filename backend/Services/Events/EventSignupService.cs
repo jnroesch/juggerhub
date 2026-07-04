@@ -171,7 +171,97 @@ public sealed class EventSignupService : IEventSignupService
         return WithdrawStatus.Removed;
     }
 
+    public async Task<AdmitResult> ApproveAsync(Guid eventId, Guid signupId, Guid actorUserId, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(eventId, actorUserId, ct);
+        if (access is null)
+        {
+            return AdmitResult.Fail(AdmitOutcome.NotFound);
+        }
+
+        if (!access.Value.IsAdmin)
+        {
+            return AdmitResult.Fail(AdmitOutcome.Forbidden, "Only an event admin can approve sign-ups.");
+        }
+
+        if (access.Value.IsCancelled)
+        {
+            return AdmitResult.Fail(AdmitOutcome.EventClosed, "This event has been cancelled.");
+        }
+
+        var signup = await _db.EventSignups.FirstOrDefaultAsync(s => s.Id == signupId && s.EventId == eventId, ct);
+        if (signup is null)
+        {
+            return AdmitResult.Fail(AdmitOutcome.NotFound);
+        }
+
+        if (signup.Status != SignupStatus.AwaitingApproval)
+        {
+            return AdmitResult.Fail(AdmitOutcome.NotApplicable, "Only an awaiting-approval sign-up can be approved.");
+        }
+
+        // Approving keeps the already-held spot; just confirm payment and admit.
+        signup.Status = SignupStatus.Joined;
+        signup.PaymentConfirmedDate = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        return AdmitResult.Ok(await LoadDtoAsync(signup.Id, ct));
+    }
+
+    public async Task<AdmitResult> PromoteAsync(Guid eventId, Guid signupId, Guid actorUserId, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(eventId, actorUserId, ct);
+        if (access is null)
+        {
+            return AdmitResult.Fail(AdmitOutcome.NotFound);
+        }
+
+        if (!access.Value.IsAdmin)
+        {
+            return AdmitResult.Fail(AdmitOutcome.Forbidden, "Only an event admin can promote from the waiting list.");
+        }
+
+        if (access.Value.IsCancelled)
+        {
+            return AdmitResult.Fail(AdmitOutcome.EventClosed, "This event has been cancelled.");
+        }
+
+        var ev = await _db.Events.AsNoTracking()
+            .Where(e => e.Id == eventId)
+            .Select(e => new { e.IsPaid, e.ParticipationLimit })
+            .FirstAsync(ct);
+
+        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+        await _capacity.LockEventRowAsync(eventId, ct);
+
+        var signup = await _db.EventSignups.FirstOrDefaultAsync(s => s.Id == signupId && s.EventId == eventId, ct);
+        if (signup is null)
+        {
+            return AdmitResult.Fail(AdmitOutcome.NotFound);
+        }
+
+        if (signup.Status != SignupStatus.Waitlisted)
+        {
+            return AdmitResult.Fail(AdmitOutcome.NotApplicable, "Only a waiting-list entry can be promoted.");
+        }
+
+        var occupied = await _capacity.OccupiedCountAsync(eventId, ct);
+        if (occupied >= ev.ParticipationLimit)
+        {
+            return AdmitResult.Fail(AdmitOutcome.CapacityExceeded, "There's no open spot to promote into.");
+        }
+
+        signup.Status = ev.IsPaid ? SignupStatus.AwaitingApproval : SignupStatus.Joined;
+        await _db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
+
+        return AdmitResult.Ok(await LoadDtoAsync(signup.Id, ct));
+    }
+
     // --- Helpers --------------------------------------------------------------
+
+    private Task<SignupDto> LoadDtoAsync(Guid signupId, CancellationToken ct) =>
+        _db.EventSignups.AsNoTracking().Where(s => s.Id == signupId).Select(Projection).FirstAsync(ct);
 
     private static readonly Expression<Func<EventSignup, SignupDto>> Projection = s => new SignupDto(
         s.Id,

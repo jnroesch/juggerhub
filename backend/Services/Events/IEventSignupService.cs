@@ -31,6 +31,25 @@ public enum WithdrawStatus
     Forbidden,
 }
 
+/// <summary>Outcome of an admin admission (approve or promote).</summary>
+public enum AdmitOutcome
+{
+    Ok,
+    NotFound,
+    Forbidden,
+    NotApplicable,     // wrong current status for the action
+    CapacityExceeded,  // promote would exceed the limit
+    EventClosed,       // cancelled or ended
+}
+
+/// <summary>Result of an admit action (carries the updated participant, or a reason).</summary>
+public sealed record AdmitResult(AdmitOutcome Outcome, SignupDto? Signup, string? Reason)
+{
+    public static AdmitResult Ok(SignupDto signup) => new(AdmitOutcome.Ok, signup, null);
+
+    public static AdmitResult Fail(AdmitOutcome outcome, string? reason = null) => new(outcome, null, reason);
+}
+
 /// <summary>
 /// Sign-up + waitlist workflow for an event: the public group reads (joined / awaiting / waitlist),
 /// sign-up (capacity-routed), and withdraw/admin-remove. Occupied spots = Joined + AwaitingApproval;
@@ -54,4 +73,13 @@ public interface IEventSignupService
     /// the entered team, or an event admin. Releases any held spot and never auto-promotes.
     /// </summary>
     Task<WithdrawStatus> WithdrawAsync(Guid eventId, Guid signupId, Guid actorUserId, CancellationToken ct = default);
+
+    /// <summary>Approve an awaiting-approval (paid) sign-up (admin): confirms payment → Joined.</summary>
+    Task<AdmitResult> ApproveAsync(Guid eventId, Guid signupId, Guid actorUserId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Promote a waitlisted entry into an open spot (admin): free → Joined, paid → AwaitingApproval.
+    /// Refused when no spot is open (would exceed the limit). Always a manual admin action.
+    /// </summary>
+    Task<AdmitResult> PromoteAsync(Guid eventId, Guid signupId, Guid actorUserId, CancellationToken ct = default);
 }

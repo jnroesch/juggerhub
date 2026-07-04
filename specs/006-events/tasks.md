@@ -50,9 +50,9 @@ description: "Task list for Events"
 - [x] T016 Implement `EventCapacity` helper (occupied-count = Joined+AwaitingApproval; `SELECT … FOR UPDATE` on the event row inside a `Serializable` transaction; decide Joined/AwaitingApproval/Waitlisted) in `backend/Services/Events/EventCapacity.cs` (depends on T004–T012)
 - [x] T017 Define `IEventService` + `EventService` skeleton (create, get detail+viewer, edit, cancel) in `backend/Services/Events/`; register DI in `backend/Program.cs` (depends on T013–T016)
 - [x] T018 Define `IEventSignupService` + skeleton (signup, withdraw, list-group, approve, promote, remove) in `backend/Services/Events/`; register DI (depends on T013–T016)
-- [ ] T019 [P] Define `IEventAdminService` + skeleton (list admins, remove, step-down) in `backend/Services/Events/`; register DI (depends on T013–T015)
-- [ ] T020 [P] Define `IEventInvitationService` + skeleton (link get/rotate/revoke, targeted create, list, user-search, preview, accept, decline) in `backend/Services/Events/`; register DI (depends on T013–T015)
-- [ ] T021 [P] Define `IEventNewsService` + `IEventContactService` skeletons (public read paged, admin write) in `backend/Services/Events/`; register DI (depends on T013–T015)
+- [x] T019 [P] Define `IEventAdminService` + skeleton (list admins, remove, step-down) in `backend/Services/Events/`; register DI (depends on T013–T015)
+- [x] T020 [P] Define `IEventInvitationService` + skeleton (link get/rotate/revoke, targeted create, list, user-search, preview, accept, decline) in `backend/Services/Events/`; register DI (depends on T013–T015)
+- [x] T021 [P] Define `IEventNewsService` + `IEventContactService` skeletons (public read paged, admin write) in `backend/Services/Events/`; register DI (depends on T013–T015)
 - [ ] T022 [P] Add frontend event models (Detail/Public, ViewerRelation, Signup, Contact, News, Admin, Invitation, InviteLink, InvitablePreview + enums) and an `EventService` skeleton (signals) in `frontend/apps/web/src/app/core/models/event.models.ts` and `frontend/apps/web/src/app/core/services/event.service.ts`
 
 **Checkpoint**: Schema migrates, activity still green, service seams exist — stories can begin.
@@ -138,14 +138,14 @@ description: "Task list for Events"
 
 ### Tests for User Story 4 ⚠️
 
-- [ ] T046 [P] [US4] Integration test: approve (awaiting→Joined, sets PaymentConfirmedDate); promote (free→Joined / paid→AwaitingApproval; 409 when no open spot); remove (releases spot, no auto-promotion); **non-admin → 403** for all in `backend/tests/JuggerHub.Api.IntegrationTests/Events/ParticipantAdminTests.cs`
-- [ ] T047 [P] [US4] Integration test: edit — raise limit OK; lower below occupied → 409/400; change `participantMode` with sign-ups present → 409; other fields editable; non-admin → 403 in `backend/tests/JuggerHub.Api.IntegrationTests/Events/EditEventTests.cs`
+- [x] T046 [P] [US4] Integration test: approve (awaiting→Joined, sets PaymentConfirmedDate); promote (free→Joined / paid→AwaitingApproval; 409 when no open spot); remove (releases spot, no auto-promotion); **non-admin → 403** for all in `backend/tests/JuggerHub.Api.IntegrationTests/Events/ParticipantAdminTests.cs`
+- [x] T047 [P] [US4] Integration test: edit — raise limit OK; lower below occupied → 409/400; change `participantMode` with sign-ups present → 409; other fields editable; non-admin → 403 in `backend/tests/JuggerHub.Api.IntegrationTests/Events/EditEventTests.cs`
 
 ### Implementation for User Story 4
 
-- [ ] T048 [US4] Implement `EventSignupService.ApproveAsync` / `PromoteAsync` / `RemoveAsync` (admin-gated via `EventAdminGuard`; promote re-checks capacity under the row lock; no auto-promotion anywhere) in `backend/Services/Events/EventSignupService.cs` (depends on T042, T015, T016)
-- [ ] T049 [US4] Implement `EventService.EditAsync` (admin-gated; mode locked when any signup exists; limit ≥ current occupied; re-validate location/fee by kind) in `backend/Services/Events/EventService.cs` (depends on T017)
-- [ ] T050 [US4] Add endpoints to `EventsController`: `POST {id}/participants/{signupId}/approve`, `POST {id}/participants/{signupId}/promote`, and `PATCH {id}` (edit). **Do not add a second delete route** — admin-remove reuses the single `DELETE {id}/signup/{signupId}` from T043; the service branches authorization (participant/team-admin **or** event-admin) so one endpoint serves both withdraw and admin-remove in `backend/Controllers/EventsController.cs` (depends on T048, T049)
+- [x] T048 [US4] Implement `EventSignupService.ApproveAsync` / `PromoteAsync` / `RemoveAsync` (admin-gated via `EventAdminGuard`; promote re-checks capacity under the row lock; no auto-promotion anywhere) in `backend/Services/Events/EventSignupService.cs` (depends on T042, T015, T016)
+- [x] T049 [US4] Implement `EventService.EditAsync` (admin-gated; mode locked when any signup exists; limit ≥ current occupied; re-validate location/fee by kind) in `backend/Services/Events/EventService.cs` (depends on T017)
+- [x] T050 [US4] Add endpoints to `EventsController`: `POST {id}/participants/{signupId}/approve`, `POST {id}/participants/{signupId}/promote`, and `PATCH {id}` (edit). **Do not add a second delete route** — admin-remove reuses the single `DELETE {id}/signup/{signupId}` from T043; the service branches authorization (participant/team-admin **or** event-admin) so one endpoint serves both withdraw and admin-remove in `backend/Controllers/EventsController.cs` (depends on T048, T049)
 - [ ] T051 [US4] Add `event.service.ts` `approve`/`promote`/`removeParticipant`/`editEvent` methods in `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T022)
 - [ ] T052 [US4] Create the `event-manage` screen (three groups with approve/promote/remove; edit-details form) + route `/events/:id/manage` (`authGuard`) and a "Manage" affordance on `event-detail` shown only when `viewer.isAdmin` in `frontend/apps/web/src/app/features/events/event-manage/event-manage.component.{ts,html,css}` and `app.routes.ts` (depends on T051)
 
@@ -161,12 +161,12 @@ description: "Task list for Events"
 
 ### Tests for User Story 5 ⚠️
 
-- [ ] T053 [P] [US5] Integration test: `POST {id}/news` admin-only (non-admin → 403); `GET {id}/news` anonymous, paginated, newest-first, empty state in `backend/tests/JuggerHub.Api.IntegrationTests/Events/NewsTests.cs`
+- [x] T053 [P] [US5] Integration test: `POST {id}/news` admin-only (non-admin → 403); `GET {id}/news` anonymous, paginated, newest-first, empty state in `backend/tests/JuggerHub.Api.IntegrationTests/Events/NewsTests.cs`
 
 ### Implementation for User Story 5
 
-- [ ] T054 [US5] Implement `EventNewsService` (public `GetFeedAsync` paged newest-first with author displayName; admin `PostAsync`) in `backend/Services/Events/EventNewsService.cs` (depends on T021, T015)
-- [ ] T055 [US5] Add endpoints to `EventsController`: `GET {id}/news` (anon, paged) and `POST {id}/news` (admin) in `backend/Controllers/EventsController.cs` (depends on T054)
+- [x] T054 [US5] Implement `EventNewsService` (public `GetFeedAsync` paged newest-first with author displayName; admin `PostAsync`) in `backend/Services/Events/EventNewsService.cs` (depends on T021, T015)
+- [x] T055 [US5] Add endpoints to `EventsController`: `GET {id}/news` (anon, paged) and `POST {id}/news` (admin) in `backend/Controllers/EventsController.cs` (depends on T054)
 - [ ] T056 [US5] Add `event.service.ts` `listNews`/`postNews` and wire a compose affordance into `news-feed` shown only to admins in `frontend/apps/web/src/app/core/services/event.service.ts` and `event-detail/components/news-feed.component.{ts,html,css}` (depends on T022)
 
 **Checkpoint**: Event news works read-for-all, write-for-admins.
@@ -181,12 +181,12 @@ description: "Task list for Events"
 
 ### Tests for User Story 6 ⚠️
 
-- [ ] T057 [P] [US6] Integration test: `GET {id}/contacts` anonymous paged; `POST`/`PATCH`/`DELETE` admin-only (non-admin → 403); neither phone nor email → 400 in `backend/tests/JuggerHub.Api.IntegrationTests/Events/ContactsTests.cs`
+- [x] T057 [P] [US6] Integration test: `GET {id}/contacts` anonymous paged; `POST`/`PATCH`/`DELETE` admin-only (non-admin → 403); neither phone nor email → 400 in `backend/tests/JuggerHub.Api.IntegrationTests/Events/ContactsTests.cs`
 
 ### Implementation for User Story 6
 
-- [ ] T058 [US6] Implement `EventContactService` (public `ListAsync` paged; admin `AddAsync`/`UpdateAsync`/`RemoveAsync` with the ≥1-method rule) in `backend/Services/Events/EventContactService.cs` (depends on T021, T015)
-- [ ] T059 [US6] Add endpoints to `EventsController`: `GET {id}/contacts` (anon), `POST {id}/contacts`, `PATCH {id}/contacts/{contactId}`, `DELETE {id}/contacts/{contactId}` (admin) in `backend/Controllers/EventsController.cs` (depends on T058)
+- [x] T058 [US6] Implement `EventContactService` (public `ListAsync` paged; admin `AddAsync`/`UpdateAsync`/`RemoveAsync` with the ≥1-method rule) in `backend/Services/Events/EventContactService.cs` (depends on T021, T015)
+- [x] T059 [US6] Add endpoints to `EventsController`: `GET {id}/contacts` (anon), `POST {id}/contacts`, `PATCH {id}/contacts/{contactId}`, `DELETE {id}/contacts/{contactId}` (admin) in `backend/Controllers/EventsController.cs` (depends on T058)
 - [ ] T060 [US6] Add `event.service.ts` contact CRUD methods and create the `event-contacts` admin screen + route `/events/:id/contacts` (`authGuard`), with `contacts-list` rendering on the public page in `frontend/apps/web/src/app/core/services/event.service.ts`, `frontend/apps/web/src/app/features/events/event-contacts/event-contacts.component.{ts,html,css}`, and `app.routes.ts` (depends on T022)
 
 **Checkpoint**: Contacts are public, admin-managed, and validated.
@@ -201,15 +201,15 @@ description: "Task list for Events"
 
 ### Tests for User Story 7 ⚠️
 
-- [ ] T061 [P] [US7] Integration test: link create/rotate (≤1 active) + revoke + 7-day expiry; targeted create emails a `/event-invite/{token}` link + duplicate/already-admin guards; preview Usable/Expired/Invalid; **accept grants `EventAdmin`** (idempotent if already admin); decline; all admin-gated in `backend/tests/JuggerHub.Api.IntegrationTests/Events/CoAdminInviteTests.cs`
-- [ ] T062 [P] [US7] Integration test: **last-admin guard** — removing/stepping-down the sole admin → 409 (incl. the concurrent "two admins remove each other" race → ≥1 admin remains); non-admin remove → 403 in `backend/tests/JuggerHub.Api.IntegrationTests/Events/EventAdminsTests.cs`
+- [x] T061 [P] [US7] Integration test: link create/rotate (≤1 active) + revoke + 7-day expiry; targeted create emails a `/event-invite/{token}` link + duplicate/already-admin guards; preview Usable/Expired/Invalid; **accept grants `EventAdmin`** (idempotent if already admin); decline; all admin-gated in `backend/tests/JuggerHub.Api.IntegrationTests/Events/CoAdminInviteTests.cs`
+- [x] T062 [P] [US7] Integration test: **last-admin guard** — removing/stepping-down the sole admin → 409 (incl. the concurrent "two admins remove each other" race → ≥1 admin remains); non-admin remove → 403 in `backend/tests/JuggerHub.Api.IntegrationTests/Events/EventAdminsTests.cs`
 
 ### Implementation for User Story 7
 
-- [ ] T063 [US7] Implement `EventInvitationService` (link get/rotate/revoke, targeted create with dup/already-admin guards, list paged, user-search with `UserRelation`, anonymous preview, `AcceptAsync` → add `EventAdmin` idempotently, decline) — token via `RandomNumberGenerator`, expiry from `EventOptions` in `backend/Services/Events/EventInvitationService.cs` (depends on T020)
-- [ ] T064 [US7] Create `EventEmailService` (render template, build `{FrontendBaseUrl}/event-invite/{token}`, send via `IEmailSender`) + `event-admin-invite.html` (extends base header/footer) in `backend/Services/Email/EventEmailService.cs` and `backend/EmailTemplates/`; add the template method to `IEmailTemplateService`/impl; register DI; wire into targeted-invite create (depends on T063)
-- [ ] T065 [US7] Implement `EventAdminService` (list admins paged; remove/step-down through the event-row-lock last-admin guard, mirroring `TeamService.MutateMembershipAsync`) in `backend/Services/Events/EventAdminService.cs` (depends on T019, T016)
-- [ ] T066 [US7] Add endpoints: on `EventsController` — `GET/POST {id}/invitations/link`, `GET/POST {id}/invitations`, `DELETE {id}/invitations/{invitationId}`, `GET {id}/invitations/user-search`, `GET {id}/admins`, `DELETE {id}/admins/{userId}` (all admin); new `EventInvitationsController` — `GET /api/v1/event-invitations/{token}` (anon), `POST …/accept`, `POST …/decline` (auth) in `backend/Controllers/EventsController.cs` and `backend/Controllers/EventInvitationsController.cs` (depends on T063, T065)
+- [x] T063 [US7] Implement `EventInvitationService` (link get/rotate/revoke, targeted create with dup/already-admin guards, list paged, user-search with `UserRelation`, anonymous preview, `AcceptAsync` → add `EventAdmin` idempotently, decline) — token via `RandomNumberGenerator`, expiry from `EventOptions` in `backend/Services/Events/EventInvitationService.cs` (depends on T020)
+- [x] T064 [US7] Create `EventEmailService` (render template, build `{FrontendBaseUrl}/event-invite/{token}`, send via `IEmailSender`) + `event-admin-invite.html` (extends base header/footer) in `backend/Services/Email/EventEmailService.cs` and `backend/EmailTemplates/`; add the template method to `IEmailTemplateService`/impl; register DI; wire into targeted-invite create (depends on T063)
+- [x] T065 [US7] Implement `EventAdminService` (list admins paged; remove/step-down through the event-row-lock last-admin guard, mirroring `TeamService.MutateMembershipAsync`) in `backend/Services/Events/EventAdminService.cs` (depends on T019, T016)
+- [x] T066 [US7] Add endpoints: on `EventsController` — `GET/POST {id}/invitations/link`, `GET/POST {id}/invitations`, `DELETE {id}/invitations/{invitationId}`, `GET {id}/invitations/user-search`, `GET {id}/admins`, `DELETE {id}/admins/{userId}` (all admin); new `EventInvitationsController` — `GET /api/v1/event-invitations/{token}` (anon), `POST …/accept`, `POST …/decline` (auth) in `backend/Controllers/EventsController.cs` and `backend/Controllers/EventInvitationsController.cs` (depends on T063, T065)
 - [ ] T067 [US7] Add `event.service.ts` invitation + admin methods and create the `event-admins` screen (admins list, copy link, user-search invite, step-down) + route `/events/:id/admins` (`authGuard`) in `frontend/apps/web/src/app/core/services/event.service.ts`, `frontend/apps/web/src/app/features/events/event-admins/event-admins.component.{ts,html,css}`, and `app.routes.ts` (depends on T022)
 - [ ] T068 [US7] Create the `event-invite-accept` component (full-screen, **outside** shell): anonymous preview + Accept (co-admin) / Decline + expired/invalid state + sign-in/register return handling, at `/event-invite/:token` in `frontend/apps/web/src/app/features/events/event-invite-accept/event-invite-accept.component.{ts,html,css}` and `app.routes.ts` (depends on T067)
 
@@ -225,12 +225,12 @@ description: "Task list for Events"
 
 ### Tests for User Story 8 ⚠️
 
-- [ ] T069 [P] [US8] Integration test: admin cancel sets Cancelled + refuses subsequent signup/approve/promote (409); page still readable; **emails sent** to every joined/awaiting/waiting recipient (individual users + team admins) — assert `IEmailSender` invoked; non-admin → 403; no reactivate endpoint in `backend/tests/JuggerHub.Api.IntegrationTests/Events/CancelEventTests.cs`
+- [x] T069 [P] [US8] Integration test: admin cancel sets Cancelled + refuses subsequent signup/approve/promote (409); page still readable; **emails sent** to every joined/awaiting/waiting recipient (individual users + team admins) — assert `IEmailSender` invoked; non-admin → 403; no reactivate endpoint in `backend/tests/JuggerHub.Api.IntegrationTests/Events/CancelEventTests.cs`
 
 ### Implementation for User Story 8
 
-- [ ] T070 [US8] Implement `EventService.CancelAsync` (admin-gated; set `Status=Cancelled`+`CancelledDate`; collect recipient emails — individual signups' users + team signups' team admins — and send `event-cancelled.html` best-effort via `EventEmailService`) in `backend/Services/Events/EventService.cs` and add `event-cancelled.html` to `backend/EmailTemplates/` + template method (depends on T017, T064)
-- [ ] T071 [US8] Gate `SignupAsync`/`ApproveAsync`/`PromoteAsync` on `Status != Cancelled` (and not ended) — confirm the refusals wired in T042/T048 cover cancelled (depends on T070)
+- [x] T070 [US8] Implement `EventService.CancelAsync` (admin-gated; set `Status=Cancelled`+`CancelledDate`; collect recipient emails — individual signups' users + team signups' team admins — and send `event-cancelled.html` best-effort via `EventEmailService`) in `backend/Services/Events/EventService.cs` and add `event-cancelled.html` to `backend/EmailTemplates/` + template method (depends on T017, T064)
+- [x] T071 [US8] Gate `SignupAsync`/`ApproveAsync`/`PromoteAsync` on `Status != Cancelled` (and not ended) — confirm the refusals wired in T042/T048 cover cancelled (depends on T070)
 - [ ] T072 [US8] Add `POST /api/v1/events/{id}/cancel` (admin) to `EventsController`, and the danger-zone cancel (with confirm) to `event-manage` + `event.service.ts` `cancelEvent` in `backend/Controllers/EventsController.cs`, `frontend/apps/web/src/app/features/events/event-manage/event-manage.component.{ts,html,css}`, and `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T070)
 
 **Checkpoint**: Cancellation is irreversible, read-only for sign-ups, and notifies everyone.

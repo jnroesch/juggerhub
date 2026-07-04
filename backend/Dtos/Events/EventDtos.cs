@@ -73,7 +73,7 @@ public sealed record CreateContactRequest(
 public sealed record CreateNewsRequest([Required, MaxLength(2000)] string Body);
 
 /// <summary>Create a targeted co-admin invite for a specific user.</summary>
-public sealed record CreateTargetedInviteRequest([Required] Guid UserId);
+public sealed record CreateEventInviteRequest([Required] Guid UserId);
 
 // --- Responses --------------------------------------------------------------
 
@@ -146,10 +146,10 @@ public sealed record EventInvitationDto(
     InvitationStatus Status);
 
 /// <summary>The event's current active co-admin invite link (admin re-displayable).</summary>
-public sealed record InviteLinkDto(string Url, string Token, DateTime ExpiresDate);
+public sealed record EventInviteLinkDto(string Url, string Token, DateTime ExpiresDate);
 
 /// <summary>One user-search candidate with their relation to the event's admin set.</summary>
-public sealed record InvitableUserDto(
+public sealed record EventInvitableUserDto(
     Guid UserId,
     string Handle,
     string DisplayName,
@@ -157,7 +157,7 @@ public sealed record InvitableUserDto(
     UserRelation Relation);
 
 /// <summary>Anonymous co-admin invite preview: public event info + inviter + usability.</summary>
-public sealed record InvitePreviewDto(
+public sealed record EventInvitePreviewDto(
     Guid EventId,
     string EventName,
     DateTime StartsAt,

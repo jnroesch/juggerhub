@@ -193,7 +193,11 @@ builder.Services.AddScoped<EventAdminGuard>();
 builder.Services.AddScoped<EventCapacity>();
 builder.Services.AddScoped<IEventService, EventService>();
 builder.Services.AddScoped<IEventSignupService, EventSignupService>();
-// Further event services (IEventAdminService, …) are registered as they land per user story.
+builder.Services.AddScoped<IEventNewsService, EventNewsService>();
+builder.Services.AddScoped<IEventContactService, EventContactService>();
+builder.Services.AddScoped<IEventAdminService, EventAdminService>();
+builder.Services.AddScoped<IEventInvitationService, EventInvitationService>();
+builder.Services.AddScoped<EventEmailService>();
 
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services
