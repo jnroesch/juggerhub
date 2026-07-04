@@ -25,7 +25,21 @@ public static class DevDataSeeder
         var existingNames = await db.Events.Select(e => e.Name).ToListAsync(ct);
         var toAdd = Samples
             .Where(s => !existingNames.Contains(s.Name))
-            .Select(s => new Event { Name = s.Name, Date = s.Date, Location = s.Location })
+            .Select(s => new Event
+            {
+                Name = s.Name,
+                Description = s.Name,
+                // Historical activity samples: a single-day in-person event (feature 006 replaced Date with StartsAt/EndsAt).
+                StartsAt = s.Date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
+                EndsAt = s.Date.ToDateTime(new TimeOnly(18, 0), DateTimeKind.Utc),
+                Type = EventType.Tournament,
+                LocationKind = LocationKind.InPerson,
+                Location = s.Location,
+                City = s.Location,
+                Country = "Deutschland",
+                ParticipantMode = ParticipantMode.Teams,
+                ParticipationLimit = 16,
+            })
             .ToList();
 
         if (toAdd.Count > 0)

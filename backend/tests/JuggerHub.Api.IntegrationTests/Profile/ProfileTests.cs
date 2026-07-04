@@ -285,12 +285,21 @@ public sealed class ProfileTests
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+        static Event ActivityEvent(string name, DateOnly date, string location) => new()
+        {
+            Name = name,
+            Description = name,
+            StartsAt = date.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc),
+            EndsAt = date.ToDateTime(new TimeOnly(18, 0), DateTimeKind.Utc),
+            Location = location,
+        };
+
         var events = new[]
         {
-            new Event { Name = "Sommerturnier Berlin", Date = new DateOnly(2025, 8, 16), Location = "Berlin" },
-            new Event { Name = "Liga-Spieltag Hamburg", Date = new DateOnly(2025, 6, 21), Location = "Hamburg" },
-            new Event { Name = "Trainingscamp Köln", Date = new DateOnly(2025, 5, 10), Location = "Köln" },
-            new Event { Name = "Stadtmeisterschaft Leipzig", Date = new DateOnly(2025, 4, 5), Location = "Leipzig" },
+            ActivityEvent("Sommerturnier Berlin", new DateOnly(2025, 8, 16), "Berlin"),
+            ActivityEvent("Liga-Spieltag Hamburg", new DateOnly(2025, 6, 21), "Hamburg"),
+            ActivityEvent("Trainingscamp Köln", new DateOnly(2025, 5, 10), "Köln"),
+            ActivityEvent("Stadtmeisterschaft Leipzig", new DateOnly(2025, 4, 5), "Leipzig"),
         };
         db.Events.AddRange(events);
         await db.SaveChangesAsync();

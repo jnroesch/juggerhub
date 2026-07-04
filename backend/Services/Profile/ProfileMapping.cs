@@ -17,7 +17,7 @@ public sealed class ProfileMapping : IRegister
         // An event participation flattens to a recent-activity item (pulls the joined event).
         config.NewConfig<EventParticipation, ActivityItemDto>()
             .Map(dest => dest.EventName, src => src.Event.Name)
-            .Map(dest => dest.Date, src => src.Event.Date)
+            .Map(dest => dest.Date, src => DateOnly.FromDateTime(src.Event.StartsAt))
             .Map(dest => dest.Location, src => src.Event.Location)
             .Map(dest => dest.TeamLabel, src => src.TeamLabel);
     }

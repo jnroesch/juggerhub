@@ -41,6 +41,16 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<TeamNewsPost> TeamNewsPosts => Set<TeamNewsPost>();
 
+    public DbSet<EventSignup> EventSignups => Set<EventSignup>();
+
+    public DbSet<EventAdmin> EventAdmins => Set<EventAdmin>();
+
+    public DbSet<EventAdminInvitation> EventAdminInvitations => Set<EventAdminInvitation>();
+
+    public DbSet<EventContact> EventContacts => Set<EventContact>();
+
+    public DbSet<EventNewsPost> EventNewsPosts => Set<EventNewsPost>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -88,8 +98,121 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         builder.Entity<Event>(entity =>
         {
             entity.Property(e => e.Name).HasMaxLength(120).IsRequired();
+            entity.Property(e => e.CustomTypeLabel).HasMaxLength(40);
+            entity.Property(e => e.Description).HasMaxLength(4000).IsRequired();
+            // Legacy free-text location, retained for existing activity display (see Event remarks).
             entity.Property(e => e.Location).HasMaxLength(120).IsRequired();
-            entity.HasIndex(e => e.Date);
+            entity.Property(e => e.VenueName).HasMaxLength(120);
+            entity.Property(e => e.Street).HasMaxLength(160);
+            entity.Property(e => e.PostalCode).HasMaxLength(20);
+            entity.Property(e => e.City).HasMaxLength(120);
+            entity.Property(e => e.Country).HasMaxLength(80);
+            entity.Property(e => e.VirtualLink).HasMaxLength(500);
+            entity.Property(e => e.FeeAmount).HasPrecision(12, 2);
+            entity.Property(e => e.FeeCurrency).HasMaxLength(3);
+            entity.Property(e => e.FeeRecipientName).HasMaxLength(120);
+            entity.Property(e => e.FeeIban).HasMaxLength(34);
+            entity.HasIndex(e => e.StartsAt);
+        });
+
+        builder.Entity<EventSignup>(entity =>
+        {
+            // Exactly one subject per row: an individual (UserId) XOR a team (TeamId).
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_EventSignup_Subject", "(\"UserId\" IS NULL) <> (\"TeamId\" IS NULL)"));
+            // Occupied-count + group reads.
+            entity.HasIndex(s => new { s.EventId, s.Status });
+            // No duplicate entry per event (partial per subject kind).
+            entity.HasIndex(s => new { s.EventId, s.UserId }).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
+            entity.HasIndex(s => new { s.EventId, s.TeamId }).IsUnique().HasFilter("\"TeamId\" IS NOT NULL");
+
+            entity.HasOne(s => s.Event)
+                .WithMany(e => e.Signups)
+                .HasForeignKey(s => s.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(s => s.Team)
+                .WithMany()
+                .HasForeignKey(s => s.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<EventAdmin>(entity =>
+        {
+            // One admin grant per user per event; (EventId) backs the last-admin count.
+            entity.HasIndex(a => new { a.EventId, a.UserId }).IsUnique();
+            entity.HasIndex(a => a.EventId);
+            entity.HasIndex(a => a.UserId);
+
+            entity.HasOne(a => a.Event)
+                .WithMany(e => e.Admins)
+                .HasForeignKey(a => a.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<EventAdminInvitation>(entity =>
+        {
+            entity.Property(i => i.Token).HasMaxLength(64).IsRequired();
+
+            entity.HasIndex(i => i.Token).IsUnique();
+            entity.HasIndex(i => i.EventId);
+            // At most one active (pending) shared link per event (Kind=Link=0, Status=Pending=0).
+            entity.HasIndex(i => i.EventId)
+                .IsUnique()
+                .HasFilter("\"Kind\" = 0 AND \"Status\" = 0");
+            // At most one pending targeted invite per (event, user) (Kind=Targeted=1, Status=Pending=0).
+            entity.HasIndex(i => new { i.EventId, i.TargetUserId })
+                .IsUnique()
+                .HasFilter("\"Kind\" = 1 AND \"Status\" = 0");
+
+            entity.HasOne(i => i.Event)
+                .WithMany(e => e.Invitations)
+                .HasForeignKey(i => i.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(i => i.CreatedBy)
+                .WithMany()
+                .HasForeignKey(i => i.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(i => i.TargetUser)
+                .WithMany()
+                .HasForeignKey(i => i.TargetUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<EventContact>(entity =>
+        {
+            entity.Property(c => c.Name).HasMaxLength(120).IsRequired();
+            entity.Property(c => c.Role).HasMaxLength(80).IsRequired();
+            entity.Property(c => c.Phone).HasMaxLength(40);
+            entity.Property(c => c.Email).HasMaxLength(256);
+            entity.HasIndex(c => c.EventId);
+
+            entity.HasOne(c => c.Event)
+                .WithMany(e => e.Contacts)
+                .HasForeignKey(c => c.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<EventNewsPost>(entity =>
+        {
+            entity.Property(n => n.Body).HasMaxLength(2000).IsRequired();
+            entity.HasIndex(n => new { n.EventId, n.CreatedDate });
+
+            entity.HasOne(n => n.Event)
+                .WithMany(e => e.News)
+                .HasForeignKey(n => n.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(n => n.Author)
+                .WithMany()
+                .HasForeignKey(n => n.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<EventParticipation>(entity =>

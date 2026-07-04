@@ -187,6 +187,14 @@ builder.Services.AddScoped<ITeamActivityService, TeamActivityService>();
 builder.Services.AddScoped<ITeamNewsService, TeamNewsService>();
 builder.Services.AddScoped<TeamEmailService>();
 
+// --- Events (feature 006) --------------------------------------------------
+builder.Services.Configure<EventOptions>(builder.Configuration.GetSection(EventOptions.SectionName));
+builder.Services.AddScoped<EventAdminGuard>();
+builder.Services.AddScoped<EventCapacity>();
+builder.Services.AddScoped<IEventService, EventService>();
+builder.Services.AddScoped<IEventSignupService, EventSignupService>();
+// Further event services (IEventAdminService, …) are registered as they land per user story.
+
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services
     .AddApiVersioning(options =>
