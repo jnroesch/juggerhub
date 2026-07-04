@@ -79,6 +79,130 @@ public static class DevDataSeeder
         }
 
         await SeedTeamsAsync(db, ct);
+        await SeedEventsAsync(db, ct);
+    }
+
+    /// <summary>
+    /// Development-only demo <em>live</em> events (feature 006) so the events feature is
+    /// demonstrable: an in-person paid teams-only tournament (with team sign-ups + a contact +
+    /// news), a virtual free individuals-only workshop (with a few joined players), and a
+    /// cancelled example. The earliest player admins them. Idempotent by a marker name.
+    /// </summary>
+    private static async Task SeedEventsAsync(AppDbContext db, CancellationToken ct)
+    {
+        const string marker = "Berlin Summer Cup 2026";
+        if (await db.Events.AnyAsync(e => e.Name == marker, ct))
+        {
+            return; // already seeded
+        }
+
+        var firstUser = await db.PlayerProfiles.AsNoTracking()
+            .OrderBy(p => p.CreatedDate)
+            .Select(p => p.UserId)
+            .FirstOrDefaultAsync(ct);
+        if (firstUser == default)
+        {
+            return; // no players registered yet — try again next startup
+        }
+
+        var otherUsers = await db.PlayerProfiles.AsNoTracking()
+            .OrderBy(p => p.CreatedDate)
+            .Skip(1)
+            .Take(3)
+            .Select(p => p.UserId)
+            .ToListAsync(ct);
+
+        var rheinfeuer = await db.Teams.AsNoTracking().Where(t => t.Slug == "rheinfeuer").Select(t => (Guid?)t.Id).FirstOrDefaultAsync(ct);
+        var chaos = await db.Teams.AsNoTracking().Where(t => t.Slug == "chaos-crew").Select(t => (Guid?)t.Id).FirstOrDefaultAsync(ct);
+
+        var now = DateTime.UtcNow;
+
+        // 1. In-person paid teams-only tournament (upcoming, small limit so the waitlist shows).
+        var cup = new Event
+        {
+            Name = marker,
+            Type = EventType.Tournament,
+            Description = "Two days of open Jugger on the old airfield. All divisions welcome — bring your crew.",
+            StartsAt = new DateTime(2026, 9, 5, 9, 0, 0, DateTimeKind.Utc),
+            EndsAt = new DateTime(2026, 9, 6, 18, 0, 0, DateTimeKind.Utc),
+            LocationKind = LocationKind.InPerson,
+            VenueName = "Altes Flugfeld",
+            Street = "Hauptstrasse 1",
+            PostalCode = "10115",
+            City = "Berlin",
+            Country = "Deutschland",
+            Location = "Berlin, Deutschland",
+            ParticipantMode = ParticipantMode.Teams,
+            ParticipationLimit = 8,
+            IsPaid = true,
+            FeeAmount = 40m,
+            FeeCurrency = "EUR",
+            FeeRecipientName = "JSC Berlin e.V.",
+            FeeIban = "DE89370400440532013000",
+            FeePaymentDeadline = new DateOnly(2026, 8, 20),
+        };
+        db.Events.Add(cup);
+        db.EventAdmins.Add(new EventAdmin { EventId = cup.Id, UserId = firstUser, AddedDate = now });
+        if (chaos is Guid chaosId)
+        {
+            db.EventSignups.Add(new EventSignup { EventId = cup.Id, TeamId = chaosId, Status = SignupStatus.Joined });
+        }
+        if (rheinfeuer is Guid rid)
+        {
+            db.EventSignups.Add(new EventSignup { EventId = cup.Id, TeamId = rid, Status = SignupStatus.AwaitingApproval });
+        }
+        db.EventContacts.Add(new EventContact { EventId = cup.Id, Name = "Ada K.", Role = "Location host", Email = "ada@example.org" });
+        db.EventContacts.Add(new EventContact { EventId = cup.Id, Name = "Ben M.", Role = "Caterer", Phone = "+49 30 123456" });
+        db.EventNewsPosts.Add(new EventNewsPost { EventId = cup.Id, AuthorUserId = firstUser, Body = "First whistle 10:00 sharp — arrive early to warm up." });
+
+        // 2. Virtual free individuals-only workshop (a few players already joined).
+        var clinic = new Event
+        {
+            Name = "Pompfen Skills Clinic",
+            Type = EventType.Workshop,
+            Description = "Online technique session for runners and chains. Camera optional, questions encouraged.",
+            StartsAt = new DateTime(2026, 7, 20, 18, 0, 0, DateTimeKind.Utc),
+            EndsAt = new DateTime(2026, 7, 20, 20, 0, 0, DateTimeKind.Utc),
+            LocationKind = LocationKind.Virtual,
+            VirtualLink = "https://zoom.us/j/1234567890",
+            Location = "Online",
+            ParticipantMode = ParticipantMode.Individuals,
+            ParticipationLimit = 30,
+            IsPaid = false,
+        };
+        db.Events.Add(clinic);
+        db.EventAdmins.Add(new EventAdmin { EventId = clinic.Id, UserId = firstUser, AddedDate = now });
+        foreach (var uid in otherUsers)
+        {
+            db.EventSignups.Add(new EventSignup { EventId = clinic.Id, UserId = uid, Status = SignupStatus.Joined });
+        }
+
+        // 3. Cancelled example (stays viewable, marked cancelled).
+        var cancelled = new Event
+        {
+            Name = "Winter Indoor Meetup",
+            Type = EventType.Other,
+            CustomTypeLabel = "Indoor meetup",
+            Description = "Casual indoor session — cancelled because the hall fell through.",
+            StartsAt = new DateTime(2026, 8, 1, 10, 0, 0, DateTimeKind.Utc),
+            EndsAt = new DateTime(2026, 8, 1, 16, 0, 0, DateTimeKind.Utc),
+            LocationKind = LocationKind.InPerson,
+            VenueName = "Sporthalle Nord",
+            Street = "Turnweg 3",
+            PostalCode = "20095",
+            City = "Hamburg",
+            Country = "Deutschland",
+            Location = "Hamburg, Deutschland",
+            ParticipantMode = ParticipantMode.Individuals,
+            ParticipationLimit = 20,
+            IsPaid = false,
+            Status = EventStatus.Cancelled,
+            CancelledDate = now,
+        };
+        db.Events.Add(cancelled);
+        db.EventAdmins.Add(new EventAdmin { EventId = cancelled.Id, UserId = firstUser, AddedDate = now });
+
+        await db.SaveChangesAsync(ct);
     }
 
     /// <summary>

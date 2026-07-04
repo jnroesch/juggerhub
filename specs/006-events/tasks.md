@@ -102,7 +102,7 @@ description: "Task list for Events"
 - [x] T036 [US2] Create the `event-detail` public page (header: name/type/dates/location/fee; latest news; three participant groups; contacts) at `/events/:id` in `frontend/apps/web/src/app/features/events/event-detail/event-detail.component.{ts,html,css}` (depends on T035)
 - [x] T037 [P] [US2] Create `participant-groups`, `news-feed`, `contacts-list`, and `join-actions` (placeholder wiring) child components with friendly empty states in `frontend/apps/web/src/app/features/events/event-detail/components/*.{ts,html,css}`
 - [x] T038 [US2] Add route `/events/:id` **in the shell without `authGuard`** (public, like the dashboard) in `frontend/apps/web/src/app/app.routes.ts` (depends on T036)
-- [ ] T039 [P] [US2] Extend `DevDataSeeder` with demo events (in-person paid teams-only tournament with joined/awaiting/waitlist, virtual free individuals-only workshop, one cancelled), creator `EventAdmin`, `EventContact`s (location host, caterer), `EventNewsPost`s; seed `EventParticipation` against seeded events so profile/team **activity** still renders (Development only) in `backend/Data/DevDataSeeder.cs` (depends on T012)
+- [x] T039 [P] [US2] Extend `DevDataSeeder` with demo events (in-person paid teams-only tournament with joined/awaiting/waitlist, virtual free individuals-only workshop, one cancelled), creator `EventAdmin`, `EventContact`s (location host, caterer), `EventNewsPost`s; seed `EventParticipation` against seeded events so profile/team **activity** still renders (Development only) in `backend/Data/DevDataSeeder.cs` (depends on T012)
 
 **Checkpoint**: The event page renders publicly; anonymous visitors see everything needed to decide.
 
@@ -240,7 +240,7 @@ description: "Task list for Events"
 ## Phase 11: Polish & Cross-Cutting Concerns
 
 - [ ] T073 [P] DESIGN.md conformance + responsiveness pass (phone ~375px, desktop ~1280px; empty/loading/error states; one primary CTA per view; wizard round-knob progress matches onboarding) across all event components
-- [ ] T074 Playwright e2e `events.spec.ts` — create wizard → view as visitor → sign up as 2nd user → approve/promote/remove → post news + contact → invite co-admin (accept as 3rd user) → cancel, desktop + mobile in `frontend/apps/web-e2e/src/events.spec.ts`
+- [x] T074 Playwright e2e `events.spec.ts` — create wizard → view as visitor → sign up as 2nd user → approve/promote/remove → post news + contact → invite co-admin (accept as 3rd user) → cancel, desktop + mobile in `frontend/apps/web-e2e/src/events.spec.ts`
 - [ ] T075 [P] Reconcile `.env.sample` / `appsettings*.json` / `docker-compose.yml` for any `Events:*` config; confirm the global `JsonStringEnumConverter` serializes the new enums by name
 - [ ] T076 Run `/speckit-analyze` cross-artifact consistency; confirm the `Event.Date`→`StartsAt`/`EndsAt` change leaves profile (003) and team (005) activity green; note events-index deferral as intentional scope
 - [ ] T077 Run `quickstart.md` Scenarios A–H end-to-end (Docker) and record results
