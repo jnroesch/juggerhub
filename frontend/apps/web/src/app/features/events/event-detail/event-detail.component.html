@@ -1,0 +1,179 @@
+<section class="mx-auto max-w-3xl px-md py-lg" data-testid="event-detail">
+  @if (loading()) {
+    <p class="text-body-md text-subtle">Loading…</p>
+  } @else if (loadError()) {
+    <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
+      <p class="text-heading-sm font-bold text-ink">Event not found</p>
+      <p class="mt-xs text-body-sm text-subtle">This event doesn't exist or the link is wrong.</p>
+      <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand">Go home</a>
+    </div>
+  } @else if (detail(); as d) {
+    <a routerLink="/" class="text-body-sm text-subtle hover:text-text">‹ Home</a>
+
+    @if (cancelled()) {
+      <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm font-semibold text-danger-fg" data-testid="event-cancelled">
+        Cancelled by the organiser. No new sign-ups are being accepted.
+      </div>
+    }
+
+    <!-- Header -->
+    <header class="mt-md">
+      <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand">{{ d.type === 'Other' ? d.customTypeLabel : d.type }}</span>
+      <h1 class="mt-xs text-heading-xl font-bold text-ink">{{ d.name }}</h1>
+      <p class="mt-xs text-body-md text-subtle">{{ d.startsAt | date: 'EEE d MMM, HH:mm' }} → {{ d.endsAt | date: 'EEE d MMM, HH:mm' }}</p>
+      @if (d.viewer.isAdmin) {
+        <div class="mt-sm flex flex-wrap gap-xs" data-testid="admin-toolkit">
+          <a [routerLink]="['/events', d.id, 'manage']" class="rounded-md bg-surface-sunken px-md py-xs text-body-sm font-semibold text-body hover:bg-surface-hover">Manage participants</a>
+          <a [routerLink]="['/events', d.id, 'contacts']" class="rounded-md bg-surface-sunken px-md py-xs text-body-sm font-semibold text-body hover:bg-surface-hover">Contacts</a>
+          <a [routerLink]="['/events', d.id, 'admins']" class="rounded-md bg-surface-sunken px-md py-xs text-body-sm font-semibold text-body hover:bg-surface-hover">Co-admins</a>
+        </div>
+      }
+    </header>
+
+    <!-- Details -->
+    <div class="mt-lg grid grid-cols-1 gap-lg md:grid-cols-3">
+      <div class="space-y-lg md:col-span-2">
+        <section>
+          <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">About</h2>
+          <p class="mt-xs whitespace-pre-line text-body-md text-body">{{ d.description }}</p>
+        </section>
+
+        <section>
+          <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Where</h2>
+          @if (d.locationKind === 'InPerson') {
+            <p class="mt-xs text-body-md text-body">
+              @if (d.venueName) { <span class="font-semibold">{{ d.venueName }}</span><br /> }
+              {{ d.street }}<br />{{ d.postalCode }} {{ d.city }}<br />{{ d.country }}
+            </p>
+          } @else {
+            <a [href]="d.virtualLink" target="_blank" rel="noopener" class="mt-xs inline-block break-all text-body-md font-semibold text-brand">{{ d.virtualLink }}</a>
+          }
+        </section>
+
+        @if (d.isPaid) {
+          <section class="rounded-md border border-border bg-surface-card px-md py-sm" data-testid="fee-block">
+            <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Entrance fee</h2>
+            <p class="mt-xs text-body-md font-semibold text-body">{{ d.feeAmount }} {{ d.feeCurrency }}</p>
+            <p class="text-body-sm text-subtle">Pay by bank transfer to <span class="font-semibold text-body">{{ d.feeRecipientName }}</span></p>
+            <p class="font-mono text-body-sm text-subtle">{{ d.feeIban }}</p>
+            @if (d.feePaymentDeadline) { <p class="text-body-sm text-subtle">Pay by {{ d.feePaymentDeadline | date: 'd MMM y' }}</p> }
+            <p class="mt-xs text-body-sm text-faint">Info only — an admin confirms your payment to admit you.</p>
+          </section>
+        }
+
+        <!-- News -->
+        <section>
+          <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Latest news</h2>
+          @if (d.viewer.isAdmin && !cancelled()) {
+            <div class="mt-xs flex gap-xs">
+              <input type="text" [ngModel]="newsBody()" (ngModelChange)="newsBody.set($event)" placeholder="Post an update…" data-testid="news-input"
+                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+              <button type="button" (click)="postNews()" [disabled]="acting() || !newsBody().trim()" data-testid="news-post"
+                class="rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Post</button>
+            </div>
+          }
+          @if (news().length === 0) {
+            <p class="mt-xs text-body-sm text-faint">No updates yet.</p>
+          } @else {
+            <ul class="mt-xs space-y-sm">
+              @for (n of news(); track n.id) {
+                <li class="rounded-md border border-border bg-surface-card px-md py-sm">
+                  <p class="text-body-md text-body">{{ n.body }}</p>
+                  <p class="mt-xs text-body-sm text-faint">{{ n.authorDisplayName }} · {{ n.createdDate | date: 'd MMM, HH:mm' }}</p>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </div>
+
+      <!-- Sidebar: join + spots + contacts -->
+      <aside class="space-y-lg">
+        <section class="rounded-md border border-border bg-surface-card px-md py-md">
+          <p class="text-body-sm font-semibold text-body" data-testid="spots-label">{{ spotsLabel(d) }}</p>
+          <p class="text-body-sm text-subtle">{{ d.participantMode === 'Teams' ? 'Teams' : 'Individuals' }} · {{ d.occupiedSpots }}/{{ d.participationLimit }}</p>
+
+          @if (!cancelled()) {
+            @if (!d.viewer.isAuthenticated) {
+              <a routerLink="/sign-in" class="mt-sm block rounded-md bg-brand px-lg py-sm text-center text-body-md font-semibold text-on-accent hover:bg-brand-hover">Sign in to join</a>
+            } @else if (d.viewer.mySignupStatus) {
+              <p class="mt-sm rounded-md bg-surface-sunken px-md py-sm text-center text-body-sm font-semibold text-body" data-testid="my-status">
+                {{ d.viewer.mySignupStatus === 'Joined' ? "You're in" : d.viewer.mySignupStatus === 'AwaitingApproval' ? 'Awaiting approval' : 'On the waiting list' }}
+              </p>
+              <button type="button" (click)="withdraw()" [disabled]="acting()" data-testid="withdraw"
+                class="mt-xs w-full text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Withdraw</button>
+            } @else if (canJoin()) {
+              @if (d.participantMode === 'Teams') {
+                @if (d.viewer.teamsICanEnter.length === 0) {
+                  <p class="mt-sm text-body-sm text-faint">You need to administer a team to enter it.</p>
+                } @else {
+                  @if (d.viewer.teamsICanEnter.length > 1) {
+                    <select [ngModel]="selectedTeamId()" (ngModelChange)="selectedTeamId.set($event)" data-testid="team-picker"
+                      class="mt-sm w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand">
+                      @for (t of d.viewer.teamsICanEnter; track t.teamId) { <option [value]="t.teamId">{{ t.name }}</option> }
+                    </select>
+                  }
+                  <button type="button" (click)="join()" [disabled]="acting()" data-testid="join"
+                    class="mt-sm w-full rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">
+                    {{ d.isFull ? 'Join the waiting list' : 'Join with your team' }}
+                  </button>
+                }
+              } @else {
+                <button type="button" (click)="join()" [disabled]="acting()" data-testid="join"
+                  class="mt-sm w-full rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">
+                  {{ d.isFull ? 'Join the waiting list' : 'Join' }}
+                </button>
+              }
+            }
+            @if (actionError()) { <p class="mt-xs text-body-sm text-danger" role="alert">{{ actionError() }}</p> }
+          }
+        </section>
+
+        <!-- Contacts -->
+        <section>
+          <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Contacts</h2>
+          @if (contacts().length === 0) {
+            <p class="mt-xs text-body-sm text-faint">No contacts listed.</p>
+          } @else {
+            <ul class="mt-xs space-y-sm">
+              @for (c of contacts(); track c.id) {
+                <li class="text-body-sm">
+                  <p class="font-semibold text-body">{{ c.name }} <span class="font-normal text-subtle">· {{ c.role }}</span></p>
+                  @if (c.email) { <a [href]="'mailto:' + c.email" class="text-brand">{{ c.email }}</a> }
+                  @if (c.phone) { <span class="text-subtle"> {{ c.phone }}</span> }
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </aside>
+    </div>
+
+    <!-- Who's taking part -->
+    <section class="mt-lg">
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Who's taking part</h2>
+      <div class="mt-xs grid grid-cols-1 gap-md sm:grid-cols-3">
+        @for (group of [{ title: 'Joined', items: joined() }, { title: 'Awaiting approval', items: awaiting() }, { title: 'Waiting list', items: waitlist() }]; track group.title) {
+          <div class="rounded-md border border-border bg-surface-card px-md py-sm">
+            <p class="text-body-sm font-semibold text-body">{{ group.title }} ({{ group.items.length }})</p>
+            @if (group.items.length === 0) {
+              <p class="mt-xs text-body-sm text-faint">None yet.</p>
+            } @else {
+              <ul class="mt-xs space-y-1">
+                @for (p of group.items; track p.id) {
+                  <li class="text-body-sm text-body">
+                    @if (p.userHandle) {
+                      <button type="button" (click)="openProfile(p.userHandle)" class="hover:text-brand hover:underline">{{ participantLabel(p) }}</button>
+                    } @else {
+                      {{ participantLabel(p) }}
+                    }
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+</section>

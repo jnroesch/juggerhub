@@ -1,0 +1,113 @@
+<section class="mx-auto max-w-2xl px-md py-lg" data-testid="event-manage">
+  @if (loading()) {
+    <p class="text-body-md text-subtle">Loading…</p>
+  } @else if (forbidden()) {
+    <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
+      <p class="text-heading-sm font-bold text-ink">Not allowed</p>
+      <p class="mt-xs text-body-sm text-subtle">Only an event admin can manage this event.</p>
+    </div>
+  } @else if (detail(); as d) {
+    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">‹ Back to event</a>
+    <h1 class="mt-md text-heading-lg font-bold text-ink">Manage {{ d.name }}</h1>
+    <p class="text-body-sm text-subtle">{{ d.occupiedSpots }}/{{ d.participationLimit }} spots occupied</p>
+
+    @if (error()) { <p class="mt-sm text-body-sm text-danger" role="alert">{{ error() }}</p> }
+
+    <!-- Participants -->
+    <div class="mt-lg space-y-md">
+      <section>
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Awaiting approval ({{ awaiting().length }})</h2>
+        @if (awaiting().length === 0) { <p class="mt-xs text-body-sm text-faint">Nobody awaiting approval.</p> }
+        <ul class="mt-xs space-y-xs">
+          @for (p of awaiting(); track p.id) {
+            <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
+              <span class="text-body-sm text-body">{{ label(p) }}</span>
+              <span class="flex gap-xs">
+                <button type="button" (click)="approve(p.id)" [disabled]="acting()" data-testid="approve"
+                  class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Approve</button>
+                <button type="button" (click)="remove(p.id)" [disabled]="acting()"
+                  class="rounded-md px-md py-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Remove</button>
+              </span>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Joined ({{ joined().length }})</h2>
+        @if (joined().length === 0) { <p class="mt-xs text-body-sm text-faint">Nobody joined yet.</p> }
+        <ul class="mt-xs space-y-xs">
+          @for (p of joined(); track p.id) {
+            <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
+              <span class="text-body-sm text-body">{{ label(p) }}</span>
+              <button type="button" (click)="remove(p.id)" [disabled]="acting()"
+                class="rounded-md px-md py-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Remove</button>
+            </li>
+          }
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Waiting list ({{ waitlist().length }})</h2>
+        @if (waitlist().length === 0) { <p class="mt-xs text-body-sm text-faint">The waiting list is empty.</p> }
+        <ul class="mt-xs space-y-xs">
+          @for (p of waitlist(); track p.id) {
+            <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
+              <span class="text-body-sm text-body">{{ label(p) }}</span>
+              <span class="flex gap-xs">
+                <button type="button" (click)="promote(p.id)" [disabled]="acting() || full()" data-testid="promote"
+                  [title]="full() ? 'No open spot' : ''"
+                  class="rounded-md bg-surface-sunken px-md py-xs text-body-sm font-semibold text-body hover:bg-surface-hover disabled:opacity-50">Promote</button>
+                <button type="button" (click)="remove(p.id)" [disabled]="acting()"
+                  class="rounded-md px-md py-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Remove</button>
+              </span>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+
+    <!-- Edit details -->
+    <form class="mt-lg space-y-md rounded-md border border-border bg-surface-card px-md py-md" [formGroup]="form" (ngSubmit)="saveEdit()">
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Edit details</h2>
+      <input type="text" formControlName="name" placeholder="Event name"
+        class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+      <textarea formControlName="description" rows="3" placeholder="Description"
+        class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
+      <div class="grid grid-cols-2 gap-md">
+        <input type="datetime-local" formControlName="startsAt"
+          class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+        <input type="datetime-local" formControlName="endsAt"
+          class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+      </div>
+      <div>
+        <label for="edit-limit" class="text-body-sm text-subtle">Participation limit</label>
+        <input id="edit-limit" type="number" min="1" formControlName="participationLimit" data-testid="edit-limit"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+      </div>
+      @if (editError()) { <p class="text-body-sm text-danger" role="alert">{{ editError() }}</p> }
+      @if (editSaved()) { <p class="text-body-sm text-success">Saved.</p> }
+      <button type="submit" [disabled]="form.invalid || savingEdit()" data-testid="edit-save"
+        class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">{{ savingEdit() ? 'Saving…' : 'Save changes' }}</button>
+    </form>
+
+    <!-- Danger zone -->
+    @if (d.status === 'Published') {
+      <section class="mt-lg rounded-md border border-danger-border bg-danger-bg px-md py-md" data-testid="danger-zone">
+        <h2 class="text-body-sm font-bold text-danger-fg">Danger zone</h2>
+        <p class="mt-xs text-body-sm text-danger-fg">Cancelling can't be undone. The page stays up marked cancelled and everyone is notified.</p>
+        @if (!confirmingCancel()) {
+          <button type="button" (click)="confirmingCancel.set(true)" data-testid="cancel-open"
+            class="mt-sm rounded-md border border-danger-border px-md py-xs text-body-sm font-semibold text-danger-fg hover:bg-danger-bg">Cancel this event</button>
+        } @else {
+          <div class="mt-sm flex gap-xs">
+            <button type="button" (click)="cancelEvent()" [disabled]="acting()" data-testid="cancel-confirm"
+              class="rounded-md bg-danger px-md py-xs text-body-sm font-semibold text-on-accent hover:opacity-90 disabled:opacity-50">Yes, cancel it</button>
+            <button type="button" (click)="confirmingCancel.set(false)"
+              class="rounded-md px-md py-xs text-body-sm font-semibold text-subtle hover:text-text">Keep it</button>
+          </div>
+        }
+      </section>
+    }
+  }
+</section>

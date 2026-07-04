@@ -25,7 +25,7 @@ description: "Task list for Events"
 
 - [x] T001 [P] Create event enums (`EventType {Tournament,Workshop,Other}`, `LocationKind {InPerson,Virtual}`, `ParticipantMode {Teams,Individuals}`, `EventStatus {Published,Cancelled}`, `SignupStatus {Joined,AwaitingApproval,Waitlisted}`) in `backend/Entities/EventEnums.cs` (reuse `InvitationKind`/`InvitationStatus` from `TeamEnums.cs`)
 - [x] T002 [P] Add `EventOptions` (InviteLinkTtlDays=7, name/description/limit bounds, news/contact body caps) in `backend/Common/EventOptions.cs`; bind in `backend/Program.cs` with safe defaults
-- [ ] T003 [P] Create the frontend event model skeleton (enums + DTO interfaces) in `frontend/apps/web/src/app/core/models/event.models.ts`
+- [x] T003 [P] Create the frontend event model skeleton (enums + DTO interfaces) in `frontend/apps/web/src/app/core/models/event.models.ts`
 
 ---
 
@@ -53,7 +53,7 @@ description: "Task list for Events"
 - [x] T019 [P] Define `IEventAdminService` + skeleton (list admins, remove, step-down) in `backend/Services/Events/`; register DI (depends on T013–T015)
 - [x] T020 [P] Define `IEventInvitationService` + skeleton (link get/rotate/revoke, targeted create, list, user-search, preview, accept, decline) in `backend/Services/Events/`; register DI (depends on T013–T015)
 - [x] T021 [P] Define `IEventNewsService` + `IEventContactService` skeletons (public read paged, admin write) in `backend/Services/Events/`; register DI (depends on T013–T015)
-- [ ] T022 [P] Add frontend event models (Detail/Public, ViewerRelation, Signup, Contact, News, Admin, Invitation, InviteLink, InvitablePreview + enums) and an `EventService` skeleton (signals) in `frontend/apps/web/src/app/core/models/event.models.ts` and `frontend/apps/web/src/app/core/services/event.service.ts`
+- [x] T022 [P] Add frontend event models (Detail/Public, ViewerRelation, Signup, Contact, News, Admin, Invitation, InviteLink, InvitablePreview + enums) and an `EventService` skeleton (signals) in `frontend/apps/web/src/app/core/models/event.models.ts` and `frontend/apps/web/src/app/core/services/event.service.ts`
 
 **Checkpoint**: Schema migrates, activity still green, service seams exist — stories can begin.
 
@@ -73,9 +73,9 @@ description: "Task list for Events"
 
 - [x] T024 [US1] Implement `EventService.CreateAsync` (server-side validation of name/dates/location-by-kind/mode/limit/fee; create `Event` + creator `EventAdmin` via explicit `DbSet.Add` in one transaction) in `backend/Services/Events/EventService.cs` (depends on T017)
 - [x] T025 [US1] Create `EventsController` with `POST /api/v1/events` (auth → 201 `EventDetailDto`, 400 validation) in `backend/Controllers/EventsController.cs` (depends on T024)
-- [ ] T026 [US1] Implement `event.service.ts` `createEvent` in `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T022)
-- [ ] T027 [US1] Create the `event-create` wizard (steps: type&name, when, where [in-person/virtual toggle], who-can-join + limit, fee, review) with round-knob progress mirroring onboarding, in `frontend/apps/web/src/app/features/events/event-create/` (`event-create.component.{ts,html,css}` + `steps/`) (depends on T026)
-- [ ] T028 [US1] Add guarded route `/events/new` (in shell, `authGuard`) + an "Events" / "Create event" entry point in the sidebar/dashboard in `frontend/apps/web/src/app/app.routes.ts` and `frontend/apps/web/src/app/layout/` (depends on T027)
+- [x] T026 [US1] Implement `event.service.ts` `createEvent` in `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T022)
+- [x] T027 [US1] Create the `event-create` wizard (steps: type&name, when, where [in-person/virtual toggle], who-can-join + limit, fee, review) with round-knob progress mirroring onboarding, in `frontend/apps/web/src/app/features/events/event-create/` (`event-create.component.{ts,html,css}` + `steps/`) (depends on T026)
+- [x] T028 [US1] Add guarded route `/events/new` (in shell, `authGuard`) + an "Events" / "Create event" entry point in the sidebar/dashboard in `frontend/apps/web/src/app/app.routes.ts` and `frontend/apps/web/src/app/layout/` (depends on T027)
 - [ ] T029 [P] [US1] Unit test for wizard step validators (end≥start; country required for in-person; link required for virtual; positive limit; paid requires recipient+IBAN) in `frontend/apps/web/src/app/features/events/event-create/event-create.component.spec.ts`
 
 **Checkpoint**: A user can create an event and is its admin; MVP foundation in place.
@@ -98,10 +98,10 @@ description: "Task list for Events"
 - [x] T032 [US2] Implement `EventService.GetDetailAsync` (anonymous public projection + occupied/isFull; when a userId is present, compute `ViewerRelationDto` — admin via `EventAdminGuard`, my signup, teams the caller administers matching the mode) in `backend/Services/Events/EventService.cs` (depends on T017, T015)
 - [x] T033 [US2] Implement `EventSignupService.ListGroupAsync` (paged by `SignupStatus`; project user handle/displayName or team slug/name) in `backend/Services/Events/EventSignupService.cs` (depends on T018)
 - [x] T034 [US2] Add endpoints to `EventsController`: `GET {id}` and `GET {id}/participants` (both `[AllowAnonymous]`, paginated). `GET {id}` is **optional-auth** — anonymous by default, but when a valid auth cookie is present it reads the user id and populates `viewer`; `TryGetUserId` returning false ⇒ anonymous projection with an empty `viewer` — in `backend/Controllers/EventsController.cs` (depends on T032, T033)
-- [ ] T035 [US2] Add `event.service.ts` `getEvent` + `listParticipants` methods in `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T022)
-- [ ] T036 [US2] Create the `event-detail` public page (header: name/type/dates/location/fee; latest news; three participant groups; contacts) at `/events/:id` in `frontend/apps/web/src/app/features/events/event-detail/event-detail.component.{ts,html,css}` (depends on T035)
-- [ ] T037 [P] [US2] Create `participant-groups`, `news-feed`, `contacts-list`, and `join-actions` (placeholder wiring) child components with friendly empty states in `frontend/apps/web/src/app/features/events/event-detail/components/*.{ts,html,css}`
-- [ ] T038 [US2] Add route `/events/:id` **in the shell without `authGuard`** (public, like the dashboard) in `frontend/apps/web/src/app/app.routes.ts` (depends on T036)
+- [x] T035 [US2] Add `event.service.ts` `getEvent` + `listParticipants` methods in `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T022)
+- [x] T036 [US2] Create the `event-detail` public page (header: name/type/dates/location/fee; latest news; three participant groups; contacts) at `/events/:id` in `frontend/apps/web/src/app/features/events/event-detail/event-detail.component.{ts,html,css}` (depends on T035)
+- [x] T037 [P] [US2] Create `participant-groups`, `news-feed`, `contacts-list`, and `join-actions` (placeholder wiring) child components with friendly empty states in `frontend/apps/web/src/app/features/events/event-detail/components/*.{ts,html,css}`
+- [x] T038 [US2] Add route `/events/:id` **in the shell without `authGuard`** (public, like the dashboard) in `frontend/apps/web/src/app/app.routes.ts` (depends on T036)
 - [ ] T039 [P] [US2] Extend `DevDataSeeder` with demo events (in-person paid teams-only tournament with joined/awaiting/waitlist, virtual free individuals-only workshop, one cancelled), creator `EventAdmin`, `EventContact`s (location host, caterer), `EventNewsPost`s; seed `EventParticipation` against seeded events so profile/team **activity** still renders (Development only) in `backend/Data/DevDataSeeder.cs` (depends on T012)
 
 **Checkpoint**: The event page renders publicly; anonymous visitors see everything needed to decide.
@@ -123,8 +123,8 @@ description: "Task list for Events"
 
 - [x] T042 [US3] Implement `EventSignupService.SignupAsync` (validate mode + team-admin authority via the 005 team role check; route via `EventCapacity` row-lock txn; block on cancelled/ended; duplicate guard) and `WithdrawAsync` (participant or team-admin; release spot; never promote) in `backend/Services/Events/EventSignupService.cs` (depends on T018, T016)
 - [x] T043 [US3] Add endpoints to `EventsController`: `POST {id}/signup` (auth, `SignupRequest`) and `DELETE {id}/signup/{signupId}` (auth) in `backend/Controllers/EventsController.cs` (depends on T042)
-- [ ] T044 [US3] Add `event.service.ts` `signup` + `withdraw` methods in `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T022)
-- [ ] T045 [US3] Implement the `join-actions` component (join / join waiting list when full / withdraw; team picker for teams-only from `viewer.teamsICanEnter`; show pay-to recipient/IBAN/deadline for awaiting-approval) in `frontend/apps/web/src/app/features/events/event-detail/components/join-actions.component.{ts,html,css}` (depends on T044)
+- [x] T044 [US3] Add `event.service.ts` `signup` + `withdraw` methods in `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T022)
+- [x] T045 [US3] Implement the `join-actions` component (join / join waiting list when full / withdraw; team picker for teams-only from `viewer.teamsICanEnter`; show pay-to recipient/IBAN/deadline for awaiting-approval) in `frontend/apps/web/src/app/features/events/event-detail/components/join-actions.component.{ts,html,css}` (depends on T044)
 
 **Checkpoint**: The core loop (create → view → sign up / waitlist) works end to end for a second user.
 
@@ -146,8 +146,8 @@ description: "Task list for Events"
 - [x] T048 [US4] Implement `EventSignupService.ApproveAsync` / `PromoteAsync` / `RemoveAsync` (admin-gated via `EventAdminGuard`; promote re-checks capacity under the row lock; no auto-promotion anywhere) in `backend/Services/Events/EventSignupService.cs` (depends on T042, T015, T016)
 - [x] T049 [US4] Implement `EventService.EditAsync` (admin-gated; mode locked when any signup exists; limit ≥ current occupied; re-validate location/fee by kind) in `backend/Services/Events/EventService.cs` (depends on T017)
 - [x] T050 [US4] Add endpoints to `EventsController`: `POST {id}/participants/{signupId}/approve`, `POST {id}/participants/{signupId}/promote`, and `PATCH {id}` (edit). **Do not add a second delete route** — admin-remove reuses the single `DELETE {id}/signup/{signupId}` from T043; the service branches authorization (participant/team-admin **or** event-admin) so one endpoint serves both withdraw and admin-remove in `backend/Controllers/EventsController.cs` (depends on T048, T049)
-- [ ] T051 [US4] Add `event.service.ts` `approve`/`promote`/`removeParticipant`/`editEvent` methods in `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T022)
-- [ ] T052 [US4] Create the `event-manage` screen (three groups with approve/promote/remove; edit-details form) + route `/events/:id/manage` (`authGuard`) and a "Manage" affordance on `event-detail` shown only when `viewer.isAdmin` in `frontend/apps/web/src/app/features/events/event-manage/event-manage.component.{ts,html,css}` and `app.routes.ts` (depends on T051)
+- [x] T051 [US4] Add `event.service.ts` `approve`/`promote`/`removeParticipant`/`editEvent` methods in `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T022)
+- [x] T052 [US4] Create the `event-manage` screen (three groups with approve/promote/remove; edit-details form) + route `/events/:id/manage` (`authGuard`) and a "Manage" affordance on `event-detail` shown only when `viewer.isAdmin` in `frontend/apps/web/src/app/features/events/event-manage/event-manage.component.{ts,html,css}` and `app.routes.ts` (depends on T051)
 
 **Checkpoint**: Admins can run a paid, full event; edits are guarded; nothing auto-fills.
 
@@ -167,7 +167,7 @@ description: "Task list for Events"
 
 - [x] T054 [US5] Implement `EventNewsService` (public `GetFeedAsync` paged newest-first with author displayName; admin `PostAsync`) in `backend/Services/Events/EventNewsService.cs` (depends on T021, T015)
 - [x] T055 [US5] Add endpoints to `EventsController`: `GET {id}/news` (anon, paged) and `POST {id}/news` (admin) in `backend/Controllers/EventsController.cs` (depends on T054)
-- [ ] T056 [US5] Add `event.service.ts` `listNews`/`postNews` and wire a compose affordance into `news-feed` shown only to admins in `frontend/apps/web/src/app/core/services/event.service.ts` and `event-detail/components/news-feed.component.{ts,html,css}` (depends on T022)
+- [x] T056 [US5] Add `event.service.ts` `listNews`/`postNews` and wire a compose affordance into `news-feed` shown only to admins in `frontend/apps/web/src/app/core/services/event.service.ts` and `event-detail/components/news-feed.component.{ts,html,css}` (depends on T022)
 
 **Checkpoint**: Event news works read-for-all, write-for-admins.
 
@@ -187,7 +187,7 @@ description: "Task list for Events"
 
 - [x] T058 [US6] Implement `EventContactService` (public `ListAsync` paged; admin `AddAsync`/`UpdateAsync`/`RemoveAsync` with the ≥1-method rule) in `backend/Services/Events/EventContactService.cs` (depends on T021, T015)
 - [x] T059 [US6] Add endpoints to `EventsController`: `GET {id}/contacts` (anon), `POST {id}/contacts`, `PATCH {id}/contacts/{contactId}`, `DELETE {id}/contacts/{contactId}` (admin) in `backend/Controllers/EventsController.cs` (depends on T058)
-- [ ] T060 [US6] Add `event.service.ts` contact CRUD methods and create the `event-contacts` admin screen + route `/events/:id/contacts` (`authGuard`), with `contacts-list` rendering on the public page in `frontend/apps/web/src/app/core/services/event.service.ts`, `frontend/apps/web/src/app/features/events/event-contacts/event-contacts.component.{ts,html,css}`, and `app.routes.ts` (depends on T022)
+- [x] T060 [US6] Add `event.service.ts` contact CRUD methods and create the `event-contacts` admin screen + route `/events/:id/contacts` (`authGuard`), with `contacts-list` rendering on the public page in `frontend/apps/web/src/app/core/services/event.service.ts`, `frontend/apps/web/src/app/features/events/event-contacts/event-contacts.component.{ts,html,css}`, and `app.routes.ts` (depends on T022)
 
 **Checkpoint**: Contacts are public, admin-managed, and validated.
 
@@ -210,8 +210,8 @@ description: "Task list for Events"
 - [x] T064 [US7] Create `EventEmailService` (render template, build `{FrontendBaseUrl}/event-invite/{token}`, send via `IEmailSender`) + `event-admin-invite.html` (extends base header/footer) in `backend/Services/Email/EventEmailService.cs` and `backend/EmailTemplates/`; add the template method to `IEmailTemplateService`/impl; register DI; wire into targeted-invite create (depends on T063)
 - [x] T065 [US7] Implement `EventAdminService` (list admins paged; remove/step-down through the event-row-lock last-admin guard, mirroring `TeamService.MutateMembershipAsync`) in `backend/Services/Events/EventAdminService.cs` (depends on T019, T016)
 - [x] T066 [US7] Add endpoints: on `EventsController` — `GET/POST {id}/invitations/link`, `GET/POST {id}/invitations`, `DELETE {id}/invitations/{invitationId}`, `GET {id}/invitations/user-search`, `GET {id}/admins`, `DELETE {id}/admins/{userId}` (all admin); new `EventInvitationsController` — `GET /api/v1/event-invitations/{token}` (anon), `POST …/accept`, `POST …/decline` (auth) in `backend/Controllers/EventsController.cs` and `backend/Controllers/EventInvitationsController.cs` (depends on T063, T065)
-- [ ] T067 [US7] Add `event.service.ts` invitation + admin methods and create the `event-admins` screen (admins list, copy link, user-search invite, step-down) + route `/events/:id/admins` (`authGuard`) in `frontend/apps/web/src/app/core/services/event.service.ts`, `frontend/apps/web/src/app/features/events/event-admins/event-admins.component.{ts,html,css}`, and `app.routes.ts` (depends on T022)
-- [ ] T068 [US7] Create the `event-invite-accept` component (full-screen, **outside** shell): anonymous preview + Accept (co-admin) / Decline + expired/invalid state + sign-in/register return handling, at `/event-invite/:token` in `frontend/apps/web/src/app/features/events/event-invite-accept/event-invite-accept.component.{ts,html,css}` and `app.routes.ts` (depends on T067)
+- [x] T067 [US7] Add `event.service.ts` invitation + admin methods and create the `event-admins` screen (admins list, copy link, user-search invite, step-down) + route `/events/:id/admins` (`authGuard`) in `frontend/apps/web/src/app/core/services/event.service.ts`, `frontend/apps/web/src/app/features/events/event-admins/event-admins.component.{ts,html,css}`, and `app.routes.ts` (depends on T022)
+- [x] T068 [US7] Create the `event-invite-accept` component (full-screen, **outside** shell): anonymous preview + Accept (co-admin) / Decline + expired/invalid state + sign-in/register return handling, at `/event-invite/:token` in `frontend/apps/web/src/app/features/events/event-invite-accept/event-invite-accept.component.{ts,html,css}` and `app.routes.ts` (depends on T067)
 
 **Checkpoint**: Shared administration works; the event can never drop below one admin.
 
@@ -231,7 +231,7 @@ description: "Task list for Events"
 
 - [x] T070 [US8] Implement `EventService.CancelAsync` (admin-gated; set `Status=Cancelled`+`CancelledDate`; collect recipient emails — individual signups' users + team signups' team admins — and send `event-cancelled.html` best-effort via `EventEmailService`) in `backend/Services/Events/EventService.cs` and add `event-cancelled.html` to `backend/EmailTemplates/` + template method (depends on T017, T064)
 - [x] T071 [US8] Gate `SignupAsync`/`ApproveAsync`/`PromoteAsync` on `Status != Cancelled` (and not ended) — confirm the refusals wired in T042/T048 cover cancelled (depends on T070)
-- [ ] T072 [US8] Add `POST /api/v1/events/{id}/cancel` (admin) to `EventsController`, and the danger-zone cancel (with confirm) to `event-manage` + `event.service.ts` `cancelEvent` in `backend/Controllers/EventsController.cs`, `frontend/apps/web/src/app/features/events/event-manage/event-manage.component.{ts,html,css}`, and `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T070)
+- [x] T072 [US8] Add `POST /api/v1/events/{id}/cancel` (admin) to `EventsController`, and the danger-zone cancel (with confirm) to `event-manage` + `event.service.ts` `cancelEvent` in `backend/Controllers/EventsController.cs`, `frontend/apps/web/src/app/features/events/event-manage/event-manage.component.{ts,html,css}`, and `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T070)
 
 **Checkpoint**: Cancellation is irreversible, read-only for sign-ups, and notifies everyone.
 
