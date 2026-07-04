@@ -17,5 +17,9 @@ public sealed record PaginationRequest
     public int NormalizedTake => Take is <= 0 or > MaxTake ? DefaultTake : Take;
 }
 
-/// <summary>Uniform paged-result envelope so list contracts stay consistent.</summary>
+// Uniform paged-result envelope so list contracts stay consistent. NOTE: intentionally
+// NOT an XML doc comment — the Microsoft.AspNetCore.OpenApi 10.0.9 XML-comment source
+// generator crashes ("duplicate key PagedResult`1") when this generic type carries a doc
+// comment and is referenced by many endpoints/records. Remove this note once the framework
+// bug is fixed (present on eb1307e, before feature 006).
 public sealed record PagedResult<T>(IReadOnlyList<T> Items, int TotalCount, int Skip, int Take);
