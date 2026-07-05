@@ -45,7 +45,7 @@ description: "Task list for Events"
 - [x] T011 Update `EventActivityService` and `Services/Teams/TeamActivityService` to order by / project `Event.StartsAt` (was `Event.Date`), mapping to `ActivityItemDto`'s `DateOnly` in memory after materialization so the activity DTO shape is unchanged; then **grep the whole solution (incl. the integration-test project and `DevDataSeeder`) for every remaining `Event.Date` / `.Date` reference and update it to `StartsAt`** so the build and existing 003/005 activity tests stay green (depends on T004)
 - [x] T012 Generate EF migration `AddEvents` in `backend/Data/Migrations/` (alters Events, creates 5 tables) and confirm it applies on a fresh DB (depends on T010)
 - [x] T013 [P] Create event DTOs (`CreateEventRequest`, `EditEventRequest`, `SignupRequest`, `CreateContactRequest`, `CreateTargetedInviteRequest`, `EventDetailDto`, `EventPublicDto`, `ViewerRelationDto`, `SignupDto`, `EventContactDto`, `EventNewsDto`, `EventAdminDto`, `EventInvitationDto`, `InviteLinkDto`, `InvitableUserDto`, `InvitePreviewDto`) in `backend/Dtos/Events/EventDtos.cs`
-- [ ] T014 [P] Add `EventMapping` Mapster config (entities → DTOs; a public projection that never leaks pending-invite tokens or user emails) in `backend/Services/Events/EventMapping.cs`; register in `AddMappingConfig`
+- [x] T014 [P] ~~Add `EventMapping` Mapster config~~ **Superseded** — DTOs are built with manual EF `.Select(...)` projections (matching the 005 Teams slice and constitution Principle III), which is the codebase's dominant practice; Mapster is used in only one place project-wide (`AuthService`). Whether to standardize on Mapster or projections across the project is tracked as **TASK-5** (with pros/cons).
 - [x] T015 Implement `EventAdminGuard` (resolve whether a user is an admin of an event id, single query; mirrors `TeamMembershipGuard`) in `backend/Services/Events/EventAdminGuard.cs` (depends on T004–T012)
 - [x] T016 Implement `EventCapacity` helper (occupied-count = Joined+AwaitingApproval; `SELECT … FOR UPDATE` on the event row inside a `Serializable` transaction; decide Joined/AwaitingApproval/Waitlisted) in `backend/Services/Events/EventCapacity.cs` (depends on T004–T012)
 - [x] T017 Define `IEventService` + `EventService` skeleton (create, get detail+viewer, edit, cancel) in `backend/Services/Events/`; register DI in `backend/Program.cs` (depends on T013–T016)
@@ -76,7 +76,7 @@ description: "Task list for Events"
 - [x] T026 [US1] Implement `event.service.ts` `createEvent` in `frontend/apps/web/src/app/core/services/event.service.ts` (depends on T022)
 - [x] T027 [US1] Create the `event-create` wizard (steps: type&name, when, where [in-person/virtual toggle], who-can-join + limit, fee, review) with round-knob progress mirroring onboarding, in `frontend/apps/web/src/app/features/events/event-create/` (`event-create.component.{ts,html,css}` + `steps/`) (depends on T026)
 - [x] T028 [US1] Add guarded route `/events/new` (in shell, `authGuard`) + an "Events" / "Create event" entry point in the sidebar/dashboard in `frontend/apps/web/src/app/app.routes.ts` and `frontend/apps/web/src/app/layout/` (depends on T027)
-- [ ] T029 [P] [US1] Unit test for wizard step validators (end≥start; country required for in-person; link required for virtual; positive limit; paid requires recipient+IBAN) in `frontend/apps/web/src/app/features/events/event-create/event-create.component.spec.ts`
+- [x] T029 [P] [US1] Unit test for wizard step validators (end≥start; country required for in-person; link required for virtual; positive limit; paid requires recipient+IBAN) in `frontend/apps/web/src/app/features/events/event-create/event-create.component.spec.ts`
 
 **Checkpoint**: A user can create an event and is its admin; MVP foundation in place.
 
@@ -239,11 +239,11 @@ description: "Task list for Events"
 
 ## Phase 11: Polish & Cross-Cutting Concerns
 
-- [ ] T073 [P] DESIGN.md conformance + responsiveness pass (phone ~375px, desktop ~1280px; empty/loading/error states; one primary CTA per view; wizard round-knob progress matches onboarding) across all event components
+- [x] T073 [P] DESIGN.md conformance + responsiveness pass (phone ~375px, desktop ~1280px; empty/loading/error states; one primary CTA per view; wizard round-knob progress matches onboarding) across all event components
 - [x] T074 Playwright e2e `events.spec.ts` — create wizard → view as visitor → sign up as 2nd user → approve/promote/remove → post news + contact → invite co-admin (accept as 3rd user) → cancel, desktop + mobile in `frontend/apps/web-e2e/src/events.spec.ts`
-- [ ] T075 [P] Reconcile `.env.sample` / `appsettings*.json` / `docker-compose.yml` for any `Events:*` config; confirm the global `JsonStringEnumConverter` serializes the new enums by name
-- [ ] T076 Run `/speckit-analyze` cross-artifact consistency; confirm the `Event.Date`→`StartsAt`/`EndsAt` change leaves profile (003) and team (005) activity green; note events-index deferral as intentional scope
-- [ ] T077 Run `quickstart.md` Scenarios A–H end-to-end (Docker) and record results
+- [x] T075 [P] Reconcile `.env.sample` / `appsettings*.json` / `docker-compose.yml` for any `Events:*` config; confirm the global `JsonStringEnumConverter` serializes the new enums by name. **Outcome: no config change needed** — `EventOptions` uses safe code defaults with **no** appsettings section, matching the established `TeamOptions`/`ProfileOptions` pattern (appsettings holds only infra: Logging/ConnectionStrings/Jwt/Email). Enum-name serialization is already global (registered in `Program.cs`, asserted by 35 integration tests, e.g. `"Tournament"`/`"AwaitingApproval"`).
+- [x] T076 Run `/speckit-analyze` cross-artifact consistency; confirm the `Event.Date`→`StartsAt`/`EndsAt` change leaves profile (003) and team (005) activity green; note events-index deferral as intentional scope
+- [x] T077 Run `quickstart.md` Scenarios A–H end-to-end (Docker) and record results
 
 ---
 

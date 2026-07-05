@@ -65,8 +65,12 @@ export class EventCreateComponent {
     feePaymentDeadline: [''],
   });
 
-  /** Whether the current step's inputs are complete enough to advance. */
-  protected readonly canAdvance = computed(() => {
+  /**
+   * Whether the current step's inputs are complete enough to advance. A plain method
+   * (not a `computed`) so it re-evaluates against live form values each change-detection
+   * cycle — a `computed` would cache, since reactive-form reads aren't signal dependencies.
+   */
+  protected canAdvance(): boolean {
     const v = this.form.getRawValue();
     switch (this.step()) {
       case 'type':
@@ -88,7 +92,7 @@ export class EventCreateComponent {
       default:
         return true;
     }
-  });
+  }
 
   protected next(): void {
     if (!this.canAdvance()) {
