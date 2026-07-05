@@ -9,11 +9,11 @@
     </div>
   }
   @if (news().length === 0) {
-    <p class="mt-xs text-body-sm text-faint">No updates yet.</p>
+    <p class="mt-sm text-body-sm text-faint">No updates yet.</p>
   } @else {
-    <ul class="mt-xs space-y-sm">
+    <ul class="mt-sm divide-y divide-border">
       @for (n of news(); track n.id) {
-        <li class="rounded-md border border-border bg-surface-card px-md py-sm">
+        <li class="py-sm first:pt-0 last:pb-0">
           <p class="text-body-md text-body">{{ n.body }}</p>
           <p class="mt-xs text-body-sm text-faint">{{ n.authorDisplayName }} · {{ n.createdDate | date: 'd MMM, HH:mm' }}</p>
         </li>

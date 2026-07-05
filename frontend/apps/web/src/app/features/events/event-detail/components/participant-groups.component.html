@@ -1,5 +1,6 @@
-<section data-testid="participant-groups" class="space-y-md">
+<section data-testid="participant-groups">
   <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Who's taking part</h2>
+  <div class="mt-sm grid grid-cols-1 gap-md md:grid-cols-3">
   @for (group of groups(); track group.title) {
     <div>
       <p class="text-body-sm font-semibold text-body">{{ group.title }} · {{ group.items.length }}</p>
@@ -27,4 +28,5 @@
       }
     </div>
   }
+  </div>
 </section>

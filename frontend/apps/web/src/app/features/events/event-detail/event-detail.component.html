@@ -1,8 +1,8 @@
-<section class="mx-auto max-w-xl px-md py-lg" data-testid="event-detail">
+<section class="mx-auto max-w-2xl px-md py-lg" data-testid="event-detail">
   @if (loading()) {
     <p class="text-body-md text-subtle">Loading…</p>
   } @else if (loadError()) {
-    <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
+    <div class="rounded-lg border border-border bg-surface-card px-md py-lg text-center">
       <p class="text-heading-sm font-bold text-ink">Event not found</p>
       <p class="mt-xs text-body-sm text-subtle">This event doesn't exist or the link is wrong.</p>
       <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand">Go home</a>
@@ -10,7 +10,7 @@
   } @else if (detail(); as d) {
     <a routerLink="/" class="text-body-sm text-subtle hover:text-text">‹ Home</a>
 
-    <!-- Cover band with the type badge -->
+    <!-- Hero: cover, title, meta, occupancy -->
     <div class="relative mt-sm flex h-28 items-end overflow-hidden rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
       <span class="rounded-full bg-surface-card px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-[0.08em] text-muted">{{ d.type === 'Other' ? d.customTypeLabel : d.type }}</span>
     </div>
@@ -21,7 +21,6 @@
       </div>
     }
 
-    <!-- Title + meta -->
     <h1 class="mt-md text-heading-xl font-bold text-ink">{{ d.name }}</h1>
     <ul class="mt-sm space-y-xs text-body-md text-body">
       <li class="flex items-center gap-sm">
@@ -44,7 +43,6 @@
       }
     </ul>
 
-    <!-- Occupancy bar -->
     <div class="mt-md">
       <div class="flex items-center justify-between text-body-sm">
         <span class="font-semibold text-body">{{ d.participantMode === 'Teams' ? 'Teams in' : 'People in' }}</span>
@@ -58,14 +56,15 @@
       </p>
     </div>
 
-    <!-- Body -->
-    <div class="mt-lg space-y-lg">
-      <section>
+    <!-- Content cards -->
+    <div class="mt-lg space-y-md">
+      <!-- Details -->
+      <div class="rounded-lg border border-border bg-surface-card p-md">
         <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">About</h2>
         <p class="mt-xs whitespace-pre-line text-body-md text-body">{{ d.description }}</p>
-      </section>
 
-      <section>
+        <hr class="my-md border-t border-border" />
+
         <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Where</h2>
         @if (d.locationKind === 'InPerson') {
           <p class="mt-xs text-body-md text-body">
@@ -75,43 +74,53 @@
         } @else {
           <a [href]="d.virtualLink" target="_blank" rel="noopener" class="mt-xs inline-block break-all text-body-md font-semibold text-brand">{{ d.virtualLink }}</a>
         }
-      </section>
+      </div>
 
+      <!-- Entrance fee -->
       @if (d.isPaid) {
-        <section class="rounded-md border border-border bg-surface-card px-md py-sm" data-testid="fee-block">
+        <div class="rounded-lg border border-border bg-surface-card p-md" data-testid="fee-block">
           <div class="flex items-center justify-between">
             <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Entrance fee</h2>
             @if (d.feePaymentDeadline) { <span class="rounded-full bg-surface-sunken px-sm py-0.5 text-body-sm text-subtle">Pay by {{ d.feePaymentDeadline | date: 'd MMM' }}</span> }
           </div>
-          <p class="mt-xs text-body-md font-semibold text-body">{{ d.feeAmount }} {{ d.feeCurrency }} {{ d.participantMode === 'Teams' ? 'per team' : 'per person' }}</p>
-          <p class="mt-xs text-body-sm text-subtle">Pay by bank transfer to <span class="font-semibold text-body">{{ d.feeRecipientName }}</span></p>
-          <p class="font-mono text-body-sm text-subtle">{{ d.feeIban }}</p>
-          <p class="mt-xs text-body-sm text-faint">Info only — an admin confirms your payment to admit you.</p>
-        </section>
+          <p class="mt-xs text-heading-sm font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-subtle">{{ d.participantMode === 'Teams' ? 'per team' : 'per person' }}</span></p>
+          <dl class="mt-sm space-y-0.5 text-body-sm">
+            <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">Pay to</dt><dd class="font-semibold text-body">{{ d.feeRecipientName }}</dd></div>
+            <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">IBAN</dt><dd class="break-all font-mono text-subtle">{{ d.feeIban }}</dd></div>
+          </dl>
+          <p class="mt-sm text-body-sm text-faint">Bank transfer only — no in-app payment. An admin confirms your payment to admit you.</p>
+        </div>
       }
 
-      <jh-event-participant-groups
-        [joined]="joined()"
-        [awaiting]="awaiting()"
-        [waitlist]="waitlist()"
-        (openProfile)="openProfile($event)" />
+      <!-- Who's taking part -->
+      <div class="rounded-lg border border-border bg-surface-card p-md">
+        <jh-event-participant-groups
+          [joined]="joined()"
+          [awaiting]="awaiting()"
+          [waitlist]="waitlist()"
+          (openProfile)="openProfile($event)" />
+      </div>
 
-      <jh-event-news-feed
-        [news]="news()"
-        [canCompose]="d.viewer.isAdmin && !cancelled()"
-        [posting]="acting()"
-        (post)="postNews($event)" />
+      <!-- News -->
+      <div class="rounded-lg border border-border bg-surface-card p-md">
+        <jh-event-news-feed
+          [news]="news()"
+          [canCompose]="d.viewer.isAdmin && !cancelled()"
+          [posting]="acting()"
+          (post)="postNews($event)" />
+      </div>
 
-      <jh-event-contacts-list [contacts]="contacts()" />
+      <!-- Contacts -->
+      <div class="rounded-lg border border-border bg-surface-card p-md">
+        <jh-event-contacts-list [contacts]="contacts()" />
+      </div>
     </div>
 
-    <!-- Sticky-ish bottom action -->
-    <div class="mt-lg">
+    <!-- Bottom action -->
+    <div class="mt-md">
       @if (d.viewer.isAdmin) {
-        <button type="button" (click)="menuOpen.set(!menuOpen())" data-testid="manage-menu"
-          class="block w-full rounded-md bg-surface-sunken px-lg py-md text-center text-body-md font-semibold text-body hover:bg-surface-hover">Manage event</button>
         @if (menuOpen()) {
-          <div class="mt-xs overflow-hidden rounded-md border border-border bg-surface-card" data-testid="manage-menu-panel">
+          <div class="mb-xs overflow-hidden rounded-md border border-border bg-surface-card" data-testid="manage-menu-panel">
             <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Edit details</a>
             <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Manage participants &amp; waitlist</a>
             <a [routerLink]="['/events', d.id, 'contacts']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Manage contacts</a>
@@ -119,6 +128,8 @@
             <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-danger hover:bg-surface-sunken">Cancel event</a>
           </div>
         }
+        <button type="button" (click)="menuOpen.set(!menuOpen())" data-testid="manage-menu"
+          class="block w-full rounded-md bg-surface-sunken px-lg py-md text-center text-body-md font-semibold text-body hover:bg-surface-hover">Manage event</button>
       } @else {
         <jh-event-join-actions
           [detail]="d"
