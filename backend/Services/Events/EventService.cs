@@ -392,11 +392,19 @@ public sealed class EventService : IEventService
         }
 
         var link = Trimmed(virtualLink);
+        // Be lenient: accept links without an explicit scheme (e.g. "zoom.us/j/123") by
+        // defaulting to https, and store the normalized absolute URL.
+        if (link is not null && !link.Contains("://", StringComparison.Ordinal))
+        {
+            link = "https://" + link;
+        }
+
         if (link is null || !Uri.TryCreate(link, UriKind.Absolute, out var uri)
-            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+            || string.IsNullOrEmpty(uri.Host))
         {
             return new LocationResult(null, null, null, null, null, null, string.Empty,
-                "A virtual event needs a valid link (https://…).");
+                "Add a link like zoom.us/… or https://meet.… so people can join.");
         }
 
         return new LocationResult(null, null, null, null, null, link, "Online", null);

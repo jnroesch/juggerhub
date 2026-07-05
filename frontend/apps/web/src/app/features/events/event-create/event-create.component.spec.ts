@@ -68,14 +68,18 @@ describe('EventCreateComponent wizard validation', () => {
     expect(api.canAdvance()).toBe(true);
   });
 
-  it('where step: virtual needs a valid link', () => {
+  it('where step: virtual needs a link-like value (scheme optional)', () => {
     api.step.set('where');
     api.locationKind.set('Virtual');
 
     api.form.patchValue({ virtualLink: 'not-a-url' });
     expect(api.canAdvance()).toBe(false);
 
-    api.form.patchValue({ virtualLink: 'https://zoom.us/j/123' });
+    // A bare domain (no scheme) is accepted — the server defaults to https.
+    api.form.patchValue({ virtualLink: 'zoom.us/j/123' });
+    expect(api.canAdvance()).toBe(true);
+
+    api.form.patchValue({ virtualLink: 'https://meet.google.com/abc-defg' });
     expect(api.canAdvance()).toBe(true);
   });
 

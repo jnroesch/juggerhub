@@ -84,7 +84,8 @@ export class EventCreateComponent {
       case 'where':
         return this.locationKind() === 'InPerson'
           ? [v.street, v.postalCode, v.city, v.country].every((s) => s.trim().length > 0)
-          : /^https?:\/\/.+/i.test(v.virtualLink.trim());
+          // Lenient: accept a domain with or without the scheme (server defaults to https).
+          : /\S\.\S/.test(v.virtualLink.trim());
       case 'who':
         return v.participationLimit >= 1;
       case 'fee':
