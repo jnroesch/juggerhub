@@ -306,10 +306,15 @@ public sealed class TeamTests
         var demoteA = b.PatchAsJsonAsync($"/api/v1/teams/{slug}/members/{aId}/role", new { role = "Member" });
         var results = await Task.WhenAll(demoteB, demoteA);
 
+        // Exactly one demotion wins; the other is rejected. Which rejection depends
+        // on interleaving, and both are correct: the loser gets 409 Conflict if it
+        // reached the last-admin guard, or 403 Forbidden if the winner demoted it
+        // before its own admin check ran. Either way exactly one admin remains.
         var ok = results.Count(r => r.StatusCode == HttpStatusCode.OK);
-        var conflict = results.Count(r => r.StatusCode == HttpStatusCode.Conflict);
+        var rejected = results.Count(r =>
+            r.StatusCode is HttpStatusCode.Conflict or HttpStatusCode.Forbidden);
         Assert.Equal(1, ok);
-        Assert.Equal(1, conflict);
+        Assert.Equal(1, rejected);
 
         var page = await a.GetFromJsonAsync<JsonElement>($"/api/v1/teams/{slug}/members");
         var admins = page.GetProperty("items").EnumerateArray().Count(i => i.GetProperty("role").GetString() == "Admin");

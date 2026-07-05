@@ -1,326 +1,303 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset='utf-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <meta name='color-scheme' content='light'>
+    <meta name='supported-color-schemes' content='light'>
     <title>{{EMAIL_TITLE}}</title>
     <style>
+        /* ============================================================
+           JuggerHub email base — warm sand neutrals, coral primary,
+           sage secondary, lemon highlight. Mirrors DESIGN.md.
+           Fonts: Hubot Sans (display) + Mona Sans (body), Arial
+           fallback for clients that strip web fonts.
+           ============================================================ */
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            font-family: 'Mona Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
             line-height: 1.6;
-            color: #374151;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 0;
-            background-color: #f9fafb;
-        }
-        
-        .email-container {
-            background-color: #ffffff;
-            margin: 20px auto;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
-            padding: 32px 24px;
-            text-align: center;
-            position: relative;
-        }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/><circle cx="20" cy="20" r="15" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/><circle cx="80" cy="80" r="20" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="0.5"/></svg>') center/cover;
-            opacity: 0.3;
-        }
-        
-        .header-content {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .logo {
-            font-size: 28px;
-            font-weight: 700;
-            margin: 0 0 8px 0;
-            letter-spacing: -0.025em;
-        }
-        
-        .tagline {
-            font-size: 14px;
-            opacity: 0.9;
+            color: #3E362B;            /* text-body / sand-8 */
             margin: 0;
-            font-weight: 400;
+            padding: 0;
+            background-color: #F4EEE3;  /* surface-sunken / sand-1 */
+            -webkit-font-smoothing: antialiased;
+            -webkit-text-size-adjust: 100%;
         }
-        
+
+        .email-outer {
+            width: 100%;
+            background-color: #F4EEE3;
+            padding: 24px 16px;
+        }
+
+        /* The white rounded card that holds header + content + footer */
+        .email-container {
+            max-width: 552px;
+            margin: 0 auto;
+            background-color: #ffffff;   /* surface-card */
+            border: 1px solid #EAE1D2;   /* sand-2 */
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(64, 46, 24, 0.10);
+        }
+
+        /* ---------------- Header ---------------- */
+        .header {
+            padding: 32px 40px 24px;
+            text-align: center;
+            border-bottom: 1px solid #F4EEE3;
+        }
+
+        .brand-lockup {
+            display: inline-block;
+        }
+
+        .brand-mark {
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #F5623A, #7A9B87);
+            vertical-align: middle;
+            line-height: 32px;
+            text-align: center;
+        }
+
+        .brand-name {
+            font-family: 'Hubot Sans', Arial, sans-serif;
+            font-weight: 800;
+            font-size: 21px;
+            color: #241F18;             /* text-heading / sand-9 */
+            letter-spacing: -0.02em;
+            vertical-align: middle;
+            margin-left: 10px;
+        }
+
+        /* ---------------- Content ---------------- */
         .content {
-            padding: 40px 32px;
+            padding: 34px 40px 30px;
             background-color: #ffffff;
         }
-        
+
+        .eyebrow {
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: #82725B;             /* text-muted / sand-6 */
+            margin: 0;
+        }
+
         .content h1 {
-            color: #111827;
-            font-size: 24px;
-            font-weight: 600;
-            margin: 0 0 24px 0;
-            line-height: 1.3;
+            font-family: 'Hubot Sans', Arial, sans-serif;
+            font-size: 27px;
+            line-height: 1.15;
+            font-weight: 800;
+            color: #241F18;
+            letter-spacing: -0.02em;
+            margin: 8px 0 0;
         }
-        
+
         .content h2 {
-            color: #374151;
+            font-family: 'Hubot Sans', Arial, sans-serif;
+            color: #241F18;
             font-size: 20px;
-            font-weight: 600;
-            margin: 32px 0 16px 0;
+            font-weight: 800;
+            letter-spacing: -0.01em;
+            margin: 28px 0 12px;
+            line-height: 1.25;
+        }
+
+        .content h3 {
+            font-family: 'Hubot Sans', Arial, sans-serif;
+            color: #241F18;
+            font-size: 16px;
+            font-weight: 800;
+            margin: 0 0 4px;
             line-height: 1.3;
         }
-        
+
         .content p {
-            margin: 0 0 16px 0;
-            color: #4b5563;
+            font-size: 16px;
             line-height: 1.6;
+            color: #3E362B;
+            margin: 14px 0 0;
         }
-        
+
+        .content p.lead {
+            margin-top: 14px;
+        }
+
+        /* ---------------- Button ---------------- */
         .button {
             display: inline-block;
-            background-color: #4f46e5 !important; /* Fallback for email clients that don't support gradients */
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
+            background-color: #F5623A !important;   /* coral-4 */
             color: #ffffff !important;
-            padding: 14px 28px !important;
-            text-decoration: none !important;
-            border-radius: 8px !important;
-            margin: 24px 0 !important;
-            font-weight: 600 !important;
-            text-align: center !important;
-            border: 2px solid #4f46e5 !important;
+            font-family: 'Mona Sans', Arial, sans-serif !important;
             font-size: 16px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.01em !important;
+            text-decoration: none !important;
+            padding: 14px 26px !important;
+            border-radius: 14px !important;
             line-height: 1.2 !important;
-            mso-padding-alt: 0; /* Outlook padding fix */
-            text-shadow: none !important; /* Ensure no text shadow interferes */
-            -webkit-text-size-adjust: none !important;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif !important;
         }
-        
-        /* Additional email client specific overrides */
-        a.button {
-            color: #ffffff !important;
-            text-decoration: none !important;
-        }
-        
-        a.button:link {
-            color: #ffffff !important;
-            text-decoration: none !important;
-        }
-        
-        a.button:visited {
-            color: #ffffff !important;
-            text-decoration: none !important;
-        }
-        
-        a.button:hover {
-            color: #ffffff !important;
-            text-decoration: none !important;
-        }
-        
-        a.button:active {
-            color: #ffffff !important;
-            text-decoration: none !important;
-        }
-        
-        /* Gmail specific fixes */
-        u + .body .button {
-            color: #ffffff !important;
-            text-decoration: none !important;
-        }
-        
-        /* Apple Mail specific fixes */
-        @media screen and (-webkit-min-device-pixel-ratio: 0) {
-            .button {
-                color: #ffffff !important;
-            }
-        }
-        
-        /* Outlook specific fixes */
-        [owa] .button {
-            color: #ffffff !important;
-            text-decoration: none !important;
-        }
-        
-        .button:hover {
-            background-color: #4338ca !important;
-            background: linear-gradient(135deg, #4338ca 0%, #6d28d9 100%) !important;
-            color: #ffffff !important;
-            text-decoration: none !important;
-            border-color: #4338ca !important;
-        }
-        
+
+        a.button:link,
+        a.button:visited,
+        a.button:hover,
+        a.button:active { color: #ffffff !important; text-decoration: none !important; }
+
+        .button:hover { background-color: #DB4A22 !important; } /* coral-5 */
+
+        .button.secondary,
         .button-secondary {
-            background: #f3f4f6;
-            color: #374151;
-            border: 1px solid #d1d5db;
-            box-shadow: none;
+            background-color: #ffffff !important;
+            color: #3E362B !important;
+            border: 1px solid #C7B79C !important;  /* border-strong / sand-4 */
         }
-        
-        .button-secondary:hover {
-            background: #e5e7eb;
-            color: #111827;
-            transform: none;
-        }
-        
-        .highlight-box {
-            background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
-            border-left: 4px solid #3b82f6;
-            padding: 20px;
-            margin: 24px 0;
-            border-radius: 0 8px 8px 0;
-        }
-        
-        .highlight-box h4 {
-            color: #1e40af;
-            margin: 0 0 12px 0;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        
-        .highlight-box ul {
-            margin: 0;
-            padding-left: 20px;
-            color: #1e40af;
-        }
-        
-        .highlight-box li {
-            margin: 8px 0;
-        }
-        
-        .info-box {
-            background-color: #f9fafb;
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 24px 0;
-        }
-        
-        .token-info {
-            background-color: #f3f4f6;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            padding: 16px;
-            margin: 24px 0;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+
+        .button.secondary:hover,
+        .button-secondary:hover { background-color: #F4EEE3 !important; color: #241F18 !important; }
+
+        /* ---------------- Inline link ---------------- */
+        a { color: #B93A17; text-decoration: none; }   /* coral-6-ish link */
+
+        .alt-link {
             font-size: 13px;
-            word-break: break-all;
-            line-height: 1.4;
+            line-height: 1.6;
+            color: #82725B;
+            margin: 22px 0 0;
         }
-        
-        .url-box {
-            background-color: #f8fafc;
-            border: 1px solid #e2e8f0;
-            padding: 12px;
-            border-radius: 6px;
-            word-break: break-all;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+        .alt-link a { color: #B93A17; text-decoration: none; word-break: break-all; }
+
+        /* ---------------- Boxes ---------------- */
+        .note-box {
+            display: block;
+            margin: 22px 0 0;
+            padding: 12px 14px;
+            background: #F4EEE3;
+            border-radius: 12px;
             font-size: 13px;
-            margin: 16px 0;
-        }
-        
-        .footer {
-            background-color: #f9fafb;
-            padding: 32px;
-            text-align: center;
-            border-top: 1px solid #e5e7eb;
-        }
-        
-        .footer-content {
-            max-width: 400px;
-            margin: 0 auto;
-        }
-        
-        .footer p {
-            margin: 0 0 12px 0;
-            font-size: 14px;
-            color: #6b7280;
             line-height: 1.5;
+            color: #5F5343;             /* sand-7 */
         }
-        
-        .footer .company-name {
-            font-weight: 600;
-            color: #374151;
+
+        .info-box {
+            background-color: #FBF8F3;   /* sand-0 */
+            border: 1px solid #EAE1D2;
+            border-radius: 14px;
+            padding: 18px;
+            margin: 22px 0 0;
         }
-        
-        .footer .links {
-            margin: 20px 0;
+
+        .highlight-box {
+            background: #FFF1EC;         /* coral-0 */
+            border: 1px solid #FFD8C9;   /* coral-1 */
+            border-radius: 14px;
+            padding: 18px;
+            margin: 22px 0 0;
         }
-        
-        .footer .links a {
-            color: #4f46e5;
-            text-decoration: none;
-            margin: 0 12px;
-            font-size: 14px;
+        .highlight-box h4 {
+            font-family: 'Hubot Sans', Arial, sans-serif;
+            color: #8F2C12;             /* coral-7 */
+            margin: 0 0 10px;
+            font-size: 15px;
+            font-weight: 800;
         }
-        
-        .footer .links a:hover {
-            text-decoration: underline;
+        .highlight-box ul { margin: 0; padding-left: 20px; color: #5F5343; }
+        .highlight-box li { margin: 6px 0; font-size: 14px; line-height: 1.5; }
+
+        .warning-box {
+            background: #FFFBE0;         /* lemon-0 */
+            border: 1px solid #FFF0A8;   /* lemon-1 */
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin: 22px 0 0;
         }
-        
-        .social-links {
-            margin: 16px 0;
+        .warning-box p { margin: 0; font-size: 14px; line-height: 1.5; color: #8F6B03; } /* lemon-6 */
+
+        .url-box {
+            background-color: #FBF8F3;
+            border: 1px solid #EAE1D2;
+            padding: 12px 14px;
+            border-radius: 12px;
+            word-break: break-all;
+            font-family: 'Mona Sans Mono', 'SF Mono', Monaco, monospace;
+            font-size: 13px;
+            color: #5F5343;
+            margin: 12px 0 0;
         }
-        
-        .social-links a {
-            display: inline-block;
-            margin: 0 8px;
-            color: #9ca3af;
-            text-decoration: none;
-        }
-        
+
+        .mono { font-family: 'Mona Sans Mono', 'SF Mono', Monaco, monospace; }
+
         .divider {
             border: none;
-            border-top: 1px solid #e5e7eb;
-            margin: 24px 0;
+            border-top: 1px solid #F4EEE3;
+            margin: 22px 0;
         }
-        
-        /* Responsive Design */
+
+        .fine-print {
+            font-size: 13px;
+            line-height: 1.55;
+            color: #A6957A;             /* text-subtle / sand-5 */
+            margin: 18px 0 0;
+        }
+
+        /* ---------------- Footer ---------------- */
+        .footer {
+            padding: 24px 40px 28px;
+            background: #FBF8F3;
+            border-top: 1px solid #EFE7D9;
+        }
+        .footer-cols { width: 100%; border-collapse: collapse; }
+        .footer-brand {
+            font-family: 'Hubot Sans', Arial, sans-serif;
+            font-weight: 800;
+            font-size: 14px;
+            color: #5F5343;
+        }
+        .footer-address {
+            font-size: 12px;
+            color: #A6957A;
+            margin-top: 5px;
+            line-height: 1.6;
+        }
+        .footer-links { text-align: right; font-size: 13px; }
+        .footer-links a {
+            color: #82725B;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 7px;
+        }
+        .footer-links a:last-child { margin-bottom: 0; }
+        .footer-divider { height: 1px; background: #EFE7D9; margin: 16px 0 12px; }
+        .footer-reason {
+            font-size: 12px;
+            color: #A6957A;
+            margin: 0;
+            line-height: 1.6;
+        }
+        .footer-reason a { color: #82725B; text-decoration: underline; }
+
+        /* ---------------- Responsive ---------------- */
         @media (max-width: 600px) {
-            body {
-                margin: 0;
-                padding: 0;
-            }
-            
-            .email-container {
-                margin: 0;
-                border-radius: 0;
-            }
-            
-            .header {
-                padding: 24px 20px;
-            }
-            
-            .content {
-                padding: 32px 20px;
-            }
-            
-            .footer {
-                padding: 24px 20px;
-            }
-            
-            .button {
-                display: block;
-                text-align: center;
-                margin: 20px 0;
-            }
+            .email-outer { padding: 0; }
+            .email-container { border-radius: 0; border-left: none; border-right: none; }
+            .header { padding: 28px 24px 20px; }
+            .content { padding: 28px 24px 26px; }
+            .footer { padding: 22px 24px 26px; }
+            .button { display: block; text-align: center; }
+            .footer-links { text-align: left; margin-top: 14px; }
         }
     </style>
 </head>
 <body>
-    <div class="email-container">
-        {{EMAIL_CONTENT}}
+    <div class="email-outer">
+        <div class="email-container">
+            {{EMAIL_CONTENT}}
+        </div>
     </div>
 </body>
-</html> 
+</html>

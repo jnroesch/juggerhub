@@ -27,11 +27,12 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var variables = new Dictionary<string, object>
         {
-            ["EMAIL_TITLE"] = "Reset Your Password - JuggerHub",
+            ["EMAIL_TITLE"] = "Reset your JuggerHub password",
             ["RESET_URL"] = resetUrl,
             ["RESET_TOKEN"] = resetToken,
             ["USER_EMAIL"] = userEmail,
-            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")
+            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com"),
+            ["FOOTER_REASON"] = "You're getting this because a password reset was requested for your account."
         };
 
         return await GenerateEmailAsync("password-reset", variables);
@@ -42,6 +43,7 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var variables = new Dictionary<string, object>
         {
+            {"EMAIL_TITLE", $"{inviterName} invited you to join {organizationName}"},
             {"RECIPIENT_NAME", recipientName},
             {"INVITER_NAME", inviterName},
             {"INVITER_EMAIL", inviterEmail},
@@ -49,7 +51,8 @@ public class EmailTemplateService : IEmailTemplateService
             {"INVITATION_URL", invitationUrl},
             {"USER_ROLE", role},
             {"EXPIRATION_DATE", expirationDate.ToString("MMMM dd, yyyy")},
-            {"EXPIRATION_TIME", expirationDate.ToString("HH:mm")}
+            {"EXPIRATION_TIME", expirationDate.ToString("HH:mm")},
+            {"FOOTER_REASON", $"You're getting this because {inviterName} invited you to their team on JuggerHub."}
         };
 
         return await GenerateEmailAsync("invitation", variables);
@@ -60,9 +63,12 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var variables = new Dictionary<string, object>
         {
+            {"EMAIL_TITLE", $"Your JuggerHub {planName} plan is active"},
             {"RECIPIENT_NAME", recipientName},
             {"PLAN_NAME", planName},
-            {"PLAN_FEATURES", string.Join("<br/>", features.Select(f => $"• {f}"))}
+            {"PLAN_FEATURES", string.Join("<br/>", features.Select(f => $"• {f}"))},
+            {"DASHBOARD_URL", GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")},
+            {"FOOTER_REASON", $"You're getting this because you subscribed to JuggerHub {planName}."}
         };
 
         return await GenerateEmailAsync("subscription-welcome", variables);
@@ -73,9 +79,11 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var variables = new Dictionary<string, object>
         {
+            {"EMAIL_TITLE", "Confirm your email to finish signing up"},
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
-            {"VERIFICATION_URL", verificationUrl}
+            {"VERIFICATION_URL", verificationUrl},
+            {"FOOTER_REASON", "You're getting this because someone signed up for JuggerHub with this email address."}
         };
 
         return await GenerateEmailAsync("email-verification", variables);
@@ -86,11 +94,13 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var variables = new Dictionary<string, object>
         {
+            {"EMAIL_TITLE", "Welcome to JuggerHub"},
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
             {"COMPANY_NAME", companyName},
             {"DASHBOARD_URL", GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")},
-            {"CREATED_DATE", createdDate.ToString("MMMM dd, yyyy")}
+            {"CREATED_DATE", createdDate.ToString("MMMM dd, yyyy")},
+            {"FOOTER_REASON", "You're getting this because you created a JuggerHub account."}
         };
 
         return await GenerateEmailAsync("welcome-email", variables);
@@ -101,12 +111,14 @@ public class EmailTemplateService : IEmailTemplateService
     {
         var variables = new Dictionary<string, object>
         {
+            ["EMAIL_TITLE"] = "Your JuggerHub password was changed",
             ["RECIPIENT_NAME"] = recipientName,
             ["RECIPIENT_EMAIL"] = recipientEmail,
             ["CHANGE_DATE"] = changeDate.ToString("MMMM dd, yyyy"),
             ["CHANGE_TIME"] = changeDate.ToString("HH:mm:ss UTC"),
             ["IP_ADDRESS"] = ipAddress,
-            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")
+            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com"),
+            ["FOOTER_REASON"] = "You're getting this because your JuggerHub password was changed."
         };
 
         return await GenerateEmailAsync("password-change-notification", variables);

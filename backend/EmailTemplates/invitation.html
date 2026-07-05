@@ -1,42 +1,44 @@
 <div class="content">
-    <h1>You're Invited to Join {{ORGANIZATION_NAME}}</h1>
-    
-    <p>Hello,</p>
-    
-    <p><strong>{{INVITER_NAME}}</strong> ({{INVITER_EMAIL}}) has invited you to join the <strong>{{ORGANIZATION_NAME}}</strong> organization on JuggerHub as a <strong>{{USER_ROLE}}</strong>.</p>
-    
-    <div class="highlight-box">
-        <h4>🎉 What you'll get access to:</h4>
-        <ul>
-            <li>Professional template management tools</li>
-            <li>Collaborative workspace features</li>
-            <li>Advanced template editor with multiple syntax support</li>
-            <li>Secure template sharing and version control</li>
-        </ul>
+    <p class="eyebrow">Team invite</p>
+    <h1>You're invited to join {{ORGANIZATION_NAME}}.</h1>
+
+    <p>{{INVITER_NAME}} thinks you'd be a great fit for the crew. Accept the invite to see training times, chat with teammates, and RSVP to your first match.</p>
+
+    <!-- Team card -->
+    <div style="border:1px solid #EAE1D2;border-radius:16px;overflow:hidden;margin:22px 0 0;">
+        <div style="height:6px;background:linear-gradient(105deg,#F5623A,#7A9B87);line-height:6px;font-size:0;">&nbsp;</div>
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
+            <tr>
+                <td valign="middle" style="padding:16px;width:48px;">
+                    <div style="width:48px;height:48px;border-radius:12px;background:#DBE6DE;text-align:center;line-height:48px;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B5145" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                </td>
+                <td valign="middle" style="padding:16px 16px 16px 0;">
+                    <div style="font-family:'Hubot Sans',Arial,sans-serif;font-weight:800;font-size:18px;color:#241F18;">{{ORGANIZATION_NAME}}</div>
+                    <div style="margin-top:6px;">
+                        <span style="display:inline-block;padding:3px 10px;background:#EEF3EF;color:#3B5145;font-size:12px;font-weight:600;border-radius:999px;">{{USER_ROLE}}</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
-    
-    <p>Click the button below to accept the invitation and create your account:</p>
-    
-    <p style="text-align: center;">
-        <a href="{{INVITATION_URL}}" class="button">Accept Invitation</a>
+
+    <p style="margin:24px 0 4px;">
+        <a href="{{INVITATION_URL}}" class="button">Accept invite</a>
     </p>
-    
-    <div class="info-box">
-        <p><strong>⏰ Invitation Details:</strong></p>
-        <p>
-            <strong>Organization:</strong> {{ORGANIZATION_NAME}}<br>
-            <strong>Your Role:</strong> {{USER_ROLE}}<br>
-            <strong>Invited By:</strong> {{INVITER_NAME}}<br>
-            <strong>Expires:</strong> {{EXPIRATION_DATE}} at {{EXPIRATION_TIME}} UTC
-        </p>
-    </div>
-    
-    <p>If you can't click the button above, copy and paste this URL into your browser:</p>
-    <div class="url-box">{{INVITATION_URL}}</div>
-    
+
+    <p class="alt-link">
+        Button not working? Paste this link into your browser:<br>
+        <a href="{{INVITATION_URL}}">{{INVITATION_URL}}</a>
+    </p>
+
     <hr class="divider">
-    
-    <p style="color: #6b7280; font-size: 14px;">
-        Don't want to join this organization? You can simply ignore this email, and the invitation will expire automatically.
-    </p>
-</div> 
+
+    <p class="fine-print">This invite expires on {{EXPIRATION_DATE}} at {{EXPIRATION_TIME}} UTC. Don't know {{INVITER_NAME}}? You can safely ignore this email.</p>
+</div>
