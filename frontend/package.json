@@ -2,7 +2,11 @@
   "name": "juggerhub-frontend",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "lint": "nx run-many -t lint",
+    "build": "nx build web --configuration=production",
+    "test": "nx test web --watch=false"
+  },
   "private": true,
   "dependencies": {
     "@angular/common": "21.2.9",

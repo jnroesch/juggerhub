@@ -12,6 +12,12 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment: production
+    # workflow_run fires on completion regardless of result; only deploy when the
+    # Build workflow actually succeeded. Manual runs (workflow_dispatch) have no
+    # workflow_run payload, so conclusion is empty — allow those through too.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
 
     steps:
       - uses: actions/checkout@v4
