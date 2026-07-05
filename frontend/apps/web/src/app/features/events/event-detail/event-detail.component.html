@@ -121,11 +121,11 @@
       @if (d.viewer.isAdmin) {
         @if (menuOpen()) {
           <div class="mb-xs overflow-hidden rounded-md border border-border bg-surface-card" data-testid="manage-menu-panel">
-            <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Edit details</a>
             <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Manage participants &amp; waitlist</a>
+            <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Edit details</a>
             <a [routerLink]="['/events', d.id, 'contacts']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Manage contacts</a>
             <a [routerLink]="['/events', d.id, 'admins']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Invite co-admins</a>
-            <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-danger hover:bg-surface-sunken">Cancel event</a>
+            <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-danger hover:bg-surface-sunken">Cancel event</a>
           </div>
         }
         <button type="button" (click)="menuOpen.set(!menuOpen())" data-testid="manage-menu"

@@ -50,6 +50,11 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./features/events/event-manage/event-manage.component').then((m) => m.EventManageComponent),
       },
       {
+        path: 'events/:id/edit',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/events/event-edit/event-edit.component').then((m) => m.EventEditComponent),
+      },
+      {
         path: 'events/:id/contacts',
         canActivate: [authGuard],
         loadComponent: () => import('./features/events/event-contacts/event-contacts.component').then((m) => m.EventContactsComponent),

@@ -104,8 +104,8 @@ test('create via wizard → view → sign up (2nd user) → post news → cancel
   await partPage.getByTestId('join').click();
   await expect(partPage.getByTestId('my-status')).toBeVisible();
 
-  // 5. Organiser cancels the event from the manage danger zone.
-  await orgPage.goto(`${toPath(eventUrl)}/manage`);
+  // 5. Organiser cancels the event from the settings danger zone.
+  await orgPage.goto(`${toPath(eventUrl)}/edit`);
   await orgPage.getByTestId('cancel-open').click();
   await orgPage.getByTestId('cancel-confirm').click();
   await expect(orgPage.getByTestId('event-cancelled')).toBeVisible();
