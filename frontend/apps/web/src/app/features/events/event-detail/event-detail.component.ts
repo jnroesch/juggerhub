@@ -1,22 +1,33 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { EventContact, EventDetail, EventNews, Signup } from '../../../core/models/event.models';
 import { EventService } from '../../../core/services/event.service';
 import { problemDetail } from '../../../core/utils/problem';
+import { EventContactsListComponent } from './components/contacts-list.component';
+import { EventJoinActionsComponent } from './components/join-actions.component';
+import { EventNewsFeedComponent } from './components/news-feed.component';
+import { EventParticipantGroupsComponent } from './components/participant-groups.component';
 
 /**
  * US2/US3/US5 — the public event page. Anyone can read the details, the three
  * participant groups, news, and contacts; a signed-in visitor can sign up / join the
  * waiting list / withdraw; an admin gets an in-page toolkit (manage, contacts,
- * co-admins, edit) and can post news. A cancelled event stays readable, marked
- * cancelled, with no sign-up actions. Authorization is enforced server-side.
+ * co-admins) and can post news. A cancelled event stays readable, marked cancelled,
+ * with no sign-up actions. Orchestrates the participant-groups / news-feed /
+ * contacts-list / join-actions child components; authorization is enforced server-side.
  */
 @Component({
   selector: 'jh-event-detail',
-  imports: [RouterLink, DatePipe, FormsModule],
+  imports: [
+    RouterLink,
+    DatePipe,
+    EventParticipantGroupsComponent,
+    EventNewsFeedComponent,
+    EventContactsListComponent,
+    EventJoinActionsComponent,
+  ],
   templateUrl: './event-detail.component.html',
   styleUrl: './event-detail.component.css',
 })
@@ -37,16 +48,9 @@ export class EventDetailComponent implements OnInit {
   protected readonly acting = signal(false);
   protected readonly actionError = signal<string | null>(null);
 
-  protected readonly selectedTeamId = signal<string>('');
-  protected readonly newsBody = signal('');
-
   private id = '';
 
   protected readonly cancelled = computed(() => this.detail()?.status === 'Cancelled');
-  protected readonly canJoin = computed(() => {
-    const d = this.detail();
-    return !!d && d.status === 'Published' && d.viewer.isAuthenticated && !d.viewer.isAdmin && d.viewer.mySignupStatus === null;
-  });
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -59,7 +63,6 @@ export class EventDetailComponent implements OnInit {
     this.events.getEvent(this.id).subscribe({
       next: (d) => {
         this.detail.set(d);
-        this.selectedTeamId.set(d.viewer.teamsICanEnter[0]?.teamId ?? '');
         this.loadLists();
         this.loading.set(false);
       },
@@ -86,20 +89,10 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
-  protected participantLabel(s: Signup): string {
-    return s.teamName ?? s.userDisplayName ?? 'A participant';
-  }
-
-  protected spotsLabel(d: EventDetail): string {
-    return this.events.spotsLabel(d);
-  }
-
-  protected join(): void {
-    const d = this.detail();
-    if (!d || this.acting()) {
+  protected join(teamId: string | null): void {
+    if (this.acting()) {
       return;
     }
-    const teamId = d.participantMode === 'Teams' ? this.selectedTeamId() : null;
     this.acting.set(true);
     this.actionError.set(null);
     this.events.signup(this.id, teamId).subscribe({
@@ -112,12 +105,12 @@ export class EventDetailComponent implements OnInit {
   }
 
   protected withdraw(): void {
-    const d = this.detail();
-    if (!d?.viewer.mySignupId || this.acting()) {
+    const signupId = this.detail()?.viewer.mySignupId;
+    if (!signupId || this.acting()) {
       return;
     }
     this.acting.set(true);
-    this.events.withdraw(this.id, d.viewer.mySignupId).subscribe({
+    this.events.withdraw(this.id, signupId).subscribe({
       next: () => this.reload(),
       error: (err) => {
         this.acting.set(false);
@@ -126,16 +119,14 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
-  protected postNews(): void {
-    const body = this.newsBody().trim();
-    if (!body || this.acting()) {
+  protected postNews(body: string): void {
+    if (!body.trim() || this.acting()) {
       return;
     }
     this.acting.set(true);
     this.events.postNews(this.id, body).subscribe({
       next: (post) => {
         this.news.update((n) => [post, ...n]);
-        this.newsBody.set('');
         this.acting.set(false);
       },
       error: (err) => {
@@ -145,15 +136,13 @@ export class EventDetailComponent implements OnInit {
     });
   }
 
+  protected openProfile(handle: string): void {
+    this.router.navigate(['/u', handle]);
+  }
+
   private reload(): void {
     this.acting.set(false);
     this.actionError.set(null);
     this.load();
-  }
-
-  protected openProfile(handle: string | null): void {
-    if (handle) {
-      this.router.navigate(['/u', handle]);
-    }
   }
 }

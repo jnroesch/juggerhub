@@ -16,22 +16,27 @@
     } @else {
       <ul class="mt-md space-y-xs">
         @for (c of contacts(); track c.id) {
-          <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
+          <li class="flex items-center justify-between rounded-md border bg-surface-card px-md py-sm"
+            [class]="editingId() === c.id ? 'border-brand' : 'border-border'">
             <span class="text-body-sm">
               <span class="font-semibold text-body">{{ c.name }}</span> <span class="text-subtle">· {{ c.role }}</span>
               <br />
               @if (c.email) { <span class="text-subtle">{{ c.email }}</span> }
               @if (c.phone) { <span class="text-subtle"> {{ c.phone }}</span> }
             </span>
-            <button type="button" (click)="remove(c.id)" data-testid="contact-remove"
-              class="text-body-sm font-semibold text-danger hover:underline">Remove</button>
+            <span class="flex gap-sm">
+              <button type="button" (click)="startEdit(c)" data-testid="contact-edit"
+                class="text-body-sm font-semibold text-subtle hover:text-text">Edit</button>
+              <button type="button" (click)="remove(c.id)" data-testid="contact-remove"
+                class="text-body-sm font-semibold text-danger hover:underline">Remove</button>
+            </span>
           </li>
         }
       </ul>
     }
 
-    <form class="mt-lg space-y-md rounded-md border border-border bg-surface-card px-md py-md" [formGroup]="form" (ngSubmit)="add()">
-      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Add a contact</h2>
+    <form class="mt-lg space-y-md rounded-md border border-border bg-surface-card px-md py-md" [formGroup]="form" (ngSubmit)="save()">
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ editingId() ? 'Edit contact' : 'Add a contact' }}</h2>
       <input type="text" formControlName="name" placeholder="Name" data-testid="contact-name"
         class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
       <input type="text" formControlName="role" placeholder="Role — e.g. Location host" data-testid="contact-role"
@@ -44,8 +49,14 @@
       </div>
       <p class="text-body-sm text-faint">Add a phone, an email, or both.</p>
       @if (error()) { <p class="text-body-sm text-danger" role="alert">{{ error() }}</p> }
-      <button type="submit" [disabled]="form.invalid || saving()" data-testid="contact-add"
-        class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">{{ saving() ? 'Adding…' : 'Add contact' }}</button>
+      <div class="flex items-center gap-sm">
+        <button type="submit" [disabled]="form.invalid || saving()" data-testid="contact-add"
+          class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">{{ saving() ? 'Saving…' : editingId() ? 'Save changes' : 'Add contact' }}</button>
+        @if (editingId()) {
+          <button type="button" (click)="cancelEdit()" data-testid="contact-cancel-edit"
+            class="text-body-sm font-semibold text-subtle hover:text-text">Cancel</button>
+        }
+      </div>
     </form>
   }
 </section>

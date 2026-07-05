@@ -1,0 +1,25 @@
+<section data-testid="participant-groups">
+  <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Who's taking part</h2>
+  <div class="mt-xs grid grid-cols-1 gap-md sm:grid-cols-3">
+    @for (group of groups(); track group.title) {
+      <div class="rounded-md border border-border bg-surface-card px-md py-sm">
+        <p class="text-body-sm font-semibold text-body">{{ group.title }} ({{ group.items.length }})</p>
+        @if (group.items.length === 0) {
+          <p class="mt-xs text-body-sm text-faint">None yet.</p>
+        } @else {
+          <ul class="mt-xs space-y-1">
+            @for (p of group.items; track p.id) {
+              <li class="text-body-sm text-body">
+                @if (p.userHandle) {
+                  <button type="button" (click)="openProfile.emit(p.userHandle)" class="hover:text-brand hover:underline">{{ label(p) }}</button>
+                } @else {
+                  {{ label(p) }}
+                }
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    }
+  </div>
+</section>

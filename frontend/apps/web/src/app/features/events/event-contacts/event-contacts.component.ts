@@ -26,6 +26,8 @@ export class EventContactsComponent implements OnInit {
   protected readonly forbidden = signal(false);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
+  /** The contact being edited (null = the form adds a new one). */
+  protected readonly editingId = signal<string | null>(null);
 
   private id = '';
 
@@ -60,7 +62,21 @@ export class EventContactsComponent implements OnInit {
     this.events.getContacts(this.id).subscribe((r) => this.contacts.set(r.items));
   }
 
-  protected add(): void {
+  /** Load a contact into the form to edit it. */
+  protected startEdit(c: EventContact): void {
+    this.editingId.set(c.id);
+    this.error.set(null);
+    this.form.setValue({ name: c.name, role: c.role, phone: c.phone ?? '', email: c.email ?? '' });
+  }
+
+  protected cancelEdit(): void {
+    this.editingId.set(null);
+    this.error.set(null);
+    this.form.reset();
+  }
+
+  /** Add a new contact, or update the one being edited. */
+  protected save(): void {
     const v = this.form.getRawValue();
     if (this.form.invalid || this.saving()) {
       return;
@@ -71,27 +87,36 @@ export class EventContactsComponent implements OnInit {
     }
     this.saving.set(true);
     this.error.set(null);
-    this.events
-      .addContact(this.id, {
-        name: v.name.trim(),
-        role: v.role.trim(),
-        phone: v.phone.trim() || null,
-        email: v.email.trim() || null,
-      })
-      .subscribe({
-        next: (c) => {
-          this.contacts.update((list) => [...list, c]);
-          this.form.reset();
-          this.saving.set(false);
-        },
-        error: (err) => {
-          this.saving.set(false);
-          this.error.set(problemDetail(err));
-        },
-      });
+
+    const request = {
+      name: v.name.trim(),
+      role: v.role.trim(),
+      phone: v.phone.trim() || null,
+      email: v.email.trim() || null,
+    };
+    const id = this.editingId();
+    const request$ = id
+      ? this.events.updateContact(this.id, id, request)
+      : this.events.addContact(this.id, request);
+
+    request$.subscribe({
+      next: (c) => {
+        this.contacts.update((list) => (id ? list.map((x) => (x.id === id ? c : x)) : [...list, c]));
+        this.editingId.set(null);
+        this.form.reset();
+        this.saving.set(false);
+      },
+      error: (err) => {
+        this.saving.set(false);
+        this.error.set(problemDetail(err));
+      },
+    });
   }
 
   protected remove(contactId: string): void {
+    if (this.editingId() === contactId) {
+      this.cancelEdit();
+    }
     this.events.removeContact(this.id, contactId).subscribe({
       next: () => this.contacts.update((list) => list.filter((c) => c.id !== contactId)),
       error: (err) => this.error.set(problemDetail(err)),

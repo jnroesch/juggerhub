@@ -141,14 +141,14 @@ Event delete cascades Signups, Admins, Invitations, Contacts, News. `EventPartic
 - **`EditEventRequest`** — editable subset (name, description, dates, location, fee, type); **not** participantMode when signups exist; limit ≥ occupied (server-validated).
 - **`SignupRequest`** — `teamId?` (required for teams-only; omitted for individuals-only — subject is the caller).
 - **`CreateContactRequest`** / **update** — name, role, phone?, email?.
-- **`CreateTargetedInviteRequest`** — `targetUserId`.
+- **`CreateEventInviteRequest`** — `targetUserId`.
 - **`EventDetailDto` / `EventPublicDto`** — public event fields + `openSpots`/`isFull` + fee block; `EventPublicDto` is the anonymous projection (identical public fields — no admin internals).
 - **`ViewerRelationDto`** — for a signed-in viewer: `isAdmin`, `mySignupStatus?` (joined/awaiting/waitlisted/none), `teamsICanEnter[]` (teams-only). Anonymous → all false/empty.
 - **`SignupDto`** — id, subject (user handle/displayName **or** team slug/name), status, joinedAt (`CreatedDate`).
 - **`EventContactDto`** — id, name, role, phone?, email?.
 - **`EventNewsDto`** — id, author displayName, body, createdDate.
 - **`EventAdminDto`** — userId, handle, displayName.
-- **`EventInvitationDto`** / **`InviteLinkDto`** / **`InvitableUserDto`** / **`InvitePreviewDto`** — mirror the 005 shapes (invitation list item, active-link url+expiry, user-search row with `UserRelation`, anonymous accept preview + `InviteState`).
+- **`EventInvitationDto`** / **`EventInviteLinkDto`** / **`EventInvitableUserDto`** / **`EventInvitePreviewDto`** — mirror the 005 shapes (invitation list item, active-link url+expiry, user-search row with `UserRelation`, anonymous accept preview + `InviteState`).
 - **`EventSummaryDto`** — id, name, type, startsAt, locationKind, city/virtual, isFull — reserved for a future events index (not surfaced this iteration).
 
 ## Migration — `AddEvents`

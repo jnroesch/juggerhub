@@ -249,7 +249,7 @@ paths:
       security: [{ cookieAuth: [] }]
       parameters: [{ $ref: '#/components/parameters/EventId' }]
       responses:
-        '200': { description: OK (null when none), content: { application/json: { schema: { $ref: '#/components/schemas/InviteLinkDto' } } } }
+        '200': { description: OK (null when none), content: { application/json: { schema: { $ref: '#/components/schemas/EventInviteLinkDto' } } } }
         '403': { $ref: '#/components/responses/Problem' }
     post:
       tags: [Admin invitations]
@@ -257,7 +257,7 @@ paths:
       security: [{ cookieAuth: [] }]
       parameters: [{ $ref: '#/components/parameters/EventId' }]
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/InviteLinkDto' } } } }
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EventInviteLinkDto' } } } }
         '403': { $ref: '#/components/responses/Problem' }
 
   /events/{id}/invitations:
@@ -318,7 +318,7 @@ paths:
       summary: Anonymous co-admin invite preview (public event fields + inviter + state).
       parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
       responses:
-        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/InvitePreviewDto' } } } }
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EventInvitePreviewDto' } } } }
         '404': { $ref: '#/components/responses/Problem' }
 
   /event-invitations/{token}/accept:
@@ -502,7 +502,7 @@ components:
         expiresDate: { type: string, format: date-time }
         status: { type: string, enum: [Pending, Accepted, Declined, Revoked] }
 
-    InviteLinkDto:
+    EventInviteLinkDto:
       type: object
       nullable: true
       properties:
@@ -510,7 +510,7 @@ components:
         token: { type: string }
         expiresDate: { type: string, format: date-time }
 
-    InvitableUserDto:
+    EventInvitableUserDto:
       type: object
       properties:
         userId: { type: string, format: uuid }
@@ -519,7 +519,7 @@ components:
         hometown: { type: string, nullable: true }
         relation: { type: string, enum: [Admin, Invited, Invitable] }
 
-    InvitePreviewDto:
+    EventInvitePreviewDto:
       type: object
       properties:
         eventId: { type: string, format: uuid }
