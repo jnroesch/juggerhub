@@ -85,9 +85,9 @@ test('create via wizard → view → sign up (2nd user) → post news → cancel
   await orgPage.getByTestId('event-next').click(); // → review
   await orgPage.getByTestId('event-publish').click();
 
-  // 2. Lands on the event page as admin.
+  // 2. Lands on the event page as admin (the Manage-event menu is present).
   await expect(orgPage.getByTestId('event-detail')).toContainText('E2E Open Day');
-  await expect(orgPage.getByTestId('admin-toolkit')).toBeVisible();
+  await expect(orgPage.getByTestId('manage-menu')).toBeVisible();
   const eventUrl = orgPage.url();
 
   // 3. Organiser posts a news update.

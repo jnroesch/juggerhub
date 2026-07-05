@@ -1,39 +1,42 @@
-<section class="rounded-md border border-border bg-surface-card px-md py-md" data-testid="join-actions">
-  <p class="text-body-sm font-semibold text-body" data-testid="spots-label">{{ spotsLabel() }}</p>
-  <p class="text-body-sm text-subtle">{{ detail().participantMode === 'Teams' ? 'Teams' : 'Individuals' }} · {{ detail().occupiedSpots }}/{{ detail().participationLimit }}</p>
-
+<div data-testid="join-actions" class="space-y-sm">
   @if (!cancelled()) {
+    @if (canJoin() && detail().isFull) {
+      <div class="rounded-md border border-dashed border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg">
+        This event is full. You can still join the waiting list — an admin promotes people manually as spots open. You're not charged unless a spot opens.
+      </div>
+    }
+
     @if (!detail().viewer.isAuthenticated) {
-      <a routerLink="/sign-in" class="mt-sm block rounded-md bg-brand px-lg py-sm text-center text-body-md font-semibold text-on-accent hover:bg-brand-hover">Sign in to join</a>
+      <a routerLink="/sign-in" class="block rounded-md bg-brand px-lg py-md text-center text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral">Sign in to join</a>
     } @else if (detail().viewer.mySignupStatus) {
-      <p class="mt-sm rounded-md bg-surface-sunken px-md py-sm text-center text-body-sm font-semibold text-body" data-testid="my-status">
-        {{ detail().viewer.mySignupStatus === 'Joined' ? "You're in" : detail().viewer.mySignupStatus === 'AwaitingApproval' ? 'Awaiting approval' : 'On the waiting list' }}
-      </p>
-      <button type="button" (click)="withdraw.emit()" [disabled]="acting()" data-testid="withdraw"
-        class="mt-xs w-full text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Withdraw</button>
+      <div class="rounded-md bg-surface-sunken px-md py-sm text-center" data-testid="my-status">
+        <p class="text-body-sm font-semibold text-body">{{ statusLabel() }}</p>
+        <button type="button" (click)="withdraw.emit()" [disabled]="acting()" data-testid="withdraw"
+          class="mt-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Withdraw</button>
+      </div>
     } @else if (canJoin()) {
       @if (detail().participantMode === 'Teams') {
         @if (teamOptions().length === 0) {
-          <p class="mt-sm text-body-sm text-faint">You need to administer a team to enter it.</p>
+          <p class="rounded-md bg-surface-sunken px-md py-sm text-center text-body-sm text-subtle">You need to administer a team to enter it.</p>
         } @else {
           @if (teamOptions().length > 1) {
             <select [ngModel]="selectedTeamId()" (ngModelChange)="pick($event)" data-testid="team-picker"
-              class="mt-sm w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand">
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand">
               @for (t of teamOptions(); track t.teamId) { <option [value]="t.teamId">{{ t.name }}</option> }
             </select>
           }
           <button type="button" (click)="emitJoin()" [disabled]="acting()" data-testid="join"
-            class="mt-sm w-full rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">
+            class="block w-full rounded-md bg-brand px-lg py-md text-center text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">
             {{ detail().isFull ? 'Join the waiting list' : 'Join with your team' }}
           </button>
         }
       } @else {
         <button type="button" (click)="emitJoin()" [disabled]="acting()" data-testid="join"
-          class="mt-sm w-full rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">
+          class="block w-full rounded-md bg-brand px-lg py-md text-center text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">
           {{ detail().isFull ? 'Join the waiting list' : 'Join' }}
         </button>
       }
     }
-    @if (actionError()) { <p class="mt-xs text-body-sm text-danger" role="alert">{{ actionError() }}</p> }
+    @if (actionError()) { <p class="text-body-sm text-danger" role="alert">{{ actionError() }}</p> }
   }
-</section>
+</div>

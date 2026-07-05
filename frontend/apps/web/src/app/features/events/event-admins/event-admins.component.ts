@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -27,6 +27,7 @@ import { problemDetail } from '../../../core/utils/problem';
 export class EventAdminsComponent implements OnInit {
   private readonly events = inject(EventService);
   private readonly route = inject(ActivatedRoute);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly detail = signal<EventDetail | null>(null);
   protected readonly admins = signal<EventAdmin[]>([]);
@@ -68,7 +69,7 @@ export class EventAdminsComponent implements OnInit {
         debounceTime(300),
         distinctUntilChanged(),
         switchMap((q) => (q.trim() ? this.events.searchUsers(this.id, q.trim()) : EMPTY)),
-        takeUntilDestroyed(),
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
         next: (r) => this.results.set(r.items),

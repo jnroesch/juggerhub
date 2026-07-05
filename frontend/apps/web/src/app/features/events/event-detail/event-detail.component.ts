@@ -48,9 +48,16 @@ export class EventDetailComponent implements OnInit {
   protected readonly acting = signal(false);
   protected readonly actionError = signal<string | null>(null);
 
+  protected readonly menuOpen = signal(false);
+
   private id = '';
 
   protected readonly cancelled = computed(() => this.detail()?.status === 'Cancelled');
+  /** Occupied-spots fill for the occupancy bar (0–100). */
+  protected readonly occupancyPct = computed(() => {
+    const d = this.detail();
+    return d && d.participationLimit > 0 ? Math.min(100, Math.round((d.occupiedSpots / d.participationLimit) * 100)) : 0;
+  });
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id') ?? '';

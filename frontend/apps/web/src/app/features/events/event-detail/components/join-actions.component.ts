@@ -4,9 +4,9 @@ import { RouterLink } from '@angular/router';
 import { EventDetail } from '../../../../core/models/event.models';
 
 /**
- * Sidebar sign-up actions: remaining-spots label, and — for a signed-in non-admin —
- * join / join-waitlist / withdraw, with a team picker for teams-only events. Emits the
- * chosen action; the parent performs the call and reloads. Cancelled events show no actions.
+ * The prominent bottom sign-up call to action: join / join-waitlist / withdraw for a
+ * signed-in non-admin, with a team picker for teams-only events and a full-state
+ * callout. Emits the chosen action; the parent performs the call and reloads.
  */
 @Component({
   selector: 'jh-event-join-actions',
@@ -33,10 +33,17 @@ export class EventJoinActionsComponent {
     return d.status === 'Published' && d.viewer.isAuthenticated && !d.viewer.isAdmin && d.viewer.mySignupStatus === null;
   });
 
-  protected readonly spotsLabel = computed(() => {
-    const d = this.detail();
-    const remaining = Math.max(d.participationLimit - d.occupiedSpots, 0);
-    return d.isFull ? 'Full' : `${remaining} of ${d.participationLimit} spots open`;
+  protected readonly statusLabel = computed(() => {
+    switch (this.detail().viewer.mySignupStatus) {
+      case 'Joined':
+        return "You're in";
+      case 'AwaitingApproval':
+        return 'Awaiting approval — pay to confirm your spot';
+      case 'Waitlisted':
+        return "On the waiting list — you're not charged unless a spot opens";
+      default:
+        return '';
+    }
   });
 
   protected pick(teamId: string): void {
