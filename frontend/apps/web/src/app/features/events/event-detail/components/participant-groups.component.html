@@ -1,0 +1,32 @@
+<section data-testid="participant-groups">
+  <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Who's taking part</h2>
+  <div class="mt-sm grid grid-cols-1 gap-md md:grid-cols-3">
+  @for (group of groups(); track group.title) {
+    <div>
+      <p class="text-body-sm font-semibold text-body">{{ group.title }} · {{ group.items.length }}</p>
+      @if (group.items.length === 0) {
+        <p class="mt-xs text-body-sm text-faint">{{ group.title === 'Waiting list' ? 'None waiting yet.' : 'None yet.' }}</p>
+      } @else {
+        <ul class="mt-xs space-y-xs">
+          @for (p of group.items; track p.id) {
+            <li class="flex items-center gap-sm rounded-md px-1 py-1">
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-body-sm font-semibold text-subtle">{{ initial(p) }}</span>
+              <span class="min-w-0 flex-1">
+                @if (p.userHandle) {
+                  <button type="button" (click)="openProfile.emit(p.userHandle)" class="block truncate text-body-sm font-semibold text-body hover:text-brand">{{ label(p) }}</button>
+                } @else {
+                  <span class="block truncate text-body-sm font-semibold text-body">{{ label(p) }}</span>
+                }
+                @if (secondary(p)) { <span class="block truncate text-body-sm text-subtle">{{ secondary(p) }}</span> }
+              </span>
+              @if (group.pending) {
+                <span class="shrink-0 rounded-full bg-info-bg px-xs py-0.5 text-eyebrow font-semibold uppercase tracking-[0.06em] text-info-fg">Pending</span>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+  </div>
+</section>

@@ -1,0 +1,19 @@
+<section data-testid="contacts-list">
+  <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Contacts</h2>
+  @if (contacts().length === 0) {
+    <p class="mt-xs text-body-sm text-faint">No contacts listed.</p>
+  } @else {
+    <ul class="mt-xs space-y-md">
+      @for (c of contacts(); track c.id) {
+        <li class="text-body-sm">
+          <p class="font-semibold text-body">{{ c.name }}</p>
+          <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ c.role }}</p>
+          <div class="mt-xs space-y-0.5">
+            @if (c.email) { <a [href]="'mailto:' + c.email" class="block break-all text-brand">{{ c.email }}</a> }
+            @if (c.phone) { <span class="block text-subtle">{{ c.phone }}</span> }
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</section>

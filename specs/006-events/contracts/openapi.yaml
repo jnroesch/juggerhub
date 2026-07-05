@@ -1,0 +1,543 @@
+openapi: 3.0.3
+info:
+  title: JuggerHub Events API
+  version: "1.0"
+  description: >
+    Events surface (feature 006). Public read of an event page + its lists;
+    authenticated sign-up; admin-only management. Design contract — keep in sync
+    with EventsController / EventInvitationsController. Auth is JWT in an httpOnly
+    cookie (bearer). Lists return PagedResult envelopes. Enums serialize as names.
+servers:
+  - url: /api/v1
+
+tags:
+  - name: Events
+  - name: Sign-ups
+  - name: Participant admin
+  - name: News
+  - name: Contacts
+  - name: Admins
+  - name: Admin invitations
+
+paths:
+  /events:
+    post:
+      tags: [Events]
+      summary: Create an event (authenticated). Creator becomes first admin.
+      security: [{ cookieAuth: [] }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateEventRequest' } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/EventDetailDto' } } } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}:
+    get:
+      tags: [Events]
+      summary: Public event detail (anonymous). Includes viewer relationship when authenticated.
+      parameters: [{ $ref: '#/components/parameters/EventId' }]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EventDetailDto' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+    patch:
+      tags: [Events]
+      summary: Edit event (admin). Mode locked once signups exist; limit not below occupied.
+      security: [{ cookieAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/EventId' }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/EditEventRequest' } } }
+      responses:
+        '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/EventDetailDto' } } } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/cancel:
+    post:
+      tags: [Events]
+      summary: Cancel event (admin). Irreversible; notifies joined + waiting by email.
+      security: [{ cookieAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/EventId' }]
+      responses:
+        '204': { description: Cancelled }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/participants:
+    get:
+      tags: [Sign-ups]
+      summary: List participants in a group (anonymous, paginated).
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - name: group
+          in: query
+          required: true
+          schema: { type: string, enum: [joined, awaiting, waitlist] }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PagedSignups' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/signup:
+    post:
+      tags: [Sign-ups]
+      summary: Sign up (authenticated). teamId required for teams-only events.
+      description: >
+        Routes by capacity/fee — free+open→Joined, paid+open→AwaitingApproval, full→Waitlisted.
+        Team entry requires the caller to administer teamId. Duplicate ⇒ 409. Cancelled/ended ⇒ 409.
+      security: [{ cookieAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/EventId' }]
+      requestBody:
+        content: { application/json: { schema: { $ref: '#/components/schemas/SignupRequest' } } }
+      responses:
+        '201': { description: Signed up (body shows resulting status), content: { application/json: { schema: { $ref: '#/components/schemas/SignupDto' } } } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/signup/{signupId}:
+    delete:
+      tags: [Sign-ups]
+      summary: Withdraw (participant / team admin) or remove (event admin). Never auto-promotes.
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { $ref: '#/components/parameters/SignupId' }
+      responses:
+        '204': { description: Removed }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/participants/{signupId}/approve:
+    post:
+      tags: [Participant admin]
+      summary: Approve a paid awaiting-approval signup (admin). Confirms payment → Joined.
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { $ref: '#/components/parameters/SignupId' }
+      responses:
+        '200': { description: Approved, content: { application/json: { schema: { $ref: '#/components/schemas/SignupDto' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/participants/{signupId}/promote:
+    post:
+      tags: [Participant admin]
+      summary: Promote a waitlist entry into an open spot (admin). Free→Joined, paid→AwaitingApproval.
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { $ref: '#/components/parameters/SignupId' }
+      responses:
+        '200': { description: Promoted, content: { application/json: { schema: { $ref: '#/components/schemas/SignupDto' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+        '409': { description: 'No open spot (would exceed limit)', content: { application/json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+
+  /events/{id}/news:
+    get:
+      tags: [News]
+      summary: Public news feed (anonymous, paginated, newest-first).
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PagedNews' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [News]
+      summary: Post a news update (admin).
+      security: [{ cookieAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/EventId' }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [body], properties: { body: { type: string, maxLength: 2000 } } } } }
+      responses:
+        '201': { description: Posted, content: { application/json: { schema: { $ref: '#/components/schemas/EventNewsDto' } } } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/contacts:
+    get:
+      tags: [Contacts]
+      summary: Public contacts list (anonymous, paginated).
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PagedContacts' } } } }
+    post:
+      tags: [Contacts]
+      summary: Add a contact (admin). Requires at least one of phone/email.
+      security: [{ cookieAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/EventId' }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateContactRequest' } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/EventContactDto' } } } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/contacts/{contactId}:
+    patch:
+      tags: [Contacts]
+      summary: Update a contact (admin).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { name: contactId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateContactRequest' } } }
+      responses:
+        '200': { description: Updated, content: { application/json: { schema: { $ref: '#/components/schemas/EventContactDto' } } } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+    delete:
+      tags: [Contacts]
+      summary: Remove a contact (admin).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { name: contactId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/admins:
+    get:
+      tags: [Admins]
+      summary: List event admins (admin, paginated).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PagedAdmins' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/admins/{userId}:
+    delete:
+      tags: [Admins]
+      summary: Remove an admin, or step down (self). Blocked if last admin.
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { name: userId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Removed }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { description: 'Last admin', content: { application/json: { schema: { $ref: '#/components/schemas/Problem' } } } }
+
+  /events/{id}/invitations/link:
+    get:
+      tags: [Admin invitations]
+      summary: Get the active co-admin invite link (admin).
+      security: [{ cookieAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/EventId' }]
+      responses:
+        '200': { description: OK (null when none), content: { application/json: { schema: { $ref: '#/components/schemas/EventInviteLinkDto' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [Admin invitations]
+      summary: Create/rotate the active co-admin invite link (admin).
+      security: [{ cookieAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/EventId' }]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EventInviteLinkDto' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/invitations:
+    get:
+      tags: [Admin invitations]
+      summary: List pending co-admin invitations (admin, paginated).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PagedInvitations' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [Admin invitations]
+      summary: Create a targeted co-admin invitation by user id (admin, emailed).
+      security: [{ cookieAuth: [] }]
+      parameters: [{ $ref: '#/components/parameters/EventId' }]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [targetUserId], properties: { targetUserId: { type: string, format: uuid } } } } }
+      responses:
+        '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/EventInvitationDto' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/invitations/{invitationId}:
+    delete:
+      tags: [Admin invitations]
+      summary: Revoke a pending invitation (admin).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { name: invitationId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '204': { description: Revoked }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /events/{id}/invitations/user-search:
+    get:
+      tags: [Admin invitations]
+      summary: Search users to invite as co-admin (admin, paginated).
+      security: [{ cookieAuth: [] }]
+      parameters:
+        - { $ref: '#/components/parameters/EventId' }
+        - { name: query, in: query, required: true, schema: { type: string } }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/PagedInvitableUsers' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+
+  /event-invitations/{token}:
+    get:
+      tags: [Admin invitations]
+      summary: Anonymous co-admin invite preview (public event fields + inviter + state).
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/EventInvitePreviewDto' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+
+  /event-invitations/{token}/accept:
+    post:
+      tags: [Admin invitations]
+      summary: Accept a co-admin invitation (authenticated) → grants EventAdmin.
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses:
+        '200': { description: Accepted, content: { application/json: { schema: { type: object, properties: { eventId: { type: string, format: uuid } } } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+
+  /event-invitations/{token}/decline:
+    post:
+      tags: [Admin invitations]
+      summary: Decline a co-admin invitation (authenticated).
+      security: [{ cookieAuth: [] }]
+      parameters: [{ name: token, in: path, required: true, schema: { type: string } }]
+      responses:
+        '204': { description: Declined }
+        '401': { $ref: '#/components/responses/Problem' }
+
+components:
+  securitySchemes:
+    cookieAuth: { type: apiKey, in: cookie, name: auth_token }
+
+  parameters:
+    EventId: { name: id, in: path, required: true, schema: { type: string, format: uuid } }
+    SignupId: { name: signupId, in: path, required: true, schema: { type: string, format: uuid } }
+    Skip: { name: skip, in: query, required: false, schema: { type: integer, minimum: 0, default: 0 } }
+    Take: { name: take, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+
+  responses:
+    Problem:
+      description: RFC7807 problem
+      content: { application/problem+json: { schema: { $ref: '#/components/schemas/Problem' } } }
+
+  schemas:
+    Problem:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+
+    EventType: { type: string, enum: [Tournament, Workshop, Other] }
+    LocationKind: { type: string, enum: [InPerson, Virtual] }
+    ParticipantMode: { type: string, enum: [Teams, Individuals] }
+    EventStatus: { type: string, enum: [Published, Cancelled] }
+    SignupStatus: { type: string, enum: [Joined, AwaitingApproval, Waitlisted] }
+
+    CreateEventRequest:
+      type: object
+      required: [name, type, description, startsAt, endsAt, locationKind, participantMode, participationLimit, isPaid]
+      properties:
+        name: { type: string, minLength: 3, maxLength: 120 }
+        type: { $ref: '#/components/schemas/EventType' }
+        customTypeLabel: { type: string, maxLength: 40, nullable: true, description: 'Required iff type=Other' }
+        description: { type: string, minLength: 1, maxLength: 4000 }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time, description: '>= startsAt' }
+        locationKind: { $ref: '#/components/schemas/LocationKind' }
+        venueName: { type: string, nullable: true }
+        street: { type: string, nullable: true, description: 'Required iff InPerson' }
+        postalCode: { type: string, nullable: true, description: 'Required iff InPerson' }
+        city: { type: string, nullable: true, description: 'Required iff InPerson' }
+        country: { type: string, nullable: true, description: 'Required iff InPerson' }
+        virtualLink: { type: string, nullable: true, description: 'Required iff Virtual' }
+        participantMode: { $ref: '#/components/schemas/ParticipantMode' }
+        participationLimit: { type: integer, minimum: 1 }
+        isPaid: { type: boolean }
+        feeAmount: { type: number, nullable: true }
+        feeCurrency: { type: string, nullable: true, default: EUR }
+        feeRecipientName: { type: string, nullable: true, description: 'Required iff isPaid' }
+        feeIban: { type: string, nullable: true, description: 'Required iff isPaid' }
+        feePaymentDeadline: { type: string, format: date, nullable: true }
+
+    EditEventRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateEventRequest'
+      description: 'participantMode ignored/refused when signups exist; participationLimit not below occupied.'
+
+    SignupRequest:
+      type: object
+      properties:
+        teamId: { type: string, format: uuid, nullable: true, description: 'Required for teams-only events; omit for individuals-only' }
+
+    CreateContactRequest:
+      type: object
+      required: [name, role]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 120 }
+        role: { type: string, minLength: 1, maxLength: 80 }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+      description: 'At least one of phone/email required.'
+
+    ViewerRelationDto:
+      type: object
+      properties:
+        isAdmin: { type: boolean }
+        mySignupStatus: { $ref: '#/components/schemas/SignupStatus' }
+        teamsICanEnter:
+          type: array
+          items: { type: object, properties: { teamId: { type: string, format: uuid }, name: { type: string }, slug: { type: string } } }
+
+    EventDetailDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        type: { $ref: '#/components/schemas/EventType' }
+        customTypeLabel: { type: string, nullable: true }
+        description: { type: string }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        locationKind: { $ref: '#/components/schemas/LocationKind' }
+        venueName: { type: string, nullable: true }
+        street: { type: string, nullable: true }
+        postalCode: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        country: { type: string, nullable: true }
+        virtualLink: { type: string, nullable: true }
+        participantMode: { $ref: '#/components/schemas/ParticipantMode' }
+        participationLimit: { type: integer }
+        occupiedSpots: { type: integer }
+        isFull: { type: boolean }
+        isPaid: { type: boolean }
+        feeAmount: { type: number, nullable: true }
+        feeCurrency: { type: string, nullable: true }
+        feeRecipientName: { type: string, nullable: true }
+        feeIban: { type: string, nullable: true }
+        feePaymentDeadline: { type: string, format: date, nullable: true }
+        status: { $ref: '#/components/schemas/EventStatus' }
+        viewer: { $ref: '#/components/schemas/ViewerRelationDto' }
+
+    SignupDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        status: { $ref: '#/components/schemas/SignupStatus' }
+        joinedAt: { type: string, format: date-time }
+        userHandle: { type: string, nullable: true }
+        userDisplayName: { type: string, nullable: true }
+        teamSlug: { type: string, nullable: true }
+        teamName: { type: string, nullable: true }
+
+    EventContactDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        role: { type: string }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+
+    EventNewsDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        authorDisplayName: { type: string }
+        body: { type: string }
+        createdDate: { type: string, format: date-time }
+
+    EventAdminDto:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        handle: { type: string }
+        displayName: { type: string }
+
+    EventInvitationDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        kind: { type: string, enum: [Link, Targeted] }
+        targetDisplayName: { type: string, nullable: true }
+        createdDate: { type: string, format: date-time }
+        expiresDate: { type: string, format: date-time }
+        status: { type: string, enum: [Pending, Accepted, Declined, Revoked] }
+
+    EventInviteLinkDto:
+      type: object
+      nullable: true
+      properties:
+        url: { type: string }
+        token: { type: string }
+        expiresDate: { type: string, format: date-time }
+
+    EventInvitableUserDto:
+      type: object
+      properties:
+        userId: { type: string, format: uuid }
+        handle: { type: string }
+        displayName: { type: string }
+        hometown: { type: string, nullable: true }
+        relation: { type: string, enum: [Admin, Invited, Invitable] }
+
+    EventInvitePreviewDto:
+      type: object
+      properties:
+        eventId: { type: string, format: uuid }
+        eventName: { type: string }
+        startsAt: { type: string, format: date-time }
+        inviterName: { type: string }
+        state: { type: string, enum: [Usable, Expired, Invalid] }
+
+    PagedSignups: { $ref: '#/components/schemas/PagedBase' }
+    PagedNews: { $ref: '#/components/schemas/PagedBase' }
+    PagedContacts: { $ref: '#/components/schemas/PagedBase' }
+    PagedAdmins: { $ref: '#/components/schemas/PagedBase' }
+    PagedInvitations: { $ref: '#/components/schemas/PagedBase' }
+    PagedInvitableUsers: { $ref: '#/components/schemas/PagedBase' }
+    PagedBase:
+      type: object
+      properties:
+        items: { type: array, items: { type: object } }
+        totalCount: { type: integer }
+        skip: { type: integer }
+        take: { type: integer }

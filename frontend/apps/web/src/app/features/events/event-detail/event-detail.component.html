@@ -1,0 +1,143 @@
+<section class="mx-auto max-w-2xl px-md py-lg" data-testid="event-detail">
+  @if (loading()) {
+    <p class="text-body-md text-subtle">Loading…</p>
+  } @else if (loadError()) {
+    <div class="rounded-lg border border-border bg-surface-card px-md py-lg text-center">
+      <p class="text-heading-sm font-bold text-ink">Event not found</p>
+      <p class="mt-xs text-body-sm text-subtle">This event doesn't exist or the link is wrong.</p>
+      <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand">Go home</a>
+    </div>
+  } @else if (detail(); as d) {
+    <a routerLink="/" class="text-body-sm text-subtle hover:text-text">‹ Home</a>
+
+    <!-- Hero: cover, title, meta, occupancy -->
+    <div class="relative mt-sm flex h-28 items-end overflow-hidden rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
+      <span class="rounded-full bg-surface-card px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-[0.08em] text-muted">{{ d.type === 'Other' ? d.customTypeLabel : d.type }}</span>
+    </div>
+
+    @if (cancelled()) {
+      <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm font-semibold text-danger-fg" data-testid="event-cancelled">
+        Cancelled by the organiser. No new sign-ups are being accepted.
+      </div>
+    }
+
+    <h1 class="mt-md text-heading-xl font-bold text-ink">{{ d.name }}</h1>
+    <ul class="mt-sm space-y-xs text-body-md text-body">
+      <li class="flex items-center gap-sm">
+        <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        {{ d.startsAt | date: 'EEE d MMM, HH:mm' }} → {{ d.endsAt | date: 'EEE d MMM, HH:mm' }}
+      </li>
+      <li class="flex items-center gap-sm">
+        <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.3-7-11a7 7 0 0114 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        @if (d.locationKind === 'InPerson') { {{ d.venueName || d.city }}{{ d.venueName && d.city ? ', ' + d.city : '' }} } @else { Online }
+      </li>
+      <li class="flex items-center gap-sm">
+        <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0114 0M17 4.5a3.5 3.5 0 010 7M15 21a7 7 0 017 0"/></svg>
+        {{ d.participantMode === 'Teams' ? 'Teams only' : 'Individuals only' }}
+      </li>
+      @if (d.isPaid) {
+        <li class="flex items-center gap-sm">
+          <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4z"/></svg>
+          {{ d.feeAmount }} {{ d.feeCurrency }} {{ d.participantMode === 'Teams' ? 'per team' : 'per person' }}
+        </li>
+      }
+    </ul>
+
+    <div class="mt-md">
+      <div class="flex items-center justify-between text-body-sm">
+        <span class="font-semibold text-body">{{ d.participantMode === 'Teams' ? 'Teams in' : 'People in' }}</span>
+        <span class="text-subtle" data-testid="spots-label">{{ d.occupiedSpots }}/{{ d.participationLimit }}</span>
+      </div>
+      <div class="mt-xs h-2 overflow-hidden rounded-full bg-surface-sunken">
+        <div class="h-full rounded-full bg-brand transition-all duration-fast" [style.width.%]="occupancyPct()"></div>
+      </div>
+      <p class="mt-xs text-body-sm text-subtle">
+        <span class="font-semibold text-body">{{ joined().length }}</span> confirmed@if (awaiting().length > 0) { <span> · {{ awaiting().length }} pending payment</span> }
+      </p>
+    </div>
+
+    <!-- Content cards -->
+    <div class="mt-lg space-y-md">
+      <!-- Details -->
+      <div class="rounded-lg border border-border bg-surface-card p-md">
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">About</h2>
+        <p class="mt-xs whitespace-pre-line text-body-md text-body">{{ d.description }}</p>
+
+        <hr class="my-md border-t border-border" />
+
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Where</h2>
+        @if (d.locationKind === 'InPerson') {
+          <p class="mt-xs text-body-md text-body">
+            @if (d.venueName) { <span class="font-semibold">{{ d.venueName }}</span><br /> }
+            {{ d.street }}<br />{{ d.postalCode }} {{ d.city }}<br />{{ d.country }}
+          </p>
+        } @else {
+          <a [href]="d.virtualLink" target="_blank" rel="noopener" class="mt-xs inline-block break-all text-body-md font-semibold text-brand">{{ d.virtualLink }}</a>
+        }
+      </div>
+
+      <!-- Entrance fee -->
+      @if (d.isPaid) {
+        <div class="rounded-lg border border-border bg-surface-card p-md" data-testid="fee-block">
+          <div class="flex items-center justify-between">
+            <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Entrance fee</h2>
+            @if (d.feePaymentDeadline) { <span class="rounded-full bg-surface-sunken px-sm py-0.5 text-body-sm text-subtle">Pay by {{ d.feePaymentDeadline | date: 'd MMM' }}</span> }
+          </div>
+          <p class="mt-xs text-heading-sm font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-subtle">{{ d.participantMode === 'Teams' ? 'per team' : 'per person' }}</span></p>
+          <dl class="mt-sm space-y-0.5 text-body-sm">
+            <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">Pay to</dt><dd class="font-semibold text-body">{{ d.feeRecipientName }}</dd></div>
+            <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">IBAN</dt><dd class="break-all font-mono text-subtle">{{ d.feeIban }}</dd></div>
+          </dl>
+          <p class="mt-sm text-body-sm text-faint">Bank transfer only — no in-app payment. An admin confirms your payment to admit you.</p>
+        </div>
+      }
+
+      <!-- Who's taking part -->
+      <div class="rounded-lg border border-border bg-surface-card p-md">
+        <jh-event-participant-groups
+          [joined]="joined()"
+          [awaiting]="awaiting()"
+          [waitlist]="waitlist()"
+          (openProfile)="openProfile($event)" />
+      </div>
+
+      <!-- News -->
+      <div class="rounded-lg border border-border bg-surface-card p-md">
+        <jh-event-news-feed
+          [news]="news()"
+          [canCompose]="d.viewer.isAdmin && !cancelled()"
+          [posting]="acting()"
+          (post)="postNews($event)" />
+      </div>
+
+      <!-- Contacts -->
+      <div class="rounded-lg border border-border bg-surface-card p-md">
+        <jh-event-contacts-list [contacts]="contacts()" />
+      </div>
+    </div>
+
+    <!-- Bottom action -->
+    <div class="mt-md">
+      @if (d.viewer.isAdmin) {
+        @if (menuOpen()) {
+          <div class="mb-xs overflow-hidden rounded-md border border-border bg-surface-card" data-testid="manage-menu-panel">
+            <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Manage participants &amp; waitlist</a>
+            <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Edit details</a>
+            <a [routerLink]="['/events', d.id, 'contacts']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Manage contacts</a>
+            <a [routerLink]="['/events', d.id, 'admins']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Invite co-admins</a>
+            <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-danger hover:bg-surface-sunken">Cancel event</a>
+          </div>
+        }
+        <button type="button" (click)="menuOpen.set(!menuOpen())" data-testid="manage-menu"
+          class="block w-full rounded-md bg-surface-sunken px-lg py-md text-center text-body-md font-semibold text-body hover:bg-surface-hover">Manage event</button>
+      } @else {
+        <jh-event-join-actions
+          [detail]="d"
+          [acting]="acting()"
+          [actionError]="actionError()"
+          (join)="join($event)"
+          (withdraw)="withdraw()" />
+      }
+    </div>
+  }
+</section>

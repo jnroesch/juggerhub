@@ -1,0 +1,23 @@
+<section data-testid="news-feed">
+  <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Latest news</h2>
+  @if (canCompose()) {
+    <div class="mt-xs flex gap-xs">
+      <input type="text" [ngModel]="body()" (ngModelChange)="body.set($event)" placeholder="Post an update…" data-testid="news-input"
+        class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+      <button type="button" (click)="submit()" [disabled]="posting() || !body().trim()" data-testid="news-post"
+        class="rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Post</button>
+    </div>
+  }
+  @if (news().length === 0) {
+    <p class="mt-sm text-body-sm text-faint">No updates yet.</p>
+  } @else {
+    <ul class="mt-sm divide-y divide-border">
+      @for (n of news(); track n.id) {
+        <li class="py-sm first:pt-0 last:pb-0">
+          <p class="text-body-md text-body">{{ n.body }}</p>
+          <p class="mt-xs text-body-sm text-faint">{{ n.authorDisplayName }} · {{ n.createdDate | date: 'd MMM, HH:mm' }}</p>
+        </li>
+      }
+    </ul>
+  }
+</section>

@@ -17,6 +17,7 @@ import { TeamDetailComponent } from './features/teams/team-detail/team-detail.co
 import { TeamInvitationsComponent } from './features/teams/team-invitations/team-invitations.component';
 import { TeamSettingsComponent } from './features/teams/team-settings/team-settings.component';
 import { InviteAcceptComponent } from './features/teams/invite-accept/invite-accept.component';
+// Events (feature 006) are lazy-loaded to keep them out of the initial bundle.
 
 export const appRoutes: Route[] = [
   {
@@ -33,6 +34,36 @@ export const appRoutes: Route[] = [
       { path: 't/:slug', component: TeamDetailComponent, canActivate: [authGuard] },
       { path: 't/:slug/invitations', component: TeamInvitationsComponent, canActivate: [authGuard] },
       { path: 't/:slug/settings', component: TeamSettingsComponent, canActivate: [authGuard] },
+      // Events (feature 006) — create is authed; the event page itself is public. Lazy-loaded.
+      {
+        path: 'events/new',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/events/event-create/event-create.component').then((m) => m.EventCreateComponent),
+      },
+      {
+        path: 'events/:id',
+        loadComponent: () => import('./features/events/event-detail/event-detail.component').then((m) => m.EventDetailComponent),
+      },
+      {
+        path: 'events/:id/manage',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/events/event-manage/event-manage.component').then((m) => m.EventManageComponent),
+      },
+      {
+        path: 'events/:id/edit',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/events/event-edit/event-edit.component').then((m) => m.EventEditComponent),
+      },
+      {
+        path: 'events/:id/contacts',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/events/event-contacts/event-contacts.component').then((m) => m.EventContactsComponent),
+      },
+      {
+        path: 'events/:id/admins',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/events/event-admins/event-admins.component').then((m) => m.EventAdminsComponent),
+      },
     ],
   },
   // Auth screens are full-screen, outside the shell.
@@ -48,4 +79,9 @@ export const appRoutes: Route[] = [
   { path: 'u/:handle', component: ProfilePublicComponent },
   // Invite accept — full-screen, outside the shell; preview is anonymous, accept needs auth.
   { path: 'join/:slug/:token', component: InviteAcceptComponent },
+  // Event co-admin invite accept — full-screen, outside the shell; preview anonymous, accept needs auth.
+  {
+    path: 'event-invite/:token',
+    loadComponent: () => import('./features/events/event-invite-accept/event-invite-accept.component').then((m) => m.EventInviteAcceptComponent),
+  },
 ];

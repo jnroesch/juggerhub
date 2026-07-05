@@ -1,0 +1,207 @@
+<section class="mx-auto max-w-lg px-md py-lg" data-testid="event-create">
+  <a routerLink="/" class="text-body-sm text-subtle hover:text-text">‹ Home</a>
+
+  <!-- Round-knob progress -->
+  <div class="mt-md flex items-center gap-xs" aria-hidden="true">
+    @for (s of steps; track s; let i = $index) {
+      <span class="h-2 rounded-full transition-all duration-fast"
+        [class]="i === stepIndex() ? 'w-6 bg-brand' : i < stepIndex() ? 'w-2 bg-brand/60' : 'w-2 bg-surface-sunken'"></span>
+    }
+  </div>
+
+  <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="publish()">
+    @switch (step()) {
+      <!-- 1. Type & name -->
+      @case ('type') {
+        <div class="space-y-md">
+          <div>
+            <h1 class="text-heading-lg font-bold text-ink">What are you hosting?</h1>
+            <p class="text-body-md text-subtle">Pick a type and give it a name.</p>
+          </div>
+          <div class="grid grid-cols-3 gap-xs rounded-md border border-border-strong p-1" role="group" aria-label="Event type">
+            @for (t of ['Tournament','Workshop','Other']; track t) {
+              <button type="button" (click)="type.set($any(t))"
+                class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+                [class]="type() === t ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ t }}</button>
+            }
+          </div>
+          @if (type() === 'Other') {
+            <input type="text" formControlName="customLabel" placeholder="e.g. Meetup, League day" data-testid="event-custom-label"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+          }
+          <div>
+            <label for="ev-name" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Event name</label>
+            <input id="ev-name" type="text" formControlName="name" placeholder="Berlin Cup" data-testid="event-name"
+              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+          </div>
+          <div>
+            <label for="ev-desc" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Description</label>
+            <textarea id="ev-desc" formControlName="description" rows="4" placeholder="What's the event about?" data-testid="event-description"
+              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
+          </div>
+        </div>
+      }
+
+      <!-- 2. When -->
+      @case ('when') {
+        <div class="space-y-md">
+          <div>
+            <h1 class="text-heading-lg font-bold text-ink">When is it?</h1>
+            <p class="text-body-md text-subtle">Start and end. Multi-day is fine.</p>
+          </div>
+          <div class="grid grid-cols-1 gap-md sm:grid-cols-2">
+            <div>
+              <label for="ev-start" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Starts</label>
+              <input id="ev-start" type="datetime-local" formControlName="startsAt" data-testid="event-starts"
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            </div>
+            <div>
+              <label for="ev-end" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Ends</label>
+              <input id="ev-end" type="datetime-local" formControlName="endsAt" data-testid="event-ends"
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            </div>
+          </div>
+          @if (form.getRawValue().startsAt && form.getRawValue().endsAt && !canAdvance()) {
+            <p class="text-body-sm text-danger" role="alert">The event must end on or after it starts.</p>
+          }
+        </div>
+      }
+
+      <!-- 3. Where -->
+      @case ('where') {
+        <div class="space-y-md">
+          <div>
+            <h1 class="text-heading-lg font-bold text-ink">Where does it happen?</h1>
+            <p class="text-body-md text-subtle">In person needs a full address; virtual needs a link.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" aria-label="Location kind">
+            <button type="button" (click)="locationKind.set('InPerson')" data-testid="loc-inperson"
+              class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+              [class]="locationKind() === 'InPerson' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">In person</button>
+            <button type="button" (click)="locationKind.set('Virtual')" data-testid="loc-virtual"
+              class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+              [class]="locationKind() === 'Virtual' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">Virtual</button>
+          </div>
+          @if (locationKind() === 'InPerson') {
+            <input type="text" formControlName="venueName" placeholder="Venue name (optional)"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            <input type="text" formControlName="street" placeholder="Street & number" data-testid="event-street"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            <div class="grid grid-cols-2 gap-md">
+              <input type="text" formControlName="postalCode" placeholder="Postal code"
+                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+              <input type="text" formControlName="city" placeholder="City"
+                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            </div>
+            <input type="text" formControlName="country" placeholder="Country" data-testid="event-country"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+          } @else {
+            <input type="text" formControlName="virtualLink" placeholder="zoom.us/j/… or https://meet.…" data-testid="event-link"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+          }
+        </div>
+      }
+
+      <!-- 4. Who can join -->
+      @case ('who') {
+        <div class="space-y-md">
+          <div>
+            <h1 class="text-heading-lg font-bold text-ink">Who can join?</h1>
+            <p class="text-body-md text-subtle">Either teams or individuals — and how many.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" aria-label="Participant mode">
+            <button type="button" (click)="participantMode.set('Teams')" data-testid="mode-teams"
+              class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+              [class]="participantMode() === 'Teams' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">Teams only</button>
+            <button type="button" (click)="participantMode.set('Individuals')" data-testid="mode-individuals"
+              class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+              [class]="participantMode() === 'Individuals' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">Individuals only</button>
+          </div>
+          <div>
+            <label for="ev-limit" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Participation limit</label>
+            <input id="ev-limit" type="number" min="1" formControlName="participationLimit" data-testid="event-limit"
+              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            <p class="mt-xs text-body-sm text-faint">Once full, the rest join a waiting list.</p>
+          </div>
+        </div>
+      }
+
+      <!-- 5. Fee -->
+      @case ('fee') {
+        <div class="space-y-md">
+          <div>
+            <h1 class="text-heading-lg font-bold text-ink">Is there a fee?</h1>
+            <p class="text-body-md text-subtle">Paid events collect by bank transfer — no in-app payment.</p>
+          </div>
+          <div class="grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" aria-label="Fee">
+            <button type="button" (click)="isPaid.set(false)" data-testid="fee-free"
+              class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+              [class]="!isPaid() ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">Free</button>
+            <button type="button" (click)="isPaid.set(true)" data-testid="fee-paid"
+              class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+              [class]="isPaid() ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">Paid</button>
+          </div>
+          @if (isPaid()) {
+            <div class="grid grid-cols-2 gap-md">
+              <input type="number" formControlName="feeAmount" placeholder="Amount"
+                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+              <input type="text" formControlName="feeCurrency" placeholder="EUR" maxlength="3"
+                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            </div>
+            <input type="text" formControlName="feeRecipientName" placeholder="Recipient name" data-testid="fee-recipient"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            <input type="text" formControlName="feeIban" placeholder="IBAN" data-testid="fee-iban"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm font-mono text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            <div>
+              <label for="ev-deadline" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Payment deadline (optional)</label>
+              <input id="ev-deadline" type="date" formControlName="feePaymentDeadline"
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            </div>
+          } @else {
+            <div class="rounded-md border border-dashed border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg">
+              Free events skip payment — sign-ups go straight to joined.
+            </div>
+          }
+        </div>
+      }
+
+      <!-- 6. Review -->
+      @case ('review') {
+        <div class="space-y-md">
+          <div>
+            <h1 class="text-heading-lg font-bold text-ink">One last look</h1>
+            <p class="text-body-md text-subtle">Publish when it looks right.</p>
+          </div>
+          <dl class="divide-y divide-border rounded-md border border-border bg-surface-card px-md">
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Type</dt><dd class="text-body-sm font-semibold text-body">{{ type() === 'Other' ? form.getRawValue().customLabel : type() }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Name</dt><dd class="text-body-sm font-semibold text-body">{{ form.getRawValue().name }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">When</dt><dd class="text-body-sm font-semibold text-body">{{ form.getRawValue().startsAt }} → {{ form.getRawValue().endsAt }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Where</dt><dd class="text-body-sm font-semibold text-body">{{ locationKind() === 'InPerson' ? form.getRawValue().city + ', ' + form.getRawValue().country : 'Online' }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Who</dt><dd class="text-body-sm font-semibold text-body">{{ participantMode() }} · limit {{ form.getRawValue().participationLimit }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Fee</dt><dd class="text-body-sm font-semibold text-body">{{ isPaid() ? (form.getRawValue().feeAmount ?? '') + ' ' + form.getRawValue().feeCurrency : 'Free' }}</dd></div>
+          </dl>
+          @if (error()) {
+            <p class="text-body-sm text-danger" role="alert" data-testid="event-create-error">{{ error() }}</p>
+          }
+        </div>
+      }
+    }
+
+    <!-- Navigation -->
+    <div class="flex items-center justify-between pt-sm">
+      @if (stepIndex() > 0) {
+        <button type="button" (click)="back()" class="text-body-sm font-semibold text-subtle hover:text-text">‹ Back</button>
+      } @else {
+        <span></span>
+      }
+
+      @if (step() !== 'review') {
+        <button type="button" (click)="next()" [disabled]="!canAdvance()" data-testid="event-next"
+          class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none">Next</button>
+      } @else {
+        <button type="submit" [disabled]="submitting()" data-testid="event-publish"
+          class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none">{{ submitting() ? 'Publishing…' : 'Publish event' }}</button>
+      }
+    </div>
+  </form>
+</section>

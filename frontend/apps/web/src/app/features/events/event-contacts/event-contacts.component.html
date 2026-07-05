@@ -1,0 +1,68 @@
+<section class="mx-auto max-w-lg px-md py-lg" data-testid="event-contacts">
+  @if (loading()) {
+    <p class="text-body-md text-subtle">Loading…</p>
+  } @else if (forbidden()) {
+    <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
+      <p class="text-heading-sm font-bold text-ink">Not allowed</p>
+      <p class="mt-xs text-body-sm text-subtle">Only an event admin can manage contacts.</p>
+    </div>
+  } @else if (detail(); as d) {
+    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">‹ Back to event</a>
+    <h1 class="mt-md text-heading-lg font-bold text-ink">Contacts</h1>
+    <p class="text-body-sm text-subtle">Who participants can reach. Shown on the event page.</p>
+
+    @if (contacts().length === 0) {
+      <p class="mt-md text-body-sm text-faint">No contacts yet.</p>
+    } @else {
+      <ul class="mt-md space-y-xs">
+        @for (c of contacts(); track c.id) {
+          <li class="flex items-start justify-between gap-md rounded-md border bg-surface-card px-md py-sm"
+            [class]="editingId() === c.id ? 'border-brand' : 'border-border'">
+            <div class="min-w-0 text-body-sm">
+              <p class="text-body-md font-semibold text-body">{{ c.name }}</p>
+              <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ c.role }}</p>
+              <dl class="mt-xs space-y-0.5">
+                @if (c.email) {
+                  <div class="flex gap-xs"><dt class="w-12 shrink-0 text-faint">Email</dt><dd class="truncate text-subtle">{{ c.email }}</dd></div>
+                }
+                @if (c.phone) {
+                  <div class="flex gap-xs"><dt class="w-12 shrink-0 text-faint">Phone</dt><dd class="text-subtle">{{ c.phone }}</dd></div>
+                }
+              </dl>
+            </div>
+            <span class="flex shrink-0 gap-sm">
+              <button type="button" (click)="startEdit(c)" data-testid="contact-edit"
+                class="text-body-sm font-semibold text-subtle hover:text-text">Edit</button>
+              <button type="button" (click)="remove(c.id)" data-testid="contact-remove"
+                class="text-body-sm font-semibold text-danger hover:underline">Remove</button>
+            </span>
+          </li>
+        }
+      </ul>
+    }
+
+    <form class="mt-lg space-y-md rounded-md border border-border bg-surface-card px-md py-md" [formGroup]="form" (ngSubmit)="save()">
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ editingId() ? 'Edit contact' : 'Add a contact' }}</h2>
+      <input type="text" formControlName="name" placeholder="Name" data-testid="contact-name"
+        class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+      <input type="text" formControlName="role" placeholder="Role — e.g. Location host" data-testid="contact-role"
+        class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+      <div class="grid grid-cols-2 gap-md">
+        <input type="tel" formControlName="phone" placeholder="Phone"
+          class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+        <input type="email" formControlName="email" placeholder="Email"
+          class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+      </div>
+      <p class="text-body-sm text-faint">Add a phone, an email, or both.</p>
+      @if (error()) { <p class="text-body-sm text-danger" role="alert">{{ error() }}</p> }
+      <div class="flex items-center gap-sm">
+        <button type="submit" [disabled]="form.invalid || saving()" data-testid="contact-add"
+          class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">{{ saving() ? 'Saving…' : editingId() ? 'Save changes' : 'Add contact' }}</button>
+        @if (editingId()) {
+          <button type="button" (click)="cancelEdit()" data-testid="contact-cancel-edit"
+            class="text-body-sm font-semibold text-subtle hover:text-text">Cancel</button>
+        }
+      </div>
+    </form>
+  }
+</section>

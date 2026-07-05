@@ -1,0 +1,82 @@
+<section class="mx-auto max-w-lg px-md py-lg" data-testid="event-admins">
+  @if (loading()) {
+    <p class="text-body-md text-subtle">Loading…</p>
+  } @else if (forbidden()) {
+    <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
+      <p class="text-heading-sm font-bold text-ink">Not allowed</p>
+      <p class="mt-xs text-body-sm text-subtle">Only an event admin can manage co-admins.</p>
+    </div>
+  } @else if (detail(); as d) {
+    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">‹ Back to event</a>
+    <h1 class="mt-md text-heading-lg font-bold text-ink">Co-admins</h1>
+    <p class="text-body-sm text-subtle">Co-admins can edit, post news, and manage participants.</p>
+
+    @if (error()) { <p class="mt-sm text-body-sm text-danger" role="alert">{{ error() }}</p> }
+
+    <!-- Current admins -->
+    <ul class="mt-md space-y-xs">
+      @for (a of admins(); track a.userId) {
+        <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
+          <span class="text-body-sm"><span class="font-semibold text-body">{{ a.displayName }}</span> <span class="text-subtle">@{{ a.handle }}</span></span>
+          <button type="button" (click)="removeAdmin(a.userId)" data-testid="admin-remove"
+            class="text-body-sm font-semibold text-danger hover:underline">Remove</button>
+        </li>
+      }
+    </ul>
+
+    <!-- Invite link -->
+    <section class="mt-lg rounded-md border border-border bg-surface-card px-md py-md">
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Invite link</h2>
+      @if (link(); as l) {
+        <div class="mt-xs flex gap-xs">
+          <input type="text" [value]="l.url" readonly data-testid="invite-link"
+            class="w-full rounded-md border border-border-strong bg-surface-sunken px-md py-sm font-mono text-body-sm text-subtle outline-none" />
+          <button type="button" (click)="copyLink()" class="rounded-md bg-surface-sunken px-md py-sm text-body-sm font-semibold text-body hover:bg-surface-hover">{{ copied() ? 'Copied' : 'Copy' }}</button>
+        </div>
+        <button type="button" (click)="rotateLink()" class="mt-xs text-body-sm font-semibold text-subtle hover:text-text">Regenerate link</button>
+      } @else {
+        <button type="button" (click)="rotateLink()" data-testid="create-link"
+          class="mt-xs rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover">Create an invite link</button>
+      }
+    </section>
+
+    <!-- Invite by search -->
+    <section class="mt-lg">
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Invite a player</h2>
+      <input type="text" [formControl]="search" placeholder="Search players by name…" data-testid="admin-search"
+        class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+      @if (results().length > 0) {
+        <ul class="mt-xs space-y-xs">
+          @for (u of results(); track u.userId) {
+            <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
+              <span class="text-body-sm"><span class="font-semibold text-body">{{ u.displayName }}</span> <span class="text-subtle">@{{ u.handle }}</span></span>
+              @switch (u.relation) {
+                @case ('Member') { <span class="text-body-sm text-faint">Admin</span> }
+                @case ('Invited') { <span class="text-body-sm text-faint">Invited</span> }
+                @default {
+                  <button type="button" (click)="invite(u)" data-testid="admin-invite"
+                    class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent hover:bg-brand-hover">Invite</button>
+                }
+              }
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Pending invitations -->
+    @if (invitations().length > 0) {
+      <section class="mt-lg">
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Pending invitations</h2>
+        <ul class="mt-xs space-y-xs">
+          @for (i of invitations(); track i.id) {
+            <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
+              <span class="text-body-sm text-body">{{ i.kind === 'Link' ? 'Shared link' : i.targetDisplayName }}</span>
+              <button type="button" (click)="revoke(i.id)" class="text-body-sm font-semibold text-danger hover:underline">Revoke</button>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</section>
