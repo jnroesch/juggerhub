@@ -19,19 +19,19 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: '10.0.x'
 
       # Socket Firewall is intentionally NOT applied to NuGet/.NET for now —
       # Free does not support NuGet; firewalling `dotnet restore` would require
       # Socket Firewall Enterprise (mode: firewall-enterprise + socket-token).
       - name: Restore dependencies
-        run: dotnet restore
+        run: dotnet restore JuggerHub.slnx
 
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build JuggerHub.slnx --no-restore
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test JuggerHub.slnx --no-build --verbosity normal
 
   build-frontend:
     runs-on: ubuntu-latest

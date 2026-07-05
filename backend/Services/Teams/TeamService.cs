@@ -11,7 +11,7 @@ namespace JuggerHub.Services.Teams;
 /// <summary>
 /// EF-Core-direct implementation of <see cref="ITeamService"/>. Reads use projections +
 /// <c>AsNoTracking</c>; all lists paginate. Membership/role mutations run in a
-/// <see cref="IsolationLevel.Serializable"/> transaction so the last-admin invariant holds
+/// <see cref="System.Data.IsolationLevel.Serializable"/> transaction so the last-admin invariant holds
 /// under concurrency (constitution Principle I/III).
 /// </summary>
 public sealed class TeamService : ITeamService
