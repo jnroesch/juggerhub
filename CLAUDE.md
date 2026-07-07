@@ -332,7 +332,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/007-search/plan.md` (Search / Browse).
+`specs/008-home-dashboard-nav/plan.md` (Home dashboard & top-level navigation).
 <!-- SPECKIT END -->
 
 <!-- BACKLOG.MD GUIDELINES START -->

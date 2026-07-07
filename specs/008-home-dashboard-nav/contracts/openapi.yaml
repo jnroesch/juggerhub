@@ -1,0 +1,275 @@
+openapi: 3.0.3
+info:
+  title: JuggerHub — Home dashboard & navigation (feature 008)
+  version: "1.0"
+  description: >
+    New read-only surfaces for the logged-in Home dashboard and the nav shell.
+    All endpoints are authenticated (JWT in httpOnly cookie / bearer). No new
+    writes: RSVP reuses the existing POST /events/{id}/signup and
+    DELETE /events/{id}/signup/{signupId} (feature 006). Every read is
+    entitlement-filtered server-side and returns public/permitted fields only.
+servers:
+  - url: /api/v1
+tags:
+  - name: Home
+  - name: Profiles
+
+paths:
+  /home:
+    get:
+      tags: [Home]
+      summary: Composite dashboard for the signed-in player
+      description: >
+        Viewer summary + capped top-N per module (up next, teams activity, news,
+        tournaments, per-team snapshots). New-player viewers get empty team-scoped
+        lists (hasTeam is teams.length > 0). First-paint path; not paginated.
+      security: [{ bearerAuth: [] }]
+      responses:
+        "200":
+          description: The player's dashboard.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/HomeDto" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /home/up-next:
+    get:
+      tags: [Home]
+      summary: The player's full upcoming-events list ("see all")
+      description: >
+        Union of the viewer's individuals-mode sign-ups and their teams' team-mode
+        entries; soonest-first; past and cancelled excluded. Paginated.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Skip" }
+        - { $ref: "#/components/parameters/Take" }
+      responses:
+        "200":
+          description: Paged upcoming items.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PagedUpNext" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /home/news:
+    get:
+      tags: [Home]
+      summary: The player's aggregated news feed ("see all")
+      description: >
+        Team news (from member teams) + event news (from connected events),
+        merged newest-first within a bounded window, each tagged by source. Paginated.
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Skip" }
+        - { $ref: "#/components/parameters/Take" }
+      responses:
+        "200":
+          description: Paged news items.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PagedNews" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+  /profiles/me/teams:
+    get:
+      tags: [Profiles]
+      summary: The caller's team memberships (drives the nav "My team" + snapshots)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { $ref: "#/components/parameters/Skip" }
+        - { $ref: "#/components/parameters/Take" }
+      responses:
+        "200":
+          description: The caller's teams.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PagedMyTeams" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+
+  parameters:
+    Skip:
+      name: skip
+      in: query
+      required: false
+      schema: { type: integer, minimum: 0, default: 0 }
+    Take:
+      name: take
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+
+  responses:
+    Unauthorized:
+      description: No valid session.
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/ProblemDetails" }
+
+  schemas:
+    HomeDto:
+      type: object
+      required: [viewer, teams, upNext, teamsActivity, news, tournaments, snapshots]
+      properties:
+        viewer: { $ref: "#/components/schemas/ViewerSummaryDto" }
+        teams:
+          type: array
+          items: { $ref: "#/components/schemas/MyTeamDto" }
+        upNext:
+          type: array
+          items: { $ref: "#/components/schemas/UpNextItemDto" }
+        teamsActivity:
+          type: array
+          items: { $ref: "#/components/schemas/TeamActivityDto" }
+        news:
+          type: array
+          items: { $ref: "#/components/schemas/HomeNewsDto" }
+        tournaments:
+          type: array
+          items: { $ref: "#/components/schemas/TournamentCardDto" }
+        snapshots:
+          type: array
+          items: { $ref: "#/components/schemas/TeamSnapshotDto" }
+
+    ViewerSummaryDto:
+      type: object
+      required: [displayName, handle, hasAvatar]
+      properties:
+        displayName: { type: string }
+        handle: { type: string }
+        hasAvatar: { type: boolean }
+
+    MyTeamDto:
+      type: object
+      required: [slug, name, role]
+      properties:
+        slug: { type: string }
+        name: { type: string }
+        role: { type: string, enum: [Member, Admin] }
+
+    UpNextItemDto:
+      type: object
+      required: [eventId, title, typeLabel, startsAt, endsAt, locationLabel, spotsRemaining, participationLimit, mode]
+      properties:
+        eventId: { type: string, format: uuid }
+        title: { type: string }
+        typeLabel: { type: string, description: "EventType name, or CustomTypeLabel when Other" }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        locationLabel: { type: string }
+        spotsRemaining: { type: integer }
+        participationLimit: { type: integer }
+        mode: { type: string, enum: [Individuals, Teams] }
+        viewerSignupId:
+          type: string
+          format: uuid
+          nullable: true
+          description: "Set ⇒ individuals-mode and the viewer is signed up (enables withdraw)."
+        viewerStatus:
+          type: string
+          enum: [Joined, AwaitingApproval, Waitlisted]
+          nullable: true
+        teamGoing:
+          allOf: [{ $ref: "#/components/schemas/TeamGoingDto" }]
+          nullable: true
+          description: "Set ⇒ team-mode: which of the viewer's teams entered (read-only)."
+
+    TeamGoingDto:
+      type: object
+      required: [slug, name]
+      properties:
+        slug: { type: string }
+        name: { type: string }
+
+    TeamActivityDto:
+      type: object
+      required: [teamSlug, teamName, summary, occurredAt]
+      properties:
+        teamSlug: { type: string }
+        teamName: { type: string }
+        summary: { type: string }
+        occurredAt: { type: string, format: date-time }
+
+    HomeNewsDto:
+      type: object
+      required: [source, sourceName, sourceSlugOrId, body, createdDate]
+      properties:
+        source: { type: string, enum: [team, event], description: "A future 'league' source adds a value; contract unchanged." }
+        sourceName: { type: string }
+        sourceSlugOrId: { type: string, description: "team slug or event id → link target" }
+        body: { type: string }
+        createdDate: { type: string, format: date-time }
+
+    TournamentCardDto:
+      type: object
+      required: [eventId, name, locationLabel, startsAt, spotsRemaining]
+      properties:
+        eventId: { type: string, format: uuid }
+        name: { type: string }
+        locationLabel: { type: string }
+        startsAt: { type: string, format: date-time }
+        spotsRemaining: { type: integer }
+
+    TeamSnapshotDto:
+      type: object
+      required: [slug, name]
+      properties:
+        slug: { type: string }
+        name: { type: string }
+        nextFixture:
+          allOf: [{ $ref: "#/components/schemas/NextFixtureDto" }]
+          nullable: true
+
+    NextFixtureDto:
+      type: object
+      required: [eventId, name, startsAt]
+      properties:
+        eventId: { type: string, format: uuid }
+        name: { type: string }
+        startsAt: { type: string, format: date-time }
+
+    PagedUpNext:
+      allOf:
+        - $ref: "#/components/schemas/PagedEnvelope"
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/UpNextItemDto" }
+
+    PagedNews:
+      allOf:
+        - $ref: "#/components/schemas/PagedEnvelope"
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/HomeNewsDto" }
+
+    PagedMyTeams:
+      allOf:
+        - $ref: "#/components/schemas/PagedEnvelope"
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/MyTeamDto" }
+
+    PagedEnvelope:
+      type: object
+      required: [items, totalCount, skip, take]
+      properties:
+        totalCount: { type: integer }
+        skip: { type: integer }
+        take: { type: integer }
+
+    ProblemDetails:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
