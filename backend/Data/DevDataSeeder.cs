@@ -172,6 +172,9 @@ public static class DevDataSeeder
         };
         db.Events.Add(clinic);
         db.EventAdmins.Add(new EventAdmin { EventId = clinic.Id, UserId = firstUser, AddedDate = now });
+        // The earliest player joins personally so Home "Up next" (feature 008) has an individuals-mode
+        // item with a live RSVP/withdraw toggle alongside their teams' read-only "team is going" entries.
+        db.EventSignups.Add(new EventSignup { EventId = clinic.Id, UserId = firstUser, Status = SignupStatus.Joined });
         foreach (var uid in otherUsers)
         {
             db.EventSignups.Add(new EventSignup { EventId = clinic.Id, UserId = uid, Status = SignupStatus.Joined });

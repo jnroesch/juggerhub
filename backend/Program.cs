@@ -8,6 +8,7 @@ using JuggerHub.Services.Auth;
 using JuggerHub.Services.Email;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Health;
+using JuggerHub.Services.Home;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Search;
 using JuggerHub.Services.Security;
@@ -205,6 +206,10 @@ builder.Services.Configure<SearchOptions>(builder.Configuration.GetSection(Searc
 builder.Services.AddScoped<ITeamSearchService, TeamSearchService>();
 builder.Services.AddScoped<IEventSearchService, EventSearchService>();
 builder.Services.AddScoped<IPlayerSearchService, PlayerSearchService>();
+
+// --- Home dashboard (feature 008) ------------------------------------------
+builder.Services.Configure<HomeOptions>(builder.Configuration.GetSection(HomeOptions.SectionName));
+builder.Services.AddScoped<IHomeService, HomeService>();
 
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services

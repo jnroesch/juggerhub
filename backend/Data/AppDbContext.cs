@@ -138,6 +138,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 "CK_EventSignup_Subject", "(\"UserId\" IS NULL) <> (\"TeamId\" IS NULL)"));
             // Occupied-count + group reads.
             entity.HasIndex(s => new { s.EventId, s.Status });
+            // Home "up next" (feature 008) scans a player's own sign-ups and their teams' entries;
+            // the FK-convention indexes on UserId and TeamId already cover those scans (no new index).
             // No duplicate entry per event (partial per subject kind).
             entity.HasIndex(s => new { s.EventId, s.UserId }).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
             entity.HasIndex(s => new { s.EventId, s.TeamId }).IsUnique().HasFilter("\"TeamId\" IS NOT NULL");

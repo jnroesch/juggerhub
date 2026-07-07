@@ -129,7 +129,7 @@ namespace JuggerHub.Data.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Events");
+                    b.ToTable("Events", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.EventAdmin", b =>
@@ -162,7 +162,7 @@ namespace JuggerHub.Data.Migrations
                     b.HasIndex("EventId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("EventAdmins");
+                    b.ToTable("EventAdmins", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.EventAdminInvitation", b =>
@@ -217,7 +217,7 @@ namespace JuggerHub.Data.Migrations
                         .IsUnique()
                         .HasFilter("\"Kind\" = 1 AND \"Status\" = 0");
 
-                    b.ToTable("EventAdminInvitations");
+                    b.ToTable("EventAdminInvitations", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.EventContact", b =>
@@ -257,7 +257,7 @@ namespace JuggerHub.Data.Migrations
 
                     b.HasIndex("EventId");
 
-                    b.ToTable("EventContacts");
+                    b.ToTable("EventContacts", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.EventNewsPost", b =>
@@ -289,7 +289,7 @@ namespace JuggerHub.Data.Migrations
 
                     b.HasIndex("EventId", "CreatedDate");
 
-                    b.ToTable("EventNewsPosts");
+                    b.ToTable("EventNewsPosts", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.EventParticipation", b =>
@@ -327,7 +327,7 @@ namespace JuggerHub.Data.Migrations
                     b.HasIndex("ProfileId", "EventId")
                         .IsUnique();
 
-                    b.ToTable("EventParticipations");
+                    b.ToTable("EventParticipations", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.EventSignup", b =>
@@ -373,7 +373,7 @@ namespace JuggerHub.Data.Migrations
                         .IsUnique()
                         .HasFilter("\"UserId\" IS NOT NULL");
 
-                    b.ToTable("EventSignups", t =>
+                    b.ToTable("EventSignups", null, t =>
                         {
                             t.HasCheckConstraint("CK_EventSignup_Subject", "(\"UserId\" IS NULL) <> (\"TeamId\" IS NULL)");
                         });
@@ -431,7 +431,7 @@ namespace JuggerHub.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("PlayerProfiles");
+                    b.ToTable("PlayerProfiles", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.ProfileAvatar", b =>
@@ -463,7 +463,7 @@ namespace JuggerHub.Data.Migrations
                     b.HasIndex("ProfileId")
                         .IsUnique();
 
-                    b.ToTable("ProfileAvatars");
+                    b.ToTable("ProfileAvatars", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.ProfilePompfe", b =>
@@ -489,7 +489,7 @@ namespace JuggerHub.Data.Migrations
                     b.HasIndex("ProfileId", "Pompfe")
                         .IsUnique();
 
-                    b.ToTable("ProfilePompfen");
+                    b.ToTable("ProfilePompfen", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.RefreshToken", b =>
@@ -544,7 +544,7 @@ namespace JuggerHub.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.Team", b =>
@@ -586,7 +586,7 @@ namespace JuggerHub.Data.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Teams");
+                    b.ToTable("Teams", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.TeamInvitation", b =>
@@ -641,7 +641,7 @@ namespace JuggerHub.Data.Migrations
                         .IsUnique()
                         .HasFilter("\"Kind\" = 1 AND \"Status\" = 0");
 
-                    b.ToTable("TeamInvitations");
+                    b.ToTable("TeamInvitations", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.TeamMembership", b =>
@@ -677,7 +677,7 @@ namespace JuggerHub.Data.Migrations
                     b.HasIndex("TeamId", "UserId")
                         .IsUnique();
 
-                    b.ToTable("TeamMemberships");
+                    b.ToTable("TeamMemberships", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.TeamNewsPost", b =>
@@ -709,7 +709,7 @@ namespace JuggerHub.Data.Migrations
 
                     b.HasIndex("TeamId", "CreatedDate");
 
-                    b.ToTable("TeamNewsPosts");
+                    b.ToTable("TeamNewsPosts", (string)null);
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.User", b =>
