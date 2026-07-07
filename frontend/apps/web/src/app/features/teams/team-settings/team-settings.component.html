@@ -13,6 +13,38 @@
 
     @if (isAdmin()) {
       <div class="mt-lg">
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Recruitment</p>
+        <label class="mt-xs flex items-center justify-between gap-sm rounded-md border border-border-strong bg-surface-card px-md py-sm">
+          <span class="flex flex-col">
+            <span class="text-body-md text-ink">Beginners welcome</span>
+            <span class="text-body-sm text-subtle">Show a “Beginners” badge and appear in the beginners filter.</span>
+          </span>
+          <button
+            type="button"
+            role="switch"
+            [attr.aria-checked]="beginnersWelcome()"
+            aria-label="Beginners welcome"
+            [disabled]="savingBeginners()"
+            class="relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border transition-colors duration-fast disabled:opacity-60"
+            [class.bg-brand]="beginnersWelcome()"
+            [class.border-brand]="beginnersWelcome()"
+            [class.bg-surface-sunken]="!beginnersWelcome()"
+            [class.border-border]="!beginnersWelcome()"
+            (click)="toggleBeginnersWelcome()"
+            data-testid="team-beginners-welcome"
+          >
+            <span
+              class="inline-block h-4 w-4 rounded-full bg-surface-card shadow-coral transition-transform duration-fast"
+              [class.translate-x-4]="beginnersWelcome()"
+              [class.translate-x-1]="!beginnersWelcome()"
+            ></span>
+          </button>
+        </label>
+      </div>
+
+      <hr class="my-lg border-border" />
+
+      <div class="mt-lg">
         <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Your role</p>
         <button type="button" (click)="stepDown()" [disabled]="soleAdmin() || working()" data-testid="step-down"
           class="mt-xs flex w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-60">

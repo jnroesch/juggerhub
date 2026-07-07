@@ -1,0 +1,127 @@
+<section class="mx-auto flex w-full max-w-2xl flex-col gap-sm px-md py-lg sm:px-lg">
+  <!-- Header -->
+  <div class="flex items-baseline justify-between">
+    <h1 class="text-heading-lg font-semibold text-ink">{{ title() }}</h1>
+    <span class="text-eyebrow uppercase text-faint">Browse</span>
+  </div>
+
+  @if (note()) {
+    <p class="text-body-sm text-subtle">{{ note() }}</p>
+  }
+
+  <!-- Search -->
+  <label class="flex items-center gap-xs rounded-md border border-border-strong bg-surface-card px-sm py-xs">
+    <svg class="h-4 w-4 shrink-0 text-subtle" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+      <circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.6" />
+      <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+    </svg>
+    <input
+      type="search"
+      class="w-full bg-transparent text-body-md text-ink outline-none placeholder:text-faint"
+      [placeholder]="searchPlaceholder()"
+      [attr.aria-label]="searchPlaceholder()"
+      (input)="onSearchInput($event)"
+      data-testid="browse-search"
+    />
+  </label>
+
+  <!-- Toolbar -->
+  <div class="flex items-center gap-sm">
+    <button
+      type="button"
+      class="flex items-center gap-xs rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md font-medium text-ink transition-colors duration-fast hover:bg-surface-sunken"
+      (click)="openFilters.emit()"
+      data-testid="browse-filters-button"
+    >
+      <svg class="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <line x1="2" y1="4.5" x2="14" y2="4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <line x1="4" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+        <line x1="6" y1="11.5" x2="10" y2="11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+      </svg>
+      Filters
+      @if (activeFilterCount() > 0) {
+        <span
+          class="inline-flex min-w-5 items-center justify-center rounded-full bg-brand px-1 text-caption font-mono text-on-accent"
+          data-testid="browse-filter-badge"
+        >{{ activeFilterCount() }}</span>
+      }
+    </button>
+
+    @if (sortLabel()) {
+      <span class="inline-flex items-center gap-xs rounded-md border border-border px-sm py-xs text-body-sm text-subtle">
+        Sort · <b class="font-medium text-ink">{{ sortLabel() }}</b>
+      </span>
+    }
+  </div>
+
+  <!-- Active-filter chips -->
+  @if (chips().length > 0) {
+    <div class="flex flex-wrap items-center gap-xs" data-testid="browse-chips">
+      @for (chip of chips(); track chip.key) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-xs rounded-pill bg-brand px-sm py-0 text-body-sm text-on-accent"
+          (click)="removeChip.emit(chip.key)"
+        >
+          {{ chip.label }}
+          <span aria-hidden="true">✕</span>
+          <span class="sr-only">Remove filter {{ chip.label }}</span>
+        </button>
+      }
+      <button
+        type="button"
+        class="text-body-sm text-link underline hover:text-link-hover"
+        (click)="clearAll.emit()"
+      >Clear all</button>
+    </div>
+  }
+
+  <!-- Count line -->
+  @if (countLabel() && state() === 'ready') {
+    <p class="text-body-sm text-subtle" data-testid="browse-count">{{ countLabel() }}</p>
+  }
+
+  <!-- Results / states -->
+  @switch (state()) {
+    @case ('loading') {
+      <p class="py-lg text-center text-body-sm text-faint" data-testid="browse-loading">Loading…</p>
+    }
+    @case ('error') {
+      <div class="flex flex-col items-center gap-sm py-lg text-center" data-testid="browse-error">
+        <p class="text-body-md text-danger">Something went wrong loading results.</p>
+        <button
+          type="button"
+          class="rounded-md border border-border-strong bg-surface-card px-md py-xs text-body-md font-medium text-ink hover:bg-surface-sunken"
+          (click)="retry.emit()"
+        >Try again</button>
+      </div>
+    }
+    @case ('empty') {
+      <p class="py-lg text-center text-body-md text-subtle" data-testid="browse-empty">Nothing here yet — check back soon.</p>
+    }
+    @case ('no-results') {
+      <div class="flex flex-col items-center gap-sm py-lg text-center" data-testid="browse-no-results">
+        <p class="text-body-md text-subtle">No matches for your search and filters.</p>
+        <button
+          type="button"
+          class="text-body-sm text-link underline hover:text-link-hover"
+          (click)="clearAll.emit()"
+        >Clear search &amp; filters</button>
+      </div>
+    }
+    @default {
+      <div class="flex flex-col gap-0" data-testid="browse-results">
+        <ng-content select="[rows]"></ng-content>
+      </div>
+      @if (hasMore()) {
+        <button
+          type="button"
+          class="mt-sm rounded-md border border-border px-md py-xs text-body-sm text-subtle hover:bg-surface-sunken"
+          [disabled]="loadingMore()"
+          (click)="loadMore.emit()"
+          data-testid="browse-load-more"
+        >{{ loadingMore() ? 'Loading…' : 'Load more' }}</button>
+      }
+    }
+  }
+</section>

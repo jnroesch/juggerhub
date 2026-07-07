@@ -29,6 +29,8 @@ export interface OwnerProfile {
   pompfen: Pompfe[];
   recentActivity: ActivityItem[];
   teams: ProfileTeam[];
+  /** Feature 007 — whether the owner opted into appearing in player search. */
+  appearInSearch: boolean;
 }
 
 export interface PublicProfile {
@@ -47,6 +49,9 @@ export interface UpdateProfileRequest {
   hometown: string | null;
   description: string | null;
   pompfen: Pompfe[];
+  /** Feature 007 — opt-in to appear in player search. Optional; the backend defaults it to
+   *  false (privacy-safe) when omitted, so flows that don't manage it (e.g. onboarding) skip it. */
+  appearInSearch?: boolean;
 }
 
 export interface HandleAvailability {

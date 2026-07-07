@@ -59,7 +59,8 @@ public sealed class ProfileService : IProfileService
             .Select(p => new ProfileProjection(
                 p.Id, p.UserId, p.Handle, p.DisplayName, p.Hometown, p.Description,
                 p.Avatar != null,
-                p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList()))
+                p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList(),
+                p.AppearInSearch))
             .FirstOrDefaultAsync(ct);
 
         if (projection is null)
@@ -70,7 +71,8 @@ public sealed class ProfileService : IProfileService
         var activity = await _activity.GetRecentCappedAsync(projection.Id, EmbedActivityCap, ct);
         var teams = await GetTeamsAsync(projection.UserId, ct);
         return new OwnerProfileDto(projection.Handle, projection.DisplayName, projection.Hometown,
-            projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams);
+            projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams,
+            projection.AppearInSearch);
     }
 
     public async Task<bool> HasCompletedOnboardingAsync(Guid userId, CancellationToken ct = default)
@@ -154,6 +156,7 @@ public sealed class ProfileService : IProfileService
         profile.DisplayName = request.DisplayName.Trim();
         profile.Hometown = BlankToNull(request.Hometown);
         profile.Description = BlankToNull(request.Description);
+        profile.AppearInSearch = request.AppearInSearch;
 
         // Replace the selection set with the requested one (distinct). Operate on the
         // DbSet directly (not the navigation collection): a new ProfilePompfe carries a
@@ -298,5 +301,7 @@ public sealed class ProfileService : IProfileService
         string? Hometown,
         string? Description,
         bool HasAvatar,
-        List<Pompfe> Pompfen);
+        List<Pompfe> Pompfen,
+        // Owner-only; the public projection leaves it at the default (never exposed publicly).
+        bool AppearInSearch = false);
 }

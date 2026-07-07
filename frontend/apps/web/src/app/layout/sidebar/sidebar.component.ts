@@ -26,6 +26,9 @@ export class SidebarComponent {
 
   protected readonly items: readonly NavItem[] = [
     { label: 'Dashboard', path: '/' },
+    { label: 'Browse teams', path: '/browse/teams' },
+    { label: 'Browse events', path: '/browse/events' },
+    { label: 'Browse players', path: '/browse/players' },
     { label: 'Create team', path: '/teams/new' },
     { label: 'Create event', path: '/events/new' },
     { label: 'Account', path: '/account' },

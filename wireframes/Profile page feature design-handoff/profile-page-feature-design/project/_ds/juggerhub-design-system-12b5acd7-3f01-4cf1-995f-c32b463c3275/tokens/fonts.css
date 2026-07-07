@@ -1,0 +1,37 @@
+/* JuggerHub webfonts — Mona Sans + Hubot Sans (open-source, from primer/brand).
+   Mona Sans = body & UI. Hubot Sans = expressive display. Mono for stats/tabular. */
+
+@font-face {
+  font-family: 'Mona Sans';
+  src: url('../assets/fonts/MonaSansVF-wdth-wght-opsz.woff2') format('woff2 supports variations'),
+       url('../assets/fonts/MonaSansVF-wdth-wght-opsz.woff2') format('woff2-variations');
+  font-weight: 200 900;
+  font-display: swap;
+  font-synthesis: none;
+  font-feature-settings: 'liga' 0;
+}
+
+@font-face {
+  font-family: 'Hubot Sans';
+  src: url('../assets/fonts/Hubot-Sans.woff2') format('woff2 supports variations'),
+       url('../assets/fonts/Hubot-Sans.woff2') format('woff2-variations');
+  font-weight: 200 900;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Mona Sans Mono';
+  src: url('../assets/fonts/MonaSansMonoVF-wght.woff2') format('woff2 supports variations'),
+       url('../assets/fonts/MonaSansMonoVF-wght.woff2') format('woff2-variations');
+  font-weight: 200 900;
+  font-display: swap;
+  font-synthesis: none;
+}
+
+/* Metric-matched fallbacks to reduce layout shift before webfonts load */
+@font-face {
+  font-family: 'MonaSansFallback';
+  size-adjust: 104.5%;
+  ascent-override: 71%;
+  src: local(Arial);
+}

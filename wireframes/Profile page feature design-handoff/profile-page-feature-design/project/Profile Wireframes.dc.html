@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#efece6;--ink:#2b2a28;--soft:#6f6c66;--line:rgba(0,0,0,.13);--ph:#e4e0d8;--card:#fffdfa;--blue:#2f6fd0;--amber:#c0852a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);font-family:system-ui,sans-serif;color:var(--ink)}
+.dv-turn{padding:40px 44px 36px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 14px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.3 system-ui,sans-serif}
+.dv-opts{display:flex;flex-wrap:wrap;gap:34px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}
+.dv-card{background:#fbf9f5;border:1px solid rgba(0,0,0,.1);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:22px}
+.dv-opt:target .dv-oid{background:var(--blue);color:#fff}
+.dv-next{margin:24px 0 0;font:12px/1.7 system-ui,sans-serif;color:rgba(0,0,0,.5)}
+.dv-next a{color:var(--blue);text-decoration:none;font:600 11px ui-monospace,monospace;padding:1px 5px;background:rgba(47,111,208,.1);border-radius:4px}
+.wf-legend{display:flex;flex-wrap:wrap;gap:12px 24px;margin:0 0 24px;padding:13px 17px;background:#fff;border:1px dashed rgba(0,0,0,.2);border-radius:10px;max-width:1040px}
+.wf-li{display:flex;align-items:center;gap:8px;font:13px 'Patrick Hand',system-ui;color:var(--soft)}
+.wf-dirhd{margin:0 0 16px;max-width:560px}
+.wf-dirname{font:21px 'Patrick Hand',system-ui;color:var(--ink);margin:0}
+.wf-dirdesc{font:13px/1.45 'Kalam',system-ui;color:var(--soft);margin:5px 0 0}
+.wf-frame{display:flex;flex-direction:column;gap:9px;margin:0 0 18px}
+.wf-fcap{display:flex;align-items:center;gap:8px}
+.wf-tag{font:9px/1 ui-monospace;letter-spacing:.07em;text-transform:uppercase;padding:4px 7px;border-radius:4px;color:#fff}
+.wf-tag-own{background:var(--blue)}
+.wf-tag-pub{background:var(--ink)}
+.wf-dev{font:10px ui-monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--soft)}
+.wf-phone{width:288px;border:2.5px solid var(--ink);border-radius:34px;background:#fff;padding:8px;box-shadow:0 8px 26px rgba(0,0,0,.12)}
+.wf-notch{width:86px;height:16px;background:var(--ink);border-radius:0 0 11px 11px;margin:0 auto 6px}
+.wf-screen{border:1px solid var(--line);border-radius:26px;overflow:hidden;background:var(--card);font-family:'Patrick Hand',system-ui}
+.wf-pad{padding:14px 13px 16px;display:flex;flex-direction:column;gap:13px}
+.wf-desktop{width:552px;border:1.5px solid var(--ink);border-radius:11px;overflow:hidden;background:#fff;box-shadow:0 8px 26px rgba(0,0,0,.12);font-family:'Patrick Hand',system-ui}
+.wf-chrome{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:1px solid var(--line);background:#f1ede6}
+.wf-dot{width:9px;height:9px;border-radius:50%;background:#cfc9bf;flex:none}
+.wf-url{flex:1;font:11px ui-monospace;background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px 9px;color:var(--soft)}
+.wf-page{padding:17px}
+.wf-row{display:flex;align-items:center;gap:9px}
+.wf-col{display:flex;flex-direction:column;gap:9px}
+.wf-bar{height:9px;border-radius:5px;background:var(--ph)}
+.wf-avatar{width:60px;height:60px;border-radius:50%;border:1.6px dashed var(--soft);background:repeating-linear-gradient(45deg,#e9e5dd,#e9e5dd 5px,#e0dbd1 5px,#e0dbd1 10px);display:flex;align-items:center;justify-content:center;font:8px ui-monospace;letter-spacing:.05em;color:var(--soft);flex:none}
+.wf-img{border:1.6px dashed var(--soft);background:repeating-linear-gradient(45deg,#e9e5dd,#e9e5dd 6px,#e0dbd1 6px,#e0dbd1 12px);display:flex;align-items:center;justify-content:center;font:10px ui-monospace;letter-spacing:.08em;color:var(--soft);border-radius:8px}
+.wf-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1.6px solid var(--ink);border-radius:16px;font:14px 'Patrick Hand';background:#fff;color:var(--ink)}
+.wf-chip-on{background:var(--blue);border-color:var(--blue);color:#fff}
+.wf-chip-pos{border-color:var(--amber);color:#8a5e16;border-style:dashed}
+.wf-off{border-style:dashed;border-color:var(--soft);color:var(--soft);background:#fff}
+.wf-pos-on{background:#a8741f;border-color:#a8741f;color:#fff}
+.wf-ico{width:12px;height:12px;border:1.6px solid currentColor;border-radius:3px;opacity:.55;flex:none}
+.wf-ico.rnd{border-radius:50%}
+.wf-badge{width:36px;height:36px;border-radius:50%;border:1.6px solid var(--ink);display:flex;align-items:center;justify-content:center;background:#faf7f2;flex:none}
+.wf-diamond{width:11px;height:11px;background:var(--soft);transform:rotate(45deg)}
+.wf-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border:1.6px solid var(--ink);border-radius:9px;font:15px 'Patrick Hand';background:#fff;color:var(--ink)}
+.wf-btn-primary{background:var(--ink);color:#fff}
+.wf-btn-full{width:100%}
+.wf-pencil{width:21px;height:21px;border-radius:50%;border:1.6px solid var(--blue);color:var(--blue);display:inline-flex;align-items:center;justify-content:center;font:11px 'Patrick Hand',serif;background:#fff;flex:none}
+.wf-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border:1.5px solid var(--ink);border-radius:20px;font:12px 'Patrick Hand';background:#fff}
+.wf-pill-pub{border-color:var(--soft);color:var(--soft)}
+.wf-ring{width:9px;height:9px;border:1.5px solid currentColor;border-radius:50%;flex:none}
+.wf-pin{width:7px;height:7px;border-radius:50% 50% 50% 0;background:var(--soft);transform:rotate(-45deg);flex:none}
+.wf-note{font:13px/1.4 'Kalam',system-ui;color:var(--blue);margin:0}
+.wf-cap{display:inline-flex;align-items:center;gap:5px;font:13px 'Patrick Hand';color:var(--soft)}
+.wf-label{font:10px ui-monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--soft)}
+.wf-divider{height:1px;background:var(--line)}
+.wf-name{font:19px 'Patrick Hand';color:var(--ink)}
+.wf-ev{display:flex;gap:11px;align-items:flex-start;padding:9px 0}
+.wf-evd{font:10px ui-monospace;color:var(--soft);width:46px;flex:none;padding-top:3px}
+.wf-evt{font:15px 'Patrick Hand';color:var(--ink)}
+.wf-private{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border:1.5px dashed var(--amber);border-radius:8px;background:#fbf6ec}
+.wf-priv{font:8px ui-monospace;letter-spacing:.06em;text-transform:uppercase;color:#8a5e16;border:1px solid var(--amber);border-radius:3px;padding:1px 4px}
+.wf-tabs{display:flex;gap:18px;border-bottom:1px solid var(--line)}
+.wf-tab{font:14px 'Patrick Hand';color:var(--soft);padding:0 0 7px;border-bottom:2px solid transparent;margin-bottom:-1px}
+.wf-tab-on{color:var(--ink);border-bottom-color:var(--ink)}
+.wf-tl{position:relative;padding-left:18px}
+.wf-tl::before{content:"";position:absolute;left:5px;top:7px;bottom:9px;width:1.5px;background:var(--line)}
+.wf-tli{position:relative;padding:5px 0 13px}
+.wf-tld{position:absolute;left:-16px;top:9px;width:9px;height:9px;border-radius:50%;background:#fff;border:1.6px solid var(--ink)}
+.wf-hero{border:2px solid var(--ink);border-radius:13px;overflow:hidden;background:#fff}
+.wf-hstrip{display:flex;align-items:center;justify-content:space-between;padding:6px 11px;background:var(--ink);color:#fff;font:9px ui-monospace;letter-spacing:.14em}
+.wf-quote{border-left:2.5px solid var(--line);padding-left:12px;display:flex;flex-direction:column;gap:6px}
+.wf-grid2{display:flex;gap:18px;align-items:flex-start}
+.wf-evcard{border:1.4px solid var(--line);border-radius:9px;padding:10px 11px;display:flex;gap:11px;align-items:flex-start}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t2">
+<div class="dv-thd"><a class="dv-tid" href="#t2">2</a><span class="dv-tname">Profile page — current wireframe · mobile (owner) + desktop (public)</span></div>
+
+<div class="wf-legend" style="max-width:780px">
+<div class="wf-li"><span style="color:var(--blue);font-size:15px">✓</span> Email dropped from every screen — handled by another feature</div>
+<div class="wf-li"><span style="color:var(--blue);font-size:15px">✓</span> Teams are now multi — a player can list several clubs; activity shows which team</div>
+<div class="wf-li"><span style="color:var(--blue);font-size:15px">✓</span> Pompfen — owner picks from the full set (filled = selected, dotted = available); public shows only the selected</div>
+</div>
+
+<div class="dv-opts">
+<div class="dv-opt" id="2a">
+<div class="dv-olabel"><a class="dv-oid" href="#2a">2a</a> Stacked feed — refined</div>
+<div class="dv-card">
+<div class="wf-dirhd"><p class="wf-dirname">Stacked feed</p><p class="wf-dirdesc">Identity → teams → pompfen → badges → activity, in one scroll. No email anywhere; the “Teams” section lists every club a player belongs to (joining/creating handled elsewhere).</p></div>
+
+<div class="wf-frame">
+<div class="wf-fcap"><span class="wf-tag wf-tag-own">Owner</span><span class="wf-dev">Mobile · editable</span></div>
+<div class="wf-phone" data-screen-label="2a Mobile Owner">
+<div class="wf-notch"></div>
+<div class="wf-screen"><div class="wf-pad">
+<div class="wf-row" style="justify-content:space-between"><span class="wf-cap">‹ Back</span><span class="wf-pill"><span style="color:var(--blue)">✎</span> Edit</span></div>
+<div class="wf-col" style="align-items:center;gap:6px;text-align:center">
+<div class="wf-avatar" style="width:74px;height:74px">PHOTO</div>
+<div class="wf-col" style="gap:2px;align-items:center"><span class="wf-name">Player name</span><span class="wf-cap" style="font-size:12px">@player-slug</span></div>
+<span class="wf-cap"><span class="wf-pin"></span> Hometown</span>
+</div>
+<div class="wf-col" style="gap:6px"><div class="wf-bar" style="width:100%"></div><div class="wf-bar" style="width:72%"></div></div>
+<div class="wf-col" style="gap:9px"><span class="wf-label">Teams · clubs</span>
+<div class="wf-row" style="flex-wrap:wrap;gap:7px"><span class="wf-chip">Team A</span><span class="wf-chip">Team B</span></div>
+</div>
+<div class="wf-divider"></div>
+<div class="wf-col" style="gap:9px"><div class="wf-col" style="gap:2px"><span class="wf-label">Plays · pick favorites</span><span class="wf-cap" style="font-size:11px">filled = selected · dotted = available</span></div>
+<div class="wf-row" style="flex-wrap:wrap;gap:7px"><span class="wf-chip wf-chip-on">Stab</span><span class="wf-chip wf-chip-on">Schild</span><span class="wf-chip wf-chip-on">Q-Tip</span><span class="wf-chip wf-chip-on">Läufer</span><span class="wf-chip wf-off">Langpompfe</span><span class="wf-chip wf-off">Kette</span><span class="wf-chip wf-off">Doppel-Kurz</span></div>
+</div>
+<div class="wf-col" style="gap:9px"><span class="wf-label">Badges</span>
+<div class="wf-row" style="gap:16px">
+<div class="wf-col" style="gap:4px;align-items:center"><span class="wf-badge"><span class="wf-diamond"></span></span><span class="wf-cap" style="font-size:11px">Badge</span></div>
+<div class="wf-col" style="gap:4px;align-items:center"><span class="wf-badge"><span class="wf-diamond"></span></span><span class="wf-cap" style="font-size:11px">Badge</span></div>
+<div class="wf-col" style="gap:4px;align-items:center"><span class="wf-badge"><span class="wf-diamond"></span></span><span class="wf-cap" style="font-size:11px">Badge</span></div>
+</div>
+</div>
+<div class="wf-divider"></div>
+<div class="wf-col" style="gap:0"><span class="wf-label" style="margin-bottom:4px">Recent activity</span>
+<div class="wf-ev"><span class="wf-evd">Aug ’25</span><div class="wf-col" style="gap:5px;flex:1"><span class="wf-evt">Sommerturnier</span><span class="wf-cap" style="font-size:12px">Berlin · with Team A</span></div></div>
+<div class="wf-ev"><span class="wf-evd">Jun ’25</span><div class="wf-col" style="gap:5px;flex:1"><span class="wf-evt">Liga-Spieltag</span><span class="wf-cap" style="font-size:12px">Hamburg · with Team B</span></div></div>
+<div class="wf-ev"><span class="wf-evd">May ’25</span><div class="wf-col" style="gap:5px;flex:1"><span class="wf-evt">Trainingscamp</span><span class="wf-cap" style="font-size:12px">Köln · with Team A</span></div></div>
+</div>
+</div></div></div>
+</div>
+
+<div class="wf-frame">
+<div class="wf-fcap"><span class="wf-tag wf-tag-pub">Public</span><span class="wf-dev">Desktop · shared link</span></div>
+<div class="wf-desktop" data-screen-label="2a Desktop Public">
+<div class="wf-chrome"><span class="wf-dot"></span><span class="wf-dot"></span><span class="wf-dot"></span><span class="wf-url">jugger.app/u/player-slug</span></div>
+<div class="wf-page">
+<div class="wf-row" style="justify-content:space-between;margin-bottom:16px"><span class="wf-pill wf-pill-pub"><span class="wf-ring"></span> Public profile</span><span class="wf-btn" style="padding:6px 12px;font-size:13px"><span class="wf-ico"></span> Copy link</span></div>
+<div class="wf-grid2">
+<div class="wf-col" style="width:205px;flex:none;gap:13px">
+<div class="wf-row" style="gap:12px"><div class="wf-avatar"></div><div class="wf-col" style="gap:4px"><span class="wf-name">Player name</span><span class="wf-cap" style="font-size:12px">@player-slug</span><span class="wf-cap"><span class="wf-pin"></span> Hometown</span></div></div>
+<div class="wf-col" style="gap:6px"><div class="wf-bar" style="width:100%"></div><div class="wf-bar" style="width:82%"></div><div class="wf-bar" style="width:58%"></div></div>
+<div class="wf-divider"></div>
+<span class="wf-label">Teams · clubs</span>
+<div class="wf-row" style="flex-wrap:wrap;gap:7px"><span class="wf-chip">Team A</span><span class="wf-chip">Team B</span></div>
+<div class="wf-divider"></div>
+<span class="wf-label">Plays</span>
+<div class="wf-row" style="flex-wrap:wrap;gap:7px"><span class="wf-chip wf-chip-on">Stab</span><span class="wf-chip wf-chip-on">Schild</span><span class="wf-chip wf-chip-on">Q-Tip</span><span class="wf-chip wf-chip-on">Läufer</span></div>
+<span class="wf-label">Badges</span>
+<div class="wf-row" style="gap:14px"><span class="wf-badge"><span class="wf-diamond"></span></span><span class="wf-badge"><span class="wf-diamond"></span></span><span class="wf-badge"><span class="wf-diamond"></span></span></div>
+</div>
+<div class="wf-col" style="flex:1;gap:0">
+<span class="wf-label" style="margin-bottom:4px">Recent activity</span>
+<div class="wf-ev"><span class="wf-evd">Aug ’25</span><div class="wf-col" style="gap:5px;flex:1"><span class="wf-evt">Sommerturnier</span><span class="wf-cap" style="font-size:12px">Berlin · with Team A</span></div></div>
+<div class="wf-divider"></div>
+<div class="wf-ev"><span class="wf-evd">Jun ’25</span><div class="wf-col" style="gap:5px;flex:1"><span class="wf-evt">Liga-Spieltag</span><span class="wf-cap" style="font-size:12px">Hamburg · with Team B</span></div></div>
+<div class="wf-divider"></div>
+<div class="wf-ev"><span class="wf-evd">May ’25</span><div class="wf-col" style="gap:5px;flex:1"><span class="wf-evt">Trainingscamp</span><span class="wf-cap" style="font-size:12px">Köln · with Team A</span></div></div>
+<div class="wf-divider"></div>
+<div class="wf-ev"><span class="wf-evd">Apr ’25</span><div class="wf-col" style="gap:5px;flex:1"><span class="wf-evt">Stadtmeisterschaft</span><span class="wf-cap" style="font-size:12px">Leipzig · with Team B</span></div></div>
+</div>
+</div>
+</div>
+</div>
+<p class="wf-note">Public view: no email · only selected pompfen shown · each activity item notes its team.</p>
+</div>
+
+</div>
+</div>
+</div>
+
+<p class="dv-next">Try next: “build <a class="dv-oid" href="#2a">2a</a> as a hi-fi mobile screen” · “show the edit screen — teams + pompfen multi-select” · “design the desktop public page in detail”</p>
+</section>
+</x-dc>
+</body>
+</html>

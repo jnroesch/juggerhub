@@ -1,0 +1,135 @@
+/* ============================================================
+   JuggerHub — COLOR TOKENS
+   Warm, welcoming, community. Sand neutrals + coral primary +
+   teal secondary + lemon highlight. Semantic aliases below.
+   ============================================================ */
+
+:root {
+  /* -- Neutral: warm sand scale (0 = lightest paper, 9 = ink) -- */
+  --sand-0: #FBF8F3;
+  --sand-1: #F4EEE3;
+  --sand-2: #EAE1D2;
+  --sand-3: #DBCEB9;
+  --sand-4: #C7B79C;
+  --sand-5: #A6957A;
+  --sand-6: #82725B;
+  --sand-7: #5F5343;
+  --sand-8: #3E362B;
+  --sand-9: #241F18;
+
+  --white: #FFFFFF;
+  --black: #1A160F;
+
+  /* -- Coral (primary): friendly, energetic warm accent -- */
+  --coral-0: #FFF1EC;
+  --coral-1: #FFD8C9;
+  --coral-2: #FFB69C;
+  --coral-3: #FF8E68;
+  --coral-4: #F5623A;
+  --coral-5: #DB4A22;
+  --coral-6: #B93A17;
+  --coral-7: #8F2C12;
+  --coral-8: #6A2210;
+  --coral-9: #401307;
+
+  /* -- Sage (secondary): muted, warm, low-contrast green.
+     Kept under the --teal-* names so components need no changes. -- */
+  --teal-0: #EEF3EF;
+  --teal-1: #DBE6DE;
+  --teal-2: #C1D3C6;
+  --teal-3: #9FBAA7;
+  --teal-4: #7A9B87;
+  --teal-5: #5F8070;
+  --teal-6: #4A6558;
+  --teal-7: #3B5145;
+  --teal-8: #2C3B33;
+  --teal-9: #1F2924;
+
+  /* -- Lemon (highlight): playful pops, badges, streaks -- */
+  --lemon-0: #FFFBE0;
+  --lemon-1: #FFF0A8;
+  --lemon-2: #FFE066;
+  --lemon-3: #F7CE33;
+  --lemon-4: #E0B211;
+  --lemon-5: #B88C05;
+  --lemon-6: #8F6B03;
+
+  /* -- Semantic hues -- */
+  --green-0: #E6F7ED;
+  --green-1: #A7E9C1;
+  --green-4: #1FA860;
+  --green-5: #16824A;
+  --green-6: #0F6438;
+
+  --red-0: #FFECEA;
+  --red-1: #FFC7C2;
+  --red-4: #F0463F;
+  --red-5: #CC2E28;
+  --red-6: #A11F1B;
+
+  --blue-0: #E9F1FF;
+  --blue-1: #BFD6FF;
+  --blue-4: #3B7DF0;
+  --blue-5: #2660CC;
+  --blue-6: #1B489C;
+
+  /* ==========================================================
+     SEMANTIC ALIASES — use these in components, not raw scales
+     ========================================================== */
+
+  /* Surfaces & backgrounds */
+  --surface-page: var(--sand-0);
+  --surface-raised: var(--white);
+  --surface-card: var(--white);
+  --surface-sunken: var(--sand-1);
+  --surface-muted: var(--sand-2);
+  --surface-inverse: var(--sand-9);
+  --surface-accent-soft: var(--coral-0);
+  --surface-secondary-soft: var(--teal-0);
+
+  /* Text */
+  --text-body: var(--sand-8);
+  --text-heading: var(--sand-9);
+  --text-muted: var(--sand-6);
+  --text-subtle: var(--sand-5);
+  --text-on-accent: var(--white);
+  --text-on-inverse: var(--sand-1);
+  --text-link: var(--coral-6);
+  --text-link-hover: var(--coral-7);
+
+  /* Brand */
+  --brand-primary: var(--coral-4);
+  --brand-primary-hover: var(--coral-5);
+  --brand-primary-active: var(--coral-6);
+  --brand-secondary: var(--teal-4);
+  --brand-secondary-hover: var(--teal-5);
+  --brand-highlight: var(--lemon-2);
+
+  /* Borders & dividers */
+  --border-default: var(--sand-3);
+  --border-muted: var(--sand-2);
+  --border-strong: var(--sand-4);
+  --border-accent: var(--coral-3);
+  --border-focus: var(--coral-4);
+
+  /* Feedback */
+  --success-fg: var(--green-6);
+  --success-bg: var(--green-0);
+  --success-border: var(--green-1);
+  --danger-fg: var(--red-6);
+  --danger-bg: var(--red-0);
+  --danger-border: var(--red-1);
+  --warning-fg: var(--lemon-6);
+  --warning-bg: var(--lemon-0);
+  --warning-border: var(--lemon-1);
+  --info-fg: var(--blue-6);
+  --info-bg: var(--blue-0);
+  --info-border: var(--blue-1);
+
+  /* Focus ring */
+  --focus-ring: 0 0 0 3px var(--coral-1);
+
+  /* Brand gradients — kept warm & gentle (coral-forward, soft sage) */
+  --brand-gradient: linear-gradient(105deg, var(--coral-4), var(--teal-4));
+  --brand-gradient-soft: linear-gradient(135deg, var(--coral-1), var(--teal-1));
+}

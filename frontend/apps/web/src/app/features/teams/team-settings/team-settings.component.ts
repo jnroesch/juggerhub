@@ -28,6 +28,8 @@ export class TeamSettingsComponent {
   protected readonly working = signal(false);
   protected readonly confirmingDelete = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly beginnersWelcome = signal(false);
+  protected readonly savingBeginners = signal(false);
 
   protected readonly isAdmin = computed(() => this.detail()?.myRole === 'Admin');
 
@@ -44,6 +46,7 @@ export class TeamSettingsComponent {
     this.teams.getDetail(this.slug()).subscribe({
       next: (d) => {
         this.detail.set(d);
+        this.beginnersWelcome.set(d.beginnersWelcome);
         this.loading.set(false);
         if (d.myRole === 'Admin') {
           this.teams.getMembers(this.slug()).subscribe({
@@ -54,6 +57,24 @@ export class TeamSettingsComponent {
       error: () => {
         this.loading.set(false);
         this.notFound.set(true);
+      },
+    });
+  }
+
+  protected toggleBeginnersWelcome(): void {
+    const next = !this.beginnersWelcome();
+    this.beginnersWelcome.set(next);
+    this.savingBeginners.set(true);
+    this.error.set(null);
+    this.teams.updateSettings(this.slug(), next).subscribe({
+      next: () => {
+        this.savingBeginners.set(false);
+        this.detail.update((d) => (d ? { ...d, beginnersWelcome: next } : d));
+      },
+      error: (err) => {
+        this.beginnersWelcome.set(!next); // revert on failure
+        this.savingBeginners.set(false);
+        this.error.set(problemDetail(err));
       },
     });
   }

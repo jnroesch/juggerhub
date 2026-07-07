@@ -48,6 +48,14 @@ public enum DeleteTeamStatus
     Forbidden,
 }
 
+/// <summary>Outcome of a team-settings update (feature 007).</summary>
+public enum UpdateTeamSettingsStatus
+{
+    Updated,
+    Forbidden,
+    NotFoundOrNotMember,
+}
+
 /// <summary>
 /// Team domain service: create + slug checks, member-gated reads (detail/roster), the public
 /// projection, role/remove/step-down (under the last-admin guard), and delete. Accesses EF
@@ -81,4 +89,8 @@ public interface ITeamService
 
     /// <summary>Delete the team (admin only); cascades roster/invites/news, preserves event history.</summary>
     Task<DeleteTeamStatus> DeleteAsync(string slug, Guid actorUserId, CancellationToken ct = default);
+
+    /// <summary>Update the team's self-managed settings (admin only). Feature 007.</summary>
+    Task<UpdateTeamSettingsStatus> UpdateSettingsAsync(
+        string slug, Guid actorUserId, UpdateTeamSettingsRequest request, CancellationToken ct = default);
 }

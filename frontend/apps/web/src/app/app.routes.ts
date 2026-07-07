@@ -64,6 +64,20 @@ export const appRoutes: Route[] = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/events/event-admins/event-admins.component').then((m) => m.EventAdminsComponent),
       },
+      // Browse / search (feature 007) — anonymous (no guard), in the shell, lazy-loaded.
+      { path: 'browse', pathMatch: 'full', redirectTo: 'browse/teams' },
+      {
+        path: 'browse/teams',
+        loadComponent: () => import('./features/browse/browse-teams/browse-teams.component').then((m) => m.BrowseTeamsComponent),
+      },
+      {
+        path: 'browse/events',
+        loadComponent: () => import('./features/browse/browse-events/browse-events.component').then((m) => m.BrowseEventsComponent),
+      },
+      {
+        path: 'browse/players',
+        loadComponent: () => import('./features/browse/browse-players/browse-players.component').then((m) => m.BrowsePlayersComponent),
+      },
     ],
   },
   // Auth screens are full-screen, outside the shell.

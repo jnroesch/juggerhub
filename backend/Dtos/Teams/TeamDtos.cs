@@ -38,6 +38,10 @@ public sealed record SetMemberRoleRequest([Required] TeamRole Role);
 /// <summary>Create a targeted invite for a specific user.</summary>
 public sealed record CreateTargetedInviteRequest([Required] Guid UserId);
 
+/// <summary>Admin update to a team's self-managed settings (feature 007). Currently the
+/// beginners-welcome recruitment flag surfaced in browse.</summary>
+public sealed record UpdateTeamSettingsRequest([Required] bool BeginnersWelcome);
+
 // --- Responses --------------------------------------------------------------
 
 /// <summary>Members-only team header. Roster/news are fetched from their own endpoints.</summary>
@@ -47,7 +51,9 @@ public sealed record TeamDetailDto(
     TeamType Type,
     string? City,
     int MemberCount,
-    TeamRole MyRole);
+    TeamRole MyRole,
+    // Feature 007 — self-managed recruitment flag, editable in team settings.
+    bool BeginnersWelcome = false);
 
 /// <summary>Anonymous public team info. MUST NOT contain roster identities or news.</summary>
 public sealed record TeamPublicDto(

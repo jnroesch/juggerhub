@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#efece6;--ink:#2b2a28;--soft:#6f6c66;--line:rgba(0,0,0,.13);--ph:#e4e0d8;--card:#fffdfa;--blue:#2f6fd0;--amber:#c0852a;--red:#b23b3b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);font-family:system-ui,sans-serif;color:var(--ink)}
+a{color:var(--blue)}a:hover{color:#245bb0}
+.dv-turn{padding:40px 44px 40px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 14px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.3 system-ui,sans-serif}
+.dv-opts{display:flex;flex-wrap:wrap;gap:30px;align-items:flex-start}
+.dv-opt{flex:none;display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}
+.dv-card{background:#fbf9f5;border:1px solid rgba(0,0,0,.1);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:22px}
+.dv-opt:target .dv-oid{background:var(--blue);color:#fff}
+.dv-next{margin:26px 0 0;font:12px/1.7 system-ui,sans-serif;color:rgba(0,0,0,.5)}
+.dv-next a{color:var(--blue);text-decoration:none;font:600 11px ui-monospace,monospace;padding:1px 5px;background:rgba(47,111,208,.1);border-radius:4px}
+.wf-legend{display:flex;flex-direction:column;gap:9px;margin:0 0 26px;padding:14px 18px;background:#fff;border:1px dashed rgba(0,0,0,.2);border-radius:10px;max-width:860px}
+.wf-li{display:flex;align-items:flex-start;gap:9px;font:13px/1.35 'Patrick Hand',system-ui;color:var(--soft)}
+.wf-li b{color:var(--ink);font-weight:400}
+.wf-key{color:var(--blue);font-size:15px;line-height:1;flex:none}
+.wf-dirhd{margin:0 0 4px;max-width:600px}
+.wf-dirname{font:21px 'Patrick Hand',system-ui;color:var(--ink);margin:0}
+.wf-dirdesc{font:13px/1.45 'Kalam',system-ui;color:var(--soft);margin:5px 0 0}
+.wf-strip{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap;margin-top:8px}
+.wf-cell{display:flex;flex-direction:column;gap:8px;align-items:center;flex:none}
+.wf-scap{font:10px ui-monospace;letter-spacing:.04em;text-transform:uppercase;color:var(--soft);text-align:center;max-width:272px}
+.wf-phone{width:272px;border:2.5px solid var(--ink);border-radius:32px;background:#fff;padding:7px;box-shadow:0 8px 22px rgba(0,0,0,.1)}
+.wf-notch{width:82px;height:15px;background:var(--ink);border-radius:0 0 10px 10px;margin:0 auto 5px}
+.wf-screen{border:1px solid var(--line);border-radius:25px;overflow:hidden;background:var(--card);font-family:'Patrick Hand',system-ui}
+.wf-pad{padding:14px 13px 16px;display:flex;flex-direction:column;gap:12px}
+.wf-pad.tall{min-height:498px}
+.wf-foot{margin-top:auto;display:flex;flex-direction:column;gap:9px;padding-top:10px}
+.wf-desktop{width:604px;border:1.5px solid var(--ink);border-radius:11px;overflow:hidden;background:#fff;box-shadow:0 8px 26px rgba(0,0,0,.12);font-family:'Patrick Hand',system-ui}
+.wf-desktop.wide{width:660px}
+.wf-chrome{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:1px solid var(--line);background:#f1ede6}
+.wf-dot{width:9px;height:9px;border-radius:50%;background:#cfc9bf;flex:none}
+.wf-url{flex:1;font:11px ui-monospace;background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px 9px;color:var(--soft)}
+.wf-page{padding:18px}
+.wf-row{display:flex;align-items:center;gap:9px}
+.wf-col{display:flex;flex-direction:column;gap:9px}
+.wf-bar{height:9px;border-radius:5px;background:var(--ph)}
+.wf-divider{height:1px;background:var(--line)}
+.wf-dividor{display:flex;align-items:center;gap:9px;color:var(--soft);font:12px 'Patrick Hand'}
+.wf-dividor::before,.wf-dividor::after{content:"";flex:1;height:1px;background:var(--line)}
+.wf-label{font:10px ui-monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--soft)}
+.wf-cap{display:inline-flex;align-items:center;gap:5px;font:13px 'Patrick Hand';color:var(--soft)}
+.wf-name{font:18px 'Patrick Hand';color:var(--ink)}
+.wf-q{font:21px/1.18 'Patrick Hand';color:var(--ink);margin:0}
+.wf-sub{font:13px/1.4 'Kalam';color:var(--soft);margin:0}
+.wf-note{font:12.5px/1.4 'Kalam',system-ui;color:var(--blue);margin:0}
+.wf-tlogo{width:44px;height:44px;border-radius:12px;border:1.6px dashed var(--soft);background:#faf7f2;display:flex;align-items:center;justify-content:center;font:9px ui-monospace;letter-spacing:.04em;color:var(--soft);flex:none}
+.wf-tlogo.sm{width:32px;height:32px;border-radius:9px;font:13px 'Patrick Hand';color:var(--ink)}
+.wf-seg{display:flex;border:1.6px solid var(--ink);border-radius:9px;overflow:hidden;background:#fff}
+.wf-seg-item{flex:1;text-align:center;padding:8px 5px;font:13px 'Patrick Hand';color:var(--soft);border-right:1.4px solid var(--line)}
+.wf-seg-item:last-child{border-right:none}
+.wf-seg-on{background:var(--ink);color:#fff}
+.wf-mrow{display:flex;align-items:center;gap:10px;padding:8px 0}
+.wf-mini-av{width:34px;height:34px;border-radius:50%;border:1.4px dashed var(--soft);background:repeating-linear-gradient(45deg,#e9e5dd,#e9e5dd 4px,#e0dbd1 4px,#e0dbd1 8px);flex:none}
+.wf-mname{font:15px 'Patrick Hand';color:var(--ink)}
+.wf-dots{width:26px;height:26px;border-radius:7px;border:1.4px solid var(--line);display:flex;align-items:center;justify-content:center;color:var(--soft);font:15px 'Patrick Hand';background:#fff;flex:none}
+.wf-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border:1.6px solid var(--ink);border-radius:9px;font:15px 'Patrick Hand';background:#fff;color:var(--ink)}
+.wf-btn-primary{background:var(--ink);color:#fff}
+.wf-btn-ghost{border-color:var(--soft);color:var(--soft)}
+.wf-btn-full{width:100%}
+.wf-btn-sm{padding:6px 11px;font-size:13px;border-width:1.5px}
+.wf-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1.5px solid var(--ink);border-radius:20px;font:12px 'Patrick Hand';background:#fff}
+.wf-pin{width:7px;height:7px;border-radius:50% 50% 50% 0;background:var(--soft);transform:rotate(-45deg);flex:none}
+.wf-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1.6px solid var(--ink);border-radius:16px;font:13px 'Patrick Hand';background:#fff;color:var(--ink);white-space:nowrap}
+.wf-chip-sm{padding:3px 9px;font-size:11px}
+.wf-chip-on{background:var(--blue);border-color:var(--blue);color:#fff}
+.wf-off{border-style:dashed;border-color:var(--soft);color:var(--soft);background:#fff}
+.wf-chip-amber{border-color:var(--amber);color:#8a5e16}
+.wf-chip-blue{border-color:var(--blue);color:var(--blue)}
+.wf-search{width:100%;border:1.6px solid var(--ink);border-radius:9px;padding:10px 11px;font:14px 'Patrick Hand';color:var(--soft);background:#fff;display:flex;align-items:center;gap:8px}
+.wf-search.filled{color:var(--ink)}
+.wf-mag{width:12px;height:12px;border:1.7px solid var(--soft);border-radius:50%;flex:none;position:relative}
+.wf-mag::after{content:"";position:absolute;right:-4px;bottom:-3px;width:5px;height:1.7px;background:var(--soft);transform:rotate(45deg)}
+.wf-caret{width:1.5px;height:16px;background:var(--blue);display:inline-block}
+.wf-result{display:flex;align-items:center;gap:9px;padding:8px 9px;border:1.4px solid var(--line);border-radius:9px}
+.wf-alert{display:flex;gap:8px;border:1.5px dashed var(--amber);background:#fbf6ec;border-radius:9px;padding:10px 11px;font:12.5px/1.4 'Kalam';color:#8a5e16}
+.wf-alert.blue{border-color:var(--blue);background:rgba(47,111,208,.06);color:#2b5896}
+.wf-ico{width:14px;height:14px;border:1.6px solid currentColor;border-radius:3px;opacity:.7;flex:none}
+.wf-ico.rnd{border-radius:50%}
+.wf-handle{width:36px;height:4px;border-radius:2px;background:var(--line);margin:0 auto 4px}
+.wf-scrim{background:rgba(43,42,40,.05)}
+.wf-prow{display:flex;align-items:center;gap:10px;padding:9px 2px;border-bottom:1px solid var(--line)}
+.wf-metrow{display:flex;align-items:center;gap:9px;font:14px 'Patrick Hand';color:var(--ink)}
+.wf-mk{width:15px;display:flex;justify-content:center;align-items:center;color:var(--soft);flex:none;font:13px ui-monospace}
+.wf-mono{font:12px ui-monospace;color:var(--ink)}
+.wf-cover{height:66px;border-radius:11px 11px 0 0;background:repeating-linear-gradient(45deg,#e9e5dd,#e9e5dd 6px,#e0dbd1 6px,#e0dbd1 12px);border:1.6px dashed var(--soft);display:flex;align-items:flex-start;justify-content:flex-start;padding:8px;position:relative}
+.wf-btype{font:9px/1 ui-monospace;letter-spacing:.09em;text-transform:uppercase;padding:5px 9px;border-radius:20px;background:var(--ink);color:#fff;display:inline-flex;align-items:center;gap:5px}
+.wf-sechd{display:flex;align-items:center;justify-content:space-between}
+
+/* ---- search-specific additions ---- */
+.wf-toolbar{display:flex;align-items:center;gap:8px}
+.wf-fico{width:15px;height:12px;flex:none;display:flex;flex-direction:column;justify-content:space-between;align-items:center}
+.wf-fico i{height:1.8px;background:currentColor;border-radius:2px;display:block}
+.wf-fico i:nth-child(1){width:100%}
+.wf-fico i:nth-child(2){width:62%}
+.wf-fico i:nth-child(3){width:28%}
+.wf-filtbtn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:1.6px solid var(--ink);border-radius:9px;padding:9px 12px;font:14px 'Patrick Hand';background:#fff;color:var(--ink)}
+.wf-badge{min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:var(--blue);color:#fff;font:10px ui-monospace;display:inline-flex;align-items:center;justify-content:center}
+.wf-sort{display:inline-flex;align-items:center;gap:6px;border:1.6px solid var(--soft);border-radius:9px;padding:9px 11px;font:13px 'Patrick Hand';color:var(--soft);background:#fff;white-space:nowrap}
+.wf-sort b{color:var(--ink);font-weight:400}
+.wf-chiprow{display:flex;gap:7px;overflow:hidden;position:relative}
+.wf-chiprow.fade{-webkit-mask-image:linear-gradient(90deg,#000 84%,transparent);mask-image:linear-gradient(90deg,#000 84%,transparent)}
+.wf-count{font:12px 'Patrick Hand';color:var(--soft)}
+.wf-count b{color:var(--ink);font-weight:400}
+.wf-clear{font:12px 'Patrick Hand';color:var(--blue);text-decoration:underline;text-underline-offset:2px}
+.wf-sheet{border-top:1px solid var(--line);background:#fff;padding:11px 14px 15px;display:flex;flex-direction:column;gap:14px;border-radius:18px 18px 0 0;box-shadow:0 -6px 18px rgba(0,0,0,.06)}
+.wf-fgroup{display:flex;flex-direction:column;gap:9px}
+.wf-ftoggle{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.wf-ftlabel{display:flex;flex-direction:column;gap:1px}
+.wf-ftlabel span{font:14px 'Patrick Hand';color:var(--ink)}
+.wf-ftlabel small{font:11px 'Kalam';color:var(--soft)}
+.wf-switch{width:38px;height:22px;border-radius:12px;background:var(--ph);border:1.5px solid var(--line);padding:2px;display:inline-flex;align-items:center;flex:none}
+.wf-switch i{width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);display:block}
+.wf-switch.on{background:var(--blue);border-color:var(--blue);justify-content:flex-end}
+.wf-picker{width:100%;border:1.6px solid var(--ink);border-radius:9px;padding:10px 11px;font:14px 'Patrick Hand';background:#fff;display:flex;align-items:center;justify-content:space-between}
+.wf-picker.soft{color:var(--soft)}
+.wf-picker.filled{color:var(--ink)}
+.wf-daterange{display:flex;align-items:center;gap:8px}
+.wf-daterange .wf-picker{flex:1}
+.wf-daterange em{color:var(--soft);font-style:normal}
+.wf-coming{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1.5px dashed #c9c3b8;border-radius:9px;padding:9px 11px;background:#f6f3 ec;background:#f6f3ec}
+.wf-coming .l{display:flex;align-items:center;gap:8px;font:13px 'Patrick Hand';color:#a49d90}
+.wf-lock{width:12px;height:11px;border:1.6px solid #b3ab9d;border-radius:3px;position:relative;flex:none;margin-top:2px}
+.wf-lock::before{content:"";position:absolute;left:2px;top:-4px;width:6px;height:6px;border:1.6px solid #b3ab9d;border-bottom:none;border-radius:4px 4px 0 0}
+.wf-soon{font:8px/1 ui-monospace;letter-spacing:.06em;text-transform:uppercase;padding:4px 7px;border-radius:20px;background:#efeae0;color:#a49d90;border:1px solid #d8d1c4;white-space:nowrap}
+.wf-tcard{border:1.4px solid var(--line);border-radius:12px;overflow:hidden;background:#fff;display:flex;flex-direction:column}
+.wf-tcard .cov{height:40px;background:repeating-linear-gradient(45deg,#e9e5dd,#e9e5dd 6px,#e0dbd1 6px,#e0dbd1 12px);border-bottom:1.4px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 9px}
+.wf-tcard .bd{padding:10px 11px 11px;display:flex;flex-direction:column;gap:7px}
+.wf-2pane{display:flex;gap:18px;align-items:flex-start}
+.wf-side{width:184px;flex:none;display:flex;flex-direction:column;gap:14px}
+.wf-side .wf-fgroup{gap:8px}
+.wf-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.wf-drawerbox{position:relative;overflow:hidden}
+.wf-scrim-abs{position:absolute;inset:0;background:rgba(43,42,40,.16)}
+.wf-drawer{position:absolute;top:0;right:0;bottom:0;width:244px;background:#fff;border-left:1.5px solid var(--line);box-shadow:-8px 0 22px rgba(0,0,0,.1);padding:15px;display:flex;flex-direction:column;gap:14px}
+.wf-spec{border:1.4px solid var(--line);border-radius:12px;background:#fff;padding:15px;display:flex;flex-direction:column;gap:12px;width:306px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+.wf-spec-t{font:16px 'Patrick Hand';color:var(--ink)}
+.wf-spec-d{font:11.5px/1.4 'Kalam';color:var(--soft)}
+.wf-navbar{display:flex;align-items:center;gap:9px;padding:8px 10px;border:1.4px solid var(--line);border-radius:9px;background:#faf7f2}
+.wf-brand{font:15px 'Patrick Hand';color:var(--ink);flex:none;display:flex;align-items:center;gap:6px}
+.wf-brandmark{width:15px;height:15px;border-radius:5px;background:var(--ink);flex:none}
+.wf-gs-group{display:flex;flex-direction:column;gap:6px}
+.wf-gs-hd{display:flex;align-items:center;justify-content:space-between;font:9px ui-monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--soft)}
+.wf-seeall{font:11px 'Patrick Hand';color:var(--blue)}
+.wf-fset{display:flex;flex-direction:column;gap:7px;border:1.4px solid var(--line);border-radius:10px;padding:11px}
+.wf-fset-hd{display:flex;align-items:center;gap:7px;font:13px 'Patrick Hand';color:var(--ink)}
+.wf-chipwrap{display:flex;flex-wrap:wrap;gap:6px}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t5">
+<div class="dv-thd"><a class="dv-tid" href="#t5">5</a><span class="dv-tname">Search / browse — one shared shell for teams · events · players. Chosen pattern: filters on demand + list rows (5a), now applied to Players (5d).</span></div>
+
+<div class="wf-legend">
+<div class="wf-li"><span class="wf-key">◆</span><span><b>Where it lives:</b> a <b>Browse</b> section with one page each — Teams · Events · Players — each its own search + filter page. (A single global search across all three is parked for later.)</span></div>
+<div class="wf-li"><span class="wf-key">◆</span><span><b>All searches behave the same:</b> <b>live results as you type</b>; before you type you’re <b>browsing everything</b>, with filters + sort already applied. What differs per entity is <b>only the filter set &amp; default sort</b> — shell, interactions and states are identical.</span></div>
+<div class="wf-li"><span class="wf-key">◆</span><span><b>Chosen pattern (<a class="dv-oid" href="#5a">5a</a>):</b> filters <b>on demand</b> — a Filters button opens a bottom sheet on mobile, a slide-over drawer on desktop — with <b>compact list rows</b>. <a class="dv-oid" href="#5d">5d</a> applies that exact shell to <b>Players</b>.</span></div>
+<div class="wf-li"><span class="wf-key">◆</span><span><b>Teams (<a class="dv-oid" href="#5a">5a</a>) &amp; Players (<a class="dv-oid" href="#5d">5d</a>)</b> shown mobile + desktop. <b>Near me / distance</b> appears everywhere as a greyed <b>coming soon</b> — the hook for location later.</span></div>
+<div class="wf-li"><span class="wf-key">◆</span><span>Names, cities and counts are placeholder. <b>Players is opt-in</b> — only players who choose to appear are searchable. Next up: <b>Events</b>, plus empty / no-results states.</span></div>
+</div>
+
+<div class="dv-opts">
+
+<!-- ============ 5a — Pattern A: Filters button + list rows ============ -->
+<div class="dv-opt" id="5a">
+<div class="dv-olabel"><a class="dv-oid" href="#5a">5a</a> Pattern A — filters on demand (button → sheet / drawer) · compact list rows</div>
+<div class="dv-card">
+<div class="wf-dirhd"><p class="wf-dirname">A · Filters tucked away, dense list</p><p class="wf-dirdesc">A clean results list with a <b>Filters</b> button (badge shows how many are on) and a <b>Sort</b> control. Filters open in a bottom sheet on mobile, a slide-over drawer on desktop — so the results stay the star. Best when scanning many rows fast matters most.</p></div>
+<div class="wf-strip">
+
+<!-- A1 · browse all (default) -->
+<div class="wf-cell">
+<div class="wf-phone" data-screen-label="5a Teams browse default"><div class="wf-notch"></div><div class="wf-screen"><div class="wf-pad tall">
+<div class="wf-sechd"><span class="wf-name">Teams</span><span class="wf-cap" style="font-size:12px">Browse</span></div>
+<div class="wf-search"><span class="wf-mag"></span>Search teams…</div>
+<div class="wf-toolbar">
+<span class="wf-filtbtn"><span class="wf-fico"><i></i><i></i><i></i></span> Filters</span>
+<span class="wf-sort">Sort · <b>A–Z</b> ▾</span>
+</div>
+<span class="wf-count"><b>128</b> teams</span>
+<div class="wf-col" style="gap:0">
+<div class="wf-prow"><span class="wf-tlogo sm">R</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Rheinfeuer</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Köln · <span class="wf-mono">18</span> players</span></div><span class="wf-chip wf-chip-sm wf-chip-blue">Recruiting</span></div>
+<div class="wf-prow"><span class="wf-tlogo sm">B</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Berlin Beavers</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin · <span class="wf-mono">24</span> players</span></div><span class="wf-chip wf-chip-sm wf-chip-blue">Recruiting</span></div>
+<div class="wf-prow"><span class="wf-tlogo sm">S</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Spree Chain</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin · <span class="wf-mono">12</span> players</span></div></div>
+<div class="wf-prow"><span class="wf-tlogo sm">H</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Hansa Hits</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Hamburg · <span class="wf-mono">20</span> players</span></div><span class="wf-chip wf-chip-sm wf-chip-amber">Beginners</span></div>
+<div class="wf-prow"><span class="wf-tlogo sm">N</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Nordwind</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Kiel · <span class="wf-mono">9</span> players</span></div></div>
+<div class="wf-prow" style="border-bottom:none"><span class="wf-tlogo sm">L</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Leipzig Löwen</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Leipzig · <span class="wf-mono">15</span> players</span></div><span class="wf-chip wf-chip-sm wf-chip-blue">Recruiting</span></div>
+</div>
+<span class="wf-cap" style="font-size:11px;color:var(--soft)">Scroll for more…</span>
+</div></div></div>
+<div class="wf-scap">Browse all — before you search</div>
+</div>
+
+<!-- A2 · filters sheet -->
+<div class="wf-cell">
+<div class="wf-phone" data-screen-label="5a Filters sheet"><div class="wf-notch"></div><div class="wf-screen">
+<div class="wf-pad wf-scrim" style="gap:9px;padding-bottom:8px">
+<div class="wf-sechd"><span class="wf-name">Teams</span><span class="wf-cap" style="font-size:12px">Browse</span></div>
+<div class="wf-search"><span class="wf-mag"></span>Search teams…</div>
+<div class="wf-toolbar"><span class="wf-filtbtn" style="border-color:var(--blue);color:var(--blue)"><span class="wf-fico"><i></i><i></i><i></i></span> Filters</span><span class="wf-sort">Sort · <b>A–Z</b> ▾</span></div>
+<div class="wf-prow" style="opacity:.5"><span class="wf-tlogo sm">R</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Rheinfeuer</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Köln</span></div></div>
+</div>
+<div class="wf-sheet">
+<div class="wf-handle"></div>
+<div class="wf-sechd"><span class="wf-name" style="font-size:16px">Filters</span><span class="wf-clear">Reset</span></div>
+<div class="wf-fgroup">
+<span class="wf-label">Show</span>
+<div class="wf-ftoggle"><div class="wf-ftlabel"><span>Active teams only</span><small>Hide dormant teams</small></div><span class="wf-switch on"><i></i></span></div>
+<div class="wf-ftoggle"><div class="wf-ftlabel"><span>Beginners welcome</span><small>Lends gear · open to new players</small></div><span class="wf-switch"><i></i></span></div>
+</div>
+<div class="wf-fgroup">
+<span class="wf-label">City or region</span>
+<div class="wf-picker soft">Any city <span style="opacity:.6">▾</span></div>
+</div>
+<div class="wf-coming"><span class="l"><span class="wf-lock"></span> Near me</span><span class="wf-soon">Coming soon</span></div>
+<button class="wf-btn wf-btn-primary wf-btn-full">Show 42 teams</button>
+</div>
+</div></div>
+<div class="wf-scap">Filters — bottom sheet · live count on the button</div>
+</div>
+
+<!-- A3 · live results + active chips -->
+<div class="wf-cell">
+<div class="wf-phone" data-screen-label="5a Active filters typing"><div class="wf-notch"></div><div class="wf-screen"><div class="wf-pad tall">
+<div class="wf-sechd"><span class="wf-name">Teams</span><span class="wf-cap" style="font-size:12px">Browse</span></div>
+<div class="wf-search filled"><span class="wf-mag"></span>be<span class="wf-caret"></span></div>
+<div class="wf-toolbar">
+<span class="wf-filtbtn" style="border-color:var(--blue)"><span class="wf-fico" style="color:var(--blue)"><i></i><i></i><i></i></span> Filters <span class="wf-badge">2</span></span>
+<span class="wf-sort">Sort · <b>A–Z</b> ▾</span>
+</div>
+<div class="wf-chiprow" style="flex-wrap:wrap">
+<span class="wf-chip wf-chip-sm wf-chip-on">Active ✕</span>
+<span class="wf-chip wf-chip-sm wf-chip-on">Beginners ✕</span>
+<span class="wf-clear" style="align-self:center">Clear all</span>
+</div>
+<span class="wf-count"><b>3</b> teams · active · beginners welcome</span>
+<div class="wf-col" style="gap:0">
+<div class="wf-prow"><span class="wf-tlogo sm">B</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Berlin Beavers</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin · <span class="wf-mono">24</span> players</span></div><span class="wf-chip wf-chip-sm wf-chip-amber">Beginners</span></div>
+<div class="wf-prow"><span class="wf-tlogo sm">B</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Beuel Blades</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Bonn · <span class="wf-mono">16</span> players</span></div><span class="wf-chip wf-chip-sm wf-chip-amber">Beginners</span></div>
+<div class="wf-prow" style="border-bottom:none"><span class="wf-tlogo sm">B</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Bergisch Chain</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Wuppertal · <span class="wf-mono">11</span> players</span></div><span class="wf-chip wf-chip-sm wf-chip-amber">Beginners</span></div>
+</div>
+<p class="wf-note" style="margin-top:auto">Results narrow as you type — filters stay applied. Tap a chip’s ✕ to drop one.</p>
+</div></div></div>
+<div class="wf-scap">Live results + active-filter chips</div>
+</div>
+
+<!-- A4 · desktop with drawer open -->
+<div class="wf-cell">
+<div class="wf-desktop" data-screen-label="5a Desktop drawer"><div class="wf-chrome"><span class="wf-dot"></span><span class="wf-dot"></span><span class="wf-dot"></span><span class="wf-url">jugger.app/browse/teams</span></div>
+<div class="wf-page wf-drawerbox" style="min-height:396px;padding:0">
+<div style="padding:18px">
+<div class="wf-row" style="justify-content:space-between;margin-bottom:12px"><span class="wf-name" style="font-size:20px">Teams</span><span class="wf-sort">Sort · <b>A–Z</b> ▾</span></div>
+<div class="wf-row" style="gap:10px;margin-bottom:12px"><div class="wf-search" style="flex:1"><span class="wf-mag"></span>Search teams…</div><span class="wf-filtbtn" style="flex:none;border-color:var(--blue);color:var(--blue);padding:9px 15px"><span class="wf-fico"><i></i><i></i><i></i></span> Filters <span class="wf-badge">1</span></span></div>
+<div class="wf-row" style="gap:7px;margin-bottom:12px"><span class="wf-chip wf-chip-sm wf-chip-on">Active ✕</span><span class="wf-count">·&nbsp; <b>96</b> teams</span></div>
+<div class="wf-col" style="gap:0">
+<div class="wf-prow"><span class="wf-tlogo sm">R</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Rheinfeuer</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Köln · <span class="wf-mono">18</span> players</span></div><span class="wf-chip wf-chip-sm wf-chip-blue">Recruiting</span></div>
+<div class="wf-prow"><span class="wf-tlogo sm">B</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Berlin Beavers</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin · <span class="wf-mono">24</span> players</span></div><span class="wf-chip wf-chip-sm wf-chip-blue">Recruiting</span></div>
+<div class="wf-prow"><span class="wf-tlogo sm">S</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Spree Chain</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin · <span class="wf-mono">12</span> players</span></div></div>
+<div class="wf-prow" style="border-bottom:none"><span class="wf-tlogo sm">H</span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Hansa Hits</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Hamburg · <span class="wf-mono">20</span> players</span></div><span class="wf-chip wf-chip-sm wf-chip-amber">Beginners</span></div>
+</div>
+</div>
+<div class="wf-scrim-abs"></div>
+<div class="wf-drawer">
+<div class="wf-sechd"><span class="wf-name" style="font-size:16px">Filters</span><span class="wf-clear">Reset</span></div>
+<div class="wf-fgroup"><span class="wf-label">Show</span>
+<div class="wf-ftoggle"><div class="wf-ftlabel"><span>Active only</span></div><span class="wf-switch on"><i></i></span></div>
+<div class="wf-ftoggle"><div class="wf-ftlabel"><span>Beginners welcome</span></div><span class="wf-switch"><i></i></span></div>
+</div>
+<div class="wf-fgroup"><span class="wf-label">City or region</span><div class="wf-picker soft">Any city <span style="opacity:.6">▾</span></div></div>
+<div class="wf-coming"><span class="l"><span class="wf-lock"></span> Near me</span><span class="wf-soon">Soon</span></div>
+<button class="wf-btn wf-btn-primary wf-btn-full" style="margin-top:auto">Show 96 teams</button>
+</div>
+</div>
+</div>
+<div class="wf-scap">Desktop — filters slide over on demand</div>
+</div>
+
+</div>
+</div>
+</div>
+
+<!-- ============ 5d — Players search (Pattern A applied) ============ -->
+<div class="dv-opt" id="5d">
+<div class="dv-olabel"><a class="dv-oid" href="#5d">5d</a> Players — the 5a pattern applied · filters on demand · list rows</div>
+<div class="dv-card">
+<div class="wf-dirhd"><p class="wf-dirname">Players · same shell as 5a</p><p class="wf-dirdesc">Identical to Teams — a list with a <b>Filters</b> button (bottom sheet on mobile, slide-over drawer on desktop) and <b>Sort</b>. Only the filter set changes: <b>looking for a team</b>, <b>position</b>, <b>experience</b>, <b>city</b>. Players are <b>opt-in</b> — only those who choose to appear are searchable.</p></div>
+<div class="wf-strip">
+
+<!-- D1 · browse all (default) -->
+<div class="wf-cell">
+<div class="wf-phone" data-screen-label="5d Players browse default"><div class="wf-notch"></div><div class="wf-screen"><div class="wf-pad tall">
+<div class="wf-sechd"><span class="wf-name">Players</span><span class="wf-cap" style="font-size:12px">Browse</span></div>
+<div class="wf-search"><span class="wf-mag"></span>Search players…</div>
+<div class="wf-toolbar">
+<span class="wf-filtbtn"><span class="wf-fico"><i></i><i></i><i></i></span> Filters</span>
+<span class="wf-sort">Sort · <b>A–Z</b> ▾</span>
+</div>
+<span class="wf-count"><b>212</b> players</span>
+<div class="wf-col" style="gap:0">
+<div class="wf-prow"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Ada K.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin · Runner</span></div></div>
+<div class="wf-prow"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Jonas P.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Leipzig · Enforcer</span></div></div>
+<div class="wf-prow"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Lynn R.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin · Chain</span></div><span class="wf-chip wf-chip-sm wf-chip-amber">New</span></div>
+<div class="wf-prow"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Malin K.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Hamburg · Runner</span></div></div>
+<div class="wf-prow"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Nele B.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Köln · Q-tip</span></div></div>
+<div class="wf-prow" style="border-bottom:none"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Timo S.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Dresden · Enforcer</span></div></div>
+</div>
+<span class="wf-cap" style="font-size:11px;color:var(--soft)">Only players who’ve opted into search appear here.</span>
+</div></div></div>
+<div class="wf-scap">Browse all — before you search</div>
+</div>
+
+<!-- D2 · filters sheet -->
+<div class="wf-cell">
+<div class="wf-phone" data-screen-label="5d Filters sheet"><div class="wf-notch"></div><div class="wf-screen">
+<div class="wf-pad wf-scrim" style="gap:9px;padding-bottom:8px">
+<div class="wf-sechd"><span class="wf-name">Players</span><span class="wf-cap" style="font-size:12px">Browse</span></div>
+<div class="wf-search"><span class="wf-mag"></span>Search players…</div>
+<div class="wf-toolbar"><span class="wf-filtbtn" style="border-color:var(--blue);color:var(--blue)"><span class="wf-fico"><i></i><i></i><i></i></span> Filters</span><span class="wf-sort">Sort · <b>A–Z</b> ▾</span></div>
+<div class="wf-prow" style="opacity:.5"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Ada K.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin · Runner</span></div></div>
+</div>
+<div class="wf-sheet">
+<div class="wf-handle"></div>
+<div class="wf-sechd"><span class="wf-name" style="font-size:16px">Filters</span><span class="wf-clear">Reset</span></div>
+<div class="wf-fgroup">
+<span class="wf-label">Show</span>
+<div class="wf-ftoggle"><div class="wf-ftlabel"><span>Looking for a team</span><small>Free agents open to joining</small></div><span class="wf-switch on"><i></i></span></div>
+</div>
+<div class="wf-fgroup">
+<span class="wf-label">Position</span>
+<div class="wf-chipwrap"><span class="wf-chip wf-chip-sm wf-chip-on">Runner</span><span class="wf-chip wf-chip-sm">Enforcer</span><span class="wf-chip wf-chip-sm">Chain</span><span class="wf-chip wf-chip-sm">Q-tip</span></div>
+</div>
+<div class="wf-fgroup">
+<span class="wf-label">Experience</span>
+<div class="wf-chipwrap"><span class="wf-chip wf-chip-sm">New to Jugger</span><span class="wf-chip wf-chip-sm">Experienced</span></div>
+</div>
+<div class="wf-fgroup">
+<span class="wf-label">City or region</span>
+<div class="wf-picker soft">Any city <span style="opacity:.6">▾</span></div>
+</div>
+<div class="wf-coming"><span class="l"><span class="wf-lock"></span> Near me</span><span class="wf-soon">Coming soon</span></div>
+<div class="wf-alert blue"><span class="wf-ico rnd" style="border-color:var(--blue);margin-top:1px"></span><span>Only players who’ve chosen to appear in search are shown.</span></div>
+<button class="wf-btn wf-btn-primary wf-btn-full">Show 38 players</button>
+</div>
+</div></div>
+<div class="wf-scap">Filters — same sheet · player filter set</div>
+</div>
+
+<!-- D3 · live results + active chips -->
+<div class="wf-cell">
+<div class="wf-phone" data-screen-label="5d Active filters typing"><div class="wf-notch"></div><div class="wf-screen"><div class="wf-pad tall">
+<div class="wf-sechd"><span class="wf-name">Players</span><span class="wf-cap" style="font-size:12px">Browse</span></div>
+<div class="wf-search filled"><span class="wf-mag"></span>ma<span class="wf-caret"></span></div>
+<div class="wf-toolbar">
+<span class="wf-filtbtn" style="border-color:var(--blue)"><span class="wf-fico" style="color:var(--blue)"><i></i><i></i><i></i></span> Filters <span class="wf-badge">2</span></span>
+<span class="wf-sort">Sort · <b>A–Z</b> ▾</span>
+</div>
+<div class="wf-chiprow" style="flex-wrap:wrap">
+<span class="wf-chip wf-chip-sm wf-chip-on">Looking for a team ✕</span>
+<span class="wf-chip wf-chip-sm wf-chip-on">Runner ✕</span>
+<span class="wf-clear" style="align-self:center">Clear all</span>
+</div>
+<span class="wf-count"><b>3</b> players · looking for a team · runner</span>
+<div class="wf-col" style="gap:0">
+<div class="wf-prow"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Malin K.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Hamburg · Runner</span></div></div>
+<div class="wf-prow"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Mara T.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin · Runner</span></div></div>
+<div class="wf-prow" style="border-bottom:none"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Mats H.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Dresden · Runner</span></div></div>
+</div>
+<p class="wf-note" style="margin-top:auto">Same behaviour as Teams — results narrow as you type, filters stay applied.</p>
+</div></div></div>
+<div class="wf-scap">Live results + active-filter chips</div>
+</div>
+
+<!-- D4 · desktop with drawer open -->
+<div class="wf-cell">
+<div class="wf-desktop" data-screen-label="5d Desktop drawer"><div class="wf-chrome"><span class="wf-dot"></span><span class="wf-dot"></span><span class="wf-dot"></span><span class="wf-url">jugger.app/browse/players</span></div>
+<div class="wf-page wf-drawerbox" style="min-height:430px;padding:0">
+<div style="padding:18px">
+<div class="wf-row" style="justify-content:space-between;margin-bottom:12px"><span class="wf-name" style="font-size:20px">Players</span><span class="wf-sort">Sort · <b>A–Z</b> ▾</span></div>
+<div class="wf-row" style="gap:10px;margin-bottom:12px"><div class="wf-search" style="flex:1"><span class="wf-mag"></span>Search players…</div><span class="wf-filtbtn" style="flex:none;border-color:var(--blue);color:var(--blue);padding:9px 15px"><span class="wf-fico"><i></i><i></i><i></i></span> Filters <span class="wf-badge">1</span></span></div>
+<div class="wf-row" style="gap:7px;margin-bottom:12px"><span class="wf-chip wf-chip-sm wf-chip-on">Looking for a team ✕</span><span class="wf-count">·&nbsp; <b>64</b> players</span></div>
+<div class="wf-col" style="gap:0">
+<div class="wf-prow"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Jonas P.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Leipzig · Enforcer</span></div></div>
+<div class="wf-prow"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Malin K.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Hamburg · Runner</span></div></div>
+<div class="wf-prow"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Mara T.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin · Runner</span></div></div>
+<div class="wf-prow" style="border-bottom:none"><span class="wf-mini-av" style="width:32px;height:32px"></span><div class="wf-col" style="gap:2px;flex:1"><span class="wf-mname" style="font-size:14px">Timo S.</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Dresden · Enforcer</span></div></div>
+</div>
+</div>
+<div class="wf-scrim-abs"></div>
+<div class="wf-drawer" style="overflow:auto">
+<div class="wf-sechd"><span class="wf-name" style="font-size:16px">Filters</span><span class="wf-clear">Reset</span></div>
+<div class="wf-fgroup"><span class="wf-label">Show</span>
+<div class="wf-ftoggle"><div class="wf-ftlabel"><span>Looking for a team</span></div><span class="wf-switch on"><i></i></span></div>
+</div>
+<div class="wf-fgroup"><span class="wf-label">Position</span><div class="wf-chipwrap"><span class="wf-chip wf-chip-sm wf-chip-on">Runner</span><span class="wf-chip wf-chip-sm">Enforcer</span><span class="wf-chip wf-chip-sm">Chain</span><span class="wf-chip wf-chip-sm">Q-tip</span></div></div>
+<div class="wf-fgroup"><span class="wf-label">Experience</span><div class="wf-chipwrap"><span class="wf-chip wf-chip-sm">New</span><span class="wf-chip wf-chip-sm">Experienced</span></div></div>
+<div class="wf-fgroup"><span class="wf-label">City or region</span><div class="wf-picker soft">Any city <span style="opacity:.6">▾</span></div></div>
+<div class="wf-coming"><span class="l"><span class="wf-lock"></span> Near me</span><span class="wf-soon">Soon</span></div>
+<button class="wf-btn wf-btn-primary wf-btn-full">Show 64 players</button>
+</div>
+</div>
+</div>
+<div class="wf-scap">Desktop — filters slide over on demand</div>
+</div>
+
+</div>
+</div>
+</div>
+
+</div>
+
+<p class="dv-next">Try next: “apply <a class="dv-oid" href="#5a">5a</a> to Events (with hide-past + date range)” · “add the empty + no-results states” · “add a player’s ‘appear in search’ opt-in toggle”</p>
+</section>
+</x-dc>
+</body>
+</html>

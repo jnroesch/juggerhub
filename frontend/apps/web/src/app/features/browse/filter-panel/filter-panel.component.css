@@ -1,0 +1,4 @@
+/* Layout + look come from the DESIGN.md Tailwind tokens in the template. */
+:host {
+  display: contents;
+}

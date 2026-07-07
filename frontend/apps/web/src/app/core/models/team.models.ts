@@ -29,6 +29,8 @@ export interface TeamDetail {
   city: string | null;
   memberCount: number;
   myRole: TeamRole;
+  /** Feature 007 — self-managed recruitment flag surfaced in browse. */
+  beginnersWelcome: boolean;
 }
 
 export interface TeamPublic {

@@ -127,6 +127,8 @@ namespace JuggerHub.Data.Migrations
 
                     b.HasIndex("StartsAt");
 
+                    b.HasIndex("Status");
+
                     b.ToTable("Events");
                 });
 
@@ -383,6 +385,11 @@ namespace JuggerHub.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("AppearInSearch")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -414,6 +421,9 @@ namespace JuggerHub.Data.Migrations
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AppearInSearch")
+                        .HasFilter("\"AppearInSearch\"");
 
                     b.HasIndex("Handle")
                         .IsUnique();
@@ -542,6 +552,11 @@ namespace JuggerHub.Data.Migrations
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("BeginnersWelcome")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("City")
                         .HasMaxLength(80)

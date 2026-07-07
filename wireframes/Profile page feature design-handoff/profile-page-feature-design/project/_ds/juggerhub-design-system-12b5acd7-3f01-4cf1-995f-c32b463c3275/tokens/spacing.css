@@ -1,0 +1,30 @@
+/* ============================================================
+   JuggerHub — SPACING TOKENS
+   4px base grid. Use --space-* for padding, gap, margins.
+   ============================================================ */
+
+:root {
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --space-10: 64px;
+  --space-11: 80px;
+  --space-12: 96px;
+  --space-13: 128px;
+
+  /* Content widths */
+  --container-sm: 640px;
+  --container-md: 860px;
+  --container-lg: 1100px;
+  --container-xl: 1320px;
+
+  /* Section rhythm */
+  --section-gap: clamp(48px, 8vw, 112px);
+}

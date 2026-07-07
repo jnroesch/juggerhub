@@ -3,8 +3,10 @@ using System.Security.Claims;
 using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Dtos.Profile;
+using JuggerHub.Dtos.Search;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Profile;
+using JuggerHub.Services.Search;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,12 +26,26 @@ public sealed class ProfilesController : ControllerBase
 {
     private readonly IProfileService _profiles;
     private readonly IEventActivityService _activity;
+    private readonly IPlayerSearchService _search;
 
-    public ProfilesController(IProfileService profiles, IEventActivityService activity)
+    public ProfilesController(
+        IProfileService profiles, IEventActivityService activity, IPlayerSearchService search)
     {
         _profiles = profiles;
         _activity = activity;
+        _search = search;
     }
+
+    // --- Browse (public, opt-in gated) ----------------------------------------
+
+    /// <summary>Anonymous player browse/search (feature 007). PRIVACY: only players who
+    /// opted in (<c>AppearInSearch</c>) are ever returned, enforced server-side for all
+    /// callers. Public card fields only.</summary>
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<ActionResult<PagedResult<PlayerCardDto>>> Browse(
+        [FromQuery] PlayerBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
+        Ok(await _search.BrowseAsync(query, pagination, ct));
 
     // --- Owner (authenticated) -------------------------------------------------
 

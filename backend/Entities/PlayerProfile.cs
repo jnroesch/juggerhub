@@ -32,6 +32,13 @@ public sealed class PlayerProfile : BaseEntity
     public string? Description { get; set; }
 
     /// <summary>
+    /// Opt-in to appear in player search/browse (feature 007). PRIVACY: defaults to false —
+    /// a player is only ever returned by <c>GET /profiles</c> browse while this is true, for
+    /// every query/filter/sort and regardless of the caller's auth. Self-managed by the owner.
+    /// </summary>
+    public bool AppearInSearch { get; set; }
+
+    /// <summary>
     /// When the owner finished (or dismissed) first-login onboarding, in UTC.
     /// <c>null</c> = not yet onboarded (the guided flow still shows on sign-in);
     /// a value = onboarded. Set once and idempotently (see specs/004-onboarding);
