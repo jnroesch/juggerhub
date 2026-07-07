@@ -1,0 +1,61 @@
+<div class="flex items-center gap-sm rounded-md border border-border-muted bg-surface-card px-sm py-sm">
+  <!-- Date chip -->
+  <a
+    [routerLink]="['/events', item().eventId]"
+    class="grid h-12 w-12 shrink-0 place-items-center rounded-sm bg-surface-inverse text-on-inverse"
+    [attr.aria-label]="weekday() + ' ' + day()"
+  >
+    <span class="text-caption font-semibold uppercase leading-none">{{ weekday() }}</span>
+    <span class="font-mono text-body-md font-bold leading-tight">{{ day() }}</span>
+  </a>
+
+  <!-- Title + meta -->
+  <div class="min-w-0 flex-1">
+    <a [routerLink]="['/events', item().eventId]" class="block truncate font-semibold text-heading hover:text-link">{{ item().title }}</a>
+    <p class="truncate text-caption text-muted">
+      {{ item().locationLabel }} · <span class="font-mono">{{ time() }}</span>
+      @if (!isTeamMode() && item().spotsRemaining > 0) {
+        · <span class="font-mono">{{ item().spotsRemaining }}</span> left
+      }
+    </p>
+    @if (error(); as e) {
+      <p class="text-caption text-danger-fg" role="alert">{{ e }}</p>
+    }
+  </div>
+
+  <!-- Action -->
+  <div class="shrink-0">
+    @if (isTeamMode()) {
+      <span class="inline-flex items-center gap-1 rounded-pill bg-surface-secondary-soft px-sm py-1 text-caption font-medium text-secondary" data-testid="team-going">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        Team going
+      </span>
+    } @else if (confirming()) {
+      <span class="inline-flex items-center gap-xs">
+        <button type="button" class="rounded-md bg-danger-bg px-sm py-1 text-caption font-semibold text-danger-fg" data-testid="confirm-withdraw" (click)="confirmWithdraw()">Leave</button>
+        <button type="button" class="rounded-md px-sm py-1 text-caption font-medium text-subtle hover:bg-surface-sunken" (click)="cancelWithdraw()">Keep</button>
+      </span>
+    } @else if (isGoing()) {
+      <button
+        type="button"
+        class="inline-flex items-center gap-1 rounded-md border border-success-border bg-success-bg px-sm py-1 text-caption font-semibold text-success-fg transition-colors duration-fast hover:border-danger-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60"
+        [disabled]="busy()"
+        data-testid="going-toggle"
+        (click)="askWithdraw()"
+      >
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        {{ statusLabel() }}
+      </button>
+    } @else {
+      <button
+        type="button"
+        class="rounded-md bg-brand px-md py-1.5 text-caption font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60"
+        [disabled]="busy()"
+        data-testid="rsvp"
+        (click)="rsvp()"
+      >
+        RSVP
+      </button>
+    }
+  </div>
+</div>

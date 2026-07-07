@@ -36,8 +36,8 @@ description: "Task list for feature 008 — Home dashboard & top-level navigatio
 - [X] T006 Register `IHomeService` and bind `HomeOptions` in `backend/Program.cs` (mirror existing Search/Events registrations) — depends on T004
 - [X] T007 [P] Add read indexes in `backend/Data/AppDbContext.cs` — `EventSignups(UserId)`, `EventSignups(TeamId)`, `TeamMemberships(UserId)`, `TeamNewsPosts(TeamId, CreatedDate)`, `EventNewsPosts(EventId, CreatedDate)` — **first verify** which already exist (feature 007) and add only the missing
 - [X] T008 Generate the index-only EF migration `AddHomeIndexes` (`dotnet ef migrations add AddHomeIndexes` in `backend/`) and confirm it contains only `CreateIndex` ops — depends on T007
-- [ ] T009 [P] Create frontend `frontend/apps/web/src/app/core/models/home.models.ts` — TypeScript mirrors of the Home DTOs (per contracts/openapi.yaml)
-- [ ] T010 [P] Create `frontend/apps/web/src/app/layout/nav-model.ts` — shared destination list (Home/Browse/My team/Alerts), `isActive(route)` matcher, and the "My team" target resolver (0 → find-a-team, 1 → `/t/{slug}`, many → `/my-team`)
+- [X] T009 [P] Create frontend `frontend/apps/web/src/app/core/models/home.models.ts` — TypeScript mirrors of the Home DTOs (per contracts/openapi.yaml)
+- [X] T010 [P] Create `frontend/apps/web/src/app/layout/nav-model.ts` — shared destination list (Home/Browse/My team/Alerts), `isActive(route)` matcher, and the "My team" target resolver (0 → find-a-team, 1 → `/t/{slug}`, many → `/my-team`)
 
 **Checkpoint**: Slices compile; no endpoints wired yet.
 
@@ -54,9 +54,9 @@ description: "Task list for feature 008 — Home dashboard & top-level navigatio
 - [X] T013 Implement `ListMyTeamsAsync` in `HomeService.cs` (`PagedResult<MyTeamDto>` over `TeamMemberships.Where(UserId==me)`, projected + `AsNoTracking`) — depends on T011
 - [X] T014 Create `backend/Controllers/HomeController.cs` — `[Authorize]`, `[Route("api/v{version:apiVersion}/home")]`, `GET ""` → `GetHomeAsync`; `GET "up-next"` and `GET "news"` thin actions delegating to the service (caller id via the established `TryGetUserId` helper) — depends on T012
 - [X] T015 Extend `backend/Controllers/ProfilesController.cs` — `GET "me/teams"` → `ListMyTeamsAsync` (thin, `[Authorize]`, `PaginationRequest`) — depends on T013
-- [ ] T016 [P] Create `frontend/apps/web/src/app/core/services/home.service.ts` — `getHome()`, `getUpNext(skip,take)`, `getNews(skip,take)` (typed over home.models) — depends on T009
-- [ ] T017 [P] Create `frontend/apps/web/src/app/core/services/membership.service.ts` — signal of the viewer's teams via `GET /profiles/me/teams`; exposes `hasTeam` + `myTeamTarget()` (used by nav-model) — depends on T009
-- [ ] T018 Replace the health-check stub with a minimal Home host: rewrite `frontend/apps/web/src/app/features/dashboard/dashboard.component.{ts,html,css}` to load `getHome()`, expose loading/error signals, pick the team-member vs new-player **variant** (from `hasTeam`), and render empty module slots + the desktop main/right-rail grid — depends on T016, T017
+- [X] T016 [P] Create `frontend/apps/web/src/app/core/services/home.service.ts` — `getHome()`, `getUpNext(skip,take)`, `getNews(skip,take)` (typed over home.models) — depends on T009
+- [X] T017 [P] Create `frontend/apps/web/src/app/core/services/membership.service.ts` — signal of the viewer's teams via `GET /profiles/me/teams`; exposes `hasTeam` + `myTeamTarget()` (used by nav-model) — depends on T009
+- [X] T018 Replace the health-check stub with a minimal Home host: rewrite `frontend/apps/web/src/app/features/dashboard/dashboard.component.{ts,html,css}` to load `getHome()`, expose loading/error signals, pick the team-member vs new-player **variant** (from `hasTeam`), and render empty module slots + the desktop main/right-rail grid — depends on T016, T017
 - [X] T019 Extend `DevDataSeeder` (`backend/Data/DevDataSeeder.cs`) — a team-member demo player (≥1 team; upcoming individuals sign-up + a team-entered event; team + event news; an upcoming tournament) and a no-team demo player — depends on T001
 
 **Checkpoint**: `/home` returns viewer + teams (modules empty); `me/teams` works; the shell can render a minimal Home. Foundation ready.
@@ -71,17 +71,17 @@ description: "Task list for feature 008 — Home dashboard & top-level navigatio
 
 ### Tests for User Story 1
 
-- [ ] T020 [P] [US1] Jest unit for `nav-model.ts` — active-match per route and "My team" target resolver (0/1/many teams) in `frontend/apps/web/src/app/layout/nav-model.spec.ts`
+- [X] T020 [P] [US1] Jest unit for `nav-model.ts` — active-match per route and "My team" target resolver (0/1/many teams) in `frontend/apps/web/src/app/layout/nav-model.spec.ts`
 - [ ] T021 [P] [US1] Jest unit for the reworked shell/top-nav active-destination + avatar-menu items in `frontend/apps/web/src/app/layout/top-nav/top-nav.component.spec.ts`
 
 ### Implementation for User Story 1
 
-- [ ] T022 [US1] Rework `frontend/apps/web/src/app/layout/top-nav/top-nav.component.{ts,html,css}` — desktop bar (brand · Home · Browse · My team · bell/Alerts · avatar), mobile slim top strip (wordmark + avatar); `routerLinkActive` + `aria-current`; DESIGN.md tokens — depends on T010, T017
-- [ ] T023 [P] [US1] Create `frontend/apps/web/src/app/layout/bottom-nav/bottom-nav.component.{ts,html,css}` — fixed mobile bottom tab bar (Home · Browse · My team · Alerts), active state, safe-area inset, ≥44px targets — depends on T010, T017
-- [ ] T024 [P] [US1] Create `frontend/apps/web/src/app/layout/avatar-menu/avatar-menu.component.{ts,html,css}` — Profile · Account · Sign out; keyboard-navigable menu with focus trap + Escape (moves sign-out from the old top-nav) — depends on T010
-- [ ] T025 [US1] Update `frontend/apps/web/src/app/layout/shell/shell.component.{ts,html,css}` — compose top-nav + bottom-nav (responsive), hydrate session + memberships on init, drop the sidebar wiring — depends on T022, T023, T024
-- [ ] T026 [US1] Remove `frontend/apps/web/src/app/layout/sidebar/` and all references (shell imports, toggle output) — depends on T025
-- [ ] T027 [US1] Add the `/my-team` route + a lightweight team-chooser page (or redirect for the 0/1 cases) in `app.routes.ts` + `features/…` consistent with the nav-model resolver — depends on T010
+- [X] T022 [US1] Rework `frontend/apps/web/src/app/layout/top-nav/top-nav.component.{ts,html,css}` — desktop bar (brand · Home · Browse · My team · bell/Alerts · avatar), mobile slim top strip (wordmark + avatar); `routerLinkActive` + `aria-current`; DESIGN.md tokens — depends on T010, T017
+- [X] T023 [P] [US1] Create `frontend/apps/web/src/app/layout/bottom-nav/bottom-nav.component.{ts,html,css}` — fixed mobile bottom tab bar (Home · Browse · My team · Alerts), active state, safe-area inset, ≥44px targets — depends on T010, T017
+- [X] T024 [P] [US1] Create `frontend/apps/web/src/app/layout/avatar-menu/avatar-menu.component.{ts,html,css}` — Profile · Account · Sign out; keyboard-navigable menu with focus trap + Escape (moves sign-out from the old top-nav) — depends on T010
+- [X] T025 [US1] Update `frontend/apps/web/src/app/layout/shell/shell.component.{ts,html,css}` — compose top-nav + bottom-nav (responsive), hydrate session + memberships on init, drop the sidebar wiring — depends on T022, T023, T024
+- [X] T026 [US1] Remove `frontend/apps/web/src/app/layout/sidebar/` and all references (shell imports, toggle output) — depends on T025
+- [X] T027 [US1] Add the `/my-team` route + a lightweight team-chooser page (or redirect for the 0/1 cases) in `app.routes.ts` + `features/…` consistent with the nav-model resolver — depends on T010
 - [X] T028 [US1] Backend integration test `backend/tests/JuggerHub.Api.IntegrationTests/Home/MyTeamsTests.cs` — `GET /profiles/me/teams` returns only the caller's memberships (0/1/many), 401 unauth — depends on T015
 
 **Checkpoint**: The new shell works at both viewports and routes "My team" correctly, independent of dashboard content.
@@ -98,16 +98,16 @@ description: "Task list for feature 008 — Home dashboard & top-level navigatio
 
 - [X] T029 [P] [US2] Backend integration test `backend/tests/JuggerHub.Api.IntegrationTests/Home/UpNextTests.cs` — union of own individuals sign-ups + teams' team-mode entries, soonest-first, **past/cancelled excluded**, dedupe on multi-team same event, individuals item carries `viewerSignupId`+`viewerStatus`, team item carries `teamGoing` + null signup id; pagination on `/home/up-next` (skip/take clamp, stable tie order) — depends on T014
 - [X] T030 [P] [US2] Backend entitlement test in the same folder — caller B never sees caller A's private sign-ups via `/home` or `/home/up-next` — depends on T014
-- [ ] T031 [P] [US2] Jest unit for the up-next module state machine (loading/empty/error; individuals toggle vs team read-only) in `frontend/apps/web/src/app/features/dashboard/modules/up-next-card.component.spec.ts`
+- [X] T031 [P] [US2] Jest unit for the up-next module state machine (loading/empty/error; individuals toggle vs team read-only) in `frontend/apps/web/src/app/features/dashboard/modules/up-next-card.component.spec.ts`
 - [ ] T032 [P] [US2] Playwright `frontend/apps/web-e2e/src/dashboard.spec.ts` (US2 slice) — sign in → Up next lists soonest-first → RSVP flips to "going" → tap "going" → confirm → withdrawn; desktop + mobile
 
 ### Implementation for User Story 2
 
 - [X] T033 [US2] Implement the up-next projection in `HomeService.cs` + `HomeProjections.cs` — the two-source union (personal individuals + team-mode), soonest-first, dedupe, spots-remaining via `EventCapacity`, mapping to `UpNextItemDto` — depends on T012
 - [X] T034 [US2] Populate `HomeDto.upNext` (capped `UpNextCap`) in `GetHomeAsync` and implement `ListUpNextAsync` (paginated `PagedResult<UpNextItemDto>`) — depends on T033
-- [ ] T035 [P] [US2] Create the up-next module `frontend/apps/web/src/app/features/dashboard/modules/up-next-card.component.{ts,html,css}` — date chip, title, place, time, spots; RSVP button (individuals, not going), "going ✓" toggle with confirm (individuals, going), read-only "your team is going" (team-mode); "see all" — depends on T018, T016
-- [ ] T036 [US2] Wire RSVP/withdraw from the up-next module through `EventService.signup(id, null)` / `EventService.withdraw(id, viewerSignupId)` and update the item in place; surface going/waitlisted/full outcomes — depends on T035
-- [ ] T037 [US2] Mount the up-next module in `dashboard.component` (team-member variant, first module) + a low-pressure empty state — depends on T035, T018
+- [X] T035 [P] [US2] Create the up-next module `frontend/apps/web/src/app/features/dashboard/modules/up-next-card.component.{ts,html,css}` — date chip, title, place, time, spots; RSVP button (individuals, not going), "going ✓" toggle with confirm (individuals, going), read-only "your team is going" (team-mode); "see all" — depends on T018, T016
+- [X] T036 [US2] Wire RSVP/withdraw from the up-next module through `EventService.signup(id, null)` / `EventService.withdraw(id, viewerSignupId)` and update the item in place; surface going/waitlisted/full outcomes — depends on T035
+- [X] T037 [US2] Mount the up-next module in `dashboard.component` (team-member variant, first module) + a low-pressure empty state — depends on T035, T018
 
 **Checkpoint**: Home shows Up next and RSVP works end-to-end. Combined with US1 this is the MVP.
 
@@ -133,10 +133,10 @@ description: "Task list for feature 008 — Home dashboard & top-level navigatio
 - [X] T044 [P] [US3] Implement tournaments query (upcoming published Tournament events, soonest-first) → `HomeDto.tournaments` — depends on T012
 - [X] T045 [P] [US3] Implement per-team snapshots (name + next fixture, no record) → `HomeDto.snapshots` — depends on T012
 - [ ] T046 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/team-activity.component.{ts,html,css}` — aggregated activity, tagged by team, "open team" link — depends on T018
-- [ ] T047 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/news-list.component.{ts,html,css}` — source-tagged items, relative timestamps, "see all" — depends on T018
+- [X] T047 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/news-list.component.{ts,html,css}` — source-tagged items, relative timestamps, "see all" — depends on T018
 - [ ] T048 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/tournament-card.component.{ts,html,css}` — name/place/date/spots + "view"; "see all" → `/browse/events?type=Tournament` — depends on T018
 - [ ] T049 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/team-snapshot.component.{ts,html,css}` — per-team card (name + next fixture, "view team") — depends on T018
-- [ ] T050 [US3] Compose the modules + desktop right rail (main column: activity, news, tournaments; rail: snapshots + tournament) into `dashboard.component`, each with empty states — depends on T046, T047, T048, T049
+- [X] T050 [US3] Compose the modules + desktop right rail (main column: activity, news, tournaments; rail: snapshots + tournament) into `dashboard.component`, each with empty states — depends on T046, T047, T048, T049
 
 **Checkpoint**: Home is a full home base (agenda + catch-up + right rail).
 
@@ -151,15 +151,15 @@ description: "Task list for feature 008 — Home dashboard & top-level navigatio
 ### Tests for User Story 4
 
 - [X] T051 [P] [US4] Backend integration test `backend/tests/JuggerHub.Api.IntegrationTests/Home/NewPlayerTests.cs` — no-team viewer: `teams` empty, team-scoped modules empty, open-to-everyone events present, news present — depends on T014
-- [ ] T052 [P] [US4] Jest unit for the dashboard variant selector (team-member vs new-player) + new-player prompts in `frontend/apps/web/src/app/features/dashboard/dashboard.component.spec.ts`
+- [X] T052 [P] [US4] Jest unit for the dashboard variant selector (team-member vs new-player) + new-player prompts in `frontend/apps/web/src/app/features/dashboard/dashboard.component.spec.ts`
 - [ ] T053 [P] [US4] Playwright (US4 slice) in `dashboard.spec.ts` — no-team player sees find-a-team + open-to-everyone + News; desktop + mobile
 
 ### Implementation for User Story 4
 
 - [X] T054 [US4] Add the "open to everyone" source to `HomeService.GetHomeAsync` for no-team viewers (upcoming open individuals-mode events, reusing the `UpNextItemDto` shape with null viewer signup → RSVP button) — depends on T033
-- [ ] T055 [P] [US4] Create `frontend/apps/web/src/app/features/dashboard/modules/new-player-prompts.component.{ts,html,css}` — "you're not on a team yet"; primary "find a team near you" (→ Browse teams), secondary "browse open trainings" (→ open events) — depends on T018
-- [ ] T056 [P] [US4] Create `frontend/apps/web/src/app/features/dashboard/modules/open-to-everyone.component.{ts,html,css}` — reuses the up-next card with RSVP — depends on T035
-- [ ] T057 [US4] Wire the new-player variant in `dashboard.component` — swap Up next/Your team for prompts, mount open-to-everyone, keep News; welcome greeting copy — depends on T055, T056
+- [X] T055 [P] [US4] Create `frontend/apps/web/src/app/features/dashboard/modules/new-player-prompts.component.{ts,html,css}` — "you're not on a team yet"; primary "find a team near you" (→ Browse teams), secondary "browse open trainings" (→ open events) — depends on T018
+- [X] T056 [P] [US4] Create `frontend/apps/web/src/app/features/dashboard/modules/open-to-everyone.component.{ts,html,css}` — reuses the up-next card with RSVP — depends on T035
+- [X] T057 [US4] Wire the new-player variant in `dashboard.component` — swap Up next/Your team for prompts, mount open-to-everyone, keep News; welcome greeting copy — depends on T055, T056
 
 **Checkpoint**: Both Home variants correct; no blank/broken dashboard for new players.
 
@@ -177,8 +177,8 @@ description: "Task list for feature 008 — Home dashboard & top-level navigatio
 
 ### Implementation for User Story 5
 
-- [ ] T059 [P] [US5] Create `frontend/apps/web/src/app/features/alerts/alerts.component.{ts,html,css}` — friendly "you're all caught up" placeholder (no backend) — depends on T018
-- [ ] T060 [US5] Add the `/alerts` route (in-shell, `authGuard`) in `app.routes.ts` and point the bell/Alerts destination at it; ensure the unread count is zero/hidden in top-nav + bottom-nav — depends on T059, T022, T023
+- [X] T059 [P] [US5] Create `frontend/apps/web/src/app/features/alerts/alerts.component.{ts,html,css}` — friendly "you're all caught up" placeholder (no backend) — depends on T018
+- [X] T060 [US5] Add the `/alerts` route (in-shell, `authGuard`) in `app.routes.ts` and point the bell/Alerts destination at it; ensure the unread count is zero/hidden in top-nav + bottom-nav — depends on T059, T022, T023
 
 **Checkpoint**: All destinations exist and are reachable; the shell is complete.
 

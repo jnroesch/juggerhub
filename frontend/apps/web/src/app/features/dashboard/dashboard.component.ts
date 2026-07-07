@@ -1,27 +1,42 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { Health, HealthService } from '../../core/services/health.service';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { HomeService } from '../../core/services/home.service';
+import { Home } from '../../core/models/home.models';
+import { UpNextCardComponent } from './modules/up-next-card.component';
+import { NewsListComponent } from './modules/news-list.component';
+import { relativeTime, shortDate } from '../../core/utils/format';
 
 /**
- * US1 — the walking skeleton's dashboard. Fetches backend health on load and
- * renders the live status, proving the frontend → API → database round trip.
+ * Home — the logged-in entry point (feature 008). Loads the composite dashboard and renders an
+ * agenda-led layout: Up next (with one-tap RSVP), Your teams activity, News, and Tournaments,
+ * plus a desktop right rail. Players on no team get the warm find-a-team variant. Each module
+ * owns loading/empty states; a load failure shows a retry rather than blanking the page.
  */
 @Component({
   selector: 'jh-dashboard',
-  imports: [],
+  imports: [RouterLink, UpNextCardComponent, NewsListComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit {
-  private readonly healthService = inject(HealthService);
+  private readonly home = inject(HomeService);
 
-  protected readonly health = signal<Health | null>(null);
+  protected readonly data = signal<Home | null>(null);
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
 
+  protected readonly hasTeam = computed(() => (this.data()?.teams.length ?? 0) > 0);
+
   ngOnInit(): void {
-    this.healthService.getHealth().subscribe({
-      next: (health) => {
-        this.health.set(health);
+    this.load();
+  }
+
+  load(): void {
+    this.loading.set(true);
+    this.failed.set(false);
+    this.home.getHome().subscribe({
+      next: (h) => {
+        this.data.set(h);
         this.loading.set(false);
       },
       error: () => {
@@ -29,5 +44,13 @@ export class DashboardComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  protected rel(iso: string): string {
+    return relativeTime(iso);
+  }
+
+  protected fixtureDate(iso: string): string {
+    return shortDate(iso);
   }
 }
