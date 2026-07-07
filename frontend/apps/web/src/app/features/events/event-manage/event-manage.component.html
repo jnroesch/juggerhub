@@ -1,4 +1,4 @@
-<section class="mx-auto max-w-2xl px-md py-lg" data-testid="event-manage">
+<section class="mx-auto max-w-2xl px-md py-lg lg:max-w-4xl" data-testid="event-manage">
   @if (loading()) {
     <p class="text-body-md text-subtle">Loading…</p>
   } @else if (forbidden()) {
@@ -15,8 +15,8 @@
     @if (error()) { <p class="mt-sm text-body-sm text-danger" role="alert">{{ error() }}</p> }
 
     <!-- Participants -->
-    <div class="mt-lg space-y-md">
-      <section>
+    <div class="mt-lg space-y-md lg:grid lg:grid-cols-2 lg:items-start lg:gap-xl lg:space-y-0">
+      <section class="lg:col-span-2">
         <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Awaiting approval ({{ awaiting().length }})</h2>
         @if (awaiting().length === 0) { <p class="mt-xs text-body-sm text-faint">Nobody awaiting approval.</p> }
         <ul class="mt-xs space-y-xs">

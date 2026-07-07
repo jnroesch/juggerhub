@@ -1,4 +1,4 @@
-<section class="mx-auto max-w-xl px-md py-lg" data-testid="profile-owner">
+<section class="mx-auto max-w-xl px-md py-lg md:max-w-4xl" data-testid="profile-owner">
   @if (loading()) {
     <p class="text-body-md text-subtle">Loading your profile…</p>
   } @else if (profile(); as p) {
@@ -19,8 +19,11 @@
       }
     </div>
 
+    <div class="md:mt-lg md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:gap-xl">
+      <!-- Left column: identity → teams → plays → badges -->
+      <div>
     <!-- Centered identity -->
-    <header class="mt-lg flex flex-col items-center text-center">
+    <header class="mt-lg flex flex-col items-center text-center md:mt-0">
       <div class="relative">
         @if (avatarUrl(); as url) {
           <img [src]="url" alt="Your profile picture" class="h-24 w-24 rounded-full border border-border object-cover" />
@@ -111,11 +114,11 @@
         <span class="text-body-sm text-faint">Coming soon</span>
       </div>
     </section>
+      </div>
 
-    <hr class="my-lg border-border" />
-
-    <!-- Recent activity -->
-    <section>
+      <!-- Right column: recent activity -->
+      <section class="md:border-l md:border-border md:pl-xl">
+      <hr class="my-lg border-border md:hidden" />
       <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Recent activity</p>
       @if (p.recentActivity.length === 0) {
         <p class="mt-xs text-body-sm text-faint" data-testid="activity-empty">No events yet.</p>
@@ -133,6 +136,7 @@
         </ul>
       }
     </section>
+    </div>
 
     @if (error()) {
       <p class="mt-lg text-body-sm text-danger" role="alert" data-testid="profile-error">{{ error() }}</p>

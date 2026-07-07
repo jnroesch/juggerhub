@@ -1,4 +1,4 @@
-<section class="mx-auto max-w-xl px-md py-lg" data-testid="team-invitations">
+<section class="mx-auto max-w-xl px-md py-lg lg:max-w-4xl" data-testid="team-invitations">
   <a [routerLink]="['/t', slug()]" class="text-body-sm text-subtle hover:text-text">‹ Members</a>
   <h1 class="mt-md text-heading-lg font-bold text-ink">Invite people</h1>
 
@@ -11,6 +11,10 @@
       <p class="mt-md text-body-sm text-danger" role="alert">{{ error() }}</p>
     }
 
+    <div class="lg:grid lg:grid-cols-3 lg:gap-xl">
+    <!-- Left aside: shareable invite link (sticky on desktop) -->
+    <aside class="lg:col-span-1">
+      <div class="lg:sticky lg:top-[4.5rem]">
     <!-- Shareable link -->
     <div class="mt-lg">
       <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Share your invite link</p>
@@ -34,7 +38,11 @@
           class="mt-xs w-full rounded-md bg-ink px-md py-sm text-body-sm font-semibold text-on-inverse hover:bg-sand-8">Create an invite link</button>
       }
     </div>
+      </div>
+    </aside>
 
+    <!-- Main column: add directly + pending -->
+    <div class="lg:col-span-2">
     <!-- Add someone directly -->
     <div class="mt-lg">
       <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Or add someone directly</p>
@@ -89,6 +97,8 @@
         </ul>
         <p class="mt-xs text-body-sm text-faint">Revoke cancels an invite before it's accepted.</p>
       }
+    </div>
+    </div>
     </div>
   }
 </section>

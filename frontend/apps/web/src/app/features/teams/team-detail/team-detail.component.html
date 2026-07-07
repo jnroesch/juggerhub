@@ -1,4 +1,4 @@
-<section class="mx-auto max-w-xl px-md py-lg" data-testid="team-detail">
+<section class="mx-auto max-w-xl px-md py-lg lg:max-w-4xl" data-testid="team-detail">
   @if (loading()) {
     <p class="text-body-md text-subtle">Loading team…</p>
   } @else if (notFound()) {
@@ -8,6 +8,10 @@
       <a routerLink="/" class="mt-md inline-block text-body-sm font-medium text-link hover:text-link-hover">Back to JuggerHub</a>
     </div>
   } @else if (detail(); as t) {
+    <div class="lg:grid lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] lg:gap-xl">
+    <!-- Left aside: identity + invite (sticky on desktop) -->
+    <aside>
+      <div class="lg:sticky lg:top-[4.5rem]">
     <!-- Cover header -->
     <div class="overflow-hidden rounded-lg border border-border-muted bg-surface-card shadow-sm">
       <div class="h-20 bg-brand-gradient"></div>
@@ -45,9 +49,13 @@
         Invite people
       </a>
     }
+      </div>
+    </aside>
 
+    <!-- Main column: tabs + section content -->
+    <div class="mt-lg lg:mt-0">
     <!-- Tabs -->
-    <nav class="mt-lg flex gap-lg border-b border-border" aria-label="Team sections">
+    <nav class="flex gap-lg border-b border-border" aria-label="Team sections">
       @for (item of [['members','Members'],['activity','Activity'],['news','News']]; track item[0]) {
         <button type="button" (click)="selectTab($any(item[0]))" [attr.data-testid]="'tab-' + item[0]"
           class="-mb-px border-b-2 pb-sm text-body-md font-semibold transition-colors duration-fast"
@@ -164,5 +172,7 @@
         <p class="mt-sm text-body-sm text-faint">Read-only feed for now. Composer + polls come later.</p>
       }
     }
+    </div>
+    </div>
   }
 </section>
