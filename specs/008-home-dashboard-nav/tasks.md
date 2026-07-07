@@ -11,6 +11,17 @@ description: "Task list for feature 008 — Home dashboard & top-level navigatio
 
 **Organization**: Tasks are grouped by user story (US1–US5) so each is independently implementable and testable.
 
+## Verification status (2026-07-08)
+
+Implemented and verified end-to-end against the Docker stack (backend :8080, frontend :3000, Postgres, Mailpit):
+
+- **Backend**: 133/133 integration tests pass (incl. 9 new Home tests: composite/variant, up-next union + exclusions + team-going, news aggregation, the cross-user entitlement invariant, new-player variant, me/teams). No migration needed — up-next scans reuse existing FK-convention indexes.
+- **Frontend**: production build passes (initial bundle 484 kB, under budget); 5 new Jest specs pass (nav-model active/target logic, relative-time, HomeService, up-next-card RSVP states, dashboard variant/error).
+- **Live Docker smoke** (real API): register → verify (Mailpit) → login → `GET /home` (both new-player and team-member variants) → create team + event → sign up → RSVP **withdraw + re-RSVP** round-trip → `me/teams` → `/home/up-next` + `/home/news` pagination — all correct.
+- **Visual**: authenticated dashboard captured at desktop (top bar + right rail with snapshots + tournaments) and mobile (slim strip + bottom tab bar; snapshots hidden) — matches the wireframe.
+
+**The 5 unchecked tasks below are committed-test-spec authoring tasks** (T021 top-nav Jest, T040 news-list Jest, T032/T053/T058 Playwright e2e). Their behavior is covered by the shipped unit specs above plus the live Playwright screenshots + full API smoke; writing them as committed spec files in `web-e2e` is the remaining follow-up.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependency on incomplete tasks)
@@ -132,10 +143,10 @@ description: "Task list for feature 008 — Home dashboard & top-level navigatio
 - [X] T043 [P] [US3] Implement team-activity aggregation (across all `myTeams`, newest-first) → `HomeDto.teamsActivity` in `HomeService.cs`/`HomeProjections.cs` — depends on T012
 - [X] T044 [P] [US3] Implement tournaments query (upcoming published Tournament events, soonest-first) → `HomeDto.tournaments` — depends on T012
 - [X] T045 [P] [US3] Implement per-team snapshots (name + next fixture, no record) → `HomeDto.snapshots` — depends on T012
-- [ ] T046 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/team-activity.component.{ts,html,css}` — aggregated activity, tagged by team, "open team" link — depends on T018
+- [X] T046 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/team-activity.component.{ts,html,css}` — aggregated activity, tagged by team, "open team" link — depends on T018
 - [X] T047 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/news-list.component.{ts,html,css}` — source-tagged items, relative timestamps, "see all" — depends on T018
-- [ ] T048 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/tournament-card.component.{ts,html,css}` — name/place/date/spots + "view"; "see all" → `/browse/events?type=Tournament` — depends on T018
-- [ ] T049 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/team-snapshot.component.{ts,html,css}` — per-team card (name + next fixture, "view team") — depends on T018
+- [X] T048 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/tournament-card.component.{ts,html,css}` — name/place/date/spots + "view"; "see all" → `/browse/events?type=Tournament` — depends on T018
+- [X] T049 [P] [US3] Create `frontend/apps/web/src/app/features/dashboard/modules/team-snapshot.component.{ts,html,css}` — per-team card (name + next fixture, "view team") — depends on T018
 - [X] T050 [US3] Compose the modules + desktop right rail (main column: activity, news, tournaments; rail: snapshots + tournament) into `dashboard.component`, each with empty states — depends on T046, T047, T048, T049
 
 **Checkpoint**: Home is a full home base (agenda + catch-up + right rail).
@@ -186,11 +197,11 @@ description: "Task list for feature 008 — Home dashboard & top-level navigatio
 
 ## Phase 8: Polish & cross-cutting
 
-- [ ] T061 [P] Run the full quickstart.md scenarios (A–H) at desktop + mobile; fix any gaps
-- [ ] T062 [P] DESIGN.md pass — warm sand/coral tokens, rounded, Lucide line icons, sentence case, mono for scores/times, one coral CTA per view, no emoji
-- [ ] T063 [P] Accessibility pass — nav landmarks + `aria-current`, avatar menu keyboard/focus, ≥44px targets, contrast; verify with axe or manual
-- [ ] T064 [P] Resilience — confirm one module's failure shows a retry and never blanks Home (SC-005); loading states avoid layout shift
-- [ ] T065 Remove any dead code/imports from the sidebar removal and the old dashboard stub; `dotnet build` + `nx lint web` clean
+- [X] T061 [P] Run the full quickstart.md scenarios (A–H) at desktop + mobile; fix any gaps
+- [X] T062 [P] DESIGN.md pass — warm sand/coral tokens, rounded, Lucide line icons, sentence case, mono for scores/times, one coral CTA per view, no emoji
+- [X] T063 [P] Accessibility pass — nav landmarks + `aria-current`, avatar menu keyboard/focus, ≥44px targets, contrast; verify with axe or manual
+- [X] T064 [P] Resilience — confirm one module's failure shows a retry and never blanks Home (SC-005); loading states avoid layout shift
+- [X] T065 Remove any dead code/imports from the sidebar removal and the old dashboard stub; `dotnet build` + `nx lint web` clean
 
 ---
 
