@@ -2,7 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Asp.Versioning;
 using JuggerHub.Common;
+using JuggerHub.Dtos.Search;
 using JuggerHub.Dtos.Teams;
+using JuggerHub.Services.Search;
 using JuggerHub.Services.Teams;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -26,18 +28,31 @@ public sealed class TeamsController : ControllerBase
     private readonly ITeamActivityService _activity;
     private readonly ITeamNewsService _news;
     private readonly ITeamInvitationService _invitations;
+    private readonly ITeamSearchService _search;
 
     public TeamsController(
         ITeamService teams,
         ITeamActivityService activity,
         ITeamNewsService news,
-        ITeamInvitationService invitations)
+        ITeamInvitationService invitations,
+        ITeamSearchService search)
     {
         _teams = teams;
         _activity = activity;
         _news = news;
         _invitations = invitations;
+        _search = search;
     }
+
+    // --- Browse (public) ------------------------------------------------------
+
+    /// <summary>Anonymous team browse/search (feature 007). Public card fields only; all
+    /// filtering/sorting/paging server-side.</summary>
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<ActionResult<PagedResult<TeamCardDto>>> Browse(
+        [FromQuery] TeamBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
+        Ok(await _search.BrowseAsync(query, pagination, ct));
 
     // --- Create & identity ----------------------------------------------------
 
@@ -96,6 +111,24 @@ public sealed class TeamsController : ControllerBase
         {
             DeleteTeamStatus.Deleted => NoContent(),
             DeleteTeamStatus.Forbidden => Forbidden("Only admins can delete the team."),
+            _ => TeamNotFound(),
+        };
+    }
+
+    [HttpPatch("{slug}")]
+    public async Task<IActionResult> UpdateSettings(
+        string slug, [FromBody] UpdateTeamSettingsRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var status = await _teams.UpdateSettingsAsync(slug, userId, request, ct);
+        return status switch
+        {
+            UpdateTeamSettingsStatus.Updated => NoContent(),
+            UpdateTeamSettingsStatus.Forbidden => Forbidden("Only admins can change team settings."),
             _ => TeamNotFound(),
         };
     }

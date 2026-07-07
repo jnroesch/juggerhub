@@ -1,0 +1,88 @@
+<jh-browse-shell
+  title="Players"
+  searchPlaceholder="Search players…"
+  sortLabel="A–Z"
+  note="Only players who chose to appear in search are listed."
+  [countLabel]="countLabel()"
+  [chips]="chips()"
+  [activeFilterCount]="activeFilterCount()"
+  [state]="list.state()"
+  [hasMore]="list.hasMore()"
+  [loadingMore]="list.loadingMore()"
+  (query)="onQuery($event)"
+  (openFilters)="openFilters()"
+  (removeChip)="removeChip($event)"
+  (clearAll)="clearAll()"
+  (loadMore)="list.loadMore()"
+  (retry)="list.reload()"
+>
+  <div rows class="flex flex-col">
+    @for (player of list.items(); track player.handle) {
+      <a
+        [routerLink]="['/u', player.handle]"
+        class="flex items-center gap-sm border-b border-border py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
+        data-testid="player-row"
+      >
+        @if (player.hasAvatar) {
+          <img
+            [src]="'/api/v1/profiles/' + player.handle + '/avatar'"
+            alt=""
+            class="h-8 w-8 rounded-full object-cover"
+          />
+        } @else {
+          <span class="h-8 w-8 rounded-full border border-dashed border-border-strong bg-surface-subtle" aria-hidden="true"></span>
+        }
+        <span class="flex flex-1 flex-col">
+          <span class="text-body-md text-ink">{{ player.displayName }}</span>
+          <span class="text-body-sm text-subtle">
+            @if (player.hometown) {
+              {{ player.hometown }}
+            }
+            @if (player.positions.length) {
+              · {{ label(player.positions[0]) }}
+            }
+          </span>
+        </span>
+      </a>
+    }
+  </div>
+</jh-browse-shell>
+
+<jh-filter-panel
+  [open]="filtersOpen()"
+  [pendingCount]="pendingCount()"
+  resultNoun="players"
+  (apply)="applyFilters()"
+  (reset)="resetFilters()"
+  (close)="filtersOpen.set(false)"
+>
+  <div class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">Position</span>
+    <div class="flex flex-wrap gap-xs">
+      @for (entry of catalog; track entry.value) {
+        <button
+          type="button"
+          class="rounded-pill border px-sm py-0 text-body-sm transition-colors duration-fast"
+          [class.bg-brand]="isPending(entry.value)"
+          [class.border-brand]="isPending(entry.value)"
+          [class.text-on-accent]="isPending(entry.value)"
+          [class.border-border-strong]="!isPending(entry.value)"
+          [class.text-ink]="!isPending(entry.value)"
+          [attr.aria-pressed]="isPending(entry.value)"
+          (click)="togglePending(entry.value)"
+        >{{ entry.en }}</button>
+      }
+    </div>
+  </div>
+
+  <label class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">City or region</span>
+    <input
+      type="text"
+      class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none placeholder:text-faint"
+      placeholder="Any city"
+      [value]="pendingCity()"
+      (input)="onPendingCity($any($event.target).value)"
+    />
+  </label>
+</jh-filter-panel>

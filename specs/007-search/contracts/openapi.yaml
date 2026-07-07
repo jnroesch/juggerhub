@@ -1,0 +1,211 @@
+openapi: 3.0.3
+info:
+  title: JuggerHub — Search / Browse (feature 007)
+  version: "1.0"
+  description: >-
+    Public browse/search over teams, events, and players, plus the two small
+    write paths that carry the new self-managed fields (team BeginnersWelcome,
+    player AppearInSearch). Design contract for /speckit-tasks — keep in sync
+    with TeamsController / EventsController / ProfilesController as they land.
+servers:
+  - url: /api/v1
+tags:
+  - name: browse
+  - name: teams
+  - name: profiles
+
+paths:
+  /teams:
+    get:
+      tags: [browse, teams]
+      summary: Browse/search teams (anonymous)
+      description: >-
+        All filtering, sorting, searching, and paging are server-side.
+        Blank q ⇒ browse all with defaults. Returns public card fields only.
+      security: []
+      parameters:
+        - { name: q, in: query, schema: { type: string }, description: "Case/accent-insensitive substring over name OR city. Blank ⇒ browse all." }
+        - { name: activeOnly, in: query, schema: { type: boolean, default: true }, description: "Hide dormant teams (no event participation in the last 12 months)." }
+        - { name: beginnersWelcome, in: query, schema: { type: boolean }, description: "When true, only beginners-welcome teams." }
+        - { name: city, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [NameAsc], default: NameAsc } }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200':
+          description: Paged team cards
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedTeamCards' }
+
+  /teams/{slug}:
+    patch:
+      tags: [teams]
+      summary: Update team settings (team admin only)
+      description: Sets the self-managed BeginnersWelcome flag. Requires the caller to be an admin of the team.
+      parameters:
+        - { name: slug, in: path, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateTeamSettingsRequest' }
+      responses:
+        '204': { description: Updated }
+        '401': { description: Unauthenticated, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+        '403': { description: Not a team admin, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+        '404': { description: Unknown team, content: { application/problem+json: { schema: { $ref: '#/components/schemas/ProblemDetails' } } } }
+
+  /events:
+    get:
+      tags: [browse]
+      summary: Browse/search events (anonymous)
+      description: >-
+        Excludes cancelled events always. Hides past (ended) events by default.
+        All filtering/sorting/paging server-side. Returns public card fields only.
+      security: []
+      parameters:
+        - { name: q, in: query, schema: { type: string }, description: "Case/accent-insensitive substring over event name." }
+        - { name: hidePast, in: query, schema: { type: boolean, default: true }, description: "Hide events whose end is in the past." }
+        - { name: from, in: query, schema: { type: string, format: date }, description: "Start of date range (StartsAt >= from)." }
+        - { name: to, in: query, schema: { type: string, format: date }, description: "End of date range (StartsAt <= to)." }
+        - { name: type, in: query, schema: { type: string, enum: [Tournament, Workshop, Other] } }
+        - { name: city, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [StartsAtAsc], default: StartsAtAsc } }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200':
+          description: Paged event cards
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedEventCards' }
+
+  /profiles:
+    get:
+      tags: [browse, profiles]
+      summary: Browse/search players (anonymous, opt-in gated)
+      description: >-
+        PRIVACY INVARIANT — only players with AppearInSearch = true are ever
+        returned, for every query/filter/sort and regardless of auth. The opt-in
+        is NOT a query parameter; it is enforced unconditionally server-side.
+      security: []
+      parameters:
+        - { name: q, in: query, schema: { type: string }, description: "Case/accent-insensitive substring over display name." }
+        - name: positions
+          in: query
+          description: "Multi-select over the pompfen/position set; matches players having ANY selected."
+          schema:
+            type: array
+            items: { type: string, enum: [Laeufer, Stab, Langpompfe, Schild, QTip, Kette, DoppelKurz] }
+          style: form
+          explode: true
+        - { name: city, in: query, schema: { type: string } }
+        - { name: sort, in: query, schema: { type: string, enum: [DisplayNameAsc], default: DisplayNameAsc } }
+        - { $ref: '#/components/parameters/Skip' }
+        - { $ref: '#/components/parameters/Take' }
+      responses:
+        '200':
+          description: Paged player cards (opted-in only)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PagedPlayerCards' }
+
+  /profiles/me:
+    put:
+      tags: [profiles]
+      summary: Update own profile (existing endpoint — extended)
+      description: Extended with the AppearInSearch opt-in. Only mutates the caller's own profile.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateProfileRequest' }
+      responses:
+        '200':
+          description: Updated owner profile
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OwnerProfileDto' }
+        '401': { description: Unauthenticated }
+
+components:
+  parameters:
+    Skip: { name: skip, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+    Take: { name: take, in: query, schema: { type: integer, minimum: 0, maximum: 100, default: 20 }, description: "0 returns an empty items array with the real totalCount — used for the live 'Show N' count." }
+  schemas:
+    TeamCardDto:
+      type: object
+      properties:
+        slug: { type: string }
+        name: { type: string }
+        city: { type: string, nullable: true }
+        playerCount: { type: integer }
+        beginnersWelcome: { type: boolean }
+        logoInitial: { type: string }
+    EventCardDto:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        type: { type: string, enum: [Tournament, Workshop, Other] }
+        customTypeLabel: { type: string, nullable: true }
+        startsAt: { type: string, format: date-time }
+        endsAt: { type: string, format: date-time }
+        locationKind: { type: string, enum: [InPerson, Virtual] }
+        city: { type: string, nullable: true }
+        locationLabel: { type: string, description: "City for in-person, 'Online' for virtual." }
+    PlayerCardDto:
+      type: object
+      properties:
+        handle: { type: string }
+        displayName: { type: string }
+        hometown: { type: string, nullable: true }
+        positions:
+          type: array
+          items: { type: string, enum: [Laeufer, Stab, Langpompfe, Schild, QTip, Kette, DoppelKurz] }
+        hasAvatar: { type: boolean }
+    PagedTeamCards:
+      allOf:
+        - $ref: '#/components/schemas/PagedEnvelope'
+        - type: object
+          properties: { items: { type: array, items: { $ref: '#/components/schemas/TeamCardDto' } } }
+    PagedEventCards:
+      allOf:
+        - $ref: '#/components/schemas/PagedEnvelope'
+        - type: object
+          properties: { items: { type: array, items: { $ref: '#/components/schemas/EventCardDto' } } }
+    PagedPlayerCards:
+      allOf:
+        - $ref: '#/components/schemas/PagedEnvelope'
+        - type: object
+          properties: { items: { type: array, items: { $ref: '#/components/schemas/PlayerCardDto' } } }
+    PagedEnvelope:
+      type: object
+      properties:
+        totalCount: { type: integer }
+        skip: { type: integer }
+        take: { type: integer }
+      required: [totalCount, skip, take]
+    UpdateTeamSettingsRequest:
+      type: object
+      properties:
+        beginnersWelcome: { type: boolean }
+      required: [beginnersWelcome]
+    UpdateProfileRequest:
+      type: object
+      description: Existing request extended with appearInSearch (other existing fields omitted here for brevity).
+      properties:
+        appearInSearch: { type: boolean }
+    OwnerProfileDto:
+      type: object
+      description: Existing owner DTO extended with appearInSearch (other fields omitted).
+      properties:
+        appearInSearch: { type: boolean }
+    ProblemDetails:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }

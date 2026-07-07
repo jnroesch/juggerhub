@@ -1,0 +1,105 @@
+<jh-browse-shell
+  title="Events"
+  searchPlaceholder="Search events…"
+  sortLabel="Soonest"
+  [countLabel]="countLabel()"
+  [chips]="chips()"
+  [activeFilterCount]="activeFilterCount()"
+  [state]="list.state()"
+  [hasMore]="list.hasMore()"
+  [loadingMore]="list.loadingMore()"
+  (query)="onQuery($event)"
+  (openFilters)="openFilters()"
+  (removeChip)="removeChip($event)"
+  (clearAll)="clearAll()"
+  (loadMore)="list.loadMore()"
+  (retry)="list.reload()"
+>
+  <div rows class="flex flex-col">
+    @for (event of list.items(); track event.id) {
+      <a
+        [routerLink]="['/events', event.id]"
+        class="flex items-center gap-sm border-b border-border py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
+        data-testid="event-row"
+      >
+        <span class="flex flex-1 flex-col">
+          <span class="text-body-md text-ink">{{ event.name }}</span>
+          <span class="text-body-sm text-subtle">
+            {{ event.startsAt | date: 'mediumDate' }}
+            @if (event.locationLabel) {
+              · {{ event.locationLabel }}
+            }
+          </span>
+        </span>
+        <span class="rounded-pill border border-border px-sm py-0 text-caption text-subtle">
+          {{ event.type === 'Other' && event.customTypeLabel ? event.customTypeLabel : event.type }}
+        </span>
+      </a>
+    }
+  </div>
+</jh-browse-shell>
+
+<jh-filter-panel
+  [open]="filtersOpen()"
+  [pendingCount]="pendingCount()"
+  resultNoun="events"
+  (apply)="applyFilters()"
+  (reset)="resetFilters()"
+  (close)="filtersOpen.set(false)"
+>
+  <div class="flex flex-col gap-sm">
+    <span class="text-eyebrow uppercase text-faint">Show</span>
+    <jh-filter-toggle
+      label="Hide past events"
+      hint="Only upcoming"
+      [checked]="pendingHidePast()"
+      (toggled)="setPendingHidePast($event)"
+    />
+  </div>
+
+  <div class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">Date range</span>
+    <div class="flex items-center gap-xs">
+      <input
+        type="date"
+        class="flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        aria-label="From date"
+        [value]="pendingFrom()"
+        (input)="onPendingFrom($any($event.target).value)"
+      />
+      <span class="text-subtle">–</span>
+      <input
+        type="date"
+        class="flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        aria-label="To date"
+        [value]="pendingTo()"
+        (input)="onPendingTo($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <label class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">Type</span>
+    <select
+      class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none"
+      [value]="pendingType()"
+      (change)="onPendingType($any($event.target).value)"
+    >
+      <option value="">Any type</option>
+      @for (t of eventTypes; track t) {
+        <option [value]="t">{{ t }}</option>
+      }
+    </select>
+  </label>
+
+  <label class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">City or region</span>
+    <input
+      type="text"
+      class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none placeholder:text-faint"
+      placeholder="Any city"
+      [value]="pendingCity()"
+      (input)="onPendingCity($any($event.target).value)"
+    />
+  </label>
+</jh-filter-panel>

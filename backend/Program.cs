@@ -9,6 +9,7 @@ using JuggerHub.Services.Email;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Health;
 using JuggerHub.Services.Profile;
+using JuggerHub.Services.Search;
 using JuggerHub.Services.Security;
 using JuggerHub.Services.Teams;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -198,6 +199,12 @@ builder.Services.AddScoped<IEventContactService, EventContactService>();
 builder.Services.AddScoped<IEventAdminService, EventAdminService>();
 builder.Services.AddScoped<IEventInvitationService, EventInvitationService>();
 builder.Services.AddScoped<EventEmailService>();
+
+// --- Search / browse (feature 007) -----------------------------------------
+builder.Services.Configure<SearchOptions>(builder.Configuration.GetSection(SearchOptions.SectionName));
+builder.Services.AddScoped<ITeamSearchService, TeamSearchService>();
+builder.Services.AddScoped<IEventSearchService, EventSearchService>();
+builder.Services.AddScoped<IPlayerSearchService, PlayerSearchService>();
 
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services

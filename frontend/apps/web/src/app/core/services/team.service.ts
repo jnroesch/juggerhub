@@ -52,6 +52,11 @@ export class TeamService {
     return this.http.delete<void>(`${this.base}/${encodeURIComponent(slug)}`);
   }
 
+  /** Feature 007 — admin-only: set the beginners-welcome recruitment flag. */
+  updateSettings(slug: string, beginnersWelcome: boolean): Observable<void> {
+    return this.http.patch<void>(`${this.base}/${encodeURIComponent(slug)}`, { beginnersWelcome });
+  }
+
   // --- Tabs ----------------------------------------------------------------
 
   getMembers(slug: string, skip = 0, take = 50): Observable<PagedResult<TeamMember>> {

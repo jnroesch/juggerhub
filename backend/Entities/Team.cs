@@ -23,6 +23,13 @@ public sealed class Team : BaseEntity
     /// <summary>Home city — required for <see cref="TeamType.CityTeam"/>, null for a Mixteam.</summary>
     public string? City { get; set; }
 
+    /// <summary>
+    /// Self-managed recruitment signal (feature 007). When set, the team is flagged as open
+    /// to new/beginner players — surfaced as the "Beginners" browse chip and filter. Editable
+    /// by a team admin; defaults to false.
+    /// </summary>
+    public bool BeginnersWelcome { get; set; }
+
     public ICollection<TeamMembership> Memberships { get; set; } = [];
 
     public ICollection<TeamInvitation> Invitations { get; set; } = [];

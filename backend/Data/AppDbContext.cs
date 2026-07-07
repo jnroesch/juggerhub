@@ -21,6 +21,17 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
     }
 
+    /// <summary>
+    /// Maps to the PostgreSQL <c>unaccent(text)</c> function (from the <c>unaccent</c> extension,
+    /// created by the AddDiscoveryFields migration). Used only inside LINQ queries for
+    /// accent-insensitive search (feature 007) — e.g. <c>ILike(Unaccent(col), Unaccent(pattern))</c>.
+    /// Never call it in application code; it throws outside query translation.
+    /// </summary>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA1822", Justification = "EF DbFunction target must be a discoverable public static method.")]
+    [DbFunction("unaccent", Schema = "public")]
+    public static string Unaccent(string value) =>
+        throw new NotSupportedException("Unaccent is only usable inside an EF Core query.");
+
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     public DbSet<PlayerProfile> PlayerProfiles => Set<PlayerProfile>();
@@ -61,9 +72,12 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Property(p => p.DisplayName).HasMaxLength(50).IsRequired();
             entity.Property(p => p.Hometown).HasMaxLength(80);
             entity.Property(p => p.Description).HasMaxLength(280);
+            entity.Property(p => p.AppearInSearch).HasDefaultValue(false);
 
             // Handle addresses the public profile — unique & the true uniqueness guarantee.
             entity.HasIndex(p => p.Handle).IsUnique();
+            // Partial index backs the opt-in browse scan (feature 007) — only opted-in rows.
+            entity.HasIndex(p => p.AppearInSearch).HasFilter("\"AppearInSearch\"");
             // 1:1 with the account.
             entity.HasIndex(p => p.UserId).IsUnique();
 
@@ -113,6 +127,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Property(e => e.FeeRecipientName).HasMaxLength(120);
             entity.Property(e => e.FeeIban).HasMaxLength(34);
             entity.HasIndex(e => e.StartsAt);
+            // Browse excludes cancelled events (feature 007).
+            entity.HasIndex(e => e.Status);
         });
 
         builder.Entity<EventSignup>(entity =>
@@ -244,6 +260,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Property(t => t.Slug).HasMaxLength(30).IsRequired();
             entity.Property(t => t.Name).HasMaxLength(50).IsRequired();
             entity.Property(t => t.City).HasMaxLength(80);
+            entity.Property(t => t.BeginnersWelcome).HasDefaultValue(false);
 
             // Slug addresses the team (/t/<slug>) — unique & the true uniqueness guarantee.
             entity.HasIndex(t => t.Slug).IsUnique();

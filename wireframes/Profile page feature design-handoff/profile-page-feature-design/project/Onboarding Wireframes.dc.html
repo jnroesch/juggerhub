@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Patrick+Hand&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#efece6;--ink:#2b2a28;--soft:#6f6c66;--line:rgba(0,0,0,.13);--ph:#e4e0d8;--card:#fffdfa;--blue:#2f6fd0;--amber:#c0852a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);font-family:system-ui,sans-serif;color:var(--ink)}
+.dv-turn{padding:40px 44px 36px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}
+.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 14px}
+.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}
+.dv-tname{font:600 13px/1.3 system-ui,sans-serif}
+.dv-opts{display:flex;flex-direction:column;gap:34px;align-items:flex-start}
+.dv-opt{display:flex;flex-direction:column;gap:10px;scroll-margin-top:16px}
+.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}
+.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 11px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.55)}
+.dv-card{background:#fbf9f5;border:1px solid rgba(0,0,0,.1);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.06);padding:22px;width:max-content}
+.dv-opt:target .dv-oid{background:var(--blue);color:#fff}
+.dv-next{margin:24px 0 0;font:12px/1.7 system-ui,sans-serif;color:rgba(0,0,0,.5)}
+.dv-next a{color:var(--blue);text-decoration:none;font:600 11px ui-monospace,monospace;padding:1px 5px;background:rgba(47,111,208,.1);border-radius:4px}
+.wf-legend{display:flex;flex-wrap:wrap;gap:12px 24px;margin:0 0 24px;padding:13px 17px;background:#fff;border:1px dashed rgba(0,0,0,.2);border-radius:10px;max-width:900px}
+.wf-li{display:flex;align-items:center;gap:8px;font:13px 'Patrick Hand',system-ui;color:var(--soft)}
+.wf-dirhd{margin:0 0 6px;max-width:620px}
+.wf-dirname{font:21px 'Patrick Hand',system-ui;color:var(--ink);margin:0}
+.wf-dirdesc{font:13px/1.45 'Kalam',system-ui;color:var(--soft);margin:5px 0 0}
+.ob-flow{display:flex;gap:16px;align-items:flex-start;padding:4px 0 2px}
+.ob-cell{display:flex;flex-direction:column;gap:8px;align-items:center;flex:none}
+.ob-cap{font:10px ui-monospace;letter-spacing:.05em;text-transform:uppercase;color:var(--soft);text-align:center}
+.wf-phone{width:264px;border:2.5px solid var(--ink);border-radius:32px;background:#fff;padding:7px;box-shadow:0 8px 22px rgba(0,0,0,.1)}
+.wf-notch{width:80px;height:15px;background:var(--ink);border-radius:0 0 10px 10px;margin:0 auto 5px}
+.wf-screen{border:1px solid var(--line);border-radius:25px;overflow:hidden;background:var(--card);font-family:'Patrick Hand',system-ui}
+.ob-pad{padding:15px 15px 17px;display:flex;flex-direction:column;gap:13px;min-height:496px}
+.ob-foot{margin-top:auto;display:flex;flex-direction:column;gap:11px;align-items:stretch;padding-top:8px}
+.wf-row{display:flex;align-items:center;gap:9px}
+.wf-col{display:flex;flex-direction:column;gap:9px}
+.wf-bar{height:9px;border-radius:5px;background:var(--ph)}
+.wf-avatar{width:60px;height:60px;border-radius:50%;border:1.6px dashed var(--soft);background:repeating-linear-gradient(45deg,#e9e5dd,#e9e5dd 5px,#e0dbd1 5px,#e0dbd1 10px);display:flex;align-items:center;justify-content:center;font:8px ui-monospace;letter-spacing:.05em;color:var(--soft);flex:none}
+.wf-img{border:1.6px dashed var(--soft);background:repeating-linear-gradient(45deg,#e9e5dd,#e9e5dd 6px,#e0dbd1 6px,#e0dbd1 12px);display:flex;align-items:center;justify-content:center;font:10px ui-monospace;letter-spacing:.08em;color:var(--soft);border-radius:8px}
+.wf-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border:1.6px solid var(--ink);border-radius:16px;font:13px 'Patrick Hand';background:#fff;color:var(--ink)}
+.wf-chip-on{background:var(--blue);border-color:var(--blue);color:#fff}
+.wf-off{border-style:dashed;border-color:var(--soft);color:var(--soft);background:#fff}
+.wf-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 14px;border:1.6px solid var(--ink);border-radius:9px;font:15px 'Patrick Hand';background:#fff;color:var(--ink)}
+.wf-btn-primary{background:var(--ink);color:#fff}
+.wf-btn-full{width:100%}
+.wf-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1.5px solid var(--soft);border-radius:20px;font:11px 'Patrick Hand';background:#fff;color:var(--soft)}
+.wf-pin{width:7px;height:7px;border-radius:50% 50% 50% 0;background:var(--soft);transform:rotate(-45deg);flex:none}
+.wf-note{font:13px/1.4 'Kalam',system-ui;color:var(--blue);margin:8px 0 0}
+.wf-cap{display:inline-flex;align-items:center;gap:5px;font:13px 'Patrick Hand';color:var(--soft)}
+.wf-label{font:10px ui-monospace;letter-spacing:.13em;text-transform:uppercase;color:var(--soft)}
+.wf-divider{height:1px;background:var(--line)}
+.wf-q{font:22px/1.18 'Patrick Hand';color:var(--ink);margin:0}
+.wf-sub{font:13px/1.4 'Kalam';color:var(--soft);margin:0}
+.wf-input{width:100%;border:1.6px solid var(--ink);border-radius:9px;padding:11px 12px;font:15px 'Patrick Hand';color:var(--soft);background:#fff;display:flex;align-items:center;gap:2px}
+.wf-caret{width:1.5px;height:18px;background:var(--blue);display:inline-block}
+.wf-knobs{display:flex;gap:7px;justify-content:center;align-items:center}
+.wf-knob{width:8px;height:8px;border-radius:50%;background:var(--ph);border:1.5px solid transparent;flex:none}
+.wf-knob-done{background:var(--blue)}
+.wf-knob-cur{background:#fff;border-color:var(--blue);width:10px;height:10px}
+.wf-skip{font:14px 'Patrick Hand';color:var(--soft);text-align:center;text-decoration:underline;text-underline-offset:2px}
+.wf-search{width:100%;border:1.6px solid var(--ink);border-radius:9px;padding:10px 11px;font:14px 'Patrick Hand';color:var(--soft);background:#fff;display:flex;align-items:center;gap:8px}
+.wf-mag{width:12px;height:12px;border:1.7px solid var(--soft);border-radius:50%;flex:none}
+.wf-result{display:flex;align-items:center;gap:9px;padding:8px 9px;border:1.4px solid var(--line);border-radius:9px}
+.wf-result-sel{border-color:var(--blue);background:rgba(47,111,208,.06)}
+.wf-ring{width:15px;height:15px;border:1.6px solid var(--soft);border-radius:50%;flex:none}
+.wf-ring-on{border-color:var(--blue);background:var(--blue)}
+.wf-logo{width:62px;height:62px;border-radius:16px;border:2px solid var(--ink);display:flex;align-items:center;justify-content:center;font:26px 'Patrick Hand';background:#fff;color:var(--ink)}
+.wf-tick{width:54px;height:54px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font:27px 'Patrick Hand'}
+.wf-mini-av{width:32px;height:32px;border-radius:50%;border:1.4px dashed var(--soft);background:repeating-linear-gradient(45deg,#e9e5dd,#e9e5dd 4px,#e0dbd1 4px,#e0dbd1 8px);flex:none}
+</style>
+</helmet>
+
+<section class="dv-turn" id="t1">
+<div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Onboarding flow — mobile · one question per screen, round-knob progress</span></div>
+
+<div class="wf-legend">
+<div class="wf-li"><span style="color:var(--ink);font-weight:700">*</span> required (only the username)</div>
+<div class="wf-li"><span class="wf-skip" style="text-decoration-color:var(--soft)">Skip</span> every other step is skippable</div>
+<div class="wf-li"><span class="wf-knobs"><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-cur"></span><span class="wf-knob"></span></span> round-knob progress (bottom)</div>
+<div class="wf-li"><span class="wf-chip wf-chip-on" style="padding:3px 9px;font-size:12px">Stab</span> selected · <span class="wf-chip wf-off" style="padding:3px 9px;font-size:12px">Kette</span> available</div>
+<div class="wf-li">Flow: Welcome → Username* → City → Pompfen → Team → Photo+bio → Done</div>
+</div>
+
+<div class="dv-opts">
+
+<!-- ============ 1a — Minimal centered ============ -->
+<div class="dv-opt" id="1a">
+<div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a> Minimal centered</div>
+<div class="dv-card">
+<div class="wf-dirhd"><p class="wf-dirname">Minimal centered</p><p class="wf-dirdesc">One calm question per screen, centered with lots of breathing room. Knobs + a single primary button anchored at the bottom; Skip is a quiet link. Fast and focused.</p></div>
+<div class="ob-flow">
+
+<!-- Welcome -->
+<div class="ob-cell">
+<div class="wf-phone"><div class="wf-notch"></div><div class="wf-screen"><div class="ob-pad" style="justify-content:center;align-items:center;text-align:center;gap:16px">
+<div class="wf-logo">J</div>
+<div class="wf-col" style="gap:7px;align-items:center"><span class="wf-q">Welcome to Jugger</span><span class="wf-sub" style="max-width:190px">Let’s set up your player profile — takes about a minute.</span></div>
+<div class="ob-foot" style="margin-top:24px"><button class="wf-btn wf-btn-primary wf-btn-full">Get started</button><div class="wf-skip">I’ll do this later</div></div>
+</div></div></div>
+<div class="ob-cap">Welcome</div>
+</div>
+
+<!-- Username -->
+<div class="ob-cell">
+<div class="wf-phone"><div class="wf-notch"></div><div class="wf-screen"><div class="ob-pad">
+<div class="wf-row"><span class="wf-cap">‹ Back</span></div>
+<div class="wf-col" style="gap:9px;margin-top:14px"><span class="wf-q">What should we call you?</span><span class="wf-sub">Your display name — change it anytime.</span>
+<div class="wf-input" style="margin-top:6px;color:var(--ink)">Player name<span class="wf-caret"></span></div>
+<span class="wf-cap" style="font-size:12px">Handle @player-slug stays the same</span></div>
+<div class="ob-foot"><div class="wf-knobs"><span class="wf-knob wf-knob-cur"></span><span class="wf-knob"></span><span class="wf-knob"></span><span class="wf-knob"></span><span class="wf-knob"></span></div><button class="wf-btn wf-btn-primary wf-btn-full">Continue</button></div>
+</div></div></div>
+<div class="ob-cap">1 · Username *</div>
+</div>
+
+<!-- City -->
+<div class="ob-cell">
+<div class="wf-phone"><div class="wf-notch"></div><div class="wf-screen"><div class="ob-pad">
+<div class="wf-row"><span class="wf-cap">‹ Back</span></div>
+<div class="wf-col" style="gap:9px;margin-top:14px"><span class="wf-q">Where are you based?</span><span class="wf-sub">Your hometown or current city.</span>
+<div class="wf-input" style="margin-top:6px">e.g. Berlin<span class="wf-caret"></span></div></div>
+<div class="ob-foot"><div class="wf-knobs"><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-cur"></span><span class="wf-knob"></span><span class="wf-knob"></span><span class="wf-knob"></span></div><button class="wf-btn wf-btn-primary wf-btn-full">Continue</button><div class="wf-skip">Skip</div></div>
+</div></div></div>
+<div class="ob-cap">2 · City</div>
+</div>
+
+<!-- Pompfen -->
+<div class="ob-cell">
+<div class="wf-phone"><div class="wf-notch"></div><div class="wf-screen"><div class="ob-pad">
+<div class="wf-row"><span class="wf-cap">‹ Back</span></div>
+<div class="wf-col" style="gap:9px;margin-top:8px"><span class="wf-q">Which do you play?</span><span class="wf-sub">Pick any — including Läufer.</span>
+<div class="wf-row" style="flex-wrap:wrap;gap:7px;margin-top:4px"><span class="wf-chip wf-chip-on">Stab</span><span class="wf-chip wf-chip-on">Schild</span><span class="wf-chip wf-chip-on">Q-Tip</span><span class="wf-chip wf-off">Langpompfe</span><span class="wf-chip wf-off">Kette</span><span class="wf-chip wf-off">Doppel-Kurz</span><span class="wf-chip wf-off">Läufer</span></div></div>
+<div class="ob-foot"><div class="wf-knobs"><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-cur"></span><span class="wf-knob"></span><span class="wf-knob"></span></div><button class="wf-btn wf-btn-primary wf-btn-full">Continue</button><div class="wf-skip">Skip</div></div>
+</div></div></div>
+<div class="ob-cap">3 · Pompfen</div>
+</div>
+
+<!-- Team -->
+<div class="ob-cell">
+<div class="wf-phone"><div class="wf-notch"></div><div class="wf-screen"><div class="ob-pad">
+<div class="wf-row"><span class="wf-cap">‹ Back</span></div>
+<div class="wf-col" style="gap:9px;margin-top:8px"><span class="wf-q">Find your team</span><span class="wf-sub">Search by name — skip if you’re not on one yet.</span>
+<div class="wf-search" style="margin-top:4px"><span class="wf-mag"></span>Search teams…</div>
+<div class="wf-result wf-result-sel"><span class="wf-mini-av"></span><div class="wf-col" style="gap:3px;flex:1"><span style="font:14px 'Patrick Hand'">Team A</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Berlin</span></div><span class="wf-ring wf-ring-on"></span></div>
+<div class="wf-result"><span class="wf-mini-av"></span><div class="wf-col" style="gap:3px;flex:1"><span style="font:14px 'Patrick Hand'">Team B</span><span class="wf-cap" style="font-size:11px"><span class="wf-pin"></span> Hamburg</span></div><span class="wf-ring"></span></div></div>
+<div class="ob-foot"><div class="wf-knobs"><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-cur"></span><span class="wf-knob"></span></div><button class="wf-btn wf-btn-primary wf-btn-full">Continue</button><div class="wf-skip">I’m not on a team yet</div></div>
+</div></div></div>
+<div class="ob-cap">4 · Team</div>
+</div>
+
+<!-- Photo + bio -->
+<div class="ob-cell">
+<div class="wf-phone"><div class="wf-notch"></div><div class="wf-screen"><div class="ob-pad">
+<div class="wf-row" style="justify-content:space-between"><span class="wf-cap">‹ Back</span><span class="wf-pill">Optional</span></div>
+<div class="wf-col" style="gap:11px;margin-top:4px;align-items:center;text-align:center"><span class="wf-q">Make it yours</span><span class="wf-sub">Add a photo and a short bio — or do it later.</span>
+<div class="wf-avatar" style="width:72px;height:72px;margin-top:2px">ADD PHOTO</div>
+<div class="wf-input" style="min-height:56px;align-items:flex-start;text-align:left"><div class="wf-col" style="gap:6px;width:100%"><div class="wf-bar" style="width:90%"></div><div class="wf-bar" style="width:60%"></div></div></div></div>
+<div class="ob-foot"><div class="wf-knobs"><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-done"></span><span class="wf-knob wf-knob-cur"></span></div><button class="wf-btn wf-btn-primary wf-btn-full">Finish</button><div class="wf-skip">Skip for now</div></div>
+</div></div></div>
+<div class="ob-cap">5 · Photo + bio</div>
+</div>
+
+<!-- Done -->
+<div class="ob-cell">
+<div class="wf-phone"><div class="wf-notch"></div><div class="wf-screen"><div class="ob-pad" style="justify-content:center;align-items:center;text-align:center;gap:16px">
+<div class="wf-tick">✓</div>
+<div class="wf-col" style="gap:7px;align-items:center"><span class="wf-q">You’re all set!</span><span class="wf-sub" style="max-width:180px">Welcome to the community.</span></div>
+<div class="ob-foot" style="margin-top:24px"><button class="wf-btn wf-btn-primary wf-btn-full">3… 2… 1… Jugger!</button></div>
+</div></div></div>
+<div class="ob-cap">Done</div>
+</div>
+
+</div>
+</div>
+</div>
+
+</div>
+
+<p class="dv-next">Try next: “build <a class="dv-oid" href="#1a">1a</a> as hi-fi screens” · “split photo + bio into two screens” · “reorder the steps” · “tweak the copy”</p>
+</section>
+</x-dc>
+</body>
+</html>

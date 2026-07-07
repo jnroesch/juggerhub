@@ -3,8 +3,10 @@ using System.Security.Claims;
 using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Dtos.Events;
+using JuggerHub.Dtos.Search;
 using JuggerHub.Entities;
 using JuggerHub.Services.Events;
+using JuggerHub.Services.Search;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -28,6 +30,7 @@ public sealed class EventsController : ControllerBase
     private readonly IEventContactService _contacts;
     private readonly IEventAdminService _admins;
     private readonly IEventInvitationService _invitations;
+    private readonly IEventSearchService _search;
 
     public EventsController(
         IEventService events,
@@ -35,7 +38,8 @@ public sealed class EventsController : ControllerBase
         IEventNewsService news,
         IEventContactService contacts,
         IEventAdminService admins,
-        IEventInvitationService invitations)
+        IEventInvitationService invitations,
+        IEventSearchService search)
     {
         _events = events;
         _signups = signups;
@@ -43,7 +47,18 @@ public sealed class EventsController : ControllerBase
         _contacts = contacts;
         _admins = admins;
         _invitations = invitations;
+        _search = search;
     }
+
+    // --- Browse (public) ------------------------------------------------------
+
+    /// <summary>Anonymous event browse/search (feature 007). Cancelled events are always
+    /// excluded; past events hidden by default. Public card fields only.</summary>
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<ActionResult<PagedResult<EventCardDto>>> Browse(
+        [FromQuery] EventBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
+        Ok(await _search.BrowseAsync(query, pagination, ct));
 
     // --- Create ---------------------------------------------------------------
 

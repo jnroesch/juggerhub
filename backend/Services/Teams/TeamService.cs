@@ -117,10 +117,11 @@ public sealed class TeamService : ITeamService
 
         var header = await _db.Teams.AsNoTracking()
             .Where(t => t.Id == a.TeamId)
-            .Select(t => new { t.Slug, t.Name, t.Type, t.City, MemberCount = t.Memberships.Count })
+            .Select(t => new { t.Slug, t.Name, t.Type, t.City, MemberCount = t.Memberships.Count, t.BeginnersWelcome })
             .FirstAsync(ct);
 
-        return new TeamDetailDto(header.Slug, header.Name, header.Type, header.City, header.MemberCount, a.Role!.Value);
+        return new TeamDetailDto(header.Slug, header.Name, header.Type, header.City, header.MemberCount,
+            a.Role!.Value, header.BeginnersWelcome);
     }
 
     public async Task<TeamPublicDto?> GetPublicAsync(string slug, CancellationToken ct = default)
@@ -185,6 +186,31 @@ public sealed class TeamService : ITeamService
         // (event history preserved). ExecuteDelete is a single statement.
         await _db.Teams.Where(t => t.Id == a.TeamId).ExecuteDeleteAsync(ct);
         return DeleteTeamStatus.Deleted;
+    }
+
+    public async Task<UpdateTeamSettingsStatus> UpdateSettingsAsync(
+        string slug, Guid actorUserId, UpdateTeamSettingsRequest request, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(slug, actorUserId, ct);
+        if (access is not { IsMember: true } a)
+        {
+            return UpdateTeamSettingsStatus.NotFoundOrNotMember;
+        }
+
+        if (!a.IsAdmin)
+        {
+            return UpdateTeamSettingsStatus.Forbidden;
+        }
+
+        // Targeted single-column update; ExecuteUpdate bypasses the change tracker, so set
+        // ModifiedDate explicitly (constitution Principle III).
+        await _db.Teams
+            .Where(t => t.Id == a.TeamId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(t => t.BeginnersWelcome, request.BeginnersWelcome)
+                .SetProperty(t => t.ModifiedDate, DateTime.UtcNow), ct);
+
+        return UpdateTeamSettingsStatus.Updated;
     }
 
     /// <summary>

@@ -1,0 +1,80 @@
+<jh-browse-shell
+  title="Teams"
+  searchPlaceholder="Search teams…"
+  sortLabel="A–Z"
+  [countLabel]="countLabel()"
+  [chips]="chips()"
+  [activeFilterCount]="activeFilterCount()"
+  [state]="list.state()"
+  [hasMore]="list.hasMore()"
+  [loadingMore]="list.loadingMore()"
+  (query)="onQuery($event)"
+  (openFilters)="openFilters()"
+  (removeChip)="removeChip($event)"
+  (clearAll)="clearAll()"
+  (loadMore)="list.loadMore()"
+  (retry)="list.reload()"
+>
+  <div rows class="flex flex-col">
+    @for (team of list.items(); track team.slug) {
+      <a
+        [routerLink]="['/t', team.slug]"
+        class="flex items-center gap-sm border-b border-border py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
+        data-testid="team-row"
+      >
+        <span
+          class="flex h-8 w-8 items-center justify-center rounded-md border border-dashed border-border-strong bg-surface-subtle text-body-sm font-semibold text-ink"
+          aria-hidden="true"
+        >{{ team.logoInitial }}</span>
+        <span class="flex flex-1 flex-col">
+          <span class="text-body-md text-ink">{{ team.name }}</span>
+          <span class="text-body-sm text-subtle">
+            @if (team.city) {
+              {{ team.city }} ·
+            }
+            <span class="font-mono">{{ team.playerCount }}</span> players
+          </span>
+        </span>
+        @if (team.beginnersWelcome) {
+          <span class="rounded-pill border border-brand px-sm py-0 text-caption text-brand">Beginners</span>
+        }
+      </a>
+    }
+  </div>
+</jh-browse-shell>
+
+<jh-filter-panel
+  [open]="filtersOpen()"
+  [pendingCount]="pendingCount()"
+  resultNoun="teams"
+  (apply)="applyFilters()"
+  (reset)="resetFilters()"
+  (close)="filtersOpen.set(false)"
+>
+  <div class="flex flex-col gap-sm">
+    <span class="text-eyebrow uppercase text-faint">Show</span>
+    <jh-filter-toggle
+      label="Active teams only"
+      hint="Hide dormant teams"
+      [checked]="pendingActiveOnly()"
+      (toggled)="setPendingActive($event)"
+    />
+    <jh-filter-toggle
+      label="Beginners welcome"
+      hint="Open to new players"
+      [checked]="pendingBeginners()"
+      (toggled)="setPendingBeginners($event)"
+    />
+  </div>
+
+  <label class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">City or region</span>
+    <input
+      type="text"
+      class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none placeholder:text-faint"
+      placeholder="Any city"
+      [value]="pendingCity()"
+      (input)="onPendingCity($any($event.target).value)"
+    />
+  </label>
+</jh-filter-panel>

@@ -1,0 +1,66 @@
+@if (open()) {
+  <!-- Backdrop -->
+  <button
+    type="button"
+    class="fixed inset-0 z-40 bg-ink/40"
+    aria-label="Close filters"
+    (click)="close.emit()"
+    data-testid="filter-backdrop"
+  ></button>
+
+  <!-- Sheet (mobile) / drawer (desktop) -->
+  <div
+    #panel
+    class="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col gap-md rounded-t-lg border-t border-border bg-surface-card p-md shadow-coral md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-80 md:rounded-none md:border-l md:border-t-0"
+    role="dialog"
+    aria-modal="true"
+    aria-label="Filters"
+    data-testid="filter-panel"
+    (keydown.tab)="onTab($any($event))"
+    (keydown.shift.tab)="onTab($any($event))"
+  >
+    <div class="flex items-center justify-between">
+      <h2 class="text-body-md font-semibold text-ink">Filters</h2>
+      <button
+        type="button"
+        class="text-body-sm text-link underline hover:text-link-hover"
+        (click)="reset.emit()"
+        data-testid="filter-reset"
+      >Reset</button>
+    </div>
+
+    <!-- Page-specific filter controls -->
+    <div class="flex flex-col gap-md overflow-y-auto">
+      <ng-content></ng-content>
+
+      <!-- Locked coming-soon hook (feature 007 — non-interactive) -->
+      <div
+        class="flex items-center justify-between gap-sm rounded-md border border-dashed border-border-muted px-sm py-xs"
+        aria-disabled="true"
+        data-testid="filter-near-me"
+      >
+        <span class="flex items-center gap-xs text-body-sm text-faint">
+          <svg class="h-3.5 w-3.5 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <rect x="3.5" y="7" width="9" height="6.5" rx="1.5" stroke="currentColor" stroke-width="1.4" />
+            <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="currentColor" stroke-width="1.4" />
+          </svg>
+          Near me
+        </span>
+        <span class="rounded-pill border border-border-muted px-sm py-0 text-caption uppercase text-faint">Coming soon</span>
+      </div>
+    </div>
+
+    <button
+      type="button"
+      class="mt-auto rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover"
+      (click)="apply.emit()"
+      data-testid="filter-apply"
+    >
+      @if (pendingCount() === null) {
+        Show {{ resultNoun() }}
+      } @else {
+        Show {{ pendingCount() }} {{ resultNoun() }}
+      }
+    </button>
+  </div>
+}

@@ -216,7 +216,9 @@ public static class DevDataSeeder
         var rheinfeuer = await db.Teams.FirstOrDefaultAsync(t => t.Slug == "rheinfeuer", ct);
         if (rheinfeuer is null)
         {
-            rheinfeuer = new Team { Slug = "rheinfeuer", Name = "Rheinfeuer", Type = TeamType.CityTeam, City = "Berlin" };
+            // Beginners-welcome + (below) event participations make Rheinfeuer an "active",
+            // beginners-friendly team so browse filters (feature 007) have data to show.
+            rheinfeuer = new Team { Slug = "rheinfeuer", Name = "Rheinfeuer", Type = TeamType.CityTeam, City = "Köln", BeginnersWelcome = true };
             db.Teams.Add(rheinfeuer);
         }
 
@@ -288,5 +290,14 @@ public static class DevDataSeeder
                 .SetProperty(ep => ep.TeamId, rheinfeuer.Id)
                 .SetProperty(ep => ep.TeamLabel, "Rheinfeuer")
                 .SetProperty(ep => ep.ModifiedDate, now), ct);
+
+        // Opt these seeded players into player search (feature 007) so the players browse
+        // page has data; players not in this set stay hidden (opt-in default off).
+        var userIds = users.Select(u => u.UserId).ToList();
+        await db.PlayerProfiles
+            .Where(p => userIds.Contains(p.UserId) && !p.AppearInSearch)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.AppearInSearch, true)
+                .SetProperty(p => p.ModifiedDate, now), ct);
     }
 }

@@ -30,6 +30,7 @@ export class ProfileOwnerComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly saved = signal(false);
   protected readonly selectedPompfen = signal<Pompfe[]>([]);
+  protected readonly appearInSearch = signal(false);
   private readonly avatarVersion = signal(0);
 
   protected readonly form = this.fb.nonNullable.group({
@@ -61,6 +62,7 @@ export class ProfileOwnerComponent {
           description: p.description ?? '',
         });
         this.selectedPompfen.set(p.pompfen);
+        this.appearInSearch.set(p.appearInSearch);
         this.loading.set(false);
       },
       error: (err) => {
@@ -88,9 +90,14 @@ export class ProfileOwnerComponent {
         description: p.description ?? '',
       });
       this.selectedPompfen.set(p.pompfen);
+      this.appearInSearch.set(p.appearInSearch);
     }
     this.error.set(null);
     this.editing.set(false);
+  }
+
+  protected toggleAppearInSearch(): void {
+    this.appearInSearch.update((v) => !v);
   }
 
   protected onPompfenChange(next: Pompfe[]): void {
@@ -129,6 +136,7 @@ export class ProfileOwnerComponent {
         hometown: hometown.trim() || null,
         description: description.trim() || null,
         pompfen: this.selectedPompfen(),
+        appearInSearch: this.appearInSearch(),
       })
       .subscribe({
         next: (p) => {
