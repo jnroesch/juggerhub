@@ -8,6 +8,8 @@
 
 **Input**: User description: "Team space for JuggerHub. Every logged-in user can create a team (name + city team *or* Mixteam). The creator becomes admin and can invite others by searching users or by sharing an invite link; invitations expire after 7 days and can be accepted or declined. Accepted users join as normal members. Admins can toggle members between admin and member (at least one admin must remain) and remove members; only admins can delete the team. The team page shows members, the team's recent event activity (like a player profile), and a read-only news feed where admins can post updates. This iteration focuses on the team space and member handling itself — trainings, polls, the news composer, and dedicated public/member views come later."
 
+> **Update (2026-07-08, feature 009 — public team page):** the "dedicated public view" anticipated above now exists. `/t/:slug` is a **public** page: the team overview, **roster** (display name + position only — no contact details), recent activity, and upcoming trainings are visible to anyone; **news** and member **contact details** remain members-only, and admin tools remain admin-only. This **widens 005's original public/internal split** (roster was members-only here). Feature 009 also adds a **request-to-join** workflow (`TeamJoinRequest` + admin approval), complementing this feature's invite-only joining. See `specs/009-team-public-page/`.
+
 ## Clarifications
 
 ### Session 2026-07-02
