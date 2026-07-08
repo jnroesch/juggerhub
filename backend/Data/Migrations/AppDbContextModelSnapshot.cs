@@ -644,6 +644,48 @@ namespace JuggerHub.Data.Migrations
                     b.ToTable("TeamInvitations");
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.TeamJoinRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DecidedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("DecidedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DecidedByUserId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TeamId", "Status");
+
+                    b.HasIndex("TeamId", "UserId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 0");
+
+                    b.ToTable("TeamJoinRequests");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.TeamMembership", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1101,6 +1143,32 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("TargetUser");
 
                     b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TeamJoinRequest", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.User", "DecidedBy")
+                        .WithMany()
+                        .HasForeignKey("DecidedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("JuggerHub.Entities.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DecidedBy");
+
+                    b.Navigation("Team");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.TeamMembership", b =>

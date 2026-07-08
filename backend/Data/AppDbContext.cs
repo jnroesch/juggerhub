@@ -62,6 +62,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<EventNewsPost> EventNewsPosts => Set<EventNewsPost>();
 
+    public DbSet<TeamJoinRequest> TeamJoinRequests => Set<TeamJoinRequest>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -138,6 +140,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 "CK_EventSignup_Subject", "(\"UserId\" IS NULL) <> (\"TeamId\" IS NULL)"));
             // Occupied-count + group reads.
             entity.HasIndex(s => new { s.EventId, s.Status });
+            // Home "up next" (feature 008) scans a player's own sign-ups and their teams' entries;
+            // the FK-convention indexes on UserId and TeamId already cover those scans (no new index).
             // No duplicate entry per event (partial per subject kind).
             entity.HasIndex(s => new { s.EventId, s.UserId }).IsUnique().HasFilter("\"UserId\" IS NOT NULL");
             entity.HasIndex(s => new { s.EventId, s.TeamId }).IsUnique().HasFilter("\"TeamId\" IS NOT NULL");
@@ -328,6 +332,31 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasOne(n => n.Author)
                 .WithMany()
                 .HasForeignKey(n => n.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TeamJoinRequest>(entity =>
+        {
+            // The admin request queue reads pending requests per team.
+            entity.HasIndex(r => new { r.TeamId, r.Status });
+            // At most one PENDING request per (team, player) (Status = Pending = 0).
+            entity.HasIndex(r => new { r.TeamId, r.UserId })
+                .IsUnique()
+                .HasFilter("\"Status\" = 0");
+
+            entity.HasOne(r => r.Team)
+                .WithMany()
+                .HasForeignKey(r => r.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.DecidedBy)
+                .WithMany()
+                .HasForeignKey(r => r.DecidedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

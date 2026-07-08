@@ -32,10 +32,11 @@ public sealed class TeamSearchService : ITeamSearchService
 
         if (query.ActiveOnly)
         {
-            // Active = participated in an event whose start is within the window (spec FR-022).
+            // Active = created within the window OR participated in an event whose start is within
+            // it. Newly-created teams count as active even before their first event (feature 008).
             var cutoff = DateTime.UtcNow.AddMonths(-_options.ActiveTeamWindowMonths);
-            q = q.Where(t => _db.EventParticipations
-                .Any(ep => ep.TeamId == t.Id && ep.Event.StartsAt >= cutoff));
+            q = q.Where(t => t.CreatedDate >= cutoff
+                || _db.EventParticipations.Any(ep => ep.TeamId == t.Id && ep.Event.StartsAt >= cutoff));
         }
 
         if (query.BeginnersWelcome)

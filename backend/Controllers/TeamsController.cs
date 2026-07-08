@@ -29,19 +29,22 @@ public sealed class TeamsController : ControllerBase
     private readonly ITeamNewsService _news;
     private readonly ITeamInvitationService _invitations;
     private readonly ITeamSearchService _search;
+    private readonly ITeamJoinRequestService _joinRequests;
 
     public TeamsController(
         ITeamService teams,
         ITeamActivityService activity,
         ITeamNewsService news,
         ITeamInvitationService invitations,
-        ITeamSearchService search)
+        ITeamSearchService search,
+        ITeamJoinRequestService joinRequests)
     {
         _teams = teams;
         _activity = activity;
         _news = news;
         _invitations = invitations;
         _search = search;
+        _joinRequests = joinRequests;
     }
 
     // --- Browse (public) ------------------------------------------------------
@@ -90,12 +93,84 @@ public sealed class TeamsController : ControllerBase
         return dto is null ? TeamNotFound() : Ok(dto);
     }
 
+    /// <summary>The public team page (feature 009). Anonymous; optional auth populates the
+    /// viewer's relation so members/admins get their extra sections client-side. Public
+    /// fields only — never news or contact details.</summary>
     [HttpGet("{slug}/public")]
     [AllowAnonymous]
-    public async Task<ActionResult<TeamPublicDto>> GetPublic(string slug, CancellationToken ct)
+    public async Task<ActionResult<TeamPublicDetailDto>> GetPublic(string slug, CancellationToken ct)
     {
-        var dto = await _teams.GetPublicAsync(slug, ct);
+        var dto = await _teams.GetPublicDetailAsync(slug, GetOptionalUserId(), ct);
         return dto is null ? TeamNotFound() : Ok(dto);
+    }
+
+    // --- Join requests (feature 009) ------------------------------------------
+
+    /// <summary>A signed-in non-member asks to join. Idempotent while a request is pending.</summary>
+    [HttpPost("{slug}/join-requests")]
+    public async Task<IActionResult> RequestToJoin(string slug, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var outcome = await _joinRequests.RequestAsync(slug, userId, ct);
+        return outcome switch
+        {
+            JoinRequestOutcome.Created => NoContent(),
+            JoinRequestOutcome.AlreadyPending => NoContent(),
+            JoinRequestOutcome.AlreadyMember => Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Already a member", detail: "You're already on this team."),
+            _ => TeamNotFound(),
+        };
+    }
+
+    /// <summary>Pending join requests for the team (admin only).</summary>
+    [HttpGet("{slug}/join-requests")]
+    public async Task<ActionResult<PagedResult<JoinRequestDto>>> GetJoinRequests(
+        string slug, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _joinRequests.ListPendingAsync(slug, userId, pagination, ct);
+        return result.Gate switch
+        {
+            JoinQueueGate.Ok => Ok(result.Page),
+            JoinQueueGate.Forbidden => Forbidden("Only admins can see join requests."),
+            _ => TeamNotFound(),
+        };
+    }
+
+    [HttpPost("{slug}/join-requests/{requestId:guid}/approve")]
+    public Task<IActionResult> ApproveJoinRequest(string slug, Guid requestId, CancellationToken ct) =>
+        DecideAsync(slug, requestId, approve: true, ct);
+
+    [HttpPost("{slug}/join-requests/{requestId:guid}/decline")]
+    public Task<IActionResult> DeclineJoinRequest(string slug, Guid requestId, CancellationToken ct) =>
+        DecideAsync(slug, requestId, approve: false, ct);
+
+    private async Task<IActionResult> DecideAsync(string slug, Guid requestId, bool approve, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var outcome = approve
+            ? await _joinRequests.ApproveAsync(slug, requestId, userId, ct)
+            : await _joinRequests.DeclineAsync(slug, requestId, userId, ct);
+        return outcome switch
+        {
+            JoinDecisionOutcome.Done => NoContent(),
+            JoinDecisionOutcome.Forbidden => Forbidden("Only admins can decide join requests."),
+            JoinDecisionOutcome.RequestNotFound => Problem(statusCode: StatusCodes.Status404NotFound,
+                title: "Request not found", detail: "No pending request with that id."),
+            _ => TeamNotFound(),
+        };
     }
 
     [HttpDelete("{slug}")]
@@ -339,4 +414,8 @@ public sealed class TeamsController : ControllerBase
             ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(subject, out userId);
     }
+
+    /// <summary>The caller's id when a valid auth cookie is present; null for an anonymous caller.
+    /// Used by the public team page to compute the viewer's relation.</summary>
+    private Guid? GetOptionalUserId() => TryGetUserId(out var userId) ? userId : null;
 }

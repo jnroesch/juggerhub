@@ -2,9 +2,11 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Asp.Versioning;
 using JuggerHub.Common;
+using JuggerHub.Dtos.Home;
 using JuggerHub.Dtos.Profile;
 using JuggerHub.Dtos.Search;
 using JuggerHub.Services.Events;
+using JuggerHub.Services.Home;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Search;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -27,13 +29,15 @@ public sealed class ProfilesController : ControllerBase
     private readonly IProfileService _profiles;
     private readonly IEventActivityService _activity;
     private readonly IPlayerSearchService _search;
+    private readonly IHomeService _home;
 
     public ProfilesController(
-        IProfileService profiles, IEventActivityService activity, IPlayerSearchService search)
+        IProfileService profiles, IEventActivityService activity, IPlayerSearchService search, IHomeService home)
     {
         _profiles = profiles;
         _activity = activity;
         _search = search;
+        _home = home;
     }
 
     // --- Browse (public, opt-in gated) ----------------------------------------
@@ -102,6 +106,21 @@ public sealed class ProfilesController : ControllerBase
             _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid image",
                 detail: result.Reason),
         };
+    }
+
+    /// <summary>The caller's team memberships — drives the nav "My team" target + Home snapshots
+    /// (feature 008). Owner-only: acts on the authenticated subject alone. Paginated.</summary>
+    [HttpGet("me/teams")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<ActionResult<PagedResult<MyTeamDto>>> GetMyTeams(
+        [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(await _home.ListMyTeamsAsync(userId, pagination, ct));
     }
 
     [HttpPost("me/onboarding/complete")]

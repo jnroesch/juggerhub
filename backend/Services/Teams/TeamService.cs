@@ -1,5 +1,6 @@
 using JuggerHub.Common;
 using JuggerHub.Data;
+using JuggerHub.Dtos.Profile;
 using JuggerHub.Dtos.Teams;
 using JuggerHub.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -131,6 +132,99 @@ public sealed class TeamService : ITeamService
             .Where(t => t.Slug == normalized)
             .Select(t => new TeamPublicDto(t.Slug, t.Name, t.Type, t.City, t.Memberships.Count))
             .FirstOrDefaultAsync(ct);
+    }
+
+    public async Task<TeamPublicDetailDto?> GetPublicDetailAsync(string slug, Guid? viewerUserId, CancellationToken ct = default)
+    {
+        var normalized = TeamSlugPolicy.Normalize(slug);
+        var now = DateTime.UtcNow;
+        var cutoff = now.AddMonths(-12);
+
+        var team = await _db.Teams.AsNoTracking()
+            .Where(t => t.Slug == normalized)
+            .Select(t => new
+            {
+                t.Id,
+                t.Slug,
+                t.Name,
+                t.Type,
+                t.City,
+                t.BeginnersWelcome,
+                MemberCount = t.Memberships.Count,
+                // Active = created within 12 months OR a participation within the window (feature 007/008).
+                IsActive = t.CreatedDate >= cutoff
+                    || _db.EventParticipations.Any(ep => ep.TeamId == t.Id && ep.Event.StartsAt >= cutoff),
+                ViewerRole = viewerUserId == null
+                    ? (TeamRole?)null
+                    : t.Memberships.Where(m => m.UserId == viewerUserId).Select(m => (TeamRole?)m.Role).FirstOrDefault(),
+            })
+            .FirstOrDefaultAsync(ct);
+        if (team is null)
+        {
+            return null;
+        }
+
+        // Viewer relation is decided server-side (constitution Principle I).
+        TeamViewerRelation relation;
+        if (viewerUserId is null)
+        {
+            relation = TeamViewerRelation.Anonymous;
+        }
+        else if (team.ViewerRole == TeamRole.Admin)
+        {
+            relation = TeamViewerRelation.Admin;
+        }
+        else if (team.ViewerRole == TeamRole.Member)
+        {
+            relation = TeamViewerRelation.Member;
+        }
+        else
+        {
+            var pending = await _db.TeamJoinRequests.AsNoTracking().AnyAsync(
+                r => r.TeamId == team.Id && r.UserId == viewerUserId && r.Status == JoinRequestStatus.Pending, ct);
+            relation = pending ? TeamViewerRelation.Requested : TeamViewerRelation.NonMember;
+        }
+
+        // Public roster (identity + position only; NO contact details), capped.
+        var roster = await _db.TeamMemberships.AsNoTracking()
+            .Where(m => m.TeamId == team.Id)
+            .OrderByDescending(m => m.Role).ThenBy(m => m.JoinedDate)
+            .Take(48)
+            .Select(m => new PublicMemberDto(
+                m.User.Profile!.Handle,
+                m.User.Profile!.DisplayName,
+                m.Role,
+                m.User.Profile!.Avatar != null,
+                m.User.Profile!.Pompfen.Select(p => p.Pompfe).ToList()))
+            .ToListAsync(ct);
+
+        // Recent activity (public — distinct past events the team played), capped.
+        var activityRows = await _db.EventParticipations.AsNoTracking()
+            .Where(ep => ep.TeamId == team.Id)
+            .Select(ep => new { ep.EventId, ep.Event.Name, ep.Event.StartsAt, ep.Event.Location, ep.TeamLabel })
+            .Distinct()
+            .OrderByDescending(x => x.StartsAt).ThenBy(x => x.EventId)
+            .Take(6)
+            .ToListAsync(ct);
+        var activity = activityRows
+            .Select(x => new ActivityItemDto(x.Name, DateOnly.FromDateTime(x.StartsAt), x.Location, x.TeamLabel))
+            .ToList();
+
+        // Upcoming trainings — team-mode events the team is entered in (public).
+        var trainings = await _db.EventSignups.AsNoTracking()
+            .Where(s => s.TeamId == team.Id && s.Event.Status == EventStatus.Published && s.Event.EndsAt >= now)
+            .OrderBy(s => s.Event.StartsAt).ThenBy(s => s.EventId)
+            .Take(6)
+            .Select(s => new TrainingDto(
+                s.EventId,
+                s.Event.Name,
+                s.Event.StartsAt,
+                !string.IsNullOrEmpty(s.Event.City) ? s.Event.City!
+                    : (!string.IsNullOrEmpty(s.Event.VenueName) ? s.Event.VenueName! : s.Event.Location)))
+            .ToListAsync(ct);
+
+        return new TeamPublicDetailDto(team.Slug, team.Name, team.Type, team.City, team.MemberCount,
+            team.BeginnersWelcome, team.IsActive, relation, roster, activity, trainings);
     }
 
     public async Task<PagedResult<TeamMemberDto>?> GetRosterAsync(string slug, Guid userId, PaginationRequest pagination, CancellationToken ct = default)

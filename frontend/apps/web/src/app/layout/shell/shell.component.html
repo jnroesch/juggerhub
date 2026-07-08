@@ -1,11 +1,10 @@
 <div class="flex min-h-screen flex-col bg-background">
-  <jh-top-nav (menuToggle)="toggleSidebar()" />
+  <jh-top-nav />
 
-  <div class="flex flex-1">
-    <jh-sidebar [open]="sidebarOpen()" (closed)="closeSidebar()" />
+  <!-- pb makes room for the fixed mobile bottom bar; removed at desktop width. -->
+  <main class="min-w-0 flex-1 pb-[76px] md:pb-0">
+    <router-outlet />
+  </main>
 
-    <main class="min-w-0 flex-1">
-      <router-outlet />
-    </main>
-  </div>
+  <jh-bottom-nav />
 </div>

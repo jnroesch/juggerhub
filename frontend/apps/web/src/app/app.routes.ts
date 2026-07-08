@@ -2,7 +2,6 @@ import { Route } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { onboardingGuard } from './core/guards/onboarding.guard';
 import { ShellComponent } from './layout/shell/shell.component';
-import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { AccountComponent } from './features/account/account.component';
 import { SignInComponent } from './features/auth/sign-in/sign-in.component';
 import { RegisterComponent } from './features/auth/register/register.component';
@@ -24,14 +23,43 @@ export const appRoutes: Route[] = [
     path: '',
     component: ShellComponent,
     children: [
-      { path: '', component: DashboardComponent },
+      {
+        path: '',
+        pathMatch: 'full',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+      },
+      // Alerts / notifications (feature 008) — placeholder screen; the system arrives later.
+      {
+        path: 'alerts',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/alerts/alerts.component').then((m) => m.AlertsComponent),
+      },
+      // "My team" chooser (feature 008) — for players on more than one team.
+      {
+        path: 'my-team',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/my-team/my-team.component').then((m) => m.MyTeamComponent),
+      },
+      // Home "see all" lists (feature 008) — full upcoming events + full news feed.
+      {
+        path: 'up-next',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/dashboard/see-all/up-next-list.component').then((m) => m.UpNextListComponent),
+      },
+      {
+        path: 'news',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/dashboard/see-all/news-page.component').then((m) => m.NewsPageComponent),
+      },
       // Guarded sample route — unauthenticated access redirects toward sign-in.
       { path: 'account', component: AccountComponent, canActivate: [authGuard] },
       // Owner profile view/edit lives inside the shell, behind the auth guard.
       { path: 'profile', component: ProfileOwnerComponent, canActivate: [authGuard] },
       // Teams (feature 005) — create + the members-only team space, in the shell.
       { path: 'teams/new', component: TeamCreateComponent, canActivate: [authGuard] },
-      { path: 't/:slug', component: TeamDetailComponent, canActivate: [authGuard] },
+      // Public team page (feature 009) — anonymous-viewable; members/admins see more inline.
+      { path: 't/:slug', component: TeamDetailComponent },
       { path: 't/:slug/invitations', component: TeamInvitationsComponent, canActivate: [authGuard] },
       { path: 't/:slug/settings', component: TeamSettingsComponent, canActivate: [authGuard] },
       // Events (feature 006) — create is authed; the event page itself is public. Lazy-loaded.

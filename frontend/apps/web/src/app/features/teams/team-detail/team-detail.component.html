@@ -1,178 +1,185 @@
-<section class="mx-auto max-w-xl px-md py-lg lg:max-w-4xl" data-testid="team-detail">
+<section class="mx-auto max-w-container-md px-md py-lg" data-testid="team-detail">
   @if (loading()) {
-    <p class="text-body-md text-subtle">Loading team…</p>
+    <div class="animate-pulse">
+      <div class="h-8 w-56 rounded-md bg-surface-muted"></div>
+      <div class="mt-md h-32 rounded-lg bg-surface-muted"></div>
+    </div>
   } @else if (notFound()) {
-    <div class="mt-xl text-center" data-testid="team-not-found">
-      <h1 class="text-heading-lg font-bold text-ink">Team not found</h1>
-      <p class="mt-sm text-body-md text-subtle">This team doesn't exist, or you're not a member.</p>
-      <a routerLink="/" class="mt-md inline-block text-body-sm font-medium text-link hover:text-link-hover">Back to JuggerHub</a>
+    <div class="rounded-lg border border-border-muted bg-surface-card px-md py-2xl text-center shadow-sm">
+      <p class="text-body-lg font-semibold text-heading">Team not found</p>
+      <p class="mt-xs text-body-sm text-muted">No team exists at that address.</p>
+      <a routerLink="/browse/teams" class="mt-md inline-block text-body-sm font-medium text-link hover:text-link-hover">Browse teams</a>
     </div>
-  } @else if (detail(); as t) {
-    <div class="lg:grid lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)] lg:gap-xl">
-    <!-- Left aside: identity + invite (sticky on desktop) -->
-    <aside>
-      <div class="lg:sticky lg:top-[4.5rem]">
-    <!-- Cover header -->
-    <div class="overflow-hidden rounded-lg border border-border-muted bg-surface-card shadow-sm">
-      <div class="h-20 bg-brand-gradient"></div>
-      <div class="flex items-start gap-md px-md pb-md">
-        <div class="-mt-8 grid h-16 w-16 shrink-0 place-items-center rounded-lg border border-border-strong bg-surface-card text-body-sm font-semibold text-subtle">
-          {{ t.name.slice(0, 2) }}
-        </div>
-        <div class="min-w-0 flex-1 pt-sm">
-          <div class="flex items-start justify-between gap-sm">
-            <h1 class="truncate text-heading-md font-bold text-ink">{{ t.name }}</h1>
-            @if (isAdmin()) {
-              <a [routerLink]="['/t', slug(), 'settings']" title="Team settings" data-testid="team-settings-link"
-                class="shrink-0 rounded-full p-2 text-subtle hover:bg-surface-sunken hover:text-text">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
-              </a>
-            }
-          </div>
-          <p class="mt-0.5 inline-flex items-center gap-xs text-body-sm text-text-muted">
-            @if (t.type === 'CityTeam') {
-              <svg class="h-3.5 w-3.5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
-              {{ t.city }}
-            } @else {
-              <span class="rounded-pill bg-teal-1 px-2 py-0.5 text-caption font-semibold text-teal-7">Mixteam</span>
-            }
-            <span class="font-mono">· {{ t.memberCount }} {{ t.memberCount === 1 ? 'member' : 'members' }}</span>
-          </p>
-        </div>
-      </div>
-    </div>
-
-    @if (isAdmin()) {
-      <a [routerLink]="['/t', slug(), 'invitations']" data-testid="team-invite-link"
-        class="mt-md flex w-full items-center justify-center gap-xs rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px">
-        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
-        Invite people
-      </a>
-    }
-      </div>
-    </aside>
-
-    <!-- Main column: tabs + section content -->
-    <div class="mt-lg lg:mt-0">
-    <!-- Tabs -->
-    <nav class="flex gap-lg border-b border-border" aria-label="Team sections">
-      @for (item of [['members','Members'],['activity','Activity'],['news','News']]; track item[0]) {
-        <button type="button" (click)="selectTab($any(item[0]))" [attr.data-testid]="'tab-' + item[0]"
-          class="-mb-px border-b-2 pb-sm text-body-md font-semibold transition-colors duration-fast"
-          [class]="tab() === item[0] ? 'border-brand text-ink' : 'border-transparent text-subtle hover:text-text'">
-          {{ item[1] }}
-        </button>
-      }
-      <span class="-mb-px cursor-not-allowed border-b-2 border-transparent pb-sm text-body-md font-semibold text-faint" title="Coming soon">
-        Trainings <span class="text-caption">soon</span>
+  } @else if (pub(); as team) {
+    <!-- Header -->
+    <header class="flex flex-wrap items-start gap-md">
+      <span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-brand-gradient text-h4 font-bold text-on-accent" aria-hidden="true">
+        {{ team.name.charAt(0) }}
       </span>
-    </nav>
-
-    @if (error()) {
-      <p class="mt-md text-body-sm text-danger" role="alert" data-testid="team-error">{{ error() }}</p>
-    }
-
-    <!-- Members -->
-    @if (tab() === 'members') {
-      <ul class="mt-md divide-y divide-border" data-testid="team-roster">
-        @for (m of members(); track m.userId) {
-          <li class="relative flex items-center gap-sm py-sm">
-            <a [routerLink]="['/u', m.handle]" [attr.data-testid]="'member-' + m.handle"
-              [attr.aria-label]="'View profile of ' + m.displayName"
-              class="-mx-1 flex min-w-0 flex-1 items-center gap-sm rounded-md px-1 py-0.5 transition-colors duration-fast hover:bg-surface-sunken">
-              @if (m.hasAvatar) {
-                <img [src]="avatarUrl(m.handle)" alt="" class="h-9 w-9 rounded-full border border-border object-cover" />
-              } @else {
-                <div class="h-9 w-9 rounded-full border border-dashed border-border-strong bg-surface-subtle"></div>
-              }
-              <div class="min-w-0 flex-1">
-                <p class="truncate text-body-md text-ink">{{ m.displayName }}</p>
-                @if (m.pompfen.length) {
-                  <p class="truncate text-body-sm text-subtle">{{ positions(m) }}</p>
-                }
-              </div>
-            </a>
-            <span class="rounded-pill px-2 py-0.5 text-caption font-semibold"
-              [class]="m.role === 'Admin' ? 'bg-ink text-on-inverse' : 'border border-border-strong text-muted'">
-              {{ m.role === 'Admin' ? 'ADMIN' : 'MEMBER' }}
-            </span>
-            @if (isAdmin()) {
-              <button type="button" (click)="toggleMenu(m.userId)" [attr.data-testid]="'member-menu-' + m.handle"
-                class="rounded-full p-1.5 text-subtle hover:bg-surface-sunken hover:text-text" aria-label="Manage member">
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
-              </button>
-              @if (openMenu() === m.userId) {
-                <div class="absolute right-0 top-full z-10 mt-1 w-48 overflow-hidden rounded-md border border-border-muted bg-surface-card shadow-lg" role="menu">
-                  <button type="button" (click)="toggleAdmin(m)" role="menuitem" [attr.data-testid]="'make-admin-' + m.handle"
-                    class="block w-full px-md py-sm text-left text-body-sm text-body hover:bg-surface-sunken">
-                    {{ m.role === 'Admin' ? 'Remove admin' : 'Make admin' }}
-                  </button>
-                  <a [routerLink]="['/u', m.handle]" role="menuitem"
-                    class="block w-full px-md py-sm text-left text-body-sm text-body hover:bg-surface-sunken">View profile</a>
-                  <button type="button" (click)="remove(m)" role="menuitem" [attr.data-testid]="'remove-' + m.handle"
-                    class="block w-full px-md py-sm text-left text-body-sm text-danger hover:bg-danger-bg">Remove from team</button>
-                </div>
-              }
-            }
-          </li>
-        }
-      </ul>
-      @if (isAdmin()) {
-        <p class="mt-sm text-body-sm text-faint">Tap ⋯ on anyone to change their role or remove them.</p>
-      }
-    }
-
-    <!-- Activity -->
-    @if (tab() === 'activity') {
-      <p class="mt-md text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Events we've played</p>
-      @if (tabLoading()) {
-        <p class="mt-sm text-body-sm text-subtle">Loading…</p>
-      } @else if (activity().length === 0) {
-        <p class="mt-sm text-body-sm text-faint" data-testid="activity-empty">No events yet — this team hasn't played a tournament here.</p>
-      } @else {
-        <ul class="mt-sm divide-y divide-border" data-testid="team-activity">
-          @for (a of activity(); track $index) {
-            <li class="flex gap-md py-sm">
-              <span class="w-16 shrink-0 pt-0.5 font-mono text-body-sm text-faint">{{ a.date }}</span>
-              <div>
-                <p class="text-body-md text-ink">{{ a.eventName }}</p>
-                <p class="text-body-sm text-subtle">{{ a.location }}</p>
-              </div>
-            </li>
+      <div class="min-w-0 flex-1">
+        <h1 class="text-h3 text-heading">{{ team.name }}</h1>
+        <p class="mt-1 flex flex-wrap items-center gap-xs text-body-sm text-muted">
+          <span>{{ team.type === 'CityTeam' ? (team.city || 'City team') : 'Mixteam' }}</span>
+          <span aria-hidden="true">·</span>
+          <span><span class="font-mono">{{ team.memberCount }}</span> {{ team.memberCount === 1 ? 'member' : 'members' }}</span>
+          @if (team.isActive) {
+            <span class="rounded-pill bg-success-bg px-xs py-0.5 text-caption font-medium text-success-fg">Active</span>
           }
-        </ul>
-      }
-    }
+          @if (team.beginnersWelcome) {
+            <span class="rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-caption font-medium text-secondary">Beginners welcome</span>
+          }
+        </p>
+      </div>
 
-    <!-- News -->
-    @if (tab() === 'news') {
-      <div class="mt-md flex items-center justify-between">
-        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Team news</p>
-        @if (isAdmin()) {
-          <button type="button" disabled title="Composer coming soon"
-            class="cursor-not-allowed rounded-pill border border-border-strong px-md py-xs text-body-sm font-medium text-faint">+ Post</button>
+      <!-- Join action (state-aware) -->
+      <div class="shrink-0">
+        @if (isAnon()) {
+          <a routerLink="/sign-in" class="inline-flex min-h-[44px] items-center rounded-md bg-brand px-lg py-xs font-semibold text-on-accent hover:bg-brand-hover hover:shadow-coral" data-testid="signin-to-join">Sign in to join</a>
+        } @else if (canRequest()) {
+          <button type="button" class="inline-flex min-h-[44px] items-center rounded-md bg-brand px-lg py-xs font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-60" [disabled]="requestBusy()" data-testid="request-to-join" (click)="requestToJoin()">Request to join</button>
+        } @else if (requested()) {
+          <span class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted" data-testid="requested">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            Requested
+          </span>
         }
       </div>
-      @if (tabLoading()) {
-        <p class="mt-sm text-body-sm text-subtle">Loading…</p>
-      } @else if (news().length === 0) {
-        <p class="mt-sm text-body-sm text-faint" data-testid="news-empty">No updates yet.</p>
-      } @else {
-        <ul class="mt-sm space-y-sm" data-testid="team-news">
-          @for (n of news(); track $index) {
-            <li class="rounded-md border border-border-muted bg-surface-card p-md">
-              <p class="text-body-sm text-subtle">
-                <span class="font-semibold text-ink">{{ n.authorDisplayName }}</span>
-                · {{ n.authorRole === 'Admin' ? 'Admin' : 'Member' }}
-              </p>
-              <p class="mt-xs text-body-md text-body">{{ n.body }}</p>
-            </li>
-          }
-        </ul>
-        <p class="mt-sm text-body-sm text-faint">Read-only feed for now. Composer + polls come later.</p>
-      }
+    </header>
+
+    @if (error(); as e) {
+      <p class="mt-sm rounded-md bg-danger-bg px-sm py-xs text-body-sm text-danger-fg" role="alert">{{ e }}</p>
     }
-    </div>
+
+    <div class="mt-lg grid gap-lg lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div class="flex flex-col gap-lg">
+        <!-- Admin: join-request queue -->
+        @if (isAdmin() && joinRequests().length > 0) {
+          <section class="rounded-lg border border-border-accent bg-surface-accent-soft p-md" data-testid="join-queue">
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">Join requests</h2>
+            <ul class="flex flex-col gap-xs">
+              @for (req of joinRequests(); track req.id) {
+                <li class="flex items-center gap-sm rounded-md bg-surface-card px-sm py-xs">
+                  <a [routerLink]="['/u', req.handle]" class="min-w-0 flex-1 truncate font-medium text-heading hover:text-link">{{ req.displayName }}</a>
+                  <button type="button" class="rounded-md bg-brand px-md py-1 text-caption font-semibold text-on-accent hover:bg-brand-hover" data-testid="approve" (click)="approve(req)">Approve</button>
+                  <button type="button" class="rounded-md px-md py-1 text-caption font-medium text-subtle hover:bg-surface-sunken" (click)="decline(req)">Decline</button>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+
+        <!-- Roster -->
+        <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="roster">
+          <h2 class="mb-sm text-body-lg font-semibold text-heading">Roster</h2>
+          @if (isMember()) {
+            <ul class="flex flex-col">
+              @for (m of members(); track m.userId) {
+                <li class="flex items-center gap-sm border-b border-border-muted py-xs last:border-0">
+                  <a [routerLink]="['/u', m.handle]" class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary">
+                    @if (m.hasAvatar) { <img [src]="avatarUrl(m.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ m.displayName.charAt(0) }} }
+                  </a>
+                  <span class="min-w-0 flex-1">
+                    <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName }}</a>
+                    <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) || '—' }}</span>
+                  </span>
+                  @if (m.role === 'Admin') { <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Admin</span> }
+                  @if (isAdmin()) {
+                    <div class="relative">
+                      <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-subtle hover:bg-surface-sunken" aria-label="Manage member" (click)="toggleMenu(m.userId)">⋯</button>
+                      @if (openMenu() === m.userId) {
+                        <div class="absolute right-0 z-10 mt-1 w-40 rounded-md border border-border bg-surface py-xs shadow-md" role="menu">
+                          <button type="button" class="block w-full px-md py-xs text-left text-body-sm hover:bg-surface-sunken" (click)="toggleAdmin(m)">{{ m.role === 'Admin' ? 'Make member' : 'Make admin' }}</button>
+                          <button type="button" class="block w-full px-md py-xs text-left text-body-sm text-danger-fg hover:bg-surface-sunken" (click)="remove(m)">Remove</button>
+                        </div>
+                      }
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <ul class="flex flex-col">
+              @for (m of publicRoster(); track m.handle) {
+                <li class="flex items-center gap-sm border-b border-border-muted py-xs last:border-0">
+                  <a [routerLink]="['/u', m.handle]" class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary">
+                    @if (m.hasAvatar) { <img [src]="avatarUrl(m.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ m.displayName.charAt(0) }} }
+                  </a>
+                  <span class="min-w-0 flex-1">
+                    <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName }}</a>
+                    <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) || '—' }}</span>
+                  </span>
+                  @if (m.role === 'Admin') { <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Admin</span> }
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <!-- Recent activity -->
+        <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="activity">
+          <h2 class="mb-sm text-body-lg font-semibold text-heading">Recent activity</h2>
+          @if (team.recentActivity.length > 0) {
+            <ul class="flex flex-col gap-xs">
+              @for (a of team.recentActivity; track $index) {
+                <li class="flex items-baseline justify-between gap-sm">
+                  <span class="min-w-0 truncate text-body-sm text-body">{{ a.eventName }} @if (a.location) { <span class="text-subtle">· {{ a.location }}</span> }</span>
+                  <span class="shrink-0 font-mono text-caption text-subtle">{{ a.date | date: 'd MMM y' }}</span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="rounded-md bg-surface-sunken px-md py-md text-center text-body-sm text-muted">No activity yet.</p>
+          }
+        </section>
+
+        <!-- News (members only) -->
+        @if (isMember()) {
+          <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="news">
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">News</h2>
+            @if (news().length > 0) {
+              <ul class="flex flex-col gap-sm">
+                @for (n of news(); track $index) {
+                  <li>
+                    <p class="text-body-sm text-body">{{ n.body }}</p>
+                    <p class="text-caption text-subtle">{{ n.authorDisplayName }} · {{ n.createdDate | date: 'd MMM y' }}</p>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="rounded-md bg-surface-sunken px-md py-md text-center text-body-sm text-muted">No news yet.</p>
+            }
+          </section>
+        }
+      </div>
+
+      <!-- Right rail: upcoming trainings + admin tools -->
+      <aside class="flex flex-col gap-lg">
+        <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="trainings">
+          <h2 class="mb-sm text-body-lg font-semibold text-heading">Upcoming trainings</h2>
+          @if (team.upcomingTrainings.length > 0) {
+            <ul class="flex flex-col gap-sm">
+              @for (t of team.upcomingTrainings; track t.eventId) {
+                <li>
+                  <a [routerLink]="['/events', t.eventId]" class="block font-medium text-heading hover:text-link">{{ t.name }}</a>
+                  <span class="block text-caption text-subtle">{{ t.locationLabel }} · <span class="font-mono">{{ t.startsAt | date: 'EEE d MMM' }}</span></span>
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="rounded-md bg-surface-sunken px-md py-md text-center text-body-sm text-muted">Nothing scheduled.</p>
+          }
+        </section>
+
+        @if (isAdmin()) {
+          <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">Team tools</h2>
+            <div class="flex flex-col gap-xs">
+              <a [routerLink]="['/t', slug(), 'invitations']" class="rounded-md border border-border-strong bg-surface px-md py-xs text-center text-body-sm font-medium text-text hover:bg-surface-sunken">Invitations</a>
+              <a [routerLink]="['/t', slug(), 'settings']" class="rounded-md border border-border-strong bg-surface px-md py-xs text-center text-body-sm font-medium text-text hover:bg-surface-sunken">Settings</a>
+            </div>
+          </section>
+        }
+      </aside>
     </div>
   }
 </section>

@@ -1,0 +1,27 @@
+<section class="mx-auto max-w-container-md px-md py-lg">
+  <h1 class="text-h3 text-heading">Up next</h1>
+  <p class="mt-xs text-body-sm text-muted">Your upcoming trainings, matches, and events.</p>
+
+  @if (items().length > 0) {
+    <div class="mt-lg flex flex-col gap-xs">
+      @for (item of items(); track item.eventId) {
+        <jh-up-next-card [item]="item" />
+      }
+    </div>
+  } @else if (!loading() && !failed()) {
+    <p class="mt-lg rounded-lg bg-surface-sunken px-md py-2xl text-center text-body-sm text-muted">Nothing coming up right now.</p>
+  }
+
+  @if (failed()) {
+    <div class="mt-lg text-center">
+      <p class="text-body-sm text-muted">We couldn't load your events.</p>
+      <button type="button" class="mt-sm rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="loadMore()">Try again</button>
+    </div>
+  } @else if (loading()) {
+    <p class="mt-lg text-center text-body-sm text-subtle">Loading…</p>
+  } @else if (hasMore()) {
+    <div class="mt-md text-center">
+      <button type="button" class="rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="loadMore()">Load more</button>
+    </div>
+  }
+</section>

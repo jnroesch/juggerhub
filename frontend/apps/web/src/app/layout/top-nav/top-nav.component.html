@@ -1,47 +1,60 @@
 <header
   class="sticky top-0 z-30 flex h-14 items-center gap-sm border-b border-border bg-surface px-md"
 >
-  <button
-    type="button"
-    class="grid h-9 w-9 place-items-center rounded-md text-text hover:bg-surface-subtle md:hidden"
-    aria-label="Toggle navigation"
-    data-testid="menu-toggle"
-    (click)="menuToggle.emit()"
-  >
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-      <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-    </svg>
-  </button>
-
-  <span class="flex items-center gap-xs">
-    <span
-      class="grid h-7 w-7 place-items-center rounded-md bg-brand-gradient shadow-sm"
-      aria-hidden="true"
-    >
+  <!-- Brand -->
+  <a routerLink="/" class="flex items-center gap-xs" aria-label="JuggerHub home">
+    <span class="grid h-7 w-7 place-items-center rounded-md bg-brand-gradient shadow-sm" aria-hidden="true">
       <span class="h-1.5 w-1.5 rounded-full bg-highlight"></span>
     </span>
     <span class="font-display text-heading-md font-bold text-ink">JuggerHub</span>
-  </span>
+  </a>
 
+  <!-- Desktop: primary destinations -->
+  <nav class="ml-lg hidden items-center gap-xs md:flex" aria-label="Primary">
+    <a
+      routerLink="/"
+      class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
+      [class]="homeActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [attr.aria-current]="homeActive() ? 'page' : null"
+      data-testid="nav-home"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>
+      Home
+    </a>
+    <a
+      routerLink="/browse"
+      class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
+      [class]="browseActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [attr.aria-current]="browseActive() ? 'page' : null"
+      data-testid="nav-browse"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      Browse
+    </a>
+    <a
+      [routerLink]="myTeamHref()"
+      class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
+      [class]="myTeamActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [attr.aria-current]="myTeamActive() ? 'page' : null"
+      data-testid="nav-my-team"
+    >
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 19v-1.5A3.5 3.5 0 0 0 12.5 14h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="10" cy="8" r="3.5"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.5-3.35"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8"/></svg>
+      My team
+    </a>
+  </nav>
+
+  <!-- Right side: bell + avatar (desktop) / avatar (mobile strip) -->
   <div class="ml-auto flex items-center gap-sm">
-    @if (user(); as currentUser) {
-      <span class="hidden text-body-sm text-subtle sm:inline" data-testid="nav-user">{{ currentUser.email }}</span>
-      <button
-        type="button"
-        class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-        data-testid="sign-out"
-        (click)="signOut()"
-      >
-        Sign out
-      </button>
-    } @else {
-      <a
-        routerLink="/sign-in"
-        class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-        data-testid="nav-sign-in"
-      >
-        Sign in
-      </a>
-    }
+    <a
+      routerLink="/alerts"
+      class="relative grid h-9 w-9 place-items-center rounded-md transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      [class]="alertsActive() ? 'bg-surface-accent-soft text-brand-active' : 'text-text hover:bg-surface-sunken'"
+      [attr.aria-current]="alertsActive() ? 'page' : null"
+      aria-label="Alerts"
+      data-testid="nav-alerts-bell"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 6 2.5 7 2.5 7h-17S6 14 6 8"/><path d="M10.5 20a2 2 0 0 0 3 0"/></svg>
+    </a>
+    <jh-avatar-menu />
   </div>
 </header>

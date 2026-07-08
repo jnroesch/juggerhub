@@ -5,8 +5,8 @@ using System.Text.Json;
 namespace JuggerHub.Api.IntegrationTests.Search;
 
 /// <summary>
-/// Team browse/search (007, US1): active derivation (event participation in the last 12
-/// months), the beginners-welcome + city filters, accent/case-insensitive name+city search,
+/// Team browse/search (007, US1): active derivation (created OR participated in an event within
+/// the last 12 months), the beginners-welcome + city filters, accent/case-insensitive name+city search,
 /// anonymous access + pagination, and the admin-only beginners-welcome settings write.
 /// </summary>
 [Collection("Search")]
@@ -21,6 +21,10 @@ public sealed class TeamBrowseTests
     {
         var active = await SearchTestSupport.SeedTeamAsync(_factory, "Active FC " + Rnd(), "Bremen");
         var dormant = await SearchTestSupport.SeedTeamAsync(_factory, "Dormant FC " + Rnd(), "Bremen");
+        // Both are seeded "now"; backdate the dormant team past the window so only participation
+        // (or recent creation) makes a team active.
+        await SearchTestSupport.BackdateTeamCreatedAsync(_factory, active.Id, DateTime.UtcNow.AddMonths(-18));
+        await SearchTestSupport.BackdateTeamCreatedAsync(_factory, dormant.Id, DateTime.UtcNow.AddMonths(-18));
 
         // Give the active team a participation in a recent event.
         var (_, userId, _, _) = await SearchTestSupport.NewUserAsync(_factory);
@@ -42,6 +46,8 @@ public sealed class TeamBrowseTests
     public async Task Old_participation_does_not_make_a_team_active()
     {
         var team = await SearchTestSupport.SeedTeamAsync(_factory, "Stale FC " + Rnd(), "Ulm");
+        // Backdate creation past the window so only the (old) participation is in play.
+        await SearchTestSupport.BackdateTeamCreatedAsync(_factory, team.Id, DateTime.UtcNow.AddMonths(-18));
         var (_, userId, _, _) = await SearchTestSupport.NewUserAsync(_factory);
         var profileId = await SearchTestSupport.ProfileIdAsync(_factory, userId);
         var old = DateTime.UtcNow.AddMonths(-18); // outside the 12-month window
@@ -51,6 +57,17 @@ public sealed class TeamBrowseTests
         var anon = _factory.CreateClient();
         var activeOnly = await SlugsAsync(anon, "/api/v1/teams?activeOnly=true&city=Ulm&take=100");
         Assert.DoesNotContain(team.Slug, activeOnly);
+    }
+
+    [Fact]
+    public async Task Recently_created_team_is_active_without_any_participation()
+    {
+        // A brand-new team (created now, no events yet) counts as active (feature 008).
+        var fresh = await SearchTestSupport.SeedTeamAsync(_factory, "Fresh FC " + Rnd(), "Trier");
+
+        var anon = _factory.CreateClient();
+        var activeOnly = await SlugsAsync(anon, "/api/v1/teams?activeOnly=true&city=Trier&take=100");
+        Assert.Contains(fresh.Slug, activeOnly);
     }
 
     [Fact]

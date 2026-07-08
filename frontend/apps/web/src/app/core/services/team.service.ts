@@ -8,6 +8,7 @@ import {
   InvitableUser,
   InviteLink,
   InvitePreview,
+  JoinRequest,
   PagedResult,
   SlugAvailability,
   TeamDetail,
@@ -15,6 +16,7 @@ import {
   TeamMember,
   TeamNews,
   TeamPublic,
+  TeamPublicDetail,
   TeamRole,
 } from '../models/team.models';
 
@@ -46,6 +48,31 @@ export class TeamService {
 
   getPublic(slug: string): Observable<TeamPublic> {
     return this.http.get<TeamPublic>(`${this.base}/${encodeURIComponent(slug)}/public`);
+  }
+
+  /** Feature 009 — the public team page (overview + viewer relation + roster/activity/trainings). */
+  getPublicDetail(slug: string): Observable<TeamPublicDetail> {
+    return this.http.get<TeamPublicDetail>(`${this.base}/${encodeURIComponent(slug)}/public`);
+  }
+
+  /** Feature 009 — a signed-in non-member asks to join. */
+  requestToJoin(slug: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/${encodeURIComponent(slug)}/join-requests`, {});
+  }
+
+  /** Feature 009 — pending join requests (admin only). */
+  getJoinRequests(slug: string, skip = 0, take = 50): Observable<PagedResult<JoinRequest>> {
+    return this.http.get<PagedResult<JoinRequest>>(`${this.base}/${encodeURIComponent(slug)}/join-requests`, {
+      params: new HttpParams().set('skip', skip).set('take', take),
+    });
+  }
+
+  approveJoinRequest(slug: string, requestId: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/${encodeURIComponent(slug)}/join-requests/${requestId}/approve`, {});
+  }
+
+  declineJoinRequest(slug: string, requestId: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/${encodeURIComponent(slug)}/join-requests/${requestId}/decline`, {});
   }
 
   deleteTeam(slug: string): Observable<void> {

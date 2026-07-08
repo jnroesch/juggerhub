@@ -41,6 +41,50 @@ export interface TeamPublic {
   memberCount: number;
 }
 
+/** How the viewer relates to a team (feature 009) — drives the sections + join action. */
+export type TeamViewerRelation = 'Anonymous' | 'NonMember' | 'Requested' | 'Member' | 'Admin';
+
+/** A public roster row — identity + position only, never contact details. */
+export interface PublicMember {
+  handle: string;
+  displayName: string;
+  role: TeamRole;
+  hasAvatar: boolean;
+  pompfen: Pompfe[];
+}
+
+/** An upcoming event the team is entered in, shown publicly. */
+export interface Training {
+  eventId: string;
+  name: string;
+  startsAt: string;
+  locationLabel: string;
+}
+
+/** The public team page (feature 009). */
+export interface TeamPublicDetail {
+  slug: string;
+  name: string;
+  type: TeamType;
+  city: string | null;
+  memberCount: number;
+  beginnersWelcome: boolean;
+  isActive: boolean;
+  viewerRelation: TeamViewerRelation;
+  roster: PublicMember[];
+  recentActivity: ActivityItem[];
+  upcomingTrainings: Training[];
+}
+
+/** One pending join request in the admin queue. */
+export interface JoinRequest {
+  id: string;
+  handle: string;
+  displayName: string;
+  hasAvatar: boolean;
+  createdDate: string;
+}
+
 export interface TeamMember {
   userId: string;
   handle: string;

@@ -129,6 +129,14 @@ internal static class SearchTestSupport
         });
     }
 
+    /// <summary>Backdate a team's creation timestamp (to test the created-within-12-months active rule).</summary>
+    public static Task BackdateTeamCreatedAsync(JuggerHubApiFactory factory, Guid teamId, DateTime created) =>
+        WithDbAsync(factory, async db =>
+        {
+            await db.Teams.Where(t => t.Id == teamId)
+                .ExecuteUpdateAsync(s => s.SetProperty(t => t.CreatedDate, created));
+        });
+
     /// <summary>Attribute a player's participation in an event to a team (drives team "active").</summary>
     public static Task AddParticipationAsync(
         JuggerHubApiFactory factory, Guid profileId, Guid eventId, Guid teamId, string teamLabel) =>

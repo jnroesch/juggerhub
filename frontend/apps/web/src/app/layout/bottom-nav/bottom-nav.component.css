@@ -1,0 +1,4 @@
+/* Keep the fixed bar clear of the iOS/Android home indicator. */
+.bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

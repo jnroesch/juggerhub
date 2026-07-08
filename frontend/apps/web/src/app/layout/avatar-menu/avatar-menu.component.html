@@ -1,0 +1,51 @@
+<div class="relative">
+  <button
+    type="button"
+    class="grid h-9 w-9 place-items-center rounded-pill bg-surface-inverse text-body-sm font-semibold text-on-inverse transition-shadow duration-fast hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+    [attr.aria-expanded]="open()"
+    aria-haspopup="menu"
+    aria-label="Account menu"
+    data-testid="avatar-menu-button"
+    (click)="toggle()"
+  >
+    {{ initial() }}
+  </button>
+
+  @if (open()) {
+    <div
+      class="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-md border border-border bg-surface py-xs shadow-md"
+      role="menu"
+      aria-label="Account"
+      data-testid="avatar-menu"
+    >
+      @if (user(); as currentUser) {
+        <p class="truncate px-md py-xs text-caption text-subtle" data-testid="avatar-menu-email">{{ currentUser.email }}</p>
+      }
+      <a
+        routerLink="/profile"
+        role="menuitem"
+        class="block px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        (click)="close()"
+      >
+        Profile
+      </a>
+      <a
+        routerLink="/account"
+        role="menuitem"
+        class="block px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        (click)="close()"
+      >
+        Account
+      </a>
+      <button
+        type="button"
+        role="menuitem"
+        class="block w-full px-md py-xs text-left text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        data-testid="sign-out"
+        (click)="signOut()"
+      >
+        Sign out
+      </button>
+    </div>
+  }
+</div>
