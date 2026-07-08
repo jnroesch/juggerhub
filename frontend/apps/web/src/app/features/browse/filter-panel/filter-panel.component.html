@@ -4,7 +4,7 @@
     type="button"
     class="fixed inset-0 z-40 bg-ink/40"
     aria-label="Close filters"
-    (click)="close.emit()"
+    (click)="closePanel.emit()"
     data-testid="filter-backdrop"
   ></button>
 
@@ -24,7 +24,7 @@
       <button
         type="button"
         class="text-body-sm text-link underline hover:text-link-hover"
-        (click)="reset.emit()"
+        (click)="resetFilters.emit()"
         data-testid="filter-reset"
       >Reset</button>
     </div>
