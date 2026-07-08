@@ -288,6 +288,25 @@ public sealed class TeamsController : ControllerBase
         return page is null ? TeamNotFound() : Ok(page);
     }
 
+    /// <summary>Post a team news update (admin-only, feature 010). Fans out notifications to the roster.</summary>
+    [HttpPost("{slug}/news")]
+    public async Task<ActionResult<TeamNewsDto>> PostNews(
+        string slug, [FromBody] PostTeamNewsRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _news.PostAsync(slug, userId, request.Body, ct);
+        return result.Status switch
+        {
+            TeamNewsPostStatus.Posted => StatusCode(StatusCodes.Status201Created, result.Post),
+            TeamNewsPostStatus.Forbidden => Forbidden("Only admins can post team news."),
+            _ => TeamNotFound(),
+        };
+    }
+
     // --- Invitations (admin) --------------------------------------------------
 
     [HttpGet("{slug}/invitations")]

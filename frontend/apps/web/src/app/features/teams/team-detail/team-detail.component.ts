@@ -91,6 +91,29 @@ export class TeamDetailComponent {
     this.teams.getNews(this.slug()).subscribe({ next: (p) => this.news.set(p.items) });
   }
 
+  protected readonly postingNews = signal(false);
+
+  /** Admin-only (feature 010): post a news update; it fans out notifications to the roster. */
+  protected postNews(input: HTMLTextAreaElement): void {
+    const body = input.value.trim();
+    if (body.length === 0 || this.postingNews()) {
+      return;
+    }
+    this.postingNews.set(true);
+    this.error.set(null);
+    this.teams.postNews(this.slug(), body).subscribe({
+      next: (post) => {
+        this.news.update((current) => [post, ...current]);
+        input.value = '';
+        this.postingNews.set(false);
+      },
+      error: (err) => {
+        this.error.set(problemDetail(err));
+        this.postingNews.set(false);
+      },
+    });
+  }
+
   private loadJoinRequests(): void {
     this.teams.getJoinRequests(this.slug()).subscribe({ next: (p) => this.joinRequests.set(p.items) });
   }

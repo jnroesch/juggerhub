@@ -1,8 +1,10 @@
 using JuggerHub.Common;
 using JuggerHub.Data;
+using JuggerHub.Dtos.Notifications;
 using JuggerHub.Dtos.Profile;
 using JuggerHub.Dtos.Teams;
 using JuggerHub.Entities;
+using JuggerHub.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -19,12 +21,27 @@ public sealed class TeamService : ITeamService
 {
     private readonly AppDbContext _db;
     private readonly TeamMembershipGuard _guard;
+    private readonly INotificationService _notifications;
+    private readonly INotificationPreferenceService _preferences;
+    private readonly Email.TeamEmailService _email;
+    private readonly ILogger<TeamService> _logger;
     private readonly TeamOptions _options;
 
-    public TeamService(AppDbContext db, TeamMembershipGuard guard, IOptions<TeamOptions> options)
+    public TeamService(
+        AppDbContext db,
+        TeamMembershipGuard guard,
+        INotificationService notifications,
+        INotificationPreferenceService preferences,
+        Email.TeamEmailService email,
+        ILogger<TeamService> logger,
+        IOptions<TeamOptions> options)
     {
         _db = db;
         _guard = guard;
+        _notifications = notifications;
+        _preferences = preferences;
+        _email = email;
+        _logger = logger;
         _options = options.Value;
     }
 
@@ -355,6 +372,7 @@ public sealed class TeamService : ITeamService
             }
         }
 
+        var previousRole = target.Role;
         if (remove)
         {
             _db.TeamMemberships.Remove(target);
@@ -370,6 +388,54 @@ public sealed class TeamService : ITeamService
         if (remove)
         {
             return MemberOpResult.Ok();
+        }
+
+        // Notify the member whose role actually changed — never the acting admin about themselves,
+        // and only on a real change (feature 010). Best-effort: must not fail the role change.
+        if (!isSelf && newRole is { } changedRole && changedRole != previousRole)
+        {
+            var team = await _db.Teams.AsNoTracking()
+                .Where(t => t.Id == a.TeamId)
+                .Select(t => new { t.Slug, t.Name })
+                .FirstAsync(ct);
+
+            // In-app notification (feature 010) — engine honors the recipient's in-app preference.
+            try
+            {
+                await _notifications.CreateAsync(
+                    recipientUserId: targetUserId,
+                    type: NotificationType.TeamRoleChanged,
+                    payload: new TeamRoleChangedPayload(team.Slug, team.Name, changedRole),
+                    actorUserId: actorUserId,
+                    ct: ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to create role-change notification for user {UserId} on team {TeamId}.",
+                    targetUserId, a.TeamId);
+            }
+
+            // Email (feature 011), gated by the target's Invites & roster → Email preference. Best-effort.
+            try
+            {
+                if (await _preferences.IsEnabledAsync(targetUserId, NotificationCategory.InvitesAndRoster, NotificationChannel.Email, ct))
+                {
+                    var recipientEmail = await _db.Users.AsNoTracking()
+                        .Where(u => u.Id == targetUserId).Select(u => u.Email).FirstOrDefaultAsync(ct);
+                    var actorName = await _db.PlayerProfiles.AsNoTracking()
+                        .Where(p => p.UserId == actorUserId).Select(p => p.DisplayName).FirstOrDefaultAsync(ct);
+
+                    if (!string.IsNullOrEmpty(recipientEmail))
+                    {
+                        await _email.SendRoleChangedEmailAsync(recipientEmail, team.Name, team.Slug, actorName, changedRole, ct);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send role-change email for user {UserId} on team {TeamId}.",
+                    targetUserId, a.TeamId);
+            }
         }
 
         var dto = await _db.TeamMemberships.AsNoTracking()

@@ -166,6 +166,39 @@ public class EmailTemplateService : IEmailTemplateService
         return await GenerateEmailAsync("access-request", variables);
     }
 
+    /// <inheritdoc />
+    public async Task<string> GenerateTeamRoleChangedEmailAsync(string teamName, string teamUrl, string? actorName, string roleLabel, string rolePhrase)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = $"Your role in {teamName} changed",
+            ["TEAM_NAME"] = teamName,
+            ["TEAM_URL"] = teamUrl,
+            ["ACTOR_LINE"] = string.IsNullOrWhiteSpace(actorName) ? "Your role was updated." : $"{actorName} updated your role.",
+            ["ROLE_LABEL"] = roleLabel,
+            ["ROLE_PHRASE"] = rolePhrase,
+            ["FOOTER_REASON"] = "You're getting this because your role on a JuggerHub team changed."
+        };
+
+        return await GenerateEmailAsync("team-role-changed", variables);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GenerateTeamNewsEmailAsync(string teamName, string teamUrl, string? authorName, string excerpt)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = $"News from {teamName}",
+            ["TEAM_NAME"] = teamName,
+            ["TEAM_URL"] = teamUrl,
+            ["AUTHOR_LINE"] = string.IsNullOrWhiteSpace(authorName) ? "Someone" : authorName!,
+            ["NEWS_EXCERPT"] = excerpt,
+            ["FOOTER_REASON"] = "You're getting this because you're a member of this team on JuggerHub."
+        };
+
+        return await GenerateEmailAsync("team-news", variables);
+    }
+
     private async Task<string> GenerateEmailAsync(string templateName, Dictionary<string, object> variables)
     {
         try

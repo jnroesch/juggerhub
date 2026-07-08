@@ -42,6 +42,10 @@ public sealed record CreateTargetedInviteRequest([Required] Guid UserId);
 /// beginners-welcome recruitment flag surfaced in browse.</summary>
 public sealed record UpdateTeamSettingsRequest([Required] bool BeginnersWelcome);
 
+/// <summary>Post a news update to a team (feature 010, admin-only). Body length matches the
+/// <c>TeamNewsPost</c> column limit; posting fans out an in-app notification to the roster.</summary>
+public sealed record PostTeamNewsRequest([Required, MinLength(1), MaxLength(1000)] string Body);
+
 // --- Responses --------------------------------------------------------------
 
 /// <summary>Members-only team header. Roster/news are fetched from their own endpoints.</summary>

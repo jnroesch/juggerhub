@@ -9,6 +9,8 @@ using JuggerHub.Services.Email;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Health;
 using JuggerHub.Services.Home;
+using JuggerHub.Services.Notifications;
+using JuggerHub.Services.Notifications.Realtime;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Search;
 using JuggerHub.Services.Security;
@@ -212,6 +214,16 @@ builder.Services.AddScoped<IPlayerSearchService, PlayerSearchService>();
 builder.Services.Configure<HomeOptions>(builder.Configuration.GetSection(HomeOptions.SectionName));
 builder.Services.AddScoped<IHomeService, HomeService>();
 
+// --- In-app notifications (feature 010) ------------------------------------
+// SignalR is hosted in-process (single App Service instance → no backplane; see
+// specs/010-notifications/research.md §1). The realtime seam is a singleton over IHubContext;
+// the service that persists + reads notifications is scoped (per-request DbContext).
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<INotificationRealtime, SignalRNotificationRealtime>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+// Per-user delivery preferences (feature 011) — consulted by the engine + producers before delivery.
+builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
+
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services
     .AddApiVersioning(options =>
@@ -262,6 +274,9 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Real-time notifications hub (feature 010). Same-origin JWT cookie authenticates the handshake.
+app.MapHub<NotificationHub>("/hubs/notifications");
 
 app.Run();
 

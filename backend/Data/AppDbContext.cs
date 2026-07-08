@@ -64,6 +64,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<TeamJoinRequest> TeamJoinRequests => Set<TeamJoinRequest>();
 
+    public DbSet<Notification> Notifications => Set<Notification>();
+
+    public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -358,6 +362,45 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(r => r.DecidedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<Notification>(entity =>
+        {
+            entity.Property(n => n.Payload).HasColumnType("jsonb").IsRequired();
+            entity.Property(n => n.DedupeKey).HasMaxLength(200);
+
+            // The inbox list: a recipient's notifications, newest-first.
+            entity.HasIndex(n => new { n.RecipientUserId, n.CreatedDate });
+            // The unread badge count — partial index over only unread rows.
+            entity.HasIndex(n => n.RecipientUserId)
+                .HasFilter("NOT \"IsRead\"")
+                .HasDatabaseName("IX_Notifications_RecipientUserId_Unread");
+            // Idempotency: at most one notification per (recipient, dedupe key).
+            entity.HasIndex(n => new { n.RecipientUserId, n.DedupeKey })
+                .IsUnique()
+                .HasFilter("\"DedupeKey\" IS NOT NULL");
+
+            entity.HasOne(n => n.Recipient)
+                .WithMany()
+                .HasForeignKey(n => n.RecipientUserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Actor is display-only; keep the notification if the actor account is removed.
+            entity.HasOne(n => n.Actor)
+                .WithMany()
+                .HasForeignKey(n => n.ActorUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        builder.Entity<NotificationPreference>(entity =>
+        {
+            // One row per (user, category, channel); also the per-user read + upsert target.
+            entity.HasIndex(p => new { p.UserId, p.Category, p.Channel }).IsUnique();
+
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<RefreshToken>(entity =>
