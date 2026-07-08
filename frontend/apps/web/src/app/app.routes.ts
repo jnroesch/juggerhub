@@ -58,7 +58,8 @@ export const appRoutes: Route[] = [
       { path: 'profile', component: ProfileOwnerComponent, canActivate: [authGuard] },
       // Teams (feature 005) — create + the members-only team space, in the shell.
       { path: 'teams/new', component: TeamCreateComponent, canActivate: [authGuard] },
-      { path: 't/:slug', component: TeamDetailComponent, canActivate: [authGuard] },
+      // Public team page (feature 009) — anonymous-viewable; members/admins see more inline.
+      { path: 't/:slug', component: TeamDetailComponent },
       { path: 't/:slug/invitations', component: TeamInvitationsComponent, canActivate: [authGuard] },
       { path: 't/:slug/settings', component: TeamSettingsComponent, canActivate: [authGuard] },
       // Events (feature 006) — create is authed; the event page itself is public. Lazy-loaded.
