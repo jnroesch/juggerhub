@@ -104,6 +104,11 @@ export class TeamService {
     });
   }
 
+  /** Feature 010 — admin-only: post a news update (fans out notifications to the roster). */
+  postNews(slug: string, body: string): Observable<TeamNews> {
+    return this.http.post<TeamNews>(`${this.base}/${encodeURIComponent(slug)}/news`, { body });
+  }
+
   // --- Members & roles -----------------------------------------------------
 
   setRole(slug: string, userId: string, role: TeamRole): Observable<TeamMember> {

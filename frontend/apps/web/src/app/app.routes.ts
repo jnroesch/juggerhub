@@ -54,6 +54,15 @@ export const appRoutes: Route[] = [
       },
       // Guarded sample route — unauthenticated access redirects toward sign-in.
       { path: 'account', component: AccountComponent, canActivate: [authGuard] },
+      // Notification settings (feature 011) — the per-category × per-channel matrix. Lazy-loaded.
+      {
+        path: 'settings/notifications',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/settings/notifications/notification-settings.component').then(
+            (m) => m.NotificationSettingsComponent,
+          ),
+      },
       // Owner profile view/edit lives inside the shell, behind the auth guard.
       { path: 'profile', component: ProfileOwnerComponent, canActivate: [authGuard] },
       // Teams (feature 005) — create + the members-only team space, in the shell.

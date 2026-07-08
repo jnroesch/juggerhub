@@ -1,0 +1,116 @@
+<section class="mx-auto max-w-container-md px-md py-2xl">
+  <h1 class="text-h3 text-heading">Notification settings</h1>
+  <p class="mt-xs text-body-sm text-muted">Choose how you hear about things. Changes save automatically — there's no save button.</p>
+
+  @if (saveError()) {
+    <p class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
+      We couldn't save that change. Check your connection and try the toggle again.
+    </p>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="mt-lg space-y-md" aria-hidden="true">
+      @for (i of [1, 2]; track i) {
+        <div class="h-20 animate-pulse rounded-lg border border-border-muted bg-surface-sunken"></div>
+      }
+    </div>
+  }
+
+  <!-- Error -->
+  @else if (failed()) {
+    <div class="mt-lg grid place-items-center rounded-lg border border-border-muted bg-surface-card px-md py-3xl text-center shadow-sm">
+      <p class="text-body-lg font-semibold text-heading">We couldn't load your settings</p>
+      <p class="mt-xs max-w-sm text-body-sm text-muted">Something went wrong on our end. Give it another go.</p>
+      <button
+        type="button"
+        (click)="load()"
+        class="mt-md rounded-pill bg-brand px-lg py-sm text-body-sm font-semibold text-white transition-colors duration-fast hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        Try again
+      </button>
+    </div>
+  }
+
+  <!-- Matrix -->
+  @else {
+    <!-- Desktop column headers -->
+    <div class="mt-lg hidden md:grid md:grid-cols-[1fr_5rem_5rem] md:items-end md:gap-md md:pb-sm">
+      <span></span>
+      <span class="text-center text-caption font-semibold uppercase tracking-wide text-subtle">In-app</span>
+      <span class="text-center text-caption font-semibold uppercase tracking-wide text-subtle">Email</span>
+    </div>
+
+    <ul class="mt-md space-y-md md:mt-0 md:space-y-0">
+      @for (cat of categories(); track cat.category) {
+        <li
+          class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm md:grid md:grid-cols-[1fr_5rem_5rem] md:items-center md:gap-md md:rounded-none md:border-0 md:border-b md:border-border-muted md:p-0 md:py-md md:shadow-none"
+        >
+          <div>
+            <p class="text-body-sm font-semibold text-heading">{{ cat.label }}</p>
+            <p class="mt-0.5 text-body-sm text-muted">{{ cat.description }}</p>
+          </div>
+
+          <!-- In-app -->
+          <div class="mt-md flex items-center justify-between md:mt-0 md:justify-center">
+            <span class="text-body-sm text-muted md:hidden">In-app</span>
+            <button
+              type="button"
+              role="switch"
+              [attr.aria-checked]="cat.channels.inApp"
+              [attr.aria-label]="cat.label + ' — in-app'"
+              (click)="toggle(cat.category, 'inApp', cat.channels.inApp)"
+              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              [class]="cat.channels.inApp ? 'bg-brand' : 'bg-surface-muted'"
+              [attr.data-testid]="'toggle-' + cat.category + '-inApp'"
+            >
+              <span
+                class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
+                [class]="cat.channels.inApp ? 'translate-x-5' : 'translate-x-0.5'"
+              ></span>
+            </button>
+          </div>
+
+          <!-- Email -->
+          <div class="mt-sm flex items-center justify-between md:mt-0 md:justify-center">
+            <span class="text-body-sm text-muted md:hidden">Email</span>
+            <button
+              type="button"
+              role="switch"
+              [attr.aria-checked]="cat.channels.email"
+              [attr.aria-label]="cat.label + ' — email'"
+              (click)="toggle(cat.category, 'email', cat.channels.email)"
+              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              [class]="cat.channels.email ? 'bg-brand' : 'bg-surface-muted'"
+              [attr.data-testid]="'toggle-' + cat.category + '-email'"
+            >
+              <span
+                class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
+                [class]="cat.channels.email ? 'translate-x-5' : 'translate-x-0.5'"
+              ></span>
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+
+    <!-- Always-on group -->
+    @if (alwaysOn().length > 0) {
+      <div class="mt-xl">
+        <h2 class="text-body-lg font-semibold text-heading">Always on</h2>
+        <p class="mt-0.5 text-body-sm text-muted">These keep your account safe, so they can't be turned off.</p>
+        <ul class="mt-sm space-y-sm">
+          @for (group of alwaysOn(); track group.label) {
+            <li class="flex items-center justify-between gap-md rounded-lg border border-border-muted bg-surface-sunken p-md">
+              <div>
+                <p class="text-body-sm font-semibold text-heading">{{ group.label }}</p>
+                <p class="mt-0.5 text-body-sm text-muted">{{ group.description }}</p>
+              </div>
+              <span class="shrink-0 rounded-pill bg-surface-secondary-soft px-sm py-0.5 text-caption font-semibold text-secondary">Always on</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  }
+</section>

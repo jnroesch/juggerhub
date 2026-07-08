@@ -43,17 +43,24 @@
     </a>
   </nav>
 
-  <!-- Right side: bell + avatar (desktop) / avatar (mobile strip) -->
+  <!-- Right side: bell + avatar (desktop) / avatar only (mobile strip — Alerts lives in the bottom tab bar) -->
   <div class="ml-auto flex items-center gap-sm">
     <a
       routerLink="/alerts"
-      class="relative grid h-9 w-9 place-items-center rounded-md transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      class="relative hidden h-9 w-9 place-items-center rounded-md transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus md:grid"
       [class]="alertsActive() ? 'bg-surface-accent-soft text-brand-active' : 'text-text hover:bg-surface-sunken'"
       [attr.aria-current]="alertsActive() ? 'page' : null"
-      aria-label="Alerts"
+      [attr.aria-label]="alertsBadge() ? 'Alerts, ' + alertsBadge() + ' unread' : 'Alerts'"
       data-testid="nav-alerts-bell"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 6 2.5 7 2.5 7h-17S6 14 6 8"/><path d="M10.5 20a2 2 0 0 0 3 0"/></svg>
+      @if (alertsBadge(); as badge) {
+        <span
+          class="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-pill bg-brand px-1 text-[10px] font-bold leading-none text-white"
+          aria-hidden="true"
+          data-testid="nav-alerts-badge"
+        >{{ badge }}</span>
+      }
     </a>
     <jh-avatar-menu />
   </div>

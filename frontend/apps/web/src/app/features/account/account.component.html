@@ -9,5 +9,14 @@
         Signed in as <span class="font-medium text-ink">{{ currentUser.email }}</span>.
       </p>
     }
+
+    <a
+      routerLink="/settings/notifications"
+      class="mt-lg inline-flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium text-link transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      data-testid="account-notification-settings"
+    >
+      Notification settings
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+    </a>
   </div>
 </div>

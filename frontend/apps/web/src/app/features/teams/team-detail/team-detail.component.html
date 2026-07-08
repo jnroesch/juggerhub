@@ -136,6 +136,31 @@
         @if (isMember()) {
           <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="news">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">News</h2>
+
+            <!-- Admin composer (feature 010): posting notifies the whole roster. -->
+            @if (isAdmin()) {
+              <div class="mb-md" data-testid="news-composer">
+                <textarea
+                  #newsBody
+                  rows="2"
+                  maxlength="1000"
+                  placeholder="Share an update with your team…"
+                  class="w-full resize-y rounded-md border border-border bg-surface-card px-md py-sm text-body-sm text-body placeholder:text-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                ></textarea>
+                <div class="mt-sm flex justify-end">
+                  <button
+                    type="button"
+                    (click)="postNews(newsBody)"
+                    [disabled]="postingNews()"
+                    class="rounded-pill bg-brand px-lg py-xs text-body-sm font-semibold text-white transition-colors duration-fast hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60"
+                    data-testid="post-news"
+                  >
+                    {{ postingNews() ? 'Posting…' : 'Post news' }}
+                  </button>
+                </div>
+              </div>
+            }
+
             @if (news().length > 0) {
               <ul class="flex flex-col gap-sm">
                 @for (n of news(); track $index) {

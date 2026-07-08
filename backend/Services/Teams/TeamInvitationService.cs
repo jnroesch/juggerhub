@@ -1,9 +1,11 @@
 using System.Security.Cryptography;
 using JuggerHub.Common;
 using JuggerHub.Data;
+using JuggerHub.Dtos.Notifications;
 using JuggerHub.Dtos.Teams;
 using JuggerHub.Entities;
 using JuggerHub.Services.Email;
+using JuggerHub.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -16,6 +18,9 @@ public sealed class TeamInvitationService : ITeamInvitationService
     private readonly AppDbContext _db;
     private readonly TeamMembershipGuard _guard;
     private readonly TeamEmailService _email;
+    private readonly INotificationService _notifications;
+    private readonly INotificationPreferenceService _preferences;
+    private readonly ILogger<TeamInvitationService> _logger;
     private readonly TeamOptions _teamOptions;
     private readonly EmailOptions _emailOptions;
 
@@ -23,12 +28,18 @@ public sealed class TeamInvitationService : ITeamInvitationService
         AppDbContext db,
         TeamMembershipGuard guard,
         TeamEmailService email,
+        INotificationService notifications,
+        INotificationPreferenceService preferences,
+        ILogger<TeamInvitationService> logger,
         IOptions<TeamOptions> teamOptions,
         IOptions<EmailOptions> emailOptions)
     {
         _db = db;
         _guard = guard;
         _email = email;
+        _notifications = notifications;
+        _preferences = preferences;
+        _logger = logger;
         _teamOptions = teamOptions.Value;
         _emailOptions = emailOptions.Value;
     }
@@ -188,8 +199,28 @@ public sealed class TeamInvitationService : ITeamInvitationService
             return new TargetedInviteResult(TargetedInviteStatus.AlreadyInvited, null);
         }
 
-        await _email.SendTeamInviteEmailAsync(
-            target.Email, target.DisplayName, team.Name, inviterName, team.Slug, invite.Token, invite.ExpiresDate, ct);
+        // Email is gated by the target's Invites & roster → Email preference (feature 011).
+        if (await _preferences.IsEnabledAsync(targetUserId, NotificationCategory.InvitesAndRoster, NotificationChannel.Email, ct))
+        {
+            await _email.SendTeamInviteEmailAsync(
+                target.Email, target.DisplayName, team.Name, inviterName, team.Slug, invite.Token, invite.ExpiresDate, ct);
+        }
+
+        // In-app notification (feature 010) — complements the email, never blocks the invite.
+        try
+        {
+            await _notifications.CreateAsync(
+                recipientUserId: targetUserId,
+                type: NotificationType.TeamInvite,
+                payload: new TeamInvitePayload(invite.Id, invite.Token, team.Slug, team.Name, inviterName),
+                actorUserId: actorUserId,
+                dedupeKey: $"invite:{invite.Id}",
+                ct: ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to create in-app notification for team invite {InviteId}.", invite.Id);
+        }
 
         return new TargetedInviteResult(TargetedInviteStatus.Created,
             new TeamInvitationDto(invite.Id, InvitationKind.Targeted, target.DisplayName, invite.CreatedDate, invite.ExpiresDate, InvitationStatus.Pending));

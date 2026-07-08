@@ -40,7 +40,16 @@
     [attr.aria-current]="active('alerts') ? 'page' : null"
     data-testid="tab-alerts"
   >
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 6 2.5 7 2.5 7h-17S6 14 6 8"/><path d="M10.5 20a2 2 0 0 0 3 0"/></svg>
+    <span class="relative">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 6 2.5 7 2.5 7h-17S6 14 6 8"/><path d="M10.5 20a2 2 0 0 0 3 0"/></svg>
+      @if (alertsBadge(); as badge) {
+        <span
+          class="absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-pill bg-brand px-1 text-[10px] font-bold leading-none text-white"
+          aria-hidden="true"
+          data-testid="tab-alerts-badge"
+        >{{ badge }}</span>
+      }
+    </span>
     Alerts
   </a>
 </nav>

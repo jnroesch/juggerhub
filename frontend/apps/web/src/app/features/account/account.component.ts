@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 
 /**
@@ -8,7 +9,7 @@ import { AuthService } from '../../core/services/auth.service';
  */
 @Component({
   selector: 'jh-account',
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css',
 })

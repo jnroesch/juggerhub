@@ -38,6 +38,17 @@ export function isActiveDestination(id: NavId, url: string): boolean {
 }
 
 /**
+ * Compact unread-badge text for the Alerts bell (feature 010): empty when nothing is unread, the
+ * count up to 9, then a capped "9+" so the badge never grows unbounded.
+ */
+export function badgeText(count: number): string {
+  if (count <= 0) {
+    return '';
+  }
+  return count > 9 ? '9+' : String(count);
+}
+
+/**
  * Where "My team" navigates, by how many teams the player is on:
  * 0 → find a team (Browse teams); 1 → that team's space; many → the team chooser.
  */
