@@ -1,0 +1,88 @@
+name: 🐞 Report a bug
+description: Something on JuggerHub is broken or not working the way you expected.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! You don't need any technical
+        knowledge — just tell us what happened in your own words. Fill in what you
+        can; it's fine to leave parts blank.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem. What did you see go wrong?
+      placeholder: e.g. When I tried to join a team, the page showed an error and nothing happened.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen instead?
+      placeholder: e.g. I expected to be added to the team, or to see a request-sent message.
+    validations:
+      required: false
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can we see it too? (steps)
+      description: List the steps you took, one per line, so we can reproduce it.
+      placeholder: |
+        1. Went to my team's page
+        2. Clicked "Request to join"
+        3. ...
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where did this happen?
+      description: Pick the closest area (optional).
+      options:
+        - Not sure
+        - Sign in / sign up / password
+        - My profile
+        - Teams
+        - Events / training
+        - Search / browse
+        - Notifications
+        - Home / navigation
+        - Something else
+    validations:
+      required: false
+
+  - type: dropdown
+    id: device
+    attributes:
+      label: What device were you on?
+      options:
+        - Not sure
+        - Phone
+        - Tablet
+        - Laptop / desktop
+    validations:
+      required: false
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots (optional)
+      description: If you can, drag and drop a screenshot here. A picture helps a lot!
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you submit
+      options:
+        - label: I searched existing issues and this doesn't look like a duplicate.
+          required: false
+        - label: This is not a security vulnerability (those go through SECURITY.md, privately).
+          required: true

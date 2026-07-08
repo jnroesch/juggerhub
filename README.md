@@ -1,220 +1,225 @@
-# JuggerHub
+<div align="center">
 
-The JuggerHub repository, with a Docker-based development setup, CI/CD workflows,
-and an integrated **AI-assisted development toolchain** for use with Claude Code.
+# 🏐 JuggerHub
 
-The full workflow rules and routing live in [CLAUDE.md](CLAUDE.md) — read that
-first. This README focuses on **what each tool is, how it runs, and where its UI
-is** (if any).
+**A warm, community-run home for the sport of Jugger** — find teams, book
+training, follow matches, and start local groups.
+
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
+[![Backend: .NET 10](https://img.shields.io/badge/backend-.NET%2010-512BD4.svg)](backend/)
+[![Frontend: Angular + Nx](https://img.shields.io/badge/frontend-Angular%20%2B%20Nx-DD0031.svg)](frontend/)
+[![Runs on: Docker](https://img.shields.io/badge/runs%20on-Docker-2496ED.svg)](docker-compose.yml)
+
+[Report a bug · Request a feature · Leave feedback](https://github.com/jnroesch/juggerhub/issues/new/choose)
+· [Contributing](CONTRIBUTING.md)
+· [Security](SECURITY.md)
+
+</div>
 
 ---
 
-## Structure
+## What is JuggerHub?
+
+[Jugger](https://en.wikipedia.org/wiki/Jugger) is a fast, full-contact team sport
+played with padded weapons ("pompfen") and a running discipline all its own. It's
+grown up as a grassroots, community-run scene — and JuggerHub is built to match
+that: a friendly, mobile-first webapp where players and teams can organize without
+the friction.
+
+With JuggerHub you can:
+
+- **Build a player profile** and share it with a public link.
+- **Create or join a team**, manage its roster, and run a public team page that
+  lets new players request to join.
+- **Run events and training** — post sessions, let people sign up, and see who's
+  coming.
+- **Browse and search** for teams, players, and events near you.
+- **Stay in the loop** with in-app notifications and per-user notification
+  preferences.
+- **Sign in securely** with email + password, verified email, and password reset
+  — everything enforced server-side.
+
+> **Status:** JuggerHub is in active **pre-1.0** development. Expect rapid change.
+
+<!-- TODO: add screenshots or a short demo GIF here once the UI is stable. -->
+
+---
+
+## Feature overview
+
+Each feature is specified before it's built (see [`specs/`](specs/)):
+
+| Area | What it does |
+|------|--------------|
+| **Accounts** | Email + password auth, email verification, password reset, account lockout |
+| **Onboarding** | A first-login flow that gets new players set up quickly |
+| **Profiles** | Player profiles with a shareable public link |
+| **Teams** | Team spaces, member handling, and public team pages with request-to-join |
+| **Events** | Create events/training and let players and teams sign up |
+| **Search** | Browse and search teams, players, and events |
+| **Home & nav** | A personalized dashboard and top-level navigation |
+| **Notifications** | In-app notification system with per-user preferences |
+
+---
+
+## Tech stack
+
+| Layer | Choice |
+|-------|--------|
+| Backend | **.NET 10**, Entity Framework Core |
+| Database | **PostgreSQL 18** (UUIDv7 keys, automatic audit fields) |
+| Auth | Microsoft Identity, Argon2 password hashing, JWT in `httpOnly` cookies |
+| Frontend | **Angular + Nx + Tailwind CSS** |
+| Mapping | Mapster (entity → DTO) |
+| Email | Mailpit (local), Resend (deployed) |
+| Containers | Docker (per-service) + Docker Compose (local) |
+| CI/CD | GitHub Actions + Terraform → GHCR → Azure App Services |
+
+Architecture, security, and convention rules live in the project
+[**constitution**](.specify/memory/constitution.md); the visual identity lives in
+[**DESIGN.md**](DESIGN.md).
+
+---
+
+## Quick start
+
+Everything runs in containers — **you only need [Docker](https://www.docker.com/)
+and Docker Compose**. No host-level .NET or Node runtime is required.
+
+```bash
+git clone https://github.com/jnroesch/juggerhub.git
+cd juggerhub
+
+cp .env.sample .env            # PowerShell: Copy-Item .env.sample .env
+docker compose up -d --build   # database, backend, frontend, Mailpit
+docker compose ps              # wait for services to become healthy
+```
+
+The backend **auto-applies EF Core migrations on startup** against the (initially
+empty) database — there's no manual migration step. Stop with
+`docker compose down` (add `-v` to also drop the database volume).
+
+| Surface | URL |
+|---------|-----|
+| Web app | http://localhost:3000 |
+| API (via the app proxy) | http://localhost:3000/api/v1/health |
+| API (direct) | http://localhost:8080/api/v1/health |
+| Scalar API reference (Development only) | http://localhost:8080/scalar/v1 |
+| Mailpit (captured local email) | http://localhost:8025 |
+
+### Try the auth flow locally
+
+1. **Register** at http://localhost:3000/register — the password meter shows the
+   live policy. You land on a neutral "check your email" screen.
+2. **Verify** — open the **Mailpit inbox** at http://localhost:8025 and click the
+   verification link. (Sign-in is blocked until verified.)
+3. **Sign in** at http://localhost:3000/sign-in.
+4. **Forgot / reset** via http://localhost:3000/forgot-password → open the reset
+   link in Mailpit → set a new password.
+
+All local mail is captured by Mailpit; deployed environments send via Resend.
+
+### Run the tests
+
+All suites run in containers via the `docker-compose.test.yml` overlay:
+
+```bash
+test="docker compose -f docker-compose.yml -f docker-compose.test.yml"
+
+$test run --rm backend-test    # xUnit + Testcontainers (real Postgres)
+$test run --rm frontend-test   # Jest unit tests
+$test run --rm playwright      # Playwright e2e (start the stack first)
+```
+
+---
+
+## Project structure
 
 ```
-├── backend/              # .NET 10 API (JuggerHub.Api: Controllers/Services/Entities/Data/Dtos/Common, tests/, Dockerfile)
-├── frontend/             # Nx + Angular workspace (apps/web, apps/web-e2e, nginx.conf, Dockerfile)
-├── .specify/             # Spec-Kit: specs, plans, tasks, constitution (source of truth)
-├── backlog/              # Backlog.md: tasks, drafts, decisions, docs
-├── .claude/              # Claude Code: Spec-Kit skills + settings.json
-├── .githooks/            # Git hooks: auto-rebuild Graphify graph on commit/pull/checkout
-├── .github/workflows/    # CI/CD pipelines
-├── CLAUDE.md             # Workflow rules & tool routing — read first
+├── backend/              # .NET 10 API (Controllers/Services/Entities/Data/Dtos), tests/, Dockerfile
+├── frontend/             # Nx + Angular workspace (apps/web, apps/web-e2e), Dockerfile
+├── specs/                # Spec-Kit feature specs, plans, and tasks
+├── .specify/             # Spec-Kit constitution & templates (architecture source of truth)
+├── backlog/              # Backlog.md: prioritized tasks and decisions
 ├── DESIGN.md             # Visual identity / design tokens (UI source of truth)
-├── .claudeignore         # Context-exclusion hints (see Security & ignore rules)
+├── CLAUDE.md             # AI-assisted development workflow rules
+├── .github/              # CI/CD workflows, issue forms, PR template
 └── docker-compose*.yml   # Local development orchestration
 ```
 
 ---
 
-## AI Development Toolchain
+## Contributing & feedback
 
-Five tools cooperate under the rules in [CLAUDE.md](CLAUDE.md). In one line:
+Contributions of all kinds are welcome — and **you don't need to be a developer**
+to help shape JuggerHub.
 
-> **Spec-Kit** decides · **DESIGN.md** styles · **Backlog.md** queues · **Graphify** maps · **claude-mem** remembers.
+- 🐞 **Found a bug?** · 💡 **Have an idea?** · 💬 **Just want to share feedback?**
+  → [Open an issue](https://github.com/jnroesch/juggerhub/issues/new/choose).
+  The guided forms need no Markdown or git knowledge.
+- 🛠️ **Want to write code or docs?** Read [CONTRIBUTING.md](CONTRIBUTING.md) for
+  how to get started and the pull-request process.
+- 🔒 **Found a security issue?** Please report it **privately** — see
+  [SECURITY.md](SECURITY.md). Don't open a public issue.
 
-| Tool | Version | Role | How it runs | Dedicated UI |
-|------|---------|------|-------------|--------------|
-| **Spec-Kit** | 0.11.9 | Specs, plans, tasks, constitution | On-demand CLI + `/speckit-*` slash commands | — |
-| **DESIGN.md** (design.md) | 0.3.0 | Visual identity / design tokens | On-demand CLI (`designmd`) + the `DESIGN.md` file | — |
-| **Backlog.md** | 1.47.1 | Intake & prioritization (Kanban) | On-demand CLI | ✅ Web UI + terminal Kanban |
-| **Graphify** | 0.9.1 | Codebase knowledge graph / impact analysis | 🔄 **Auto-rebuild on git ops** + on-demand CLI / `/graphify` | ✅ Interactive graph (HTML) |
-| **claude-mem** | 13.8.1 | Cross-session memory | 🔄 **Background worker (auto-starts)** + lifecycle hooks | ✅ Web viewer |
-
-Implementation is executed directly (task-by-task with small commits and
-verification) or, for a Spec-Kit `tasks.md`, via the `/speckit-implement` skill.
+Everyone participating agrees to our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
-### 🔄 Runs automatically in the background
+## How JuggerHub is built (the AI-assisted toolchain)
 
-These need no manual start once Claude Code is open in this project:
+JuggerHub is developed with an integrated, spec-driven AI toolchain. It's not
+required to use the app or to contribute a small fix, but it's part of what makes
+this repo tick — and it's all here in the open.
 
-- **claude-mem worker** — a persistent service on **`http://localhost:37777`**.
-  It **auto-starts on every Claude Code launch** via the plugin's `SessionStart`
-  hook (also on `/clear` and `/compact`), and captures observations passively as
-  Claude reads, edits, and runs commands. Its lifecycle hooks
-  (`UserPromptSubmit`, `PostToolUse`, `PreToolUse:Read`, `Stop`) also fire
-  automatically. Data lives in `~/.claude-mem` (outside the repo).
-  - Manual controls if needed: `npx claude-mem status` · `start` · `stop` · `restart` · `doctor`.
-  - It only runs while Claude Code is open (which is all that's needed for memory
-    capture). For an always-on viewer, add a logon task that runs `claude-mem start`.
-- **Graphify auto-rebuild** — tracked git hooks in `.githooks/` run
-  `graphify update .` (fast, no-LLM) in the background after **commit, pull,
-  branch switch, and rebase**, keeping `graphify-out/` fresh. Editor-agnostic and
-  non-blocking; single-flighted via a PID lock; logs to `graphify-out/.rebuild.log`.
-  Enable once per clone with `git config core.hooksPath .githooks` (see Setup).
-  Community *labels* still need an occasional full build — see the on-demand list.
+> **Spec-Kit** decides · **DESIGN.md** styles · **Backlog.md** queues ·
+> **Graphify** maps · **claude-mem** remembers.
 
-### 🖥️ Tools with a dedicated UI
+| Tool | Role | UI |
+|------|------|----|
+| **[Spec-Kit](https://github.com/github/spec-kit)** | Specs, plans, tasks, constitution — the source of truth for behavior | — |
+| **DESIGN.md** | Visual identity / design tokens | the `DESIGN.md` file |
+| **Backlog.md** | Intake & prioritization (Kanban) | web UI + terminal board |
+| **Graphify** | Codebase knowledge graph / impact analysis | interactive graph (HTML) |
+| **claude-mem** | Cross-session memory | web viewer |
 
-- **claude-mem — web viewer:** `http://localhost:37777` (live stream of captured
-  observations). Open it in a browser while working.
-- **Backlog.md — web UI & terminal board:**
-  - `backlog browser` → web Kanban/task UI on **port 6420** (auto-opens browser).
-  - `backlog board` → Kanban board in the terminal.
-  - Both are launched on demand and run only while open.
-- **Graphify — interactive graph:** building the graph writes
-  **`graphify-out/graph.html`** (an interactive visualization), plus
-  `GRAPH_REPORT.md` and `graph.json`. Open the HTML in a browser. `graphify-out/`
-  is gitignored.
+The full workflow rules, source-of-truth ordering, and tool routing live in
+[**CLAUDE.md**](CLAUDE.md).
 
-### ⌨️ On-demand: CLIs & Claude slash commands
+### Setting up the toolchain (optional)
 
-No background process; invoke when needed.
-
-- **Spec-Kit** — `specify` CLI; in Claude: `/speckit-constitution`,
-  `/speckit-specify`, `/speckit-clarify`, `/speckit-plan`, `/speckit-tasks`,
-  `/speckit-analyze`, `/speckit-checklist`, `/speckit-implement`,
-  `/speckit-converge`.
-- **Graphify** — `graphify .` (full build, with LLM community labels),
-  `graphify update .` (fast re-extract, no LLM — what the git hooks run),
-  `graphify label .` (re-name clusters), `graphify watch <path>` (live rebuild on
-  file changes, foreground), `graphify explain "X"`, `graphify path "A" "B"`; in
-  Claude: `/graphify`. Run a full build occasionally to refresh community labels.
-- **Backlog.md** — `backlog task|draft|doc|decision|milestone`, `backlog search`,
-  `backlog overview`, `backlog instructions <guide>`. (Also exposes `backlog mcp`.)
-- **design.md** — `designmd lint DESIGN.md`, `designmd diff`, `designmd export`
-  (Tailwind / W3C tokens). *Note: `designmd spec` is broken upstream in v0.3.0.*
-
----
-
-## Setup on a new machine
-
-Global CLIs and the Claude plugin are **not** committed, so after cloning,
-reinstall the toolchain. Requires **Node 20+**, **uv**, and **git**.
+The global CLIs and Claude plugin aren't committed, so reinstall them after
+cloning. Requires **Node 20+**, **uv**, and **git**.
 
 ```bash
 # Global CLIs
-npm  install -g backlog.md @google/design.md
-uv   tool install specify-cli --from git+https://github.com/github/spec-kit.git@v0.11.9
-uv   tool install graphifyy && graphify install --platform claude
+npm install -g backlog.md @google/design.md
+uv  tool install specify-cli --from git+https://github.com/github/spec-kit.git@v0.11.9
+uv  tool install graphifyy && graphify install --platform claude
 
-# Claude Code plugin (registers + enables; worker auto-starts thereafter)
+# Claude Code plugin (worker auto-starts thereafter)
 npx claude-mem install
 
 # Enable Graphify auto-rebuild git hooks (tracked in .githooks/)
 git config core.hooksPath .githooks
 ```
 
-Committed config that *does* travel with the repo: `.specify/`, `backlog/`,
-`.claude/skills/` (Spec-Kit) and `.claude/settings.json`, `.githooks/`,
-`CLAUDE.md`, `DESIGN.md`, `.claudeignore`.
+---
+
+## Security & secrets
+
+- **`.env` is gitignored** and never committed — only the placeholder
+  [`.env.sample`](.env.sample) travels with the repo. Local defaults work out of
+  the box; deployed secrets flow through GitHub Environments.
+- Tracked `appsettings*.json` files hold **no secret values** — configuration is
+  injected via environment variables.
+- The project is written security-first (server-side enforcement, OWASP Top 10);
+  see the [constitution](.specify/memory/constitution.md), Principle I, and
+  [SECURITY.md](SECURITY.md) for reporting.
 
 ---
 
-## Security & ignore rules
+## License
 
-- **`.gitignore`** — respected by Claude Code's file discovery by default. Also
-  excludes machine-specific/generated tooling output (`.claude/settings.local.json`,
-  `graphify-out/`).
-- **`.claudeignore`** — soft "don't auto-pull into context" hints (deps, build
-  output, logs, secrets, cruft). ⚠️ Claude Code does **not** natively enforce this
-  yet — it's a shared convention / honored by some hooks and other agents.
-- **`permissions.deny` in `.claude/settings.json`** — the **enforced** block: Claude
-  cannot read `.env*`, `*.pem/key/pfx/p12/crt`, `secrets/`, `~/.ssh`, `~/.aws`, or
-  .NET user-secrets. This is what actually protects credentials.
-
-Never store secrets in code, specs, Backlog.md, Graphify, or claude-mem.
-
----
-
-## Running the application & tests (Docker-only)
-
-The application and **all** tests run in containers — there is no host-level
-dev-server workflow (no `ng serve`) and no host .NET/Node runtime is required.
-You only need **Docker + Docker Compose**.
-
-### Start the stack
-
-```pwsh
-Copy-Item .env.sample .env      # review values; defaults work for local
-docker compose up -d --build    # database, backend, frontend, mailpit
-docker compose ps               # all services Up; backend/frontend become healthy
-docker compose down             # stop (add -v to also drop the db volume)
-```
-
-The backend **auto-applies EF Core migrations on startup** against the (initially
-empty) PostgreSQL 18 database — no manual migration step.
-
-| Surface | URL |
-|---------|-----|
-| Web app (dashboard) | http://localhost:3000 |
-| API (same-origin via the app proxy) | http://localhost:3000/api/v1/health |
-| API (direct) | http://localhost:8080/api/v1/health |
-| **Scalar** API reference (Development only) | http://localhost:8080/scalar/v1 |
-| Mailpit (local email capture) | http://localhost:8025 |
-
-> Interactive API docs are served by **Scalar** over the built-in
-> `Microsoft.AspNetCore.OpenApi` document (no Swagger UI), and only in the
-> Development environment.
-
-### Authentication (try it locally)
-
-The first product feature is **email + password authentication** (spec:
-[`specs/002-authentication`](specs/002-authentication)). Everything is enforced
-server-side; access/refresh tokens live only in `httpOnly` cookies (never
-`localStorage`). With the stack up, you can run the whole cycle locally:
-
-1. **Register** at http://localhost:3000/register — the password meter shows the
-   live policy (8+ chars, upper/lower/digit/symbol, 3 unique). You land on a neutral
-   "check your email" screen.
-2. **Verify** — open the **Mailpit inbox** at http://localhost:8025, click the link
-   in the "Verify your email" message. (Sign-in is **blocked until verified**.)
-3. **Sign in** at http://localhost:3000/sign-in (with optional "remember me"). Wrong
-   credentials return a single generic error; 5 failures lock the account for 15 min.
-4. **Sign out** from the top nav — the session is revoked server-side and cookies cleared.
-5. **Forgot / reset** via http://localhost:3000/forgot-password → open the reset link
-   in Mailpit → set a new password. Existing sessions are invalidated and a
-   change-notification email is sent.
-
-Endpoints live under `/api/v1/auth/*` (see
-[`contracts/openapi.yaml`](specs/002-authentication/contracts/openapi.yaml)).
-Registration, forgot-password, and resend-verification are **enumeration-neutral**
-(identical responses whether or not the account exists). Local mail is captured by
-**Mailpit**; deployed environments send via **Resend** (selected by `Email__Provider`).
-
-### Run the test suites — all in containers
-
-A `docker-compose.test.yml` overlay runs each suite with no host runtimes:
-
-```pwsh
-$test = "docker compose -f docker-compose.yml -f docker-compose.test.yml"
-
-iex "$test run --rm backend-test"    # xUnit + Testcontainers (real Postgres)
-iex "$test run --rm frontend-test"   # Jest unit tests
-iex "$test run --rm playwright"      # Playwright e2e (desktop + mobile) vs the running stack
-```
-
-`backend-test` mounts the Docker socket so Testcontainers can spin up a sibling
-Postgres; `playwright` targets the running `frontend` container, so start the
-stack first.
-
----
-
-## Documentation
-
-- [CLAUDE.md](CLAUDE.md) — workflow rules, source-of-truth priority, tool routing.
-- [DESIGN.md](DESIGN.md) — colors, typography, spacing, components.
-- `.specify/memory/constitution.md` — project principles (Spec-Kit).
-- `backlog instructions overview` — Backlog.md workflow guidance.
+JuggerHub is licensed under the [Apache License 2.0](LICENSE). See [NOTICE](NOTICE)
+for attribution details.

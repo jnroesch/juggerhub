@@ -1,0 +1,13 @@
+JuggerHub
+Copyright 2026 JuggerHub contributors
+
+This product includes software developed as part of the JuggerHub project
+(https://github.com/jnroesch/juggerhub).
+
+Licensed under the Apache License, Version 2.0. See the LICENSE file for the
+full license text.
+
+Portions of this project depend on third-party open-source software, each
+distributed under its own license. Those licenses are retained within the
+respective dependencies (for example, under frontend/node_modules and in the
+NuGet package metadata) and are not reproduced here.

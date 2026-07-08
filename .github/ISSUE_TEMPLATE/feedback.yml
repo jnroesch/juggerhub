@@ -1,0 +1,43 @@
+name: 💬 General feedback
+description: Share a thought, a question, or how JuggerHub is (or isn't) working for you.
+title: "[Feedback]: "
+labels: ["feedback"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Anything on your mind about JuggerHub — praise, confusion, a rough edge,
+        a question — is welcome here. This is the catch-all; if it's clearly a bug
+        or a feature idea, those forms exist too, but don't worry about picking
+        the "right" one.
+
+  - type: textarea
+    id: feedback
+    attributes:
+      label: Your feedback
+      description: Tell us what's on your mind.
+      placeholder: e.g. I love the team pages, but I found it hard to figure out how to leave a team.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: sentiment
+    attributes:
+      label: Overall, how's your experience been? (optional)
+      options:
+        - Not sure
+        - Great
+        - Good
+        - Mixed
+        - Frustrating
+    validations:
+      required: false
+
+  - type: input
+    id: contact
+    attributes:
+      label: Want a reply? (optional)
+      description: Leave a way to reach you if you'd like a response. You can also just watch this issue.
+      placeholder: e.g. your GitHub handle
+    validations:
+      required: false
