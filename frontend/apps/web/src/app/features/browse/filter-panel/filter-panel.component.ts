@@ -24,8 +24,8 @@ export class FilterPanelComponent {
   readonly resultNoun = input('results');
 
   readonly apply = output<void>();
-  readonly reset = output<void>();
-  readonly close = output<void>();
+  readonly resetFilters = output<void>();
+  readonly closePanel = output<void>();
 
   private readonly panel = viewChild<ElementRef<HTMLElement>>('panel');
   private lastFocused: HTMLElement | null = null;
@@ -46,7 +46,7 @@ export class FilterPanelComponent {
   @HostListener('document:keydown.escape')
   protected onEscape(): void {
     if (this.open()) {
-      this.close.emit();
+      this.closePanel.emit();
     }
   }
 

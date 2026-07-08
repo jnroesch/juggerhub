@@ -108,7 +108,7 @@
     <section>
       <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Discovery</p>
       @if (editing()) {
-        <label class="mt-sm flex items-center justify-between gap-sm">
+        <div class="mt-sm flex items-center justify-between gap-sm">
           <span class="flex flex-col">
             <span class="text-body-md text-ink">Appear in search</span>
             <span class="text-body-sm text-subtle">Let others find you on the players browse page.</span>
@@ -132,7 +132,7 @@
               [class.translate-x-1]="!appearInSearch()"
             ></span>
           </button>
-        </label>
+        </div>
       } @else {
         <p class="mt-xs text-body-sm text-subtle">
           {{ p.appearInSearch ? 'You appear in player search.' : 'You are hidden from player search.' }}

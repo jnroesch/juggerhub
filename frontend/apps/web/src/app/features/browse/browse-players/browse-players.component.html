@@ -53,8 +53,8 @@
   [pendingCount]="pendingCount()"
   resultNoun="players"
   (apply)="applyFilters()"
-  (reset)="resetFilters()"
-  (close)="filtersOpen.set(false)"
+  (resetFilters)="resetFilters()"
+  (closePanel)="filtersOpen.set(false)"
 >
   <div class="flex flex-col gap-xs">
     <span class="text-eyebrow uppercase text-faint">Position</span>

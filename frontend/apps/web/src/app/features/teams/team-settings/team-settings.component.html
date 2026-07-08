@@ -14,7 +14,7 @@
     @if (isAdmin()) {
       <div class="mt-lg">
         <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Recruitment</p>
-        <label class="mt-xs flex items-center justify-between gap-sm rounded-md border border-border-strong bg-surface-card px-md py-sm">
+        <div class="mt-xs flex items-center justify-between gap-sm rounded-md border border-border-strong bg-surface-card px-md py-sm">
           <span class="flex flex-col">
             <span class="text-body-md text-ink">Beginners welcome</span>
             <span class="text-body-sm text-subtle">Show a “Beginners” badge and appear in the beginners filter.</span>
@@ -39,7 +39,7 @@
               [class.translate-x-1]="!beginnersWelcome()"
             ></span>
           </button>
-        </label>
+        </div>
       </div>
 
       <hr class="my-lg border-border" />
