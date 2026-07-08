@@ -2,7 +2,8 @@
 # Build context is ./frontend (see docker-compose.yml).
 
 # --- deps: install node_modules (cached on lockfile) ------------------------
-FROM node:22-alpine AS deps
+# Node pinned to match frontend/.nvmrc, package.json "engines", and CI.
+FROM node:22.23.1-alpine AS deps
 WORKDIR /app
 ENV NX_DAEMON=false
 COPY package.json package-lock.json ./
@@ -30,7 +31,7 @@ COPY . .
 ENTRYPOINT ["npx", "nx", "e2e", "web-e2e"]
 
 # --- runtime: nginx serving the SPA + proxying /api -------------------------
-FROM nginx:alpine AS runtime
+FROM nginx:1.31.2-alpine AS runtime
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/apps/web/browser /usr/share/nginx/html
 EXPOSE 80
