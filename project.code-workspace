@@ -138,6 +138,66 @@
         }
       },
       {
+        "label": "Docker Compose Down + Drop DB Volume",
+        "detail": "Stop the stack and delete the Postgres volume (fresh database next `up`)",
+        "type": "shell",
+        "command": "docker compose down -v",
+        "group": "build",
+        "problemMatcher": [],
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
+        "label": "Test: Backend (xUnit + Testcontainers)",
+        "detail": "Run backend integration tests in a container (Docker must be running — Testcontainers spins up a sibling Postgres)",
+        "type": "shell",
+        "command": "docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm backend-test",
+        "group": "test",
+        "problemMatcher": [],
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
+        "label": "Test: Frontend (Jest)",
+        "detail": "Run frontend unit tests in a container",
+        "type": "shell",
+        "command": "docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm frontend-test",
+        "group": "test",
+        "problemMatcher": [],
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
+        "label": "Test: E2E (Playwright)",
+        "detail": "Run Playwright e2e (desktop + mobile) in a container; dependencies (frontend/backend/db/mailpit) start automatically",
+        "type": "shell",
+        "command": "docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm playwright",
+        "group": "test",
+        "problemMatcher": [],
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
+        "label": "Lint: Frontend (CI parity)",
+        "detail": "Run the same lint gate as CI (`nx run-many -t lint`) in a container",
+        "type": "shell",
+        "command": "docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm --entrypoint npx frontend-test nx run-many -t lint",
+        "group": "test",
+        "problemMatcher": [],
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
         "label": "Install vsdbg",
         "type": "shell",
         "command": "docker exec -i juggerhub-backend bash -c 'curl -sSL https://aka.ms/getvsdbgsh | bash /dev/stdin -v latest -l /remote_debugger'",
