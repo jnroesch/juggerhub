@@ -8,6 +8,10 @@
 *.sh         text eol=lf
 .githooks/*  text eol=lf
 
+# Version-pin config read by CI / version managers (a stray CR can break nvm):
+.nvmrc       text eol=lf
+.npmrc       text eol=lf
+
 # PowerShell: CRLF is friendliest for Windows PowerShell (pwsh handles both).
 *.ps1        text eol=crlf
 

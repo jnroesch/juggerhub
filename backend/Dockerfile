@@ -2,8 +2,12 @@
 # Build context is ./backend (see docker-compose.yml); the .csproj is at its root.
 
 # --- build: restore + publish the API ---------------------------------------
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# SDK pinned to match backend/global.json and CI.
+FROM mcr.microsoft.com/dotnet/sdk:10.0.203 AS build
 WORKDIR /src
+
+# Copy global.json first so `dotnet` enforces the pinned SDK for every command below.
+COPY global.json ./
 
 # Restore against just the project files first for better layer caching.
 COPY JuggerHub.Api.csproj ./
@@ -23,7 +27,8 @@ ENTRYPOINT ["dotnet", "test", \
   "-c", "Release", "--logger", "console;verbosity=normal"]
 
 # --- runtime: lean ASP.NET image with only the publish output ---------------
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+# ASP.NET runtime pinned (latest 10.0 patch at time of pinning).
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.7 AS runtime
 WORKDIR /app
 
 # curl is used by the compose healthcheck to probe /api/v1/health.

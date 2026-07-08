@@ -55,7 +55,7 @@ services:
       start_period: 10s
 
   database:
-    image: postgres:18-alpine
+    image: postgres:18.3-alpine
     container_name: juggerhub-database
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
@@ -78,7 +78,7 @@ services:
       start_period: 5s
 
   mailpit:
-    image: axllent/mailpit
+    image: axllent/mailpit:v1.29.1
     container_name: juggerhub-mailpit
     ports:
       - "8025:8025"
