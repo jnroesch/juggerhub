@@ -63,6 +63,51 @@ public sealed record TeamPublicDto(
     string? City,
     int MemberCount);
 
+/// <summary>How the viewer relates to a team (feature 009) — drives which sections and which
+/// join action the public page shows. Decided server-side from the session.</summary>
+public enum TeamViewerRelation
+{
+    Anonymous,
+    NonMember,
+    Requested,
+    Member,
+    Admin,
+}
+
+/// <summary>The public team page (feature 009): overview + the viewer's relation + capped public
+/// roster, recent activity, and upcoming trainings. Carries NO contact details or news.</summary>
+public sealed record TeamPublicDetailDto(
+    string Slug,
+    string Name,
+    TeamType Type,
+    string? City,
+    int MemberCount,
+    bool BeginnersWelcome,
+    bool IsActive,
+    TeamViewerRelation ViewerRelation,
+    IReadOnlyList<PublicMemberDto> Roster,
+    IReadOnlyList<JuggerHub.Dtos.Profile.ActivityItemDto> RecentActivity,
+    IReadOnlyList<TrainingDto> UpcomingTrainings);
+
+/// <summary>One public roster row — identity + position only, never contact details.</summary>
+public sealed record PublicMemberDto(
+    string Handle,
+    string DisplayName,
+    TeamRole Role,
+    bool HasAvatar,
+    IReadOnlyList<Pompfe> Pompfen);
+
+/// <summary>An upcoming event the team is entered in (a "training"/match), shown publicly.</summary>
+public sealed record TrainingDto(Guid EventId, string Name, DateTime StartsAt, string LocationLabel);
+
+/// <summary>One pending join request in the admin queue (feature 009).</summary>
+public sealed record JoinRequestDto(
+    Guid Id,
+    string Handle,
+    string DisplayName,
+    bool HasAvatar,
+    DateTime CreatedDate);
+
 /// <summary>One roster row (member-only view).</summary>
 public sealed record TeamMemberDto(
     Guid UserId,

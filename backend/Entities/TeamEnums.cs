@@ -34,3 +34,12 @@ public enum InvitationStatus
     Declined = 2,
     Revoked = 3,
 }
+
+/// <summary>Lifecycle of a player's request to join a team (feature 009). A partial unique index
+/// enforces at most one <see cref="Pending"/> request per (team, player). Serialized as its name.</summary>
+public enum JoinRequestStatus
+{
+    Pending = 0,
+    Approved = 1,
+    Declined = 2,
+}

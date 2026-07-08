@@ -62,6 +62,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<EventNewsPost> EventNewsPosts => Set<EventNewsPost>();
 
+    public DbSet<TeamJoinRequest> TeamJoinRequests => Set<TeamJoinRequest>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -330,6 +332,31 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasOne(n => n.Author)
                 .WithMany()
                 .HasForeignKey(n => n.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TeamJoinRequest>(entity =>
+        {
+            // The admin request queue reads pending requests per team.
+            entity.HasIndex(r => new { r.TeamId, r.Status });
+            // At most one PENDING request per (team, player) (Status = Pending = 0).
+            entity.HasIndex(r => new { r.TeamId, r.UserId })
+                .IsUnique()
+                .HasFilter("\"Status\" = 0");
+
+            entity.HasOne(r => r.Team)
+                .WithMany()
+                .HasForeignKey(r => r.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(r => r.DecidedBy)
+                .WithMany()
+                .HasForeignKey(r => r.DecidedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

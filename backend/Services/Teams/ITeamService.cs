@@ -75,6 +75,11 @@ public interface ITeamService
     /// <summary>Anonymous public team info; null when unknown.</summary>
     Task<TeamPublicDto?> GetPublicAsync(string slug, CancellationToken ct = default);
 
+    /// <summary>The public team page (feature 009): overview + the viewer's relation + capped public
+    /// roster, recent activity, and upcoming trainings. Anonymous when <paramref name="viewerUserId"/>
+    /// is null. Null when no team has that slug.</summary>
+    Task<TeamPublicDetailDto?> GetPublicDetailAsync(string slug, Guid? viewerUserId, CancellationToken ct = default);
+
     /// <summary>Members-only roster (paginated); null when unknown OR the caller is not a member.</summary>
     Task<PagedResult<TeamMemberDto>?> GetRosterAsync(string slug, Guid userId, PaginationRequest pagination, CancellationToken ct = default);
 
