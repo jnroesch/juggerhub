@@ -73,7 +73,7 @@ scoping, always-on, and fail-safe; backend integration tests are the cheapest ho
 
 - [ ] T023 [P] Accessibility + responsive pass (switch/checkbox semantics, labels, focus, matrix on desktop / cards on mobile).
 - [ ] T024 Run `dotnet test backend/JuggerHub.slnx` + `npx nx test web`; `dotnet build` + `npx nx build web`. Fix failures; confirm no bundle-budget regression.
-- [ ] T025 Update backlog + note this extends feature 010; record any spec drift.
+- [ ] T025 Update the GitHub issue + note this extends feature 010; record any spec drift.
 
 ## Dependencies
 

@@ -36,7 +36,7 @@
   `## Clarifications` section and propagated into the requirements/assumptions:
   1. Multiple team membership → **unlimited**, no per-type cap (0–unlimited city teams AND 0–unlimited Mixteams).
   2. Team-page visibility → **name/type/city/activity public; roster/news/management members-only; no non-member preview**.
-  3. Targeted-invite delivery → **email link only** (in-app notifications deferred to Backlog TASK-4).
+  3. Targeted-invite delivery → **email link only** (in-app notifications deferred to GitHub issue #14).
   4. Team deletion → **preserve event history** (attribution becomes "former team").
   5. Team identity → **duplicate names allowed + unique, immutable, creator-chosen slug** with live availability (profile-`@handle` parity); adds a "team address" field to the create form (minor wireframe drift).
 - Spec is clarified and ready for `/speckit-plan`.

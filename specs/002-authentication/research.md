@@ -340,5 +340,5 @@ fresh clone runs first try (SC-001); stale placeholders are a footgun.
 ## Resolved unknowns
 
 All Technical Context items are resolved; **no `NEEDS CLARIFICATION` remain**. MFA,
-OAuth/SSO, and HIBP breach-screening (backlog TASK-1) are intentionally out of scope
+OAuth/SSO, and HIBP breach-screening (GitHub issue #11) are intentionally out of scope
 and tracked separately.

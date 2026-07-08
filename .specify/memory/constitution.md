@@ -3,7 +3,7 @@
 This constitution is the single source of truth for architecture, security, and
 engineering conventions in this repository. It consolidates the guidance that
 previously lived in `instructions/`. Per [CLAUDE.md](../../CLAUDE.md), Spec-Kit
-specs and this constitution outrank Backlog.md, Graphify, claude-mem, and general
+specs and this constitution outrank GitHub Issues, Graphify, claude-mem, and general
 model knowledge — but never override the current user instruction, the source
 code/tests, or an explicit spec.
 

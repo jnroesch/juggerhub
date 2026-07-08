@@ -91,7 +91,7 @@ Web app: backend at `backend/`, frontend at `frontend/apps/web/src/app/`.
 
 - [ ] T031 [P] Accessibility + responsive pass on `/alerts` and the badge (focus rings, aria-live for badge, mobile/desktop layouts) per DESIGN.md.
 - [ ] T032 Run `dotnet test backend/JuggerHub.slnx` and `npx nx test web`; run `npx nx lint web` + `dotnet build`. Fix failures.
-- [ ] T033 Update backlog TASK-4 acceptance criteria to done; note spec drift (team-news posting added) and finalize.
+- [ ] T033 Update GitHub issue #14 acceptance criteria to done; note spec drift (team-news posting added) and finalize.
 
 ## Dependencies
 

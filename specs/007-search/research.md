@@ -64,7 +64,7 @@ All Technical Context unknowns are resolved below. Each item is a design decisio
 
 **Rationale**: Teams' internal space is members-only by current design (005); building a public team page is a separate feature with its own DTO/visibility decisions. Linking to the existing route is honest and consistent; the browse list itself (name/city/player-count/beginners) is fully public and useful without opening the page. Flagged in the plan's Constitution Check as a UX limitation, not a deviation.
 
-**Follow-up**: "Public team page" (reuse the existing `GET /teams/{slug}/public` + `TeamPublicDto`) — a candidate backlog item, not built here.
+**Follow-up**: "Public team page" (reuse the existing `GET /teams/{slug}/public` + `TeamPublicDto`) — a candidate GitHub issue, not built here.
 
 ## 8. Team `BeginnersWelcome` write path (Teams has no update endpoint)
 

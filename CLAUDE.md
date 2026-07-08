@@ -4,7 +4,7 @@ This project uses:
 
 * **Spec-Kit** for product requirements, architecture, plans, and tasks.
 * **DESIGN.md** for UI style, visual identity, and frontend consistency.
-* **Backlog.md** for intake and prioritization only.
+* **GitHub Issues** for intake and prioritization.
 * **Graphify** for codebase understanding and impact analysis.
 * **claude-mem** for historical session memory.
 * **Custom skills** for specialist workflows.
@@ -14,7 +14,7 @@ verification — or, for a Spec-Kit `tasks.md`, via the `/speckit-implement` ski
 
 Core rule:
 
-> Spec-Kit decides. DESIGN.md styles. Backlog.md queues. Graphify maps. claude-mem remembers. Skills specialize.
+> Spec-Kit decides. DESIGN.md styles. GitHub Issues queue. Graphify maps. claude-mem remembers. Skills specialize.
 
 ---
 
@@ -26,12 +26,12 @@ When sources conflict, use this priority order:
 2. Source code and tests
 3. Spec-Kit specs, plans, tasks, and constitution
 4. DESIGN.md for UI/design decisions
-5. Backlog.md item description
+5. GitHub Issue description
 6. Graphify output
 7. claude-mem memory
 8. General model knowledge
 
-Never let Backlog.md, Graphify, claude-mem, or skills override Spec-Kit.
+Never let GitHub Issues, Graphify, claude-mem, or skills override Spec-Kit.
 
 Never let claude-mem override current code, tests, specs, or explicit user instructions.
 
@@ -63,7 +63,7 @@ Before significant implementation, prefer:
 5. Create tasks
 6. Execute the tasks via `/speckit-implement`
 
-Do not implement significant behavior changes directly from Backlog.md.
+Do not implement significant behavior changes directly from a GitHub Issue.
 
 ---
 
@@ -86,11 +86,11 @@ If UI requirements conflict with DESIGN.md, report the conflict.
 
 ---
 
-### Backlog.md
+### GitHub Issues
 
-Backlog.md is for deciding what to work on next.
+GitHub Issues are for intake and deciding what to work on next.
 
-Use it for:
+Use them for:
 
 * ideas
 * goals
@@ -99,9 +99,9 @@ Use it for:
 * technical debt
 * prioritization
 
-Backlog.md is not implementation truth.
+A GitHub Issue is not implementation truth.
 
-When a backlog item is selected, classify it:
+When an issue is selected, classify it:
 
 * tiny fix
 * UI fix
@@ -120,7 +120,7 @@ Then route it:
 * Architecture/refactor → Spec-Kit if architecture changes → Graphify → skills → implement → verify
 * Research → Graphify/claude-mem/specs → summarize findings, no code changes
 
-Promote a backlog item into Spec-Kit only when it changes behavior, APIs, schema, auth, permissions, billing, architecture, or has unclear acceptance criteria.
+Promote an issue into Spec-Kit only when it changes behavior, APIs, schema, auth, permissions, billing, architecture, or has unclear acceptance criteria.
 
 ---
 
@@ -286,7 +286,7 @@ If the task is significant and has no spec, use Spec-Kit before implementation.
 * Do not silently change scope.
 * Do not overwrite unrelated changes.
 * Do not ignore failing tests.
-* Do not store secrets in code, docs, specs, Backlog.md, Graphify, or claude-mem.
+* Do not store secrets in code, docs, specs, GitHub Issues, Graphify, or claude-mem.
 * Keep code aligned with Spec-Kit and UI aligned with DESIGN.md.
 
 ---
@@ -311,7 +311,7 @@ Report:
 4. Failures or skipped checks
 5. Risks/follow-ups
 6. Spec or design drift
-7. Backlog.md status, if applicable
+7. GitHub Issue status, if applicable
 
 Never claim verification passed if it was not run.
 
@@ -319,9 +319,9 @@ Never claim verification passed if it was not run.
 
 ## Minimal Routing
 
-* “What should I work on next?” → Backlog.md
+* “What should I work on next?” → GitHub Issues
 * “Build this feature” → Spec-Kit first
-* “Implement this task” → Spec-Kit/Backlog.md context → Graphify → implement
+* “Implement this task” → Spec-Kit/GitHub Issue context → Graphify → implement
 * “Fix this bug” → Graphify → inspect code/tests → implement
 * “Change this UI” → DESIGN.md → Graphify → UI skill → implement
 * “Refactor this” → Graphify first, Spec-Kit if architecture changes
@@ -335,25 +335,28 @@ shell commands, and other important information, read the current plan:
 `specs/008-home-dashboard-nav/plan.md` (Home dashboard & top-level navigation).
 <!-- SPECKIT END -->
 
-<!-- BACKLOG.MD GUIDELINES START -->
-<CRITICAL_INSTRUCTION>
+## GitHub Issues Workflow
 
-## Backlog.md Workflow
+This project uses **GitHub Issues** for task and project management and
+contributor intake. Use the `gh` CLI (authenticated) to search, read, create,
+and update issues so the tracker stays the single source of truth.
 
-This project uses Backlog.md for task and project management.
+Before starting work, search for an existing issue rather than assuming:
 
-**For every user request in this project, run `backlog instructions overview` before answering or taking action.**
+- `gh issue list --search "keywords"` — find related issues
+- `gh issue list --label bug --state open` — filter by label/state
+- `gh issue view <number>` — read an issue and its discussion
 
-Use the overview to decide whether to search, read, create, or update Backlog tasks.
+Create an issue when work requires planning, decisions, or handoff notes
+(bug fixes that need investigation, feature work, API changes, refactors, or
+anything that should be reviewed as a commitment). Skip issue creation for
+questions, explanations, quick lookups, and obvious mechanical edits.
 
-Use the detailed guides when needed:
-- `backlog instructions task-creation` for creating or splitting tasks
-- `backlog instructions task-execution` for planning and implementation workflow
-- `backlog instructions task-finalization` for completion and handoff
+- `gh issue create --title "..." --body "..." --label "..."` — create
+- `gh issue comment <number> --body "..."` — add progress/handoff notes
+- `gh issue close <number>` / `gh issue edit <number> --add-label "..."` — update status
 
-Use `backlog <command> --help` before running unfamiliar commands. Help shows options, fields, and examples.
-
-Do not edit Backlog task, draft, document, decision, or milestone markdown files directly. Use the `backlog` CLI so metadata, relationships, and history stay consistent.
-
-</CRITICAL_INSTRUCTION>
-<!-- BACKLOG.MD GUIDELINES END -->
+Link issues to the work: reference `#<number>` in commit messages and PR
+descriptions, and use closing keywords (`Closes #<number>`) in PRs so merging
+resolves the issue. Bug reports and feature requests from external contributors
+arrive through the templates in `.github/ISSUE_TEMPLATE/`.
