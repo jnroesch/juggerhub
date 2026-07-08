@@ -5,7 +5,7 @@ namespace JuggerHub.Entities;
 /// <see cref="PlayerProfile"/>) so profile/list projections never pull the blob.
 /// Stored as Postgres <c>bytea</c> — a deliberate parity-first MVP choice with a
 /// documented migration path to object storage (specs/003-profile/research.md §4;
-/// backlog TASK-3).
+/// GitHub issue #13).
 /// </summary>
 public sealed class ProfileAvatar : BaseEntity
 {

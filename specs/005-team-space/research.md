@@ -39,7 +39,7 @@ Resolves the design questions the spec + clarifications left for planning, and r
 
 ## §5 — Targeted-invite delivery by email (reuse 002 infra)
 
-**Decision**: Targeted invites are delivered by transactional email, reusing [`IEmailSender`](../../backend/Services/Email/IEmailSender.cs) + `IEmailTemplateService` exactly like [`AuthEmailService`](../../backend/Services/Email/AuthEmailService.cs). Add a `TeamEmailService` that renders a **new `team-invite` HTML template** (extending the existing base header/footer) and sends it; the link is built from `EmailOptions.FrontendBaseUrl` as `"{base}/join/{slug}/{token}"`. Mailpit locally, Resend on Dev/Prod (no new infra/secrets). The in-app notifications alternative is **out of scope** (Backlog TASK-4).
+**Decision**: Targeted invites are delivered by transactional email, reusing [`IEmailSender`](../../backend/Services/Email/IEmailSender.cs) + `IEmailTemplateService` exactly like [`AuthEmailService`](../../backend/Services/Email/AuthEmailService.cs). Add a `TeamEmailService` that renders a **new `team-invite` HTML template** (extending the existing base header/footer) and sends it; the link is built from `EmailOptions.FrontendBaseUrl` as `"{base}/join/{slug}/{token}"`. Mailpit locally, Resend on Dev/Prod (no new infra/secrets). The in-app notifications alternative is **out of scope** (GitHub issue #14).
 
 **Rationale**: parity-first — the whole email pipeline already exists; this is one service + one template. **Alternative**: bespoke mailer (rejected — duplicates infra).
 

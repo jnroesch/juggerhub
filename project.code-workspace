@@ -35,12 +35,6 @@
         "icon": "history",
         "color": "terminal.ansiMagenta"
       },
-      "Backlog: Web Board": {
-        "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "backlog browser"],
-        "icon": "checklist",
-        "color": "terminal.ansiBlue"
-      },
       "Graphify: View Graph": {
         "path": "pwsh.exe",
         "args": ["-NoExit", "-Command", "Start-Process \"$PWD/graphify-out/graph.html\""],
@@ -167,15 +161,6 @@
         "icon": { "id": "history", "color": "terminal.ansiMagenta" },
         "problemMatcher": [],
         "presentation": { "reveal": "silent", "panel": "shared", "close": true }
-      },
-      {
-        "label": "📋 Backlog.md: Open Board (Web)",
-        "detail": "Run `backlog browser` — web Kanban/task UI on http://localhost:6420 (auto-opens browser)",
-        "type": "shell",
-        "command": "backlog browser",
-        "icon": { "id": "checklist", "color": "terminal.ansiBlue" },
-        "problemMatcher": [],
-        "presentation": { "reveal": "always", "panel": "dedicated" }
       },
       {
         "label": "🕸️ Graphify: View Graph",

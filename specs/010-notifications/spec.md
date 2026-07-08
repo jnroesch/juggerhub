@@ -44,7 +44,7 @@ the team and inviter. I can accept or decline the invite directly from the notif
 without leaving the Alerts surface. Accepting joins me to the team; declining dismisses the
 invite. The notification reflects the resolved state afterward and is no longer actionable.
 
-**Why this priority**: This is the motivating producer (backlog TASK-4) and the only one with
+**Why this priority**: This is the motivating producer (GitHub issue #14) and the only one with
 inline actions, so it exercises the full round trip: producer → notification → action → state
 change → notification update. It is independently testable and valuable on its own.
 

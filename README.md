@@ -140,7 +140,6 @@ $test run --rm playwright      # Playwright e2e (start the stack first)
 ├── frontend/             # Nx + Angular workspace (apps/web, apps/web-e2e), Dockerfile
 ├── specs/                # Spec-Kit feature specs, plans, and tasks
 ├── .specify/             # Spec-Kit constitution & templates (architecture source of truth)
-├── backlog/              # Backlog.md: prioritized tasks and decisions
 ├── DESIGN.md             # Visual identity / design tokens (UI source of truth)
 ├── CLAUDE.md             # AI-assisted development workflow rules
 ├── .github/              # CI/CD workflows, issue forms, PR template
@@ -172,14 +171,14 @@ JuggerHub is developed with an integrated, spec-driven AI toolchain. It's not
 required to use the app or to contribute a small fix, but it's part of what makes
 this repo tick — and it's all here in the open.
 
-> **Spec-Kit** decides · **DESIGN.md** styles · **Backlog.md** queues ·
+> **Spec-Kit** decides · **DESIGN.md** styles · **GitHub Issues** queue ·
 > **Graphify** maps · **claude-mem** remembers.
 
 | Tool | Role | UI |
 |------|------|----|
 | **[Spec-Kit](https://github.com/github/spec-kit)** | Specs, plans, tasks, constitution — the source of truth for behavior | — |
 | **DESIGN.md** | Visual identity / design tokens | the `DESIGN.md` file |
-| **Backlog.md** | Intake & prioritization (Kanban) | web UI + terminal board |
+| **GitHub Issues** | Intake & prioritization | GitHub issue tracker + `gh` CLI |
 | **Graphify** | Codebase knowledge graph / impact analysis | interactive graph (HTML) |
 | **claude-mem** | Cross-session memory | web viewer |
 
@@ -193,7 +192,7 @@ cloning. Requires **Node 20+**, **uv**, and **git**.
 
 ```bash
 # Global CLIs
-npm install -g backlog.md @google/design.md
+npm install -g @google/design.md
 uv  tool install specify-cli --from git+https://github.com/github/spec-kit.git@v0.11.9
 uv  tool install graphifyy && graphify install --platform claude
 

@@ -64,8 +64,8 @@ Thumbs.db
 # --- VCS internals ---
 .git/
 
-# --- AI tooling: local & generated (keep specs/backlog/design readable) ---
+# --- AI tooling: local & generated (keep specs/design readable) ---
 graphify-out/
 .claude/settings.local.json
-# Do NOT ignore: .specify/, backlog/, DESIGN.md, CLAUDE.md — these are the
+# Do NOT ignore: .specify/, DESIGN.md, CLAUDE.md — these are the
 # source-of-truth context the workflow depends on.

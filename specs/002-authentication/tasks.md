@@ -196,7 +196,7 @@ description: "Task list for Authentication & Account Access"
 - [x] T056 Security review pass (OWASP / never-trust-the-client): confirm no token/secret/stack-trace in any response or log; both cookies `HttpOnly` + `SameSite=Strict` + env-driven `Secure`; enumeration neutrality (bodies + rough timing); lockout honored; refresh stored only as hash. Run `/security-review` on the branch diff and resolve findings.
 - [x] T057 [P] Update `README.md` auth section and confirm `.env.sample` ↔ backend config parity.
 - [x] T058 Run the full [quickstart.md](./quickstart.md): `docker compose up` manual journey + all three test suites (backend integration, frontend Jest, Playwright desktop+mobile) green.
-- [x] T059 Record outcomes in claude-mem (what changed, why, key decisions, verification results, follow-ups e.g. backlog TASK-1 HIBP).
+- [x] T059 Record outcomes in claude-mem (what changed, why, key decisions, verification results, follow-ups e.g. GitHub issue #11 HIBP).
 
 ---
 
@@ -243,5 +243,5 @@ description: "Task list for Authentication & Account Access"
 
 - `[P]` = different files, no incomplete-task dependency. Shared cross-story files (`AuthService.cs`, `AuthController.cs`, `auth.service.ts`, `app.routes.ts`) are edited sequentially.
 - Never put token material/secrets/passwords in response bodies or logs (FR-021/FR-022/FR-024).
-- Out of scope (do not implement): MFA/2FA, OAuth/SSO, HIBP breach-screening (backlog **TASK-1**).
+- Out of scope (do not implement): MFA/2FA, OAuth/SSO, HIBP breach-screening (GitHub issue **#11**).
 - Commit after each task or logical group; keep commits small. Stop at any checkpoint to validate independently.
