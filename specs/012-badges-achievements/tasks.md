@@ -59,20 +59,20 @@ description: "Task list for Badges & Achievements"
 
 ### Tests for User Story 1 (write first, expect FAIL) ⚠️
 
-- [ ] T012 [P] [US1] Badge admin integration tests in `backend/tests/JuggerHub.Api.IntegrationTests/Badges/BadgeAdminTests.cs`: create/edit/retire definition; icon upload (valid + rejected type); grant to player and team; duplicate active grant → 409; subject-type mismatch → 400; retire preserves existing awards; revoke sets Revoked + allows re-grant.
-- [ ] T013 [P] [US1] Achievement admin integration tests in `.../Achievements/AchievementAdminTests.cs`: same coverage as badges plus grant with `contextYear`/`contextLabel` persisted.
-- [ ] T014 [P] [US1] Authorization tests in `.../Recognition/AdminAuthorizationTests.cs`: for **every** `/admin/badges*` and `/admin/achievements*` route, a non-admin authenticated caller → 403 and an anonymous caller → 401; an allowlisted admin → allowed. This is the security-critical suite (SC-002, SC-006).
+- [X] T012 [P] [US1] Badge admin integration tests in `backend/tests/JuggerHub.Api.IntegrationTests/Badges/BadgeAdminTests.cs`: create/edit/retire definition; icon upload (valid + rejected type); grant to player and team; duplicate active grant → 409; subject-type mismatch → 400; retire preserves existing awards; revoke sets Revoked + allows re-grant.
+- [X] T013 [P] [US1] Achievement admin integration tests in `.../Achievements/AchievementAdminTests.cs`: same coverage as badges plus grant with `contextYear`/`contextLabel` persisted.
+- [X] T014 [P] [US1] Authorization tests in `.../Recognition/AdminAuthorizationTests.cs`: for **every** `/admin/badges*` and `/admin/achievements*` route, a non-admin authenticated caller → 403 and an anonymous caller → 401; an allowlisted admin → allowed. This is the security-critical suite (SC-002, SC-006).
 
 ### Implementation for User Story 1
 
-- [ ] T015 [P] [US1] Badge admin DTOs in `backend/Dtos/Badges/` (`DefinitionUpsertRequest`, `BadgeDefinitionDto`, `GrantRequest`, `RevokeRequest`, `AwardDto`) with data-annotation validation per [contracts/openapi.yaml](./contracts/openapi.yaml) (name ≤60, description ≤280, at-least-one applicability).
-- [ ] T016 [P] [US1] Achievement admin DTOs in `backend/Dtos/Achievements/` (same set + `contextYear`/`contextLabel` on grant/award DTOs).
-- [ ] T017 [US1] Add Mapster maps (definitions + awards → DTOs) in `backend/Common/MappingConfig.cs`.
-- [ ] T018 [US1] Create `IBadgeService` + `BadgeService` in `backend/Services/Badges/`: paginated definition list, create/edit/retire, icon upload/get, grant (validates not-retired, subject exists, applicability, duplicate-active), revoke (targeted update setting `ModifiedDate`). Depends on T005, T015.
-- [ ] T019 [US1] Create `IAchievementService` + `AchievementService` in `backend/Services/Achievements/` (same, incl. context). Depends on T006, T016.
-- [ ] T020 [US1] Create `backend/Controllers/Admin/BadgesAdminController.cs` — `[Authorize(Policy="PlatformAdmin")]`, `[ApiVersion("1.0")]`, thin actions per contract (definitions CRUD, icon PUT, grant, revoke). Depends on T018.
-- [ ] T021 [US1] Create `backend/Controllers/Admin/AchievementsAdminController.cs` (parallel to badges). Depends on T019.
-- [ ] T022 [US1] Register `IBadgeService`/`IAchievementService` (and any icon service) in `backend/Program.cs`.
+- [X] T015 [P] [US1] Badge admin DTOs in `backend/Dtos/Badges/` (`DefinitionUpsertRequest`, `BadgeDefinitionDto`, `GrantRequest`, `RevokeRequest`, `AwardDto`) with data-annotation validation per [contracts/openapi.yaml](./contracts/openapi.yaml) (name ≤60, description ≤280, at-least-one applicability).
+- [X] T016 [P] [US1] Achievement admin DTOs in `backend/Dtos/Achievements/` (same set + `contextYear`/`contextLabel` on grant/award DTOs).
+- [X] T017 [US1] Add Mapster maps (definitions + awards → DTOs) in `backend/Common/MappingConfig.cs`.
+- [X] T018 [US1] Create `IBadgeService` + `BadgeService` in `backend/Services/Badges/`: paginated definition list, create/edit/retire, icon upload/get, grant (validates not-retired, subject exists, applicability, duplicate-active), revoke (targeted update setting `ModifiedDate`). Depends on T005, T015.
+- [X] T019 [US1] Create `IAchievementService` + `AchievementService` in `backend/Services/Achievements/` (same, incl. context). Depends on T006, T016.
+- [X] T020 [US1] Create `backend/Controllers/Admin/BadgesAdminController.cs` — `[Authorize(Policy="PlatformAdmin")]`, `[ApiVersion("1.0")]`, thin actions per contract (definitions CRUD, icon PUT, grant, revoke). Depends on T018.
+- [X] T021 [US1] Create `backend/Controllers/Admin/AchievementsAdminController.cs` (parallel to badges). Depends on T019.
+- [X] T022 [US1] Register `IBadgeService`/`IAchievementService` (and any icon service) in `backend/Program.cs`.
 
 ### Frontend (admin surface) for User Story 1
 

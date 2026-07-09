@@ -4,7 +4,9 @@ using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Entities;
 using JuggerHub.Services;
+using JuggerHub.Services.Achievements;
 using JuggerHub.Services.Auth;
+using JuggerHub.Services.Badges;
 using JuggerHub.Services.Email;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Health;
@@ -235,6 +237,10 @@ builder.Services.AddSingleton<INotificationRealtime, SignalRNotificationRealtime
 builder.Services.AddScoped<INotificationService, NotificationService>();
 // Per-user delivery preferences (feature 011) — consulted by the engine + producers before delivery.
 builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
+
+// --- Badges & Achievements (feature 012) — two separate families -----------
+builder.Services.AddScoped<IBadgeService, BadgeService>();
+builder.Services.AddScoped<IAchievementService, AchievementService>();
 
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services
