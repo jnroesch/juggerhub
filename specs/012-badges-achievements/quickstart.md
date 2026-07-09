@@ -15,13 +15,13 @@ See [contracts/openapi.yaml](./contracts/openapi.yaml) for the API surface and [
 The admin gate is a config allowlist (interim — real role is #21). Set the admin email(s) via env, consistent with other config/secrets:
 
 ```
-# .env (local)  — mirror the pattern in .env.sample
-Admin__Emails=admin@test.de
+# .env (local) — docker-compose maps ADMIN_EMAILS → the backend's Admin__Emails
+ADMIN_EMAILS=admin@test.de
 ```
 
-> Local development default is `admin@test.de` (added to `.env.sample`). Register an
+> Local development default is `admin@test.de` (already in `.env.sample`). Register an
 > account with this email to act as the platform admin locally. Multiple admins can be
-> comma-separated. Deployed environments set their own value in the GitHub Environment.
+> comma-separated. Deployed environments set their own value in their GitHub Environment.
 
 `.NET` reads `Admin__Emails` → `Admin:Emails` (`AdminOptions`). Deployed environments set this in the GitHub Environment, never committed. Restart the backend after changing.
 

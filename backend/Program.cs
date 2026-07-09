@@ -15,7 +15,9 @@ using JuggerHub.Services.Profile;
 using JuggerHub.Services.Search;
 using JuggerHub.Services.Security;
 using JuggerHub.Services.Teams;
+using JuggerHub.Security.PlatformAdmin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -148,7 +150,17 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+// --- Platform admin gate (feature 012; TEMPORARY config allowlist, real role → GH #21) -----
+builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection(AdminOptions.SectionName));
+builder.Services.AddScoped<IAuthorizationHandler, PlatformAdminHandler>();
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy(PlatformAdminPolicy.Name, policy =>
+    {
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new PlatformAdminRequirement());
+    }));
+builder.Services.Configure<RecognitionOptions>(builder.Configuration.GetSection(RecognitionOptions.SectionName));
 
 // --- Mapping (Mapster) -----------------------------------------------------
 builder.Services.AddMappingConfig();

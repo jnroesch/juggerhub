@@ -68,6 +68,19 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<NotificationPreference> NotificationPreferences => Set<NotificationPreference>();
 
+    // Feature 012 — Badges & Achievements (two separate families).
+    public DbSet<BadgeDefinition> BadgeDefinitions => Set<BadgeDefinition>();
+
+    public DbSet<BadgeIcon> BadgeIcons => Set<BadgeIcon>();
+
+    public DbSet<BadgeAward> BadgeAwards => Set<BadgeAward>();
+
+    public DbSet<AchievementDefinition> AchievementDefinitions => Set<AchievementDefinition>();
+
+    public DbSet<AchievementIcon> AchievementIcons => Set<AchievementIcon>();
+
+    public DbSet<AchievementAward> AchievementAwards => Set<AchievementAward>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -419,6 +432,124 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ---- Feature 012: Badges & Achievements (two parallel families) ----
+
+        builder.Entity<BadgeDefinition>(entity =>
+        {
+            entity.Property(d => d.Name).HasMaxLength(60).IsRequired();
+            entity.Property(d => d.Description).HasMaxLength(280).IsRequired();
+            // Grant pickers list active (non-retired) definitions.
+            entity.HasIndex(d => d.IsRetired);
+
+            entity.HasOne(d => d.Icon)
+                .WithOne(i => i.Definition)
+                .HasForeignKey<BadgeIcon>(i => i.BadgeDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<BadgeIcon>(entity =>
+        {
+            entity.Property(i => i.ContentType).HasMaxLength(64).IsRequired();
+        });
+
+        builder.Entity<BadgeAward>(entity =>
+        {
+            entity.Property(a => a.RevokedReason).HasMaxLength(280);
+
+            // Exactly one subject (player XOR team).
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_BadgeAward_OneSubject",
+                "(\"PlayerProfileId\" IS NOT NULL) <> (\"TeamId\" IS NOT NULL)"));
+
+            // At most one ACTIVE award per (definition, subject); revoked rows allow a re-grant.
+            entity.HasIndex(a => new { a.BadgeDefinitionId, a.PlayerProfileId })
+                .IsUnique()
+                .HasFilter("\"Status\" = 0 AND \"PlayerProfileId\" IS NOT NULL");
+            entity.HasIndex(a => new { a.BadgeDefinitionId, a.TeamId })
+                .IsUnique()
+                .HasFilter("\"Status\" = 0 AND \"TeamId\" IS NOT NULL");
+            // Back the embedded display query: a subject's active awards.
+            entity.HasIndex(a => a.PlayerProfileId);
+            entity.HasIndex(a => a.TeamId);
+
+            entity.HasOne(a => a.Definition)
+                .WithMany(d => d.Awards)
+                .HasForeignKey(a => a.BadgeDefinitionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(a => a.PlayerProfile)
+                .WithMany()
+                .HasForeignKey(a => a.PlayerProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(a => a.Team)
+                .WithMany()
+                .HasForeignKey(a => a.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Preserve who granted; admins aren't deleted casually.
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(a => a.GrantedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<AchievementDefinition>(entity =>
+        {
+            entity.Property(d => d.Name).HasMaxLength(60).IsRequired();
+            entity.Property(d => d.Description).HasMaxLength(280).IsRequired();
+            entity.HasIndex(d => d.IsRetired);
+
+            entity.HasOne(d => d.Icon)
+                .WithOne(i => i.Definition)
+                .HasForeignKey<AchievementIcon>(i => i.AchievementDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<AchievementIcon>(entity =>
+        {
+            entity.Property(i => i.ContentType).HasMaxLength(64).IsRequired();
+        });
+
+        builder.Entity<AchievementAward>(entity =>
+        {
+            entity.Property(a => a.RevokedReason).HasMaxLength(280);
+            entity.Property(a => a.ContextLabel).HasMaxLength(120);
+
+            entity.ToTable(t => t.HasCheckConstraint(
+                "CK_AchievementAward_OneSubject",
+                "(\"PlayerProfileId\" IS NOT NULL) <> (\"TeamId\" IS NOT NULL)"));
+
+            entity.HasIndex(a => new { a.AchievementDefinitionId, a.PlayerProfileId })
+                .IsUnique()
+                .HasFilter("\"Status\" = 0 AND \"PlayerProfileId\" IS NOT NULL");
+            entity.HasIndex(a => new { a.AchievementDefinitionId, a.TeamId })
+                .IsUnique()
+                .HasFilter("\"Status\" = 0 AND \"TeamId\" IS NOT NULL");
+            entity.HasIndex(a => a.PlayerProfileId);
+            entity.HasIndex(a => a.TeamId);
+
+            entity.HasOne(a => a.Definition)
+                .WithMany(d => d.Awards)
+                .HasForeignKey(a => a.AchievementDefinitionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(a => a.PlayerProfile)
+                .WithMany()
+                .HasForeignKey(a => a.PlayerProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(a => a.Team)
+                .WithMany()
+                .HasForeignKey(a => a.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne<User>()
+                .WithMany()
+                .HasForeignKey(a => a.GrantedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

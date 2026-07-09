@@ -19,6 +19,8 @@ services:
       - Email__FromAddress=${EMAIL_FROM_ADDRESS:-no-reply@juggerhub.local}
       - Email__FrontendBaseUrl=${EMAIL_FRONTEND_BASE_URL:-http://localhost:3000}
       - Email__Resend__ApiKey=${EMAIL_RESEND_API_KEY:-}
+      # Feature 012 — temporary platform-admin allowlist (comma-separated emails). See GH #21.
+      - Admin__Emails=${ADMIN_EMAILS:-}
     networks:
       - juggerhub-network
     depends_on:

@@ -26,9 +26,9 @@ description: "Task list for Badges & Achievements"
 
 **Purpose**: Config scaffolding and folders the rest builds on.
 
-- [ ] T001 [P] Create `backend/Common/AdminOptions.cs` — `SectionName = "Admin"`, `IReadOnlyList<string> Emails` (bound from config), with case-insensitive membership intent documented (temporary gate per FR-013).
-- [ ] T002 [P] Wire the admin allowlist config: add `Admin__Emails=admin@test.de` to `.env.sample` (documented as the local platform-admin allowlist; comma-separated for multiple), pass `Admin__Emails` through to the `backend` service `environment` in `docker-compose.yml`, and add an empty `Admin:Emails` default to `backend/appsettings.json`.
-- [ ] T003 Create feature folders: `backend/Dtos/Badges/`, `backend/Dtos/Achievements/`, `backend/Services/Badges/`, `backend/Services/Achievements/`, `backend/Security/PlatformAdmin/`, `backend/Controllers/Admin/`, and `frontend/apps/web/src/app/features/admin/`.
+- [X] T001 [P] Create `backend/Common/AdminOptions.cs` — `SectionName = "Admin"`, `IReadOnlyList<string> Emails` (bound from config), with case-insensitive membership intent documented (temporary gate per FR-013).
+- [X] T002 [P] Wire the admin allowlist config: add `Admin__Emails=admin@test.de` to `.env.sample` (documented as the local platform-admin allowlist; comma-separated for multiple), pass `Admin__Emails` through to the `backend` service `environment` in `docker-compose.yml`, and add an empty `Admin:Emails` default to `backend/appsettings.json`.
+- [X] T003 Create feature folders: `backend/Dtos/Badges/`, `backend/Dtos/Achievements/`, `backend/Services/Badges/`, `backend/Services/Achievements/`, `backend/Security/PlatformAdmin/`, `backend/Controllers/Admin/`, and `frontend/apps/web/src/app/features/admin/`.
 
 **Checkpoint**: Config keys resolve; folders exist.
 
@@ -38,14 +38,14 @@ description: "Task list for Badges & Achievements"
 
 **⚠️ CRITICAL**: No user story work begins until this phase is complete. This builds the data layer, the migration, the shared icon-upload validation, and the `PlatformAdmin` authorization policy every admin route depends on.
 
-- [ ] T004 [P] Create `backend/Entities/RecognitionEnums.cs` — `AwardSource { Manual, Automatic }`, `AwardStatus { Active, Revoked }`, `SubjectType { Player, Team }` (per [data-model.md](./data-model.md)).
-- [ ] T005 [P] Create badge entities in `backend/Entities/`: `BadgeDefinition.cs`, `BadgeIcon.cs`, `BadgeAward.cs` (all `: BaseEntity`; polymorphic `PlayerProfileId?`/`TeamId?`; award lifecycle fields per data-model).
-- [ ] T006 [P] Create achievement entities in `backend/Entities/`: `AchievementDefinition.cs`, `AchievementIcon.cs`, `AchievementAward.cs` (same shape as badges **plus** `ContextYear int?` and `ContextLabel string?` on the award).
-- [ ] T007 Extend `backend/Data/AppDbContext.cs`: add the 6 `DbSet`s and `OnModelCreating` config per family — max lengths, the `CHECK ((PlayerProfileId IS NOT NULL) <> (TeamId IS NOT NULL))`, filtered-unique indexes on `(DefinitionId, PlayerProfileId)` and `(DefinitionId, TeamId)` `WHERE Status = Active`, subject indexes, icon unique index, and delete behaviors (icon Cascade; award→definition Restrict; award→subject Cascade; award→granting User Restrict). Depends on T004–T006.
-- [ ] T008 Generate EF Core migration `AddBadgesAndAchievements` into `backend/Data/Migrations/` (auto-applied on startup). Verify the CHECK + filtered indexes are emitted. Depends on T007.
-- [ ] T009 [P] Add shared image-upload validation for icons in `backend/Common/` (magic-byte content-type sniff png/jpeg/webp + size cap), reusing/extracting the profile-avatar validation approach; used by both badge and achievement icon uploads.
-- [ ] T010 [P] Create the `PlatformAdmin` policy in `backend/Security/PlatformAdmin/`: `PlatformAdminRequirement.cs` + `PlatformAdminHandler.cs` — resolve the caller's user id from the JWT `sub`/`NameIdentifier` claim, load the user via `UserManager<User>`, and authorize iff the normalized email is in `AdminOptions.Emails` (case-insensitive). Fails closed.
-- [ ] T011 Extend `backend/Program.cs`: `Configure<AdminOptions>(GetSection("Admin"))`, register the authorization handler, and add an authorization policy named `PlatformAdmin` using the requirement. Depends on T001, T010.
+- [X] T004 [P] Create `backend/Entities/RecognitionEnums.cs` — `AwardSource { Manual, Automatic }`, `AwardStatus { Active, Revoked }`, `SubjectType { Player, Team }` (per [data-model.md](./data-model.md)).
+- [X] T005 [P] Create badge entities in `backend/Entities/`: `BadgeDefinition.cs`, `BadgeIcon.cs`, `BadgeAward.cs` (all `: BaseEntity`; polymorphic `PlayerProfileId?`/`TeamId?`; award lifecycle fields per data-model).
+- [X] T006 [P] Create achievement entities in `backend/Entities/`: `AchievementDefinition.cs`, `AchievementIcon.cs`, `AchievementAward.cs` (same shape as badges **plus** `ContextYear int?` and `ContextLabel string?` on the award).
+- [X] T007 Extend `backend/Data/AppDbContext.cs`: add the 6 `DbSet`s and `OnModelCreating` config per family — max lengths, the `CHECK ((PlayerProfileId IS NOT NULL) <> (TeamId IS NOT NULL))`, filtered-unique indexes on `(DefinitionId, PlayerProfileId)` and `(DefinitionId, TeamId)` `WHERE Status = Active`, subject indexes, icon unique index, and delete behaviors (icon Cascade; award→definition Restrict; award→subject Cascade; award→granting User Restrict). Depends on T004–T006.
+- [X] T008 Generate EF Core migration `AddBadgesAndAchievements` into `backend/Data/Migrations/` (auto-applied on startup). Verify the CHECK + filtered indexes are emitted. Depends on T007.
+- [X] T009 [P] Add shared image-upload validation for icons in `backend/Common/` (magic-byte content-type sniff png/jpeg/webp + size cap), reusing/extracting the profile-avatar validation approach; used by both badge and achievement icon uploads.
+- [X] T010 [P] Create the `PlatformAdmin` policy in `backend/Security/PlatformAdmin/`: `PlatformAdminRequirement.cs` + `PlatformAdminHandler.cs` — resolve the caller's user id from the JWT `sub`/`NameIdentifier` claim, load the user via `UserManager<User>`, and authorize iff the normalized email is in `AdminOptions.Emails` (case-insensitive). Fails closed.
+- [X] T011 Extend `backend/Program.cs`: `Configure<AdminOptions>(GetSection("Admin"))`, register the authorization handler, and add an authorization policy named `PlatformAdmin` using the requirement. Depends on T001, T010.
 
 **Checkpoint**: Solution builds, migration applies, `[Authorize(Policy="PlatformAdmin")]` resolves and denies by default. Stories can begin.
 
