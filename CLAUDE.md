@@ -6,7 +6,6 @@ This project uses:
 * **DESIGN.md** for UI style, visual identity, and frontend consistency.
 * **GitHub Issues** for intake and prioritization.
 * **Graphify** for codebase understanding and impact analysis.
-* **claude-mem** for historical session memory.
 * **Custom skills** for specialist workflows.
 
 Implementation is executed directly — task-by-task with small commits and
@@ -14,7 +13,7 @@ verification — or, for a Spec-Kit `tasks.md`, via the `/speckit-implement` ski
 
 Core rule:
 
-> Spec-Kit decides. DESIGN.md styles. GitHub Issues queue. Graphify maps. claude-mem remembers. Skills specialize.
+> Spec-Kit decides. DESIGN.md styles. GitHub Issues queue. Graphify maps. Skills specialize.
 
 ---
 
@@ -28,12 +27,9 @@ When sources conflict, use this priority order:
 4. DESIGN.md for UI/design decisions
 5. GitHub Issue description
 6. Graphify output
-7. claude-mem memory
-8. General model knowledge
+7. General model knowledge
 
-Never let GitHub Issues, Graphify, claude-mem, or skills override Spec-Kit.
-
-Never let claude-mem override current code, tests, specs, or explicit user instructions.
+Never let GitHub Issues, Graphify, or skills override Spec-Kit.
 
 Do not mix OpenSpec into this workflow.
 
@@ -118,7 +114,7 @@ Then route it:
 * Bug → Graphify → inspect code/tests → implement → verify
 * Feature → Spec-Kit → Graphify → DESIGN.md if needed → skills → implement → verify
 * Architecture/refactor → Spec-Kit if architecture changes → Graphify → skills → implement → verify
-* Research → Graphify/claude-mem/specs → summarize findings, no code changes
+* Research → Graphify/specs → summarize findings, no code changes
 
 Promote an issue into Spec-Kit only when it changes behavior, APIs, schema, auth, permissions, billing, architecture, or has unclear acceptance criteria.
 
@@ -148,38 +144,6 @@ Graphify is contextual, not authoritative. Validate important findings against s
 
 ---
 
-### claude-mem
-
-Use claude-mem when:
-
-* resuming previous work
-* checking prior decisions
-* continuing an unfinished task
-* understanding why an approach was chosen
-
-claude-mem is helpful but fallible. Validate important memories against specs, code, and tests.
-
-Never store secrets in claude-mem:
-
-* API keys
-* tokens
-* passwords
-* connection strings
-* certificates
-* `.env` contents
-* production credentials
-* customer data
-
-At the end of meaningful work, allow memory of:
-
-* what changed
-* why it changed
-* decisions made
-* follow-ups
-* verification results
-
----
-
 ### Execution
 
 Execute known work directly — or, for a Spec-Kit `tasks.md`, via the
@@ -188,7 +152,6 @@ Execute known work directly — or, for a Spec-Kit `tasks.md`, via the
 * read relevant Spec-Kit files first
 * read DESIGN.md before UI work
 * query Graphify before unfamiliar code edits
-* check claude-mem when continuing work
 * use relevant skills
 * work in small phases with small commits
 * verify changes
@@ -217,11 +180,10 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 5. Create tasks
 6. Query Graphify
 7. Read DESIGN.md if UI is involved
-8. Check claude-mem if continuing prior work
-9. Select skills
-10. Execute via `/speckit-implement`
-11. Verify
-12. Report changes and spec drift
+8. Select skills
+9. Execute via `/speckit-implement`
+10. Verify
+11. Report changes and spec drift
 
 ### Bug Fix
 
@@ -255,10 +217,9 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 
 1. Read relevant specs/docs
 2. Query Graphify
-3. Check claude-mem if relevant
-4. Inspect code as needed
-5. Summarize findings
-6. Do not modify code unless asked
+3. Inspect code as needed
+4. Summarize findings
+5. Do not modify code unless asked
 
 ---
 
@@ -270,7 +231,6 @@ Before editing code, answer:
 * Does it require Spec-Kit?
 * Does it affect UI and require DESIGN.md?
 * Has Graphify identified the affected area?
-* Is claude-mem relevant?
 * Which skills apply?
 * What verification should run?
 
@@ -286,7 +246,7 @@ If the task is significant and has no spec, use Spec-Kit before implementation.
 * Do not silently change scope.
 * Do not overwrite unrelated changes.
 * Do not ignore failing tests.
-* Do not store secrets in code, docs, specs, GitHub Issues, Graphify, or claude-mem.
+* Do not store secrets in code, docs, specs, GitHub Issues, or Graphify.
 * Keep code aligned with Spec-Kit and UI aligned with DESIGN.md.
 
 ---
@@ -325,7 +285,7 @@ Never claim verification passed if it was not run.
 * “Fix this bug” → Graphify → inspect code/tests → implement
 * “Change this UI” → DESIGN.md → Graphify → UI skill → implement
 * “Refactor this” → Graphify first, Spec-Kit if architecture changes
-* “Continue from last time” → claude-mem, then validate against specs/code
+* “Continue from last time” → git history, specs, and open GitHub Issues, then validate against code
 
 Always choose the smallest responsible process.
 

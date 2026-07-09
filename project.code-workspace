@@ -29,12 +29,6 @@
         "icon": "debug-stop",
         "color": "terminal.ansiRed"
       },
-      "claude-mem: Memory Viewer": {
-        "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "npx --yes claude-mem start; Start-Process http://localhost:37777"],
-        "icon": "history",
-        "color": "terminal.ansiMagenta"
-      },
       "Graphify: View Graph": {
         "path": "pwsh.exe",
         "args": ["-NoExit", "-Command", "Start-Process \"$PWD/graphify-out/graph.html\""],
@@ -206,21 +200,6 @@
           "reveal": "always",
           "panel": "new"
         }
-      },
-      {
-        "label": "🧠 claude-mem: Open Memory Viewer",
-        "detail": "Start the claude-mem worker (idempotent) and open the web viewer at http://localhost:37777",
-        "type": "shell",
-        "command": "npx --yes claude-mem start; xdg-open http://localhost:37777",
-        "windows": {
-          "command": "npx --yes claude-mem start; Start-Process http://localhost:37777"
-        },
-        "osx": {
-          "command": "npx --yes claude-mem start; open http://localhost:37777"
-        },
-        "icon": { "id": "history", "color": "terminal.ansiMagenta" },
-        "problemMatcher": [],
-        "presentation": { "reveal": "silent", "panel": "shared", "close": true }
       },
       {
         "label": "🕸️ Graphify: View Graph",
