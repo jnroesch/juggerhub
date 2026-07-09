@@ -241,7 +241,11 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 3. Use UI/design skill
 4. Use Spec-Kit if behavior changes
 5. Execute the change
-6. Verify layout, responsiveness, states, and basic accessibility
+6. Run the **UI review checklist** — for a Spec-Kit feature, copy
+   `.specify/templates/ui-review-checklist-template.md` into
+   `specs/<feature>/checklists/ui-review.md` and verify each item against the diff
+   (DESIGN.md wins on any conflict)
+7. Verify layout, responsiveness, states, and basic accessibility
 
 ### Refactor
 
