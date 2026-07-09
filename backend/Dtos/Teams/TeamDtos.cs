@@ -91,7 +91,10 @@ public sealed record TeamPublicDetailDto(
     TeamViewerRelation ViewerRelation,
     IReadOnlyList<PublicMemberDto> Roster,
     IReadOnlyList<JuggerHub.Dtos.Profile.ActivityItemDto> RecentActivity,
-    IReadOnlyList<TrainingDto> UpcomingTrainings);
+    IReadOnlyList<TrainingDto> UpcomingTrainings,
+    // Feature 012 — the team's earned badges & achievements (active only).
+    IReadOnlyList<JuggerHub.Dtos.Recognition.EarnedRecognitionDto> Badges,
+    IReadOnlyList<JuggerHub.Dtos.Recognition.EarnedRecognitionDto> Achievements);
 
 /// <summary>One public roster row — identity + position only, never contact details.</summary>
 public sealed record PublicMemberDto(

@@ -457,6 +457,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         builder.Entity<BadgeAward>(entity =>
         {
             entity.Property(a => a.RevokedReason).HasMaxLength(280);
+            entity.Property(a => a.Note).HasMaxLength(280);
 
             // Exactly one subject (player XOR team).
             entity.ToTable(t => t.HasCheckConstraint(
@@ -516,6 +517,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         builder.Entity<AchievementAward>(entity =>
         {
             entity.Property(a => a.RevokedReason).HasMaxLength(280);
+            entity.Property(a => a.Note).HasMaxLength(280);
             entity.Property(a => a.ContextLabel).HasMaxLength(120);
 
             entity.ToTable(t => t.HasCheckConstraint(

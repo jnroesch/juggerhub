@@ -34,8 +34,11 @@ public sealed record BadgeDefinitionDto(
     bool IsRetired,
     bool HasIcon);
 
-/// <summary>Grant a badge to exactly one subject — a player (by handle) OR a team (by slug).</summary>
-public sealed record GrantBadgeRequest(string? PlayerHandle, string? TeamSlug) : IValidatableObject
+/// <summary>Grant a badge to exactly one subject — a player (by handle) OR a team (by slug), with an optional note.</summary>
+public sealed record GrantBadgeRequest(
+    string? PlayerHandle,
+    string? TeamSlug,
+    [MaxLength(280)] string? Note = null) : IValidatableObject
 {
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

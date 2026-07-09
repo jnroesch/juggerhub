@@ -1,5 +1,6 @@
 using JuggerHub.Common;
 using JuggerHub.Dtos.Badges;
+using JuggerHub.Dtos.Recognition;
 using JuggerHub.Services.Recognition;
 
 namespace JuggerHub.Services.Badges;
@@ -29,4 +30,10 @@ public interface IBadgeService
         Guid definitionId, GrantBadgeRequest request, Guid grantedByUserId, CancellationToken ct = default);
 
     Task<RevokeOutcome> RevokeAsync(Guid awardId, string? reason, Guid revokedByUserId, CancellationToken ct = default);
+
+    /// <summary>A player's active badge awards for the admin grant/revoke UI; null if no such player.</summary>
+    Task<IReadOnlyList<AdminAwardDto>?> ListPlayerAwardsAsync(string handle, CancellationToken ct = default);
+
+    /// <summary>A team's active badge awards for the admin grant/revoke UI; null if no such team.</summary>
+    Task<IReadOnlyList<AdminAwardDto>?> ListTeamAwardsAsync(string slug, CancellationToken ct = default);
 }

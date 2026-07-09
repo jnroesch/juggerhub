@@ -16,12 +16,18 @@ public sealed class ProfileService : IProfileService
 
     private readonly AppDbContext _db;
     private readonly IEventActivityService _activity;
+    private readonly Recognition.IRecognitionDisplayService _recognitions;
     private readonly ProfileOptions _options;
 
-    public ProfileService(AppDbContext db, IEventActivityService activity, IOptions<ProfileOptions> options)
+    public ProfileService(
+        AppDbContext db,
+        IEventActivityService activity,
+        Recognition.IRecognitionDisplayService recognitions,
+        IOptions<ProfileOptions> options)
     {
         _db = db;
         _activity = activity;
+        _recognitions = recognitions;
         _options = options.Value;
     }
 
@@ -70,8 +76,10 @@ public sealed class ProfileService : IProfileService
 
         var activity = await _activity.GetRecentCappedAsync(projection.Id, EmbedActivityCap, ct);
         var teams = await GetTeamsAsync(projection.UserId, ct);
+        var recognitions = await _recognitions.ForPlayerAsync(projection.Id, ct);
         return new OwnerProfileDto(projection.Handle, projection.DisplayName, projection.Hometown,
             projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams,
+            recognitions.Badges, recognitions.Achievements,
             projection.AppearInSearch);
     }
 
@@ -127,8 +135,10 @@ public sealed class ProfileService : IProfileService
 
         var activity = await _activity.GetRecentCappedAsync(projection.Id, EmbedActivityCap, ct);
         var teams = await GetTeamsAsync(projection.UserId, ct);
+        var recognitions = await _recognitions.ForPlayerAsync(projection.Id, ct);
         return new PublicProfileDto(projection.Handle, projection.DisplayName, projection.Hometown,
-            projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams);
+            projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams,
+            recognitions.Badges, recognitions.Achievements);
     }
 
     public async Task<Guid?> GetProfileIdAsync(string handle, CancellationToken ct = default)

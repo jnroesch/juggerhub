@@ -1,5 +1,6 @@
 using JuggerHub.Common;
 using JuggerHub.Dtos.Achievements;
+using JuggerHub.Dtos.Recognition;
 using JuggerHub.Services.Recognition;
 
 namespace JuggerHub.Services.Achievements;
@@ -28,4 +29,8 @@ public interface IAchievementService
         Guid definitionId, GrantAchievementRequest request, Guid grantedByUserId, CancellationToken ct = default);
 
     Task<RevokeOutcome> RevokeAsync(Guid awardId, string? reason, Guid revokedByUserId, CancellationToken ct = default);
+
+    Task<IReadOnlyList<AdminAwardDto>?> ListPlayerAwardsAsync(string handle, CancellationToken ct = default);
+
+    Task<IReadOnlyList<AdminAwardDto>?> ListTeamAwardsAsync(string slug, CancellationToken ct = default);
 }

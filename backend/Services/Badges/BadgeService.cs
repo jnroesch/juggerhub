@@ -1,6 +1,7 @@
 using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Dtos.Badges;
+using JuggerHub.Dtos.Recognition;
 using JuggerHub.Entities;
 using JuggerHub.Services.Recognition;
 using Microsoft.EntityFrameworkCore;
@@ -222,6 +223,7 @@ public sealed class BadgeService : IBadgeService
             Status = AwardStatus.Active,
             EarnedAt = DateTime.UtcNow,
             GrantedByUserId = grantedByUserId,
+            Note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim(),
         };
         _db.BadgeAwards.Add(award);
 
@@ -254,6 +256,38 @@ public sealed class BadgeService : IBadgeService
         await _db.SaveChangesAsync(ct);
         return RevokeOutcome.Revoked;
     }
+
+    public async Task<IReadOnlyList<AdminAwardDto>?> ListPlayerAwardsAsync(string handle, CancellationToken ct = default)
+    {
+        var norm = handle.Trim().ToLowerInvariant();
+        var profileId = await _db.PlayerProfiles.Where(p => p.Handle == norm).Select(p => (Guid?)p.Id).FirstOrDefaultAsync(ct);
+        return profileId is null ? null : await AdminAwardsAsync(a => a.PlayerProfileId == profileId, ct);
+    }
+
+    public async Task<IReadOnlyList<AdminAwardDto>?> ListTeamAwardsAsync(string slug, CancellationToken ct = default)
+    {
+        var norm = slug.Trim().ToLowerInvariant();
+        var teamId = await _db.Teams.Where(t => t.Slug == norm).Select(t => (Guid?)t.Id).FirstOrDefaultAsync(ct);
+        return teamId is null ? null : await AdminAwardsAsync(a => a.TeamId == teamId, ct);
+    }
+
+    private async Task<IReadOnlyList<AdminAwardDto>> AdminAwardsAsync(
+        System.Linq.Expressions.Expression<Func<BadgeAward, bool>> subject, CancellationToken ct) =>
+        await _db.BadgeAwards
+            .AsNoTracking()
+            .Where(a => a.Status == AwardStatus.Active)
+            .Where(subject)
+            .OrderByDescending(a => a.EarnedAt)
+            .Select(a => new AdminAwardDto(
+                a.Id,
+                a.BadgeDefinitionId,
+                a.Definition.Name,
+                a.EarnedAt,
+                _db.PlayerProfiles.Where(p => p.UserId == a.GrantedByUserId).Select(p => p.DisplayName).FirstOrDefault() ?? "An admin",
+                a.Note,
+                null,
+                null))
+            .ToListAsync(ct);
 
     private static BadgeDefinitionDto ToDto(BadgeDefinition d, bool hasIcon) =>
         new(d.Id, d.Name, d.Description, d.AppliesToPlayers, d.AppliesToTeams, d.IsRetired, hasIcon);

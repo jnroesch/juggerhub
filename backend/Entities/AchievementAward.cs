@@ -31,6 +31,9 @@ public sealed class AchievementAward : BaseEntity
 
     public string? RevokedReason { get; set; }
 
+    /// <summary>Optional admin note recorded at grant time (why it was given). Admin-facing only.</summary>
+    public string? Note { get; set; }
+
     /// <summary>Optional accomplishment year, e.g. 2026.</summary>
     public int? ContextYear { get; set; }
 

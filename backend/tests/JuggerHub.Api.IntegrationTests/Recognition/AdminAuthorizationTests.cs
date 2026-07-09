@@ -34,6 +34,9 @@ public sealed class AdminAuthorizationTests
         ("PUT", $"/api/v1/admin/achievements/{Guid.Empty}/icon"),
         ("POST", $"/api/v1/admin/achievements/{Guid.Empty}/awards"),
         ("DELETE", $"/api/v1/admin/achievements/awards/{Guid.Empty}"),
+        ("GET", "/api/v1/admin/access"),
+        ("GET", "/api/v1/admin/players/someone/awards"),
+        ("GET", "/api/v1/admin/teams/some-team/awards"),
     };
 
     private static Task<HttpResponseMessage> SendAsync(HttpClient client, string method, string path)

@@ -32,6 +32,9 @@ public sealed class BadgeAward : BaseEntity
 
     public string? RevokedReason { get; set; }
 
+    /// <summary>Optional admin note recorded at grant time (why it was given). Admin-facing only.</summary>
+    public string? Note { get; set; }
+
     public BadgeDefinition Definition { get; set; } = null!;
 
     public PlayerProfile? PlayerProfile { get; set; }

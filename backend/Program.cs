@@ -241,6 +241,7 @@ builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenc
 // --- Badges & Achievements (feature 012) — two separate families -----------
 builder.Services.AddScoped<IBadgeService, BadgeService>();
 builder.Services.AddScoped<IAchievementService, AchievementService>();
+builder.Services.AddScoped<JuggerHub.Services.Recognition.IRecognitionDisplayService, JuggerHub.Services.Recognition.RecognitionDisplayService>();
 
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services

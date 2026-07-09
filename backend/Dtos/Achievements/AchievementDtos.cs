@@ -39,7 +39,8 @@ public sealed record GrantAchievementRequest(
     string? PlayerHandle,
     string? TeamSlug,
     int? ContextYear,
-    [MaxLength(120)] string? ContextLabel) : IValidatableObject
+    [MaxLength(120)] string? ContextLabel,
+    [MaxLength(280)] string? Note = null) : IValidatableObject
 {
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
