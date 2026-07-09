@@ -196,7 +196,7 @@ description: "Task list for Authentication & Account Access"
 - [x] T056 Security review pass (OWASP / never-trust-the-client): confirm no token/secret/stack-trace in any response or log; both cookies `HttpOnly` + `SameSite=Strict` + env-driven `Secure`; enumeration neutrality (bodies + rough timing); lockout honored; refresh stored only as hash. Run `/security-review` on the branch diff and resolve findings.
 - [x] T057 [P] Update `README.md` auth section and confirm `.env.sample` ↔ backend config parity.
 - [x] T058 Run the full [quickstart.md](./quickstart.md): `docker compose up` manual journey + all three test suites (backend integration, frontend Jest, Playwright desktop+mobile) green.
-- [x] T059 Record outcomes in claude-mem (what changed, why, key decisions, verification results, follow-ups e.g. GitHub issue #11 HIBP).
+- [x] T059 Record outcomes (what changed, why, key decisions, verification results, follow-ups e.g. GitHub issue #11 HIBP).
 
 ---
 

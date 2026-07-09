@@ -172,7 +172,7 @@ required to use the app or to contribute a small fix, but it's part of what make
 this repo tick — and it's all here in the open.
 
 > **Spec-Kit** decides · **DESIGN.md** styles · **GitHub Issues** queue ·
-> **Graphify** maps · **claude-mem** remembers.
+> **Graphify** maps.
 
 | Tool | Role | UI |
 |------|------|----|
@@ -180,7 +180,6 @@ this repo tick — and it's all here in the open.
 | **DESIGN.md** | Visual identity / design tokens | the `DESIGN.md` file |
 | **GitHub Issues** | Intake & prioritization | GitHub issue tracker + `gh` CLI |
 | **Graphify** | Codebase knowledge graph / impact analysis | interactive graph (HTML) |
-| **claude-mem** | Cross-session memory | web viewer |
 
 The full workflow rules, source-of-truth ordering, and tool routing live in
 [**CLAUDE.md**](CLAUDE.md).
@@ -195,9 +194,6 @@ cloning. Requires **Node 20+**, **uv**, and **git**.
 npm install -g @google/design.md
 uv  tool install specify-cli --from git+https://github.com/github/spec-kit.git@v0.11.9
 uv  tool install graphifyy && graphify install --platform claude
-
-# Claude Code plugin (worker auto-starts thereafter)
-npx claude-mem install
 
 # Enable Graphify auto-rebuild git hooks (tracked in .githooks/)
 git config core.hooksPath .githooks
