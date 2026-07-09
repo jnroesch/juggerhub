@@ -1,5 +1,6 @@
 import { Route } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { adminGuard } from './core/guards/admin.guard';
 import { onboardingGuard } from './core/guards/onboarding.guard';
 import { ShellComponent } from './layout/shell/shell.component';
 import { AccountComponent } from './features/account/account.component';
@@ -128,6 +129,14 @@ export const appRoutes: Route[] = [
   { path: 'onboarding', component: OnboardingComponent, canActivate: [authGuard, onboardingGuard] },
   // Public, unauthenticated share page — full-screen, outside the shell.
   { path: 'u/:handle', component: ProfilePublicComponent },
+  // Admin area (feature 012) — full-screen with its own shield header; gated to platform
+  // admins (server-enforced; adminGuard is UX only). Lazy-loaded.
+  {
+    path: 'admin',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () =>
+      import('./features/admin/recognition/admin-recognition.component').then((m) => m.AdminRecognitionComponent),
+  },
   // Invite accept — full-screen, outside the shell; preview is anonymous, accept needs auth.
   { path: 'join/:slug/:token', component: InviteAcceptComponent },
   // Event co-admin invite accept — full-screen, outside the shell; preview anonymous, accept needs auth.

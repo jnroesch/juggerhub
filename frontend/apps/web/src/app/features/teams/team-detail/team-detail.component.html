@@ -132,6 +132,12 @@
           }
         </section>
 
+        <!-- Badges & achievements (feature 012) -->
+        <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="recognitions">
+          <h2 class="mb-sm text-body-lg font-semibold text-heading">Badges &amp; achievements</h2>
+          <jh-recognition-display [badges]="team.badges" [achievements]="team.achievements" />
+        </section>
+
         <!-- News (members only) -->
         @if (isMember()) {
           <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="news">

@@ -6,16 +6,17 @@ import { OwnerProfile } from '../../../core/models/profile.models';
 import { ProfileService } from '../../../core/services/profile.service';
 import { problemDetail } from '../../../core/utils/problem';
 import { PompfeSelectorComponent } from '../components/pompfe-selector/pompfe-selector.component';
+import { RecognitionDisplayComponent } from '../components/recognition-display/recognition-display.component';
 
 /**
  * US3 — the owner's editable profile. Loads /profiles/me, lets the owner edit the
  * display name, hometown, description, avatar, and pompfen selection, then saves.
- * Teams and Badges are stub sections (no backing data yet). Recent activity is
- * real (US4). The handle is shown but never editable — it's immutable.
+ * Teams is a stub section. Badges & achievements (feature 012) and recent activity
+ * are real. The handle is shown but never editable — it's immutable.
  */
 @Component({
   selector: 'jh-profile-owner',
-  imports: [ReactiveFormsModule, RouterLink, PompfeSelectorComponent],
+  imports: [ReactiveFormsModule, RouterLink, PompfeSelectorComponent, RecognitionDisplayComponent],
   templateUrl: './profile-owner.component.html',
   styleUrl: './profile-owner.component.css',
 })

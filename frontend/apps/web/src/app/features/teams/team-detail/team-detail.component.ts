@@ -12,6 +12,7 @@ import {
 } from '../../../core/models/team.models';
 import { TeamService } from '../../../core/services/team.service';
 import { problemDetail } from '../../../core/utils/problem';
+import { RecognitionDisplayComponent } from '../../profile/components/recognition-display/recognition-display.component';
 
 /**
  * The team page (feature 009). Public to everyone: overview, roster (names + positions),
@@ -21,7 +22,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-team-detail',
-  imports: [RouterLink, DatePipe],
+  imports: [RouterLink, DatePipe, RecognitionDisplayComponent],
   templateUrl: './team-detail.component.html',
   styleUrl: './team-detail.component.css',
 })

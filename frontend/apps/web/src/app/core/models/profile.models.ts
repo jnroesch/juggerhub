@@ -3,6 +3,7 @@
  * intentionally free of email/account data — the server strips it at the boundary.
  */
 import { Pompfe } from '../../shared/pompfen.catalog';
+import { EarnedRecognition } from './recognition.models';
 
 export interface ActivityItem {
   eventName: string;
@@ -29,6 +30,9 @@ export interface OwnerProfile {
   pompfen: Pompfe[];
   recentActivity: ActivityItem[];
   teams: ProfileTeam[];
+  /** Feature 012 — earned badges & achievements. */
+  badges: EarnedRecognition[];
+  achievements: EarnedRecognition[];
   /** Feature 007 — whether the owner opted into appearing in player search. */
   appearInSearch: boolean;
 }
@@ -42,6 +46,9 @@ export interface PublicProfile {
   selectedPompfen: Pompfe[];
   recentActivity: ActivityItem[];
   teams: ProfileTeam[];
+  /** Feature 012 — earned badges & achievements. */
+  badges: EarnedRecognition[];
+  achievements: EarnedRecognition[];
 }
 
 export interface UpdateProfileRequest {
