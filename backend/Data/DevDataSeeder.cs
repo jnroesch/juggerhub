@@ -80,6 +80,108 @@ public static class DevDataSeeder
 
         await SeedTeamsAsync(db, ct);
         await SeedEventsAsync(db, ct);
+        await SeedRecognitionsAsync(db, ct);
+    }
+
+    /// <summary>
+    /// Development-only fixed catalogue of badges &amp; achievements (feature 012) plus a couple of
+    /// sample grants, so the profile/team display and the admin grant picker have content locally.
+    /// Idempotent by definition name; grants only to subjects that don't already hold them.
+    /// </summary>
+    private static async Task SeedRecognitionsAsync(AppDbContext db, CancellationToken ct)
+    {
+        var badgeDefs = new (string Name, string Description, bool Players, bool Teams)[]
+        {
+            ("Beta tester", "Was here in the early days.", true, true),
+            ("Fair play", "Recognized for great sportsmanship.", true, false),
+            ("Founding club", "One of the first teams on JuggerHub.", false, true),
+            ("Trainer", "Runs training for their team.", true, false),
+        };
+        var achievementDefs = new (string Name, string Description, bool Players, bool Teams)[]
+        {
+            ("Champion", "Won a championship.", true, true),
+            ("50 trainings", "Turned up to 50 training sessions.", true, false),
+        };
+
+        foreach (var (name, desc, players, teams) in badgeDefs)
+        {
+            if (!await db.BadgeDefinitions.AnyAsync(d => d.Name == name, ct))
+            {
+                db.BadgeDefinitions.Add(new BadgeDefinition { Name = name, Description = desc, AppliesToPlayers = players, AppliesToTeams = teams });
+            }
+        }
+        foreach (var (name, desc, players, teams) in achievementDefs)
+        {
+            if (!await db.AchievementDefinitions.AnyAsync(d => d.Name == name, ct))
+            {
+                db.AchievementDefinitions.Add(new AchievementDefinition { Name = name, Description = desc, AppliesToPlayers = players, AppliesToTeams = teams });
+            }
+        }
+        await db.SaveChangesAsync(ct);
+
+        var firstProfile = await db.PlayerProfiles.AsNoTracking()
+            .OrderBy(p => p.CreatedDate)
+            .Select(p => new { p.Id, p.UserId })
+            .FirstOrDefaultAsync(ct);
+        if (firstProfile is null)
+        {
+            return; // no players yet — grants seed on a later startup
+        }
+
+        var now = DateTime.UtcNow;
+
+        // Grant the earliest player a badge + achievement (idempotent).
+        await GrantBadgeIfMissing(db, "Fair play", firstProfile.Id, null, firstProfile.UserId, now, "Great sportsmanship all season.", ct);
+        await GrantAchievementIfMissing(db, "50 trainings", firstProfile.Id, null, firstProfile.UserId, now, ct);
+
+        // Grant Rheinfeuer a team badge.
+        var rheinfeuerId = await db.Teams.AsNoTracking().Where(t => t.Slug == "rheinfeuer").Select(t => (Guid?)t.Id).FirstOrDefaultAsync(ct);
+        if (rheinfeuerId is Guid teamId)
+        {
+            await GrantBadgeIfMissing(db, "Founding club", null, teamId, firstProfile.UserId, now, null, ct);
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    private static async Task GrantBadgeIfMissing(
+        AppDbContext db, string defName, Guid? playerProfileId, Guid? teamId, Guid grantedBy, DateTime now, string? note, CancellationToken ct)
+    {
+        var defId = await db.BadgeDefinitions.Where(d => d.Name == defName).Select(d => (Guid?)d.Id).FirstOrDefaultAsync(ct);
+        if (defId is not Guid id)
+        {
+            return;
+        }
+        var exists = await db.BadgeAwards.AnyAsync(a =>
+            a.BadgeDefinitionId == id && a.Status == AwardStatus.Active && a.PlayerProfileId == playerProfileId && a.TeamId == teamId, ct);
+        if (!exists)
+        {
+            db.BadgeAwards.Add(new BadgeAward
+            {
+                BadgeDefinitionId = id, PlayerProfileId = playerProfileId, TeamId = teamId,
+                Source = AwardSource.Manual, Status = AwardStatus.Active, EarnedAt = now, GrantedByUserId = grantedBy, Note = note,
+            });
+        }
+    }
+
+    private static async Task GrantAchievementIfMissing(
+        AppDbContext db, string defName, Guid? playerProfileId, Guid? teamId, Guid grantedBy, DateTime now, CancellationToken ct)
+    {
+        var defId = await db.AchievementDefinitions.Where(d => d.Name == defName).Select(d => (Guid?)d.Id).FirstOrDefaultAsync(ct);
+        if (defId is not Guid id)
+        {
+            return;
+        }
+        var exists = await db.AchievementAwards.AnyAsync(a =>
+            a.AchievementDefinitionId == id && a.Status == AwardStatus.Active && a.PlayerProfileId == playerProfileId && a.TeamId == teamId, ct);
+        if (!exists)
+        {
+            db.AchievementAwards.Add(new AchievementAward
+            {
+                AchievementDefinitionId = id, PlayerProfileId = playerProfileId, TeamId = teamId,
+                Source = AwardSource.Manual, Status = AwardStatus.Active, EarnedAt = now, GrantedByUserId = grantedBy,
+            });
+        }
     }
 
     /// <summary>

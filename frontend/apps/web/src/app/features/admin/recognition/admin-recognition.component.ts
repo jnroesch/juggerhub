@@ -163,6 +163,9 @@ export class AdminRecognitionComponent {
   }
 
   protected revoke(award: AdminAward, kind: Tab): void {
+    if (!confirm(`Revoke “${award.name}” from ${this.subject()?.subjectRef ?? 'this subject'}? This can be re-granted later.`)) {
+      return;
+    }
     const call = kind === 'badge' ? this.api.revokeBadge(award.awardId) : this.api.revokeAchievement(award.awardId);
     call.subscribe({ next: () => this.reload() });
   }

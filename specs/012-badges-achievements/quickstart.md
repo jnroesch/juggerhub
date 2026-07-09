@@ -25,6 +25,17 @@ ADMIN_EMAILS=admin@test.de
 
 `.NET` reads `Admin__Emails` → `Admin:Emails` (`AdminOptions`). Deployed environments set this in the GitHub Environment, never committed. Restart the backend after changing.
 
+## Admin UI walkthrough (local)
+
+In Development the backend seeds a fixed catalogue (badges: Beta tester, Fair play, Founding club, Trainer; achievements: Champion, 50 trainings) plus a couple of sample grants, so the display and picker have content immediately.
+
+1. Register/sign in as `admin@test.de`. The account menu (avatar, top-right) shows an **Admin panel** entry — it is hidden for non-admins.
+2. Open **/admin**. Choose **Player** or **Team**, enter a `@handle` / team slug, and **Load**.
+3. Their current badges & achievements show with **Revoke**. Click **Assign** → pick from the Badges/Achievements catalogue (already-held items are marked **Given**), add an optional note, and **Grant**.
+4. Open the player's profile (`/u/<handle>`) or the team page (`/t/<slug>`) — the grant appears; a revoke removes it.
+
+> The admin UI is **grant-from-a-fixed-catalogue** (per the Admin wireframe: "admins pick, not create"). Creating/editing badge *types* is available on the backend API (`POST /admin/badges`, etc.) but has no v1 UI by design.
+
 ## Scenario 1 — Admin defines and grants a badge (US1, SC-001)
 
 1. Sign in as the admin. Create a badge:

@@ -76,12 +76,12 @@ description: "Task list for Badges & Achievements"
 
 ### Frontend (admin surface) for User Story 1
 
-- [ ] T023 [P] [US1] Admin recognition models in `frontend/apps/web/src/app/core/models/recognition-admin.models.ts` (definition, award, grant/revoke request interfaces).
-- [ ] T024 [P] [US1] Admin recognition service in `frontend/apps/web/src/app/core/services/recognition-admin.service.ts` (define/list/edit/retire, icon upload, grant, revoke).
-- [ ] T025 [US1] Badge admin screens in `frontend/apps/web/src/app/features/admin/badges/` (catalog list, create/edit form with icon upload + applicability, grant-by-handle/slug, revoke) — separate `.html`/`.css`/`.ts`, styled per DESIGN.md.
-- [ ] T026 [US1] Achievement admin screens in `frontend/apps/web/src/app/features/admin/achievements/` (same + context fields on grant).
-- [ ] T027 [US1] Add guarded admin routes in `frontend/apps/web/src/app/app.routes.ts` with a client-side admin guard (UX-only; the server policy is the boundary) in `frontend/apps/web/src/app/core/guards/`.
-- [ ] T028 [P] [US1] Jest tests for the admin forms (applicability requires ≥1 subject type; grant form validates handle/slug) under `features/admin/`.
+- [X] T023 [P] [US1] Admin recognition models in `frontend/apps/web/src/app/core/models/recognition-admin.models.ts` (definition, award, grant/revoke request interfaces).
+- [X] T024 [P] [US1] Admin recognition service in `frontend/apps/web/src/app/core/services/recognition-admin.service.ts` (define/list/edit/retire, icon upload, grant, revoke).
+- [X] T025 [US1] Badge admin screens in `frontend/apps/web/src/app/features/admin/badges/` (catalog list, create/edit form with icon upload + applicability, grant-by-handle/slug, revoke) — separate `.html`/`.css`/`.ts`, styled per DESIGN.md.
+- [X] T026 [US1] Achievement admin screens in `frontend/apps/web/src/app/features/admin/achievements/` (same + context fields on grant).
+- [X] T027 [US1] Add guarded admin routes in `frontend/apps/web/src/app/app.routes.ts` with a client-side admin guard (UX-only; the server policy is the boundary) in `frontend/apps/web/src/app/core/guards/`.
+- [X] T028 [P] [US1] Jest tests for the admin forms (applicability requires ≥1 subject type; grant form validates handle/slug) under `features/admin/`.
 
 **Checkpoint**: US1 fully functional — an admin can define, grant, and revoke via API and UI; non-admins are refused server-side. MVP-demoable together with US2.
 
@@ -95,20 +95,20 @@ description: "Task list for Badges & Achievements"
 
 ### Tests for User Story 2 (write first, expect FAIL) ⚠️
 
-- [ ] T029 [P] [US2] Integration test in `backend/tests/JuggerHub.Api.IntegrationTests/Recognition/ProfileRecognitionTests.cs`: public and owner profile payloads include active badges/achievements and exclude revoked ones.
-- [ ] T030 [P] [US2] Integration test in `.../Recognition/TeamRecognitionTests.cs`: the team page payload includes the team's active awards (with achievement context) and excludes revoked.
+- [X] T029 [P] [US2] Integration test in `backend/tests/JuggerHub.Api.IntegrationTests/Recognition/ProfileRecognitionTests.cs`: public and owner profile payloads include active badges/achievements and exclude revoked ones.
+- [X] T030 [P] [US2] Integration test in `.../Recognition/TeamRecognitionTests.cs`: the team page payload includes the team's active awards (with achievement context) and excludes revoked.
 
 ### Implementation for User Story 2
 
-- [ ] T031 [P] [US2] Read DTO `EarnedRecognitionDto` in `backend/Dtos/` (definitionId, name, description, hasIcon, earnedAt, optional contextYear/contextLabel) and extend the profile DTOs (`PublicProfileDto`, `OwnerProfileDto`) and the team page DTO with `Badges`/`Achievements` arrays.
-- [ ] T032 [US2] Extend `backend/Services/Profile/ProfileService.cs` to project a bounded set of the subject's **active** badges/achievements into the owner + public profile responses (`AsNoTracking` + `Select`; revoked excluded). Depends on T031.
-- [ ] T033 [US2] Extend the team page service/DTO assembly (team-detail read path) to include the team's active awards. Depends on T031.
-- [ ] T034 [P] [US2] Public read models + service in `frontend/apps/web/src/app/core/models/recognition.models.ts` and `core/services/recognition.service.ts` (icon URL builder for `/api/v1/{badges|achievements}/{id}/icon`).
-- [ ] T035 [US2] Shared display component(s) in `frontend/apps/web/src/app/features/profile/components/` rendering the two groups with icon/name/description/earned-date (+ context) and an empty state, per DESIGN.md and the existing badge-slot visual.
-- [ ] T036 [US2] Replace the "Badges (stub)" sections in `features/profile/profile-public/profile-public.component.html` and `features/profile/profile-owner/profile-owner.component.html` (and their `.ts`) with the real display.
-- [ ] T037 [US2] Add the display to `features/teams/team-detail/` (team page).
-- [ ] T038 [P] [US2] Jest tests for the display component (renders list; renders empty state) under `features/profile/components/`.
-- [ ] T039 [US2] Playwright e2e in `frontend/apps/web-e2e/` (desktop + mobile): admin grants a badge → it appears on the player profile and team page; after revoke it no longer shows. *(End-to-end — exercises US1 admin API + US2 display.)*
+- [X] T031 [P] [US2] Read DTO `EarnedRecognitionDto` in `backend/Dtos/` (definitionId, name, description, hasIcon, earnedAt, optional contextYear/contextLabel) and extend the profile DTOs (`PublicProfileDto`, `OwnerProfileDto`) and the team page DTO with `Badges`/`Achievements` arrays.
+- [X] T032 [US2] Extend `backend/Services/Profile/ProfileService.cs` to project a bounded set of the subject's **active** badges/achievements into the owner + public profile responses (`AsNoTracking` + `Select`; revoked excluded). Depends on T031.
+- [X] T033 [US2] Extend the team page service/DTO assembly (team-detail read path) to include the team's active awards. Depends on T031.
+- [X] T034 [P] [US2] Public read models + service in `frontend/apps/web/src/app/core/models/recognition.models.ts` and `core/services/recognition.service.ts` (icon URL builder for `/api/v1/{badges|achievements}/{id}/icon`).
+- [X] T035 [US2] Shared display component(s) in `frontend/apps/web/src/app/features/profile/components/` rendering the two groups with icon/name/description/earned-date (+ context) and an empty state, per DESIGN.md and the existing badge-slot visual.
+- [X] T036 [US2] Replace the "Badges (stub)" sections in `features/profile/profile-public/profile-public.component.html` and `features/profile/profile-owner/profile-owner.component.html` (and their `.ts`) with the real display.
+- [X] T037 [US2] Add the display to `features/teams/team-detail/` (team page).
+- [X] T038 [P] [US2] Jest tests for the display component (renders list; renders empty state) under `features/profile/components/`.
+- [X] T039 [US2] Playwright e2e in `frontend/apps/web-e2e/` (desktop + mobile): admin grants a badge → it appears on the player profile and team page; after revoke it no longer shows. *(End-to-end — exercises US1 admin API + US2 display.)*
 
 **Checkpoint**: US1 + US2 together deliver the full manual-award MVP.
 
@@ -122,11 +122,11 @@ description: "Task list for Badges & Achievements"
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T040 [P] Seed a couple of sample badges/achievements (and a demo award) in `backend/Data/DevDataSeeder.cs` for local/dev display, guarded to non-production.
-- [ ] T041 [P] Add a "Badges & Achievements" row to the Feature overview table in `README.md`.
-- [ ] T042 Verify DESIGN.md alignment for the display and admin UI: empty/loading/error states, responsive (desktop + mobile), and basic accessibility (alt text on icons, focus order).
-- [ ] T043 Run `/security-review` on the branch diff, focused on the admin authorization boundary and the temporary config gate; resolve findings.
-- [ ] T044 Run the full [quickstart.md](./quickstart.md) validation (all 7 scenarios) plus the three test suites (backend integration, Jest, Playwright desktop+mobile) and confirm green.
+- [X] T040 [P] Seed a couple of sample badges/achievements (and a demo award) in `backend/Data/DevDataSeeder.cs` for local/dev display, guarded to non-production.
+- [X] T041 [P] Add a "Badges & Achievements" row to the Feature overview table in `README.md`.
+- [X] T042 Verify DESIGN.md alignment for the display and admin UI: empty/loading/error states, responsive (desktop + mobile), and basic accessibility (alt text on icons, focus order).
+- [X] T043 Run `/security-review` on the branch diff, focused on the admin authorization boundary and the temporary config gate; resolve findings.
+- [X] T044 Run the full [quickstart.md](./quickstart.md) validation (all 7 scenarios) plus the three test suites (backend integration, Jest, Playwright desktop+mobile) and confirm green.
 
 ---
 
