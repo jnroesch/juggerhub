@@ -92,6 +92,8 @@ public sealed class AuthController : ControllerBase
                 return Ok(result.User);
             case LoginStatus.RequiresEmailVerification:
                 return StatusCode(StatusCodes.Status403Forbidden, VerificationRequiredResponse.Default);
+            case LoginStatus.Suspended:
+                return StatusCode(StatusCodes.Status403Forbidden, AccountSuspendedResponse.Default);
             default:
                 return Problem(statusCode: StatusCodes.Status401Unauthorized, title: "Unauthorized",
                     detail: "Invalid email or password.");

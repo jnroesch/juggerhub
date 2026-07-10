@@ -18,6 +18,12 @@ public sealed class AdminAreaCollection : ICollectionFixture<JuggerHubApiFactory
 
 internal static class AdminAreaTestSupport
 {
+    /// <summary>Mirrors the API's wire format (camelCase + enums as names) for reading DTOs.</summary>
+    public static readonly System.Text.Json.JsonSerializerOptions Json = new(System.Text.Json.JsonSerializerDefaults.Web)
+    {
+        Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+    };
+
     private static readonly SemaphoreSlim AdminGate = new(1, 1);
     private static bool _adminReady;
 
