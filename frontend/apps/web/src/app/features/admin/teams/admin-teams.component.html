@@ -1,0 +1,103 @@
+<div class="flex flex-wrap items-baseline justify-between gap-sm">
+  <h1 class="text-h3 font-bold text-heading">Teams</h1>
+  <span class="font-mono text-body-sm text-muted" data-testid="admin-teams-total">{{ total() }} teams</span>
+</div>
+<p class="mt-xs text-body-md text-muted">Find a team to assign badges &amp; achievements to it.</p>
+
+<!-- Search -->
+<div class="mt-md">
+  <label class="relative block">
+    <span class="sr-only">Find by team name or city</span>
+    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+    <input
+      type="search"
+      placeholder="Find by team name or city…"
+      class="h-11 w-full rounded-md border border-border-strong bg-surface-card pl-9 pr-md text-body-md text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      [ngModel]="q()"
+      (ngModelChange)="onType($event)"
+      name="q"
+      data-testid="admin-teams-search"
+    />
+  </label>
+</div>
+
+@if (loading()) {
+  <p class="mt-md text-body-md text-muted">Finding teams…</p>
+} @else if (error(); as message) {
+  <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
+    {{ message }}
+    <button type="button" class="ml-sm font-semibold underline" (click)="load()">Try again</button>
+  </div>
+} @else if (items().length === 0) {
+  <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm" data-testid="admin-teams-empty">
+    <p class="text-body-md text-body">No teams match that.</p>
+    <p class="mt-1 text-body-sm text-muted">Try a different name or city.</p>
+  </div>
+} @else {
+  <!-- Desktop: a calm table -->
+  <div class="mt-md hidden overflow-hidden rounded-lg border border-border-muted bg-surface-card shadow-sm md:block">
+    <table class="w-full text-left" data-testid="admin-teams-table">
+      <thead>
+        <tr class="border-b border-border-muted text-caption text-subtle">
+          <th class="px-md py-sm font-medium">Team</th>
+          <th class="px-md py-sm font-medium">City</th>
+          <th class="px-md py-sm text-right font-medium">Members</th>
+          <th class="px-md py-sm text-right font-medium">Awards</th>
+          <th class="px-md py-sm"><span class="sr-only">Open</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of items(); track row.slug) {
+          <tr
+            class="cursor-pointer border-b border-border-muted transition-colors duration-fast last:border-b-0 hover:bg-surface-sunken"
+            [routerLink]="['/admin/teams', row.slug]"
+            data-testid="admin-teams-row"
+          >
+            <td class="px-md py-sm">
+              <span class="block text-body-sm font-medium text-body">{{ row.name }}</span>
+              <span class="block text-caption text-subtle">{{ row.type === 'CityTeam' ? 'City team' : 'Mixteam' }}</span>
+            </td>
+            <td class="px-md py-sm text-body-sm text-muted">{{ row.city || '—' }}</td>
+            <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.memberCount }}</td>
+            <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.awardCount }}</td>
+            <td class="px-md py-sm text-right text-subtle" aria-hidden="true">›</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Mobile: cards -->
+  <ul class="mt-md flex flex-col gap-sm md:hidden" data-testid="admin-teams-cards">
+    @for (row of items(); track row.slug) {
+      <li>
+        <a
+          [routerLink]="['/admin/teams', row.slug]"
+          class="block rounded-lg border border-border-muted bg-surface-card p-md shadow-sm transition-shadow duration-fast hover:shadow-md"
+          data-testid="admin-teams-row"
+        >
+          <span class="flex items-center justify-between gap-sm">
+            <span class="truncate text-body-sm font-semibold text-body">{{ row.name }}</span>
+            <span class="whitespace-nowrap font-mono text-caption text-muted">{{ row.awardCount }} {{ row.awardCount === 1 ? 'award' : 'awards' }}</span>
+          </span>
+          <span class="mt-1 block text-caption text-subtle">
+            {{ row.type === 'CityTeam' ? 'City team' : 'Mixteam' }}@if (row.city) { · {{ row.city }}} · <span class="font-mono">{{ row.memberCount }}</span> members
+          </span>
+        </a>
+      </li>
+    }
+  </ul>
+
+  <!-- Pagination -->
+  <div class="mt-md flex items-center justify-between gap-sm">
+    <span class="font-mono text-caption text-subtle" data-testid="admin-teams-range">
+      Showing {{ rangeStart() }}–{{ rangeEnd() }} of {{ total() }}
+    </span>
+    <div class="flex gap-xs">
+      <button type="button" class="h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40"
+        [disabled]="!hasPrev()" (click)="page(-1)">‹ Prev</button>
+      <button type="button" class="h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40"
+        [disabled]="!hasNext()" (click)="page(1)" data-testid="admin-teams-next">Next ›</button>
+    </div>
+  </div>
+}

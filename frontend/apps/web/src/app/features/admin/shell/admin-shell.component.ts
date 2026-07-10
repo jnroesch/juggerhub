@@ -33,5 +33,7 @@ export class AdminShellComponent {
 
   protected readonly usersActive = computed(() => this.url().split('?')[0].startsWith('/admin/users'));
 
+  protected readonly teamsActive = computed(() => this.url().split('?')[0].startsWith('/admin/teams'));
+
   protected readonly catalogueActive = computed(() => this.url().split('?')[0].startsWith('/admin/catalogue'));
 }

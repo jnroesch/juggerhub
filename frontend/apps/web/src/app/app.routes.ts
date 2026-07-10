@@ -156,6 +156,16 @@ export const appRoutes: Route[] = [
           import('./features/admin/user-detail/admin-user-detail.component').then((m) => m.AdminUserDetailComponent),
       },
       {
+        path: 'teams',
+        loadComponent: () =>
+          import('./features/admin/teams/admin-teams.component').then((m) => m.AdminTeamsComponent),
+      },
+      {
+        path: 'teams/:slug',
+        loadComponent: () =>
+          import('./features/admin/team-detail/admin-team-detail.component').then((m) => m.AdminTeamDetailComponent),
+      },
+      {
         path: 'catalogue',
         loadComponent: () =>
           import('./features/admin/catalogue/admin-catalogue.component').then((m) => m.AdminCatalogueComponent),

@@ -299,14 +299,16 @@
               }
             </div>
           </div>
-        } @else if (iconTarget()?.hasIcon) {
-          <div class="mt-md flex items-center gap-sm">
-            <span class="overflow-hidden border border-border-strong" [class]="kind() === 'badge' ? 'rounded-full' : 'rounded-md'"
-              style="width: 40px; height: 40px">
-              <img [src]="iconUrl(iconTarget()!.id)" alt="Current icon" class="h-full w-full object-cover" />
-            </span>
-            <span class="text-body-sm text-muted">Current icon</span>
-          </div>
+        } @else if (iconTarget(); as t) {
+          @if (t.hasIcon) {
+            <div class="mt-md flex items-center gap-sm">
+              <span class="overflow-hidden border border-border-strong" [class]="kind() === 'badge' ? 'rounded-full' : 'rounded-md'"
+                style="width: 40px; height: 40px">
+                <img [src]="iconUrl(t.id)" alt="Current icon" class="h-full w-full object-cover" />
+              </span>
+              <span class="text-body-sm text-muted">Current icon</span>
+            </div>
+          }
         }
 
         @if (iconError(); as message) {

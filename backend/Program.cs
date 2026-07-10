@@ -242,6 +242,7 @@ builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenc
 // --- Platform admin area (feature 013) --------------------------------------
 builder.Services.AddScoped<JuggerHub.Services.Admin.IAdminOverviewService, JuggerHub.Services.Admin.AdminOverviewService>();
 builder.Services.AddScoped<JuggerHub.Services.Admin.IAdminUserService, JuggerHub.Services.Admin.AdminUserService>();
+builder.Services.AddScoped<JuggerHub.Services.Admin.IAdminTeamService, JuggerHub.Services.Admin.AdminTeamService>();
 
 // --- Badges & Achievements (feature 012) — two separate families -----------
 builder.Services.AddScoped<IBadgeService, BadgeService>();
