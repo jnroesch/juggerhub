@@ -1,5 +1,6 @@
 using JuggerHub.Dtos.Auth;
 using JuggerHub.Entities;
+using JuggerHub.Security.PlatformAdmin;
 using JuggerHub.Services.Email;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Security;
@@ -24,6 +25,7 @@ public sealed class AuthService : IAuthService
     private readonly IRefreshTokenService _refreshTokens;
     private readonly AuthEmailService _authEmail;
     private readonly IProfileService _profiles;
+    private readonly PlatformAdminRoleSync _adminRoleSync;
     private readonly IdentityOptions _identityOptions;
     private readonly ILogger<AuthService> _logger;
 
@@ -34,6 +36,7 @@ public sealed class AuthService : IAuthService
         IRefreshTokenService refreshTokens,
         AuthEmailService authEmail,
         IProfileService profiles,
+        PlatformAdminRoleSync adminRoleSync,
         IOptions<IdentityOptions> identityOptions,
         ILogger<AuthService> logger)
     {
@@ -43,6 +46,7 @@ public sealed class AuthService : IAuthService
         _refreshTokens = refreshTokens;
         _authEmail = authEmail;
         _profiles = profiles;
+        _adminRoleSync = adminRoleSync;
         _identityOptions = identityOptions.Value;
         _logger = logger;
     }
@@ -117,6 +121,10 @@ public sealed class AuthService : IAuthService
                 string.Join(',', created.Errors.Select(e => e.Code)));
             return RegisterResult.Accepted();
         }
+
+        // Feature 013: a configured admin identity is designated the moment it exists —
+        // no restart needed between registering the first admin and using the admin area.
+        await _adminRoleSync.TryDesignateOnRegistrationAsync(user);
 
         await SendVerificationSafelyAsync(user, ct);
         return RegisterResult.Accepted();

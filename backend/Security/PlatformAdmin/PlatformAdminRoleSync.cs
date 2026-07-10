@@ -54,6 +54,36 @@ public sealed class PlatformAdminRoleSync
         }
     }
 
+    /// <summary>
+    /// Designates a just-created account iff its email is configured — so the very first
+    /// admin doesn't need a restart between registering and being an admin. Config stays
+    /// the only source of truth; this merely applies it earlier than the next startup.
+    /// Never throws (registration must not fail over this); fail direction is closed.
+    /// </summary>
+    public async Task TryDesignateOnRegistrationAsync(User user)
+    {
+        try
+        {
+            var email = user.Email?.Trim().ToLowerInvariant();
+            if (email is null || !_options.Value.NormalizedEmails.Contains(email))
+            {
+                return;
+            }
+
+            if (!await _roles.RoleExistsAsync(RoleName))
+            {
+                await _roles.CreateAsync(new IdentityRole<Guid>(RoleName));
+            }
+
+            var added = await _users.AddToRoleAsync(user, RoleName);
+            LogResult(added, "Granted platform-admin to user {UserId} at registration (configured identity).", user.Id);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Platform-admin designation at registration failed; the startup sync will retry.");
+        }
+    }
+
     private async Task SyncCoreAsync()
     {
         if (!await _roles.RoleExistsAsync(RoleName))

@@ -79,7 +79,7 @@ test('admin grants a badge → it shows on the player profile → revoke removes
   await ensureAdminSignedIn(page, request);
 
   // 3. Load the player in the admin grant surface and open the picker.
-  await page.goto('/admin');
+  await page.goto('/admin/catalogue');
   await expect(page.getByTestId('subject-ref')).toBeVisible();
   await page.getByTestId('subject-ref').fill(handle);
   await page.getByTestId('load-subject').click();
@@ -98,7 +98,7 @@ test('admin grants a badge → it shows on the player profile → revoke removes
   await expect(page.getByText('Badges', { exact: true })).toBeVisible();
 
   // 5. Revoke from the admin surface → the badge is gone from the public profile.
-  await page.goto('/admin');
+  await page.goto('/admin/catalogue');
   await page.getByTestId('subject-ref').fill(handle);
   await page.getByTestId('load-subject').click();
   page.on('dialog', (d) => d.accept());

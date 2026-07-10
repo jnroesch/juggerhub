@@ -31,7 +31,7 @@ JuggerHub has designated platform administrators whose admin status is a first-c
 3. **Given** an identity removed from the admin configuration, **When** the system next starts, **Then** that account is no longer a platform administrator (configuration is the source of truth — it mirrors, not just seeds).
 4. **Given** a platform administrator, **When** they use the badge/achievement admin capabilities from feature 012, **Then** behavior is unchanged from before this feature.
 5. **Given** an empty admin configuration and no designated administrators, **When** anyone calls an admin-only operation, **Then** it is refused (fail closed), and the system logs a clear operational warning that no administrators exist.
-6. **Given** a configured admin identity that has not registered yet, **When** the system starts, **Then** nothing breaks — the account is designated once it exists (at a later startup), and the skip is logged.
+6. **Given** a configured admin identity that has not registered yet, **When** the system starts, **Then** nothing breaks — the account is designated once it exists (immediately at registration, or at a later startup), and the skip is logged.
 
 ---
 
@@ -116,7 +116,7 @@ As a platform administrator on a player's admin detail, I see their badges & ach
 ### Edge Cases
 
 - **No admins configured at all**: configuration empty — every admin operation refuses (fail closed) and an operational warning is logged. The platform otherwise works normally.
-- **Configured identity doesn't exist yet**: the configured admin identity has not registered — nothing breaks; the account is designated once it exists (at a later startup), and the skip is logged.
+- **Configured identity doesn't exist yet**: the configured admin identity has not registered — nothing breaks; the account is designated the moment it registers (no restart needed for the first admin), or at the next startup, and the skip is logged.
 - **Identity removed from configuration**: their admin designation is revoked at the next startup; until then they remain an admin (configuration changes require a restart to take effect, which is accepted for this pass).
 - **Suspending or banning an administrator (or oneself)**: refused while the target is a designated admin — remove them from the admin configuration first. Since admins come only from configuration, no last-admin lockout is possible in-app.
 - **Sessions of a suspended or banned player**: new sign-ins are refused immediately; any existing session stops working no later than the platform's normal session-refresh window.
@@ -137,7 +137,7 @@ As a platform administrator on a player's admin detail, I see their badges & ach
 
 - **FR-001**: The system MUST represent platform-administrator status as a per-account designation stored in the platform's user data — one admin role, no tiers.
 - **FR-002**: Every admin-only operation MUST be authorized server-side against this designation; client state is never the boundary. With zero administrators, all admin operations MUST fail closed.
-- **FR-003**: At startup the system MUST synchronize the set of designated administrators to mirror the environment configuration: configured identities that exist gain the designation, designated accounts no longer configured lose it, and configured identities that don't exist yet are skipped with a log and picked up at a later startup. The sync MUST be idempotent.
+- **FR-003**: At startup the system MUST synchronize the set of designated administrators to mirror the environment configuration: configured identities that exist gain the designation, designated accounts no longer configured lose it, and configured identities that don't exist yet are skipped with a log. A configured identity that registers later gains the designation immediately at registration (no restart needed); revocation still applies at the next startup. The sync MUST be idempotent.
 - **FR-004**: All admin capabilities shipped by feature 012 MUST work identically under the new mechanism, and the interim per-request email-allowlist check MUST be removed as an authorization path (the same configuration lives on solely as the designation sync source).
 - **FR-005**: There is NO in-app or API surface to grant or revoke the admin designation this pass; configuration is the only way. Admin accounts MUST be visibly marked in the admin users list.
 

@@ -60,7 +60,7 @@
 - [X] T017 [US2] Frontend nav gating per wireframe 1a: lock-marked "Admin" item after normal links in `frontend/apps/web/src/app/layout/top-nav/` + "Admin panel · Only you and other admins see this" row in `frontend/apps/web/src/app/layout/avatar-menu/` (adjust `nav-model.ts` as needed); rendered only when the probe succeeds; DESIGN.md tokens/voice
 - [X] T018 [US2] Frontend: create `frontend/apps/web/src/app/features/admin/shell/admin-shell.component.{ts,html,css}` (shield header, sidebar Overview·Users·Catalogue, back-to-app) and restructure `app.routes.ts`: lazy `/admin` → shell with children `''`=overview, `users`, `users/:handle`, `catalogue`= existing `AdminRecognitionComponent` (kept working at its new path)
 - [X] T019 [US2] Frontend: create `frontend/apps/web/src/app/features/admin/overview/admin-overview.component.{ts,html,css}`: 4 stats (mono numerals), "New players this week" → detail links, "Recently granted" list, search box navigating to `/admin/users?q=…`; loading/empty/error states per DESIGN.md; mobile 2×2 stats per wireframe 1b
-- [ ] T020 [P] [US2] e2e `frontend/apps/web-e2e/src/admin-area.spec.ts`: admin sees entry + overview renders; non-admin sees no entry and `/admin` redirects home
+- [X] T020 [P] [US2] e2e `frontend/apps/web-e2e/src/admin-area.spec.ts`: admin sees entry + overview renders; non-admin sees no entry and `/admin` redirects home
 
 **Checkpoint**: admin area exists as a place; overview live.
 
@@ -76,7 +76,7 @@
 - [X] T022 [US3] Create `backend/Dtos/Admin/AdminUserDtos.cs` (list item; detail DTO added in US4) and `backend/Controllers/Admin/AdminUsersController.cs` with `GET api/v1/admin/users` per contracts/admin-api.md
 - [X] T023 [P] [US3] Integration tests `backend/tests/JuggerHub.Api.IntegrationTests/Admin/AdminUsersListTests.cs`: authz, search by each field, each status filter (banned included here), combined search+filter, pagination envelope accuracy, admin marker
 - [X] T024 [US3] Frontend: create `frontend/apps/web/src/app/features/admin/users/admin-users.component.{ts,html,css}` per wireframe 1c: search-first input (reads `?q=`), filter chips, desktop table (player/teams/status/badges) folding to tappable cards on mobile, status color-coding, admin chip, pagination ("Showing X–Y of Z"), friendly empty state; row → `/admin/users/:handle`; extend `admin.service.ts` with `searchUsers()`
-- [ ] T025 [P] [US3] e2e in `frontend/apps/web-e2e/src/admin-area.spec.ts`: search → filter → open row lands on detail
+- [X] T025 [P] [US3] e2e in `frontend/apps/web-e2e/src/admin-area.spec.ts`: search → filter → open row lands on detail
 
 **Checkpoint**: any player reachable in seconds (SC-003 path complete).
 
@@ -96,7 +96,7 @@
 - [X] T031 [P] [US4] Integration tests `backend/tests/JuggerHub.Api.IntegrationTests/Admin/AccountEnforcementTests.cs`: login/refresh outcomes per status (incl. distinct suspended message, generic banned failure); ban invisibility per public surface — `/u/{handle}` 404, player browse, team roster, event participants (SC-005); suspended stays fully visible; banned email re-registration neutral + no account + no verification mail; unban restores visibility and login
 - [X] T032 [US4] Frontend: create `frontend/apps/web/src/app/features/admin/user-detail/admin-user-detail.component.{ts,html,css}` per wireframe 1d: identity card (teams, plays, last active, player id, activity), status chip, account-help cards with plain-language descriptions + confirm dialogs (suspend/reinstate, send reset link, ban/unban), 422 shield explanation surfaced; mobile order: badges → account → identity; extend `admin.service.ts` with detail + action methods
 - [X] T033 [US4] Frontend: show the distinct "account suspended" message on the sign-in screen in `frontend/apps/web/src/app/features/auth/sign-in/` (map the new 403 result; DESIGN.md voice)
-- [ ] T034 [P] [US4] e2e in `frontend/apps/web-e2e/src/admin-area.spec.ts`: suspend → sign-in refused with suspended message → reinstate; ban → public profile gone → unban restores
+- [X] T034 [P] [US4] e2e in `frontend/apps/web-e2e/src/admin-area.spec.ts`: suspend → sign-in refused with suspended message → reinstate; ban → public profile gone → unban restores
 
 **Checkpoint**: account help complete and enforced server-side.
 
@@ -109,7 +109,7 @@
 **Independent Test**: quickstart Scenario 5.
 
 - [X] T035 [US5] Frontend: awards section + Assign picker (dialog on desktop, bottom-sheet on mobile) in `frontend/apps/web/src/app/features/admin/user-detail/` (sub-component if cleaner, e.g. `assign-picker.component.{ts,html,css}`): catalogue tabs via existing `recognition-admin.service.ts`, already-held items marked "Given"/disabled via `admin/players/{handle}/awards`, optional note field, grant + revoke with confirm, list refresh; grants surface in overview "Recently granted"
-- [ ] T036 [P] [US5] e2e in `frontend/apps/web-e2e/src/admin-area.spec.ts`: assign with note → appears on detail; revoke → gone; "Given" items not grantable
+- [X] T036 [P] [US5] e2e in `frontend/apps/web-e2e/src/admin-area.spec.ts`: assign with note → appears on detail; revoke → gone; "Given" items not grantable
 
 **Checkpoint**: all five stories functional.
 
@@ -117,7 +117,7 @@
 
 ## Phase 8: Polish & Cross-Cutting
 
-- [ ] T037 [P] Extend `backend/Data/DevDataSeeder.cs` with stable dev fixtures: a suspended and a banned sample account (+ note in `.env.sample` for `ADMIN_EMAILS` if not already present) so quickstart/e2e have data
+- [X] T037 [P] ~~Extend `backend/Data/DevDataSeeder.cs` with suspended/banned sample accounts~~ — dropped: the seeder operates on real registered dev accounts (it creates no Identity users), so seeding states would suspend a developer's own account; quickstart Scenario 4 and `admin-area.spec.ts` create their own throwaway players instead. `.env.sample` already carries `ADMIN_EMAILS`.
 - [ ] T038 Instantiate `.specify/templates/ui-review-checklist-template.md` → `specs/013-admin-area/checklists/ui-review.md` and verify every item against the UI diff (DESIGN.md wins conflicts) — constitution quality gate 7
 - [ ] T039 Full verification: `dotnet test` (all suites), `dotnet build backend`, `npx nx test web`, `npx nx build web`, `npx nx e2e web-e2e`; walk quickstart Scenarios 1–5 against the running stack
 - [ ] T040 Close out: comment on GitHub issue #21 (what shipped, mirror semantics, no runtime grant/revoke this pass), note any spec/design drift in the PR description
