@@ -239,6 +239,9 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 // Per-user delivery preferences (feature 011) — consulted by the engine + producers before delivery.
 builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
 
+// --- Platform admin area (feature 013) --------------------------------------
+builder.Services.AddScoped<JuggerHub.Services.Admin.IAdminOverviewService, JuggerHub.Services.Admin.AdminOverviewService>();
+
 // --- Badges & Achievements (feature 012) — two separate families -----------
 builder.Services.AddScoped<IBadgeService, BadgeService>();
 builder.Services.AddScoped<IAchievementService, AchievementService>();
