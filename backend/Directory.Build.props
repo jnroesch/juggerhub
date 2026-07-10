@@ -1,0 +1,28 @@
+<Project>
+
+  <!-- Shared build settings inherited by every project under backend/.
+       Project-specific settings (RootNamespace, AssemblyName, package refs,
+       IsPackable, etc.) stay in the individual csproj files. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <!-- Static analysis: the .NET SDK already ships the Roslyn analyzers, so we
+       only enforce them. Warnings fail the build (locally and in CI) so style
+       and correctness issues are caught by the compiler, not in review.
+       Code-style (IDExxxx) rules from .editorconfig also run at build time. -->
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <!-- Default mode enforces the SDK's curated correctness-focused rule set.
+         Recommended additionally pulls in perf micro-nits (CA1848 LoggerMessage,
+         CA1861 static-readonly arrays) that are noisy and low-value at this
+         app's scale — revisit per-rule if/when they matter. -->
+    <AnalysisMode>Default</AnalysisMode>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+</Project>
