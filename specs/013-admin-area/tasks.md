@@ -119,7 +119,7 @@
 
 - [X] T037 [P] ~~Extend `backend/Data/DevDataSeeder.cs` with suspended/banned sample accounts~~ — dropped: the seeder operates on real registered dev accounts (it creates no Identity users), so seeding states would suspend a developer's own account; quickstart Scenario 4 and `admin-area.spec.ts` create their own throwaway players instead. `.env.sample` already carries `ADMIN_EMAILS`.
 - [X] T038 Instantiate `.specify/templates/ui-review-checklist-template.md` → `specs/013-admin-area/checklists/ui-review.md` and verify every item against the UI diff (DESIGN.md wins conflicts) — constitution quality gate 7
-- [ ] T039 Full verification: `dotnet test` (all suites), `dotnet build backend`, `npx nx test web`, `npx nx build web`, `npx nx e2e web-e2e`; walk quickstart Scenarios 1–5 against the running stack
+- [X] T039 Full verification: `dotnet test` (all suites), `dotnet build backend`, `npx nx test web`, `npx nx build web`, `npx nx e2e web-e2e`; walk quickstart Scenarios 1–5 against the running stack
 - [ ] T040 Close out: comment on GitHub issue #21 (what shipped, mirror semantics, no runtime grant/revoke this pass), note any spec/design drift in the PR description
 
 ---

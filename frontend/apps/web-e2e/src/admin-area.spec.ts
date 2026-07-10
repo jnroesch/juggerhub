@@ -113,7 +113,9 @@ test('admin: gated entry → overview → find player → suspend blocks sign-in
   await page.getByTestId('admin-overview-search').fill(handle);
   await page.getByTestId('admin-overview-search').press('Enter');
   await expect(page).toHaveURL((u) => u.pathname.endsWith('/admin/users'));
-  await page.getByTestId('admin-users-row').first().click();
+  // Desktop renders table rows, mobile renders cards — both carry the testid;
+  // click whichever this viewport actually shows.
+  await page.getByTestId('admin-users-row').filter({ visible: true }).first().click();
   await expect(page).toHaveURL((u) => u.pathname.endsWith(`/admin/users/${handle}`));
   await expect(page.getByTestId('admin-user-status')).toHaveText('Active');
 
