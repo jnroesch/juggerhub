@@ -90,6 +90,36 @@ public sealed class BadgeService : IBadgeService
         return true;
     }
 
+    public async Task<bool> ReinstateDefinitionAsync(Guid id, CancellationToken ct = default)
+    {
+        var definition = await _db.BadgeDefinitions.FirstOrDefaultAsync(d => d.Id == id, ct);
+        if (definition is null)
+        {
+            return false;
+        }
+
+        definition.IsRetired = false;
+        await _db.SaveChangesAsync(ct);
+        return true;
+    }
+
+    public async Task<bool> RemoveIconAsync(Guid definitionId, CancellationToken ct = default)
+    {
+        if (!await _db.BadgeDefinitions.AnyAsync(d => d.Id == definitionId, ct))
+        {
+            return false;
+        }
+
+        var icon = await _db.BadgeIcons.FirstOrDefaultAsync(i => i.BadgeDefinitionId == definitionId, ct);
+        if (icon is not null)
+        {
+            _db.BadgeIcons.Remove(icon);
+            await _db.SaveChangesAsync(ct);
+        }
+
+        return true;
+    }
+
     public async Task<IconOutcome> SetIconAsync(Guid definitionId, byte[] content, CancellationToken ct = default)
     {
         if (content.Length == 0)
