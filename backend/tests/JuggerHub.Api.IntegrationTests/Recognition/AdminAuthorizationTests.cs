@@ -6,8 +6,10 @@ namespace JuggerHub.Api.IntegrationTests.Recognition;
 /// <summary>
 /// Feature 012 — the SECURITY-CRITICAL suite (constitution Principle I; spec SC-002/SC-006).
 /// Every admin badge/achievement route must be refused server-side for anonymous callers (401)
-/// and authenticated non-admins (403), regardless of the client UI. An allowlisted admin is
-/// permitted. The config allowlist gate is the boundary.
+/// and authenticated non-admins (403), regardless of the client UI. A designated admin is
+/// permitted. Since feature 013 the boundary is membership in the <c>PlatformAdmin</c>
+/// Identity role (mirrored from config at startup) — see Admin/PlatformAdminRoleSyncTests
+/// for the sync lifecycle itself.
 /// </summary>
 [Collection("Recognition")]
 public sealed class AdminAuthorizationTests
@@ -75,7 +77,7 @@ public sealed class AdminAuthorizationTests
     }
 
     [Fact]
-    public async Task Allowlisted_admin_is_permitted()
+    public async Task Designated_admin_is_permitted()
     {
         var admin = await RecognitionTestSupport.AdminClientAsync(_factory);
 

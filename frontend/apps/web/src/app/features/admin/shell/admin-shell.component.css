@@ -1,0 +1,4 @@
+/* Safe-area padding for the mobile admin tab bar (matches the app's bottom nav). */
+nav[data-testid='admin-bottom-nav'] {
+  padding-bottom: env(safe-area-inset-bottom);
+}

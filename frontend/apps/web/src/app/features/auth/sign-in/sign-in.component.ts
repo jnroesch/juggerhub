@@ -56,7 +56,11 @@ export class SignInComponent {
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
-        if (err.status === 403) {
+        // Two coded 403s exist (both only after a correct password): unverified email
+        // and a suspended account (feature 013). Banned accounts get the generic 401.
+        if (err.status === 403 && err.error?.status === 'account_suspended') {
+          this.error.set(err.error?.message ?? 'This account is suspended.');
+        } else if (err.status === 403) {
           this.needsVerification.set(true);
         } else {
           this.error.set('Invalid email or password.');

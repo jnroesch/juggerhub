@@ -1,6 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using JuggerHub.Api.IntegrationTests.Auth;
+using JuggerHub.Security.PlatformAdmin;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JuggerHub.Api.IntegrationTests.Recognition;
 
@@ -10,11 +12,22 @@ public sealed class RecognitionCollection : ICollectionFixture<JuggerHubApiFacto
 
 internal static class RecognitionTestSupport
 {
-    /// <summary>Matches the factory's configured admin allowlist (<c>Admin:Emails</c>).</summary>
+    /// <summary>Matches the factory's configured admin identities (<c>Admin:Emails</c>).</summary>
     public const string AdminEmail = "admin@test.de";
 
     private static readonly SemaphoreSlim AdminGate = new(1, 1);
     private static bool _adminReady;
+
+    /// <summary>
+    /// Re-runs the feature-013 startup role sync. The configured admin registers AFTER the test
+    /// host booted, so — exactly like production — the account is picked up "at the next
+    /// startup", which this simulates by invoking the real sync again.
+    /// </summary>
+    public static async Task RunAdminRoleSyncAsync(JuggerHubApiFactory factory)
+    {
+        using var scope = factory.Services.CreateScope();
+        await scope.ServiceProvider.GetRequiredService<PlatformAdminRoleSync>().SyncAsync();
+    }
 
     /// <summary>An authenticated HttpClient for the platform admin (registered once per run).</summary>
     public static async Task<HttpClient> AdminClientAsync(JuggerHubApiFactory factory)
@@ -26,6 +39,9 @@ internal static class RecognitionTestSupport
             {
                 var setup = factory.CreateClient();
                 await AuthTestHelpers.RegisterAndVerifyAsync(setup, factory, email: AdminEmail);
+                // Feature 013: registration alone no longer grants anything — the role
+                // sync must run (as it would at the next startup) to designate the admin.
+                await RunAdminRoleSyncAsync(factory);
                 _adminReady = true;
             }
         }

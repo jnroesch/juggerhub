@@ -296,7 +296,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/012-badges-achievements/plan.md` (Badges & Achievements).
+`specs/013-admin-area/plan.md` (Platform Admin Area).
 <!-- SPECKIT END -->
 
 ## GitHub Issues Workflow

@@ -19,4 +19,15 @@ public class User : IdentityUser<Guid>
     /// registration (feature 003); see <see cref="Entities.PlayerProfile"/>.
     /// </summary>
     public PlayerProfile? Profile { get; set; }
+
+    /// <summary>
+    /// Platform account state (feature 013). Enforced in login/refresh and — for
+    /// <see cref="AccountStatus.Banned"/> — via the global query filter that hides
+    /// the profile from every player-facing surface. Changed only by the admin
+    /// user service, which records each transition.
+    /// </summary>
+    public AccountStatus Status { get; set; } = AccountStatus.Active;
+
+    /// <summary>UTC of the last <see cref="Status"/> transition; null if never changed.</summary>
+    public DateTime? StatusChangedAt { get; set; }
 }

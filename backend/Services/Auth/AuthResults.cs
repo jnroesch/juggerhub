@@ -8,6 +8,14 @@ public enum LoginStatus
     RequiresEmailVerification,
     PendingTwoFactor, // reserved for the future MFA feature — see research.md §7 (never returned today)
     Failed,
+
+    /// <summary>
+    /// Correct password, but the account is suspended (feature 013). Revealed only to a
+    /// caller who knows the password — not an enumeration oracle. A BANNED account never
+    /// reaches this: it returns the generic <see cref="Failed"/> (a banned account is
+    /// indistinguishable from a nonexistent one).
+    /// </summary>
+    Suspended,
 }
 
 public enum RegisterStatus
@@ -60,6 +68,7 @@ public sealed class LoginResult
 
     public static LoginResult Failed() => new() { Status = LoginStatus.Failed };
     public static LoginResult NeedsVerification() => new() { Status = LoginStatus.RequiresEmailVerification };
+    public static LoginResult AccountSuspended() => new() { Status = LoginStatus.Suspended };
     public static LoginResult Success(AuthUserDto user, IssuedTokens tokens) =>
         new() { Status = LoginStatus.Succeeded, User = user, Tokens = tokens };
 }

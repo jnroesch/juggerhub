@@ -1,5 +1,6 @@
 using JuggerHub.Dtos.Auth;
 using JuggerHub.Entities;
+using JuggerHub.Security.PlatformAdmin;
 using JuggerHub.Services.Email;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Security;
@@ -24,6 +25,7 @@ public sealed class AuthService : IAuthService
     private readonly IRefreshTokenService _refreshTokens;
     private readonly AuthEmailService _authEmail;
     private readonly IProfileService _profiles;
+    private readonly PlatformAdminRoleSync _adminRoleSync;
     private readonly IdentityOptions _identityOptions;
     private readonly ILogger<AuthService> _logger;
 
@@ -34,6 +36,7 @@ public sealed class AuthService : IAuthService
         IRefreshTokenService refreshTokens,
         AuthEmailService authEmail,
         IProfileService profiles,
+        PlatformAdminRoleSync adminRoleSync,
         IOptions<IdentityOptions> identityOptions,
         ILogger<AuthService> logger)
     {
@@ -43,6 +46,7 @@ public sealed class AuthService : IAuthService
         _refreshTokens = refreshTokens;
         _authEmail = authEmail;
         _profiles = profiles;
+        _adminRoleSync = adminRoleSync;
         _identityOptions = identityOptions.Value;
         _logger = logger;
     }
@@ -77,8 +81,10 @@ public sealed class AuthService : IAuthService
         if (existing is not null)
         {
             // Neutral: never reveal the address is taken. Help a legitimate owner who
-            // hasn't finished verifying by resending; otherwise stay silent.
-            if (!existing.EmailConfirmed)
+            // hasn't finished verifying by resending — but never a suspended/banned
+            // account (feature 013): the retained banned row is exactly what blocks
+            // this email from re-registering, and it must not be emailed anything.
+            if (!existing.EmailConfirmed && existing.Status == AccountStatus.Active)
             {
                 await SendVerificationSafelyAsync(existing, ct);
             }
@@ -115,6 +121,10 @@ public sealed class AuthService : IAuthService
                 string.Join(',', created.Errors.Select(e => e.Code)));
             return RegisterResult.Accepted();
         }
+
+        // Feature 013: a configured admin identity is designated the moment it exists —
+        // no restart needed between registering the first admin and using the admin area.
+        await _adminRoleSync.TryDesignateOnRegistrationAsync(user);
 
         await SendVerificationSafelyAsync(user, ct);
         return RegisterResult.Accepted();
@@ -181,6 +191,19 @@ public sealed class AuthService : IAuthService
             return LoginResult.Failed();
         }
 
+        // Account state (feature 013), checked only AFTER a correct password so neither
+        // state is an enumeration oracle. Banned = generic failure (the account is
+        // "removed"; reveal nothing). Suspended = a clear, distinct refusal.
+        if (user.Status == AccountStatus.Banned)
+        {
+            return LoginResult.Failed();
+        }
+
+        if (user.Status == AccountStatus.Suspended)
+        {
+            return LoginResult.AccountSuspended();
+        }
+
         if (!user.EmailConfirmed)
         {
             return LoginResult.NeedsVerification();
@@ -207,8 +230,10 @@ public sealed class AuthService : IAuthService
         }
 
         var user = await _userManager.FindByIdAsync(rotate.UserId.ToString());
-        if (user is null)
+        if (user is null || user.Status != AccountStatus.Active)
         {
+            // Suspended/banned sessions die at the next rotation (feature 013); the
+            // remaining access token expires within its configured lifetime.
             return RefreshResult.Rejected();
         }
 
