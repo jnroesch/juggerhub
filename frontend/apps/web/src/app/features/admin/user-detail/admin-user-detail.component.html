@@ -113,7 +113,7 @@
           <div>
             <p class="text-body-sm font-semibold text-body">Suspend account</p>
             <p class="text-caption text-muted">Blocks sign-in; everything they've built stays visible. Reversible any time.</p>
-            <button type="button" class="mt-xs h-9 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('suspend')" data-testid="admin-action-suspend">
+            <button type="button" class="mt-xs h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('suspend')" data-testid="admin-action-suspend">
               Suspend…
             </button>
           </div>
@@ -122,7 +122,7 @@
           <div>
             <p class="text-body-sm font-semibold text-body">Reinstate account</p>
             <p class="text-caption text-muted">Lifts the suspension — they can sign in again right away.</p>
-            <button type="button" class="mt-xs h-9 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('reinstate')" data-testid="admin-action-reinstate">
+            <button type="button" class="mt-xs h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('reinstate')" data-testid="admin-action-reinstate">
               Reinstate
             </button>
           </div>
@@ -131,7 +131,7 @@
           <div>
             <p class="text-body-sm font-semibold text-body">Reset password</p>
             <p class="text-caption text-muted">Sends a login link to their email. You never see or set it.</p>
-            <button type="button" class="mt-xs h-9 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('reset')" data-testid="admin-action-reset">
+            <button type="button" class="mt-xs h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('reset')" data-testid="admin-action-reset">
               Send reset link
             </button>
           </div>
@@ -140,7 +140,7 @@
           <div>
             <p class="text-body-sm font-semibold text-danger-fg">Ban account</p>
             <p class="text-caption text-muted">Removes them from the app entirely and blocks their email from re-registering. An admin can reinstate later.</p>
-            <button type="button" class="mt-xs h-9 rounded-md border border-danger-border bg-danger-bg px-sm text-body-sm font-medium text-danger-fg transition-colors duration-fast disabled:opacity-40" [disabled]="acting()" (click)="act('ban')" data-testid="admin-action-ban">
+            <button type="button" class="mt-xs h-11 rounded-md border border-danger-border bg-danger-bg px-sm text-body-sm font-medium text-danger-fg transition-colors duration-fast disabled:opacity-40" [disabled]="acting()" (click)="act('ban')" data-testid="admin-action-ban">
               Ban…
             </button>
           </div>
@@ -149,7 +149,7 @@
           <div>
             <p class="text-body-sm font-semibold text-body">Lift ban</p>
             <p class="text-caption text-muted">Their profile, teams, and badges return intact, and they can sign in again.</p>
-            <button type="button" class="mt-xs h-9 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('unban')" data-testid="admin-action-unban">
+            <button type="button" class="mt-xs h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('unban')" data-testid="admin-action-unban">
               Lift ban
             </button>
           </div>
@@ -167,7 +167,7 @@
         </h2>
         <button
           type="button"
-          class="h-9 rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent transition-colors duration-fast hover:bg-brand-hover"
+          class="h-11 rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent transition-colors duration-fast hover:bg-brand-hover"
           (click)="openAssign()"
           data-testid="admin-assign-open"
         >
@@ -214,7 +214,7 @@
 
   <!-- Assign picker: dialog over the player (bottom sheet on mobile — wireframe 1e) -->
   @if (assignOpen()) {
-    <div class="fixed inset-0 z-40 bg-black/30" aria-hidden="true" (click)="closeAssign()"></div>
+    <div class="fixed inset-0 z-40 bg-black/40" aria-hidden="true" (click)="closeAssign()"></div>
     <div
       class="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-xl border border-border-muted bg-surface-card p-md shadow-xl sm:inset-x-auto sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg"
       role="dialog"
