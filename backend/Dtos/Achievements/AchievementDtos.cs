@@ -21,7 +21,11 @@ public sealed record AchievementDefinitionUpsertRequest(
     }
 }
 
-/// <summary>An achievement definition as returned to the admin catalog.</summary>
+/// <summary>
+/// An achievement definition as returned to the admin catalog. <see cref="GrantedCount"/> is the
+/// number of currently-active awards; <see cref="CreatedAt"/> is the definition's creation timestamp
+/// (feature 014 catalogue list).
+/// </summary>
 public sealed record AchievementDefinitionDto(
     Guid Id,
     string Name,
@@ -29,7 +33,9 @@ public sealed record AchievementDefinitionDto(
     bool AppliesToPlayers,
     bool AppliesToTeams,
     bool IsRetired,
-    bool HasIcon);
+    bool HasIcon,
+    int GrantedCount,
+    DateTime CreatedAt);
 
 /// <summary>
 /// Grant an achievement to exactly one subject, with optional accomplishment context

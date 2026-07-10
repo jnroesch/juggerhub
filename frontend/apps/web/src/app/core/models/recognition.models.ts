@@ -37,6 +37,18 @@ export interface RecognitionDefinition {
   appliesToTeams: boolean;
   isRetired: boolean;
   hasIcon: boolean;
+  /** Number of currently-active awards of this type (feature 014). */
+  grantedCount: number;
+  /** ISO timestamp the definition was created (feature 014). */
+  createdAt: string;
+}
+
+/** Create/edit payload for a catalogue type — the kind chooses the endpoint, not this body. */
+export interface RecognitionUpsert {
+  name: string;
+  description: string;
+  appliesToPlayers: boolean;
+  appliesToTeams: boolean;
 }
 
 /** One award in the admin subject view — carries the award id (to revoke), note, and granter. */

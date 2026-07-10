@@ -37,7 +37,8 @@ public sealed class BadgeService : IBadgeService
             .Skip(pagination.NormalizedSkip)
             .Take(pagination.NormalizedTake)
             .Select(d => new BadgeDefinitionDto(
-                d.Id, d.Name, d.Description, d.AppliesToPlayers, d.AppliesToTeams, d.IsRetired, d.Icon != null))
+                d.Id, d.Name, d.Description, d.AppliesToPlayers, d.AppliesToTeams, d.IsRetired, d.Icon != null,
+                d.Awards.Count(a => a.Status == AwardStatus.Active), d.CreatedDate))
             .ToListAsync(ct);
 
         return new PagedResult<BadgeDefinitionDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
@@ -54,7 +55,7 @@ public sealed class BadgeService : IBadgeService
         };
         _db.BadgeDefinitions.Add(definition);
         await _db.SaveChangesAsync(ct);
-        return ToDto(definition, hasIcon: false);
+        return ToDto(definition, hasIcon: false, grantedCount: 0);
     }
 
     public async Task<BadgeDefinitionDto?> UpdateDefinitionAsync(Guid id, BadgeDefinitionUpsertRequest request, CancellationToken ct = default)
@@ -72,7 +73,8 @@ public sealed class BadgeService : IBadgeService
         await _db.SaveChangesAsync(ct);
 
         var hasIcon = await _db.BadgeIcons.AnyAsync(i => i.BadgeDefinitionId == id, ct);
-        return ToDto(definition, hasIcon);
+        var grantedCount = await _db.BadgeAwards.CountAsync(a => a.BadgeDefinitionId == id && a.Status == AwardStatus.Active, ct);
+        return ToDto(definition, hasIcon, grantedCount);
     }
 
     public async Task<bool> RetireDefinitionAsync(Guid id, CancellationToken ct = default)
@@ -289,6 +291,6 @@ public sealed class BadgeService : IBadgeService
                 null))
             .ToListAsync(ct);
 
-    private static BadgeDefinitionDto ToDto(BadgeDefinition d, bool hasIcon) =>
-        new(d.Id, d.Name, d.Description, d.AppliesToPlayers, d.AppliesToTeams, d.IsRetired, hasIcon);
+    private static BadgeDefinitionDto ToDto(BadgeDefinition d, bool hasIcon, int grantedCount) =>
+        new(d.Id, d.Name, d.Description, d.AppliesToPlayers, d.AppliesToTeams, d.IsRetired, hasIcon, grantedCount, d.CreatedDate);
 }
