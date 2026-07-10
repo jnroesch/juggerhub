@@ -1,7 +1,14 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AccountStatus, AdminOverview, AdminUserDetail, AdminUserListItem } from '../models/admin.models';
+import {
+  AccountStatus,
+  AdminOverview,
+  AdminTeamDetail,
+  AdminTeamListItem,
+  AdminUserDetail,
+  AdminUserListItem,
+} from '../models/admin.models';
 import { PagedResult } from '../models/profile.models';
 
 /**
@@ -38,6 +45,20 @@ export class AdminService {
 
   getUserDetail(handle: string): Observable<AdminUserDetail> {
     return this.http.get<AdminUserDetail>(`${this.base}/users/${encodeURIComponent(handle)}`);
+  }
+
+  // --- Teams (feature 014): browse for award assignment -----------------------
+
+  searchTeams(q: string, skip: number, take: number): Observable<PagedResult<AdminTeamListItem>> {
+    let params = new HttpParams().set('skip', skip).set('take', take);
+    if (q.trim()) {
+      params = params.set('q', q.trim());
+    }
+    return this.http.get<PagedResult<AdminTeamListItem>>(`${this.base}/teams`, { params });
+  }
+
+  getTeamDetail(slug: string): Observable<AdminTeamDetail> {
+    return this.http.get<AdminTeamDetail>(`${this.base}/teams/${encodeURIComponent(slug)}`);
   }
 
   suspend(handle: string): Observable<void> {

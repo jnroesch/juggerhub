@@ -21,7 +21,13 @@ public interface IAchievementService
 
     Task<bool> RetireDefinitionAsync(Guid id, CancellationToken ct = default);
 
+    /// <summary>Un-retire a definition (feature 014); false if no such definition.</summary>
+    Task<bool> ReinstateDefinitionAsync(Guid id, CancellationToken ct = default);
+
     Task<IconOutcome> SetIconAsync(Guid definitionId, byte[] content, CancellationToken ct = default);
+
+    /// <summary>Remove a definition's icon (feature 014); false if no such definition. Idempotent if none.</summary>
+    Task<bool> RemoveIconAsync(Guid definitionId, CancellationToken ct = default);
 
     Task<(byte[] Bytes, string ContentType)?> GetIconAsync(Guid definitionId, CancellationToken ct = default);
 

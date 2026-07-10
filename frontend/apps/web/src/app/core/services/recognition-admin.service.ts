@@ -5,6 +5,8 @@ import {
   AdminSubjectAwards,
   AdminSubjectType,
   RecognitionDefinition,
+  RecognitionKind,
+  RecognitionUpsert,
 } from '../models/recognition.models';
 import { PagedResult } from '../models/profile.models';
 
@@ -54,6 +56,43 @@ export class RecognitionAdminService {
     return this.http
       .get<PagedResult<RecognitionDefinition>>(`${this.base}/achievements`, { params: { take: 100, includeRetired } })
       .pipe(map((p) => p.items));
+  }
+
+  // --- Catalogue management (feature 014). Kind picks the catalogue/endpoint. -----------
+  // The server `PlatformAdmin` policy validates everything; these are UX conveniences.
+
+  /** The active catalogue for a kind, optionally including retired types. */
+  listDefinitions(kind: RecognitionKind, includeRetired = false): Observable<RecognitionDefinition[]> {
+    return kind === 'badge' ? this.listBadges(includeRetired) : this.listAchievements(includeRetired);
+  }
+
+  createDefinition(kind: RecognitionKind, body: RecognitionUpsert): Observable<RecognitionDefinition> {
+    return this.http.post<RecognitionDefinition>(`${this.base}/${this.catalogue(kind)}`, body);
+  }
+
+  updateDefinition(kind: RecognitionKind, id: string, body: RecognitionUpsert): Observable<RecognitionDefinition> {
+    return this.http.put<RecognitionDefinition>(`${this.base}/${this.catalogue(kind)}/${id}`, body);
+  }
+
+  retireDefinition(kind: RecognitionKind, id: string): Observable<unknown> {
+    return this.http.delete(`${this.base}/${this.catalogue(kind)}/${id}`);
+  }
+
+  reinstateDefinition(kind: RecognitionKind, id: string): Observable<unknown> {
+    return this.http.post(`${this.base}/${this.catalogue(kind)}/${id}/reinstate`, {});
+  }
+
+  /** Upload/replace the icon. The raw file is the request body; the server sniffs its type. */
+  setIcon(kind: RecognitionKind, id: string, file: File): Observable<unknown> {
+    return this.http.put(`${this.base}/${this.catalogue(kind)}/${id}/icon`, file);
+  }
+
+  removeIcon(kind: RecognitionKind, id: string): Observable<unknown> {
+    return this.http.delete(`${this.base}/${this.catalogue(kind)}/${id}/icon`);
+  }
+
+  private catalogue(kind: RecognitionKind): string {
+    return kind === 'badge' ? 'badges' : 'achievements';
   }
 
   subjectAwards(type: AdminSubjectType, ref: string): Observable<AdminSubjectAwards> {

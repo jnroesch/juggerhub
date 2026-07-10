@@ -50,6 +50,10 @@ public sealed class AchievementsAdminController : AdminControllerBase
     public async Task<IActionResult> Retire(Guid definitionId, CancellationToken ct) =>
         await _achievements.RetireDefinitionAsync(definitionId, ct) ? NoContent() : DefinitionNotFound();
 
+    [HttpPost("{definitionId:guid}/reinstate")]
+    public async Task<IActionResult> Reinstate(Guid definitionId, CancellationToken ct) =>
+        await _achievements.ReinstateDefinitionAsync(definitionId, ct) ? NoContent() : DefinitionNotFound();
+
     [HttpPut("{definitionId:guid}/icon")]
     public async Task<IActionResult> SetIcon(Guid definitionId, CancellationToken ct)
     {
@@ -63,6 +67,10 @@ public sealed class AchievementsAdminController : AdminControllerBase
                 detail: "Provide a PNG, JPEG, or WebP image within the size limit."),
         };
     }
+
+    [HttpDelete("{definitionId:guid}/icon")]
+    public async Task<IActionResult> RemoveIcon(Guid definitionId, CancellationToken ct) =>
+        await _achievements.RemoveIconAsync(definitionId, ct) ? NoContent() : DefinitionNotFound();
 
     [HttpPost("{definitionId:guid}/awards")]
     public async Task<ActionResult<AchievementAwardDto>> Grant(

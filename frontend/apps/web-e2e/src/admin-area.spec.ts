@@ -147,6 +147,93 @@ test('admin: gated entry → overview → find player → suspend blocks sign-in
   await expect(page.getByText(`@${handle}`).first()).toBeVisible();
 });
 
-// The assign/revoke round trip (grant from the player detail with a note → shows on the
-// public profile → revoke removes it) lives in recognition.spec.ts, which drives the
-// same migrated Assign UI.
+// The player assign/revoke round trip (grant from the player detail with a note → shows on
+// the public profile → revoke removes it) lives in recognition.spec.ts, which drives the
+// same shared Assign picker.
+
+test('admin: catalogue — create, edit, retire, then reinstate a badge type (feature 014)', async ({ page, request }) => {
+  await ensureAdminSignedIn(page, request);
+  await page.goto('/admin/catalogue');
+  await expect(page.getByTestId('catalogue-new')).toBeVisible();
+
+  const name = `e2e badge ${Date.now().toString(36)}`;
+  const row = () => page.getByTestId('catalogue-row').filter({ hasText: name }).filter({ visible: true }).first();
+
+  // Create a players badge.
+  await page.getByTestId('catalogue-new').click();
+  await expect(page.getByTestId('catalogue-form')).toBeVisible();
+  await page.getByTestId('catalogue-form-name').fill(name);
+  await page.getByTestId('catalogue-form-description').fill('Created by e2e.');
+  await page.getByTestId('catalogue-form-save').click();
+  await expect(page.getByTestId('catalogue-form')).toHaveCount(0);
+  await expect(page.getByText(name)).toBeVisible();
+
+  // Edit its description.
+  await row().getByTestId('catalogue-edit').click();
+  await expect(page.getByTestId('catalogue-form')).toBeVisible();
+  await page.getByTestId('catalogue-form-description').fill('Edited by e2e.');
+  await page.getByTestId('catalogue-form-save').click();
+  await expect(page.getByTestId('catalogue-form')).toHaveCount(0);
+
+  // Retire (amber confirm, reversible).
+  await row().getByTestId('catalogue-retire').click();
+  await expect(page.getByTestId('catalogue-retire-modal')).toBeVisible();
+  await page.getByTestId('catalogue-retire-confirm').click();
+  await expect(page.getByTestId('catalogue-retire-modal')).toHaveCount(0);
+
+  // Under the Retired filter it appears with Reinstate; reinstate it.
+  await page.getByTestId('catalogue-filter-retired').click();
+  await expect(row()).toBeVisible();
+  await row().getByTestId('catalogue-reinstate').click();
+
+  // It is active again.
+  await page.getByTestId('catalogue-filter-active').click();
+  await expect(page.getByText(name)).toBeVisible();
+});
+
+test('admin: assign a badge to a team, see it on the public page, then revoke it (feature 014)', async ({ page, request }) => {
+  // A player creates a team (creator is an auto-member).
+  const { email, handle } = uniquePlayer();
+  await registerVerify(page, request, email, handle);
+  await signIn(page, email);
+  const slug = `e2eteam${Date.now().toString(36)}`.slice(0, 18);
+  const created = await page.request.post('/api/v1/teams', {
+    data: { name: `E2E Team ${slug}`, slug, type: 'CityTeam', city: 'Berlin' },
+  });
+  expect(created.ok()).toBeTruthy();
+
+  // Admin creates a team-applicable badge.
+  await ensureAdminSignedIn(page, request);
+  await page.goto('/admin/catalogue');
+  const badgeName = `e2e team badge ${Date.now().toString(36)}`;
+  await page.getByTestId('catalogue-new').click();
+  await page.getByTestId('catalogue-form-name').fill(badgeName);
+  await page.getByTestId('catalogue-form-description').fill('Team award e2e.');
+  await page.getByTestId('catalogue-form-teams').check();
+  await page.getByTestId('catalogue-form-save').click();
+  await expect(page.getByTestId('catalogue-form')).toHaveCount(0);
+
+  // Teams → search → open the team → assign the badge.
+  await page.getByTestId('admin-nav-teams').filter({ visible: true }).first().click();
+  await expect(page).toHaveURL((u) => u.pathname.endsWith('/admin/teams'));
+  await page.getByTestId('admin-teams-search').fill(slug);
+  await page.getByTestId('admin-teams-row').filter({ visible: true }).first().click();
+  await expect(page).toHaveURL((u) => u.pathname.endsWith(`/admin/teams/${slug}`));
+
+  await page.getByTestId('assign').click();
+  await expect(page.getByTestId('assign-modal')).toBeVisible();
+  await page.getByTestId('assign-modal').getByRole('button', { name: badgeName }).click();
+  await page.getByTestId('grant-submit').click();
+  await expect(page.getByTestId('assign-modal')).toHaveCount(0);
+  await expect(page.getByTestId('team-awards')).toContainText(badgeName);
+
+  // Visible on the public team page.
+  await page.goto(`/t/${slug}`);
+  await expect(page.getByText(badgeName)).toBeVisible();
+
+  // Revoke it from the admin team detail (revoke uses a confirm dialog).
+  page.on('dialog', (d) => d.accept());
+  await page.goto(`/admin/teams/${slug}`);
+  await page.getByTestId('team-awards').getByRole('button', { name: 'Revoke' }).first().click();
+  await expect(page.getByTestId('team-awards')).not.toContainText(badgeName);
+});

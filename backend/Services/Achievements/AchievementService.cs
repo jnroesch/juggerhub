@@ -37,7 +37,8 @@ public sealed class AchievementService : IAchievementService
             .Skip(pagination.NormalizedSkip)
             .Take(pagination.NormalizedTake)
             .Select(d => new AchievementDefinitionDto(
-                d.Id, d.Name, d.Description, d.AppliesToPlayers, d.AppliesToTeams, d.IsRetired, d.Icon != null))
+                d.Id, d.Name, d.Description, d.AppliesToPlayers, d.AppliesToTeams, d.IsRetired, d.Icon != null,
+                d.Awards.Count(a => a.Status == AwardStatus.Active), d.CreatedDate))
             .ToListAsync(ct);
 
         return new PagedResult<AchievementDefinitionDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
@@ -54,7 +55,7 @@ public sealed class AchievementService : IAchievementService
         };
         _db.AchievementDefinitions.Add(definition);
         await _db.SaveChangesAsync(ct);
-        return ToDto(definition, hasIcon: false);
+        return ToDto(definition, hasIcon: false, grantedCount: 0);
     }
 
     public async Task<AchievementDefinitionDto?> UpdateDefinitionAsync(Guid id, AchievementDefinitionUpsertRequest request, CancellationToken ct = default)
@@ -72,7 +73,8 @@ public sealed class AchievementService : IAchievementService
         await _db.SaveChangesAsync(ct);
 
         var hasIcon = await _db.AchievementIcons.AnyAsync(i => i.AchievementDefinitionId == id, ct);
-        return ToDto(definition, hasIcon);
+        var grantedCount = await _db.AchievementAwards.CountAsync(a => a.AchievementDefinitionId == id && a.Status == AwardStatus.Active, ct);
+        return ToDto(definition, hasIcon, grantedCount);
     }
 
     public async Task<bool> RetireDefinitionAsync(Guid id, CancellationToken ct = default)
@@ -85,6 +87,36 @@ public sealed class AchievementService : IAchievementService
 
         definition.IsRetired = true;
         await _db.SaveChangesAsync(ct);
+        return true;
+    }
+
+    public async Task<bool> ReinstateDefinitionAsync(Guid id, CancellationToken ct = default)
+    {
+        var definition = await _db.AchievementDefinitions.FirstOrDefaultAsync(d => d.Id == id, ct);
+        if (definition is null)
+        {
+            return false;
+        }
+
+        definition.IsRetired = false;
+        await _db.SaveChangesAsync(ct);
+        return true;
+    }
+
+    public async Task<bool> RemoveIconAsync(Guid definitionId, CancellationToken ct = default)
+    {
+        if (!await _db.AchievementDefinitions.AnyAsync(d => d.Id == definitionId, ct))
+        {
+            return false;
+        }
+
+        var icon = await _db.AchievementIcons.FirstOrDefaultAsync(i => i.AchievementDefinitionId == definitionId, ct);
+        if (icon is not null)
+        {
+            _db.AchievementIcons.Remove(icon);
+            await _db.SaveChangesAsync(ct);
+        }
+
         return true;
     }
 
@@ -291,6 +323,6 @@ public sealed class AchievementService : IAchievementService
                 a.ContextLabel))
             .ToListAsync(ct);
 
-    private static AchievementDefinitionDto ToDto(AchievementDefinition d, bool hasIcon) =>
-        new(d.Id, d.Name, d.Description, d.AppliesToPlayers, d.AppliesToTeams, d.IsRetired, hasIcon);
+    private static AchievementDefinitionDto ToDto(AchievementDefinition d, bool hasIcon, int grantedCount) =>
+        new(d.Id, d.Name, d.Description, d.AppliesToPlayers, d.AppliesToTeams, d.IsRetired, hasIcon, grantedCount, d.CreatedDate);
 }

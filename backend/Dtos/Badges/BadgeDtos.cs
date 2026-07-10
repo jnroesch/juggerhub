@@ -24,7 +24,11 @@ public sealed record BadgeDefinitionUpsertRequest(
     }
 }
 
-/// <summary>A badge definition as returned to the admin catalog. <see cref="HasIcon"/> avoids shipping bytes.</summary>
+/// <summary>
+/// A badge definition as returned to the admin catalog. <see cref="HasIcon"/> avoids shipping bytes;
+/// <see cref="GrantedCount"/> is the number of currently-active awards; <see cref="CreatedAt"/> is the
+/// definition's creation timestamp (feature 014 catalogue list).
+/// </summary>
 public sealed record BadgeDefinitionDto(
     Guid Id,
     string Name,
@@ -32,7 +36,9 @@ public sealed record BadgeDefinitionDto(
     bool AppliesToPlayers,
     bool AppliesToTeams,
     bool IsRetired,
-    bool HasIcon);
+    bool HasIcon,
+    int GrantedCount,
+    DateTime CreatedAt);
 
 /// <summary>Grant a badge to exactly one subject — a player (by handle) OR a team (by slug), with an optional note.</summary>
 public sealed record GrantBadgeRequest(

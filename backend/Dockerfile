@@ -9,6 +9,11 @@ WORKDIR /src
 # Copy global.json first so `dotnet` enforces the pinned SDK for every command below.
 COPY global.json ./
 
+# Shared build settings (TargetFramework, analyzers) live in Directory.Build.props
+# and .editorconfig (feature 027). They MUST be present before restore/build,
+# otherwise MSBuild sees an empty TargetFramework and restore fails (NETSDK1013).
+COPY Directory.Build.props .editorconfig ./
+
 # Restore against just the project files first for better layer caching.
 COPY JuggerHub.Api.csproj ./
 COPY tests/JuggerHub.Api.IntegrationTests/JuggerHub.Api.IntegrationTests.csproj tests/JuggerHub.Api.IntegrationTests/

@@ -33,6 +33,16 @@
       Users
     </a>
     <a
+      routerLink="/admin/teams"
+      class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
+      [class]="teamsActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [attr.aria-current]="teamsActive() ? 'page' : null"
+      data-testid="admin-nav-teams"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-12 0"/><circle cx="12" cy="7" r="4"/><path d="M4 21a6 6 0 0 1 4-5.65"/><path d="M20 21a6 6 0 0 0-4-5.65"/></svg>
+      Teams
+    </a>
+    <a
       routerLink="/admin/catalogue"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
       [class]="catalogueActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-text hover:bg-surface-sunken'"
@@ -72,6 +82,15 @@
   >
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 19v-1.5A3.5 3.5 0 0 0 12.5 14h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="10" cy="8" r="3.5"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.5-3.35"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8"/></svg>
     Users
+  </a>
+  <a
+    routerLink="/admin/teams"
+    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast"
+    [class]="teamsActive() ? 'text-brand-active font-semibold' : 'text-subtle'"
+    [attr.aria-current]="teamsActive() ? 'page' : null"
+  >
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-12 0"/><circle cx="12" cy="7" r="4"/><path d="M4 21a6 6 0 0 1 4-5.65"/><path d="M20 21a6 6 0 0 0-4-5.65"/></svg>
+    Teams
   </a>
   <a
     routerLink="/admin/catalogue"

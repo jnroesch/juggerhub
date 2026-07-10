@@ -66,3 +66,27 @@ export interface AdminUserDetail {
   lastActiveAt: string | null;
   recentActivity: AdminActivityItem[];
 }
+
+/** Team kind (enum names on the wire). */
+export type TeamType = 'CityTeam' | 'Mixteam';
+
+/** One row of the admin teams list (feature 014). */
+export interface AdminTeamListItem {
+  slug: string;
+  name: string;
+  city: string | null;
+  type: TeamType;
+  memberCount: number;
+  awardCount: number;
+}
+
+/** Identity for the admin team detail header (feature 014). Awards come from the awards endpoint. */
+export interface AdminTeamDetail {
+  teamId: string;
+  slug: string;
+  name: string;
+  city: string | null;
+  type: TeamType;
+  memberCount: number;
+  createdAt: string;
+}
