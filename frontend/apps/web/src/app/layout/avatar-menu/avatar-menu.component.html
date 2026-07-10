@@ -45,10 +45,22 @@
       >
         Notification settings
       </a>
+      @if (isAdmin()) {
+        <a
+          routerLink="/admin"
+          role="menuitem"
+          class="flex items-center gap-xs border-t border-border-muted px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+          data-testid="admin-link"
+          (click)="close()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4 text-muted" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+          Admin panel
+        </a>
+      }
       <button
         type="button"
         role="menuitem"
-        class="block w-full px-md py-xs text-left text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        class="block w-full border-t border-border-muted px-md py-xs text-left text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
         data-testid="sign-out"
         (click)="signOut()"
       >

@@ -59,6 +59,7 @@ Each feature is specified before it's built (see [`specs/`](specs/)):
 | **Search** | Browse and search teams, players, and events |
 | **Home & nav** | A personalized dashboard and top-level navigation |
 | **Notifications** | In-app notification system with per-user preferences |
+| **Badges & achievements** | Admin-granted badges and achievements shown on player profiles and team pages |
 
 ---
 

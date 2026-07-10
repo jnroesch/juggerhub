@@ -3,6 +3,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { pompfeLabel } from '../../../shared/pompfen.catalog';
 import { PublicProfile } from '../../../core/models/profile.models';
 import { ProfileService } from '../../../core/services/profile.service';
+import { RecognitionDisplayComponent } from '../components/recognition-display/recognition-display.component';
 
 /**
  * US2 — the public, unauthenticated profile at /u/:handle. Renders only the
@@ -11,7 +12,7 @@ import { ProfileService } from '../../../core/services/profile.service';
  */
 @Component({
   selector: 'jh-profile-public',
-  imports: [RouterLink],
+  imports: [RouterLink, RecognitionDisplayComponent],
   templateUrl: './profile-public.component.html',
   styleUrl: './profile-public.component.css',
 })

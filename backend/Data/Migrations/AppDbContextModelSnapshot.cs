@@ -22,6 +22,291 @@ namespace JuggerHub.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("JuggerHub.Entities.AchievementAward", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AchievementDefinitionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ContextLabel")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<int?>("ContextYear")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EarnedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GrantedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)");
+
+                    b.Property<Guid?>("PlayerProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("RevokedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RevokedReason")
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GrantedByUserId");
+
+                    b.HasIndex("PlayerProfileId");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("AchievementDefinitionId", "PlayerProfileId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 0 AND \"PlayerProfileId\" IS NOT NULL");
+
+                    b.HasIndex("AchievementDefinitionId", "TeamId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 0 AND \"TeamId\" IS NOT NULL");
+
+                    b.ToTable("AchievementAwards", t =>
+                        {
+                            t.HasCheckConstraint("CK_AchievementAward_OneSubject", "(\"PlayerProfileId\" IS NOT NULL) <> (\"TeamId\" IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.AchievementDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AppliesToPlayers")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AppliesToTeams")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)");
+
+                    b.Property<bool>("IsRetired")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsRetired");
+
+                    b.ToTable("AchievementDefinitions");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.AchievementIcon", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AchievementDefinitionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("Bytes")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AchievementDefinitionId")
+                        .IsUnique();
+
+                    b.ToTable("AchievementIcons");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.BadgeAward", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BadgeDefinitionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("EarnedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("GrantedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Note")
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)");
+
+                    b.Property<Guid?>("PlayerProfileId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("RevokedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("RevokedReason")
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GrantedByUserId");
+
+                    b.HasIndex("PlayerProfileId");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("BadgeDefinitionId", "PlayerProfileId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 0 AND \"PlayerProfileId\" IS NOT NULL");
+
+                    b.HasIndex("BadgeDefinitionId", "TeamId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 0 AND \"TeamId\" IS NOT NULL");
+
+                    b.ToTable("BadgeAwards", t =>
+                        {
+                            t.HasCheckConstraint("CK_BadgeAward_OneSubject", "(\"PlayerProfileId\" IS NOT NULL) <> (\"TeamId\" IS NOT NULL)");
+                        });
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.BadgeDefinition", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AppliesToPlayers")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AppliesToTeams")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)");
+
+                    b.Property<bool>("IsRetired")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsRetired");
+
+                    b.ToTable("BadgeDefinitions");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.BadgeIcon", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("BadgeDefinitionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<byte[]>("Bytes")
+                        .IsRequired()
+                        .HasColumnType("bytea");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BadgeDefinitionId")
+                        .IsUnique();
+
+                    b.ToTable("BadgeIcons");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.Event", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1033,6 +1318,90 @@ namespace JuggerHub.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.AchievementAward", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.AchievementDefinition", "Definition")
+                        .WithMany("Awards")
+                        .HasForeignKey("AchievementDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("GrantedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.PlayerProfile", "PlayerProfile")
+                        .WithMany()
+                        .HasForeignKey("PlayerProfileId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("JuggerHub.Entities.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Definition");
+
+                    b.Navigation("PlayerProfile");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.AchievementIcon", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.AchievementDefinition", "Definition")
+                        .WithOne("Icon")
+                        .HasForeignKey("JuggerHub.Entities.AchievementIcon", "AchievementDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Definition");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.BadgeAward", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.BadgeDefinition", "Definition")
+                        .WithMany("Awards")
+                        .HasForeignKey("BadgeDefinitionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("GrantedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.PlayerProfile", "PlayerProfile")
+                        .WithMany()
+                        .HasForeignKey("PlayerProfileId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("JuggerHub.Entities.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Definition");
+
+                    b.Navigation("PlayerProfile");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.BadgeIcon", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.BadgeDefinition", "Definition")
+                        .WithOne("Icon")
+                        .HasForeignKey("JuggerHub.Entities.BadgeIcon", "BadgeDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Definition");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.EventAdmin", b =>
                 {
                     b.HasOne("JuggerHub.Entities.Event", "Event")
@@ -1371,6 +1740,20 @@ namespace JuggerHub.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.AchievementDefinition", b =>
+                {
+                    b.Navigation("Awards");
+
+                    b.Navigation("Icon");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.BadgeDefinition", b =>
+                {
+                    b.Navigation("Awards");
+
+                    b.Navigation("Icon");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.Event", b =>

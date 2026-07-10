@@ -24,6 +24,7 @@ public sealed class TeamService : ITeamService
     private readonly INotificationService _notifications;
     private readonly INotificationPreferenceService _preferences;
     private readonly Email.TeamEmailService _email;
+    private readonly Recognition.IRecognitionDisplayService _recognitions;
     private readonly ILogger<TeamService> _logger;
     private readonly TeamOptions _options;
 
@@ -33,11 +34,13 @@ public sealed class TeamService : ITeamService
         INotificationService notifications,
         INotificationPreferenceService preferences,
         Email.TeamEmailService email,
+        Recognition.IRecognitionDisplayService recognitions,
         ILogger<TeamService> logger,
         IOptions<TeamOptions> options)
     {
         _db = db;
         _guard = guard;
+        _recognitions = recognitions;
         _notifications = notifications;
         _preferences = preferences;
         _email = email;
@@ -240,8 +243,10 @@ public sealed class TeamService : ITeamService
                     : (!string.IsNullOrEmpty(s.Event.VenueName) ? s.Event.VenueName! : s.Event.Location)))
             .ToListAsync(ct);
 
+        var recognitions = await _recognitions.ForTeamAsync(team.Id, ct);
         return new TeamPublicDetailDto(team.Slug, team.Name, team.Type, team.City, team.MemberCount,
-            team.BeginnersWelcome, team.IsActive, relation, roster, activity, trainings);
+            team.BeginnersWelcome, team.IsActive, relation, roster, activity, trainings,
+            recognitions.Badges, recognitions.Achievements);
     }
 
     public async Task<PagedResult<TeamMemberDto>?> GetRosterAsync(string slug, Guid userId, PaginationRequest pagination, CancellationToken ct = default)

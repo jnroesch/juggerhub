@@ -4,7 +4,9 @@ using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Entities;
 using JuggerHub.Services;
+using JuggerHub.Services.Achievements;
 using JuggerHub.Services.Auth;
+using JuggerHub.Services.Badges;
 using JuggerHub.Services.Email;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Health;
@@ -15,7 +17,9 @@ using JuggerHub.Services.Profile;
 using JuggerHub.Services.Search;
 using JuggerHub.Services.Security;
 using JuggerHub.Services.Teams;
+using JuggerHub.Security.PlatformAdmin;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -148,7 +152,17 @@ builder.Services
         };
     });
 
-builder.Services.AddAuthorization();
+// --- Platform admin gate (feature 012; TEMPORARY config allowlist, real role → GH #21) -----
+builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection(AdminOptions.SectionName));
+builder.Services.AddScoped<IAuthorizationHandler, PlatformAdminHandler>();
+builder.Services.AddAuthorization(options =>
+    options.AddPolicy(PlatformAdminPolicy.Name, policy =>
+    {
+        policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+        policy.Requirements.Add(new PlatformAdminRequirement());
+    }));
+builder.Services.Configure<RecognitionOptions>(builder.Configuration.GetSection(RecognitionOptions.SectionName));
 
 // --- Mapping (Mapster) -----------------------------------------------------
 builder.Services.AddMappingConfig();
@@ -223,6 +237,11 @@ builder.Services.AddSingleton<INotificationRealtime, SignalRNotificationRealtime
 builder.Services.AddScoped<INotificationService, NotificationService>();
 // Per-user delivery preferences (feature 011) — consulted by the engine + producers before delivery.
 builder.Services.AddScoped<INotificationPreferenceService, NotificationPreferenceService>();
+
+// --- Badges & Achievements (feature 012) — two separate families -----------
+builder.Services.AddScoped<IBadgeService, BadgeService>();
+builder.Services.AddScoped<IAchievementService, AchievementService>();
+builder.Services.AddScoped<JuggerHub.Services.Recognition.IRecognitionDisplayService, JuggerHub.Services.Recognition.RecognitionDisplayService>();
 
 // --- API versioning (URL segment: /api/v{n}) -------------------------------
 builder.Services

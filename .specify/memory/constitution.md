@@ -392,6 +392,12 @@ These gates apply to all changes and integrate with the Spec-Kit workflow in
    scripts are added.
 6. **Environment parity**: changes work identically across local/Dev/Prod;
    secrets flow through `.env` (local) and GitHub Environments (deployed).
+7. **UI/Design compliance**: any change that ships UI is checked against
+   [DESIGN.md](../../DESIGN.md) via the UI review checklist
+   (`.specify/templates/ui-review-checklist-template.md`, instantiated per feature
+   as `specs/<feature>/checklists/ui-review.md`) before verification. DESIGN.md is
+   the source of truth for tokens, voice, layout, motion, and component specs;
+   conflicts are reported, not silently resolved.
 
 ---
 
@@ -408,4 +414,7 @@ These gates apply to all changes and integrate with the Spec-Kit workflow in
   removals/redefinitions, **MINOR** for new principles/sections or materially
   expanded guidance, **PATCH** for clarifications and wording.
 
-**Version**: 1.0.0 | **Ratified**: 2026-06-29 | **Last Amended**: 2026-06-29
+**Version**: 1.1.0 | **Ratified**: 2026-06-29 | **Last Amended**: 2026-07-09
+
+> **1.1.0** (2026-07-09, MINOR): added Quality Gate 7 (UI/Design compliance) — a
+> DESIGN.md-derived UI review checklist run before verification on UI-bearing changes.

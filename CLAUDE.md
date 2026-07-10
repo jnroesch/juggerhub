@@ -203,7 +203,11 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 3. Use UI/design skill
 4. Use Spec-Kit if behavior changes
 5. Execute the change
-6. Verify layout, responsiveness, states, and basic accessibility
+6. Run the **UI review checklist** — for a Spec-Kit feature, copy
+   `.specify/templates/ui-review-checklist-template.md` into
+   `specs/<feature>/checklists/ui-review.md` and verify each item against the diff
+   (DESIGN.md wins on any conflict)
+7. Verify layout, responsiveness, states, and basic accessibility
 
 ### Refactor
 
@@ -292,7 +296,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/008-home-dashboard-nav/plan.md` (Home dashboard & top-level navigation).
+`specs/012-badges-achievements/plan.md` (Badges & Achievements).
 <!-- SPECKIT END -->
 
 ## GitHub Issues Workflow

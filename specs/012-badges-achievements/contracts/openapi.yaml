@@ -1,0 +1,277 @@
+openapi: 3.0.3
+info:
+  title: JuggerHub — Badges & Achievements (feature 012)
+  version: "1.0"
+  description: >
+    Admin-curated Badges and Achievements. Two separate but parallel resource
+    families. All /admin/* operations require the server-side `PlatformAdmin`
+    authorization policy (v1: configuration allowlist; real role tracked in #21).
+    Earned awards are read via the existing profile and team page payloads
+    (documented here as the read shape) plus the public icon endpoints.
+
+servers:
+  - url: /api/v1
+
+tags:
+  - name: Badges (admin)
+  - name: Achievements (admin)
+  - name: Recognition (public read)
+
+paths:
+  # ---------------------------------------------------------------- Badges admin
+  /admin/badges:
+    get:
+      tags: [Badges (admin)]
+      summary: List badge definitions (paginated)
+      parameters:
+        - { in: query, name: skip, schema: { type: integer, default: 0 } }
+        - { in: query, name: take, schema: { type: integer, default: 20, maximum: 100 } }
+        - { in: query, name: includeRetired, schema: { type: boolean, default: false } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PagedBadgeDefinition" } } } }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Badges (admin)]
+      summary: Create a badge definition
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/DefinitionUpsert" } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/BadgeDefinition" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /admin/badges/{definitionId}:
+    parameters:
+      - { in: path, name: definitionId, required: true, schema: { type: string, format: uuid } }
+    put:
+      tags: [Badges (admin)]
+      summary: Edit a badge definition
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/DefinitionUpsert" } } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/BadgeDefinition" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Badges (admin)]
+      summary: Retire a badge definition (soft — preserves existing awards)
+      responses:
+        "204": { description: Retired }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /admin/badges/{definitionId}/icon:
+    parameters:
+      - { in: path, name: definitionId, required: true, schema: { type: string, format: uuid } }
+    put:
+      tags: [Badges (admin)]
+      summary: Upload/replace the badge icon (png/jpeg/webp, size-capped, magic-byte validated)
+      requestBody:
+        required: true
+        content:
+          image/png: { schema: { type: string, format: binary } }
+          image/jpeg: { schema: { type: string, format: binary } }
+          image/webp: { schema: { type: string, format: binary } }
+      responses:
+        "204": { description: Stored }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /admin/badges/{definitionId}/awards:
+    parameters:
+      - { in: path, name: definitionId, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [Badges (admin)]
+      summary: Grant this badge to a player or team (exactly one subject)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/GrantRequest" } } }
+      responses:
+        "201": { description: Granted, content: { application/json: { schema: { $ref: "#/components/schemas/Award" } } } }
+        "400": { description: "Subject-type mismatch / definition retired / bad payload", content: { application/json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { description: "Definition or subject not found" }
+        "409": { description: "Subject already actively holds this badge", content: { application/json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+
+  /admin/badges/awards/{awardId}:
+    parameters:
+      - { in: path, name: awardId, required: true, schema: { type: string, format: uuid } }
+    delete:
+      tags: [Badges (admin)]
+      summary: Revoke a badge award (retains an auditable record)
+      requestBody:
+        required: false
+        content: { application/json: { schema: { $ref: "#/components/schemas/RevokeRequest" } } }
+      responses:
+        "204": { description: Revoked }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ------------------------------------------------------- Achievements admin
+  /admin/achievements:
+    get:
+      tags: [Achievements (admin)]
+      summary: List achievement definitions (paginated)
+      parameters:
+        - { in: query, name: skip, schema: { type: integer, default: 0 } }
+        - { in: query, name: take, schema: { type: integer, default: 20, maximum: 100 } }
+        - { in: query, name: includeRetired, schema: { type: boolean, default: false } }
+      responses:
+        "200": { description: OK, content: { application/json: { schema: { $ref: "#/components/schemas/PagedAchievementDefinition" } } } }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Achievements (admin)]
+      summary: Create an achievement definition
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/DefinitionUpsert" } } }
+      responses:
+        "201": { description: Created, content: { application/json: { schema: { $ref: "#/components/schemas/AchievementDefinition" } } } }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  /admin/achievements/{definitionId}/awards:
+    parameters:
+      - { in: path, name: definitionId, required: true, schema: { type: string, format: uuid } }
+    post:
+      tags: [Achievements (admin)]
+      summary: Grant this achievement to a player or team (with optional context)
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/GrantAchievementRequest" } } }
+      responses:
+        "201": { description: Granted, content: { application/json: { schema: { $ref: "#/components/schemas/Award" } } } }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { description: "Already actively held" }
+
+  # (achievements also expose /{definitionId} PUT/DELETE, /{definitionId}/icon PUT,
+  #  and /awards/{awardId} DELETE — identical shape to badges, omitted for brevity)
+
+  # ------------------------------------------------------- public read surface
+  /badges/{definitionId}/icon:
+    get:
+      tags: [Recognition (public read)]
+      summary: Fetch a badge icon image (public)
+      parameters:
+        - { in: path, name: definitionId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: Image bytes, content: { image/*: { schema: { type: string, format: binary } } } }
+        "404": { description: No icon }
+  /achievements/{definitionId}/icon:
+    get:
+      tags: [Recognition (public read)]
+      summary: Fetch an achievement icon image (public)
+      parameters:
+        - { in: path, name: definitionId, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: Image bytes, content: { image/*: { schema: { type: string, format: binary } } } }
+        "404": { description: No icon }
+
+components:
+  responses:
+    Unauthorized: { description: Not authenticated, content: { application/json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+    Forbidden: { description: Authenticated but not a platform admin, content: { application/json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+    NotFound: { description: Not found, content: { application/json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+    BadRequest: { description: Invalid request, content: { application/json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+
+  schemas:
+    Problem:
+      type: object
+      description: RFC7231 problem details (generic — never leaks internals)
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+
+    DefinitionUpsert:
+      type: object
+      required: [name, description, appliesToPlayers, appliesToTeams]
+      properties:
+        name: { type: string, maxLength: 60 }
+        description: { type: string, maxLength: 280 }
+        appliesToPlayers: { type: boolean }
+        appliesToTeams: { type: boolean }
+      description: "At least one of appliesToPlayers/appliesToTeams must be true."
+
+    BadgeDefinition:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        appliesToPlayers: { type: boolean }
+        appliesToTeams: { type: boolean }
+        isRetired: { type: boolean }
+        hasIcon: { type: boolean }
+    AchievementDefinition:
+      allOf:
+        - $ref: "#/components/schemas/BadgeDefinition"
+
+    GrantRequest:
+      type: object
+      description: "Exactly one of playerHandle / teamSlug."
+      properties:
+        playerHandle: { type: string, nullable: true }
+        teamSlug: { type: string, nullable: true }
+    GrantAchievementRequest:
+      allOf:
+        - $ref: "#/components/schemas/GrantRequest"
+        - type: object
+          properties:
+            contextYear: { type: integer, nullable: true }
+            contextLabel: { type: string, nullable: true, maxLength: 120 }
+
+    RevokeRequest:
+      type: object
+      properties:
+        reason: { type: string, maxLength: 280, nullable: true }
+
+    Award:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        definitionId: { type: string, format: uuid }
+        subjectType: { type: string, enum: [Player, Team] }
+        subjectRef: { type: string, description: "handle or slug" }
+        source: { type: string, enum: [Manual, Automatic] }
+        status: { type: string, enum: [Active, Revoked] }
+        earnedAt: { type: string, format: date-time }
+        contextYear: { type: integer, nullable: true }
+        contextLabel: { type: string, nullable: true }
+
+    PagedBadgeDefinition:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/BadgeDefinition" } }
+        totalCount: { type: integer }
+        skip: { type: integer }
+        take: { type: integer }
+    PagedAchievementDefinition:
+      type: object
+      properties:
+        items: { type: array, items: { $ref: "#/components/schemas/AchievementDefinition" } }
+        totalCount: { type: integer }
+        skip: { type: integer }
+        take: { type: integer }
+
+    # ---- Read shape embedded in existing profile / team payloads (not a new endpoint) ----
+    EarnedRecognition:
+      type: object
+      description: >
+        One earned badge or achievement, embedded (active only) in the public/owner
+        profile response and the team page response. Icon fetched via the icon endpoint.
+      properties:
+        definitionId: { type: string, format: uuid }
+        name: { type: string }
+        description: { type: string }
+        hasIcon: { type: boolean }
+        earnedAt: { type: string, format: date-time }
+        contextYear: { type: integer, nullable: true, description: "achievements only" }
+        contextLabel: { type: string, nullable: true, description: "achievements only" }

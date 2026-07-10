@@ -5,6 +5,7 @@
  */
 import { Pompfe } from '../../shared/pompfen.catalog';
 import { ActivityItem, PagedResult } from './profile.models';
+import { EarnedRecognition } from './recognition.models';
 
 export type { ActivityItem, PagedResult };
 
@@ -74,6 +75,9 @@ export interface TeamPublicDetail {
   roster: PublicMember[];
   recentActivity: ActivityItem[];
   upcomingTrainings: Training[];
+  /** Feature 012 — the team's earned badges & achievements. */
+  badges: EarnedRecognition[];
+  achievements: EarnedRecognition[];
 }
 
 /** One pending join request in the admin queue. */

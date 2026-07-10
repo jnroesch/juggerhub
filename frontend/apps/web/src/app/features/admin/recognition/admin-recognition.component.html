@@ -1,0 +1,276 @@
+<!-- Admin shell header — shield-marked, with a clear way back to the app. -->
+<header class="border-b border-border-muted bg-surface-card">
+  <div class="mx-auto flex max-w-container-lg items-center justify-between px-md py-sm">
+    <span class="inline-flex items-center gap-xs rounded-md bg-surface-inverse px-sm py-xs text-body-sm font-semibold text-on-inverse">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+      Admin
+    </span>
+    <a routerLink="/" class="text-body-sm font-medium text-link hover:text-link-hover">Back to app</a>
+  </div>
+</header>
+
+<section class="mx-auto max-w-container-lg px-md py-lg">
+  <h1 class="text-h3 font-bold text-heading">Grant badges &amp; achievements</h1>
+  <p class="mt-xs text-body-md text-muted">
+    Look up a player or team, then assign from the fixed catalogue. Every grant is recorded and can be revoked.
+  </p>
+
+  <!-- Subject loader -->
+  <div class="mt-lg flex flex-wrap items-end gap-sm">
+    <div class="inline-flex overflow-hidden rounded-md border border-border-strong" role="group" aria-label="Subject type">
+      <button
+        type="button"
+        class="px-md py-xs text-body-sm font-medium"
+        [class.bg-brand-primary]="subjectType() === 'player'"
+        [class.text-on-accent]="subjectType() === 'player'"
+        [class.bg-surface-card]="subjectType() !== 'player'"
+        [class.text-body]="subjectType() !== 'player'"
+        (click)="setType('player')"
+      >
+        Player
+      </button>
+      <button
+        type="button"
+        class="border-l border-border-strong px-md py-xs text-body-sm font-medium"
+        [class.bg-brand-primary]="subjectType() === 'team'"
+        [class.text-on-accent]="subjectType() === 'team'"
+        [class.bg-surface-card]="subjectType() !== 'team'"
+        [class.text-body]="subjectType() !== 'team'"
+        (click)="setType('team')"
+      >
+        Team
+      </button>
+    </div>
+    <label class="min-w-0 flex-1">
+      <span class="sr-only">{{ subjectType() === 'player' ? 'Player handle' : 'Team slug' }}</span>
+      <input
+        type="text"
+        [ngModel]="ref()"
+        (ngModelChange)="ref.set($event)"
+        (keyup.enter)="load()"
+        [placeholder]="subjectType() === 'player' ? 'Player @handle' : 'Team slug'"
+        data-testid="subject-ref"
+        class="h-11 w-full min-w-40 rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      />
+    </label>
+    <button
+      type="button"
+      (click)="load()"
+      [disabled]="loading() || !ref().trim()"
+      data-testid="load-subject"
+      class="h-11 rounded-md border border-border-strong bg-surface-card px-lg text-body-sm font-semibold text-body hover:bg-surface-sunken disabled:opacity-50"
+    >
+      {{ loading() ? 'Loading…' : 'Load' }}
+    </button>
+  </div>
+
+  @if (error()) {
+    <p class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
+      {{ error() }}
+    </p>
+  }
+
+  <!-- Subject awards -->
+  @if (subject(); as s) {
+    <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="subject-awards">
+      <div class="flex items-center justify-between gap-sm">
+        <h2 class="text-body-lg font-semibold text-heading">
+          {{ subjectType() === 'player' ? '@' : '' }}{{ s.subjectRef }}
+        </h2>
+        <button
+          type="button"
+          (click)="openAssign()"
+          data-testid="assign"
+          class="inline-flex h-10 items-center gap-xs rounded-md bg-brand-primary px-md text-body-sm font-semibold text-on-accent shadow-coral hover:bg-brand-primary-hover"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          Assign
+        </button>
+      </div>
+
+      <div class="mt-md grid gap-lg sm:grid-cols-2">
+        <section>
+          <p class="text-eyebrow uppercase text-muted">Badges</p>
+          @if (s.badges.length === 0) {
+            <p class="mt-xs text-body-sm text-faint">None yet.</p>
+          } @else {
+            <ul class="mt-sm flex flex-col gap-xs">
+              @for (a of s.badges; track a.awardId) {
+                <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
+                  <span class="min-w-0">
+                    <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
+                    <span class="block text-caption text-muted">by {{ a.grantedByName }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
+                    @if (a.note) { <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span> }
+                  </span>
+                  <button
+                    type="button"
+                    (click)="revoke(a, 'badge')"
+                    class="shrink-0 rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger-fg hover:bg-danger-bg"
+                  >
+                    Revoke
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+
+        <section>
+          <p class="text-eyebrow uppercase text-muted">Achievements</p>
+          @if (s.achievements.length === 0) {
+            <p class="mt-xs text-body-sm text-faint">None yet.</p>
+          } @else {
+            <ul class="mt-sm flex flex-col gap-xs">
+              @for (a of s.achievements; track a.awardId) {
+                <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
+                  <span class="min-w-0">
+                    <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
+                    <span class="block text-caption text-muted">by {{ a.grantedByName }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
+                    @if (a.contextLabel || a.contextYear) {
+                      <span class="block truncate text-caption text-subtle">{{ a.contextLabel }} {{ a.contextYear }}</span>
+                    }
+                  </span>
+                  <button
+                    type="button"
+                    (click)="revoke(a, 'achievement')"
+                    class="shrink-0 rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger-fg hover:bg-danger-bg"
+                  >
+                    Revoke
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </div>
+    </div>
+  }
+</section>
+
+<!-- Assign picker (modal over the subject) -->
+@if (assignOpen() && subject(); as s) {
+  <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-md" role="presentation">
+    <div
+      class="flex max-h-[90vh] w-full max-w-container-sm flex-col overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Grant a badge or achievement"
+      data-testid="assign-modal"
+    >
+      <div class="flex items-center justify-between border-b border-border-muted px-md py-sm">
+        <h3 class="text-body-lg font-semibold text-heading">Grant to {{ subjectType() === 'player' ? '@' : '' }}{{ s.subjectRef }}</h3>
+        <button type="button" (click)="closeAssign()" class="text-muted hover:text-body" aria-label="Close">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="border-b border-border-muted px-md pt-sm">
+        <div class="inline-flex gap-xs">
+          <button
+            type="button"
+            class="rounded-t-md px-md py-xs text-body-sm font-medium"
+            [class.bg-brand-primary]="tab() === 'badge'"
+            [class.text-on-accent]="tab() === 'badge'"
+            [class.text-muted]="tab() !== 'badge'"
+            (click)="switchTab('badge')"
+          >
+            Badges
+          </button>
+          <button
+            type="button"
+            class="rounded-t-md px-md py-xs text-body-sm font-medium"
+            [class.bg-brand-primary]="tab() === 'achievement'"
+            [class.text-on-accent]="tab() === 'achievement'"
+            [class.text-muted]="tab() !== 'achievement'"
+            (click)="switchTab('achievement')"
+          >
+            Achievements
+          </button>
+        </div>
+      </div>
+
+      <div class="min-h-0 flex-1 overflow-y-auto p-md">
+        @if (pickerItems().length === 0) {
+          <p class="text-body-sm text-faint">Nothing in the catalogue applies to this subject yet.</p>
+        } @else {
+          <ul class="grid grid-cols-2 gap-sm sm:grid-cols-3">
+            @for (d of pickerItems(); track d.id) {
+              <li>
+                <button
+                  type="button"
+                  (click)="select(d.id)"
+                  [disabled]="isHeld(d.id)"
+                  [attr.data-testid]="'pick-' + d.id"
+                  class="flex w-full flex-col items-center gap-xs rounded-md border p-sm text-center transition-colors"
+                  [class.border-border-focus]="selectedDefId() === d.id"
+                  [class.ring-2]="selectedDefId() === d.id"
+                  [class.ring-focus]="selectedDefId() === d.id"
+                  [class.border-border-muted]="selectedDefId() !== d.id"
+                  [class.opacity-60]="isHeld(d.id)"
+                >
+                  <span class="grid h-11 w-11 place-items-center overflow-hidden rounded-full border border-border-strong bg-surface-subtle text-muted">
+                    @if (d.hasIcon) {
+                      <img [src]="iconUrl(tab(), d.id)" [alt]="d.name" class="h-full w-full object-cover" />
+                    } @else {
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 22l5-3 5 3-1.5-9.5"/></svg>
+                    }
+                  </span>
+                  <span class="block w-full truncate text-body-sm font-medium text-heading">{{ d.name }}</span>
+                  @if (isHeld(d.id)) {
+                    <span class="text-caption font-semibold text-success-fg">Given</span>
+                  }
+                </button>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (tab() === 'achievement' && selectedDefId()) {
+          <div class="mt-md grid grid-cols-2 gap-sm">
+            <label class="block">
+              <span class="text-caption font-medium text-muted">Year (optional)</span>
+              <input type="number" [ngModel]="contextYear()" (ngModelChange)="contextYear.set($event)" placeholder="2026"
+                class="mt-xs h-10 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm" />
+            </label>
+            <label class="block">
+              <span class="text-caption font-medium text-muted">Label (optional)</span>
+              <input type="text" [ngModel]="contextLabel()" (ngModelChange)="contextLabel.set($event)" placeholder="National championship"
+                class="mt-xs h-10 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm" />
+            </label>
+          </div>
+        }
+
+        <label class="mt-md block">
+          <span class="text-caption font-medium text-muted">Note (optional) — shows in the admin log</span>
+          <input
+            type="text"
+            [ngModel]="note()"
+            (ngModelChange)="note.set($event)"
+            placeholder="Why are they getting this?"
+            data-testid="grant-note"
+            class="mt-xs h-10 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm"
+          />
+        </label>
+
+        @if (grantError()) {
+          <p class="mt-sm text-body-sm text-danger-fg" role="alert">{{ grantError() }}</p>
+        }
+      </div>
+
+      <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
+        <button type="button" (click)="closeAssign()" class="rounded-md border border-border-strong px-md py-xs text-body-sm font-medium text-body hover:bg-surface-sunken">
+          Cancel
+        </button>
+        <button
+          type="button"
+          (click)="grant()"
+          [disabled]="!selectedDefId() || granting()"
+          data-testid="grant-submit"
+          class="rounded-md bg-brand-primary px-lg py-xs text-body-sm font-semibold text-on-accent shadow-coral hover:bg-brand-primary-hover disabled:opacity-50"
+        >
+          {{ granting() ? 'Granting…' : 'Grant' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

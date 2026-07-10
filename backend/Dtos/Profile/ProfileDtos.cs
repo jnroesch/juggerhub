@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using JuggerHub.Dtos.Recognition;
 using JuggerHub.Entities;
 
 namespace JuggerHub.Dtos.Profile;
@@ -39,6 +40,9 @@ public sealed record OwnerProfileDto(
     IReadOnlyList<Pompfe> Pompfen,
     IReadOnlyList<ActivityItemDto> RecentActivity,
     IReadOnlyList<ProfileTeamDto> Teams,
+    // Feature 012 — earned badges & achievements (active only).
+    IReadOnlyList<EarnedRecognitionDto> Badges,
+    IReadOnlyList<EarnedRecognitionDto> Achievements,
     // Feature 007 — whether the owner opted into appearing in player search.
     bool AppearInSearch = false);
 
@@ -55,7 +59,10 @@ public sealed record PublicProfileDto(
     bool HasAvatar,
     IReadOnlyList<Pompfe> SelectedPompfen,
     IReadOnlyList<ActivityItemDto> RecentActivity,
-    IReadOnlyList<ProfileTeamDto> Teams);
+    IReadOnlyList<ProfileTeamDto> Teams,
+    // Feature 012 — earned badges & achievements (active only).
+    IReadOnlyList<EarnedRecognitionDto> Badges,
+    IReadOnlyList<EarnedRecognitionDto> Achievements);
 
 /// <summary>Result of a live handle availability/format check (UX aid; not a security boundary).</summary>
 public sealed record HandleAvailabilityDto(string Handle, string Normalized, bool Available, string? Reason);

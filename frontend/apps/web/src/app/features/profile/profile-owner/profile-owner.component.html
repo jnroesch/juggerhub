@@ -142,16 +142,8 @@
 
     <hr class="my-lg border-border" />
 
-    <!-- Badges (stub) -->
-    <section>
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Badges</p>
-      <div class="mt-sm flex items-center gap-sm">
-        @for (i of [0, 1, 2]; track i) {
-          <div class="h-9 w-9 rounded-full border border-dashed border-border-strong bg-surface-subtle"></div>
-        }
-        <span class="text-body-sm text-faint">Coming soon</span>
-      </div>
-    </section>
+    <!-- Badges & achievements (feature 012) -->
+    <jh-recognition-display [badges]="p.badges" [achievements]="p.achievements" />
       </div>
 
       <!-- Right column: recent activity -->

@@ -46,6 +46,9 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
                 ["Email:Provider"] = "Smtp",
                 ["Email:FromAddress"] = "test@juggerhub.local",
                 ["Email:FrontendBaseUrl"] = "http://localhost:3000",
+                // Feature 012 — the temporary platform-admin allowlist. Tests register an
+                // account with this email to exercise admin-only badge/achievement routes.
+                ["Admin:Emails"] = "admin@test.de",
             });
         });
 
