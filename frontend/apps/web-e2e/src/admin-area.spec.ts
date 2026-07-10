@@ -93,11 +93,20 @@ test('admin: gated entry → overview → find player → suspend blocks sign-in
   const { email, handle } = uniquePlayer();
   await registerVerify(page, request, email, handle);
 
-  // The lock-marked entry exists for the admin and opens the overview.
+  // The gated entry exists for the admin and opens the overview. Per wireframe 1a the
+  // entry differs by form factor: a lock-marked top-nav item on desktop, an account-menu
+  // row on mobile (no fifth tab) — so the test enters the way that viewport does.
   await ensureAdminSignedIn(page, request);
   await page.goto('/');
-  await expect(page.getByTestId('nav-admin')).toBeVisible();
-  await page.getByTestId('nav-admin').click();
+  const isMobile = (page.viewportSize()?.width ?? 1280) < 768;
+  if (isMobile) {
+    await page.getByTestId('avatar-menu-button').click();
+    await expect(page.getByTestId('admin-link')).toBeVisible();
+    await page.getByTestId('admin-link').click();
+  } else {
+    await expect(page.getByTestId('nav-admin')).toBeVisible();
+    await page.getByTestId('nav-admin').click();
+  }
   await expect(page.getByTestId('admin-overview-stats')).toBeVisible();
 
   // Search leads into user management with the query applied; the row opens the detail.

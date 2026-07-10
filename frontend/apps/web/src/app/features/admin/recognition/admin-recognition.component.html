@@ -12,7 +12,7 @@
       <button
         type="button"
         class="px-md py-xs text-body-sm font-medium"
-        [class.bg-brand-primary]="subjectType() === 'player'"
+        [class.bg-brand]="subjectType() === 'player'"
         [class.text-on-accent]="subjectType() === 'player'"
         [class.bg-surface-card]="subjectType() !== 'player'"
         [class.text-body]="subjectType() !== 'player'"
@@ -23,7 +23,7 @@
       <button
         type="button"
         class="border-l border-border-strong px-md py-xs text-body-sm font-medium"
-        [class.bg-brand-primary]="subjectType() === 'team'"
+        [class.bg-brand]="subjectType() === 'team'"
         [class.text-on-accent]="subjectType() === 'team'"
         [class.bg-surface-card]="subjectType() !== 'team'"
         [class.text-body]="subjectType() !== 'team'"
@@ -72,7 +72,7 @@
           type="button"
           (click)="openAssign()"
           data-testid="assign"
-          class="inline-flex h-10 items-center gap-xs rounded-md bg-brand-primary px-md text-body-sm font-semibold text-on-accent shadow-coral hover:bg-brand-primary-hover"
+          class="inline-flex h-10 items-center gap-xs rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent shadow-coral hover:bg-brand-hover"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           Assign
@@ -160,7 +160,7 @@
           <button
             type="button"
             class="rounded-t-md px-md py-xs text-body-sm font-medium"
-            [class.bg-brand-primary]="tab() === 'badge'"
+            [class.bg-brand]="tab() === 'badge'"
             [class.text-on-accent]="tab() === 'badge'"
             [class.text-muted]="tab() !== 'badge'"
             (click)="switchTab('badge')"
@@ -170,7 +170,7 @@
           <button
             type="button"
             class="rounded-t-md px-md py-xs text-body-sm font-medium"
-            [class.bg-brand-primary]="tab() === 'achievement'"
+            [class.bg-brand]="tab() === 'achievement'"
             [class.text-on-accent]="tab() === 'achievement'"
             [class.text-muted]="tab() !== 'achievement'"
             (click)="switchTab('achievement')"
@@ -257,7 +257,7 @@
           (click)="grant()"
           [disabled]="!selectedDefId() || granting()"
           data-testid="grant-submit"
-          class="rounded-md bg-brand-primary px-lg py-xs text-body-sm font-semibold text-on-accent shadow-coral hover:bg-brand-primary-hover disabled:opacity-50"
+          class="rounded-md bg-brand px-lg py-xs text-body-sm font-semibold text-on-accent shadow-coral hover:bg-brand-hover disabled:opacity-50"
         >
           {{ granting() ? 'Granting…' : 'Grant' }}
         </button>

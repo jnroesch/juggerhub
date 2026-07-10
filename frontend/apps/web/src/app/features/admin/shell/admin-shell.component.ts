@@ -2,7 +2,6 @@ import { Component, computed, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
-import { AuthService } from '../../../core/services/auth.service';
 
 /**
  * The admin area shell (feature 013, wireframe 1a/1b): its own shield header with a
@@ -18,9 +17,6 @@ import { AuthService } from '../../../core/services/auth.service';
 })
 export class AdminShellComponent {
   private readonly router = inject(Router);
-  private readonly auth = inject(AuthService);
-
-  protected readonly email = computed(() => this.auth.currentUser()?.email ?? '');
 
   private readonly url = toSignal(
     this.router.events.pipe(
