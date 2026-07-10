@@ -158,7 +158,7 @@ export const appRoutes: Route[] = [
       {
         path: 'catalogue',
         loadComponent: () =>
-          import('./features/admin/recognition/admin-recognition.component').then((m) => m.AdminRecognitionComponent),
+          import('./features/admin/catalogue/admin-catalogue.component').then((m) => m.AdminCatalogueComponent),
       },
     ],
   },

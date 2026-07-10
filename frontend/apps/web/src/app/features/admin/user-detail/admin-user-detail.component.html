@@ -158,8 +158,9 @@
       <p class="mt-md text-caption text-subtle">All reversible · every action is recorded.</p>
     </section>
 
-    <!-- Badges & achievements with Assign (wireframe 1d/1e) — first on mobile -->
-    <section class="order-1 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-3 lg:col-span-3">
+    <!-- Badges & achievements with Assign (wireframe 1d/1e; UI migrated from 012's
+         catalogue surface — this page is now the one place grants happen) — first on mobile -->
+    <section class="order-1 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-3 lg:col-span-3" data-testid="subject-awards">
       <div class="flex items-center justify-between gap-sm">
         <h2 class="text-h4 font-bold text-heading">
           Badges &amp; achievements
@@ -167,138 +168,204 @@
         </h2>
         <button
           type="button"
-          class="h-11 rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent transition-colors duration-fast hover:bg-brand-hover"
           (click)="openAssign()"
-          data-testid="admin-assign-open"
+          data-testid="assign"
+          class="inline-flex h-11 items-center gap-xs rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent shadow-coral transition-colors duration-fast hover:bg-brand-hover"
         >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           Assign
         </button>
       </div>
 
       @if (awards(); as held) {
-        @if (held.badges.length === 0 && held.achievements.length === 0) {
-          <p class="mt-sm text-body-sm text-muted">Nothing yet — Assign grants the first one.</p>
-        } @else {
-          <ul class="mt-sm grid gap-sm sm:grid-cols-2 lg:grid-cols-3" data-testid="admin-award-list">
-            @for (award of held.badges; track award.awardId) {
-              <li class="flex items-start justify-between gap-sm rounded-md border border-border-muted p-sm">
-                <span class="min-w-0">
-                  <span class="block truncate text-body-sm font-medium text-body">{{ award.name }}</span>
-                  <span class="block text-caption text-subtle">Badge · by {{ award.grantedByName }} · {{ award.earnedAt | date: 'MMM y' }}</span>
-                  @if (award.note) {
-                    <span class="mt-0.5 block truncate text-caption italic text-subtle">“{{ award.note }}”</span>
-                  }
-                </span>
-                <button type="button" class="whitespace-nowrap text-caption font-medium text-link hover:text-link-hover" (click)="revoke(award, 'badge')">Revoke</button>
-              </li>
+        <div class="mt-md grid gap-lg sm:grid-cols-2">
+          <section>
+            <p class="text-eyebrow uppercase text-muted">Badges</p>
+            @if (held.badges.length === 0) {
+              <p class="mt-xs text-body-sm text-faint">None yet.</p>
+            } @else {
+              <ul class="mt-sm flex flex-col gap-xs">
+                @for (a of held.badges; track a.awardId) {
+                  <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
+                    <span class="min-w-0">
+                      <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
+                      <span class="block text-caption text-muted">by {{ a.grantedByName }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
+                      @if (a.note) { <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span> }
+                    </span>
+                    <button
+                      type="button"
+                      (click)="revoke(a, 'badge')"
+                      class="shrink-0 rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger-fg hover:bg-danger-bg"
+                    >
+                      Revoke
+                    </button>
+                  </li>
+                }
+              </ul>
             }
-            @for (award of held.achievements; track award.awardId) {
-              <li class="flex items-start justify-between gap-sm rounded-md border border-border-muted p-sm">
-                <span class="min-w-0">
-                  <span class="block truncate text-body-sm font-medium text-body">{{ award.name }}</span>
-                  <span class="block text-caption text-subtle">Achievement · by {{ award.grantedByName }} · {{ award.earnedAt | date: 'MMM y' }}</span>
-                  @if (award.note) {
-                    <span class="mt-0.5 block truncate text-caption italic text-subtle">“{{ award.note }}”</span>
-                  }
-                </span>
-                <button type="button" class="whitespace-nowrap text-caption font-medium text-link hover:text-link-hover" (click)="revoke(award, 'achievement')">Revoke</button>
-              </li>
+          </section>
+
+          <section>
+            <p class="text-eyebrow uppercase text-muted">Achievements</p>
+            @if (held.achievements.length === 0) {
+              <p class="mt-xs text-body-sm text-faint">None yet.</p>
+            } @else {
+              <ul class="mt-sm flex flex-col gap-xs">
+                @for (a of held.achievements; track a.awardId) {
+                  <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
+                    <span class="min-w-0">
+                      <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
+                      <span class="block text-caption text-muted">by {{ a.grantedByName }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
+                      @if (a.contextLabel || a.contextYear) {
+                        <span class="block truncate text-caption text-subtle">{{ a.contextLabel }} {{ a.contextYear }}</span>
+                      } @else if (a.note) {
+                        <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span>
+                      }
+                    </span>
+                    <button
+                      type="button"
+                      (click)="revoke(a, 'achievement')"
+                      class="shrink-0 rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger-fg hover:bg-danger-bg"
+                    >
+                      Revoke
+                    </button>
+                  </li>
+                }
+              </ul>
             }
-          </ul>
-        }
+          </section>
+        </div>
       } @else {
         <p class="mt-sm text-body-sm text-muted">Couldn't load their badges right now.</p>
       }
     </section>
   </div>
 
-  <!-- Assign picker: dialog over the player (bottom sheet on mobile — wireframe 1e) -->
+  <!-- Assign picker (modal over the player; migrated from 012's catalogue surface):
+       bottom sheet on mobile, centered dialog on desktop — wireframe 1e -->
   @if (assignOpen()) {
-    <div class="fixed inset-0 z-40 bg-black/40" aria-hidden="true" (click)="closeAssign()"></div>
-    <div
-      class="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-xl border border-border-muted bg-surface-card p-md shadow-xl sm:inset-x-auto sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Grant a badge or achievement"
-      data-testid="admin-assign-picker"
-    >
-      <div class="flex items-center justify-between gap-sm">
-        <h3 class="text-h4 font-bold text-heading">Grant to {{ player.displayName }}</h3>
-        <button type="button" class="grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-surface-sunken" aria-label="Close" (click)="closeAssign()">✕</button>
-      </div>
+    <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-md" role="presentation">
+      <div
+        class="flex max-h-[90vh] w-full max-w-container-sm flex-col overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Grant a badge or achievement"
+        data-testid="assign-modal"
+      >
+        <div class="flex items-center justify-between border-b border-border-muted px-md py-sm">
+          <h3 class="text-body-lg font-semibold text-heading">Grant to {{ player.displayName }}</h3>
+          <button type="button" (click)="closeAssign()" class="text-muted hover:text-body" aria-label="Close">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M18 6 6 18M6 6l12 12"/></svg>
+          </button>
+        </div>
 
-      <div class="mt-sm inline-flex overflow-hidden rounded-md border border-border-strong" role="group" aria-label="Catalogue">
-        <button
-          type="button"
-          class="px-md py-xs text-body-sm font-medium"
-          [class]="tab() === 'badge' ? 'bg-brand text-on-accent' : 'bg-surface-card text-body'"
-          (click)="switchTab('badge')"
-        >Badges</button>
-        <button
-          type="button"
-          class="border-l border-border-strong px-md py-xs text-body-sm font-medium"
-          [class]="tab() === 'achievement' ? 'bg-brand text-on-accent' : 'bg-surface-card text-body'"
-          (click)="switchTab('achievement')"
-          data-testid="admin-assign-tab-achievements"
-        >Achievements</button>
-      </div>
+        <div class="border-b border-border-muted px-md pt-sm">
+          <div class="inline-flex gap-xs">
+            <button
+              type="button"
+              class="rounded-t-md px-md py-xs text-body-sm font-medium"
+              [class.bg-brand]="tab() === 'badge'"
+              [class.text-on-accent]="tab() === 'badge'"
+              [class.text-muted]="tab() !== 'badge'"
+              (click)="switchTab('badge')"
+            >
+              Badges
+            </button>
+            <button
+              type="button"
+              class="rounded-t-md px-md py-xs text-body-sm font-medium"
+              [class.bg-brand]="tab() === 'achievement'"
+              [class.text-on-accent]="tab() === 'achievement'"
+              [class.text-muted]="tab() !== 'achievement'"
+              (click)="switchTab('achievement')"
+            >
+              Achievements
+            </button>
+          </div>
+        </div>
 
-      @if (pickerItems().length === 0) {
-        <p class="mt-sm text-body-sm text-muted">Nothing in this catalogue yet.</p>
-      } @else {
-        <ul class="mt-sm grid grid-cols-2 gap-xs sm:grid-cols-3" data-testid="admin-assign-items">
-          @for (item of pickerItems(); track item.id) {
-            <li>
-              <button
-                type="button"
-                class="w-full rounded-md border p-sm text-left transition-colors duration-fast"
-                [class.border-border-focus]="selectedDefId() === item.id"
-                [class.ring-2]="selectedDefId() === item.id"
-                [class.ring-focus]="selectedDefId() === item.id"
-                [class.border-border-muted]="selectedDefId() !== item.id"
-                [class.opacity-50]="isHeld(item.id)"
-                [disabled]="isHeld(item.id)"
-                (click)="select(item.id)"
-              >
-                <span class="block truncate text-body-sm font-medium text-body">{{ item.name }}</span>
-                @if (isHeld(item.id)) {
-                  <span class="text-caption text-subtle">Given</span>
-                }
-              </button>
-            </li>
+        <div class="min-h-0 flex-1 overflow-y-auto p-md">
+          @if (pickerItems().length === 0) {
+            <p class="text-body-sm text-faint">Nothing in the catalogue applies here yet.</p>
+          } @else {
+            <ul class="grid grid-cols-2 gap-sm sm:grid-cols-3">
+              @for (d of pickerItems(); track d.id) {
+                <li>
+                  <button
+                    type="button"
+                    (click)="select(d.id)"
+                    [disabled]="isHeld(d.id)"
+                    [attr.data-testid]="'pick-' + d.id"
+                    class="flex w-full flex-col items-center gap-xs rounded-md border p-sm text-center transition-colors"
+                    [class.border-border-focus]="selectedDefId() === d.id"
+                    [class.ring-2]="selectedDefId() === d.id"
+                    [class.ring-focus]="selectedDefId() === d.id"
+                    [class.border-border-muted]="selectedDefId() !== d.id"
+                    [class.opacity-60]="isHeld(d.id)"
+                  >
+                    <span class="grid h-11 w-11 place-items-center overflow-hidden rounded-full border border-border-strong bg-surface-subtle text-muted">
+                      @if (d.hasIcon) {
+                        <img [src]="iconUrl(tab(), d.id)" [alt]="d.name" class="h-full w-full object-cover" />
+                      } @else {
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 22l5-3 5 3-1.5-9.5"/></svg>
+                      }
+                    </span>
+                    <span class="block w-full truncate text-body-sm font-medium text-heading">{{ d.name }}</span>
+                    @if (isHeld(d.id)) {
+                      <span class="text-caption font-semibold text-success-fg">Given</span>
+                    }
+                  </button>
+                </li>
+              }
+            </ul>
           }
-        </ul>
-      }
 
-      <label class="mt-sm block">
-        <span class="text-caption text-subtle">Note · optional — shows in the record</span>
-        <textarea
-          rows="2"
-          maxlength="280"
-          class="mt-1 w-full rounded-md border border-border-strong bg-surface-card p-sm text-body-sm text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-          placeholder="Why are they getting this?"
-          [ngModel]="note()"
-          (ngModelChange)="note.set($event)"
-          name="note"
-          data-testid="admin-assign-note"
-        ></textarea>
-      </label>
+          @if (tab() === 'achievement' && selectedDefId()) {
+            <div class="mt-md grid grid-cols-2 gap-sm">
+              <label class="block">
+                <span class="text-caption font-medium text-muted">Year (optional)</span>
+                <input type="number" [ngModel]="contextYear()" (ngModelChange)="contextYear.set($event)" placeholder="2026"
+                  class="mt-xs h-10 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm" />
+              </label>
+              <label class="block">
+                <span class="text-caption font-medium text-muted">Label (optional)</span>
+                <input type="text" [ngModel]="contextLabel()" (ngModelChange)="contextLabel.set($event)" placeholder="National championship"
+                  class="mt-xs h-10 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm" />
+              </label>
+            </div>
+          }
 
-      @if (grantError(); as message) {
-        <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ message }}</p>
-      }
+          <label class="mt-md block">
+            <span class="text-caption font-medium text-muted">Note (optional) — shows in the admin log</span>
+            <input
+              type="text"
+              [ngModel]="note()"
+              (ngModelChange)="note.set($event)"
+              placeholder="Why are they getting this?"
+              data-testid="grant-note"
+              class="mt-xs h-10 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm"
+            />
+          </label>
 
-      <div class="mt-sm flex justify-end gap-sm">
-        <button type="button" class="h-11 rounded-md border border-border-strong bg-surface-card px-md text-body-sm font-medium text-body hover:bg-surface-sunken" (click)="closeAssign()">Cancel</button>
-        <button
-          type="button"
-          class="h-11 rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent transition-colors duration-fast enabled:hover:bg-brand-hover disabled:opacity-40"
-          [disabled]="!selectedDefId() || granting()"
-          (click)="grant()"
-          data-testid="admin-assign-grant"
-        >
-          {{ selectedName() ? 'Grant “' + selectedName() + '”' : 'Grant' }}
-        </button>
+          @if (grantError()) {
+            <p class="mt-sm text-body-sm text-danger-fg" role="alert">{{ grantError() }}</p>
+          }
+        </div>
+
+        <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
+          <button type="button" (click)="closeAssign()" class="rounded-md border border-border-strong px-md py-xs text-body-sm font-medium text-body hover:bg-surface-sunken">
+            Cancel
+          </button>
+          <button
+            type="button"
+            (click)="grant()"
+            [disabled]="!selectedDefId() || granting()"
+            data-testid="grant-submit"
+            class="rounded-md bg-brand px-lg py-xs text-body-sm font-semibold text-on-accent shadow-coral hover:bg-brand-hover disabled:opacity-50"
+          >
+            {{ granting() ? 'Granting…' : 'Grant' }}
+          </button>
+        </div>
       </div>
     </div>
   }

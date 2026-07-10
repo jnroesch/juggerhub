@@ -54,11 +54,13 @@ export class AdminUserDetailComponent {
   protected readonly actionError = signal<string | null>(null);
   protected readonly resetSent = signal(false);
 
-  // Assign picker (wireframe 1e).
+  // Assign picker (wireframe 1e; UI migrated from 012's catalogue surface).
   protected readonly assignOpen = signal(false);
   protected readonly tab = signal<Tab>('badge');
   protected readonly selectedDefId = signal<string | null>(null);
   protected readonly note = signal('');
+  protected readonly contextYear = signal<number | null>(null);
+  protected readonly contextLabel = signal('');
   protected readonly granting = signal(false);
   protected readonly grantError = signal<string | null>(null);
 
@@ -120,6 +122,10 @@ export class AdminUserDetailComponent {
     return this.heldIds().has(defId);
   }
 
+  protected iconUrl(kind: Tab, id: string): string {
+    return `/api/v1/${kind === 'badge' ? 'badges' : 'achievements'}/${id}/icon`;
+  }
+
   // --- Account actions (all confirmed, all recorded server-side) ------------
 
   protected act(action: AccountAction): void {
@@ -172,6 +178,8 @@ export class AdminUserDetailComponent {
     this.tab.set('badge');
     this.selectedDefId.set(null);
     this.note.set('');
+    this.contextYear.set(null);
+    this.contextLabel.set('');
     this.grantError.set(null);
     this.assignOpen.set(true);
     if (this.badgeCatalogue().length === 0) {
@@ -202,11 +210,6 @@ export class AdminUserDetailComponent {
     }
   }
 
-  protected selectedName(): string | null {
-    const id = this.selectedDefId();
-    return this.pickerItems().find((d) => d.id === id)?.name ?? null;
-  }
-
   protected grant(): void {
     const defId = this.selectedDefId();
     const d = this.detail();
@@ -220,7 +223,11 @@ export class AdminUserDetailComponent {
     const call =
       this.tab() === 'badge'
         ? this.recognition.grantBadge(defId, body)
-        : this.recognition.grantAchievement(defId, body);
+        : this.recognition.grantAchievement(defId, {
+            ...body,
+            contextYear: this.contextYear(),
+            contextLabel: this.contextLabel().trim() || null,
+          });
 
     call.subscribe({
       next: () => {

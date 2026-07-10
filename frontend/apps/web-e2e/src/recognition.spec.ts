@@ -1,9 +1,10 @@
 import { APIRequestContext, Page, expect, test } from '@playwright/test';
 
 /**
- * Feature 012 end-to-end: an admin grants a badge to a player from /admin, the badge appears on
- * the player's public profile, and revoking it removes it. Exercises US1 (grant/revoke) + US2
- * (display) together. The admin account is `admin@test.de` (the stack's ADMIN_EMAILS allowlist).
+ * Feature 012/013 end-to-end: an admin grants a badge to a player from the player's
+ * admin detail (the one place grants happen since 013), the badge appears on the
+ * player's public profile, and revoking it removes it. The admin account is
+ * `admin@test.de` (the stack's ADMIN_EMAILS, designated by the role sync).
  */
 
 const MAILPIT = process.env['MAILPIT_URL'] || 'http://mailpit:8025';
@@ -78,18 +79,16 @@ test('admin grants a badge → it shows on the player profile → revoke removes
   // 2. Sign in as the platform admin.
   await ensureAdminSignedIn(page, request);
 
-  // 3. Load the player in the admin grant surface and open the picker.
-  await page.goto('/admin/catalogue');
-  await expect(page.getByTestId('subject-ref')).toBeVisible();
-  await page.getByTestId('subject-ref').fill(handle);
-  await page.getByTestId('load-subject').click();
+  // 3. Open the player's admin detail (users → detail is the grant surface since 013).
+  await page.goto(`/admin/users/${handle}`);
   await expect(page.getByTestId('subject-awards')).toBeVisible();
 
   await page.getByTestId('assign').click();
   await expect(page.getByTestId('assign-modal')).toBeVisible();
 
-  // Grant the first available (not-held) catalogue badge.
+  // Grant the first available (not-held) catalogue badge, with a note.
   await page.locator('[data-testid^="pick-"]:not([disabled])').first().click();
+  await page.getByTestId('grant-note').fill('e2e: for great fair play');
   await page.getByTestId('grant-submit').click();
   await expect(page.getByTestId('assign-modal')).toBeHidden();
 
@@ -97,10 +96,9 @@ test('admin grants a badge → it shows on the player profile → revoke removes
   await page.goto(`/u/${handle}`);
   await expect(page.getByText('Badges', { exact: true })).toBeVisible();
 
-  // 5. Revoke from the admin surface → the badge is gone from the public profile.
-  await page.goto('/admin/catalogue');
-  await page.getByTestId('subject-ref').fill(handle);
-  await page.getByTestId('load-subject').click();
+  // 5. Revoke from the admin detail → the badge is gone again.
+  await page.goto(`/admin/users/${handle}`);
+  await expect(page.getByTestId('subject-awards')).toBeVisible();
   page.on('dialog', (d) => d.accept());
   await page.getByRole('button', { name: 'Revoke' }).first().click();
   await expect(page.getByText('None yet.').first()).toBeVisible();

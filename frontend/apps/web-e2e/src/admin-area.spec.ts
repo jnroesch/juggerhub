@@ -82,7 +82,8 @@ test('non-admins never see the admin entry and /admin bounces them home', async 
   await signIn(page, email);
 
   await page.goto('/');
-  await expect(page.getByTestId('nav-admin')).toHaveCount(0);
+  await page.getByTestId('avatar-menu-button').click();
+  await expect(page.getByTestId('avatar-menu')).toBeVisible();
   await expect(page.getByTestId('admin-link')).toHaveCount(0);
 
   await page.goto('/admin');
@@ -93,20 +94,13 @@ test('admin: gated entry → overview → find player → suspend blocks sign-in
   const { email, handle } = uniquePlayer();
   await registerVerify(page, request, email, handle);
 
-  // The gated entry exists for the admin and opens the overview. Per wireframe 1a the
-  // entry differs by form factor: a lock-marked top-nav item on desktop, an account-menu
-  // row on mobile (no fifth tab) — so the test enters the way that viewport does.
+  // The gated entry lives in the avatar menu on every form factor (owner decision:
+  // the top-nav item was dropped in favor of the single account-menu row).
   await ensureAdminSignedIn(page, request);
   await page.goto('/');
-  const isMobile = (page.viewportSize()?.width ?? 1280) < 768;
-  if (isMobile) {
-    await page.getByTestId('avatar-menu-button').click();
-    await expect(page.getByTestId('admin-link')).toBeVisible();
-    await page.getByTestId('admin-link').click();
-  } else {
-    await expect(page.getByTestId('nav-admin')).toBeVisible();
-    await page.getByTestId('nav-admin').click();
-  }
+  await page.getByTestId('avatar-menu-button').click();
+  await expect(page.getByTestId('admin-link')).toBeVisible();
+  await page.getByTestId('admin-link').click();
   await expect(page.getByTestId('admin-overview-stats')).toBeVisible();
 
   // Search leads into user management with the query applied; the row opens the detail.
@@ -153,24 +147,6 @@ test('admin: gated entry → overview → find player → suspend blocks sign-in
   await expect(page.getByText(`@${handle}`).first()).toBeVisible();
 });
 
-test('admin assigns a badge from the player detail with a note, then revokes it', async ({ page, request }) => {
-  const { email, handle } = uniquePlayer();
-  await registerVerify(page, request, email, handle);
-  await ensureAdminSignedIn(page, request);
-
-  await page.goto(`/admin/users/${handle}`);
-  await page.getByTestId('admin-assign-open').click();
-  await expect(page.getByTestId('admin-assign-picker')).toBeVisible();
-
-  // Pick the first grantable catalogue item (dev seed provides the catalogue).
-  await page.locator('[data-testid="admin-assign-items"] button:not([disabled])').first().click();
-  await page.getByTestId('admin-assign-note').fill('e2e: for great fair play');
-  await page.getByTestId('admin-assign-grant').click();
-  await expect(page.getByTestId('admin-assign-picker')).toBeHidden();
-
-  // It lands on the detail's award list, then revoke removes it.
-  await expect(page.getByTestId('admin-award-list').locator('li')).toHaveCount(1);
-  page.on('dialog', (d) => d.accept());
-  await page.getByRole('button', { name: 'Revoke' }).first().click();
-  await expect(page.getByTestId('admin-award-list')).toHaveCount(0);
-});
+// The assign/revoke round trip (grant from the player detail with a note → shows on the
+// public profile → revoke removes it) lives in recognition.spec.ts, which drives the
+// same migrated Assign UI.

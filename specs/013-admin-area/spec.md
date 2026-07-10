@@ -14,6 +14,12 @@
 2. **Ban** removes the player from the platform: the account is soft-deleted (deactivated and invisible everywhere — profile gone from public surfaces, removed from rosters/lists, cannot sign in) with data retained internally so an admin can undo a mistaken ban. The account's email cannot re-register while it remains denylisted.
 3. **Admin designation is purely configuration-driven** this pass: the set of platform administrators mirrors environment configuration (synced at startup — additions grant, removals revoke). There is no in-app grant/revoke admin UI or endpoint.
 
+**Owner review adjustments (2026-07-10, post-implementation)** — supersede the matching scenarios/FRs below:
+
+4. **Single admin entry**: the desktop top-nav Admin item was dropped; the account-menu row (avatar menu) is the one gated entry on every form factor.
+5. **Grants happen only on the player detail**: the 012 combined catalogue+assign surface was removed; its richer assignment UI (icon picker, achievement year/label context, note) was migrated onto `/admin/users/{handle}`. Team-award assignment thereby lost its UI (API unaffected) — tracked in GitHub issue #24.
+6. **`/admin/catalogue` is a placeholder** for future badge/achievement type management (create/edit/retire + icons — backend exists from 012); UI tracked in GitHub issue #24.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A real platform-administrator role (Priority: P1)
