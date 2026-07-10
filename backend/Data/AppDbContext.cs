@@ -81,12 +81,21 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<AchievementAward> AchievementAwards => Set<AchievementAward>();
 
+    // Feature 013 — append-only admin account-action log.
+    public DbSet<AdminActionRecord> AdminActionRecords => Set<AdminActionRecord>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
         builder.Entity<PlayerProfile>(entity =>
         {
+            // Feature 013 ban invisibility: a banned (soft-deleted) account's profile is
+            // hidden from EVERY query by default — public profile, browse, rosters,
+            // participant lists all drop out without per-call-site Where clauses (fails
+            // closed). Only the admin services opt out via IgnoreQueryFilters(); the
+            // admin users list is the one place banned players remain findable.
+            entity.HasQueryFilter(p => p.User.Status != AccountStatus.Banned);
             entity.Property(p => p.Handle).HasMaxLength(30).IsRequired();
             entity.Property(p => p.DisplayName).HasMaxLength(50).IsRequired();
             entity.Property(p => p.Hometown).HasMaxLength(80);
@@ -113,6 +122,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
         builder.Entity<ProfilePompfe>(entity =>
         {
+            // Matches the PlayerProfile ban filter (013) so direct pompfen queries and
+            // includes stay consistent with their (possibly hidden) parent profile.
+            entity.HasQueryFilter(pp => pp.Profile.User.Status != AccountStatus.Banned);
+
             // A profile selects each pompfe at most once.
             entity.HasIndex(pp => new { pp.ProfileId, pp.Pompfe }).IsUnique();
 
@@ -124,6 +137,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
         builder.Entity<ProfileAvatar>(entity =>
         {
+            // Matches the PlayerProfile ban filter (013): a banned player's avatar is
+            // not served either.
+            entity.HasQueryFilter(a => a.Profile.User.Status != AccountStatus.Banned);
+
             entity.Property(a => a.ContentType).HasMaxLength(64).IsRequired();
             entity.HasIndex(a => a.ProfileId).IsUnique();
         });
@@ -254,6 +271,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
         builder.Entity<EventParticipation>(entity =>
         {
+            // Matches the PlayerProfile ban filter (013): banned players drop out of
+            // participant lists queried directly off this set.
+            entity.HasQueryFilter(ep => ep.Profile.User.Status != AccountStatus.Banned);
+
             entity.Property(ep => ep.TeamLabel).HasMaxLength(80).IsRequired();
             // A player participates in a given event once.
             entity.HasIndex(ep => new { ep.ProfileId, ep.EventId }).IsUnique();
@@ -551,6 +572,27 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasOne<User>()
                 .WithMany()
                 .HasForeignKey(a => a.GrantedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---- Feature 013: admin account-action log ----
+
+        builder.Entity<AdminActionRecord>(entity =>
+        {
+            entity.Property(r => r.Note).HasMaxLength(280);
+
+            // Future per-player history view reads a target's actions newest-first.
+            entity.HasIndex(r => new { r.TargetUserId, r.CreatedDate });
+
+            // History must never vanish with an account row.
+            entity.HasOne(r => r.Actor)
+                .WithMany()
+                .HasForeignKey(r => r.ActorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(r => r.Target)
+                .WithMany()
+                .HasForeignKey(r => r.TargetUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

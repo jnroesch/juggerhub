@@ -152,8 +152,9 @@ builder.Services
         };
     });
 
-// --- Platform admin gate (feature 012; TEMPORARY config allowlist, real role → GH #21) -----
+// --- Platform admin gate (feature 013: PlatformAdmin Identity role, mirrored from config at startup) -----
 builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection(AdminOptions.SectionName));
+builder.Services.AddScoped<PlatformAdminRoleSync>();
 builder.Services.AddScoped<IAuthorizationHandler, PlatformAdminHandler>();
 builder.Services.AddAuthorization(options =>
     options.AddPolicy(PlatformAdminPolicy.Name, policy =>
@@ -268,6 +269,14 @@ var app = builder.Build();
 // a failure logs a generic error and exits non-zero rather than serving against
 // a broken/half-migrated schema. See specs/001-project-scaffold/research.md §5.
 await ApplyMigrationsAsync(app);
+
+// Mirror the PlatformAdmin role to the configured admin identities (feature 013).
+// Config is the source of truth: additions grant, removals revoke, unknown emails are
+// picked up at a later startup. Never throws — authorization fails closed regardless.
+using (var adminSyncScope = app.Services.CreateScope())
+{
+    await adminSyncScope.ServiceProvider.GetRequiredService<PlatformAdminRoleSync>().SyncAsync();
+}
 
 // Development-only sample data for demonstrable "recent activity" (never in Prod).
 if (app.Environment.IsDevelopment())

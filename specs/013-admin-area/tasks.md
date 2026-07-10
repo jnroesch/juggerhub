@@ -12,7 +12,7 @@
 
 ## Phase 1: Setup
 
-- [ ] T001 Create `backend/Entities/AccountEnums.cs` with `AccountStatus` (Active=0, Suspended=1, Banned=2) and `AdminAccountAction` (Suspend, Reinstate, Ban, Unban, PasswordResetSent) per data-model.md
+- [X] T001 Create `backend/Entities/AccountEnums.cs` with `AccountStatus` (Active=0, Suspended=1, Banned=2) and `AdminAccountAction` (Suspend, Reinstate, Ban, Unban, PasswordResetSent) per data-model.md
 
 ---
 
@@ -20,11 +20,11 @@
 
 **Purpose**: Account-state schema + ban-invisibility filter that US2–US4 all read. **No user story work until this phase is green.**
 
-- [ ] T002 Add `Status` (`AccountStatus`, default Active) and `StatusChangedAt` (`DateTime?`) to `backend/Entities/User.cs`
-- [ ] T003 [P] Create `backend/Entities/AdminActionRecord.cs` (`BaseEntity`; `ActorUserId`, `TargetUserId`, `Action`, `Note?`; navs to `User`) per data-model.md
-- [ ] T004 Register in `backend/Data/AppDbContext.cs`: `DbSet<AdminActionRecord>`, FK config (`DeleteBehavior.Restrict` both FKs), index `(TargetUserId, CreatedDate)`, and the global query filter `PlayerProfile → p.User.Status != AccountStatus.Banned`
-- [ ] T005 Add EF migration `AddAccountStateAndAdminActions` (backend project conventions; verify snapshot includes filter-neutral schema + new columns backfill Active)
-- [ ] T006 Run the full existing backend test suite (`dotnet test backend/tests/JuggerHub.Api.IntegrationTests`) and fix any fallout from the new global query filter (required-navigation warnings, dropped joins) — all pre-013 suites must stay green before stories start
+- [X] T002 Add `Status` (`AccountStatus`, default Active) and `StatusChangedAt` (`DateTime?`) to `backend/Entities/User.cs`
+- [X] T003 [P] Create `backend/Entities/AdminActionRecord.cs` (`BaseEntity`; `ActorUserId`, `TargetUserId`, `Action`, `Note?`; navs to `User`) per data-model.md
+- [X] T004 Register in `backend/Data/AppDbContext.cs`: `DbSet<AdminActionRecord>`, FK config (`DeleteBehavior.Restrict` both FKs), index `(TargetUserId, CreatedDate)`, and the global query filter `PlayerProfile → p.User.Status != AccountStatus.Banned`
+- [X] T005 Add EF migration `AddAccountStateAndAdminActions` (backend project conventions; verify snapshot includes filter-neutral schema + new columns backfill Active)
+- [X] T006 Run the full existing backend test suite (`dotnet test backend/tests/JuggerHub.Api.IntegrationTests`) and fix any fallout from the new global query filter (required-navigation warnings, dropped joins) — all pre-013 suites must stay green before stories start
 
 **Checkpoint**: schema + filter in place, existing behavior unchanged (all accounts Active).
 
@@ -36,12 +36,12 @@
 
 **Independent Test**: quickstart Scenario 1 — API-only: non-admin 403, synced admin 200, config removal revokes at restart, empty config fails closed with logged warning.
 
-- [ ] T007 [US1] Create `backend/Security/PlatformAdmin/PlatformAdminRoleSync.cs`: idempotent startup sync per research §1 (ensure role, grant configured+existing, revoke unconfigured members, skip+log missing accounts, warn loudly on zero admins, never throw — log error and continue)
-- [ ] T008 [US1] Wire the sync into `backend/Program.cs` immediately after `ApplyMigrationsAsync` (scoped block, before dev seeding); register any needed DI
-- [ ] T009 [US1] Rewrite `backend/Security/PlatformAdmin/PlatformAdminHandler.cs` to succeed iff the JWT `sub` user is currently in the `PlatformAdmin` role (per-request store check via `UserManager`/role query; fail closed on missing user/role) — controllers and `PlatformAdminRequirement` untouched
-- [ ] T010 [P] [US1] Update the now-stale "TEMPORARY / interim" documentation comments in `backend/Common/AdminOptions.cs` (now: sync source, mirror semantics, restart-to-apply) and `backend/Security/PlatformAdmin/*` to match research §1–§2
-- [ ] T011 [P] [US1] New integration tests `backend/tests/JuggerHub.Api.IntegrationTests/Admin/PlatformAdminRoleSyncTests.cs`: grant on sync, revoke on config removal, skip+later-pickup for unregistered email, empty-config warning + fail closed, idempotent re-run
-- [ ] T012 [US1] Update `backend/tests/JuggerHub.Api.IntegrationTests/Recognition/AdminAuthorizationTests.cs` (+ `JuggerHubApiFactory`/`RecognitionTestSupport` helpers as needed) for the role-based gate; add the SC-001 case "email present in config but sync not run for that account → refused"; run all `Recognition/*`, `Badges/*`, `Achievements/*` suites unchanged-green (SC-008)
+- [X] T007 [US1] Create `backend/Security/PlatformAdmin/PlatformAdminRoleSync.cs`: idempotent startup sync per research §1 (ensure role, grant configured+existing, revoke unconfigured members, skip+log missing accounts, warn loudly on zero admins, never throw — log error and continue)
+- [X] T008 [US1] Wire the sync into `backend/Program.cs` immediately after `ApplyMigrationsAsync` (scoped block, before dev seeding); register any needed DI
+- [X] T009 [US1] Rewrite `backend/Security/PlatformAdmin/PlatformAdminHandler.cs` to succeed iff the JWT `sub` user is currently in the `PlatformAdmin` role (per-request store check via `UserManager`/role query; fail closed on missing user/role) — controllers and `PlatformAdminRequirement` untouched
+- [X] T010 [P] [US1] Update the now-stale "TEMPORARY / interim" documentation comments in `backend/Common/AdminOptions.cs` (now: sync source, mirror semantics, restart-to-apply) and `backend/Security/PlatformAdmin/*` to match research §1–§2
+- [X] T011 [P] [US1] New integration tests `backend/tests/JuggerHub.Api.IntegrationTests/Admin/PlatformAdminRoleSyncTests.cs`: grant on sync, revoke on config removal, skip+later-pickup for unregistered email, empty-config warning + fail closed, idempotent re-run
+- [X] T012 [US1] Update `backend/tests/JuggerHub.Api.IntegrationTests/Recognition/AdminAuthorizationTests.cs` (+ `JuggerHubApiFactory`/`RecognitionTestSupport` helpers as needed) for the role-based gate; add the SC-001 case "email present in config but sync not run for that account → refused"; run all `Recognition/*`, `Badges/*`, `Achievements/*` suites unchanged-green (SC-008)
 
 **Checkpoint**: privilege boundary replaced; GH issue #21's core is done and independently shippable.
 
