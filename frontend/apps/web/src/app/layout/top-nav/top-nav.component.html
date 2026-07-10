@@ -41,6 +41,20 @@
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 19v-1.5A3.5 3.5 0 0 0 12.5 14h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="10" cy="8" r="3.5"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.5-3.35"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8"/></svg>
       My team
     </a>
+    <!-- Admin (feature 013, wireframe 1a): set apart after the normal links, lock-marked.
+         Not rendered for non-admins; the server policy is the real boundary. -->
+    @if (isAdmin()) {
+      <a
+        routerLink="/admin"
+        class="ml-sm flex items-center gap-xs rounded-md border border-border px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
+        [class]="adminActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-muted hover:bg-surface-sunken hover:text-text'"
+        [attr.aria-current]="adminActive() ? 'page' : null"
+        data-testid="nav-admin"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Admin
+      </a>
+    }
   </nav>
 
   <!-- Right side: bell + avatar (desktop) / avatar only (mobile strip — Alerts lives in the bottom tab bar) -->

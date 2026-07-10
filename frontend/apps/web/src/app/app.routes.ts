@@ -129,13 +129,38 @@ export const appRoutes: Route[] = [
   { path: 'onboarding', component: OnboardingComponent, canActivate: [authGuard, onboardingGuard] },
   // Public, unauthenticated share page — full-screen, outside the shell.
   { path: 'u/:handle', component: ProfilePublicComponent },
-  // Admin area (feature 012) — full-screen with its own shield header; gated to platform
-  // admins (server-enforced; adminGuard is UX only). Lazy-loaded.
+  // Admin area (feature 013) — full-screen shell with its own shield header and nav;
+  // gated to platform admins (server-enforced; adminGuard is UX only). Lazy-loaded.
+  // Children: overview (landing) · users (search/list) · users/:handle (player detail)
+  // · catalogue (the feature-012 badge/achievement management surface, re-mounted).
   {
     path: 'admin',
     canActivate: [authGuard, adminGuard],
     loadComponent: () =>
-      import('./features/admin/recognition/admin-recognition.component').then((m) => m.AdminRecognitionComponent),
+      import('./features/admin/shell/admin-shell.component').then((m) => m.AdminShellComponent),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        loadComponent: () =>
+          import('./features/admin/overview/admin-overview.component').then((m) => m.AdminOverviewComponent),
+      },
+      {
+        path: 'users',
+        loadComponent: () =>
+          import('./features/admin/users/admin-users.component').then((m) => m.AdminUsersComponent),
+      },
+      {
+        path: 'users/:handle',
+        loadComponent: () =>
+          import('./features/admin/user-detail/admin-user-detail.component').then((m) => m.AdminUserDetailComponent),
+      },
+      {
+        path: 'catalogue',
+        loadComponent: () =>
+          import('./features/admin/recognition/admin-recognition.component').then((m) => m.AdminRecognitionComponent),
+      },
+    ],
   },
   // Invite accept — full-screen, outside the shell; preview is anonymous, accept needs auth.
   { path: 'join/:slug/:token', component: InviteAcceptComponent },

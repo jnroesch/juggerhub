@@ -1,0 +1,305 @@
+<nav class="text-body-sm text-muted" aria-label="Breadcrumb">
+  <a routerLink="/admin/users" class="font-medium text-link hover:text-link-hover">Users</a>
+  <span aria-hidden="true"> › </span>
+  <span>{{ detail()?.displayName ?? '…' }}</span>
+</nav>
+
+@if (loading()) {
+  <p class="mt-md text-body-md text-muted">Loading player…</p>
+} @else if (notFound()) {
+  <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm" data-testid="admin-user-not-found">
+    <p class="text-body-md text-body">No player matches that handle.</p>
+    <a routerLink="/admin/users" class="mt-xs inline-block text-body-sm font-medium text-link hover:text-link-hover">Back to users</a>
+  </div>
+} @else if (error(); as message) {
+  <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
+    {{ message }}
+    <button type="button" class="ml-sm font-semibold underline" (click)="load()">Try again</button>
+  </div>
+} @else if (detail(); as player) {
+  <!-- Header: who this is + status -->
+  <div class="mt-sm flex flex-wrap items-center gap-sm">
+    <h1 class="text-h3 font-bold text-heading">{{ player.displayName }}</h1>
+    <span
+      class="rounded-pill px-sm py-0.5 text-caption font-medium"
+      [class]="player.status === 'Active' ? 'bg-success-bg text-success-fg' : player.status === 'Suspended' ? 'bg-warning-bg text-warning-fg' : 'bg-danger-bg text-danger-fg'"
+      data-testid="admin-user-status"
+    >{{ player.status }}</span>
+    @if (player.isAdmin) {
+      <span class="rounded-pill bg-surface-secondary-soft px-sm py-0.5 text-caption font-medium text-body">Admin</span>
+    }
+  </div>
+  <p class="mt-1 text-body-sm text-muted">
+    &#64;{{ player.handle }}@if (player.hometown) { · {{ player.hometown }}} · joined {{ player.joinedAt | date: 'MMM y' }}
+    · <a [href]="'/u/' + player.handle" target="_blank" rel="noopener" class="font-medium text-link hover:text-link-hover">View public profile</a>
+  </p>
+
+  @if (actionError(); as message) {
+    <div class="mt-sm rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert" data-testid="admin-action-error">
+      {{ message }}
+    </div>
+  }
+  @if (resetSent()) {
+    <div class="mt-sm rounded-md border border-success-border bg-success-bg px-md py-sm text-body-sm text-success-fg" role="status" data-testid="admin-reset-sent">
+      Reset link sent. They'll get an email with next steps — you never see their password.
+    </div>
+  }
+
+  <!-- Mobile order: badges first (the main task), then account, then identity (wireframe 1d).
+       Desktop: identity+activity left, account right, badges across the bottom. -->
+  <div class="mt-md grid gap-md lg:grid-cols-3">
+    <!-- Identity & activity -->
+    <section class="order-3 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-1 lg:col-span-2">
+      <h2 class="text-h4 font-bold text-heading">Identity</h2>
+      <dl class="mt-sm grid gap-sm sm:grid-cols-2">
+        <div>
+          <dt class="text-caption text-subtle">Teams · clubs</dt>
+          <dd class="mt-1 flex flex-wrap gap-xs">
+            @if (player.teams.length === 0) {
+              <span class="text-body-sm text-muted">—</span>
+            }
+            @for (team of player.teams; track team.slug) {
+              <a [routerLink]="['/t', team.slug]" class="rounded-pill bg-surface-secondary-soft px-sm py-0.5 text-caption font-medium text-body hover:underline">{{ team.name }}</a>
+            }
+          </dd>
+        </div>
+        <div>
+          <dt class="text-caption text-subtle">Plays</dt>
+          <dd class="mt-1 flex flex-wrap gap-xs">
+            @if (player.pompfen.length === 0) {
+              <span class="text-body-sm text-muted">—</span>
+            }
+            @for (pompfe of player.pompfen; track pompfe) {
+              <span class="rounded-pill bg-surface-sunken px-sm py-0.5 text-caption font-medium text-body">{{ pompfe }}</span>
+            }
+          </dd>
+        </div>
+        <div>
+          <dt class="text-caption text-subtle">Last active</dt>
+          <dd class="mt-1 text-body-sm text-body">{{ player.lastActiveAt ? (player.lastActiveAt | date: 'MMM d, y') : '—' }}</dd>
+        </div>
+        <div>
+          <dt class="text-caption text-subtle">Player id</dt>
+          <dd class="mt-1 break-all font-mono text-caption text-muted">{{ player.userId }}</dd>
+        </div>
+      </dl>
+
+      <h3 class="mt-md text-body-md font-semibold text-heading">Recent activity</h3>
+      @if (player.recentActivity.length === 0) {
+        <p class="mt-xs text-body-sm text-muted">Nothing yet — activity from events shows up here.</p>
+      } @else {
+        <ul class="mt-xs divide-y divide-border-muted">
+          @for (item of player.recentActivity; track item.title + item.date) {
+            <li class="flex items-baseline justify-between gap-sm py-xs">
+              <span class="min-w-0 truncate text-body-sm text-body">{{ item.title }}</span>
+              <span class="whitespace-nowrap font-mono text-caption text-subtle">{{ item.date | date: 'MMM y' }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <!-- Account help (wireframe 1d) -->
+    <section class="order-2 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-2">
+      <h2 class="text-h4 font-bold text-heading">Account</h2>
+      @if (player.isAdmin) {
+        <p class="mt-sm rounded-md bg-surface-sunken px-sm py-xs text-body-sm text-muted" data-testid="admin-shield-note">
+          This is an admin account — it can't be suspended or banned. Remove it from the admin configuration first.
+        </p>
+      }
+
+      <div class="mt-sm flex flex-col gap-md">
+        @if (player.status === 'Active' && !player.isAdmin) {
+          <div>
+            <p class="text-body-sm font-semibold text-body">Suspend account</p>
+            <p class="text-caption text-muted">Blocks sign-in; everything they've built stays visible. Reversible any time.</p>
+            <button type="button" class="mt-xs h-9 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('suspend')" data-testid="admin-action-suspend">
+              Suspend…
+            </button>
+          </div>
+        }
+        @if (player.status === 'Suspended') {
+          <div>
+            <p class="text-body-sm font-semibold text-body">Reinstate account</p>
+            <p class="text-caption text-muted">Lifts the suspension — they can sign in again right away.</p>
+            <button type="button" class="mt-xs h-9 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('reinstate')" data-testid="admin-action-reinstate">
+              Reinstate
+            </button>
+          </div>
+        }
+        @if (player.status !== 'Banned') {
+          <div>
+            <p class="text-body-sm font-semibold text-body">Reset password</p>
+            <p class="text-caption text-muted">Sends a login link to their email. You never see or set it.</p>
+            <button type="button" class="mt-xs h-9 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('reset')" data-testid="admin-action-reset">
+              Send reset link
+            </button>
+          </div>
+        }
+        @if (player.status !== 'Banned' && !player.isAdmin) {
+          <div>
+            <p class="text-body-sm font-semibold text-danger-fg">Ban account</p>
+            <p class="text-caption text-muted">Removes them from the app entirely and blocks their email from re-registering. An admin can reinstate later.</p>
+            <button type="button" class="mt-xs h-9 rounded-md border border-danger-border bg-danger-bg px-sm text-body-sm font-medium text-danger-fg transition-colors duration-fast disabled:opacity-40" [disabled]="acting()" (click)="act('ban')" data-testid="admin-action-ban">
+              Ban…
+            </button>
+          </div>
+        }
+        @if (player.status === 'Banned') {
+          <div>
+            <p class="text-body-sm font-semibold text-body">Lift ban</p>
+            <p class="text-caption text-muted">Their profile, teams, and badges return intact, and they can sign in again.</p>
+            <button type="button" class="mt-xs h-9 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('unban')" data-testid="admin-action-unban">
+              Lift ban
+            </button>
+          </div>
+        }
+      </div>
+      <p class="mt-md text-caption text-subtle">All reversible · every action is recorded.</p>
+    </section>
+
+    <!-- Badges & achievements with Assign (wireframe 1d/1e) — first on mobile -->
+    <section class="order-1 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-3 lg:col-span-3">
+      <div class="flex items-center justify-between gap-sm">
+        <h2 class="text-h4 font-bold text-heading">
+          Badges &amp; achievements
+          <span class="ml-1 font-mono text-body-sm font-normal text-muted">{{ awardCount() }}</span>
+        </h2>
+        <button
+          type="button"
+          class="h-9 rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent transition-colors duration-fast hover:bg-brand-hover"
+          (click)="openAssign()"
+          data-testid="admin-assign-open"
+        >
+          Assign
+        </button>
+      </div>
+
+      @if (awards(); as held) {
+        @if (held.badges.length === 0 && held.achievements.length === 0) {
+          <p class="mt-sm text-body-sm text-muted">Nothing yet — Assign grants the first one.</p>
+        } @else {
+          <ul class="mt-sm grid gap-sm sm:grid-cols-2 lg:grid-cols-3" data-testid="admin-award-list">
+            @for (award of held.badges; track award.awardId) {
+              <li class="flex items-start justify-between gap-sm rounded-md border border-border-muted p-sm">
+                <span class="min-w-0">
+                  <span class="block truncate text-body-sm font-medium text-body">{{ award.name }}</span>
+                  <span class="block text-caption text-subtle">Badge · by {{ award.grantedByName }} · {{ award.earnedAt | date: 'MMM y' }}</span>
+                  @if (award.note) {
+                    <span class="mt-0.5 block truncate text-caption italic text-subtle">“{{ award.note }}”</span>
+                  }
+                </span>
+                <button type="button" class="whitespace-nowrap text-caption font-medium text-link hover:text-link-hover" (click)="revoke(award, 'badge')">Revoke</button>
+              </li>
+            }
+            @for (award of held.achievements; track award.awardId) {
+              <li class="flex items-start justify-between gap-sm rounded-md border border-border-muted p-sm">
+                <span class="min-w-0">
+                  <span class="block truncate text-body-sm font-medium text-body">{{ award.name }}</span>
+                  <span class="block text-caption text-subtle">Achievement · by {{ award.grantedByName }} · {{ award.earnedAt | date: 'MMM y' }}</span>
+                  @if (award.note) {
+                    <span class="mt-0.5 block truncate text-caption italic text-subtle">“{{ award.note }}”</span>
+                  }
+                </span>
+                <button type="button" class="whitespace-nowrap text-caption font-medium text-link hover:text-link-hover" (click)="revoke(award, 'achievement')">Revoke</button>
+              </li>
+            }
+          </ul>
+        }
+      } @else {
+        <p class="mt-sm text-body-sm text-muted">Couldn't load their badges right now.</p>
+      }
+    </section>
+  </div>
+
+  <!-- Assign picker: dialog over the player (bottom sheet on mobile — wireframe 1e) -->
+  @if (assignOpen()) {
+    <div class="fixed inset-0 z-40 bg-black/30" aria-hidden="true" (click)="closeAssign()"></div>
+    <div
+      class="fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-xl border border-border-muted bg-surface-card p-md shadow-xl sm:inset-x-auto sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:w-full sm:max-w-lg sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-lg"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Grant a badge or achievement"
+      data-testid="admin-assign-picker"
+    >
+      <div class="flex items-center justify-between gap-sm">
+        <h3 class="text-h4 font-bold text-heading">Grant to {{ player.displayName }}</h3>
+        <button type="button" class="grid h-9 w-9 place-items-center rounded-md text-muted hover:bg-surface-sunken" aria-label="Close" (click)="closeAssign()">✕</button>
+      </div>
+
+      <div class="mt-sm inline-flex overflow-hidden rounded-md border border-border-strong" role="group" aria-label="Catalogue">
+        <button
+          type="button"
+          class="px-md py-xs text-body-sm font-medium"
+          [class]="tab() === 'badge' ? 'bg-brand text-on-accent' : 'bg-surface-card text-body'"
+          (click)="switchTab('badge')"
+        >Badges</button>
+        <button
+          type="button"
+          class="border-l border-border-strong px-md py-xs text-body-sm font-medium"
+          [class]="tab() === 'achievement' ? 'bg-brand text-on-accent' : 'bg-surface-card text-body'"
+          (click)="switchTab('achievement')"
+          data-testid="admin-assign-tab-achievements"
+        >Achievements</button>
+      </div>
+
+      @if (pickerItems().length === 0) {
+        <p class="mt-sm text-body-sm text-muted">Nothing in this catalogue yet.</p>
+      } @else {
+        <ul class="mt-sm grid grid-cols-2 gap-xs sm:grid-cols-3" data-testid="admin-assign-items">
+          @for (item of pickerItems(); track item.id) {
+            <li>
+              <button
+                type="button"
+                class="w-full rounded-md border p-sm text-left transition-colors duration-fast"
+                [class.border-border-focus]="selectedDefId() === item.id"
+                [class.ring-2]="selectedDefId() === item.id"
+                [class.ring-focus]="selectedDefId() === item.id"
+                [class.border-border-muted]="selectedDefId() !== item.id"
+                [class.opacity-50]="isHeld(item.id)"
+                [disabled]="isHeld(item.id)"
+                (click)="select(item.id)"
+              >
+                <span class="block truncate text-body-sm font-medium text-body">{{ item.name }}</span>
+                @if (isHeld(item.id)) {
+                  <span class="text-caption text-subtle">Given</span>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
+      <label class="mt-sm block">
+        <span class="text-caption text-subtle">Note · optional — shows in the record</span>
+        <textarea
+          rows="2"
+          maxlength="280"
+          class="mt-1 w-full rounded-md border border-border-strong bg-surface-card p-sm text-body-sm text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          placeholder="Why are they getting this?"
+          [ngModel]="note()"
+          (ngModelChange)="note.set($event)"
+          name="note"
+          data-testid="admin-assign-note"
+        ></textarea>
+      </label>
+
+      @if (grantError(); as message) {
+        <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ message }}</p>
+      }
+
+      <div class="mt-sm flex justify-end gap-sm">
+        <button type="button" class="h-11 rounded-md border border-border-strong bg-surface-card px-md text-body-sm font-medium text-body hover:bg-surface-sunken" (click)="closeAssign()">Cancel</button>
+        <button
+          type="button"
+          class="h-11 rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent transition-colors duration-fast enabled:hover:bg-brand-hover disabled:opacity-40"
+          [disabled]="!selectedDefId() || granting()"
+          (click)="grant()"
+          data-testid="admin-assign-grant"
+        >
+          {{ selectedName() ? 'Grant “' + selectedName() + '”' : 'Grant' }}
+        </button>
+      </div>
+    </div>
+  }
+}

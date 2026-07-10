@@ -1,0 +1,91 @@
+<!-- Admin shell header — shield-marked, with a clear way back to the app (wireframe 1a). -->
+<header class="sticky top-0 z-30 border-b border-border-muted bg-surface-card">
+  <div class="mx-auto flex max-w-container-lg items-center justify-between gap-sm px-md py-sm">
+    <span class="inline-flex items-center gap-xs rounded-md bg-surface-inverse px-sm py-xs text-body-sm font-semibold text-on-inverse">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+      Admin
+    </span>
+    <div class="flex min-w-0 items-center gap-sm">
+      @if (email(); as who) {
+        <span class="hidden truncate text-caption text-subtle sm:inline" data-testid="admin-shell-who">{{ who }}</span>
+      }
+      <a routerLink="/" class="whitespace-nowrap text-body-sm font-medium text-link hover:text-link-hover" data-testid="admin-back-to-app">Back to app</a>
+    </div>
+  </div>
+</header>
+
+<div class="mx-auto flex w-full max-w-container-lg gap-lg px-md py-lg pb-20 md:pb-lg">
+  <!-- Desktop sidebar (wireframe 1b) -->
+  <nav class="hidden w-44 shrink-0 flex-col gap-1 md:flex" aria-label="Admin">
+    <a
+      routerLink="/admin"
+      class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
+      [class]="overviewActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [attr.aria-current]="overviewActive() ? 'page' : null"
+      data-testid="admin-nav-overview"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      Overview
+    </a>
+    <a
+      routerLink="/admin/users"
+      class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
+      [class]="usersActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [attr.aria-current]="usersActive() ? 'page' : null"
+      data-testid="admin-nav-users"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 19v-1.5A3.5 3.5 0 0 0 12.5 14h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="10" cy="8" r="3.5"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.5-3.35"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8"/></svg>
+      Users
+    </a>
+    <a
+      routerLink="/admin/catalogue"
+      class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
+      [class]="catalogueActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [attr.aria-current]="catalogueActive() ? 'page' : null"
+      data-testid="admin-nav-catalogue"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>
+      Catalogue
+    </a>
+    <p class="mt-sm px-sm text-caption text-subtle">Admins only</p>
+  </nav>
+
+  <main class="min-w-0 flex-1">
+    <router-outlet />
+  </main>
+</div>
+
+<!-- Mobile: bottom tab bar (wireframe 1b — no fifth tab in the main app; this bar lives only inside the admin area) -->
+<nav
+  class="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t border-border bg-surface md:hidden"
+  aria-label="Admin"
+  data-testid="admin-bottom-nav"
+>
+  <a
+    routerLink="/admin"
+    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast"
+    [class]="overviewActive() ? 'text-brand-active font-semibold' : 'text-subtle'"
+    [attr.aria-current]="overviewActive() ? 'page' : null"
+  >
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+    Overview
+  </a>
+  <a
+    routerLink="/admin/users"
+    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast"
+    [class]="usersActive() ? 'text-brand-active font-semibold' : 'text-subtle'"
+    [attr.aria-current]="usersActive() ? 'page' : null"
+  >
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 19v-1.5A3.5 3.5 0 0 0 12.5 14h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="10" cy="8" r="3.5"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.5-3.35"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8"/></svg>
+    Users
+  </a>
+  <a
+    routerLink="/admin/catalogue"
+    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast"
+    [class]="catalogueActive() ? 'text-brand-active font-semibold' : 'text-subtle'"
+    [attr.aria-current]="catalogueActive() ? 'page' : null"
+  >
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>
+    Catalogue
+  </a>
+</nav>

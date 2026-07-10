@@ -1,7 +1,6 @@
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import {
   AdminAward,
   AdminSubjectAwards,
@@ -21,7 +20,7 @@ type Tab = 'badge' | 'achievement';
  */
 @Component({
   selector: 'jh-admin-recognition',
-  imports: [FormsModule, DatePipe, RouterLink],
+  imports: [FormsModule, DatePipe],
   templateUrl: './admin-recognition.component.html',
   styleUrl: './admin-recognition.component.css',
 })
