@@ -94,3 +94,5 @@ Thumbs.db
 .claude/settings.local.json
 # Graphify generated knowledge-graph output
 graphify-out/
+# CI-only Playwright artifact dir (bind-mounted out of the e2e container)
+playwright-artifacts/
