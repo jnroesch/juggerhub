@@ -76,7 +76,9 @@ test('register → verify → sign in → sign out → reset password', async ({
   await page.goto('/account');
   await expect(page.getByTestId('account-email')).toContainText(email);
 
-  // 5. Sign out → protected area no longer reachable.
+  // 5. Sign out → protected area no longer reachable. Since feature 008 the control
+  //    lives inside the avatar-menu dropdown, so open it first.
+  await page.getByTestId('avatar-menu-button').click();
   await page.getByTestId('sign-out').click();
   await expect(page).toHaveURL(/sign-in/);
   await page.goto('/account');
