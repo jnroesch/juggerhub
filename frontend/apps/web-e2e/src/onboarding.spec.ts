@@ -92,7 +92,9 @@ test('first login opens onboarding; completing it lands in the app and it is sho
   await expect(page.locator('body')).toContainText('E2E Player');
 
   // 6. Sign out and back in → straight to the app, onboarding does NOT reappear.
+  //    Since feature 008 sign-out lives inside the avatar-menu dropdown.
   await page.goto('/account');
+  await page.getByTestId('avatar-menu-button').click();
   await page.getByTestId('sign-out').click();
   await expect(page).toHaveURL(/sign-in/);
 

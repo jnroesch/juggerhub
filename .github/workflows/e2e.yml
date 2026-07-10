@@ -1,0 +1,59 @@
+name: E2E
+
+# Containerized Playwright suite (desktop + mobile) against a throwaway full stack.
+# Runs on PRs and pushes so e2e spec rot is caught at review time rather than only
+# during occasional manual runs (GitHub issue #23).
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Runtime config for the throwaway stack. No real secrets — this is an
+      # isolated, disposable environment torn down at the end of the job. The
+      # admin allowlist matches the e2e fixtures (admin-area.spec.ts).
+      - name: Write stack config
+        run: |
+          cat > .env <<'EOF'
+          JWT_SIGNING_KEY=ci-e2e-signing-key-not-a-secret-0123456789abcdef
+          ADMIN_EMAILS=admin@test.de
+          EOF
+
+      # Bring up an isolated stack (own project name, no published ports, no pinned
+      # container names) with a fresh database, and wait for healthchecks.
+      - name: Start stack
+        run: |
+          docker compose -p juggerhub-e2e \
+            -f docker-compose.yml -f docker-compose.test.yml -f docker-compose.e2e.yml \
+            up -d --build --wait backend frontend mailpit
+
+      - name: Run Playwright suite
+        run: |
+          docker compose -p juggerhub-e2e \
+            -f docker-compose.yml -f docker-compose.test.yml -f docker-compose.e2e.yml \
+            run --rm --build playwright
+
+      # Surface stack logs when something fails — the disposable stack is gone after teardown.
+      - name: Dump stack logs on failure
+        if: failure()
+        run: |
+          docker compose -p juggerhub-e2e \
+            -f docker-compose.yml -f docker-compose.test.yml -f docker-compose.e2e.yml \
+            logs --no-color
+
+      - name: Tear down
+        if: always()
+        run: |
+          docker compose -p juggerhub-e2e \
+            -f docker-compose.yml -f docker-compose.test.yml -f docker-compose.e2e.yml \
+            down -v --remove-orphans

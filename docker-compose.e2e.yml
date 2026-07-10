@@ -1,0 +1,30 @@
+# Isolation overlay for the containerized e2e suite. Layer it AFTER the base and
+# test overlays and run under a dedicated project name so a full throwaway stack
+# (with its own disposable database) can come up without colliding with a running
+# dev stack:
+#
+#   docker compose -p juggerhub-e2e \
+#     -f docker-compose.yml -f docker-compose.test.yml -f docker-compose.e2e.yml \
+#     run --rm playwright
+#
+# Two things in the base file are global to the daemon and would otherwise clash
+# with a running dev stack: the pinned `container_name`s (unique per daemon, not
+# per project) and the published host `ports`. This overlay resets both — every
+# service still reaches the others by name over the internal network, and the
+# playwright container talks to `frontend:80` / `mailpit:8025` directly.
+services:
+  backend:
+    container_name: !reset null
+    ports: !reset []
+
+  frontend:
+    container_name: !reset null
+    ports: !reset []
+
+  database:
+    container_name: !reset null
+    ports: !reset []
+
+  mailpit:
+    container_name: !reset null
+    ports: !reset []
