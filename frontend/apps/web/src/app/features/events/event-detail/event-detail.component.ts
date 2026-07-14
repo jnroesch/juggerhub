@@ -3,7 +3,9 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { EventContact, EventDetail, EventNews, Signup } from '../../../core/models/event.models';
+import { PartyContext } from '../../../core/models/party.models';
 import { EventService } from '../../../core/services/event.service';
+import { PartyService } from '../../../core/services/party.service';
 import { problemDetail } from '../../../core/utils/problem';
 import { EventContactsListComponent } from './components/contacts-list.component';
 import { EventJoinActionsComponent } from './components/join-actions.component';
@@ -33,6 +35,7 @@ import { EventParticipantGroupsComponent } from './components/participant-groups
 })
 export class EventDetailComponent implements OnInit {
   private readonly events = inject(EventService);
+  private readonly parties = inject(PartyService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -42,6 +45,8 @@ export class EventDetailComponent implements OnInit {
   protected readonly waitlist = signal<Signup[]>([]);
   protected readonly news = signal<EventNews[]>([]);
   protected readonly contacts = signal<EventContact[]>([]);
+  /** Feature 016: the caller's party affordances for a teams-only event (cards + form button). */
+  protected readonly partyContext = signal<PartyContext | null>(null);
 
   protected readonly loading = signal(true);
   protected readonly loadError = signal(false);
@@ -72,6 +77,10 @@ export class EventDetailComponent implements OnInit {
         this.detail.set(d);
         this.loadLists();
         this.loading.set(false);
+        this.partyContext.set(null);
+        if (d.participantMode === 'Teams' && d.viewer.isAuthenticated) {
+          this.parties.getPartyContext(this.id).subscribe({ next: (ctx) => this.partyContext.set(ctx) });
+        }
       },
       error: () => {
         this.loading.set(false);

@@ -32,7 +32,10 @@ public sealed record CreateEventRequest(
     [MaxLength(3)] string? FeeCurrency,
     [MaxLength(120)] string? FeeRecipientName,
     [MaxLength(34)] string? FeeIban,
-    DateOnly? FeePaymentDeadline);
+    DateOnly? FeePaymentDeadline,
+    // Players-per-team cap for a teams-only event (feature 016): default 8, min 5. Ignored
+    // (must be null) for individuals-only. Bounds enforced server-side in EventService.
+    int? RosterCap = null);
 
 /// <summary>Edit an event (admin). ParticipantMode is refused when sign-ups exist; the limit
 /// may not drop below the current occupied count (both enforced server-side).</summary>
@@ -115,7 +118,9 @@ public sealed record EventDetailDto(
     string? FeeIban,
     DateOnly? FeePaymentDeadline,
     EventStatus Status,
-    ViewerRelationDto Viewer);
+    ViewerRelationDto Viewer,
+    // Players-per-team cap for teams-only events (feature 016); null for individuals-only.
+    int? RosterCap = null);
 
 /// <summary>One participant row (individual or team) in a group.</summary>
 public sealed record SignupDto(

@@ -17,6 +17,12 @@ public enum NotificationType
 
     /// <summary>A new team news post was published to a team the recipient belongs to. Link-only.</summary>
     TeamNews = 2,
+
+    /// <summary>A party participation request was posted (or re-nudged) to the recipient's team (feature 016). Carries inline I'm-in/Can't-make-it actions.</summary>
+    PartyRequest = 3,
+
+    /// <summary>A new party news post was published to a party the recipient is in (feature 016). Link-only.</summary>
+    PartyNews = 4,
 }
 
 /// <summary>
@@ -30,7 +36,7 @@ public enum NotificationCategory
     /// <summary>Team invites and role/roster changes (<see cref="NotificationType.TeamInvite"/>, <see cref="NotificationType.TeamRoleChanged"/>).</summary>
     InvitesAndRoster = 0,
 
-    /// <summary>Team news posts (<see cref="NotificationType.TeamNews"/>).</summary>
+    /// <summary>Team news posts (<see cref="NotificationType.TeamNews"/>) and party news (<see cref="NotificationType.PartyNews"/>).</summary>
     TeamNews = 1,
 }
 
@@ -48,7 +54,9 @@ public static class NotificationCategories
     {
         NotificationType.TeamInvite => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamRoleChanged => NotificationCategory.InvitesAndRoster,
+        NotificationType.PartyRequest => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamNews => NotificationCategory.TeamNews,
+        NotificationType.PartyNews => NotificationCategory.TeamNews,
         _ => NotificationCategory.TeamNews,
     };
 }

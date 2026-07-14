@@ -123,6 +123,14 @@
               class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
             <p class="mt-xs text-body-sm text-faint">Once full, the rest join a waiting list.</p>
           </div>
+          @if (participantMode() === 'Teams') {
+            <div>
+              <label for="ev-roster-cap" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Players per team (roster cap)</label>
+              <input id="ev-roster-cap" type="number" min="5" formControlName="rosterCap" data-testid="event-roster-cap"
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+              <p class="mt-xs text-body-sm text-faint">How many players a team's party can hold. Default 8, at least 5.</p>
+            </div>
+          }
         </div>
       }
 

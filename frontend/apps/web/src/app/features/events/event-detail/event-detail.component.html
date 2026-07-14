@@ -117,6 +117,7 @@
             } @else {
               <jh-event-join-actions
                 [detail]="d"
+                [partyContext]="partyContext()"
                 [acting]="acting()"
                 [actionError]="actionError()"
                 (join)="join($event)"
