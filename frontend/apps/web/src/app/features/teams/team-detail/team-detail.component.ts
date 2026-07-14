@@ -11,6 +11,8 @@ import {
   TeamPublicDetail,
 } from '../../../core/models/team.models';
 import { TeamService } from '../../../core/services/team.service';
+import { PartyService } from '../../../core/services/party.service';
+import { PartyRequestCard } from '../../../core/models/party.models';
 import { problemDetail } from '../../../core/utils/problem';
 import { RecognitionDisplayComponent } from '../../profile/components/recognition-display/recognition-display.component';
 
@@ -28,6 +30,7 @@ import { RecognitionDisplayComponent } from '../../profile/components/recognitio
 })
 export class TeamDetailComponent {
   private readonly teams = inject(TeamService);
+  private readonly parties = inject(PartyService);
   private readonly route = inject(ActivatedRoute);
 
   protected readonly slug = signal('');
@@ -40,6 +43,9 @@ export class TeamDetailComponent {
   protected readonly members = signal<TeamMember[]>([]);
   protected readonly news = signal<TeamNews[]>([]);
   protected readonly joinRequests = signal<JoinRequest[]>([]);
+  // Feature 016: pinned party-request cards a member can answer.
+  protected readonly partyRequests = signal<PartyRequestCard[]>([]);
+  protected readonly partyBusy = signal(false);
   protected readonly openMenu = signal<string | null>(null);
 
   protected readonly requestBusy = signal(false);
@@ -72,6 +78,7 @@ export class TeamDetailComponent {
         if (d.viewerRelation === 'Member' || d.viewerRelation === 'Admin') {
           this.loadMembers();
           this.loadNews();
+          this.loadPartyRequests();
         }
         if (d.viewerRelation === 'Admin') {
           this.loadJoinRequests();
@@ -117,6 +124,29 @@ export class TeamDetailComponent {
 
   private loadJoinRequests(): void {
     this.teams.getJoinRequests(this.slug()).subscribe({ next: (p) => this.joinRequests.set(p.items) });
+  }
+
+  private loadPartyRequests(): void {
+    this.parties.getTeamPartyRequests(this.slug()).subscribe({ next: (p) => this.partyRequests.set(p.items) });
+  }
+
+  /** Answer a pinned party request from the team space (feature 016). */
+  protected answerParty(card: PartyRequestCard, join: boolean): void {
+    if (this.partyBusy()) {
+      return;
+    }
+    this.partyBusy.set(true);
+    const op = join ? this.parties.join(card.partyId) : this.parties.decline(card.partyId);
+    op.subscribe({
+      next: () => {
+        this.partyBusy.set(false);
+        this.loadPartyRequests();
+      },
+      error: (err) => {
+        this.partyBusy.set(false);
+        this.error.set(problemDetail(err));
+      },
+    });
   }
 
   protected requestToJoin(): void {

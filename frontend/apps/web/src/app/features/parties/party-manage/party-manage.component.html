@@ -1,0 +1,161 @@
+<main class="mx-auto max-w-container-md px-md py-lg">
+  @if (loading()) {
+    <p class="text-body-sm text-subtle">Loading party…</p>
+  } @else if (notFound()) {
+    <div class="rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm">
+      <h1 class="text-body-lg font-semibold text-heading">Party not found</h1>
+      <p class="mt-xs text-body-sm text-subtle">This party may have been disbanded.</p>
+    </div>
+  } @else if (party(); as p) {
+    <a [routerLink]="['/t', p.teamSlug]" class="text-body-sm text-subtle transition-colors hover:text-body">‹ {{ p.teamName }}</a>
+    <div class="mt-xs flex flex-wrap items-center justify-between gap-sm">
+      <h1 class="text-h3 text-heading">{{ p.teamName }} @ {{ p.eventName }}</h1>
+      <span class="font-mono text-body-sm text-muted">{{ p.inCount }} / {{ p.rosterCap }} in</span>
+    </div>
+    <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | date: 'mediumDate' }}
+      @if (isApplied()) { · <span class="font-semibold text-success">applied · {{ p.appliedGroup }}</span> }
+    </p>
+
+    <!-- fill bar -->
+    <div class="mt-sm h-2 w-full overflow-hidden rounded-pill bg-surface-muted">
+      <div class="h-full rounded-pill" [class.bg-secondary]="!p.isFull" [class.bg-warning-fg]="p.isFull"
+        [style.width.%]="(p.inCount / p.rosterCap) * 100"></div>
+    </div>
+
+    @if (error()) {
+      <p class="mt-sm text-body-sm text-danger" role="alert">{{ error() }}</p>
+    }
+
+    <!-- Member (non-admin) self actions -->
+    @if (!isAdmin()) {
+      <div class="mt-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+        @if (p.myState === 'In') {
+          <p class="text-body-sm text-body">You're in this crew.</p>
+          <button type="button" (click)="leave()" [disabled]="acting()"
+            class="mt-sm rounded-md border border-border-strong px-md py-sm text-body-sm font-semibold text-body transition-colors hover:bg-surface-sunken disabled:opacity-50">Leave the party</button>
+        } @else if (p.isFull) {
+          <p class="text-body-sm text-muted">The party is full right now — it reopens automatically if a spot frees.</p>
+        } @else {
+          <div class="flex gap-sm">
+            <button type="button" (click)="join()" [disabled]="acting()"
+              class="flex-1 rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">I'm in</button>
+            <button type="button" (click)="declineRequest()" [disabled]="acting()"
+              class="flex-1 rounded-md border border-border-strong px-md py-sm text-body-sm font-semibold text-body transition-colors hover:bg-surface-sunken disabled:opacity-50">Can't make it</button>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Readiness + apply (admin) -->
+    @if (isAdmin()) {
+      <section class="mt-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+        <ul class="space-y-1 text-body-sm text-muted">
+          <li>{{ p.readiness.enoughToFieldTeam ? '✓' : '·' }} At least 5 players — enough to field a team</li>
+          <li>· {{ p.readiness.spotsOpen }} of {{ p.rosterCap }} spots still open — optional</li>
+          <li>· {{ p.readiness.unanswered }} members haven't answered yet — optional</li>
+        </ul>
+        <div class="mt-md flex flex-wrap gap-sm">
+          @if (!isApplied()) {
+            <button type="button" (click)="apply()" [disabled]="acting()"
+              class="rounded-md bg-brand px-lg py-md text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">Apply to event</button>
+          } @else {
+            <button type="button" (click)="withdraw()" [disabled]="acting()"
+              class="rounded-md border border-border-strong px-md py-sm text-body-sm font-semibold text-body transition-colors hover:bg-surface-sunken disabled:opacity-50">Withdraw from event</button>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- Roster tabs -->
+    <section class="mt-md">
+      <div class="flex gap-xs text-body-sm">
+        <button type="button" (click)="loadTab('In')"
+          [class]="activeTab() === 'In' ? 'font-semibold text-heading' : 'text-subtle'"
+          class="rounded-md px-sm py-xs">In · {{ p.inCount }}</button>
+        <button type="button" (click)="loadTab('Declined')"
+          [class]="activeTab() === 'Declined' ? 'font-semibold text-heading' : 'text-subtle'"
+          class="rounded-md px-sm py-xs">Declined · {{ p.declinedCount }}</button>
+        <button type="button" (click)="loadTab('NoResponse')"
+          [class]="activeTab() === 'NoResponse' ? 'font-semibold text-heading' : 'text-subtle'"
+          class="rounded-md px-sm py-xs">No reply · {{ p.noResponseCount }}</button>
+      </div>
+
+      <ul class="mt-sm divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card shadow-sm">
+        @for (m of members(); track m.userId) {
+          <li class="flex items-center justify-between gap-sm px-md py-sm">
+            <a [routerLink]="['/u', m.handle]" class="group flex min-w-0 items-center gap-sm">
+              <span class="grid h-9 w-9 shrink-0 place-items-center rounded-pill bg-surface-inverse text-body-sm font-semibold text-on-inverse" aria-hidden="true">{{ m.displayName.charAt(0) }}</span>
+              <span class="min-w-0">
+                <span class="block truncate text-body-sm font-medium text-body transition-colors group-hover:text-brand">
+                  {{ m.displayName }} @if (m.isYou) { <span class="font-normal text-subtle">· you</span> }
+                  @if (m.role === 'Admin') { <span class="ml-1 rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Admin</span> }
+                </span>
+                @if (m.pompfen.length) {
+                  <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) }}</span>
+                }
+              </span>
+            </a>
+            @if (isAdmin()) {
+              <div class="shrink-0">
+                @if (activeTab() === 'NoResponse') {
+                  <button type="button" (click)="nudge(m.userId)" class="rounded-md border border-border-strong px-sm py-xs text-caption font-semibold text-muted transition-colors hover:bg-surface-sunken">Nudge</button>
+                } @else if (!m.isYou) {
+                  <button type="button" (click)="remove(m.userId)" class="rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger transition-colors hover:bg-danger-bg">Remove</button>
+                }
+              </div>
+            }
+          </li>
+        } @empty {
+          <li class="px-md py-lg text-center text-body-sm text-subtle">No one here yet.</li>
+        }
+      </ul>
+    </section>
+
+    <!-- Party news (crew-only), shown inline -->
+    @if (isCrew()) {
+      <section class="mt-md">
+        <p class="text-eyebrow uppercase text-muted">Party news</p>
+        @if (isAdmin()) {
+          <form (ngSubmit)="postNews()" class="mt-xs rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+            <textarea [(ngModel)]="newsBody" name="newsBody" rows="2" maxlength="1000"
+              placeholder="Meet 07:00 at the Aral on the A3…"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
+            <div class="mt-xs text-right">
+              <button type="submit" [disabled]="posting()"
+                class="rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">Post update</button>
+            </div>
+          </form>
+        }
+        <ul class="mt-sm space-y-sm">
+          @for (n of news(); track n.id) {
+            <li class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+              <p class="text-body-sm font-semibold text-heading">{{ n.authorDisplayName }}
+                <span class="ml-1 text-caption font-normal text-subtle">{{ n.authorRole === 'Admin' ? 'Party admin' : 'Member' }} · {{ n.createdDate | date: 'short' }}</span>
+              </p>
+              <p class="mt-xs whitespace-pre-line text-body-sm text-body">{{ n.body }}</p>
+            </li>
+          } @empty {
+            <li class="rounded-lg border border-dashed border-border-strong p-md text-center text-body-sm text-subtle">No updates yet.</li>
+          }
+        </ul>
+      </section>
+    }
+
+    <!-- Tools (admin) -->
+    @if (isAdmin()) {
+      <section class="mt-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+        <p class="text-eyebrow uppercase text-muted">Party tools</p>
+        <div class="mt-sm grid gap-xs">
+          <a [routerLink]="['/parties', id, 'invitations']" class="rounded-md border border-border-muted px-md py-sm text-body-sm font-medium text-body transition-colors hover:bg-surface-sunken">Invite co-admins</a>
+          <div class="flex items-center justify-between rounded-md border border-border-muted px-md py-sm text-body-sm text-subtle">Payment split <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Later</span></div>
+          <div class="flex items-center justify-between rounded-md border border-border-muted px-md py-sm text-body-sm text-subtle">Travel &amp; carpool <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Later</span></div>
+        </div>
+        <div class="mt-md border-t border-border-muted pt-md">
+          <button type="button" (click)="disband()" [disabled]="acting()"
+            class="w-full rounded-md border border-danger-border px-md py-sm text-body-sm font-semibold text-danger transition-colors hover:bg-danger-bg disabled:opacity-50">Disband this party</button>
+          <p class="mt-xs text-center text-caption text-subtle">Can't be undone. Usually done once the event is over.</p>
+        </div>
+      </section>
+    }
+  }
+</main>

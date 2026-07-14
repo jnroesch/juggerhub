@@ -238,22 +238,16 @@ public sealed class EventTests
     }
 
     [Fact]
-    public async Task Team_admin_enters_team_but_non_admin_cannot()
+    public async Task Team_direct_signup_is_refused_use_party_instead()
     {
+        // Feature 016: teams-only events are entered via a party, not a direct team sign-up.
         var (admin, _, _, _) = await NewUserAsync();
         var teamId = await CreateTeamAsync(admin);
         var (org, _, _, _) = await NewUserAsync();
         var id = await CreateEventAsync(org, TeamsFree(4));
 
-        var ok = await admin.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId });
-        Assert.Equal(HttpStatusCode.Created, ok.StatusCode);
-        Assert.Equal("Joined", (await ok.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("status").GetString());
-
-        // A different user who does not administer that team cannot enter it (fresh event).
-        var id2 = await CreateEventAsync(org, TeamsFree(4));
-        var (outsider, _, _, _) = await NewUserAsync();
-        var forbidden = await outsider.PostAsJsonAsync($"/api/v1/events/{id2}/signup", new { teamId });
-        Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
+        var refused = await admin.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId });
+        Assert.Equal(HttpStatusCode.BadRequest, refused.StatusCode);
     }
 
     [Fact]

@@ -8,7 +8,7 @@ import { PagedResult, TeamRole } from './home.models';
 
 export type { PagedResult };
 
-export type NotificationType = 'TeamInvite' | 'TeamRoleChanged' | 'TeamNews';
+export type NotificationType = 'TeamInvite' | 'TeamRoleChanged' | 'TeamNews' | 'PartyRequest' | 'PartyNews';
 
 export interface TeamInvitePayload {
   invitationId: string;
@@ -31,7 +31,20 @@ export interface TeamNewsPayload {
   excerpt: string;
 }
 
-export type NotificationPayload = TeamInvitePayload | TeamRoleChangedPayload | TeamNewsPayload;
+/** Party participation request / news (feature 016) — same shape for both. */
+export interface PartyPayload {
+  partyId: string;
+  eventId: string;
+  teamSlug: string;
+  eventName: string;
+  teamName: string;
+}
+
+export type NotificationPayload =
+  | TeamInvitePayload
+  | TeamRoleChangedPayload
+  | TeamNewsPayload
+  | PartyPayload;
 
 export interface AppNotification {
   id: string;
@@ -64,4 +77,16 @@ export function isTeamNews(
   n: AppNotification,
 ): n is AppNotification & { type: 'TeamNews'; payload: TeamNewsPayload } {
   return n.type === 'TeamNews';
+}
+
+export function isPartyRequest(
+  n: AppNotification,
+): n is AppNotification & { type: 'PartyRequest'; payload: PartyPayload } {
+  return n.type === 'PartyRequest';
+}
+
+export function isPartyNews(
+  n: AppNotification,
+): n is AppNotification & { type: 'PartyNews'; payload: PartyPayload } {
+  return n.type === 'PartyNews';
 }

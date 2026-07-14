@@ -102,6 +102,27 @@ export const appRoutes: Route[] = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/events/event-admins/event-admins.component').then((m) => m.EventAdminsComponent),
       },
+      // Event parties (feature 016) — form from an event; the crew is managed under /parties/:id.
+      {
+        path: 'events/:id/enter-party',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/parties/party-create/party-create.component').then((m) => m.PartyCreateComponent),
+      },
+      {
+        path: 'parties/:id',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/parties/party-manage/party-manage.component').then((m) => m.PartyManageComponent),
+      },
+      {
+        path: 'parties/:id/news',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/parties/party-news/party-news.component').then((m) => m.PartyNewsComponent),
+      },
+      {
+        path: 'parties/:id/invitations',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/parties/party-invitations/party-invitations.component').then((m) => m.PartyInvitationsComponent),
+      },
       // Browse / search (feature 007) — anonymous (no guard), in the shell, lazy-loaded.
       { path: 'browse', pathMatch: 'full', redirectTo: 'browse/teams' },
       {
@@ -178,5 +199,10 @@ export const appRoutes: Route[] = [
   {
     path: 'event-invite/:token',
     loadComponent: () => import('./features/events/event-invite-accept/event-invite-accept.component').then((m) => m.EventInviteAcceptComponent),
+  },
+  // Party co-admin invite accept (feature 016) — full-screen, outside the shell.
+  {
+    path: 'party-invite/:token',
+    loadComponent: () => import('./features/parties/party-invite-accept/party-invite-accept.component').then((m) => m.PartyInviteAcceptComponent),
   },
 ];

@@ -3,9 +3,11 @@ using System.Security.Claims;
 using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Dtos.Events;
+using JuggerHub.Dtos.Parties;
 using JuggerHub.Dtos.Search;
 using JuggerHub.Entities;
 using JuggerHub.Services.Events;
+using JuggerHub.Services.Parties;
 using JuggerHub.Services.Search;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -31,6 +33,7 @@ public sealed class EventsController : ControllerBase
     private readonly IEventAdminService _admins;
     private readonly IEventInvitationService _invitations;
     private readonly IEventSearchService _search;
+    private readonly IPartyService _parties;
 
     public EventsController(
         IEventService events,
@@ -39,7 +42,8 @@ public sealed class EventsController : ControllerBase
         IEventContactService contacts,
         IEventAdminService admins,
         IEventInvitationService invitations,
-        IEventSearchService search)
+        IEventSearchService search,
+        IPartyService parties)
     {
         _events = events;
         _signups = signups;
@@ -48,6 +52,21 @@ public sealed class EventsController : ControllerBase
         _admins = admins;
         _invitations = invitations;
         _search = search;
+        _parties = parties;
+    }
+
+    /// <summary>The signed-in caller's party affordances for a teams-only event (feature 016):
+    /// the teams they administer and whether each already has a party.</summary>
+    [HttpGet("{id:guid}/party-context")]
+    public async Task<ActionResult<PartyContextDto>> PartyContext(Guid id, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var dto = await _parties.GetContextAsync(id, userId, ct);
+        return dto is null ? EventNotFound() : Ok(dto);
     }
 
     // --- Browse (public) ------------------------------------------------------

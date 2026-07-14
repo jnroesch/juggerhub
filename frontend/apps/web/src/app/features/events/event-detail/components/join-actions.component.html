@@ -16,19 +16,37 @@
       </div>
     } @else if (canJoin()) {
       @if (detail().participantMode === 'Teams') {
-        @if (teamOptions().length === 0) {
-          <p class="rounded-md bg-surface-sunken px-md py-sm text-center text-body-sm text-subtle">You need to administer a team to enter it.</p>
-        } @else {
-          @if (teamOptions().length > 1) {
-            <select [ngModel]="selectedTeamId()" (ngModelChange)="pick($event)" data-testid="team-picker"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand">
-              @for (t of teamOptions(); track t.teamId) { <option [value]="t.teamId">{{ t.name }}</option> }
-            </select>
+        <!-- Feature 016: teams enter via a party. Show a card for a party the caller is already in,
+             and a form button for a team they administer that has no party yet. -->
+        @for (card of partyCards(); track card.teamId) {
+          <div class="rounded-lg border border-border-accent bg-surface-accent-soft p-md" data-testid="party-card">
+            <p class="text-eyebrow uppercase text-brand">Your party</p>
+            <div class="mt-xs flex items-center justify-between gap-sm">
+              <span class="text-body-md font-semibold text-heading">{{ card.teamName }}</span>
+              <span class="font-mono text-body-sm text-muted">{{ card.inCount }} / {{ card.rosterCap }} in</span>
+            </div>
+            @if (card.partyStatus === 'Applied') {
+              <p class="mt-xs text-body-sm font-medium text-success">Entered — your team is on the event</p>
+            } @else {
+              <p class="mt-xs text-body-sm text-muted">Being filled — not on the event yet</p>
+            }
+            <a [routerLink]="['/parties', card.partyId]" data-testid="view-party"
+              class="mt-sm block w-full rounded-md bg-brand px-lg py-md text-center text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral">
+              View party
+            </a>
+          </div>
+        }
+        @if (canFormParty()) {
+          <a [routerLink]="['/events', detail().id, 'enter-party']" data-testid="enter-party"
+            class="block w-full rounded-md px-lg py-md text-center text-body-md font-semibold transition-all duration-fast"
+            [class]="partyCards().length ? 'border border-border-strong text-body hover:bg-surface-sunken' : 'bg-brand text-on-accent hover:bg-brand-hover hover:shadow-coral'">
+            + Enter a party
+          </a>
+          @if (!partyCards().length) {
+            <p class="mt-xs text-center text-body-sm text-subtle">Teams enter as a party — pull a crew together for this event.</p>
           }
-          <button type="button" (click)="emitJoin()" [disabled]="acting()" data-testid="join"
-            class="block w-full rounded-md bg-brand px-lg py-md text-center text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">
-            {{ detail().isFull ? 'Join the waiting list' : 'Join with your team' }}
-          </button>
+        } @else if (!partyCards().length) {
+          <p class="rounded-md bg-surface-sunken px-md py-sm text-center text-body-sm text-subtle">Your team's admins can enter a party for this event.</p>
         }
       } @else {
         <button type="button" (click)="emitJoin()" [disabled]="acting()" data-testid="join"

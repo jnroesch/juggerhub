@@ -2,6 +2,8 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   AppNotification,
+  isPartyNews,
+  isPartyRequest,
   isTeamInvite,
   isTeamNews,
   isTeamRoleChanged,
@@ -41,6 +43,12 @@ export class NotificationRowComponent {
       // A handled invite still links to the team it concerned.
       return `/t/${n.payload.teamSlug}`;
     }
+    if (isPartyRequest(n)) {
+      return `/parties/${n.payload.partyId}`;
+    }
+    if (isPartyNews(n)) {
+      return `/parties/${n.payload.partyId}/news`;
+    }
     return null;
   });
 
@@ -56,6 +64,12 @@ export class NotificationRowComponent {
     if (isTeamNews(n)) {
       return `News from ${n.payload.teamName}`;
     }
+    if (isPartyRequest(n)) {
+      return `${n.payload.teamName} is forming a party`;
+    }
+    if (isPartyNews(n)) {
+      return `Party update — ${n.payload.teamName} @ ${n.payload.eventName}`;
+    }
     return 'Notification';
   });
 
@@ -69,6 +83,12 @@ export class NotificationRowComponent {
     }
     if (isTeamNews(n)) {
       return n.payload.excerpt;
+    }
+    if (isPartyRequest(n)) {
+      return `Tap to answer — are you in for ${n.payload.eventName}?`;
+    }
+    if (isPartyNews(n)) {
+      return `New update for the ${n.payload.eventName} party`;
     }
     return '';
   });

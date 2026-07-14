@@ -84,6 +84,15 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     // Feature 013 — append-only admin account-action log.
     public DbSet<AdminActionRecord> AdminActionRecords => Set<AdminActionRecord>();
 
+    // Feature 016 — event parties (temporary team subset per event).
+    public DbSet<Party> Parties => Set<Party>();
+
+    public DbSet<PartyMember> PartyMembers => Set<PartyMember>();
+
+    public DbSet<PartyNewsPost> PartyNewsPosts => Set<PartyNewsPost>();
+
+    public DbSet<PartyAdminInvitation> PartyAdminInvitations => Set<PartyAdminInvitation>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -593,6 +602,100 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasOne(r => r.Target)
                 .WithMany()
                 .HasForeignKey(r => r.TargetUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---- Feature 016: event parties ----
+
+        builder.Entity<Party>(entity =>
+        {
+            entity.Property(p => p.Message).HasMaxLength(500);
+
+            // One party per (team, event) — the race-safe backstop behind the service pre-check.
+            entity.HasIndex(p => new { p.TeamId, p.EventId }).IsUnique();
+            // The team-space discovery read scans a team's active parties.
+            entity.HasIndex(p => p.TeamId);
+            // 1:1 applied↔signup link (only set while Applied).
+            entity.HasIndex(p => p.EventSignupId).IsUnique().HasFilter("\"EventSignupId\" IS NOT NULL");
+
+            entity.HasOne(p => p.Team)
+                .WithMany()
+                .HasForeignKey(p => p.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(p => p.Event)
+                .WithMany()
+                .HasForeignKey(p => p.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // The party owns the signup's lifecycle explicitly (apply/withdraw/disband); do not
+            // cascade-delete the party when the signup is removed.
+            entity.HasOne(p => p.EventSignup)
+                .WithMany()
+                .HasForeignKey(p => p.EventSignupId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(p => p.CreatedBy)
+                .WithMany()
+                .HasForeignKey(p => p.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<PartyMember>(entity =>
+        {
+            // At most one row per member per party.
+            entity.HasIndex(m => new { m.PartyId, m.UserId }).IsUnique();
+            // Roster group reads + In-count.
+            entity.HasIndex(m => new { m.PartyId, m.Status });
+
+            entity.HasOne(m => m.Party)
+                .WithMany(p => p.Members)
+                .HasForeignKey(m => m.PartyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(m => m.User)
+                .WithMany()
+                .HasForeignKey(m => m.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<PartyNewsPost>(entity =>
+        {
+            entity.Property(n => n.Body).HasMaxLength(1000).IsRequired();
+            entity.HasIndex(n => new { n.PartyId, n.CreatedDate });
+
+            entity.HasOne(n => n.Party)
+                .WithMany(p => p.News)
+                .HasForeignKey(n => n.PartyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(n => n.Author)
+                .WithMany()
+                .HasForeignKey(n => n.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<PartyAdminInvitation>(entity =>
+        {
+            entity.Property(i => i.Token).HasMaxLength(64).IsRequired();
+
+            entity.HasIndex(i => i.Token).IsUnique();
+            entity.HasIndex(i => i.PartyId);
+            // At most one active (pending) shared link per party (Kind=Link=0, Status=Pending=0).
+            entity.HasIndex(i => i.PartyId)
+                .IsUnique()
+                .HasFilter("\"Kind\" = 0 AND \"Status\" = 0");
+            // At most one pending targeted invite per (party, user) (Kind=Targeted=1, Status=Pending=0).
+            entity.HasIndex(i => new { i.PartyId, i.TargetUserId })
+                .IsUnique()
+                .HasFilter("\"Kind\" = 1 AND \"Status\" = 0");
+
+            entity.HasOne(i => i.Party)
+                .WithMany(p => p.Invitations)
+                .HasForeignKey(i => i.PartyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(i => i.CreatedBy)
+                .WithMany()
+                .HasForeignKey(i => i.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(i => i.TargetUser)
+                .WithMany()
+                .HasForeignKey(i => i.TargetUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }
