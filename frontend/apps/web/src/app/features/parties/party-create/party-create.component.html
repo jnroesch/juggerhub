@@ -13,7 +13,7 @@
   } @else {
     <form (ngSubmit)="submit()" class="mt-lg space-y-md">
       <div>
-        <label class="text-eyebrow uppercase text-muted">Which of your teams?</label>
+        <p class="text-eyebrow uppercase text-muted">Which of your teams?</p>
         @if (formableTeams().length === 1) {
           <p class="mt-xs rounded-md border border-border-muted bg-surface-card px-md py-sm text-body-sm font-medium text-heading">
             {{ formableTeams()[0].teamName }}
@@ -30,14 +30,14 @@
       </div>
 
       <div>
-        <label class="text-eyebrow uppercase text-muted">Party size</label>
+        <p class="text-eyebrow uppercase text-muted">Party size</p>
         <p class="mt-xs rounded-md border border-border-muted bg-surface-sunken px-md py-sm text-body-sm text-muted">
           Up to {{ context()?.rosterCap ?? 8 }} players <span class="text-subtle">· set by the event</span>
         </p>
       </div>
 
       <div>
-        <label class="text-eyebrow uppercase text-muted">Message to the team</label>
+        <p class="text-eyebrow uppercase text-muted">Message to the team</p>
         <textarea [(ngModel)]="message" name="message" rows="3" maxlength="500"
           placeholder="Who's in for this one?"
           class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>

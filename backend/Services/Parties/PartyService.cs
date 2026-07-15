@@ -223,9 +223,11 @@ public sealed class PartyService : IPartyService
     public async Task<PartyDto?> GetDetailAsync(Guid partyId, Guid actorUserId, CancellationToken ct = default)
     {
         var access = await _guard.ResolveAsync(partyId, actorUserId, ct);
-        if (access is null || !access.Value.IsTeamMember)
+        // Team members see the party; a marketplace guest (In but not on the team, feature 017) is crew
+        // and may view the hub too. Outsiders get 404 (a party's existence never leaks).
+        if (access is null || !(access.Value.IsTeamMember || access.Value.IsCrew))
         {
-            return null; // 404 — member-gated (non-members can't see a party exists).
+            return null;
         }
 
         return await ProjectAsync(partyId, actorUserId, ct);
@@ -433,7 +435,10 @@ public sealed class PartyService : IPartyService
                 x.Status,
                 x.Message,
                 AppliedGroup = x.EventSignup != null ? (SignupStatus?)x.EventSignup.Status : null,
-                InCount = x.Members.Count(m => m.Status == PartyMemberStatus.In && x.Team.Memberships.Any(tm => tm.UserId == m.UserId)),
+                // Team members who are In (drives the "no response" derivation — guests are not team members).
+                TeamInCount = x.Members.Count(m => m.Status == PartyMemberStatus.In && x.Team.Memberships.Any(tm => tm.UserId == m.UserId)),
+                // Displayed crew fill = team members + guests (feature 017), In. Deduped by the single predicate.
+                InCount = x.Members.Count(m => m.Status == PartyMemberStatus.In && (m.ViaMarket || x.Team.Memberships.Any(tm => tm.UserId == m.UserId))),
                 DeclinedCount = x.Members.Count(m => m.Status == PartyMemberStatus.Declined && x.Team.Memberships.Any(tm => tm.UserId == m.UserId)),
                 TeamMemberCount = x.Team.Memberships.Count(),
                 MyRole = x.Members.Where(m => m.UserId == actorUserId).Select(m => (PartyMemberRole?)m.Role).FirstOrDefault(),
@@ -446,7 +451,9 @@ public sealed class PartyService : IPartyService
             return null;
         }
 
-        var noResponse = Math.Max(0, p.TeamMemberCount - p.InCount - p.DeclinedCount);
+        // "No response" is team-only (guests never sit in this group); the crew fill (p.InCount)
+        // includes guests, so derive unanswered from the team-only In count.
+        var noResponse = Math.Max(0, p.TeamMemberCount - p.TeamInCount - p.DeclinedCount);
         var readiness = new PartyReadinessDto(
             EnoughToFieldTeam: p.InCount >= 5,
             SpotsOpen: Math.Max(0, p.RosterCap - p.InCount),

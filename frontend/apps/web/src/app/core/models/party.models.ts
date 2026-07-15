@@ -52,6 +52,8 @@ export interface PartyMember {
   role: PartyMemberRole | null;
   isYou: boolean;
   pompfen: Pompfe[];
+  /** Feature 017: a mercenary seated through the marketplace (a guest, not on the team). */
+  viaMarket: boolean;
 }
 
 export interface PartyNews {

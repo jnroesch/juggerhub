@@ -8,7 +8,13 @@ import { PagedResult, TeamRole } from './home.models';
 
 export type { PagedResult };
 
-export type NotificationType = 'TeamInvite' | 'TeamRoleChanged' | 'TeamNews' | 'PartyRequest' | 'PartyNews';
+export type NotificationType =
+  | 'TeamInvite'
+  | 'TeamRoleChanged'
+  | 'TeamNews'
+  | 'PartyRequest'
+  | 'PartyNews'
+  | 'MarketInvite';
 
 export interface TeamInvitePayload {
   invitationId: string;
@@ -40,11 +46,23 @@ export interface PartyPayload {
   teamName: string;
 }
 
+/** Marketplace invite (feature 017) — a party invited the recipient to join it. */
+export interface MarketInvitePayload {
+  requestId: string;
+  partyId: string;
+  teamName: string;
+  teamSlug: string;
+  eventId: string;
+  eventName: string;
+  positions: string[];
+}
+
 export type NotificationPayload =
   | TeamInvitePayload
   | TeamRoleChangedPayload
   | TeamNewsPayload
-  | PartyPayload;
+  | PartyPayload
+  | MarketInvitePayload;
 
 export interface AppNotification {
   id: string;
@@ -89,4 +107,10 @@ export function isPartyNews(
   n: AppNotification,
 ): n is AppNotification & { type: 'PartyNews'; payload: PartyPayload } {
   return n.type === 'PartyNews';
+}
+
+export function isMarketInvite(
+  n: AppNotification,
+): n is AppNotification & { type: 'MarketInvite'; payload: MarketInvitePayload } {
+  return n.type === 'MarketInvite';
 }

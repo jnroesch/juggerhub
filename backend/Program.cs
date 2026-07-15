@@ -230,6 +230,13 @@ builder.Services.AddScoped<JuggerHub.Services.Parties.IPartyRosterService, Jugge
 builder.Services.AddScoped<JuggerHub.Services.Parties.IPartyNewsService, JuggerHub.Services.Parties.PartyNewsService>();
 builder.Services.AddScoped<JuggerHub.Services.Parties.IPartyInvitationService, JuggerHub.Services.Parties.PartyInvitationService>();
 
+// --- Event marketplace (feature 017) ---------------------------------------
+builder.Services.AddScoped<JuggerHub.Services.Marketplace.MarketEligibility>();
+builder.Services.AddScoped<MarketEmailService>();
+builder.Services.AddScoped<JuggerHub.Services.Marketplace.IMarketListingService, JuggerHub.Services.Marketplace.MarketListingService>();
+builder.Services.AddScoped<JuggerHub.Services.Marketplace.IMarketRecruitingService, JuggerHub.Services.Marketplace.MarketRecruitingService>();
+builder.Services.AddScoped<JuggerHub.Services.Marketplace.IMarketRequestService, JuggerHub.Services.Marketplace.MarketRequestService>();
+
 // --- Search / browse (feature 007) -----------------------------------------
 builder.Services.Configure<SearchOptions>(builder.Configuration.GetSection(SearchOptions.SectionName));
 builder.Services.AddScoped<ITeamSearchService, TeamSearchService>();

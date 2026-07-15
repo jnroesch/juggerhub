@@ -26,6 +26,23 @@ public sealed class Party : BaseEntity
 
     public PartyStatus Status { get; set; } = PartyStatus.Open;
 
+    // --- Marketplace recruiting (feature 017) ---
+    // Opt-in, party-admin-controlled visibility on the event's mercenary board. Off by default; the
+    // party fills from within the team until an admin flips it on. Real availability is always
+    // RosterCap − In-count (SpotsAdvertised is the admin's stated intent, shown on the card).
+
+    /// <summary>Whether the party is publicly listed on the event's mercenary board (default false).</summary>
+    public bool IsRecruiting { get; set; }
+
+    /// <summary>The admin's stated "looking for N" (display only; the real gate is RosterCap − In).</summary>
+    public int SpotsAdvertised { get; set; }
+
+    /// <summary>Optional short board copy shown to free agents.</summary>
+    public string? RecruitBlurb { get; set; }
+
+    /// <summary>Positions the party is recruiting for (pompfen/Läufer); Postgres int[].</summary>
+    public List<Pompfe> PositionsNeeded { get; set; } = [];
+
     /// <summary>The team's event entry once <see cref="PartyStatus.Applied"/>; null while open.</summary>
     public Guid? EventSignupId { get; set; }
 
@@ -45,4 +62,7 @@ public sealed class Party : BaseEntity
     public ICollection<PartyNewsPost> News { get; set; } = [];
 
     public ICollection<PartyAdminInvitation> Invitations { get; set; } = [];
+
+    /// <summary>Marketplace applications/invites for this party (feature 017); cascade-deleted on disband.</summary>
+    public ICollection<MarketRequest> MarketRequests { get; set; } = [];
 }

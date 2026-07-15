@@ -23,6 +23,9 @@ public enum NotificationType
 
     /// <summary>A new party news post was published to a party the recipient is in (feature 016). Link-only.</summary>
     PartyNews = 4,
+
+    /// <summary>A party invited the recipient to join it via the event marketplace (feature 017). Carries inline Accept/Decline actions.</summary>
+    MarketInvite = 5,
 }
 
 /// <summary>
@@ -55,6 +58,7 @@ public static class NotificationCategories
         NotificationType.TeamInvite => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamRoleChanged => NotificationCategory.InvitesAndRoster,
         NotificationType.PartyRequest => NotificationCategory.InvitesAndRoster,
+        NotificationType.MarketInvite => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamNews => NotificationCategory.TeamNews,
         NotificationType.PartyNews => NotificationCategory.TeamNews,
         _ => NotificationCategory.TeamNews,

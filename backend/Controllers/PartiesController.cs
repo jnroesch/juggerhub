@@ -2,7 +2,9 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Asp.Versioning;
 using JuggerHub.Common;
+using JuggerHub.Dtos.Marketplace;
 using JuggerHub.Dtos.Parties;
+using JuggerHub.Services.Marketplace;
 using JuggerHub.Services.Parties;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -25,14 +27,19 @@ public sealed class PartiesController : ControllerBase
     private readonly IPartyRosterService _roster;
     private readonly IPartyNewsService _news;
     private readonly IPartyInvitationService _invitations;
+    private readonly IMarketRecruitingService _recruiting;
+    private readonly IMarketRequestService _market;
 
     public PartiesController(
-        IPartyService parties, IPartyRosterService roster, IPartyNewsService news, IPartyInvitationService invitations)
+        IPartyService parties, IPartyRosterService roster, IPartyNewsService news, IPartyInvitationService invitations,
+        IMarketRecruitingService recruiting, IMarketRequestService market)
     {
         _parties = parties;
         _roster = roster;
         _news = news;
         _invitations = invitations;
+        _recruiting = recruiting;
+        _market = market;
     }
 
     // --- Lifecycle ------------------------------------------------------------
@@ -249,6 +256,95 @@ public sealed class PartiesController : ControllerBase
         }
 
         var result = await _invitations.SearchMembersAsync(id, userId, query, pagination, ct);
+        return result.IsOk ? Ok(result.Value) : Fail(result.Outcome, result.Error);
+    }
+
+    // --- Marketplace: recruiting (feature 017) --------------------------------
+
+    [HttpGet("{id:guid}/recruiting")]
+    public async Task<ActionResult<RecruitingSettingsDto>> GetRecruiting(Guid id, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _recruiting.GetAsync(id, userId, ct);
+        return result.IsOk ? Ok(result.Value) : Fail(result.Outcome, result.Error);
+    }
+
+    [HttpPut("{id:guid}/recruiting")]
+    public async Task<ActionResult<RecruitingSettingsDto>> SetRecruiting(Guid id, [FromBody] SetRecruitingRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _recruiting.SetAsync(id, userId, request, ct);
+        return result.IsOk ? Ok(result.Value) : Fail(result.Outcome, result.Error);
+    }
+
+    // --- Marketplace: handshake (feature 017) ---------------------------------
+
+    [HttpGet("{id:guid}/market/applications")]
+    public async Task<ActionResult<PagedResult<MarketRequestDto>>> Applications(Guid id, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _market.ListPartyApplicationsAsync(id, userId, pagination, ct);
+        return result.IsOk ? Ok(result.Value) : Fail(result.Outcome, result.Error);
+    }
+
+    [HttpGet("{id:guid}/market/invites")]
+    public async Task<ActionResult<PagedResult<MarketRequestDto>>> SentInvites(Guid id, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _market.ListPartyInvitesAsync(id, userId, pagination, ct);
+        return result.IsOk ? Ok(result.Value) : Fail(result.Outcome, result.Error);
+    }
+
+    [HttpPost("{id:guid}/market/applications")]
+    public async Task<ActionResult<MarketRequestDto>> Apply(Guid id, [FromBody] ApplyRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _market.ApplyAsync(id, userId, request, ct);
+        return result.IsOk ? Created($"/api/v1/parties/{id}/market/applications", result.Value) : Fail(result.Outcome, result.Error);
+    }
+
+    [HttpPost("{id:guid}/market/invites")]
+    public async Task<ActionResult<MarketRequestDto>> Invite(Guid id, [FromBody] InviteRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _market.InviteAsync(id, userId, request, ct);
+        return result.IsOk ? Created($"/api/v1/parties/{id}/market/invites", result.Value) : Fail(result.Outcome, result.Error);
+    }
+
+    [HttpGet("{id:guid}/market/user-search")]
+    public async Task<ActionResult<PagedResult<MarketInvitableUserDto>>> UserSearch(
+        Guid id, [FromQuery] string query, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _market.SearchInvitableAsync(id, userId, query, pagination, ct);
         return result.IsOk ? Ok(result.Value) : Fail(result.Outcome, result.Error);
     }
 

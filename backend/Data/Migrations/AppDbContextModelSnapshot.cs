@@ -701,6 +701,87 @@ namespace JuggerHub.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.MarketRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<int[]>("Positions")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartyId", "Status");
+
+                    b.HasIndex("PartyId", "UserId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 0");
+
+                    b.HasIndex("UserId", "Status");
+
+                    b.ToTable("MarketRequests");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.MercenaryListing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Pitch")
+                        .IsRequired()
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)");
+
+                    b.PrimitiveCollection<int[]>("Positions")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("UserId", "EventId")
+                        .IsUnique();
+
+                    b.ToTable("MercenaryListings");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -803,6 +884,9 @@ namespace JuggerHub.Data.Migrations
                     b.Property<Guid?>("EventSignupId")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("IsRecruiting")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("Message")
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
@@ -810,7 +894,18 @@ namespace JuggerHub.Data.Migrations
                     b.Property<DateTime>("ModifiedDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.PrimitiveCollection<int[]>("PositionsNeeded")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<string>("RecruitBlurb")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<int>("RosterCap")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SpotsAdvertised")
                         .HasColumnType("integer");
 
                     b.Property<int>("Status")
@@ -915,6 +1010,9 @@ namespace JuggerHub.Data.Migrations
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
+
+                    b.Property<bool>("ViaMarket")
+                        .HasColumnType("boolean");
 
                     b.HasKey("Id");
 
@@ -1765,6 +1863,44 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.MarketRequest", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.Party", "Party")
+                        .WithMany("MarketRequests")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Party");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.MercenaryListing", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.Notification", b =>
                 {
                     b.HasOne("JuggerHub.Entities.User", "Actor")
@@ -2109,6 +2245,8 @@ namespace JuggerHub.Data.Migrations
             modelBuilder.Entity("JuggerHub.Entities.Party", b =>
                 {
                     b.Navigation("Invitations");
+
+                    b.Navigation("MarketRequests");
 
                     b.Navigation("Members");
 
