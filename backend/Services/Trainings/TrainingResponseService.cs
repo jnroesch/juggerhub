@@ -96,6 +96,7 @@ public sealed class TrainingResponseService : ITrainingResponseService
         var items = await ordered
             .Skip(pagination.NormalizedSkip).Take(pagination.NormalizedTake)
             .Select(r => new AttendanceEntryDto(
+                r.UserId,
                 r.User.Profile!.Handle,
                 r.User.Profile!.DisplayName,
                 r.User.Profile!.Pompfen.Select(p => p.Pompfe).Cast<Pompfe?>().FirstOrDefault().ToString(),

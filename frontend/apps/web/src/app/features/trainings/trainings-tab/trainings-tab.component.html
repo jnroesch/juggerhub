@@ -1,0 +1,74 @@
+<div class="mx-auto max-w-2xl px-md py-lg">
+  <a [routerLink]="['/t', slug()]" class="text-body-sm font-medium text-link hover:text-link-hover">‹ Team</a>
+  <div class="mt-sm flex items-center justify-between">
+    <h1 class="text-heading-lg font-semibold text-heading">Trainings</h1>
+    @if (isAdmin()) {
+      <a [routerLink]="['/t', slug(), 'trainings', 'new']" class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent hover:bg-brand-hover">+ New training</a>
+    }
+  </div>
+
+  @if (loading()) {
+    <p class="mt-lg text-body-sm text-muted">Loading…</p>
+  } @else if (notFound()) {
+    <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center">
+      <h2 class="text-body-lg font-semibold text-heading">Not available</h2>
+      <p class="mt-sm text-body-sm text-muted">Trainings are visible to team members.</p>
+    </div>
+  } @else if (!hasSessions()) {
+    <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center">
+      <h2 class="text-body-lg font-semibold text-heading">{{ isAdmin() ? 'No trainings yet' : 'Nothing scheduled' }}</h2>
+      @if (isAdmin()) {
+        <p class="mt-sm text-body-sm text-muted">Set a weekly session or a one-off — players get a spot to say if they're in.</p>
+        <a [routerLink]="['/t', slug(), 'trainings', 'new']" class="mt-md inline-block rounded-md bg-brand px-lg py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover">+ Set up a training</a>
+      } @else {
+        <p class="mt-sm text-body-sm text-muted">When your team schedules a training, it'll show up here.</p>
+      }
+    </div>
+  } @else {
+    <ul class="mt-lg flex flex-col gap-sm">
+      @for (s of sessions(); track s.sessionId) {
+        <li>
+          <a [routerLink]="['/trainings/sessions', s.sessionId]"
+            class="flex items-center gap-md rounded-lg border border-border-muted bg-surface-card p-md hover:border-border-strong">
+            <div class="flex w-12 shrink-0 flex-col items-center rounded-md bg-surface-sunken py-xs">
+              <span class="text-caption uppercase text-muted">{{ shortDate(s.sessionDate).split(' ')[0] }}</span>
+              <span class="text-body-lg font-semibold text-heading">{{ s.sessionDate.slice(8, 10) }}</span>
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-xs">
+                <span class="truncate font-medium text-heading">{{ s.name }}</span>
+                <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ s.isOneOff ? 'One-off' : 'Series' }}</span>
+                @if (s.status === 'Cancelled') {
+                  <span class="rounded-pill border border-danger-border bg-danger-bg px-xs py-3xs text-caption text-danger-fg">Cancelled</span>
+                }
+              </div>
+              <p class="text-body-sm text-muted">
+                {{ time(s.startTime) }}–{{ time(s.endTime) }}@if (s.location) { · {{ s.location }} }
+              </p>
+              <p class="text-caption text-muted">{{ s.goingCount }} going</p>
+            </div>
+            <span class="shrink-0 text-body-sm font-medium"
+              [class.text-success-fg]="s.myAnswer === 'Going'"
+              [class.text-link]="s.myAnswer !== 'Going'">{{ answerLabel(s.myAnswer) }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+
+    @if (isAdmin() && series().length > 0) {
+      <section class="mt-lg">
+        <h2 class="text-body-sm font-semibold text-heading">Active series</h2>
+        <ul class="mt-sm flex flex-col gap-xs">
+          @for (ser of series(); track ser.trainingId) {
+            <li class="rounded-md border border-border-muted bg-surface-card px-md py-sm">
+              <p class="font-medium text-heading">{{ ser.name }}</p>
+              <p class="text-caption text-muted">
+                {{ ser.weekday }} {{ time(ser.startTime) }} · {{ ser.upcomingCount }} upcoming@if (ser.endDate) { · until {{ shortDate(ser.endDate) }} }
+              </p>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+  }
+</div>

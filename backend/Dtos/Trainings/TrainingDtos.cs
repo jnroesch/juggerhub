@@ -97,8 +97,9 @@ public sealed record WhosComingPersonDto(
     bool IsGuest,
     bool IsYou);
 
-/// <summary>A full attendance row (admin), incl. guests.</summary>
+/// <summary>A full attendance row (admin), incl. guests. <see cref="UserId"/> drives guest removal.</summary>
 public sealed record AttendanceEntryDto(
+    Guid UserId,
     string Handle,
     string DisplayName,
     string? Position,

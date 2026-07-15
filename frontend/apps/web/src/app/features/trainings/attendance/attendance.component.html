@@ -1,0 +1,32 @@
+<div class="mx-auto max-w-2xl px-md py-lg">
+  <a [routerLink]="['/trainings/sessions', sessionId]" class="text-body-sm font-medium text-link hover:text-link-hover">‹ Session</a>
+  <h1 class="mt-sm text-heading-lg font-semibold text-heading">Attendance</h1>
+
+  @if (loading()) {
+    <p class="mt-lg text-body-sm text-muted">Loading…</p>
+  } @else {
+    @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
+    <ul class="mt-md divide-y divide-border-muted">
+      @for (e of entries(); track e.userId) {
+        <li class="flex items-center gap-sm py-sm">
+          <img [src]="avatarUrl(e.handle)" alt="" class="h-9 w-9 rounded-pill bg-surface-secondary-soft object-cover" />
+          <div class="min-w-0 flex-1">
+            <a [routerLink]="['/u', e.handle]" class="block truncate font-medium text-heading hover:text-link">
+              {{ e.displayName }}@if (e.isYou) { <span class="text-muted">· you</span> }
+            </a>
+            <p class="text-caption text-muted">{{ answerLabel(e.answer) }}@if (e.position) { · {{ e.position }} }</p>
+          </div>
+          @if (e.isTeamAdmin) {
+            <span class="rounded-pill bg-surface-inverse px-xs py-3xs text-caption text-on-inverse">Admin</span>
+          }
+          @if (e.isGuest) {
+            <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">Guest</span>
+            <button type="button" (click)="removeGuest(e)" [disabled]="busy()" aria-label="Remove guest"
+              class="rounded-md border border-danger-border px-sm py-2xs text-caption font-medium text-danger-fg hover:bg-danger-bg">✕</button>
+          }
+        </li>
+      }
+    </ul>
+    <p class="mt-md text-caption text-muted">Guests count in the headcount. Remove anyone who shouldn't be here — they're not added to the team.</p>
+  }
+</div>
