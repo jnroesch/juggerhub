@@ -237,6 +237,12 @@ builder.Services.AddScoped<JuggerHub.Services.Marketplace.IMarketListingService,
 builder.Services.AddScoped<JuggerHub.Services.Marketplace.IMarketRecruitingService, JuggerHub.Services.Marketplace.MarketRecruitingService>();
 builder.Services.AddScoped<JuggerHub.Services.Marketplace.IMarketRequestService, JuggerHub.Services.Marketplace.MarketRequestService>();
 
+// --- Trainings (feature 018) -----------------------------------------------
+builder.Services.AddScoped<JuggerHub.Services.Trainings.TrainingGuard>();
+builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingSeriesService, JuggerHub.Services.Trainings.TrainingSeriesService>();
+builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingSessionService, JuggerHub.Services.Trainings.TrainingSessionService>();
+builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingResponseService, JuggerHub.Services.Trainings.TrainingResponseService>();
+
 // --- Search / browse (feature 007) -----------------------------------------
 builder.Services.Configure<SearchOptions>(builder.Configuration.GetSection(SearchOptions.SectionName));
 builder.Services.AddScoped<ITeamSearchService, TeamSearchService>();

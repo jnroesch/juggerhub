@@ -23,6 +23,7 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
     [
         (NotificationCategory.InvitesAndRoster, "Invites & roster changes", "Team invites, people joining or leaving"),
         (NotificationCategory.TeamNews, "Team news", "News posted to your teams"),
+        (NotificationCategory.Trainings, "Trainings", "New training sessions and schedule changes"),
     ];
 
     private static readonly IReadOnlyList<AlwaysOnGroupDto> AlwaysOnGroups =
