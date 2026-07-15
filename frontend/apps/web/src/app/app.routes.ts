@@ -123,6 +123,12 @@ export const appRoutes: Route[] = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/parties/party-invitations/party-invitations.component').then((m) => m.PartyInvitationsComponent),
       },
+      {
+        // Event marketplace (feature 017) — recruiting toggle + applications/invites + direct invite.
+        path: 'parties/:id/recruiting',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/marketplace/recruiting/recruiting.component').then((m) => m.RecruitingComponent),
+      },
       // Browse / search (feature 007) — anonymous (no guard), in the shell, lazy-loaded.
       { path: 'browse', pathMatch: 'full', redirectTo: 'browse/teams' },
       {

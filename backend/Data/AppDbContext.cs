@@ -93,6 +93,11 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<PartyAdminInvitation> PartyAdminInvitations => Set<PartyAdminInvitation>();
 
+    // Feature 017 — event marketplace (mercenaries).
+    public DbSet<MercenaryListing> MercenaryListings => Set<MercenaryListing>();
+
+    public DbSet<MarketRequest> MarketRequests => Set<MarketRequest>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -610,6 +615,7 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         builder.Entity<Party>(entity =>
         {
             entity.Property(p => p.Message).HasMaxLength(500);
+            entity.Property(p => p.RecruitBlurb).HasMaxLength(500);
 
             // One party per (team, event) — the race-safe backstop behind the service pre-check.
             entity.HasIndex(p => new { p.TeamId, p.EventId }).IsUnique();
@@ -697,6 +703,51 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(i => i.TargetUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---- Feature 017: event marketplace (mercenaries) ----
+
+        builder.Entity<MercenaryListing>(entity =>
+        {
+            entity.Property(l => l.Pitch).HasMaxLength(280).IsRequired();
+
+            // One live listing per (user, event) — race-safe backstop behind the service pre-check.
+            entity.HasIndex(l => new { l.UserId, l.EventId }).IsUnique();
+            // The board's free-agents read scans an event's listings.
+            entity.HasIndex(l => l.EventId);
+
+            entity.HasOne(l => l.Event)
+                .WithMany()
+                .HasForeignKey(l => l.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(l => l.User)
+                .WithMany()
+                .HasForeignKey(l => l.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<MarketRequest>(entity =>
+        {
+            // At most one active (pending) request per (party, user) (Status=Pending=0) — the race-safe
+            // backstop behind the service pre-check; terminal rows don't conflict (a fresh request may
+            // follow a decline/revoke). Mirrors the PartyAdminInvitation pending filters.
+            entity.HasIndex(r => new { r.PartyId, r.UserId })
+                .IsUnique()
+                .HasFilter("\"Status\" = 0");
+            // The recruiting inbox reads a party's pending applications/invites.
+            entity.HasIndex(r => new { r.PartyId, r.Status });
+            // The mercenary inbox + dashboard read a user's requests.
+            entity.HasIndex(r => new { r.UserId, r.Status });
+
+            entity.HasOne(r => r.Party)
+                .WithMany(p => p.MarketRequests)
+                .HasForeignKey(r => r.PartyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // CreatedByUserId is a plain audit column (the applicant or inviting admin); no FK/nav.
         });
     }
 }

@@ -74,13 +74,16 @@ public sealed record PartyDto(
     PartyReadinessDto Readiness);
 
 /// <summary>One roster row (In/Declined member, or a derived no-response team member).</summary>
+/// <remarks><c>ViaMarket</c> flags a guest seated through the marketplace (feature 017) — an In member
+/// who is not on the team — so the client can render the "guest · via market" tag.</remarks>
 public sealed record PartyMemberDto(
     Guid UserId,
     string Handle,
     string DisplayName,
     PartyMemberRole? Role,
     bool IsYou,
-    IReadOnlyList<Pompfe> Pompfen);
+    IReadOnlyList<Pompfe> Pompfen,
+    bool ViaMarket);
 
 /// <summary>One party news item, newest-first (crew-only).</summary>
 public sealed record PartyNewsDto(

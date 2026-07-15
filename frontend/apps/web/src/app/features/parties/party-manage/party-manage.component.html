@@ -89,6 +89,7 @@
                 <span class="block truncate text-body-sm font-medium text-body transition-colors group-hover:text-brand">
                   {{ m.displayName }} @if (m.isYou) { <span class="font-normal text-subtle">· you</span> }
                   @if (m.role === 'Admin') { <span class="ml-1 rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Admin</span> }
+                  @if (m.viaMarket) { <span class="ml-1 rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-caption font-medium text-secondary">guest · via market</span> }
                 </span>
                 @if (m.pompfen.length) {
                   <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) }}</span>
@@ -146,6 +147,7 @@
       <section class="mt-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
         <p class="text-eyebrow uppercase text-muted">Party tools</p>
         <div class="mt-sm grid gap-xs">
+          <a [routerLink]="['/parties', id, 'recruiting']" class="rounded-md border border-border-muted px-md py-sm text-body-sm font-medium text-body transition-colors hover:bg-surface-sunken">Recruiting &amp; market</a>
           <a [routerLink]="['/parties', id, 'invitations']" class="rounded-md border border-border-muted px-md py-sm text-body-sm font-medium text-body transition-colors hover:bg-surface-sunken">Invite co-admins</a>
           <div class="flex items-center justify-between rounded-md border border-border-muted px-md py-sm text-body-sm text-subtle">Payment split <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Later</span></div>
           <div class="flex items-center justify-between rounded-md border border-border-muted px-md py-sm text-body-sm text-subtle">Travel &amp; carpool <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Later</span></div>

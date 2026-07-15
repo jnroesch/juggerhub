@@ -36,7 +36,8 @@ public sealed class PartyRosterService : IPartyRosterService
         Guid partyId, PartyRosterGroup group, Guid actorUserId, PaginationRequest pagination, CancellationToken ct = default)
     {
         var access = await _guard.ResolveAsync(partyId, actorUserId, ct);
-        if (access is null || !access.Value.IsTeamMember)
+        // Team members and marketplace guests (crew, feature 017) may read the roster; outsiders 404.
+        if (access is null || !(access.Value.IsTeamMember || access.Value.IsCrew))
         {
             return null;
         }
@@ -56,14 +57,15 @@ public sealed class PartyRosterService : IPartyRosterService
                 .Take(pagination.NormalizedTake)
                 .Select(tm => new PartyMemberDto(
                     tm.UserId, tm.User.Profile!.Handle, tm.User.Profile!.DisplayName, null, tm.UserId == actorUserId,
-                    tm.User.Profile!.Pompfen.Select(p => p.Pompfe).ToList()))
+                    tm.User.Profile!.Pompfen.Select(p => p.Pompfe).ToList(), false))
                 .ToListAsync(ct);
             return new PagedResult<PartyMemberDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
         }
 
+        // In/Declined rows for team members OR marketplace guests (In, ViaMarket, feature 017).
         var status = group == PartyRosterGroup.In ? PartyMemberStatus.In : PartyMemberStatus.Declined;
         var query = _db.PartyMembers.AsNoTracking()
-            .Where(m => m.PartyId == partyId && m.Status == status && teamMemberIds.Contains(m.UserId));
+            .Where(m => m.PartyId == partyId && m.Status == status && (m.ViaMarket || teamMemberIds.Contains(m.UserId)));
         var totalRows = await query.CountAsync(ct);
         var rows = await query
             .OrderBy(m => m.CreatedDate)
@@ -71,7 +73,7 @@ public sealed class PartyRosterService : IPartyRosterService
             .Take(pagination.NormalizedTake)
             .Select(m => new PartyMemberDto(
                 m.UserId, m.User.Profile!.Handle, m.User.Profile!.DisplayName, m.Role, m.UserId == actorUserId,
-                m.User.Profile!.Pompfen.Select(p => p.Pompfe).ToList()))
+                m.User.Profile!.Pompfen.Select(p => p.Pompfe).ToList(), m.ViaMarket))
             .ToListAsync(ct);
         return new PagedResult<PartyMemberDto>(rows, totalRows, pagination.NormalizedSkip, pagination.NormalizedTake);
     }
@@ -288,6 +290,6 @@ public sealed class PartyRosterService : IPartyRosterService
         _db.PartyMembers.AsNoTracking()
             .Where(m => m.PartyId == partyId && m.UserId == userId)
             .Select(m => new PartyMemberDto(m.UserId, m.User.Profile!.Handle, m.User.Profile!.DisplayName, m.Role, true,
-                m.User.Profile!.Pompfen.Select(p => p.Pompfe).ToList()))
+                m.User.Profile!.Pompfen.Select(p => p.Pompfe).ToList(), m.ViaMarket))
             .FirstAsync(ct);
 }

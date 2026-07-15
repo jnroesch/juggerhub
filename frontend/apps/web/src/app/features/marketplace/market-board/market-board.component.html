@@ -1,0 +1,205 @@
+<div data-testid="market-board">
+  <div class="flex items-center justify-between gap-sm">
+    <div>
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Mercenary market</h2>
+      <p class="mt-0.5 text-body-sm text-subtle">Free agents and recruiting crews find each other here.</p>
+    </div>
+  </div>
+
+  <!-- Your status: post / not eligible (your own listing lives in the free-agents column below) -->
+  @if (authenticated() && me(); as m) {
+    @if (eligible() && !m.myListing) {
+      <button type="button" (click)="openPost(false)" data-testid="post-yourself"
+        class="mt-sm block w-full rounded-md border border-dashed border-border-strong bg-surface-sunken px-md py-sm text-center text-body-sm font-semibold text-body hover:bg-surface-sunken">
+        + Post yourself as a mercenary
+      </button>
+    } @else if (m.ineligibleReason) {
+      <p class="mt-sm rounded-md border border-border bg-surface-sunken px-md py-sm text-body-sm text-subtle" data-testid="ineligible">{{ m.ineligibleReason }} You can still browse the board.</p>
+    }
+
+    <!-- Your market inbox: invites to answer + applications sent -->
+    @if (m.invitesToAnswer.length > 0 || m.myApplications.length > 0) {
+      <div class="mt-sm rounded-md border border-border bg-surface-card px-md py-sm" data-testid="my-market">
+        @if (m.invitesToAnswer.length > 0) {
+          <p class="text-eyebrow font-semibold uppercase tracking-wide text-muted">Invites to answer</p>
+          @for (inv of m.invitesToAnswer; track inv.id) {
+            <div class="mt-xs flex items-center justify-between gap-sm">
+              <p class="text-body-sm text-body"><span class="font-semibold">{{ inv.teamName }}</span> wants you in @if (inv.positions.length) { <span class="text-subtle">at {{ label(inv.positions[0])?.en }}</span> }</p>
+              <div class="flex gap-xs">
+                <button type="button" (click)="accept(inv.id)" class="rounded-md bg-brand px-sm py-1 text-body-sm font-semibold text-on-accent hover:bg-brand-hover">Accept</button>
+                <button type="button" (click)="decline(inv.id)" class="rounded-md border border-border-strong px-sm py-1 text-body-sm font-semibold text-body hover:bg-surface-sunken">Decline</button>
+              </div>
+            </div>
+          }
+        }
+        @if (m.myApplications.length > 0) {
+          <p class="mt-sm text-eyebrow font-semibold uppercase tracking-wide text-muted">Your applications</p>
+          @for (app of m.myApplications; track app.id) {
+            <div class="mt-xs flex items-center justify-between gap-sm text-body-sm">
+              <span class="min-w-0">
+                <span class="text-body">{{ app.teamName }}</span>
+                @if (app.positions.length) {
+                  <span class="text-subtle"> · @for (pos of app.positions; track pos; let last = $last) {{{ label(pos)?.en }}{{ last ? '' : ', ' }}}</span>
+                }
+              </span>
+              <span class="shrink-0 rounded-full px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-wide"
+                [class]="app.status === 'Pending' ? 'bg-warning-bg text-warning-fg' : 'bg-surface-sunken text-subtle'">{{ app.status === 'Pending' ? 'pending' : 'declined' }}</span>
+            </div>
+          }
+        }
+      </div>
+    }
+  }
+
+  <!-- Position filter -->
+  <div class="mt-md flex flex-wrap gap-xs" aria-label="Filter by position">
+    <button type="button" (click)="setPosition(null)" class="rounded-full border px-sm py-0.5 text-body-sm" [class]="position() === null ? 'border-brand bg-surface-accent-soft text-brand' : 'border-border-strong text-subtle hover:bg-surface-sunken'">All</button>
+    @for (p of catalog; track p.value) {
+      <button type="button" (click)="setPosition(p.value)" class="rounded-full border px-sm py-0.5 text-body-sm" [class]="position() === p.value ? 'border-brand bg-surface-accent-soft text-brand' : 'border-border-strong text-subtle hover:bg-surface-sunken'">{{ p.en }}</button>
+    }
+  </div>
+
+  <!-- Two-sided board: recruiting parties + free agents, side by side (like "Who's taking part") -->
+  @if (loading()) {
+    <p class="mt-md text-body-sm text-subtle">Loading the market…</p>
+  } @else if (loadError()) {
+    <p class="mt-md text-body-sm text-danger">Couldn't load the market. Try again shortly.</p>
+  } @else {
+    <div class="mt-md grid grid-cols-1 gap-md md:grid-cols-2">
+      <!-- Parties recruiting -->
+      <div data-testid="parties-column">
+        <p class="text-body-sm font-semibold text-body">Parties recruiting · <span class="font-mono">{{ partyTotal() }}</span></p>
+        @if (parties().length === 0) {
+          <p class="mt-xs text-body-sm text-faint">No crews are recruiting here yet. Post yourself and they'll find you.</p>
+        } @else {
+          <ul class="mt-xs space-y-sm">
+            @for (party of parties(); track party.partyId) {
+              <li class="rounded-lg border border-border bg-surface-card p-md" data-testid="party-card">
+                <div class="flex items-start gap-sm">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-secondary-soft text-body-sm font-bold text-body">{{ party.teamName.charAt(0) }}</span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-start justify-between gap-xs">
+                      <div class="min-w-0">
+                        <a [routerLink]="['/t', party.teamSlug]" class="text-body-md font-semibold text-body hover:text-brand">{{ party.teamName }}</a>
+                        <p class="text-body-sm text-subtle"><span class="font-mono">{{ party.openSpots }}</span> {{ party.openSpots === 1 ? 'spot' : 'spots' }} open</p>
+                      </div>
+                      <div class="shrink-0">
+                        @if (inviteFor(party); as inv) {
+                          <div class="flex gap-xs">
+                            <button type="button" (click)="accept(inv.id)" class="rounded-md bg-brand px-sm py-1 text-body-sm font-semibold text-on-accent hover:bg-brand-hover">Accept</button>
+                            <button type="button" (click)="decline(inv.id)" aria-label="Decline invite" title="Decline"
+                              class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-subtle hover:bg-surface-sunken hover:text-body">
+                              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                            </button>
+                          </div>
+                        } @else if (pendingApplication(party)) {
+                          <span class="rounded-full bg-warning-bg px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-wide text-warning-fg">applied</span>
+                        } @else if (eligible()) {
+                          <button type="button" (click)="openApply(party)" data-testid="apply-btn" class="rounded-md border border-border-strong bg-surface-card px-sm py-1 text-body-sm font-semibold text-body hover:bg-surface-sunken">Apply</button>
+                        }
+                      </div>
+                    </div>
+                    @if (party.positionsNeeded.length) {
+                      <p class="mt-1 flex flex-wrap items-center gap-1 text-body-sm text-subtle"><span>needs</span>@for (pos of party.positionsNeeded; track pos) { <span class="rounded-full bg-surface-secondary-soft px-sm py-0.5 text-eyebrow font-semibold text-teal-7">{{ label(pos)?.en }}</span> }</p>
+                    }
+                    @if (party.blurb) { <p class="mt-xs text-body-sm text-body">“{{ party.blurb }}”</p> }
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+
+      <!-- Free agents -->
+      <div data-testid="free-agents-column">
+        <p class="text-body-sm font-semibold text-body">Free agents · <span class="font-mono">{{ freeAgentTotal() }}</span></p>
+        @if (freeAgents().length === 0) {
+          <p class="mt-xs text-body-sm text-faint">No free agents on the board yet.</p>
+        } @else {
+          <ul class="mt-xs space-y-sm">
+            @for (fa of freeAgents(); track fa.userId) {
+              <li class="rounded-lg border bg-surface-card p-md" [class]="isMe(fa) ? 'border-border-strong' : 'border-border'" data-testid="free-agent-card">
+                <div class="flex items-start gap-sm">
+                  <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-secondary-soft text-body-sm font-bold text-body">{{ fa.displayName.charAt(0) }}</span>
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-start justify-between gap-xs">
+                      <p class="min-w-0 text-body-md font-semibold text-body">
+                        <a [routerLink]="['/u', fa.handle]" class="hover:text-brand">{{ fa.displayName }}</a>@if (isMe(fa)) { <span class="font-normal text-subtle"> · you</span> }
+                      </p>
+                      @if (isMe(fa)) {
+                        <div class="flex shrink-0 gap-xs" data-testid="my-listing-actions">
+                          <button type="button" (click)="openPost(true)" aria-label="Edit your listing" title="Edit"
+                            class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-subtle hover:bg-surface-sunken hover:text-body">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                          </button>
+                          <button type="button" (click)="takeDown()" [disabled]="acting()" aria-label="Take your listing down" title="Take down"
+                            class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-danger hover:bg-danger-bg disabled:opacity-50">
+                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                          </button>
+                        </div>
+                      } @else if (canInvite()) {
+                        <button type="button" (click)="openInvite(fa)" data-testid="invite-btn" class="shrink-0 rounded-md border border-border-strong bg-surface-card px-sm py-1 text-body-sm font-semibold text-body hover:bg-surface-sunken">Invite</button>
+                      }
+                    </div>
+                    @if (fa.positions.length) {
+                      <p class="mt-1 flex flex-wrap gap-1 text-body-sm text-subtle">@for (pos of fa.positions; track pos) { <span class="rounded-full bg-surface-secondary-soft px-sm py-0.5 text-eyebrow font-semibold text-teal-7">{{ label(pos)?.en }}</span> }</p>
+                    }
+                    <p class="mt-xs text-body-sm text-body">“{{ fa.pitch }}”</p>
+                  </div>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Apply / invite / post modal -->
+  @if (action(); as a) {
+    <div class="fixed inset-0 z-40 flex items-end justify-center bg-[rgba(26,22,15,0.45)] p-0 sm:items-center sm:p-md">
+      <div class="w-full max-w-md rounded-t-xl bg-surface-card p-md shadow-xl sm:rounded-xl" role="dialog" aria-modal="true" data-testid="market-modal">
+        <h3 class="text-body-lg font-bold text-ink">
+          @switch (a.kind) {
+            @case ('apply') { Apply to {{ a.party.teamName }} }
+            @case ('invite') { Invite {{ a.user.displayName }} }
+            @case ('post') { {{ a.editing ? 'Edit your listing' : 'Post yourself' }} }
+          }
+        </h3>
+
+        <p class="mt-xs text-body-sm text-subtle">
+          @switch (a.kind) {
+            @case ('apply') { The party admin decides — you'll get a yes/no in your market inbox. }
+            @case ('invite') { Two-way: they decide. Accept and they take a spot in your party. }
+            @case ('post') { Pick the positions you play and add a short pitch. }
+          }
+        </p>
+
+        <p class="mt-md text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ action()?.kind === 'post' ? 'Positions you play' : "What you'd play" }}</p>
+        <div class="mt-xs flex flex-wrap gap-xs">
+          @for (p of catalog; track p.value) {
+            <button type="button" (click)="toggleSelected(p.value)" class="rounded-full border px-sm py-0.5 text-body-sm" [class]="selected().includes(p.value) ? 'border-brand bg-surface-accent-soft text-brand' : 'border-border-strong text-subtle hover:bg-surface-sunken'">{{ p.en }}</button>
+          }
+        </div>
+
+        @if (a.kind === 'post') {
+          <p class="mt-md text-eyebrow font-semibold uppercase tracking-wide text-muted">Your pitch</p>
+          <textarea [value]="pitch()" (input)="pitch.set($any($event.target).value)" maxlength="280" rows="3"
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-sm text-body focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-coral-1"
+            placeholder="Quick feet, 3 yrs in. Happy to run or Q-Tip. Will travel."></textarea>
+        }
+
+        @if (actionError()) { <p class="mt-sm text-body-sm text-danger" data-testid="modal-error">{{ actionError() }}</p> }
+
+        <div class="mt-md flex justify-end gap-sm">
+          <button type="button" (click)="closeAction()" class="rounded-md border border-border-strong px-md py-sm text-body-sm font-semibold text-body hover:bg-surface-sunken">Cancel</button>
+          <button type="button" (click)="submit()" [disabled]="acting() || (a.kind === 'post' && !postValid())"
+            class="rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">
+            @switch (a.kind) { @case ('apply') { Send application } @case ('invite') { Send invite } @case ('post') { {{ a.editing ? 'Save' : 'Post to the market' }} } }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

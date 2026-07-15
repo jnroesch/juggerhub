@@ -17,6 +17,15 @@ public sealed class PartyMember : BaseEntity
 
     public PartyMemberRole Role { get; set; } = PartyMemberRole.Member;
 
+    /// <summary>
+    /// True for a mercenary seated through the marketplace (feature 017) — a guest who is
+    /// <see cref="PartyMemberStatus.In"/> and counts toward the roster cap but is <em>not</em> a member
+    /// of the party's team. Renders the "guest · via market" tag; OR-ed into the In-count/roster
+    /// predicate so guests are counted and listed alongside team members. Always false for a team
+    /// member's row. A guest is never a party admin/co-admin (co-admins stay team-scoped).
+    /// </summary>
+    public bool ViaMarket { get; set; }
+
     public Party Party { get; set; } = null!;
 
     public User User { get; set; } = null!;

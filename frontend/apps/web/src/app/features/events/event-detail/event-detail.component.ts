@@ -11,6 +11,7 @@ import { EventContactsListComponent } from './components/contacts-list.component
 import { EventJoinActionsComponent } from './components/join-actions.component';
 import { EventNewsFeedComponent } from './components/news-feed.component';
 import { EventParticipantGroupsComponent } from './components/participant-groups.component';
+import { MarketBoardComponent } from '../../marketplace/market-board/market-board.component';
 
 /**
  * US2/US3/US5 — the public event page. Anyone can read the details, the three
@@ -29,6 +30,7 @@ import { EventParticipantGroupsComponent } from './components/participant-groups
     EventNewsFeedComponent,
     EventContactsListComponent,
     EventJoinActionsComponent,
+    MarketBoardComponent,
   ],
   templateUrl: './event-detail.component.html',
   styleUrl: './event-detail.component.css',

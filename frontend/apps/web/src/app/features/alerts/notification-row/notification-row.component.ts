@@ -2,6 +2,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   AppNotification,
+  isMarketInvite,
   isPartyNews,
   isPartyRequest,
   isTeamInvite,
@@ -49,6 +50,10 @@ export class NotificationRowComponent {
     if (isPartyNews(n)) {
       return `/parties/${n.payload.partyId}/news`;
     }
+    if (isMarketInvite(n)) {
+      // Links to the event page, where the market inbox answers the invite (feature 017).
+      return `/events/${n.payload.eventId}`;
+    }
     return null;
   });
 
@@ -69,6 +74,9 @@ export class NotificationRowComponent {
     }
     if (isPartyNews(n)) {
       return `Party update — ${n.payload.teamName} @ ${n.payload.eventName}`;
+    }
+    if (isMarketInvite(n)) {
+      return `${n.payload.teamName} invited you to their crew`;
     }
     return 'Notification';
   });

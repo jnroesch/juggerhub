@@ -4,6 +4,7 @@ import { HomeService } from '../../core/services/home.service';
 import { Home } from '../../core/models/home.models';
 import { UpNextCardComponent } from './modules/up-next-card.component';
 import { NewsListComponent } from './modules/news-list.component';
+import { MarketCardComponent } from './modules/market-card.component';
 import { relativeTime, shortDate } from '../../core/utils/format';
 
 /**
@@ -14,7 +15,7 @@ import { relativeTime, shortDate } from '../../core/utils/format';
  */
 @Component({
   selector: 'jh-dashboard',
-  imports: [RouterLink, UpNextCardComponent, NewsListComponent],
+  imports: [RouterLink, UpNextCardComponent, NewsListComponent, MarketCardComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
