@@ -65,6 +65,7 @@ attendance, your-trainings-card, alerts rows). DESIGN.md wins on any conflict.
 - [x] CHK030 Series/One-off badge on every session row and the session header; Public badge on public sessions; Guest tag on outsider attendees
 - [x] CHK031 Three-way RSVP control is one clear group with the selected answer visibly filled; who's-coming grouped by answer with per-group headcounts
 - [x] CHK032 Create wizard is one-decision-per-screen with a step counter and Back/Cancel; review step states the approximate session count
+- [x] CHK033 Edit is a scope-first fork ("This session only" vs "The whole series"); single-session edit shows a "detaches from series" affordance; series edit warns responders are notified
 
 ## Notes
 

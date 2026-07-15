@@ -106,6 +106,9 @@ export interface TrainingSessionDetail {
   location: string | null;
   virtualLink: string | null;
   seriesLabel: string | null;
+  weekday: string | null;
+  interval: TrainingInterval | null;
+  endDate: string | null;
   visibility: TrainingVisibility;
   status: TrainingSessionStatus;
   isPast: boolean;

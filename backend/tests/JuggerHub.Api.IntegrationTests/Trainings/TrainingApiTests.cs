@@ -149,6 +149,26 @@ public sealed class TrainingApiTests : TrainingTestSupport
         Assert.Equal("Going", first.GetProperty("myAnswer").GetString());
     }
 
+    [Fact]
+    public async Task Session_detail_exposes_series_schedule_for_the_edit_form()
+    {
+        var (admin, _, _) = await NewUserAsync();
+        var (_, slug) = await CreateTeamAsync(admin);
+        var start = NextWeekday(DayOfWeek.Tuesday);
+        var series = await CreateSeriesAsync(admin, slug, DayOfWeek.Tuesday, start, start.AddDays(21));
+        var oneOff = await CreateOneOffAsync(admin, slug, NextWeekday(DayOfWeek.Saturday));
+
+        var seriesDetail = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/trainings/sessions/{series.GetProperty("firstSessionId").GetGuid()}");
+        Assert.Equal("Tuesday", seriesDetail.GetProperty("weekday").GetString());
+        Assert.Equal("Weekly", seriesDetail.GetProperty("interval").GetString());
+        Assert.False(seriesDetail.GetProperty("endDate").ValueKind == JsonValueKind.Null);
+
+        var oneOffDetail = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/trainings/sessions/{oneOff.GetProperty("firstSessionId").GetGuid()}");
+        Assert.Equal(JsonValueKind.Null, oneOffDetail.GetProperty("weekday").ValueKind);
+        Assert.Equal(JsonValueKind.Null, oneOffDetail.GetProperty("interval").ValueKind);
+        Assert.Equal(JsonValueKind.Null, oneOffDetail.GetProperty("endDate").ValueKind);
+    }
+
     // --- US3: edit fork, skip, cancel ----------------------------------------
 
     [Fact]

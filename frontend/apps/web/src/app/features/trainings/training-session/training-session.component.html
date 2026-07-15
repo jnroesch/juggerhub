@@ -122,6 +122,14 @@
         </button>
         @if (menuOpen()) {
           <div class="mt-sm flex flex-col gap-xs">
+            @if (canRespond()) {
+              @if (s.isOneOff || s.isDetached) {
+                <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken">Edit this session</a>
+              } @else {
+                <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" [queryParams]="{ scope: 'single' }" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken">Edit this session</a>
+                <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" [queryParams]="{ scope: 'series' }" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken">Edit the whole series</a>
+              }
+            }
             <a [routerLink]="['/trainings/sessions', sessionId(), 'attendance']" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken">See full attendance</a>
             <button type="button" (click)="toggleVisibility()" [disabled]="busy()" class="rounded-md border border-border-strong bg-surface px-md py-xs text-left text-body-sm font-medium text-text hover:bg-surface-sunken">
               {{ s.visibility === 'Public' ? 'Make team-only' : 'Make this session public' }}

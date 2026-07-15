@@ -230,22 +230,9 @@ public sealed class TeamService : ITeamService
             .Select(x => new ActivityItemDto(x.Name, DateOnly.FromDateTime(x.StartsAt), x.Location, x.TeamLabel))
             .ToList();
 
-        // Upcoming trainings — team-mode events the team is entered in (public).
-        var trainings = await _db.EventSignups.AsNoTracking()
-            .Where(s => s.TeamId == team.Id && s.Event.Status == EventStatus.Published && s.Event.EndsAt >= now)
-            .OrderBy(s => s.Event.StartsAt).ThenBy(s => s.EventId)
-            .Take(6)
-            .Select(s => new TrainingDto(
-                s.EventId,
-                s.Event.Name,
-                s.Event.StartsAt,
-                !string.IsNullOrEmpty(s.Event.City) ? s.Event.City!
-                    : (!string.IsNullOrEmpty(s.Event.VenueName) ? s.Event.VenueName! : s.Event.Location)))
-            .ToListAsync(ct);
-
         var recognitions = await _recognitions.ForTeamAsync(team.Id, ct);
         return new TeamPublicDetailDto(team.Slug, team.Name, team.Type, team.City, team.MemberCount,
-            team.BeginnersWelcome, team.IsActive, relation, roster, activity, trainings,
+            team.BeginnersWelcome, team.IsActive, relation, roster, activity,
             recognitions.Badges, recognitions.Achievements);
     }
 

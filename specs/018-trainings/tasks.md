@@ -137,7 +137,7 @@ edit detaches; extend end date generates; change weekday regenerates; skip hides
 
 ### Frontend
 
-- [ ] T044 [US3] Build `session-manage/` (admin manage sheet: Edit this / Edit the whole series / See full attendance / Make public / Cancel), `edit-series/`, `edit-session/` (with "detached from series" affordance), and `skip-cancel/` (skip-a-date + cancel-a-session) under `features/trainings/`.
+- [x] T044 [US3] Built the this-vs-series edit fork: `training-edit/` (fork chooser → single-session form that detaches, or whole-series form) wired from the session manage menu; skip/cancel/visibility/attendance already inline on the session page.
 - [x] T045 [US3] Wire the scope fork ("This session only" vs "The whole series") ahead of the edit form; surface "responders are notified" copy; detached badge on the session page.
 - [ ] T046 [P] [US3] Component specs (zoneless) for the edit fork routing and skip-vs-cancel confirmations.
 
@@ -203,7 +203,7 @@ chronologically on the dashboard and can RSVP inline.
 
 - [x] T059 Render the new notification types in the alerts UI: `frontend/apps/web/src/app/features/alerts/*` — `TrainingScheduled` (team heads-up, link) and `TrainingUpdated` (series edit / cancelled, link).
 - [x] T060 [P] Seed data: edit `backend/Data/DevDataSeeder.cs` — a weekly series (mixed responses across a few generated sessions), a one-off, and one public session carrying a guest response, for the demo team (idempotent, guarded like existing seeds).
-- [x] T061 [P] Remove the obsolete placeholder: drop/repurpose `TrainingDto`/`upcomingTrainings` in `backend/Dtos/Teams/TeamDtos.cs` + `backend/Services/Teams/TeamService.cs` (event-signup "trainings") and any frontend reference, so no dead field ships.
+- [x] T061 [P] Removed the obsolete placeholder: dropped `TrainingDto`/`UpcomingTrainings` from `TeamDtos.cs` + `TeamService.cs` and the `Training`/`upcomingTrainings` frontend model, replaced by the real Trainings tab link.
 - [x] T062 [P] Run the UI review checklist `specs/018-trainings/checklists/ui-review.md` against the diff (DESIGN.md tokens/components: tab, wizard steps, session card, sheets, attendance rows, guest tag, empty/loading/error states, responsive phone+desktop, sentence case, one coral CTA/view).
 - [x] T063 Walk `quickstart.md` Scenarios A–E end-to-end locally and fix any gaps.
 - [x] T064 Verify: `dotnet build` + `dotnet test` (backend), `npx nx build web` + `npx nx lint web` + `npx nx test web` (frontend); record results for the report.

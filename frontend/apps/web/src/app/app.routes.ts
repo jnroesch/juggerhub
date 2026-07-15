@@ -147,6 +147,11 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./features/trainings/training-session/training-session.component').then((m) => m.TrainingSessionComponent),
       },
       {
+        path: 'trainings/sessions/:id/edit',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/trainings/training-edit/training-edit.component').then((m) => m.TrainingEditComponent),
+      },
+      {
         path: 'trainings/sessions/:id/attendance',
         canActivate: [authGuard],
         loadComponent: () => import('./features/trainings/attendance/attendance.component').then((m) => m.AttendanceComponent),
