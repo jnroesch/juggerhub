@@ -81,6 +81,7 @@ public static class DevDataSeeder
         await SeedTeamsAsync(db, ct);
         await SeedEventsAsync(db, ct);
         await SeedRecognitionsAsync(db, ct);
+        await SeedTrainingsAsync(db, ct);
     }
 
     /// <summary>
@@ -139,6 +140,107 @@ public static class DevDataSeeder
         if (rheinfeuerId is Guid teamId)
         {
             await GrantBadgeIfMissing(db, "Founding club", null, teamId, firstProfile.UserId, now, null, ct);
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// Feature 018: give Rheinfeuer a demonstrable Trainings tab — a weekly series (with a few generated
+    /// sessions + mixed responses), a one-off, and one public session carrying a guest response. Idempotent:
+    /// skips once any training exists for the team.
+    /// </summary>
+    private static async Task SeedTrainingsAsync(AppDbContext db, CancellationToken ct)
+    {
+        var team = await db.Teams.AsNoTracking().Where(t => t.Slug == "rheinfeuer")
+            .Select(t => new { t.Id }).FirstOrDefaultAsync(ct);
+        if (team is null || await db.Trainings.AnyAsync(t => t.TeamId == team.Id, ct))
+        {
+            return;
+        }
+
+        var members = await db.TeamMemberships.AsNoTracking()
+            .Where(m => m.TeamId == team.Id)
+            .OrderByDescending(m => m.Role)
+            .Select(m => m.UserId)
+            .ToListAsync(ct);
+        if (members.Count == 0)
+        {
+            return;
+        }
+
+        var admin = members[0];
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var firstTuesday = today.AddDays(((int)DayOfWeek.Tuesday - (int)today.DayOfWeek + 7) % 7 + 1);
+
+        // Weekly series (team-only) over ~6 weeks.
+        var series = new Training
+        {
+            TeamId = team.Id,
+            Name = "Tuesday Training",
+            Description = "Regular team training — drills then scrims. We lend pompfen; bring water & indoor shoes.",
+            LocationKind = LocationKind.InPerson,
+            Location = "Sportpark Müngersdorf, Köln",
+            IsRecurring = true,
+            Weekday = DayOfWeek.Tuesday,
+            Interval = TrainingInterval.Weekly,
+            StartTime = new TimeOnly(19, 0),
+            EndTime = new TimeOnly(21, 0),
+            StartDate = firstTuesday,
+            EndDate = firstTuesday.AddDays(7 * 6),
+            Visibility = TrainingVisibility.TeamOnly,
+            CreatedByUserId = admin,
+        };
+        var seriesDates = Services.Trainings.RecurrenceExpander.Expand(
+            series.StartDate, DayOfWeek.Tuesday, TrainingInterval.Weekly, series.EndDate.Value);
+        var seriesSessions = seriesDates.Select(d => new TrainingSession
+        {
+            Training = series, TeamId = team.Id, SessionDate = d, Status = TrainingSessionStatus.Scheduled,
+        }).ToList();
+
+        // A public one-off open mat.
+        var oneOff = new Training
+        {
+            TeamId = team.Id,
+            Name = "Open mat — newcomers welcome",
+            Description = "Casual open training. Everyone welcome, we lend gear.",
+            LocationKind = LocationKind.InPerson,
+            Location = "Tempelhofer Feld",
+            IsRecurring = false,
+            StartTime = new TimeOnly(14, 0),
+            EndTime = new TimeOnly(16, 0),
+            StartDate = today.AddDays(((int)DayOfWeek.Saturday - (int)today.DayOfWeek + 7) % 7 + 1),
+            Visibility = TrainingVisibility.Public,
+            CreatedByUserId = admin,
+        };
+        var oneOffSession = new TrainingSession
+        {
+            Training = oneOff, TeamId = team.Id, SessionDate = oneOff.StartDate, Status = TrainingSessionStatus.Scheduled,
+        };
+
+        db.Trainings.AddRange(series, oneOff);
+        db.TrainingSessions.AddRange(seriesSessions);
+        db.TrainingSessions.Add(oneOffSession);
+
+        // Mixed responses on the first series session; a guest on the public one-off.
+        if (seriesSessions.Count > 0)
+        {
+            db.TrainingResponses.Add(new TrainingResponse { Session = seriesSessions[0], UserId = admin, Answer = TrainingRsvp.Going, IsGuest = false });
+            if (members.Count > 1)
+            {
+                db.TrainingResponses.Add(new TrainingResponse { Session = seriesSessions[0], UserId = members[1], Answer = TrainingRsvp.Maybe, IsGuest = false });
+            }
+        }
+
+        // A guest (a player who is not on Rheinfeuer) joins the public open mat.
+        var outsider = await db.PlayerProfiles.AsNoTracking()
+            .Where(p => !db.TeamMemberships.Any(m => m.TeamId == team.Id && m.UserId == p.UserId))
+            .OrderBy(p => p.CreatedDate)
+            .Select(p => (Guid?)p.UserId)
+            .FirstOrDefaultAsync(ct);
+        if (outsider is Guid guestId)
+        {
+            db.TrainingResponses.Add(new TrainingResponse { Session = oneOffSession, UserId = guestId, Answer = TrainingRsvp.Going, IsGuest = true });
         }
 
         await db.SaveChangesAsync(ct);
