@@ -70,6 +70,15 @@ public sealed class TrainingSessionService : ITrainingSessionService
             return TrainingResult<TrainingSessionDetailDto>.Fail(TrainingOutcome.Invalid, "The end time must be after the start time.");
         }
 
+        // Detaching freezes the session's whole schedule/place: snapshot every currently-inherited field
+        // into its override so a later whole-series edit can no longer move it (spec FR-016). Visibility is
+        // deliberately excluded — it follows the series unless a per-session visibility toggle overrides it.
+        session.StartTimeOverride ??= session.Training.StartTime;
+        session.EndTimeOverride ??= session.Training.EndTime;
+        session.LocationKindOverride ??= session.Training.LocationKind;
+        session.LocationOverride ??= session.Training.Location;
+        session.VirtualLinkOverride ??= session.Training.VirtualLink;
+
         if (request.SessionDate is { } d) session.SessionDate = d;
         if (request.StartTime is { } st) session.StartTimeOverride = st;
         if (request.EndTime is { } et) session.EndTimeOverride = et;
