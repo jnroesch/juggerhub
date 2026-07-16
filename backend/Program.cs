@@ -251,6 +251,8 @@ builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingResponseService
 builder.Services.AddScoped<JuggerHub.Services.Chat.ChatGuard>();
 builder.Services.AddScoped<JuggerHub.Services.Chat.IChatConversationService, JuggerHub.Services.Chat.ChatConversationService>();
 builder.Services.AddScoped<JuggerHub.Services.Chat.IChatMessageService, JuggerHub.Services.Chat.ChatMessageService>();
+// The realtime seam is a singleton over IHubContext, mirroring feature 010's registration.
+builder.Services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime, JuggerHub.Services.Chat.Realtime.SignalRChatRealtime>();
 
 // Rate limiting — new shared infrastructure, required because chat's DM reach is open (FR-049a).
 // The counters live in Redis: in-memory partitions are per-pod, so on a multi-replica deployment they
@@ -380,6 +382,10 @@ app.MapControllers();
 
 // Real-time notifications hub (feature 010). Same-origin JWT cookie authenticates the handshake.
 app.MapHub<NotificationHub>("/hubs/notifications");
+
+// Real-time chat hub (feature 019). Same auth, same push-only per-user-group design; fan-out crosses
+// replicas via the Redis backplane registered above.
+app.MapHub<JuggerHub.Services.Chat.Realtime.ChatHub>("/hubs/chat");
 
 app.Run();
 

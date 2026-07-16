@@ -113,6 +113,24 @@ public sealed class ChatConversationsController : ControllerBase
         return result.IsOk ? NoContent() : Fail(result.Outcome, result.Error);
     }
 
+    /// <summary>
+    /// Signal that the caller is typing. Over REST rather than a hub method, which keeps the hub
+    /// push-only and the constitution's "REST is primary" rule intact (research §2). The client
+    /// debounces to ~1 call / 3s.
+    /// </summary>
+    [HttpPost("conversations/{conversationId:guid}/typing")]
+    [EnableRateLimiting(RateLimitPolicies.ChatTyping)]
+    public async Task<IActionResult> Typing(Guid conversationId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _conversations.SignalTypingAsync(userId, conversationId, ct);
+        return result.IsOk ? NoContent() : Fail(result.Outcome, result.Error);
+    }
+
     private ObjectResult Fail(ChatOutcome outcome, string? detail) => ChatHttp.Fail(this, outcome, detail);
 
     private bool TryGetUserId(out Guid userId)

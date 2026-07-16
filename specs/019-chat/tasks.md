@@ -118,17 +118,17 @@ here, before realtime is built on top. See research **§10** and **§11**.
 
 ### Backend
 
-- [ ] T041 [P] [US2] Add `backend/Services/Chat/Realtime/IChatRealtime.cs` — `PushMessageCreatedAsync`, `PushMessageDeletedAsync`, `PushUnreadCountAsync`, `PushConversationUpsertedAsync`, `PushTypingAsync`. Transport-agnostic seam (mirrors `INotificationRealtime`) so services stay testable without a socket **and a backplane can slot in later without touching producers** (research §10).
-- [ ] T042 [US2] Add `backend/Services/Chat/Realtime/ChatHub.cs` — clone of `NotificationHub`: `[Authorize(JwtBearer)]`, joins **only** `user:{sub}` from the *validated* token, aborts on a missing subject, **no client-invokable server methods** (push-only — research §1).
-- [ ] T043 [US2] Add `backend/Services/Chat/Realtime/SignalRChatRealtime.cs` — `IHubContext<ChatHub>`; fan-out resolves participants via `ChatGuard.ResolveParticipantUserIdsAsync` **server-side** and pushes to each `user:{id}` group; event names per contracts (`chatMessageCreated`, `chatMessageDeleted`, `chatUnreadCountChanged`, `chatConversationUpserted`, `chatTyping`).
-- [ ] T044 [US2] Edit `backend/Program.cs` — register `IChatRealtime` → `SignalRChatRealtime` (singleton, as 010 does) and `app.MapHub<ChatHub>("/hubs/chat")`.
-- [ ] T045 [US2] Wire pushes into `ChatMessageService.SendAsync`/`DeleteAsync` and `ChatConversationService.MarkReadAsync`/`StartAsync` — every push **best-effort after** the durable save, never instead of it (FR-023).
-- [ ] T046 [US2] Add typing: `ChatConversationService.SignalTypingAsync(callerId, conversationId)` (membership check, `Archived` ⇒ `Conflict`, **persists nothing**) + `POST /conversations/{id}/typing` on `ChatConversationsController` with `[EnableRateLimiting("chat-typing")]`; pushes `chatTyping` to the **other** participants with a 5 s expiry (research §2).
+- [X] T041 [P] [US2] Add `backend/Services/Chat/Realtime/IChatRealtime.cs` — `PushMessageCreatedAsync`, `PushMessageDeletedAsync`, `PushUnreadCountAsync`, `PushConversationUpsertedAsync`, `PushTypingAsync`. Transport-agnostic seam (mirrors `INotificationRealtime`) so services stay testable without a socket **and a backplane can slot in later without touching producers** (research §10).
+- [X] T042 [US2] Add `backend/Services/Chat/Realtime/ChatHub.cs` — clone of `NotificationHub`: `[Authorize(JwtBearer)]`, joins **only** `user:{sub}` from the *validated* token, aborts on a missing subject, **no client-invokable server methods** (push-only — research §1).
+- [X] T043 [US2] Add `backend/Services/Chat/Realtime/SignalRChatRealtime.cs` — `IHubContext<ChatHub>`; fan-out resolves participants via `ChatGuard.ResolveParticipantUserIdsAsync` **server-side** and pushes to each `user:{id}` group; event names per contracts (`chatMessageCreated`, `chatMessageDeleted`, `chatUnreadCountChanged`, `chatConversationUpserted`, `chatTyping`).
+- [X] T044 [US2] Edit `backend/Program.cs` — register `IChatRealtime` → `SignalRChatRealtime` (singleton, as 010 does) and `app.MapHub<ChatHub>("/hubs/chat")`.
+- [X] T045 [US2] Wire pushes into `ChatMessageService.SendAsync`/`DeleteAsync` and `ChatConversationService.MarkReadAsync`/`StartAsync` — every push **best-effort after** the durable save, never instead of it (FR-023).
+- [X] T046 [US2] Add typing: `ChatConversationService.SignalTypingAsync(callerId, conversationId)` (membership check, `Archived` ⇒ `Conflict`, **persists nothing**) + `POST /conversations/{id}/typing` on `ChatConversationsController` with `[EnableRateLimiting("chat-typing")]`; pushes `chatTyping` to the **other** participants with a 5 s expiry (research §2).
 
 ### Backend tests
 
-- [ ] T047 [P] [US2] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatRealtimeTests.cs` — with a fake `IChatRealtime`: a send pushes to **every other participant and not the sender**; **a non-member is never pushed to** (FR-022); a delete pushes `chatMessageDeleted`; read pushes `chatUnreadCountChanged` to the reader's own group only; typing pushes to others, persists nothing, and 409s on an archived conversation.
-- [ ] T048 [P] [US2] Extend `ChatRealtimeTests` — **the FR-023 guarantee**: with realtime stubbed to a no-op (simulating a dead socket), a plain REST load still returns the full history, correct unread and correct read state (SC-011). Live is an enhancement, never the source of truth.
+- [X] T047 [P] [US2] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatRealtimeTests.cs` — with a fake `IChatRealtime`: a send pushes to **every other participant and not the sender**; **a non-member is never pushed to** (FR-022); a delete pushes `chatMessageDeleted`; read pushes `chatUnreadCountChanged` to the reader's own group only; typing pushes to others, persists nothing, and 409s on an archived conversation.
+- [X] T048 [P] [US2] Extend `ChatRealtimeTests` — **the FR-023 guarantee**: with realtime stubbed to a no-op (simulating a dead socket), a plain REST load still returns the full history, correct unread and correct read state (SC-011). Live is an enhancement, never the source of truth.
 
 ### Frontend
 

@@ -48,4 +48,11 @@ public interface IChatConversationService
         Guid conversationId,
         Guid lastReadMessageId,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Signal that the caller is typing. Persists nothing — the signal is pushed to the conversation's
+    /// other members carrying its own expiry, so it clears itself even if the typist vanishes
+    /// (spec FR-020).
+    /// </summary>
+    Task<ChatResult> SignalTypingAsync(Guid callerId, Guid conversationId, CancellationToken ct = default);
 }

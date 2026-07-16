@@ -1,6 +1,7 @@
 using JuggerHub.Data;
 using JuggerHub.Dtos.Chat;
 using JuggerHub.Entities;
+using JuggerHub.Services.Chat.Realtime;
 using Microsoft.EntityFrameworkCore;
 
 namespace JuggerHub.Services.Chat;
@@ -8,15 +9,22 @@ namespace JuggerHub.Services.Chat;
 /// <summary>
 /// Messages: send, read history, delete your own (feature 019).
 /// </summary>
+/// <remarks>
+/// Realtime pushes here are strictly <b>after</b> the durable save and never in place of it: every
+/// event has a REST equivalent returning the same truth, so a disconnected player is stale, never
+/// wrong (spec FR-023). A failed push must never fail the send.
+/// </remarks>
 public sealed class ChatMessageService : IChatMessageService
 {
     private readonly AppDbContext _db;
     private readonly ChatGuard _guard;
+    private readonly IChatRealtime _realtime;
 
-    public ChatMessageService(AppDbContext db, ChatGuard guard)
+    public ChatMessageService(AppDbContext db, ChatGuard guard, IChatRealtime realtime)
     {
         _db = db;
         _guard = guard;
+        _realtime = realtime;
     }
 
     // --- Send -------------------------------------------------------------------
@@ -75,9 +83,90 @@ public sealed class ChatMessageService : IChatMessageService
         await _db.SaveChangesAsync(ct);
 
         var dto = await ProjectOneAsync(message.Id, callerId, ct);
-        return dto is null
-            ? ChatResult<MessageDto>.Fail(ChatOutcome.NotFound)
-            : ChatResult<MessageDto>.Ok(dto);
+        if (dto is null)
+        {
+            return ChatResult<MessageDto>.Fail(ChatOutcome.NotFound);
+        }
+
+        await PushMessageToOthersAsync(conversationId, callerId, message.Id, ct);
+
+        return ChatResult<MessageDto>.Ok(dto);
+    }
+
+    /// <summary>
+    /// Fan a new message out to the conversation's other members, and refresh each one's unread total.
+    /// </summary>
+    /// <remarks>
+    /// The audience is resolved server-side from the roster/participants, never from client input
+    /// (spec FR-022). The message is projected <em>per recipient</em> because <c>isOwn</c> and the
+    /// read receipt differ by viewer — pushing the sender's projection to everyone would show the
+    /// recipient their own message right-aligned.
+    /// </remarks>
+    private async Task PushMessageToOthersAsync(Guid conversationId, Guid senderId, Guid messageId, CancellationToken ct)
+    {
+        var recipients = (await _guard.ResolveParticipantUserIdsAsync(conversationId, ct))
+            .Where(id => id != senderId)
+            .ToList();
+
+        if (recipients.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var recipientId in recipients)
+        {
+            var forRecipient = await ProjectOneAsync(messageId, recipientId, ct);
+            if (forRecipient is not null)
+            {
+                await _realtime.PushMessageCreatedAsync(new[] { recipientId }, conversationId, forRecipient, ct);
+            }
+
+            // The badge moves for the recipient too — otherwise a player with the app open but the
+            // conversation closed would see the message appear with no badge to notice it by.
+            await _realtime.PushUnreadCountAsync(recipientId, await UnreadTotalAsync(recipientId, ct), ct);
+        }
+    }
+
+    /// <summary>
+    /// The recipient's nav-badge total. Mirrors <c>ChatConversationService.GetUnreadTotalAsync</c>'s
+    /// rule — non-muted, non-hidden, member-of — kept here rather than injecting the conversation
+    /// service into the message service to avoid a circular dependency.
+    /// </summary>
+    private async Task<int> UnreadTotalAsync(Guid userId, CancellationToken ct)
+    {
+        var conversationIds = await _db.Conversations.AsNoTracking()
+            .Where(c =>
+                ((c.Kind == ConversationKind.Direct || c.Kind == ConversationKind.Group)
+                    && c.Participants.Any(p => p.UserId == userId && p.LeftDate == null))
+                || (c.Kind == ConversationKind.Team
+                    && _db.TeamMemberships.Any(m => m.TeamId == c.TeamId && m.UserId == userId))
+                || (c.Kind == ConversationKind.Party
+                    && _db.PartyMembers.Any(pm => pm.PartyId == c.PartyId
+                        && pm.UserId == userId
+                        && pm.Status == PartyMemberStatus.In)))
+            .Where(c => !c.Participants.Any(p => p.UserId == userId && (p.IsMuted || p.IsHidden)))
+            .Select(c => new
+            {
+                c.Id,
+                LastRead = c.Participants.Where(p => p.UserId == userId).Select(p => p.LastReadMessageId).FirstOrDefault(),
+            })
+            .ToListAsync(ct);
+
+        var total = 0;
+        foreach (var c in conversationIds)
+        {
+            var q = _db.ChatMessages.AsNoTracking()
+                .Where(m => m.ConversationId == c.Id && m.SenderId != userId && !m.IsDeleted);
+
+            if (c.LastRead is { } lastRead)
+            {
+                q = q.Where(m => m.Id.CompareTo(lastRead) > 0);
+            }
+
+            total += await q.CountAsync(ct);
+        }
+
+        return total;
     }
 
     private Task<bool> IsBlockedInDirectAsync(Guid conversationId, Guid callerId, CancellationToken ct) =>
@@ -293,6 +382,14 @@ public sealed class ChatMessageService : IChatMessageService
         message.LinkTargetId = null;
 
         await _db.SaveChangesAsync(ct);
+
+        // Everyone, including the sender: their other tabs must swap the bubble for a tombstone too.
+        var recipients = await _guard.ResolveParticipantUserIdsAsync(message.ConversationId, ct);
+        if (recipients.Count > 0)
+        {
+            await _realtime.PushMessageDeletedAsync(recipients, message.ConversationId, message.Id, ct);
+        }
+
         return ChatResult.Ok();
     }
 

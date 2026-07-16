@@ -2,6 +2,7 @@ using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Dtos.Chat;
 using JuggerHub.Entities;
+using JuggerHub.Services.Chat.Realtime;
 using Microsoft.EntityFrameworkCore;
 
 namespace JuggerHub.Services.Chat;
@@ -15,11 +16,13 @@ public sealed class ChatConversationService : IChatConversationService
 {
     private readonly AppDbContext _db;
     private readonly ChatGuard _guard;
+    private readonly IChatRealtime _realtime;
 
-    public ChatConversationService(AppDbContext db, ChatGuard guard)
+    public ChatConversationService(AppDbContext db, ChatGuard guard, IChatRealtime realtime)
     {
         _db = db;
         _guard = guard;
+        _realtime = realtime;
     }
 
     // --- Starting ---------------------------------------------------------------
@@ -461,6 +464,46 @@ public sealed class ChatConversationService : IChatConversationService
 
         state.LastReadMessageId = lastReadMessageId;
         await _db.SaveChangesAsync(ct);
+
+        // Push the caller's own new total to their OWN group, so reading on one device converges the
+        // badge on their other open tabs (spec FR-016). Nobody else's total changed.
+        await _realtime.PushUnreadCountAsync(callerId, await GetUnreadTotalAsync(callerId, ct), ct);
+
+        return ChatResult.Ok();
+    }
+
+    // --- Typing -----------------------------------------------------------------
+
+    public async Task<ChatResult> SignalTypingAsync(Guid callerId, Guid conversationId, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(conversationId, callerId, ct);
+        if (access is not { } a)
+        {
+            return ChatResult.Fail(ChatOutcome.NotFound);
+        }
+
+        if (a.IsArchived)
+        {
+            return ChatResult.Fail(ChatOutcome.Conflict, "This chat is closed.");
+        }
+
+        var recipients = (await _guard.ResolveParticipantUserIdsAsync(conversationId, ct))
+            .Where(id => id != callerId)
+            .ToList();
+
+        if (recipients.Count == 0)
+        {
+            return ChatResult.Ok();
+        }
+
+        var name = await _db.PlayerProfiles.AsNoTracking()
+            .Where(p => p.UserId == callerId)
+            .Select(p => p.DisplayName)
+            .FirstOrDefaultAsync(ct) ?? PlaceholderName;
+
+        // Nothing is persisted: the signal carries its own expiry and the client also expires it on a
+        // timer, so a typist who closes their tab mid-word never leaves a stuck indicator (FR-020).
+        await _realtime.PushTypingAsync(recipients, conversationId, callerId, name, ct);
 
         return ChatResult.Ok();
     }

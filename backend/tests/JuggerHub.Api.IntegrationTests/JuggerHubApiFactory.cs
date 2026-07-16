@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using JuggerHub.Api.IntegrationTests.Chat;
 using JuggerHub.Services.Email;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -27,6 +28,12 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
 
     /// <summary>Captured server-side error logs (incl. exceptions) for diagnostics.</summary>
     public ConcurrentQueue<string> ErrorLogs { get; } = new();
+
+    /// <summary>
+    /// Records chat's realtime pushes so tests can assert the fan-out contract — and, crucially, who
+    /// is <em>not</em> in the audience — without a live socket (feature 019).
+    /// </summary>
+    public FakeChatRealtime ChatRealtime { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -58,6 +65,10 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
         {
             services.RemoveAll<IEmailSender>();
             services.AddSingleton<IEmailSender>(EmailSender);
+
+            // Same trick for chat's realtime seam: no socket, and the pushes become assertable.
+            services.RemoveAll<JuggerHub.Services.Chat.Realtime.IChatRealtime>();
+            services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime>(ChatRealtime);
         });
 
         builder.ConfigureLogging(logging => logging.AddProvider(new CaptureLoggerProvider(ErrorLogs)));
