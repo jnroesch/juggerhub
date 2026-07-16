@@ -28,6 +28,9 @@ public sealed class TeamService : ITeamService
     private readonly ILogger<TeamService> _logger;
     private readonly TeamOptions _options;
 
+    /// <summary>Feature 019: a team's chat must be archived (snapshotted) before the team row is deleted.</summary>
+    private readonly Chat.IChatConversationService _chat;
+
     public TeamService(
         AppDbContext db,
         TeamMembershipGuard guard,
@@ -36,10 +39,12 @@ public sealed class TeamService : ITeamService
         Email.TeamEmailService email,
         Recognition.IRecognitionDisplayService recognitions,
         ILogger<TeamService> logger,
-        IOptions<TeamOptions> options)
+        IOptions<TeamOptions> options,
+        Chat.IChatConversationService chat)
     {
         _db = db;
         _guard = guard;
+        _chat = chat;
         _recognitions = recognitions;
         _notifications = notifications;
         _preferences = preferences;
@@ -284,6 +289,12 @@ public sealed class TeamService : ITeamService
         {
             return DeleteTeamStatus.Forbidden;
         }
+
+        // Archive the team's chat BEFORE the team goes (feature 019, data-model R3a). Order matters:
+        // TeamMemberships cascade away below, and the chat DERIVES its membership from them, so
+        // archiving afterwards would leave a conversation nobody can read. It also clears the chat's
+        // Restrict FK, which would otherwise block this delete outright.
+        await _chat.ArchiveForTeamAsync(a.TeamId, ct);
 
         // DB-level ON DELETE CASCADE removes memberships/invites/news; participations SET NULL
         // (event history preserved). ExecuteDelete is a single statement.

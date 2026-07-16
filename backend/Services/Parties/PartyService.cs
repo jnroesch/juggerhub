@@ -26,6 +26,7 @@ public sealed class PartyService : IPartyService
     private readonly TeamMembershipGuard _teamGuard;
     private readonly INotificationService _notifications;
     private readonly PartyEmailService _email;
+    private readonly JuggerHub.Services.Chat.IChatConversationService _chat;
 
     public PartyService(
         AppDbContext db,
@@ -34,7 +35,8 @@ public sealed class PartyService : IPartyService
         EventCapacity eventCapacity,
         TeamMembershipGuard teamGuard,
         INotificationService notifications,
-        PartyEmailService email)
+        PartyEmailService email,
+        JuggerHub.Services.Chat.IChatConversationService chat)
     {
         _db = db;
         _guard = guard;
@@ -43,6 +45,7 @@ public sealed class PartyService : IPartyService
         _teamGuard = teamGuard;
         _notifications = notifications;
         _email = email;
+        _chat = chat;
     }
 
     // --- Form -----------------------------------------------------------------
@@ -402,6 +405,13 @@ public sealed class PartyService : IPartyService
         // are untouched. Wrapped in a transaction so the event entry can't be orphaned.
         var signupId = party.EventSignupId;
         await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+        // Archive the party's chat BEFORE the party goes (feature 019, data-model R3a). Order matters
+        // twice over: PartyMembers cascade away with the party, and the chat DERIVES its membership
+        // from them — so archiving afterwards would leave a conversation nobody can read. It also
+        // clears the chat's Restrict FK, which would otherwise block this delete outright.
+        await _chat.ArchiveForPartyAsync(partyId, ct);
+
         _db.Parties.Remove(party);
         await _db.SaveChangesAsync(ct);
         if (signupId is Guid sid)

@@ -17,12 +17,18 @@ public sealed class ChatConversationService : IChatConversationService
     private readonly AppDbContext _db;
     private readonly ChatGuard _guard;
     private readonly IChatRealtime _realtime;
+    private readonly IChatMessageService _messages;
 
-    public ChatConversationService(AppDbContext db, ChatGuard guard, IChatRealtime realtime)
+    public ChatConversationService(
+        AppDbContext db,
+        ChatGuard guard,
+        IChatRealtime realtime,
+        IChatMessageService messages)
     {
         _db = db;
         _guard = guard;
         _realtime = realtime;
+        _messages = messages;
     }
 
     // --- Starting ---------------------------------------------------------------
@@ -177,6 +183,8 @@ public sealed class ChatConversationService : IChatConversationService
         PaginationRequest pagination,
         CancellationToken ct = default)
     {
+        await EnsureAutoChatsForAsync(callerId, ct);
+
         var query = VisibleConversations(callerId);
 
         var total = await query.CountAsync(ct);
@@ -271,30 +279,53 @@ public sealed class ChatConversationService : IChatConversationService
     }
 
     /// <summary>
+    /// Materialise the caller's team/party chats if this is the first time anyone has looked.
+    /// </summary>
+    /// <remarks>
+    /// This is what "your team chat shows up the moment you join a team" actually is — no creation
+    /// step, no migration, no event handler on the roster. It also means a team that existed long
+    /// before this feature shipped gets its chat the first time a member opens the inbox, which is
+    /// FR-024's backfill requirement satisfied by construction (research §4).
+    /// </remarks>
+    private async Task EnsureAutoChatsForAsync(Guid callerId, CancellationToken ct)
+    {
+        var teamIds = await _db.TeamMemberships.AsNoTracking()
+            .Where(m => m.UserId == callerId)
+            .Select(m => m.TeamId)
+            .Where(id => !_db.Conversations.Any(c => c.TeamId == id))
+            .ToListAsync(ct);
+
+        foreach (var teamId in teamIds)
+        {
+            await EnsureForTeamAsync(teamId, ct);
+        }
+
+        var partyIds = await _db.PartyMembers.AsNoTracking()
+            .Where(pm => pm.UserId == callerId && pm.Status == PartyMemberStatus.In)
+            .Select(pm => pm.PartyId)
+            .Where(id => !_db.Conversations.Any(c => c.PartyId == id))
+            .ToListAsync(ct);
+
+        foreach (var partyId in partyIds)
+        {
+            await EnsureForPartyAsync(partyId, ct);
+        }
+    }
+
+    /// <summary>
     /// The conversations a caller can see in their inbox: member of (by the same rule as
     /// <see cref="ChatGuard"/>), not hidden, and — for DMs — not with someone they have blocked.
     /// </summary>
     /// <remarks>
-    /// This mirrors ChatGuard's predicate deliberately: the guard answers "may I open <em>this</em>
-    /// one?" in one round trip, while the inbox needs the same rule as a composable query. If either
-    /// changes, both must — which is why both are expressed as the same three branches in the same
-    /// order.
+    /// The membership half of this is <see cref="ChatGuard.IsMemberOf"/> — the <em>same expression</em>
+    /// the guard uses to answer "may I open this one?", shared rather than restated. An earlier version
+    /// duplicated it here and the copies drifted: the guard was taught about archived auto chats and
+    /// this one already knew, so an archived chat listed in the inbox but 404'd when opened. Sharing the
+    /// expression makes that class of bug unrepresentable.
     /// </remarks>
     private IQueryable<Conversation> VisibleConversations(Guid callerId) =>
         _db.Conversations.AsNoTracking()
-            .Where(c =>
-                ((c.Kind == ConversationKind.Direct || c.Kind == ConversationKind.Group)
-                    && c.Participants.Any(p => p.UserId == callerId && p.LeftDate == null))
-                || (c.Kind == ConversationKind.Team
-                    && _db.TeamMemberships.Any(m => m.TeamId == c.TeamId && m.UserId == callerId))
-                || (c.Kind == ConversationKind.Party
-                    && _db.PartyMembers.Any(pm => pm.PartyId == c.PartyId
-                        && pm.UserId == callerId
-                        && pm.Status == PartyMemberStatus.In))
-                // An archived auto chat has no roster left to derive from, so its snapshotted
-                // participant rows carry membership (data-model R3a).
-                || (c.State == ConversationState.Archived
-                    && c.Participants.Any(p => p.UserId == callerId && p.LeftDate == null)))
+            .Where(ChatGuard.IsMemberOf(_db, callerId))
             .Where(c => !c.Participants.Any(p => p.UserId == callerId && p.IsHidden))
             .Where(c => c.Kind != ConversationKind.Direct
                 || !_db.UserBlocks.Any(b =>
@@ -506,6 +537,318 @@ public sealed class ChatConversationService : IChatConversationService
         await _realtime.PushTypingAsync(recipients, conversationId, callerId, name, ct);
 
         return ChatResult.Ok();
+    }
+
+    // --- Group membership (US3) -------------------------------------------------
+
+    public async Task<ChatResult> AddMembersAsync(
+        Guid callerId,
+        Guid conversationId,
+        IReadOnlyList<Guid> userIds,
+        CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(conversationId, callerId, ct);
+        if (access is not { } a)
+        {
+            return ChatResult.Fail(ChatOutcome.NotFound);
+        }
+
+        // Direct/Team/Party membership is not addable: a DM is a pair by definition, and an auto chat's
+        // roster is the team's or party's business, not the chat's (spec FR-026).
+        if (!a.IsManualGroup)
+        {
+            return ChatResult.Fail(ChatOutcome.Invalid, "You can only add people to a group you made.");
+        }
+
+        if (a.IsArchived)
+        {
+            return ChatResult.Fail(ChatOutcome.Conflict, "This chat is closed.");
+        }
+
+        var wanted = userIds.Distinct().ToList();
+        if (wanted.Count == 0)
+        {
+            return ChatResult.Ok();
+        }
+
+        var known = await _db.Users.AsNoTracking()
+            .Where(u => wanted.Contains(u.Id) && u.Status != AccountStatus.Banned)
+            .Select(u => u.Id)
+            .ToListAsync(ct);
+
+        if (known.Count != wanted.Count)
+        {
+            return ChatResult.Fail(ChatOutcome.Invalid, "Some of those players are unavailable.");
+        }
+
+        var current = await _db.ConversationParticipants.AsNoTracking()
+            .Where(p => p.ConversationId == conversationId && p.LeftDate == null)
+            .Select(p => p.UserId)
+            .ToListAsync(ct);
+
+        // Already-a-member is a no-op — no duplicate row, no second system line (US3 edge case).
+        var toAdd = wanted.Except(current).ToList();
+        if (toAdd.Count == 0)
+        {
+            return ChatResult.Ok();
+        }
+
+        if (current.Count + toAdd.Count > ChatConstants.MaxGroupMembers)
+        {
+            return ChatResult.Fail(
+                ChatOutcome.Invalid,
+                $"A group can have up to {ChatConstants.MaxGroupMembers} people.");
+        }
+
+        var now = DateTime.UtcNow;
+        foreach (var userId in toAdd)
+        {
+            // Someone who left and is being re-added has a row already — revive it rather than
+            // inserting a second one, which the unique index would reject anyway.
+            var existing = await _db.ConversationParticipants
+                .FirstOrDefaultAsync(p => p.ConversationId == conversationId && p.UserId == userId, ct);
+
+            if (existing is not null)
+            {
+                existing.LeftDate = null;
+                existing.JoinedDate = now;
+            }
+            else
+            {
+                _db.ConversationParticipants.Add(new ConversationParticipant
+                {
+                    ConversationId = conversationId,
+                    UserId = userId,
+                    JoinedDate = now,
+                });
+            }
+        }
+
+        await _db.SaveChangesAsync(ct);
+
+        foreach (var userId in toAdd)
+        {
+            await _messages.WriteSystemMessageAsync(conversationId, ChatSystemEvent.Joined, userId, ct);
+        }
+
+        await PushUpsertToMembersAsync(conversationId, ct);
+
+        return ChatResult.Ok();
+    }
+
+    public async Task<ChatResult> LeaveAsync(Guid callerId, Guid conversationId, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(conversationId, callerId, ct);
+        if (access is not { } a)
+        {
+            return ChatResult.Fail(ChatOutcome.NotFound);
+        }
+
+        if (!a.IsManualGroup)
+        {
+            // The whole point of FR-026: an auto chat follows the roster, and a DM is hidden or the
+            // other person blocked. Neither is "left".
+            return a.IsDirect
+                ? ChatResult.Fail(ChatOutcome.Invalid, "You can hide this chat, or block the person.")
+                : ChatResult.Fail(ChatOutcome.Invalid, "This chat follows the roster — you can mute or hide it instead.");
+        }
+
+        var row = await _db.ConversationParticipants
+            .FirstOrDefaultAsync(p => p.ConversationId == conversationId && p.UserId == callerId, ct);
+
+        if (row is null || row.LeftDate is not null)
+        {
+            return ChatResult.Ok();
+        }
+
+        // Kept, not deleted: the leaver's past messages keep an attributable sender and the thread
+        // stays coherent. A non-null LeftDate fails the membership check, so they read nothing more.
+        row.LeftDate = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        await _messages.WriteSystemMessageAsync(conversationId, ChatSystemEvent.Left, callerId, ct);
+
+        return ChatResult.Ok();
+    }
+
+    // --- Per-user flags (US5) ---------------------------------------------------
+
+    public async Task<ChatResult> PatchStateAsync(
+        Guid callerId,
+        Guid conversationId,
+        bool? isMuted,
+        bool? isHidden,
+        CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(conversationId, callerId, ct);
+        if (access is null)
+        {
+            return ChatResult.Fail(ChatOutcome.NotFound);
+        }
+
+        var state = await _guard.EnsureParticipantStateAsync(conversationId, callerId, ct);
+
+        if (isMuted is { } m)
+        {
+            state.IsMuted = m;
+        }
+
+        if (isHidden is { } h)
+        {
+            state.IsHidden = h;
+        }
+
+        await _db.SaveChangesAsync(ct);
+
+        // Muting/hiding changes the badge immediately — push so the caller's other tabs agree.
+        await _realtime.PushUnreadCountAsync(callerId, await GetUnreadTotalAsync(callerId, ct), ct);
+
+        return ChatResult.Ok();
+    }
+
+    // --- Auto chats (US4) -------------------------------------------------------
+
+    public Task<Guid> EnsureForTeamAsync(Guid teamId, CancellationToken ct = default) =>
+        EnsureAutoAsync(ConversationKind.Team, teamId, ct);
+
+    public Task<Guid> EnsureForPartyAsync(Guid partyId, CancellationToken ct = default) =>
+        EnsureAutoAsync(ConversationKind.Party, partyId, ct);
+
+    /// <summary>
+    /// Materialise a team's/party's chat on first sight. This is the whole of FR-024's "backfill":
+    /// no migration writes rows for teams that may never chat — the first roster member to open Chat
+    /// creates it (research §4).
+    /// </summary>
+    private async Task<Guid> EnsureAutoAsync(ConversationKind kind, Guid ownerId, CancellationToken ct)
+    {
+        var existing = await FindAutoAsync(kind, ownerId, ct);
+        if (existing != Guid.Empty)
+        {
+            return existing;
+        }
+
+        var conversation = new Conversation
+        {
+            Kind = kind,
+            TeamId = kind == ConversationKind.Team ? ownerId : null,
+            PartyId = kind == ConversationKind.Party ? ownerId : null,
+            State = ConversationState.Active,
+        };
+        _db.Conversations.Add(conversation);
+
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            // Two roster members opened Chat at the same moment. The unique filtered index on
+            // TeamId/PartyId caught the loser — which is exactly why the constraint exists rather than
+            // a check-then-insert that can interleave.
+            _db.ChangeTracker.Clear();
+            var winner = await FindAutoAsync(kind, ownerId, ct);
+            if (winner == Guid.Empty)
+            {
+                throw;
+            }
+
+            return winner;
+        }
+
+        return conversation.Id;
+    }
+
+    private async Task<Guid> FindAutoAsync(ConversationKind kind, Guid ownerId, CancellationToken ct) =>
+        await _db.Conversations.AsNoTracking()
+            .Where(c => kind == ConversationKind.Team ? c.TeamId == ownerId : c.PartyId == ownerId)
+            .Select(c => c.Id)
+            .FirstOrDefaultAsync(ct);
+
+    public Task ArchiveForTeamAsync(Guid teamId, CancellationToken ct = default) =>
+        ArchiveAutoAsync(ConversationKind.Team, teamId, ct);
+
+    public Task ArchiveForPartyAsync(Guid partyId, CancellationToken ct = default) =>
+        ArchiveAutoAsync(ConversationKind.Party, partyId, ct);
+
+    /// <summary>
+    /// Archive an auto chat <b>before</b> its team/party row is hard-deleted (data-model R3a).
+    /// </summary>
+    /// <remarks>
+    /// This is a <b>snapshot, not a flag</b>, and the distinction is the whole point. Team delete and
+    /// party disband are hard deletes, and <c>TeamMemberships</c>/<c>PartyMembers</c> cascade away with
+    /// them. Since a live auto chat <em>derives</em> membership from that roster, simply setting
+    /// <c>State = Archived</c> would leave a conversation nobody can read — the roster it asks "are you
+    /// a member?" no longer exists — silently breaking FR-027's "members can still read the history".
+    /// So: freeze the roster into real participant rows, freeze the name, drop the link.
+    /// </remarks>
+    private async Task ArchiveAutoAsync(ConversationKind kind, Guid ownerId, CancellationToken ct)
+    {
+        var conversationId = await FindAutoAsync(kind, ownerId, ct);
+        if (conversationId == Guid.Empty)
+        {
+            return; // Nobody ever opened the chat, so there is nothing to preserve.
+        }
+
+        var conversation = await _db.Conversations.FirstAsync(c => c.Id == conversationId, ct);
+        if (conversation.State == ConversationState.Archived)
+        {
+            return; // One-way, and idempotent.
+        }
+
+        // 1. Freeze the derived roster into stored membership, while the roster still exists.
+        var rosterUserIds = await _guard.ResolveParticipantUserIdsAsync(conversationId, ct);
+        var haveRows = await _db.ConversationParticipants
+            .Where(p => p.ConversationId == conversationId)
+            .ToListAsync(ct);
+
+        var now = DateTime.UtcNow;
+        foreach (var userId in rosterUserIds)
+        {
+            var row = haveRows.FirstOrDefault(p => p.UserId == userId);
+            if (row is null)
+            {
+                _db.ConversationParticipants.Add(new ConversationParticipant
+                {
+                    ConversationId = conversationId,
+                    UserId = userId,
+                    JoinedDate = now,
+                });
+            }
+            else
+            {
+                row.LeftDate = null;
+            }
+        }
+
+        // 2. Freeze the display name — the link it was derived from is about to vanish.
+        conversation.Name ??= kind == ConversationKind.Team
+            ? await _db.Teams.AsNoTracking().Where(t => t.Id == ownerId).Select(t => t.Name).FirstOrDefaultAsync(ct)
+                ?? "Team chat"
+            : "Party chat";
+
+        // 3. Drop the link so the hard delete is not blocked by the Restrict FK…
+        conversation.TeamId = null;
+        conversation.PartyId = null;
+
+        // 4. …and close it to writes. Kind is deliberately left alone, so the inbox still tags it
+        //    TEAM/PARTY and the history still reads as what it was.
+        conversation.State = ConversationState.Archived;
+
+        await _db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>Push a refreshed inbox row to every current member (each gets their own projection).</summary>
+    private async Task PushUpsertToMembersAsync(Guid conversationId, CancellationToken ct)
+    {
+        var members = await _guard.ResolveParticipantUserIdsAsync(conversationId, ct);
+        foreach (var memberId in members)
+        {
+            var summary = await SummariseAsync(memberId, conversationId, ct);
+            if (summary.IsOk && summary.Value is not null)
+            {
+                await _realtime.PushConversationUpsertedAsync(new[] { memberId }, summary.Value, ct);
+            }
+        }
     }
 
     // --- Projection helpers -----------------------------------------------------

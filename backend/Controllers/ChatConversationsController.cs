@@ -24,8 +24,18 @@ namespace JuggerHub.Controllers;
 public sealed class ChatConversationsController : ControllerBase
 {
     private readonly IChatConversationService _conversations;
+    private readonly IChatSearchService _search;
+    private readonly IChatBlockService _blocks;
 
-    public ChatConversationsController(IChatConversationService conversations) => _conversations = conversations;
+    public ChatConversationsController(
+        IChatConversationService conversations,
+        IChatSearchService search,
+        IChatBlockService blocks)
+    {
+        _conversations = conversations;
+        _search = search;
+        _blocks = blocks;
+    }
 
     [HttpGet("conversations")]
     public async Task<ActionResult<PagedResult<ConversationSummaryDto>>> Inbox(
@@ -128,6 +138,113 @@ public sealed class ChatConversationsController : ControllerBase
         }
 
         var result = await _conversations.SignalTypingAsync(userId, conversationId, ct);
+        return result.IsOk ? NoContent() : Fail(result.Outcome, result.Error);
+    }
+
+    // --- Group membership (US3) -----------------------------------------------
+
+    [HttpPost("conversations/{conversationId:guid}/members")]
+    public async Task<IActionResult> AddMembers(
+        Guid conversationId,
+        [FromBody] AddMembersRequest request,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _conversations.AddMembersAsync(userId, conversationId, request.UserIds ?? Array.Empty<Guid>(), ct);
+        return result.IsOk ? NoContent() : Fail(result.Outcome, result.Error);
+    }
+
+    [HttpDelete("conversations/{conversationId:guid}/members/me")]
+    public async Task<IActionResult> Leave(Guid conversationId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _conversations.LeaveAsync(userId, conversationId, ct);
+        return result.IsOk ? NoContent() : Fail(result.Outcome, result.Error);
+    }
+
+    // --- Mute / hide (US5) ----------------------------------------------------
+
+    /// <summary>The viewer's own flags. Offered for every kind — on a team/party chat this is what stands in for "leave".</summary>
+    [HttpPatch("conversations/{conversationId:guid}/state")]
+    public async Task<IActionResult> PatchState(
+        Guid conversationId,
+        [FromBody] PatchConversationStateRequest request,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _conversations.PatchStateAsync(userId, conversationId, request.IsMuted, request.IsHidden, ct);
+        return result.IsOk ? NoContent() : Fail(result.Outcome, result.Error);
+    }
+
+    // --- Search (US6) ---------------------------------------------------------
+
+    /// <summary>
+    /// Search messages and people. A short or missing term returns an empty result rather than a 400 —
+    /// the search box calls this on every keystroke, and flashing an error at one character typed would
+    /// be its own bug.
+    /// </summary>
+    [HttpGet("search")]
+    public async Task<ActionResult<ChatSearchResultDto>> Search(
+        [FromQuery] string? q,
+        [FromQuery] PaginationRequest pagination,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(await _search.SearchAsync(userId, q ?? string.Empty, pagination, ct));
+    }
+
+    // --- Blocks (US5) ---------------------------------------------------------
+
+    [HttpGet("blocks")]
+    public async Task<ActionResult<PagedResult<BlockedUserDto>>> Blocks(
+        [FromQuery] PaginationRequest pagination,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(await _blocks.ListAsync(userId, pagination, ct));
+    }
+
+    [HttpPost("blocks")]
+    public async Task<IActionResult> Block([FromBody] BlockUserRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _blocks.BlockAsync(userId, request.UserId, ct);
+        return result.IsOk ? NoContent() : Fail(result.Outcome, result.Error);
+    }
+
+    [HttpDelete("blocks/{targetUserId:guid}")]
+    public async Task<IActionResult> Unblock(Guid targetUserId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _blocks.UnblockAsync(userId, targetUserId, ct);
         return result.IsOk ? NoContent() : Fail(result.Outcome, result.Error);
     }
 

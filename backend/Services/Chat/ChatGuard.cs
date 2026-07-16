@@ -50,6 +50,36 @@ public sealed class ChatGuard
     public ChatGuard(AppDbContext db) => _db = db;
 
     /// <summary>
+    /// <b>The membership rule, as a composable predicate.</b> "Is <paramref name="userId"/> a member of
+    /// this conversation?"
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This exists so the rule has exactly one home. <see cref="ResolveAsync"/> answers it for a single
+    /// conversation; the inbox and search need the same rule as a <c>Where</c> clause. An earlier
+    /// version wrote it out separately in each place and the copies drifted — an archived chat listed in
+    /// the inbox but 404'd when opened, because only one copy had learned about R3a. One expression,
+    /// three call sites, no drift.
+    /// </para>
+    /// <para>
+    /// Order matters: archived is checked first, because archiving snapshots the roster into participant
+    /// rows and nulls the team/party link (data-model R3a), so the roster branches would find nothing.
+    /// </para>
+    /// </remarks>
+    public static System.Linq.Expressions.Expression<Func<Conversation, bool>> IsMemberOf(AppDbContext db, Guid userId) =>
+        c =>
+            c.State == ConversationState.Archived
+                ? c.Participants.Any(p => p.UserId == userId && p.LeftDate == null)
+            : (c.Kind == ConversationKind.Direct || c.Kind == ConversationKind.Group)
+                ? c.Participants.Any(p => p.UserId == userId && p.LeftDate == null)
+            : c.Kind == ConversationKind.Team
+                ? db.TeamMemberships.Any(m => m.TeamId == c.TeamId && m.UserId == userId)
+            : c.Kind == ConversationKind.Party
+                && db.PartyMembers.Any(pm => pm.PartyId == c.PartyId
+                    && pm.UserId == userId
+                    && pm.Status == PartyMemberStatus.In);
+
+    /// <summary>
     /// Resolve a caller's access to a conversation. Returns null when the conversation does not exist
     /// <em>or</em> the caller is not a member — the caller cannot tell which, by design.
     /// </summary>
@@ -67,8 +97,16 @@ public sealed class ChatGuard
                 // The membership predicate, evaluated in the database in the same round trip.
                 // Each kind reads its own source of truth; the roster branches are what make
                 // removal take effect immediately, with no sync step.
+                //
+                // ARCHIVED auto chats are checked FIRST, and must be: archiving snapshots the roster
+                // into participant rows and nulls TeamId/PartyId (data-model R3a), precisely because
+                // the team/party row is about to be hard-deleted. After that the roster branches below
+                // would find nothing and lock every former member out of history they are entitled to
+                // read (FR-027).
                 IsMember =
-                    (c.Kind == ConversationKind.Direct || c.Kind == ConversationKind.Group)
+                    c.State == ConversationState.Archived
+                        ? c.Participants.Any(p => p.UserId == userId && p.LeftDate == null)
+                    : (c.Kind == ConversationKind.Direct || c.Kind == ConversationKind.Group)
                         ? c.Participants.Any(p => p.UserId == userId && p.LeftDate == null)
                     : c.Kind == ConversationKind.Team
                         ? _db.TeamMemberships.Any(m => m.TeamId == c.TeamId && m.UserId == userId)
@@ -99,12 +137,23 @@ public sealed class ChatGuard
     {
         var conversation = await _db.Conversations.AsNoTracking()
             .Where(c => c.Id == conversationId)
-            .Select(c => new { c.Kind, c.TeamId, c.PartyId })
+            .Select(c => new { c.Kind, c.State, c.TeamId, c.PartyId })
             .FirstOrDefaultAsync(ct);
 
         if (conversation is null)
         {
             return Array.Empty<Guid>();
+        }
+
+        // An archived auto chat has no roster left to ask — its membership was snapshotted into
+        // participant rows before the team/party was deleted (data-model R3a). Same reason as
+        // ResolveAsync: the Kind is still Team/Party, but the link it derived from is gone.
+        if (conversation.State == ConversationState.Archived)
+        {
+            return await _db.ConversationParticipants.AsNoTracking()
+                .Where(p => p.ConversationId == conversationId && p.LeftDate == null)
+                .Select(p => p.UserId)
+                .ToListAsync(ct);
         }
 
         return conversation.Kind switch

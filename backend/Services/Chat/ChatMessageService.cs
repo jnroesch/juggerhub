@@ -19,12 +19,31 @@ public sealed class ChatMessageService : IChatMessageService
     private readonly AppDbContext _db;
     private readonly ChatGuard _guard;
     private readonly IChatRealtime _realtime;
+    private readonly ChatLinkResolver _links;
+    private readonly IReadOnlyCollection<string> _allowedHosts;
 
-    public ChatMessageService(AppDbContext db, ChatGuard guard, IChatRealtime realtime)
+    public ChatMessageService(
+        AppDbContext db,
+        ChatGuard guard,
+        IChatRealtime realtime,
+        ChatLinkResolver links,
+        IConfiguration configuration)
     {
         _db = db;
         _guard = guard;
         _realtime = realtime;
+        _links = links;
+
+        // Which hosts count as "us" for unfurl. Derived from the frontend base URL the email templates
+        // already use, so there is one source of truth for "where does JuggerHub live".
+        var frontendBase = configuration["Email:FrontendBaseUrl"];
+        var hosts = new List<string> { "localhost" };
+        if (Uri.TryCreate(frontendBase, UriKind.Absolute, out var uri))
+        {
+            hosts.Add(uri.Host);
+        }
+
+        _allowedHosts = hosts;
     }
 
     // --- Send -------------------------------------------------------------------
@@ -66,12 +85,23 @@ public sealed class ChatMessageService : IChatMessageService
             return ChatResult<MessageDto>.Fail(ChatOutcome.Forbidden, "You can't message this player.");
         }
 
+        // Parse a JuggerHub link out of the body — pattern-matching our own routes, never fetching
+        // (spec FR-042). Only the kind and target id are stored; the card itself is built per viewer
+        // at read time, which is what keeps a team-only training from leaking into a DM (FR-040).
+        var parsed = ChatLinkParser.Parse(trimmed, _allowedHosts);
+        var linkTargetId = parsed.Kind == ChatLinkKind.None
+            ? null
+            : await _links.ResolveTargetIdAsync(parsed, ct);
+
         var message = new ChatMessage
         {
             ConversationId = conversationId,
             SenderId = callerId,
             Kind = ChatMessageKind.Member,
             Body = trimmed,
+            // A link whose target does not exist stays plain text rather than a broken card.
+            LinkKind = linkTargetId is null ? ChatLinkKind.None : parsed.Kind,
+            LinkTargetId = linkTargetId,
         };
         _db.ChatMessages.Add(message);
 
@@ -240,12 +270,32 @@ public sealed class ChatMessageService : IChatMessageService
         }
 
         var subjectNames = await ResolveSubjectNamesAsync(rows, ct);
+        var cards = await ResolveCardsAsync(rows, callerId, ct);
 
         var items = rows
-            .Select(r => ToDto(r, callerId, otherLastRead, subjectNames))
+            .Select(r => ToDto(r, callerId, otherLastRead, subjectNames, cards))
             .ToList();
 
         return ChatResult<MessagePageDto>.Ok(new MessagePageDto(items, nextBefore));
+    }
+
+    /// <summary>
+    /// Build the link cards for a page, batched per kind — and resolved for <paramref name="viewerId"/>,
+    /// never for the sender (spec FR-040).
+    /// </summary>
+    private async Task<Dictionary<Guid, LinkCardDto>> ResolveCardsAsync(
+        IReadOnlyCollection<Row> rows,
+        Guid viewerId,
+        CancellationToken ct)
+    {
+        var links = rows
+            .Where(r => r.LinkKind != ChatLinkKind.None && r.LinkTargetId is not null && !r.IsDeleted)
+            .Select(r => (r.Id, r.LinkKind, r.LinkTargetId!.Value))
+            .ToList();
+
+        return links.Count == 0
+            ? new Dictionary<Guid, LinkCardDto>()
+            : await _links.ResolveManyAsync(links, viewerId, ct);
     }
 
     private async Task<MessageDto?> ProjectOneAsync(Guid messageId, Guid callerId, CancellationToken ct)
@@ -272,7 +322,8 @@ public sealed class ChatMessageService : IChatMessageService
         }
 
         var subjectNames = await ResolveSubjectNamesAsync(new[] { row }, ct);
-        return ToDto(row, callerId, null, subjectNames);
+        var cards = await ResolveCardsAsync(new[] { row }, callerId, ct);
+        return ToDto(row, callerId, null, subjectNames, cards);
     }
 
     private async Task<Dictionary<Guid, string>> ResolveSubjectNamesAsync(
@@ -299,7 +350,8 @@ public sealed class ChatMessageService : IChatMessageService
         Row r,
         Guid callerId,
         Guid? otherLastRead,
-        IReadOnlyDictionary<Guid, string> subjectNames)
+        IReadOnlyDictionary<Guid, string> subjectNames,
+        IReadOnlyDictionary<Guid, LinkCardDto> cards)
     {
         var isOwn = r.SenderId == callerId;
 
@@ -331,9 +383,10 @@ public sealed class ChatMessageService : IChatMessageService
             r.SystemSubjectUserId is { } sid
                 ? subjectNames.GetValueOrDefault(sid, ChatConversationService.PlaceholderName)
                 : null,
-            // Link cards are resolved per viewer in a later slice (US7). Until then a link simply
-            // renders as text in the body, which is the correct fallback anyway (spec FR-039).
-            null);
+            // Null ⇒ the client renders the body's link as plain text. That covers three cases the
+            // viewer cannot tell apart, by design: no link, a target they may not see (FR-040), and a
+            // target that no longer exists (FR-041).
+            cards.GetValueOrDefault(r.Id));
     }
 
     // --- Delete -----------------------------------------------------------------

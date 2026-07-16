@@ -249,8 +249,13 @@ builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingResponseService
 // from the roster on every request rather than mirrored into rows, so removal revokes access by
 // construction (see specs/019-chat/research.md §4).
 builder.Services.AddScoped<JuggerHub.Services.Chat.ChatGuard>();
+// Resolves link cards against the VIEWER's permissions at read time, never the sender's, and never
+// over the network (specs/019-chat/research.md §5).
+builder.Services.AddScoped<JuggerHub.Services.Chat.ChatLinkResolver>();
 builder.Services.AddScoped<JuggerHub.Services.Chat.IChatConversationService, JuggerHub.Services.Chat.ChatConversationService>();
 builder.Services.AddScoped<JuggerHub.Services.Chat.IChatMessageService, JuggerHub.Services.Chat.ChatMessageService>();
+builder.Services.AddScoped<JuggerHub.Services.Chat.IChatSearchService, JuggerHub.Services.Chat.ChatSearchService>();
+builder.Services.AddScoped<JuggerHub.Services.Chat.IChatBlockService, JuggerHub.Services.Chat.ChatBlockService>();
 // The realtime seam is a singleton over IHubContext, mirroring feature 010's registration.
 builder.Services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime, JuggerHub.Services.Chat.Realtime.SignalRChatRealtime>();
 
