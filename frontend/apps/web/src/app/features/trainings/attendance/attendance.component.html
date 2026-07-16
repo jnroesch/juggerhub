@@ -22,7 +22,9 @@
           @if (e.isGuest) {
             <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">Guest</span>
             <button type="button" (click)="removeGuest(e)" [disabled]="busy()" aria-label="Remove guest"
-              class="rounded-md border border-danger-border px-sm py-2xs text-caption font-medium text-danger-fg hover:bg-danger-bg">✕</button>
+              class="grid h-8 w-8 place-items-center rounded-md border border-danger-border text-danger-fg hover:bg-danger-bg">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            </button>
           }
         </li>
       }

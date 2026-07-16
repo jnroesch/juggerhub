@@ -46,8 +46,8 @@ attendance, your-trainings-card, alerts rows). DESIGN.md wins on any conflict.
 
 ## Iconography
 
-- [ ] CHK023 Icons — the RSVP controls use text glyphs (✓ / ? / ✕) and arrows rather than Lucide line icons. **Deviation** — follow-up: swap to Lucide check/help/x icons for full DESIGN.md compliance
-- [~] CHK024 No emoji as UI icons — the ✓/✕/? glyphs are typographic symbols, not emoji, but should become Lucide icons (see CHK023)
+- [x] CHK023 Icons — the RSVP controls (Going/Maybe/Can't) and the remove-guest control use inline Lucide line icons (`check`, `circle-help`, `x`) at 16–20px, `stroke="currentColor"`, matching the app's inline-SVG convention
+- [x] CHK024 No emoji as UI icons
 
 ## Accessibility
 
@@ -69,5 +69,5 @@ attendance, your-trainings-card, alerts rows). DESIGN.md wins on any conflict.
 
 ## Notes
 
-- Known follow-ups (non-blocking): CHK023/CHK024 — replace the ✓/?/✕ RSVP glyphs with Lucide line icons; CHK007 — mono face for times/counts; CHK021 — press-state nudge on buttons.
+- Known follow-ups (non-blocking): CHK007 — mono face for times/counts; CHK021 — press-state nudge on buttons.
 - `.html` / `.css` / `.ts` kept separate per component (constitution VI).

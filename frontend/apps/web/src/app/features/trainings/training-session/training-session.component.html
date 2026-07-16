@@ -50,15 +50,24 @@
           <button type="button" (click)="respond('Going')" [disabled]="busy()"
             class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium"
             [class.border-success-border]="s.myAnswer === 'Going'" [class.bg-success-bg]="s.myAnswer === 'Going'"
-            [class.text-success-fg]="s.myAnswer === 'Going'" [class.border-border-strong]="s.myAnswer !== 'Going'">✓ Going</button>
+            [class.text-success-fg]="s.myAnswer === 'Going'" [class.border-border-strong]="s.myAnswer !== 'Going'">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span>Going</span>
+          </button>
           <button type="button" (click)="respond('Maybe')" [disabled]="busy()"
             class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium"
             [class.border-warning-border]="s.myAnswer === 'Maybe'" [class.bg-warning-bg]="s.myAnswer === 'Maybe'"
-            [class.border-border-strong]="s.myAnswer !== 'Maybe'">? Maybe</button>
+            [class.border-border-strong]="s.myAnswer !== 'Maybe'">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            <span>Maybe</span>
+          </button>
           <button type="button" (click)="respond('Cant')" [disabled]="busy()"
             class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium"
             [class.border-danger-border]="s.myAnswer === 'Cant'" [class.bg-danger-bg]="s.myAnswer === 'Cant'"
-            [class.text-danger-fg]="s.myAnswer === 'Cant'" [class.border-border-strong]="s.myAnswer !== 'Cant'">✕ Can't</button>
+            [class.text-danger-fg]="s.myAnswer === 'Cant'" [class.border-border-strong]="s.myAnswer !== 'Cant'">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <span>Can't</span>
+          </button>
         </div>
         <p class="mt-sm text-caption text-muted">
           {{ s.viewerIsGuest ? 'Same three answers as members — no approval needed.' : 'Tap one — change it whenever. No limit; everyone welcome.' }}
