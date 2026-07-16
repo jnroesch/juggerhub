@@ -1,0 +1,226 @@
+<div class="flex h-full min-h-0 flex-col" data-testid="chat-conversation">
+  <!-- Header -->
+  <header class="flex items-center gap-sm border-b border-border-muted bg-surface-card px-md py-sm">
+    <a
+      routerLink="/chat"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden"
+      aria-label="Back to messages"
+    >
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+    </a>
+
+    <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+
+    <span class="min-w-0 flex-1">
+      <span class="flex items-center gap-xs">
+        <h1 class="truncate text-body-lg font-semibold text-heading">{{ detail()?.name ?? '…' }}</h1>
+        @if (detail()?.kind === 'Team') {
+          <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-muted">Team</span>
+        } @else if (detail()?.kind === 'Party') {
+          <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-muted">Party</span>
+        }
+      </span>
+
+      <!-- Typing beats the member count, as the wireframe shows -->
+      @if (typingHere().length > 0) {
+        <span class="block truncate text-body-sm text-link" data-testid="typing-indicator">{{ typingLabel() }}</span>
+      } @else if (detail(); as d) {
+        <span class="block text-body-sm text-muted">
+          @if (d.kind === 'Direct') { Direct message } @else { <span class="font-mono">{{ d.memberCount }}</span> members }
+        </span>
+      }
+    </span>
+
+    <a
+      [routerLink]="['/chat', conversationId(), 'details']"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      aria-label="Chat details"
+      data-testid="open-details"
+    >
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" />
+      </svg>
+    </a>
+  </header>
+
+  <!-- Thread -->
+  <div #scroller (scroll)="onScroll()" class="relative min-h-0 flex-1 overflow-y-auto px-md py-md">
+    @if (loading()) {
+      <div class="space-y-md" aria-hidden="true">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="h-12 animate-pulse rounded-lg bg-surface-sunken"></div>
+        }
+      </div>
+    }
+
+    @if (failed()) {
+      <p class="rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
+        We couldn't load this chat.
+      </p>
+    }
+
+    @if (hasMoreHistory() && !loading()) {
+      <p class="pb-md text-center text-body-sm text-subtle">Loading earlier messages…</p>
+    }
+
+    <ul class="space-y-sm" data-testid="message-list">
+      @for (m of messages(); track m.id) {
+        <!-- "New messages" divider: the reader was below this point when it arrived (FR-021) -->
+        @if (dividerBeforeId() === m.id) {
+          <li class="flex items-center gap-sm py-xs" data-testid="new-messages-divider">
+            <span class="h-px flex-1 bg-danger-border"></span>
+            <span class="text-eyebrow uppercase tracking-eyebrow text-danger-fg">New messages</span>
+            <span class="h-px flex-1 bg-danger-border"></span>
+          </li>
+        }
+
+        @if (m.kind === 'System') {
+          <!-- Quiet, centered, no bubble: clearly not a member's message -->
+          <li class="py-xs text-center" data-testid="system-line">
+            <span class="rounded-pill bg-surface-sunken px-sm py-xs text-body-sm italic text-muted">
+              {{ systemText(m) }}
+            </span>
+          </li>
+        } @else {
+          <li class="flex flex-col" [class.items-end]="m.isOwn" [class.items-start]="!m.isOwn">
+            @if (!m.isOwn && showsSenderNames() && m.senderName) {
+              <span class="mb-xs px-xs text-body-sm font-medium text-muted">{{ m.senderName }}</span>
+            }
+
+            <div class="group flex max-w-[85%] items-end gap-xs" [class.flex-row-reverse]="m.isOwn">
+              <!--
+                Own bubbles: coral. Theirs: sand surface-muted.
+                (The wireframe drew blue; DESIGN.md wins — research §12.)
+
+                brand-ACTIVE (coral-6), not brand-primary (coral-4): white on coral-4 measures
+                3.14:1, and DESIGN.md requires ≥4.5:1 for body text. A button label can arguably
+                live at 3.14:1; a message bubble is a paragraph someone reads, so it cannot.
+                coral-6 measures 5.71:1 and keeps the coral identity — same token family, no new
+                color. See research §13.
+              -->
+              <div
+                class="rounded-md px-sm py-xs text-body-md"
+                [class]="m.isOwn ? 'bg-brand-active text-on-accent' : 'bg-surface-muted text-body'"
+                [attr.data-testid]="m.isOwn ? 'own-bubble' : 'their-bubble'"
+              >
+                @if (m.isDeleted) {
+                  <span class="italic opacity-80">Message deleted</span>
+                } @else {
+                  <!-- Bound as TEXT, never HTML: user content is never markup (FR-014) -->
+                  <span class="whitespace-pre-wrap break-words">{{ m.body }}</span>
+                }
+              </div>
+
+              <!-- Delete is offered on your own messages only (FR-014a) -->
+              @if (m.isOwn && !m.isDeleted) {
+                <button
+                  type="button"
+                  (click)="deleteMessage(m.id)"
+                  class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-subtle opacity-0 transition-opacity duration-fast hover:text-danger-fg focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus group-hover:opacity-100"
+                  [attr.aria-label]="'Delete your message'"
+                  data-testid="delete-message"
+                >
+                  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
+                  </svg>
+                </button>
+              }
+            </div>
+
+            <!-- Time + receipt. The receipt is TEXT, never colour alone (CHK026/CHK037). -->
+            <span class="mt-xs flex items-center gap-xs px-xs font-mono text-caption text-subtle">
+              <span>{{ messageTime(m.sentAt) }}</span>
+              @if (m.readState) {
+                <span aria-live="polite">· {{ m.readState }}</span>
+              }
+            </span>
+
+            <!-- Link card: view-only, no actions (FR-038) -->
+            @if (m.linkCard; as card) {
+              <a
+                [routerLink]="card.href"
+                class="mt-xs block max-w-[85%] rounded-lg border border-border-muted bg-surface-card p-sm shadow-sm transition-all duration-fast hover:-translate-y-px hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                data-testid="link-card"
+              >
+                <span class="text-eyebrow uppercase tracking-eyebrow text-subtle">{{ card.kind }}</span>
+                <span class="mt-xs block text-body-md font-semibold text-heading">{{ card.title }}</span>
+                @if (card.subtitle) {
+                  <span class="block text-body-sm text-muted">{{ card.subtitle }}</span>
+                }
+              </a>
+            }
+          </li>
+        }
+      }
+
+      @if (typingHere().length > 0) {
+        <li class="flex items-start" aria-hidden="true">
+          <span class="rounded-md bg-surface-muted px-sm py-xs text-body-md text-muted">•••</span>
+        </li>
+      }
+    </ul>
+  </div>
+
+  <!-- Jump to latest: appears only when the reader is away from the bottom (FR-021) -->
+  @if (newWhileAway() > 0) {
+    <div class="pointer-events-none relative">
+      <button
+        type="button"
+        (click)="jumpToLatest()"
+        class="pointer-events-auto absolute -top-12 left-1/2 inline-flex min-h-11 -translate-x-1/2 items-center gap-xs rounded-pill bg-surface-inverse px-md text-body-sm font-medium text-on-inverse shadow-md transition-transform duration-fast hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        data-testid="jump-pill"
+      >
+        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 5v14M19 12l-7 7-7-7" />
+        </svg>
+        <span class="font-mono">{{ newWhileAway() }}</span> new
+      </button>
+    </div>
+  }
+
+  <!-- Composer -->
+  <footer class="border-t border-border-muted bg-surface-card px-md py-sm">
+    @if (isArchived()) {
+      <p class="py-xs text-center text-body-sm text-muted" data-testid="archived-notice">
+        This chat is closed. You can still read it.
+      </p>
+    } @else {
+      @if (sendError(); as err) {
+        <p class="mb-xs rounded-md border border-danger-border bg-danger-bg px-sm py-xs text-body-sm text-danger-fg" role="alert">
+          {{ err }}
+        </p>
+      }
+
+      <form (ngSubmit)="send()" class="flex items-end gap-sm">
+        <label class="min-w-0 flex-1">
+          <span class="sr-only">Message</span>
+          <input
+            [ngModel]="draft()"
+            (ngModelChange)="onDraftChange($event)"
+            name="draft"
+            type="text"
+            [placeholder]="'Message ' + (detail()?.name ?? '') + '…'"
+            maxlength="2000"
+            class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
+            data-testid="composer"
+          />
+        </label>
+
+        <!-- The one coral CTA in this view (CHK002/CHK034) -->
+        <button
+          type="submit"
+          [disabled]="!canSend()"
+          class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-brand text-on-accent shadow-sm transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          aria-label="Send message"
+          data-testid="send"
+        >
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 19V5M5 12l7-7 7 7" />
+          </svg>
+        </button>
+      </form>
+    }
+  </footer>
+</div>

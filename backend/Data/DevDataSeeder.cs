@@ -82,6 +82,7 @@ public static class DevDataSeeder
         await SeedEventsAsync(db, ct);
         await SeedRecognitionsAsync(db, ct);
         await SeedTrainingsAsync(db, ct);
+        await SeedChatAsync(db, ct);
     }
 
     /// <summary>
@@ -150,6 +151,104 @@ public static class DevDataSeeder
     /// sessions + mixed responses), a one-off, and one public session carrying a guest response. Idempotent:
     /// skips once any training exists for the team.
     /// </summary>
+    /// <summary>
+    /// Seeds chat (feature 019) so the quickstart's scenarios have something to open: a DM between two
+    /// Rheinfeuer players and a named group.
+    /// </summary>
+    /// <remarks>
+    /// The team chat is deliberately <b>not</b> seeded — it materialises on first access, and letting
+    /// it appear that way locally exercises the same ensure-on-access path that gives a pre-existing
+    /// team its chat in production (FR-024). Seeding it would hide the interesting bit.
+    /// </remarks>
+    private static async Task SeedChatAsync(AppDbContext db, CancellationToken ct)
+    {
+        if (await db.Conversations.AnyAsync(c => c.Kind == ConversationKind.Direct, ct))
+        {
+            return; // Idempotent, like every other seeder here.
+        }
+
+        var team = await db.Teams.AsNoTracking().Where(t => t.Slug == "rheinfeuer")
+            .Select(t => new { t.Id }).FirstOrDefaultAsync(ct);
+        if (team is null)
+        {
+            return;
+        }
+
+        var members = await db.TeamMemberships.AsNoTracking()
+            .Where(m => m.TeamId == team.Id)
+            .OrderByDescending(m => m.Role)
+            .Select(m => m.UserId)
+            .Take(3)
+            .ToListAsync(ct);
+
+        if (members.Count < 2)
+        {
+            return;
+        }
+
+        var ada = members[0];
+        var ben = members[1];
+
+        // A direct conversation, with the wireframe's own exchange.
+        var dm = new Conversation
+        {
+            Kind = ConversationKind.Direct,
+            DirectPairKey = Conversation.BuildDirectPairKey(ada, ben),
+            State = ConversationState.Active,
+            LastMessageDate = DateTime.UtcNow,
+        };
+        db.Conversations.Add(dm);
+        AddParticipants(db, dm.Id, ada, ben);
+
+        AddMessage(db, dm.Id, ben, "you coming to training tonight?");
+        AddMessage(db, dm.Id, ada, "yeah! leaving in 5");
+        AddMessage(db, dm.Id, ben, "grabbing the chain, omw");
+
+        // A named group, if there is a third member to put in it.
+        if (members.Count >= 3)
+        {
+            var group = new Conversation
+            {
+                Kind = ConversationKind.Group,
+                Name = "Weekend crew",
+                State = ConversationState.Active,
+                LastMessageDate = DateTime.UtcNow,
+            };
+            db.Conversations.Add(group);
+            AddParticipants(db, group.Id, ada, ben, members[2]);
+
+            AddMessage(db, group.Id, members[2], "who's bringing pompfen sat?");
+            AddMessage(db, group.Id, ben, "i've got 4 spare");
+            AddMessage(db, group.Id, ada, "i'll bring the chain + a bag of Q-tips");
+        }
+
+        await db.SaveChangesAsync(ct);
+    }
+
+    /// <remarks>DbSet.Add, not the nav collection — the client-GUID nav-insert gotcha.</remarks>
+    private static void AddParticipants(AppDbContext db, Guid conversationId, params Guid[] userIds)
+    {
+        var now = DateTime.UtcNow;
+        foreach (var userId in userIds)
+        {
+            db.ConversationParticipants.Add(new ConversationParticipant
+            {
+                ConversationId = conversationId,
+                UserId = userId,
+                JoinedDate = now,
+            });
+        }
+    }
+
+    private static void AddMessage(AppDbContext db, Guid conversationId, Guid senderId, string body) =>
+        db.ChatMessages.Add(new ChatMessage
+        {
+            ConversationId = conversationId,
+            SenderId = senderId,
+            Kind = ChatMessageKind.Member,
+            Body = body,
+        });
+
     private static async Task SeedTrainingsAsync(AppDbContext db, CancellationToken ct)
     {
         var team = await db.Teams.AsNoTracking().Where(t => t.Slug == "rheinfeuer")

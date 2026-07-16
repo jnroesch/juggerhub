@@ -301,6 +301,40 @@ identity. (c) *A third-party distributed rate-limiting package* — a real optio
 a client we already reference is smaller than a new dependency. (d) *Accept the N× drift and document it*
 — rejected: the spec would then state a limit the system does not enforce.
 
+## 13. Own-bubble contrast — DESIGN.md contradicts itself (found by measuring, 2026-07-16)
+
+**Decision**: own message bubbles use **`brand-active` (coral-6 `#B93A17`)**, not `brand-primary`
+(coral-4 `#F5623A`).
+
+**Why**: measured in a real browser, white on coral-4 is **3.14:1**. DESIGN.md's own Do's and Don'ts
+say *"Do maintain WCAG AA contrast (≥ 4.5:1 for body text)"*. A message bubble is body text — a
+paragraph someone reads, not a two-word label — so 3.14:1 is not defensible. Measured across the ramp:
+
+| Token | Hex | White text | AA (4.5:1) |
+|---|---|---|---|
+| `brand-primary` coral-4 | `#F5623A` | **3.14:1** | ✗ |
+| `brand-primary-hover` coral-5 | `#DB4A22` | 4.19:1 | ✗ |
+| **`brand-active` coral-6** | `#B93A17` | **5.71:1** | ✓ |
+
+coral-6 is an **existing token in the same family** — no new color, no DESIGN.md amendment, and the
+bubble still reads unmistakably coral. It is the smallest change that satisfies both of DESIGN.md's
+own rules at once.
+
+**The wider conflict, reported not resolved**: DESIGN.md **contradicts itself**. Its component spec
+says the primary button is *"coral `brand-primary` background, white label"* — which is the same
+3.14:1 that its accessibility rule forbids. So **every primary button in the app is at 3.14:1**, not
+just chat's bubbles. That is a pre-existing, app-wide issue and **not this feature's to fix
+unilaterally**: changing the primary button color is a brand decision affecting every screen. Raised
+for the product owner. Chat only fixes its own surface, where the failure is worst because the text is
+long-form.
+
+*(Short white-on-coral labels may qualify under AA's large-text allowance at ≥18.66px bold / ≥24px;
+`body-md` at 600 weight does not, so buttons are genuinely non-conforming rather than exempt.)*
+
+**How it was caught**: not by review — by computing the contrast ratio from the *rendered* computed
+styles in a headless browser. It is invisible to tests, lint and the build, and easy to wave through
+in a checklist because "we used the brand token" feels like compliance.
+
 ## 12. Design conflicts with the wireframe (resolved toward DESIGN.md)
 
 Per constitution Quality Gate 7 and CLAUDE.md, conflicts are **reported, not silently resolved**:

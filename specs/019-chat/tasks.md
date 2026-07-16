@@ -46,10 +46,10 @@ Mirrors the trainings (018), parties (016) and notifications (010) slices throug
 
 ### Frontend foundation
 
-- [ ] T017 [P] Add `frontend/apps/web/src/app/core/models/chat.models.ts` — TS interfaces/enums mirroring the DTOs (`ConversationKind`, `ConversationState`, `ChatMessageKind`, `ChatLinkKind`, `Conversation`, `ChatMessage`, `LinkCard`, `ChatMember`, `ChatSearchResult`).
+- [X] T017 [P] Add `frontend/apps/web/src/app/core/models/chat.models.ts` — TS interfaces/enums mirroring the DTOs (`ConversationKind`, `ConversationState`, `ChatMessageKind`, `ChatLinkKind`, `Conversation`, `ChatMessage`, `LinkCard`, `ChatMember`, `ChatSearchResult`).
 - [X] T018 Edit `frontend/apps/web/src/app/layout/nav-model.ts` — add `'chat'` to `NavId`, append `{ id: 'chat', label: 'Chat', path: '/chat' }` to `NAV_DESTINATIONS`, and handle it in `isActiveDestination` (`path.startsWith('/chat')`). Reuse the existing `badgeText()` for the "9+" cap — do **not** add a second badge convention (FR-018).
 - [X] T019 [P] Edit `frontend/apps/web/src/app/layout/nav-model.spec.ts` — cover the new destination and its active-matching.
-- [ ] T020 Edit `frontend/apps/web/src/app/app.routes.ts` — add `/chat` (inbox) and `/chat/:conversationId` (open conversation, addressable per FR-046) under `authGuard`, lazy-loaded to the chat feature.
+- [X] T020 Edit `frontend/apps/web/src/app/app.routes.ts` — add `/chat` (inbox) and `/chat/:conversationId` (open conversation, addressable per FR-046) under `authGuard`, lazy-loaded to the chat feature.
 
 **Checkpoint**: schema + guard + DI + nav exist. No user-visible behaviour yet.
 
@@ -84,12 +84,12 @@ Mirrors the trainings (018), parties (016) and notifications (010) slices throug
 
 ### Frontend
 
-- [ ] T035 [US1] Add `frontend/apps/web/src/app/core/services/chat.service.ts` — signal-based client mirroring `notification.service.ts`: `unreadCount`, `conversations`, `messages` signals; REST for inbox/unread/start/detail/members/messages/send/read/delete; `withCredentials`. **REST-only in this task** — the socket lands in US2.
-- [ ] T036 [P] [US1] Add `frontend/apps/web/src/app/features/chat/chat-inbox/` (`.ts`/`.html`/`.css` separate — constitution VI) — rows with avatar, name, preview, mono time, unread badge; warm empty state per wireframe 9a ("No messages yet" + start action + the team-chat hint); `+` button.
-- [ ] T037 [P] [US1] Add `frontend/apps/web/src/app/features/chat/chat-conversation/` — thread with **coral own-bubbles** / `surface-muted` others (DESIGN.md wins over the wireframe's blue — research §12), mono times, Sent/Read receipt **as text not bare color** (CHK037), composer with send, back-scroll paging, own-message delete control only.
-- [ ] T038 [P] [US1] Add `frontend/apps/web/src/app/features/chat/chat-new/` — the new-chat sheet: pick one person ⇒ DM (no name field); teammates listed first, search reaches **any** player (FR-049).
-- [ ] T039 [US1] Wire the Chat nav badge to `chatService.unreadCount` in `top-nav` + `bottom-nav`, reusing `badgeText()`.
-- [ ] T040 [P] [US1] Add `frontend/apps/web/src/app/core/services/chat.service.spec.ts` — inbox load, unread signal, send, optimistic-vs-server reconciliation, delete. Angular 21 zoneless — **no `fakeAsync`** (per the 014 convention).
+- [X] T035 [US1] Add `frontend/apps/web/src/app/core/services/chat.service.ts` — signal-based client mirroring `notification.service.ts`: `unreadCount`, `conversations`, `messages` signals; REST for inbox/unread/start/detail/members/messages/send/read/delete; `withCredentials`. **REST-only in this task** — the socket lands in US2.
+- [X] T036 [P] [US1] Add `frontend/apps/web/src/app/features/chat/chat-inbox/` (`.ts`/`.html`/`.css` separate — constitution VI) — rows with avatar, name, preview, mono time, unread badge; warm empty state per wireframe 9a ("No messages yet" + start action + the team-chat hint); `+` button.
+- [X] T037 [P] [US1] Add `frontend/apps/web/src/app/features/chat/chat-conversation/` — thread with **coral own-bubbles** / `surface-muted` others (DESIGN.md wins over the wireframe's blue — research §12), mono times, Sent/Read receipt **as text not bare color** (CHK037), composer with send, back-scroll paging, own-message delete control only.
+- [X] T038 [P] [US1] Add `frontend/apps/web/src/app/features/chat/chat-new/` — the new-chat sheet: pick one person ⇒ DM (no name field); teammates listed first, search reaches **any** player (FR-049).
+- [X] T039 [US1] Wire the Chat nav badge to `chatService.unreadCount` in `top-nav` + `bottom-nav`, reusing `badgeText()`.
+- [X] T040 [P] [US1] Add `frontend/apps/web/src/app/core/services/chat.service.spec.ts` — inbox load, unread signal, send, optimistic-vs-server reconciliation, delete. Angular 21 zoneless — **no `fakeAsync`** (per the 014 convention).
 
 **Checkpoint**: the 1:1 loop works end-to-end on refresh. This is the MVP.
 
@@ -107,7 +107,7 @@ here, before realtime is built on top. See research **§10** and **§11**.
 - [X] T096d Add `backend/Security/RedisFixedWindowRateLimiter.cs` — a `RateLimiter` over `INCR`/`EXPIRE` (atomic fixed window; no Lua, no third-party package). **Fails closed**: if Redis is unreachable it rejects, because a limiter that fails open turns a cache outage into an open mass-DM window (research §11).
 - [X] T096e Point the three `chat-*` policies at the Redis limiter in `RateLimitPolicies`, keeping the same names so `[EnableRateLimiting]` call sites are untouched. Without this, N replicas = N × every limit, and FR-049a's "enforced server-side" is not true.
 - [X] T096f [P] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatRateLimitTests.cs` — a Redis Testcontainer: the limit holds **across limiter instances sharing one Redis** (the multi-replica case, which an in-memory limiter would pass while being wrong in production); limits partition per user; the window releases; Redis down ⇒ **rejects**, never allows.
-- [ ] T097 **Handover to `015-hosting`**: the ingress needs cookie affinity (`nginx.ingress.kubernetes.io/affinity: "cookie"`). A backplane fixes fan-out, **not** the negotiate handshake — the negotiate response carries a token bound to the pod that answered it, so an unstuck follow-up request fails. Do **not** "fix" this with `skipNegotiation`: that forfeits SignalR's transport fallback on restrictive networks. Raise on the 015 branch; the ingress is theirs.
+- [X] T097 **Handover to `015-hosting`**: the ingress needs cookie affinity (`nginx.ingress.kubernetes.io/affinity: "cookie"`). A backplane fixes fan-out, **not** the negotiate handshake — the negotiate response carries a token bound to the pod that answered it, so an unstuck follow-up request fails. Do **not** "fix" this with `skipNegotiation`: that forfeits SignalR's transport fallback on restrictive networks. Raise on the 015 branch; the ingress is theirs.
 
 ---
 
@@ -132,10 +132,10 @@ here, before realtime is built on top. See research **§10** and **§11**.
 
 ### Frontend
 
-- [ ] T049 [US2] Extend `chat.service.ts` — a `HubConnection` to `/hubs/chat` following `notification.service.ts` exactly: connect on auth, tear down on sign-out, **re-seed over REST on connect/reconnect** so a dropped socket self-heals; handle all five events into the signals; debounced typing POST (≤ 1 per 3 s) with a client-side expiry timer so a dead typist's indicator always clears.
-- [ ] T050 [US2] Extend `chat-conversation` — live insert; **"new messages" divider + jump-to-latest pill with a count when scrolled away, without moving the scroll position** (FR-021); pin-to-bottom when already at the latest; tapping the pill jumps + marks read; typing bubble (`•••`).
-- [ ] T051 [P] [US2] Extend `chat-inbox` — live row updates (preview/time/badge) and the per-row typing indicator ("Lena is typing…", named in group conversations).
-- [ ] T052 [P] [US2] Extend `chat.service.spec.ts` — hub event handling, reconnect re-seed, typing debounce + expiry.
+- [X] T049 [US2] Extend `chat.service.ts` — a `HubConnection` to `/hubs/chat` following `notification.service.ts` exactly: connect on auth, tear down on sign-out, **re-seed over REST on connect/reconnect** so a dropped socket self-heals; handle all five events into the signals; debounced typing POST (≤ 1 per 3 s) with a client-side expiry timer so a dead typist's indicator always clears.
+- [X] T050 [US2] Extend `chat-conversation` — live insert; **"new messages" divider + jump-to-latest pill with a count when scrolled away, without moving the scroll position** (FR-021); pin-to-bottom when already at the latest; tapping the pill jumps + marks read; typing bubble (`•••`).
+- [X] T051 [P] [US2] Extend `chat-inbox` — live row updates (preview/time/badge) and the per-row typing indicator ("Lena is typing…", named in group conversations).
+- [X] T052 [P] [US2] Extend `chat.service.spec.ts` — hub event handling, reconnect re-seed, typing debounce + expiry.
 
 **Checkpoint**: chat is live. US1 + US2 = a genuinely usable chat.
 
@@ -152,8 +152,8 @@ here, before realtime is built on top. See research **§10** and **§11**.
 - [X] T056 [US3] Add a `WriteSystemMessageAsync` helper on `ChatMessageService` — `Kind = System`, **`SenderId = null`** (data-model R13), `SystemEvent` + `SystemSubjectUserId`; the **client** renders the wording so it stays translatable and consistent.
 - [X] T057 [US3] Extend `ChatConversationsController` — `POST /conversations/{id}/members`, `DELETE /conversations/{id}/members/me`.
 - [X] T058 [P] [US3] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatGroupTests.cs` — 1 id ⇒ Direct / ≥2 ⇒ Group; blank group name rejected; cap enforced at 51; **duplicate add is a no-op** (one member, one system line); leave keeps the group alive for the rest **including when the creator leaves**; a one-member group is still usable (US3 #8); add/leave rejected on Team/Party/Direct.
-- [ ] T059 [P] [US3] Extend `chat-new` — Group/One-person segmented control, name field appearing at ≥2 selections, selected chips, teammates list (wireframe 9e).
-- [ ] T060 [P] [US3] Add `frontend/apps/web/src/app/features/chat/chat-details/` — members with "you" marked, `+ Add`, Leave (groups only), shared items; **quiet system-line rendering** in the thread (muted, centered, no bubble — CHK038); sender labels on others' group messages.
+- [X] T059 [P] [US3] Extend `chat-new` — Group/One-person segmented control, name field appearing at ≥2 selections, selected chips, teammates list (wireframe 9e).
+- [X] T060 [P] [US3] Add `frontend/apps/web/src/app/features/chat/chat-details/` — members with "you" marked, `+ Add`, Leave (groups only), shared items; **quiet system-line rendering** in the thread (muted, centered, no bubble — CHK038); sender labels on others' group messages.
 
 **Checkpoint**: manual groups work.
 
@@ -172,8 +172,8 @@ here, before realtime is built on top. See research **§10** and **§11**.
 - [X] T065a [US4] Add coverage to `ChatArchiveTests.cs` for R3a specifically: after a disband, a **former party member can still read the history** (the snapshot worked) and a **non-member still cannot** (404); the party row is genuinely gone (the `Restrict` FK did not block the disband); and a team delete behaves the same. This is the test that would have caught the flaw in the original flag-only design.
 - [X] T066 [P] [US4] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatTeamPartyTests.cs` — **the headline security test**: joining a team grants chat access with the full roster; **leaving/removal revokes it — a direct `GET` returns 404** (FR-025, SC-004); rejoining restores access + history; a party chat includes a `ViaMarket` guest; **leave/add on a Team/Party chat ⇒ 400** (FR-026); ensure-on-access materialises the chat for a **pre-existing** team (FR-024); a one-member team chat is usable.
 - [X] T067 [P] [US4] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatArchiveTests.cs` — disbanding a party archives its chat: reads succeed, `POST …/messages` ⇒ 409, typing ⇒ 409, no realtime emitted; archive is **one-way**.
-- [ ] T068 [P] [US4] Extend `chat-inbox` — TEAM/PARTY eyebrow-styled pill tags (CHK032); 2×2 avatar cluster for groups, round for DMs; archived rows marked and their composer hidden in `chat-conversation`.
-- [ ] T069 [P] [US4] Extend `chat-details` — **no Leave control** for Team/Party; mute + hide offered in its place (FR-026, US4 #4).
+- [X] T068 [P] [US4] Extend `chat-inbox` — TEAM/PARTY eyebrow-styled pill tags (CHK032); 2×2 avatar cluster for groups, round for DMs; archived rows marked and their composer hidden in `chat-conversation`.
+- [X] T069 [P] [US4] Extend `chat-details` — **no Leave control** for Team/Party; mute + hide offered in its place (FR-026, US4 #4).
 
 **Checkpoint**: all four conversation kinds work.
 
@@ -191,7 +191,7 @@ here, before realtime is built on top. See research **§10** and **§11**.
 - [X] T074 [P] [US5] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatBlockTests.cs` — **SC-005, driving the API directly, not the UI**: a blocked sender's `POST …/messages` ⇒ 403 and nothing is delivered; a fresh `POST /conversations` to the blocker ⇒ 403 (FR-049b); **both users keep participating in a shared group normally** (FR-032); the blocker's inbox hides the DM; unblock restores messaging **with the prior history intact**; blocking is idempotent; self-block ⇒ 400; a blocked player is absent from people search (FR-033).
 - [X] T075 [P] [US5] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatMuteHideTests.cs` — muted conversations are **excluded from the nav total but still update their row** (FR-028); hidden leave the inbox (FR-029); both work on a Team chat (the leave substitute).
 - [X] T076 [P] [US5] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatRateLimitTests.cs` — exceeding `chat-start` (10/min) and `chat-send` (30/min) returns **429 when driving the API directly** (FR-049a, SC-012); limits partition per user, so one user's limit never affects another's.
-- [ ] T077 [P] [US5] Extend `chat-details` — mute/hide toggles for every kind; Block/unblock on DMs styled `danger-fg` (not coral — CHK034), with a confirm step.
+- [X] T077 [P] [US5] Extend `chat-details` — mute/hide toggles for every kind; Block/unblock on DMs styled `danger-fg` (not coral — CHK034), with a confirm step.
 
 **Checkpoint**: the feature is safe to expose.
 
@@ -205,7 +205,7 @@ here, before realtime is built on top. See research **§10** and **§11**.
 - [X] T078 [US6] Add `backend/Services/Chat/ChatSearchService.cs` — `SearchAsync(callerId, q, pagination)`: messages **scoped to the caller's conversations in the query itself** via the `ChatGuard` predicate (never post-filtered — FR-035), `ILike` + `Unaccent` per the existing convention (research §6), excluding deleted messages (FR-050c); people via the existing profile search shape, excluding blocked (FR-033) and the caller; both groups **paginated** (FR-006).
 - [X] T079 [US6] Add `GET /api/v1/chat/search` to `ChatConversationsController` (or a small `ChatSearchController`) — `q` min length 2.
 - [X] T080 [P] [US6] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatSearchTests.cs` — **SC-006, the leak test**: a term present **only** in a conversation the caller is not in returns **zero results and no count** via a direct API call; own-conversation terms are found with a snippet; deleted messages never match; blocked people are absent; results are bounded/paginated; unaccented matching works.
-- [ ] T081 [P] [US6] Extend `chat-inbox` — the search bar and the "IN YOUR MESSAGES" / "PEOPLE" grouped results per wireframe 9a; a message hit jumps to its conversation; a person hit opens/starts the DM; plain empty state on no match (not an error).
+- [X] T081 [P] [US6] Extend `chat-inbox` — the search bar and the "IN YOUR MESSAGES" / "PEOPLE" grouped results per wireframe 9a; a message hit jumps to its conversation; a person hit opens/starts the DM; plain empty state on no match (not an error).
 
 ---
 
@@ -218,7 +218,7 @@ here, before realtime is built on top. See research **§10** and **§11**.
 - [X] T083 [US7] Add `backend/Services/Chat/ChatLinkResolver.cs` — `(kind, targetId, viewerId)` → `LinkCardDto?`, **re-running the viewer's own permission check** for each kind (training visibility via `TrainingGuard`, team/event/profile via their existing rules); returns **null** ⇒ plain link when the viewer may not see it (FR-040) or the target is gone (FR-041). **Never** stores or reuses a snapshot.
 - [X] T084 [US7] Wire the parser into `ChatMessageService.SendAsync` (store `LinkKind` + `LinkTargetId` only — never the target's fields) and the resolver into `GetPageAsync`/inbox projection, batched per page to avoid an N+1.
 - [X] T085 [P] [US7] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatUnfurlTests.cs` — **SC-007, the per-viewer test**: a team-only training link in a DM renders a **card for a member and a plain link for a non-member — same message, two viewers** (FR-040); an external URL ⇒ no card and **no outbound request** (FR-039/FR-042); a deleted target degrades to a plain link with no error (FR-041); a deleted message surrenders its card (FR-050c); all four kinds parse; `<script>` in a body round-trips as **literal text** (FR-014).
-- [ ] T086 [P] [US7] Add link-card rendering to `chat-conversation` — card-spec styling, **no action buttons** (view-only — FR-038/CHK039), deep-link through to the item; bodies bound as **text, never HTML** (CHK040).
+- [X] T086 [P] [US7] Add link-card rendering to `chat-conversation` — card-spec styling, **no action buttons** (view-only — FR-038/CHK039), deep-link through to the item; bodies bound as **text, never HTML** (CHK040).
 
 ---
 
@@ -227,21 +227,21 @@ here, before realtime is built on top. See research **§10** and **§11**.
 **Goal**: rail + conversation + details side panel; identical mechanics.
 **Independent test**: at desktop width all three panes coexist and the URL tracks the open conversation; at mobile width they are pushed screens; live behaviour is identical.
 
-- [ ] T087 [US8] Add `frontend/apps/web/src/app/features/chat/chat-shell/` — responsive shell: ≥ `lg` ⇒ persistent inbox rail + conversation + optional details panel; below ⇒ separate pushed screens with back. **Layout only — no behavioural branch** (FR-045).
-- [ ] T088 [US8] Ensure `/chat/:conversationId` drives selection in both layouts, so the open conversation is linkable and survives a reload (FR-046).
-- [ ] T089 [P] [US8] Add a `chat-shell` spec asserting the breakpoint swap and that the same component instances back both layouts (so live behaviour cannot diverge — SC-009).
+- [X] T087 [US8] Add `frontend/apps/web/src/app/features/chat/chat-shell/` — responsive shell: ≥ `lg` ⇒ persistent inbox rail + conversation + optional details panel; below ⇒ separate pushed screens with back. **Layout only — no behavioural branch** (FR-045).
+- [X] T088 [US8] Ensure `/chat/:conversationId` drives selection in both layouts, so the open conversation is linkable and survives a reload (FR-046).
+- [X] T089 [P] [US8] Add a `chat-shell` spec asserting the breakpoint swap and that the same component instances back both layouts (so live behaviour cannot diverge — SC-009).
 
 ---
 
 ## Phase 11: Polish & cross-cutting
 
-- [ ] T090 Run the **UI review checklist** `specs/019-chat/checklists/ui-review.md` against the full diff — every CHK001–CHK042, recording `file:line` for any failure. **DESIGN.md wins on any conflict**; confirm CHK030 (coral own-bubbles, not the wireframe's blue) and CHK034 (one coral CTA — send; block/leave in `danger-fg`).
-- [ ] T091 [P] Accessibility pass — keyboard reach through inbox → thread → composer → details; visible coral focus rings; the typing indicator and unread badge announced to screen readers; receipts conveyed by **text, not color alone** (CHK026/CHK037).
-- [ ] T092 [P] Add chat seed data to `backend/Data/DevDataSeeder.cs` — a DM, a named group, the Rheinfeuer team chat with history, and a party chat, matching the quickstart's prerequisites (Ada / Ben / **Zoe with no shared context**, for the open-reach and per-viewer-unfurl scenarios).
-- [ ] T093 Walk **every** scenario in [quickstart.md](./quickstart.md) (A–I) against the running stack, including the direct-API security checks in E, F and I that deliberately bypass the UI.
-- [ ] T094 Verification: `dotnet test` (backend), `npx nx test web`, `npx nx lint web`, `npx nx build web` — all green, no skips.
-- [ ] T095 Confirm no unbounded list survives (SC-010): grep the chat services for any query returning a collection without `Take`/pagination — inbox, members, messages, search, blocks.
-- [ ] T096 Confirm the **cookie-affinity handover (T097)** is called out in the PR description so the `015-hosting` owner cannot miss it — a backplane fixes fan-out but not the negotiate handshake, and the ingress is theirs, not ours.
+- [X] T090 Run the **UI review checklist** `specs/019-chat/checklists/ui-review.md` against the full diff — every CHK001–CHK042, recording `file:line` for any failure. **DESIGN.md wins on any conflict**; confirm CHK030 (coral own-bubbles, not the wireframe's blue) and CHK034 (one coral CTA — send; block/leave in `danger-fg`).
+- [X] T091 [P] Accessibility pass — keyboard reach through inbox → thread → composer → details; visible coral focus rings; the typing indicator and unread badge announced to screen readers; receipts conveyed by **text, not color alone** (CHK026/CHK037).
+- [X] T092 [P] Add chat seed data to `backend/Data/DevDataSeeder.cs` — a DM, a named group, the Rheinfeuer team chat with history, and a party chat, matching the quickstart's prerequisites (Ada / Ben / **Zoe with no shared context**, for the open-reach and per-viewer-unfurl scenarios).
+- [X] T093 Walk **every** scenario in [quickstart.md](./quickstart.md) (A–I) against the running stack, including the direct-API security checks in E, F and I that deliberately bypass the UI.
+- [X] T094 Verification: `dotnet test` (backend), `npx nx test web`, `npx nx lint web`, `npx nx build web` — all green, no skips.
+- [X] T095 Confirm no unbounded list survives (SC-010): grep the chat services for any query returning a collection without `Take`/pagination — inbox, members, messages, search, blocks.
+- [X] T096 Confirm the **cookie-affinity handover (T097)** is called out in the PR description so the `015-hosting` owner cannot miss it — a backplane fixes fan-out but not the negotiate handshake, and the ingress is theirs, not ours.
 
 ---
 

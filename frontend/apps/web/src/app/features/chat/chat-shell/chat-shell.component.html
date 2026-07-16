@@ -1,0 +1,33 @@
+<!--
+  One layout, two shapes (FR-045):
+  - below lg: exactly one of the rail / child is on screen — separate pushed screens.
+  - lg and up: the rail is persistent and the child fills the pane beside it.
+  No behavioural branch — the same components back both, so live delivery, typing and receipts
+  cannot diverge between them.
+-->
+<div class="mx-auto flex h-[calc(100vh-4rem)] max-w-container-xl" data-testid="chat-shell">
+  <!-- Inbox: full width on mobile, a rail on desktop -->
+  <div
+    class="min-h-0 w-full overflow-y-auto lg:w-80 lg:shrink-0 lg:border-r lg:border-border-muted"
+    [class.hidden]="hasChild()"
+    [class.lg:block]="true"
+    data-testid="chat-rail"
+  >
+    <jh-chat-inbox />
+  </div>
+
+  <!-- The open conversation / new chat / details -->
+  <div class="min-h-0 flex-1" [class.hidden]="!hasChild()" [class.lg:block]="true">
+    @if (hasChild()) {
+      <router-outlet />
+    } @else {
+      <!-- Desktop only: nothing picked yet -->
+      <div class="hidden h-full flex-col items-center justify-center px-md text-center lg:flex">
+        <h2 class="text-h4 text-heading">Pick a conversation</h2>
+        <p class="mt-xs max-w-sm text-body-md text-muted">
+          Choose a chat on the left, or start a new one.
+        </p>
+      </div>
+    }
+  </div>
+</div>

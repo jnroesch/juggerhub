@@ -47,6 +47,8 @@ describe('DashboardComponent', () => {
     // The market module (feature 017) mounts with the loaded dashboard and fetches its summary.
     httpMock.expectOne((r) => r.url === '/api/v1/market/mine').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
     httpMock.expectOne((r) => r.url === '/api/v1/market/mine/listings').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
+    // …and so does the "Your trainings" agenda (feature 018).
+    httpMock.expectOne((r) => r.url === '/api/v1/me/trainings').flush({ items: [], totalCount: 0, skip: 0, take: 10 });
 
     expect(q(f, 'home-greeting')!.textContent).toContain('Hi Mira');
     expect(q(f, 'up-next')).toBeTruthy();
@@ -64,6 +66,8 @@ describe('DashboardComponent', () => {
     f.detectChanges();
     httpMock.expectOne((r) => r.url === '/api/v1/market/mine').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
     httpMock.expectOne((r) => r.url === '/api/v1/market/mine/listings').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
+    // The "Your trainings" agenda (feature 018) loads for a team-less player too.
+    httpMock.expectOne((r) => r.url === '/api/v1/me/trainings').flush({ items: [], totalCount: 0, skip: 0, take: 10 });
 
     expect(q(f, 'home-greeting')!.textContent).toContain('Welcome, Mira');
     expect(q(f, 'find-a-team')).toBeTruthy();

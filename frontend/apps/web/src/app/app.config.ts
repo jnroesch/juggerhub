@@ -2,7 +2,7 @@ import {
   ApplicationConfig,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import {
   provideHttpClient,
   withFetch,
@@ -14,7 +14,10 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(appRoutes),
+    // withComponentInputBinding lets route params bind straight to component inputs — chat's
+    // /chat/:conversationId feeds ChatConversationComponent's `conversationId` input this way,
+    // so the open conversation is driven by the URL rather than a manual subscription.
+    provideRouter(appRoutes, withComponentInputBinding()),
     // All API calls are relative ("/api/v1/...") and same-origin via the nginx
     // proxy, so httpOnly auth cookies stay first-party. The auth interceptor
     // attaches credentials and routes 401s toward sign-in.

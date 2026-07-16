@@ -4,6 +4,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { MembershipService } from '../../core/services/membership.service';
 import { NotificationService } from '../../core/services/notification.service';
+import { ChatService } from '../../core/services/chat.service';
 import { AvatarMenuComponent } from '../avatar-menu/avatar-menu.component';
 import { NavId, badgeText, isActiveDestination } from '../nav-model';
 
@@ -22,9 +23,14 @@ export class TopNavComponent {
   private readonly router = inject(Router);
   private readonly membership = inject(MembershipService);
   private readonly notifications = inject(NotificationService);
+  private readonly chat = inject(ChatService);
 
   /** Capped unread badge for the bell (feature 010). Empty string hides it. */
   protected readonly alertsBadge = computed(() => badgeText(this.notifications.unreadCount()));
+
+  /** Capped unread badge for the Chat destination (feature 019). Same badgeText() as the bell — two
+   * badges in one nav must not cap differently. */
+  protected readonly chatBadge = computed(() => badgeText(this.chat.unreadCount()));
 
   private readonly url = toSignal(
     this.router.events.pipe(
@@ -44,5 +50,6 @@ export class TopNavComponent {
   protected readonly homeActive = computed(() => this.active('home'));
   protected readonly browseActive = computed(() => this.active('browse'));
   protected readonly myTeamActive = computed(() => this.active('my-team'));
+  protected readonly chatActive = computed(() => this.active('chat'));
   protected readonly alertsActive = computed(() => this.active('alerts'));
 }
