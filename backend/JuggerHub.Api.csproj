@@ -39,6 +39,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.9" />
     <!-- Pin Microsoft.OpenApi above the transitive 2.0.0 that AspNetCore.OpenApi 10.0.9
          drags in, which is vulnerable to GHSA-v5pm-xwqc-g5wc (circular-schema DoS,
          fixed in 2.7.5). Same major, so API-compatible. -->

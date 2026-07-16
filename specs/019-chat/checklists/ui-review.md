@@ -96,7 +96,7 @@ DESIGN.md wins and the conflict is reported rather than silently resolved.
 
 ### Conflicts reported (not silently resolved)
 
-Per constitution Gate 7 and CLAUDE.md. Full reasoning in [research.md §11](../research.md).
+Per constitution Gate 7 and CLAUDE.md. Full reasoning in [research.md §12](../research.md).
 
 1. **Own-bubble color — wireframe says blue, DESIGN.md says otherwise.** DESIGN.md makes coral
    `brand-primary` the primary, reserves `blue-*` for the `info` status token, and forbids introducing

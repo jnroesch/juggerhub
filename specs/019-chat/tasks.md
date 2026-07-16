@@ -86,12 +86,28 @@ Mirrors the trainings (018), parties (016) and notifications (010) slices throug
 
 - [ ] T035 [US1] Add `frontend/apps/web/src/app/core/services/chat.service.ts` — signal-based client mirroring `notification.service.ts`: `unreadCount`, `conversations`, `messages` signals; REST for inbox/unread/start/detail/members/messages/send/read/delete; `withCredentials`. **REST-only in this task** — the socket lands in US2.
 - [ ] T036 [P] [US1] Add `frontend/apps/web/src/app/features/chat/chat-inbox/` (`.ts`/`.html`/`.css` separate — constitution VI) — rows with avatar, name, preview, mono time, unread badge; warm empty state per wireframe 9a ("No messages yet" + start action + the team-chat hint); `+` button.
-- [ ] T037 [P] [US1] Add `frontend/apps/web/src/app/features/chat/chat-conversation/` — thread with **coral own-bubbles** / `surface-muted` others (DESIGN.md wins over the wireframe's blue — research §11), mono times, Sent/Read receipt **as text not bare color** (CHK037), composer with send, back-scroll paging, own-message delete control only.
+- [ ] T037 [P] [US1] Add `frontend/apps/web/src/app/features/chat/chat-conversation/` — thread with **coral own-bubbles** / `surface-muted` others (DESIGN.md wins over the wireframe's blue — research §12), mono times, Sent/Read receipt **as text not bare color** (CHK037), composer with send, back-scroll paging, own-message delete control only.
 - [ ] T038 [P] [US1] Add `frontend/apps/web/src/app/features/chat/chat-new/` — the new-chat sheet: pick one person ⇒ DM (no name field); teammates listed first, search reaches **any** player (FR-049).
 - [ ] T039 [US1] Wire the Chat nav badge to `chatService.unreadCount` in `top-nav` + `bottom-nav`, reusing `badgeText()`.
 - [ ] T040 [P] [US1] Add `frontend/apps/web/src/app/core/services/chat.service.spec.ts` — inbox load, unread signal, send, optimistic-vs-server reconciliation, delete. Angular 21 zoneless — **no `fakeAsync`** (per the 014 convention).
 
 **Checkpoint**: the 1:1 loop works end-to-end on refresh. This is the MVP.
+
+---
+
+## Phase 3.5: Multi-replica infrastructure (added 2026-07-16 — BLOCKS Phase 4)
+
+The product owner confirmed the deployment runs **more than one replica**. That invalidates the premise
+feature 010's "no backplane" decision rested on, and it silently breaks the rate limiter. Both are fixed
+here, before realtime is built on top. See research **§10** and **§11**.
+
+- [X] T096a Add Redis to `docker-compose.yml` (`redis:8-alpine`, on `juggerhub-network`, healthcheck, no published port needed by the app) and a `REDIS_CONNECTION` entry to `.env.sample`. **Local gets Redis too** — a local-only in-process fallback would make local architecturally different from Dev/Prod, which constitution V forbids outright.
+- [X] T096b Add the `Microsoft.AspNetCore.SignalR.StackExchangeRedis` package (first-party; pin the major per the dependency policy) and chain `.AddStackExchangeRedis(...)` onto the existing `AddSignalR()` in `backend/Program.cs`. **Both hubs get it for free** — the backplane attaches to SignalR, not to a hub, so `NotificationHub` (010) is fixed by the same line as `ChatHub` (019).
+- [X] T096c **Fail fast when Redis is not configured outside Development.** A missing backplane in a multi-replica deployment is invisible until two users land on different pods and one of them silently stops receiving messages — the app must refuse to start rather than serve a chat that half-works.
+- [X] T096d Add `backend/Security/RedisFixedWindowRateLimiter.cs` — a `RateLimiter` over `INCR`/`EXPIRE` (atomic fixed window; no Lua, no third-party package). **Fails closed**: if Redis is unreachable it rejects, because a limiter that fails open turns a cache outage into an open mass-DM window (research §11).
+- [X] T096e Point the three `chat-*` policies at the Redis limiter in `RateLimitPolicies`, keeping the same names so `[EnableRateLimiting]` call sites are untouched. Without this, N replicas = N × every limit, and FR-049a's "enforced server-side" is not true.
+- [X] T096f [P] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatRateLimitTests.cs` — a Redis Testcontainer: the limit holds **across limiter instances sharing one Redis** (the multi-replica case, which an in-memory limiter would pass while being wrong in production); limits partition per user; the window releases; Redis down ⇒ **rejects**, never allows.
+- [ ] T097 **Handover to `015-hosting`**: the ingress needs cookie affinity (`nginx.ingress.kubernetes.io/affinity: "cookie"`). A backplane fixes fan-out, **not** the negotiate handshake — the negotiate response carries a token bound to the pod that answered it, so an unstuck follow-up request fails. Do **not** "fix" this with `skipNegotiation`: that forfeits SignalR's transport fallback on restrictive networks. Raise on the 015 branch; the ingress is theirs.
 
 ---
 
@@ -225,7 +241,7 @@ Mirrors the trainings (018), parties (016) and notifications (010) slices throug
 - [ ] T093 Walk **every** scenario in [quickstart.md](./quickstart.md) (A–I) against the running stack, including the direct-API security checks in E, F and I that deliberately bypass the UI.
 - [ ] T094 Verification: `dotnet test` (backend), `npx nx test web`, `npx nx lint web`, `npx nx build web` — all green, no skips.
 - [ ] T095 Confirm no unbounded list survives (SC-010): grep the chat services for any query returning a collection without `Take`/pagination — inbox, members, messages, search, blocks.
-- [ ] T096 Re-read research §10 and confirm the **SignalR backplane risk** is surfaced in the PR description for the 015-hosting owner, not silently dropped: in-process SignalR is correct for main's single instance today, and chat breaks visibly (not quietly, like notifications) if AKS ever runs >1 replica without a backplane.
+- [ ] T096 Confirm the **cookie-affinity handover (T097)** is called out in the PR description so the `015-hosting` owner cannot miss it — a backplane fixes fan-out but not the negotiate handshake, and the ingress is theirs, not ours.
 
 ---
 

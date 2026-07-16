@@ -209,32 +209,99 @@ textbook case of both. It also avoids the skip/take drift where a message arrivi
 every subsequent page. UUIDv7 (§3) makes `Id` a valid cursor, so no extra cursor column is needed.
 The other surfaces are ordinary bounded lists and use the shared envelope for a uniform contract.
 
-## 10. Known risk — SignalR has no backplane, and 015 moves to AKS
+## 10. Multi-replica — Redis backplane for SignalR (DECIDED 2026-07-16)
 
-**Not a decision — a flagged risk, carried to the plan's Complexity/Risk tracking.**
+**Decision**: Add a **Redis backplane** (`Microsoft.AspNetCore.SignalR.StackExchangeRedis`, first-party)
+behind the existing `AddSignalR()`, plus a **Redis service in docker-compose** so local matches Dev/Prod.
+Both hubs — `NotificationHub` (010) and `ChatHub` (019) — get it for free, since the backplane attaches
+to SignalR itself rather than to a hub.
 
-Feature 010 chose in-process SignalR with **no Redis/Azure SignalR backplane**, explicitly reasoning
-that "the deployment target is a single Azure App Service instance (constitution V)". `Program.cs`
-confirms it: a bare `builder.Services.AddSignalR()`.
+**Why this changed**: the original plan inherited feature 010's "single App Service instance ⇒ no
+backplane" reasoning and filed multi-replica as a deferred risk for the unmerged `015-hosting` branch.
+The product owner has since confirmed **the deployment will run more than one replica**, so the premise
+that decision rested on is simply gone. It is no longer a risk to flag; it is a requirement to build.
 
-The unmerged **`015-hosting`** branch moves hosting to **Azure AKS**, which amends the constitution off
-App Services. On main today the single-instance assumption still holds, so chat inherits 010's
-decision unchanged and this feature does **not** add a backplane.
+Without a backplane, each pod holds its own set of connections and `IHubContext.Clients.Group(...)`
+only reaches the pod it ran on. Two players on different pods see a **dead conversation** — messages
+persist, but never arrive. Chat's entire value proposition is the thing that breaks; only FR-023
+("live is an enhancement — every value is reachable on a normal load") keeps it from being data loss.
+Notifications degrade far more quietly (a stale badge), which is exactly why 010 could get away with
+deferring this and 019 cannot.
 
-But the exposure is not the same for the two features. If AKS ever runs **more than one replica**
-without a backplane:
-- 010 degrades *quietly and briefly* — a badge doesn't update until the next REST load.
-- 019 degrades *visibly and centrally* — two players on different pods see a dead conversation. Chat's
-  entire value proposition is the thing that breaks, and FR-023's "live is an enhancement, every value
-  is reachable on load" is the only reason it isn't data loss.
+**Why Redis over Azure SignalR Service**: feature 015 already runs **Postgres in-cluster** rather than
+using a managed Azure database, and the constitution bans Key Vault — this codebase consistently
+prefers self-hosted, portable components over managed Azure extras. An in-cluster Redis matches that
+posture, keeps local/Dev/Prod identical, and costs nothing in Dev. Azure SignalR Service would be less
+work to operate but would make local development structurally different from deployed, which
+constitution V forbids ("differences are limited to configuration and secrets, never to architecture").
 
-**Recommendation**: before 015 scales the backend past one replica, either add a backplane behind the
-existing `IChatRealtime`/`INotificationRealtime` seam (which both exist precisely so this can be done
-without touching producers) or pin the backend to a single replica. This should be raised on the
-015-hosting branch rather than solved here — building a backplane for a single-instance deployment
-would be speculative work against a hosting design that has not landed.
+**Environment parity**: Redis is added to `docker-compose.yml` so local runs the same architecture as
+deployed. The connection string arrives as configuration (`.env` locally, GitHub Environments deployed).
+The backplane is registered **unconditionally** when the connection string is present and the app fails
+fast when it is absent outside Development — a silently in-process backplane in a multi-replica
+deployment is precisely the failure this section exists to prevent, and it would be invisible until two
+users happened to land on different pods.
 
-## 11. Design conflicts with the wireframe (resolved toward DESIGN.md)
+**Sticky sessions are still required.** A backplane fixes fan-out, not connection establishment. With
+the default negotiate handshake, the negotiate response carries a connection token bound to the pod
+that answered it; a follow-up request routed elsewhere fails. Options are (a) cookie affinity on the
+ingress, or (b) WebSockets-only with `skipNegotiation`. **(a)** is the recommendation — `skipNegotiation`
+forfeits the transport fallback that keeps SignalR working on restrictive networks. The nginx-ingress
+annotation belongs on the **`015-hosting`** branch, which owns the ingress:
+
+```yaml
+nginx.ingress.kubernetes.io/affinity: "cookie"
+nginx.ingress.kubernetes.io/session-cookie-name: "jugger-affinity"
+nginx.ingress.kubernetes.io/session-cookie-expires: "3600"
+```
+
+Carried as **T097** so it is handed over explicitly rather than assumed.
+
+**Alternatives rejected**: (a) *Azure SignalR Service* — see parity, above. (b) *Postgres LISTEN/NOTIFY
+as a homemade backplane* — no new component, but SignalR has no such provider, so it means writing and
+owning a backplane; rejected against "use the framework, minimal deps". (c) *Pin to one replica* — the
+owner has ruled it out. (d) *Sticky sessions alone, no backplane* — a common misreading: affinity keeps
+a client on one pod, but a message sent on pod A still never reaches a member connected to pod B. It
+addresses connection establishment, not fan-out. Both are needed, for different reasons.
+
+## 11. Multi-replica — rate limiting must be distributed (DECIDED 2026-07-16)
+
+**Decision**: Replace the in-memory fixed-window limiter with a **Redis-backed fixed-window limiter**
+(`RedisFixedWindowRateLimiter`, ~60 lines over the `StackExchange.Redis` client that the backplane
+already brings in), keyed on the authenticated user id, plugged into the same
+`AddRateLimiter`/`[EnableRateLimiting]` pipeline so the call sites do not change.
+
+**Why**: this is the **second** thing multi-replica breaks, and it is much easier to miss than the
+backplane because nothing looks broken. `AddRateLimiter`'s partitions live in **each pod's memory**. With
+N replicas behind a round-robin ingress, a caller gets N independent buckets — the effective limit is
+**N × the configured limit**. At 3 pods, `chat-start`'s 10/min is really 30/min, and the number drifts
+further every time the cluster autoscales.
+
+That is not a rounding error here. Rate limiting is load-bearing precisely *because* the product owner
+chose **open DM reach** (FR-049): any player may message any other, and block is per-recipient and
+reactive, so the limit is the only thing that stops one account from opening a conversation with the
+entire community. A limit whose real value is "10/min × however many pods happen to be running" does not
+honour FR-049a's "MUST be enforced server-side", and worse, it would read as enforced while silently
+not being.
+
+Sticky sessions do **not** rescue this either: affinity distributes *users* across pods, so each pod
+still holds a partial view, and a caller who reconnects lands on a fresh bucket.
+
+The algorithm is the standard atomic fixed window — `INCR`, and `EXPIRE` on first hit — which is why it
+needs no Lua script and no third-party rate-limiting package (constitution: minimal deps).
+
+**Fail-closed on Redis loss**: if Redis is unreachable the limiter **rejects** rather than allowing. A
+rate limiter that fails open turns a cache outage into an open mass-DM window — the exact scenario
+FR-049a exists to prevent. Chat is degraded for the outage; the community is not exposed.
+
+**Alternatives rejected**: (a) *Divide the limit by replica count* — wrong the moment the autoscaler
+moves, and encodes a deployment detail in application code. (b) *IP-keyed limiting at the nginx ingress*
+— wrong unit (punishes a whole clubhouse behind one NAT) and unavailable to the ingress as a user
+identity. (c) *A third-party distributed rate-limiting package* — a real option, but `INCR`/`EXPIRE` over
+a client we already reference is smaller than a new dependency. (d) *Accept the N× drift and document it*
+— rejected: the spec would then state a limit the system does not enforce.
+
+## 12. Design conflicts with the wireframe (resolved toward DESIGN.md)
 
 Per constitution Quality Gate 7 and CLAUDE.md, conflicts are **reported, not silently resolved**:
 

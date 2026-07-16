@@ -9,6 +9,10 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=database;Port=5432;Database=${DB_NAME:-appdb};Username=${DB_USER:-postgres};Password=${DB_PASSWORD:-postgres}
+      # SignalR backplane + distributed rate-limit counters (feature 019). Required: the app
+      # fails fast without it outside Development, because a missing backplane in a multi-replica
+      # deployment is invisible until two users land on different pods.
+      - ConnectionStrings__Redis=${REDIS_CONNECTION:-redis:6379}
       - Jwt__Issuer=${JWT_ISSUER:-juggerhub}
       - Jwt__Audience=${JWT_AUDIENCE:-juggerhub}
       - Jwt__SigningKey=${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set in .env}
@@ -25,6 +29,8 @@ services:
       - juggerhub-network
     depends_on:
       database:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       mailpit:
         condition: service_started
@@ -74,6 +80,25 @@ services:
       - juggerhub-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-appdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
+  # Redis backs the SignalR backplane and the distributed rate-limit counters (feature 019).
+  # It runs LOCALLY as well as in Dev/Prod on purpose: the deployment runs more than one replica,
+  # and constitution V limits environment differences to configuration and secrets — never
+  # architecture. A local-only in-process fallback would mean local development exercised a
+  # different fan-out path than production, which is exactly the class of bug this component
+  # exists to prevent. Redis holds no durable state: in-flight fan-out and one-minute counters
+  # only, so it needs no volume and losing it costs liveness, never data.
+  redis:
+    image: redis:8.2-alpine
+    container_name: juggerhub-redis
+    networks:
+      - juggerhub-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5

@@ -146,7 +146,7 @@ Both browsers, same conversation open.
 Checked in full via [checklists/ui-review.md](./checklists/ui-review.md). The two to eyeball here:
 
 - **Own bubbles are coral** (`brand-primary`), others `surface-muted` sand. The wireframe drew blue;
-  DESIGN.md wins and blue stays reserved for the `info` token (research §11).
+  DESIGN.md wins and blue stays reserved for the `info` token (research §12).
 - **Times, counts and unread badges are set in the mono face** (DESIGN.md: "numbers, scores, times
   and counts in the mono typeface"), sentence case everywhere, TEAM/PARTY tags as eyebrow-styled pills.
 

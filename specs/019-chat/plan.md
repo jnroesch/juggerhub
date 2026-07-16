@@ -28,12 +28,16 @@ simply does not exist. Full reasoning in [research.md](./research.md).
 **Language/Version**: C# / .NET 10 (backend); TypeScript / Angular 21 zoneless with signals (frontend)
 
 **Primary Dependencies**: EF Core + Npgsql, Mapster (entity→DTO), ASP.NET Core SignalR
-(`@microsoft/signalr` on the client), Microsoft Identity + JWT-in-httpOnly-cookie,
+(`@microsoft/signalr` on the client) **+ `Microsoft.AspNetCore.SignalR.StackExchangeRedis`** (the
+multi-replica backplane, research §10), Microsoft Identity + JWT-in-httpOnly-cookie,
 `Microsoft.AspNetCore.RateLimiting` (**newly registered by this feature** — see research §7),
 Tailwind CSS
 
 **Storage**: PostgreSQL 18. New tables: `Conversations`, `ConversationParticipants`, `ChatMessages`,
 `UserBlocks`. Reads `TeamMemberships` / `PartyMembers` for derived membership.
+**Redis** (new, all environments) — SignalR backplane (§10) and distributed rate-limit counters (§11).
+It holds no durable state: everything in it is either in-flight fan-out or a one-minute counter, so
+losing Redis costs liveness and tightens limits, never data.
 
 **Testing**: xUnit integration tests in `backend/tests/JuggerHub.Api.IntegrationTests` (a
 `Chat/` folder, following `Trainings/` and `Marketplace/`); Jest specs for frontend services
@@ -64,16 +68,30 @@ a service and a realtime client. 8 user stories, 58 functional requirements.
 | II | **Thin controllers, service-centric** | ✅ Pass | Controllers do HTTP shaping only and forward to `IChatConversationService`, `IChatMessageService`, `IChatSearchService`, `IChatBlockService` — each behind an interface and DI-registered. No repository layer; services use EF directly. Services return entities; controllers map to DTOs with Mapster. |
 | III | **Disciplined data access** | ✅ Pass | All four new entities derive from `BaseEntity` (UUIDv7 `Id`, audit dates via the interceptor). Reads use `AsNoTracking` + projections. Every list paginated: inbox / members / search via the shared `PaginationRequest`/`PagedResult<T>`; message history via **keyset** on `Id`, which the constitution explicitly prefers for large, rapidly-changing tables (§9). Any `ExecuteUpdateAsync` path sets `ModifiedDate` explicitly. |
 | IV | **Secure auth & session** | ✅ Pass | No new auth. `ChatHub` reuses `NotificationHub`'s `[Authorize]` JWT-bearer scheme; the browser sends the httpOnly cookie on the same-origin handshake. No token touches `localStorage`. |
-| V | **Environment parity & containerized deploys** | ⚠️ Pass with a flagged risk | No new service, no new infrastructure component, no new secret — chat rides the existing backend/frontend containers and Postgres, identical local/Dev/Prod. **Risk (research §10)**: SignalR runs in-process with no backplane, valid only while the backend is a single instance. The unmerged `015-hosting` branch moves to AKS; if it ever runs >1 replica, chat breaks visibly where notifications only degrade quietly. Not solved here — raised for 015. |
+| V | **Environment parity & containerized deploys** | ✅ Pass | **The deployment runs more than one replica** (confirmed by the product owner 2026-07-16), so this feature adds **Redis**: a SignalR backplane (research §10) and a distributed rate limiter (§11). Redis is added to `docker-compose.yml` as well, so local runs the **same architecture** as Dev/Prod and the difference stays configuration-only, as this principle requires — a local-only in-process fallback would itself be the parity violation. Connection string via `.env` locally / GitHub Environments deployed; no Key Vault. **Handover to `015-hosting` (T097)**: the ingress needs cookie affinity — a backplane fixes fan-out, not the negotiate handshake. |
 | VI | **Consistent conventions & tooling** | ✅ Pass | Angular components keep `.html` / `.css` / `.ts` separate. Any script added is `.ps1`. Search reuses the established `ILike` + `Unaccent` convention rather than introducing a second mechanism (§6). Nx + Tailwind throughout. |
-| — | **Gate 7: UI/design compliance** | ✅ Pass | DESIGN.md is the source of truth: the wireframe's blue own-bubbles render coral, its invented nav is discarded for the real one, its illustrative link shapes for the real routes. All conflicts **reported** in research §11 and the spec's Assumptions, not silently resolved. `checklists/ui-review.md` is instantiated from the template and verified against the diff before verification. |
+| — | **Gate 7: UI/design compliance** | ✅ Pass | DESIGN.md is the source of truth: the wireframe's blue own-bubbles render coral, its invented nav is discarded for the real one, its illustrative link shapes for the real routes. All conflicts **reported** in research §12 and the spec's Assumptions, not silently resolved. `checklists/ui-review.md` is instantiated from the template and verified against the diff before verification. |
 
-**Result: PASS.** One item (V) passes with a documented, deliberately-deferred risk that belongs to
-another feature's branch. No violations require justification, so Complexity Tracking is empty.
+**Result: PASS.** No violations require justification, so Complexity Tracking is empty.
 
-*Post-Phase-1 re-check: still PASS.* The design added no repository layer, no new external dependency,
-no new auth path and no unbounded list. `AddRateLimiter` is new middleware but is explicitly admitted
-by principle II's "lean middleware" carve-out for security middleware, and is required by FR-049a.
+*Post-Phase-1 re-check: still PASS.* The design added no repository layer, no new auth path and no
+unbounded list. `AddRateLimiter` is new middleware but is explicitly admitted by principle II's "lean
+middleware" carve-out for security middleware, and is required by FR-049a.
+
+*Re-checked 2026-07-16 after the multi-replica decision: still PASS.* Two additions, both forced by the
+confirmation that the deployment runs more than one replica:
+
+1. **Redis + `Microsoft.AspNetCore.SignalR.StackExchangeRedis`** (first-party) — a new infrastructure
+   component, which principle V cares about. It passes because Redis is added to **every** environment
+   including local, so the architecture stays identical and only the connection string differs.
+2. **A distributed rate limiter** replacing the in-memory one (research §11). This is a **correctness
+   fix, not an enhancement**: in-memory partitions live per pod, so N replicas silently multiply every
+   limit by N. FR-049a says limits are enforced server-side, and "10/min × however many pods are up"
+   does not honour that — especially given DM reach is open, which is what makes the limit load-bearing
+   in the first place.
+
+Both sit behind seams that already existed (`IChatRealtime`/`INotificationRealtime`, and the named
+rate-limit policies), so no producer or call site changed.
 
 ## Project Structure
 

@@ -253,7 +253,9 @@ builder.Services.AddScoped<JuggerHub.Services.Chat.IChatConversationService, Jug
 builder.Services.AddScoped<JuggerHub.Services.Chat.IChatMessageService, JuggerHub.Services.Chat.ChatMessageService>();
 
 // Rate limiting — new shared infrastructure, required because chat's DM reach is open (FR-049a).
-builder.Services.AddJuggerHubRateLimiting();
+// The counters live in Redis: in-memory partitions are per-pod, so on a multi-replica deployment they
+// would silently multiply every limit by the replica count (specs/019-chat/research.md §11).
+builder.Services.AddJuggerHubRateLimiting(builder.Configuration.GetConnectionString("Redis"));
 
 // --- Search / browse (feature 007) -----------------------------------------
 builder.Services.Configure<SearchOptions>(builder.Configuration.GetSection(SearchOptions.SectionName));
@@ -265,11 +267,39 @@ builder.Services.AddScoped<IPlayerSearchService, PlayerSearchService>();
 builder.Services.Configure<HomeOptions>(builder.Configuration.GetSection(HomeOptions.SectionName));
 builder.Services.AddScoped<IHomeService, HomeService>();
 
-// --- In-app notifications (feature 010) ------------------------------------
-// SignalR is hosted in-process (single App Service instance → no backplane; see
-// specs/010-notifications/research.md §1). The realtime seam is a singleton over IHubContext;
-// the service that persists + reads notifications is scoped (per-request DbContext).
-builder.Services.AddSignalR();
+// --- Real-time (features 010 + 019) ----------------------------------------
+// The deployment runs MORE THAN ONE REPLICA, so SignalR needs a backplane: without one, each pod
+// only reaches the connections it holds, and Clients.Group(...) silently stops at the pod boundary.
+// Two players on different pods would see a dead conversation — messages persist but never arrive.
+// Feature 010 originally reasoned "single App Service instance ⇒ no backplane"; that premise is gone.
+// See specs/019-chat/research.md §10.
+//
+// The backplane attaches to SignalR itself, not to a hub, so this one call fixes NotificationHub
+// (010) and ChatHub (019) together.
+//
+// Redis is configured in EVERY environment, local included, so local development exercises the same
+// fan-out path as production (constitution V: environments differ in configuration, never
+// architecture). Outside Development a missing connection string is fatal rather than a silent
+// in-process fallback — that fallback would look healthy and quietly drop half the messages.
+var redisConnection = builder.Configuration.GetConnectionString("Redis");
+var signalR = builder.Services.AddSignalR();
+
+if (!string.IsNullOrWhiteSpace(redisConnection))
+{
+    signalR.AddStackExchangeRedis(redisConnection, options =>
+    {
+        // Namespaced so a shared Redis cannot collide with another app's channels.
+        options.Configuration.ChannelPrefix = StackExchange.Redis.RedisChannel.Literal("juggerhub");
+    });
+}
+else if (!builder.Environment.IsDevelopment())
+{
+    throw new InvalidOperationException(
+        "ConnectionStrings:Redis is required outside Development: SignalR needs a backplane to fan out "
+        + "across replicas, and the rate limiter needs shared counters. Without it, real-time delivery "
+        + "silently fails for users on other pods and every rate limit is multiplied by the replica count.");
+}
+
 builder.Services.AddSingleton<INotificationRealtime, SignalRNotificationRealtime>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 // Per-user delivery preferences (feature 011) — consulted by the engine + producers before delivery.
