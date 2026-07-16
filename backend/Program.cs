@@ -18,6 +18,7 @@ using JuggerHub.Services.Search;
 using JuggerHub.Services.Security;
 using JuggerHub.Services.Teams;
 using JuggerHub.Security.PlatformAdmin;
+using JuggerHub.Security.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -243,6 +244,17 @@ builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingSeriesService, 
 builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingSessionService, JuggerHub.Services.Trainings.TrainingSessionService>();
 builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingResponseService, JuggerHub.Services.Trainings.TrainingResponseService>();
 
+// --- Chat (feature 019) ----------------------------------------------------
+// ChatGuard is the single home of the membership predicate; team/party chat membership is DERIVED
+// from the roster on every request rather than mirrored into rows, so removal revokes access by
+// construction (see specs/019-chat/research.md §4).
+builder.Services.AddScoped<JuggerHub.Services.Chat.ChatGuard>();
+builder.Services.AddScoped<JuggerHub.Services.Chat.IChatConversationService, JuggerHub.Services.Chat.ChatConversationService>();
+builder.Services.AddScoped<JuggerHub.Services.Chat.IChatMessageService, JuggerHub.Services.Chat.ChatMessageService>();
+
+// Rate limiting — new shared infrastructure, required because chat's DM reach is open (FR-049a).
+builder.Services.AddJuggerHubRateLimiting();
+
 // --- Search / browse (feature 007) -----------------------------------------
 builder.Services.Configure<SearchOptions>(builder.Configuration.GetSection(SearchOptions.SectionName));
 builder.Services.AddScoped<ITeamSearchService, TeamSearchService>();
@@ -329,6 +341,10 @@ if (app.Environment.IsDevelopment())
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Rate limiting (feature 019) must come AFTER authentication: the chat policies partition on the
+// authenticated user id, which does not exist yet earlier in the pipeline.
+app.UseRateLimiter();
 
 app.MapControllers();
 

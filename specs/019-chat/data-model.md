@@ -46,11 +46,31 @@ public enum ChatSystemEvent { Joined = 0, Left = 1, Removed = 2, GroupCreated = 
 
 **Rules**
 
-- **R1** — `Kind == Group` ⟺ `Name` is non-empty. `Kind != Group` ⟺ `Name is null`. (FR-009)
-- **R2** — `Kind == Team` ⟺ `TeamId` non-null; `Kind == Party` ⟺ `PartyId` non-null; both null otherwise.
+- **R1** — `Kind == Group` ⟺ `Name` is non-empty. `Kind == Direct` ⟺ `Name is null`. A `Team`/`Party`
+  chat has a null `Name` **while live** (it derives one) and a frozen `Name` **once archived** (R3a).
+  (FR-009)
+- **R2** — While live: `Kind == Team` ⟺ `TeamId` non-null; `Kind == Party` ⟺ `PartyId` non-null; both
+  null otherwise. Both are nulled on archival (R3a).
 - **R3** — `State == Archived` rejects send, typing, add and all realtime emission; reads still work
   for members. Archiving is **one-way** — nothing sets it back to `Active` (FR-027, edge case
   "never becomes writable again").
+- **R3a** — **Archiving an auto chat is a snapshot, not a flag.** *(Discovered during implementation —
+  see the drift note below.)* Team deletion and party disband are **hard deletes** in this codebase
+  (`Party` remarks: "Disband is a hard delete… there is no stored disbanded state"), and
+  `TeamMemberships`/`PartyMembers` cascade away with them. Because a live auto chat **derives** its
+  membership from that roster (R5), a naive archive-and-delete would leave a conversation that
+  *nobody* can read — the roster it consults is gone — silently breaking FR-027's "members can still
+  read the history". Archiving must therefore, **before** the team/party row is deleted:
+  1. materialise the derived roster into real `ConversationParticipant` rows,
+  2. freeze the display name into `Name`,
+  3. null `TeamId`/`PartyId`,
+  4. set `State = Archived`.
+
+  An archived auto chat is then structurally a **read-only group**: stored membership, stored name, no
+  roster link. `Kind` is deliberately **not** changed, so the inbox still tags it TEAM/PARTY.
+  The FKs are **`Restrict`** on purpose: a future delete path that forgets to archive first fails
+  loudly in development rather than silently orphaning an `Active` conversation whose membership
+  resolves to nobody. Fails closed, not quiet.
 - **R4** — `LastMessageDate` is denormalised **only** to keep the inbox's ORDER BY off a correlated
   subquery over `ChatMessages`. It is a cache of `MAX(ChatMessages.CreatedDate)`, never authoritative
   for ordering *within* a conversation (that is `Id`, always).
@@ -209,9 +229,23 @@ Direct : created on first "start a chat" (or on demand)  ──> Active ──> 
 Group  : created explicitly by a player                  ──> Active ──> (never archived)
 Team   : EnsureForTeamAsync on first access              ──> Active ──> Archived  (team deleted)
 Party  : EnsureForPartyAsync on first access             ──> Active ──> Archived  (party disbands)
+
+                                    the Team/Party ──> Archived transition is R3a's snapshot:
+                                    derived roster ──> stored participant rows
+                                    derived name   ──> frozen into Name
+                                    TeamId/PartyId ──> null
+                                    State          ──> Archived
+                                    …all BEFORE the team/party row is hard-deleted.
 ```
 
 `Archived` is terminal (R3). No transition leaves it.
+
+> **Spec drift found during implementation (2026-07-16)**
+> The plan assumed archival could be a simple state flag. It cannot: party disband and team delete are
+> hard deletes whose rosters cascade, and derived membership dies with them. R3a is the correction.
+> No spec requirement changed — FR-027 still reads exactly as written — but the *mechanism* behind it
+> did, and the archive hook (T065) is now materially more work than "set a flag". Recorded here rather
+> than absorbed silently.
 
 **Message**
 

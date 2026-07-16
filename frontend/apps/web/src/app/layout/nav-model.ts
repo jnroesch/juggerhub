@@ -5,7 +5,7 @@ import { MyTeam } from '../core/models/home.models';
  * the desktop top bar and the mobile bottom tab bar so both provably expose the same set.
  * Profile is reached from the avatar, not a primary destination; Create is contextual.
  */
-export type NavId = 'home' | 'browse' | 'my-team' | 'alerts';
+export type NavId = 'home' | 'browse' | 'my-team' | 'chat' | 'alerts';
 
 export interface NavDestination {
   readonly id: NavId;
@@ -18,6 +18,7 @@ export const NAV_DESTINATIONS: readonly NavDestination[] = [
   { id: 'home', label: 'Home', path: '/' },
   { id: 'browse', label: 'Browse', path: '/browse' },
   { id: 'my-team', label: 'My team', path: '/my-team' },
+  { id: 'chat', label: 'Chat', path: '/chat' },
   { id: 'alerts', label: 'Alerts', path: '/alerts' },
 ];
 
@@ -32,14 +33,18 @@ export function isActiveDestination(id: NavId, url: string): boolean {
     case 'my-team':
       // A team space (/t/:slug) and the multi-team chooser both light up "My team".
       return path.startsWith('/t/') || path.startsWith('/my-team');
+    case 'chat':
+      // The inbox and any open conversation (/chat/:id) both light up "Chat".
+      return path.startsWith('/chat');
     case 'alerts':
       return path.startsWith('/alerts');
   }
 }
 
 /**
- * Compact unread-badge text for the Alerts bell (feature 010): empty when nothing is unread, the
- * count up to 9, then a capped "9+" so the badge never grows unbounded.
+ * Compact unread-badge text for the Alerts bell (feature 010) and the Chat destination (feature 019):
+ * empty when nothing is unread, the count up to 9, then a capped "9+" so the badge never grows
+ * unbounded. Shared deliberately — two badges in the same nav must not cap differently.
  */
 export function badgeText(count: number): string {
   if (count <= 0) {
