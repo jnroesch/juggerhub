@@ -129,6 +129,33 @@ export const appRoutes: Route[] = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/marketplace/recruiting/recruiting.component').then((m) => m.RecruitingComponent),
       },
+      // Trainings (feature 018) — team-scoped tab + create, session page + attendance.
+      {
+        path: 't/:slug/trainings',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/trainings/trainings-tab/trainings-tab.component').then((m) => m.TrainingsTabComponent),
+      },
+      {
+        path: 't/:slug/trainings/new',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/trainings/training-create/training-create.component').then((m) => m.TrainingCreateComponent),
+      },
+      {
+        // The public-shareable session entry — any signed-in user (outsiders join public sessions as guests).
+        path: 'trainings/sessions/:id',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/trainings/training-session/training-session.component').then((m) => m.TrainingSessionComponent),
+      },
+      {
+        path: 'trainings/sessions/:id/edit',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/trainings/training-edit/training-edit.component').then((m) => m.TrainingEditComponent),
+      },
+      {
+        path: 'trainings/sessions/:id/attendance',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/trainings/attendance/attendance.component').then((m) => m.AttendanceComponent),
+      },
       // Browse / search (feature 007) — anonymous (no guard), in the shell, lazy-loaded.
       { path: 'browse', pathMatch: 'full', redirectTo: 'browse/teams' },
       {

@@ -8,6 +8,8 @@ import {
   isTeamInvite,
   isTeamNews,
   isTeamRoleChanged,
+  isTrainingScheduled,
+  isTrainingUpdated,
 } from '../../../core/models/notification.models';
 import { relativeTime } from '../../../core/utils/format';
 
@@ -54,6 +56,9 @@ export class NotificationRowComponent {
       // Links to the event page, where the market inbox answers the invite (feature 017).
       return `/events/${n.payload.eventId}`;
     }
+    if (isTrainingScheduled(n) || isTrainingUpdated(n)) {
+      return n.payload.sessionId ? `/trainings/sessions/${n.payload.sessionId}` : `/t/${n.payload.teamSlug}/trainings`;
+    }
     return null;
   });
 
@@ -78,6 +83,12 @@ export class NotificationRowComponent {
     if (isMarketInvite(n)) {
       return `${n.payload.teamName} invited you to their crew`;
     }
+    if (isTrainingScheduled(n)) {
+      return `New training: ${n.payload.trainingName}`;
+    }
+    if (isTrainingUpdated(n)) {
+      return n.payload.kind === 'cancelled' ? `Training cancelled: ${n.payload.trainingName}` : `Training changed: ${n.payload.trainingName}`;
+    }
     return 'Notification';
   });
 
@@ -97,6 +108,12 @@ export class NotificationRowComponent {
     }
     if (isPartyNews(n)) {
       return `New update for the ${n.payload.eventName} party`;
+    }
+    if (isTrainingScheduled(n)) {
+      return n.payload.isRecurring ? 'A new series was added — say if you can make it' : 'A one-off was added — say if you can make it';
+    }
+    if (isTrainingUpdated(n)) {
+      return n.payload.kind === 'cancelled' ? 'A session you responded to was cancelled' : 'An upcoming session changed';
     }
     return '';
   });

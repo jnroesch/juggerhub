@@ -98,6 +98,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<MarketRequest> MarketRequests => Set<MarketRequest>();
 
+    // Feature 018 — team-scoped recurring trainings.
+    public DbSet<Training> Trainings => Set<Training>();
+
+    public DbSet<TrainingSession> TrainingSessions => Set<TrainingSession>();
+
+    public DbSet<TrainingResponse> TrainingResponses => Set<TrainingResponse>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -748,6 +755,59 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
             // CreatedByUserId is a plain audit column (the applicant or inviting admin); no FK/nav.
+        });
+
+        // ---- Feature 018: team-scoped recurring trainings ----
+
+        builder.Entity<Training>(entity =>
+        {
+            entity.Property(t => t.Name).HasMaxLength(120).IsRequired();
+            entity.Property(t => t.Description).HasMaxLength(2000);
+            entity.Property(t => t.Location).HasMaxLength(300);
+            entity.Property(t => t.VirtualLink).HasMaxLength(500);
+
+            // The Trainings tab and active-series overview scan a team's trainings.
+            entity.HasIndex(t => t.TeamId);
+
+            entity.HasOne(t => t.Team)
+                .WithMany()
+                .HasForeignKey(t => t.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(t => t.CreatedBy)
+                .WithMany()
+                .HasForeignKey(t => t.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TrainingSession>(entity =>
+        {
+            entity.Property(s => s.LocationOverride).HasMaxLength(300);
+            entity.Property(s => s.VirtualLinkOverride).HasMaxLength(500);
+
+            // The tab list and dashboard agenda order by (team, date); the reconciliation reads by training.
+            entity.HasIndex(s => new { s.TeamId, s.SessionDate });
+            entity.HasIndex(s => s.TrainingId);
+
+            entity.HasOne(s => s.Training)
+                .WithMany(t => t.Sessions)
+                .HasForeignKey(s => s.TrainingId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TrainingResponse>(entity =>
+        {
+            // Exactly one current answer per person per session (upsert on change).
+            entity.HasIndex(r => new { r.TrainingSessionId, r.UserId }).IsUnique();
+            entity.HasIndex(r => r.TrainingSessionId);
+
+            entity.HasOne(r => r.Session)
+                .WithMany(s => s.Responses)
+                .HasForeignKey(r => r.TrainingSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

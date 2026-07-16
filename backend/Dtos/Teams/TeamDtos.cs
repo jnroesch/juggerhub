@@ -79,7 +79,8 @@ public enum TeamViewerRelation
 }
 
 /// <summary>The public team page (feature 009): overview + the viewer's relation + capped public
-/// roster, recent activity, and upcoming trainings. Carries NO contact details or news.</summary>
+/// roster and recent activity. Carries NO contact details or news. Real trainings (feature 018) live
+/// on the members-only Trainings tab, not this public payload.</summary>
 public sealed record TeamPublicDetailDto(
     string Slug,
     string Name,
@@ -91,7 +92,6 @@ public sealed record TeamPublicDetailDto(
     TeamViewerRelation ViewerRelation,
     IReadOnlyList<PublicMemberDto> Roster,
     IReadOnlyList<JuggerHub.Dtos.Profile.ActivityItemDto> RecentActivity,
-    IReadOnlyList<TrainingDto> UpcomingTrainings,
     // Feature 012 — the team's earned badges & achievements (active only).
     IReadOnlyList<JuggerHub.Dtos.Recognition.EarnedRecognitionDto> Badges,
     IReadOnlyList<JuggerHub.Dtos.Recognition.EarnedRecognitionDto> Achievements);
@@ -103,9 +103,6 @@ public sealed record PublicMemberDto(
     TeamRole Role,
     bool HasAvatar,
     IReadOnlyList<Pompfe> Pompfen);
-
-/// <summary>An upcoming event the team is entered in (a "training"/match), shown publicly.</summary>
-public sealed record TrainingDto(Guid EventId, string Name, DateTime StartsAt, string LocationLabel);
 
 /// <summary>One pending join request in the admin queue (feature 009).</summary>
 public sealed record JoinRequestDto(

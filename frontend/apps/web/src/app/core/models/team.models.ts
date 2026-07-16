@@ -54,14 +54,6 @@ export interface PublicMember {
   pompfen: Pompfe[];
 }
 
-/** An upcoming event the team is entered in, shown publicly. */
-export interface Training {
-  eventId: string;
-  name: string;
-  startsAt: string;
-  locationLabel: string;
-}
-
 /** The public team page (feature 009). */
 export interface TeamPublicDetail {
   slug: string;
@@ -74,7 +66,6 @@ export interface TeamPublicDetail {
   viewerRelation: TeamViewerRelation;
   roster: PublicMember[];
   recentActivity: ActivityItem[];
-  upcomingTrainings: Training[];
   /** Feature 012 — the team's earned badges & achievements. */
   badges: EarnedRecognition[];
   achievements: EarnedRecognition[];

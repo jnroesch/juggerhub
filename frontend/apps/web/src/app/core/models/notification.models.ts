@@ -14,7 +14,9 @@ export type NotificationType =
   | 'TeamNews'
   | 'PartyRequest'
   | 'PartyNews'
-  | 'MarketInvite';
+  | 'MarketInvite'
+  | 'TrainingScheduled'
+  | 'TrainingUpdated';
 
 export interface TeamInvitePayload {
   invitationId: string;
@@ -57,12 +59,32 @@ export interface MarketInvitePayload {
   positions: string[];
 }
 
+/** Training heads-up (feature 018) — a team scheduled a new series/one-off. */
+export interface TrainingScheduledPayload {
+  teamSlug: string;
+  trainingId: string;
+  trainingName: string;
+  sessionId: string | null;
+  isRecurring: boolean;
+}
+
+/** Training change notice (feature 018) — a series edit or a session cancellation. */
+export interface TrainingUpdatedPayload {
+  teamSlug: string;
+  trainingId: string;
+  sessionId: string | null;
+  trainingName: string;
+  kind: 'seriesEdit' | 'cancelled';
+}
+
 export type NotificationPayload =
   | TeamInvitePayload
   | TeamRoleChangedPayload
   | TeamNewsPayload
   | PartyPayload
-  | MarketInvitePayload;
+  | MarketInvitePayload
+  | TrainingScheduledPayload
+  | TrainingUpdatedPayload;
 
 export interface AppNotification {
   id: string;
@@ -113,4 +135,16 @@ export function isMarketInvite(
   n: AppNotification,
 ): n is AppNotification & { type: 'MarketInvite'; payload: MarketInvitePayload } {
   return n.type === 'MarketInvite';
+}
+
+export function isTrainingScheduled(
+  n: AppNotification,
+): n is AppNotification & { type: 'TrainingScheduled'; payload: TrainingScheduledPayload } {
+  return n.type === 'TrainingScheduled';
+}
+
+export function isTrainingUpdated(
+  n: AppNotification,
+): n is AppNotification & { type: 'TrainingUpdated'; payload: TrainingUpdatedPayload } {
+  return n.type === 'TrainingUpdated';
 }
