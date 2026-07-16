@@ -18,7 +18,7 @@ attendance, your-trainings-card, alerts rows). DESIGN.md wins on any conflict.
 ## Typography, numbers & voice
 
 - [x] CHK006 Headings use display face via `text-heading*`; body via `text-body*` (inherits global faces)
-- [~] CHK007 Times/counts — rendered in `text-body`/`text-caption`; not explicitly `font-mono`. Minor: consider mono for the date chip/times (follow-up)
+- [x] CHK007 Times, counts, and date-number chips are set in `font-mono` (session page, tab rows, series overview, dashboard agenda, wizard step/estimate)
 - [x] CHK008 Sentence case everywhere (headings, buttons, labels)
 - [x] CHK009 Nothing below 12px; body 16px
 - [x] CHK010 Copy addresses "you"/"we"; CTAs invite ("Set up a training", "Respond ›")
@@ -41,7 +41,7 @@ attendance, your-trainings-card, alerts rows). DESIGN.md wins on any conflict.
 
 - [~] CHK019 Transitions — relies on default utility transitions; no custom durations added (acceptable, no motion introduced)
 - [x] CHK020 Focus visible (global focus-ring styles apply to buttons/links/inputs)
-- [~] CHK021 Buttons — hover uses `hover:bg-brand-hover`/`hover:bg-surface-sunken`; no explicit press-nudge (follow-up if desired)
+- [x] CHK021 Buttons darken on hover (primary CTAs also gain `hover:shadow-coral`) and nudge down 1px on press via `active:translate-y-px` with `transition-all duration-fast` (CTAs, RSVP toggles, manage actions, dashboard RSVP)
 - [x] CHK022 No infinite decorative animation
 
 ## Iconography
@@ -69,5 +69,5 @@ attendance, your-trainings-card, alerts rows). DESIGN.md wins on any conflict.
 
 ## Notes
 
-- Known follow-ups (non-blocking): CHK007 — mono face for times/counts; CHK021 — press-state nudge on buttons.
+- All standing DESIGN.md checks and feature-specific checks now pass.
 - `.html` / `.css` / `.ts` kept separate per component (constitution VI).

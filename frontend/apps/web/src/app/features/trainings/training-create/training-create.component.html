@@ -3,7 +3,7 @@
     <button type="button" (click)="step() === 1 ? cancel() : back()" class="text-body-sm font-medium text-link hover:text-link-hover">
       {{ step() === 1 ? '✕ Cancel' : '‹ Back' }}
     </button>
-    <span class="text-caption text-muted">Step {{ step() }} of 5</span>
+    <span class="font-mono text-caption text-muted">Step {{ step() }} of 5</span>
   </div>
 
   <!-- Step 1: series or one-off + name -->
@@ -26,7 +26,7 @@
         class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
     </label>
     <button type="button" (click)="next()" [disabled]="!step1Valid()"
-      class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent disabled:opacity-50">Continue</button>
+      class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-50">Continue</button>
   }
 
   <!-- Step 2: schedule -->
@@ -64,11 +64,11 @@
         <input [(ngModel)]="endDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
       @if (summaryCount() !== null) {
-        <p class="mt-2xs text-caption text-muted">Ends on this date · about {{ summaryCount() }} sessions.</p>
+        <p class="mt-2xs text-caption text-muted">Ends on this date · about <span class="font-mono">{{ summaryCount() }}</span> sessions.</p>
       }
     }
     <button type="button" (click)="next()" [disabled]="!startDate || (isRecurring && !endDate)"
-      class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent disabled:opacity-50">Continue</button>
+      class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-50">Continue</button>
   }
 
   <!-- Step 3: location + description -->
@@ -91,7 +91,7 @@
       <textarea [(ngModel)]="description" rows="3" maxlength="2000" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body"></textarea>
     </label>
     <button type="button" (click)="next()" [disabled]="(locationKind === 'InPerson' && !location.trim()) || (locationKind === 'Virtual' && !virtualLink.trim())"
-      class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent disabled:opacity-50">Continue</button>
+      class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-50">Continue</button>
   }
 
   <!-- Step 4: visibility -->
@@ -108,14 +108,14 @@
         <p class="text-body-sm text-muted">Anyone with the link can view &amp; join — good for open mats. Outsiders show as guests.</p>
       </button>
     </div>
-    <button type="button" (click)="next()" class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent">Continue</button>
+    <button type="button" (click)="next()" class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px">Continue</button>
   }
 
   <!-- Step 5: review -->
   @if (step() === 5) {
     <h1 class="mt-md text-heading-lg font-semibold text-heading">Review &amp; create</h1>
     @if (isRecurring && summaryCount() !== null) {
-      <p class="mt-2xs text-body-sm text-muted">This makes about {{ summaryCount() }} sessions players can respond to.</p>
+      <p class="mt-2xs text-body-sm text-muted">This makes about <span class="font-mono">{{ summaryCount() }}</span> sessions players can respond to.</p>
     }
     <div class="mt-md rounded-lg border border-border-muted bg-surface-card p-md text-body-sm">
       <p class="font-medium text-heading">{{ name }}</p>
@@ -124,7 +124,7 @@
       <p class="text-muted">{{ visibility === 'Public' ? 'Public' : 'Team only' }}@if (isRecurring) { · until {{ endDate }} }</p>
     </div>
     @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
-    <button type="button" (click)="create()" [disabled]="busy()" class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent disabled:opacity-50">
+    <button type="button" (click)="create()" [disabled]="busy()" class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-50">
       {{ busy() ? 'Creating…' : 'Create training' }}
     </button>
   }

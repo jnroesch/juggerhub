@@ -3,7 +3,7 @@
   <div class="mt-sm flex items-center justify-between">
     <h1 class="text-heading-lg font-semibold text-heading">Trainings</h1>
     @if (isAdmin()) {
-      <a [routerLink]="['/t', slug(), 'trainings', 'new']" class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent hover:bg-brand-hover">+ New training</a>
+      <a [routerLink]="['/t', slug(), 'trainings', 'new']" class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px">+ New training</a>
     }
   </div>
 
@@ -19,7 +19,7 @@
       <h2 class="text-body-lg font-semibold text-heading">{{ isAdmin() ? 'No trainings yet' : 'Nothing scheduled' }}</h2>
       @if (isAdmin()) {
         <p class="mt-sm text-body-sm text-muted">Set a weekly session or a one-off — players get a spot to say if they're in.</p>
-        <a [routerLink]="['/t', slug(), 'trainings', 'new']" class="mt-md inline-block rounded-md bg-brand px-lg py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover">+ Set up a training</a>
+        <a [routerLink]="['/t', slug(), 'trainings', 'new']" class="mt-md inline-block rounded-md bg-brand px-lg py-sm text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px">+ Set up a training</a>
       } @else {
         <p class="mt-sm text-body-sm text-muted">When your team schedules a training, it'll show up here.</p>
       }
@@ -32,7 +32,7 @@
             class="flex items-center gap-md rounded-lg border border-border-muted bg-surface-card p-md hover:border-border-strong">
             <div class="flex w-12 shrink-0 flex-col items-center rounded-md bg-surface-sunken py-xs">
               <span class="text-caption uppercase text-muted">{{ shortDate(s.sessionDate).split(' ')[0] }}</span>
-              <span class="text-body-lg font-semibold text-heading">{{ s.sessionDate.slice(8, 10) }}</span>
+              <span class="font-mono text-body-lg font-semibold text-heading">{{ s.sessionDate.slice(8, 10) }}</span>
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-xs">
@@ -43,9 +43,9 @@
                 }
               </div>
               <p class="text-body-sm text-muted">
-                {{ time(s.startTime) }}–{{ time(s.endTime) }}@if (s.location) { · {{ s.location }} }
+                <span class="font-mono">{{ time(s.startTime) }}–{{ time(s.endTime) }}</span>@if (s.location) { · {{ s.location }} }
               </p>
-              <p class="text-caption text-muted">{{ s.goingCount }} going</p>
+              <p class="text-caption text-muted"><span class="font-mono">{{ s.goingCount }}</span> going</p>
             </div>
             <span class="shrink-0 text-body-sm font-medium"
               [class.text-success-fg]="s.myAnswer === 'Going'"
@@ -63,7 +63,7 @@
             <li class="rounded-md border border-border-muted bg-surface-card px-md py-sm">
               <p class="font-medium text-heading">{{ ser.name }}</p>
               <p class="text-caption text-muted">
-                {{ ser.weekday }} {{ time(ser.startTime) }} · {{ ser.upcomingCount }} upcoming@if (ser.endDate) { · until {{ shortDate(ser.endDate) }} }
+                {{ ser.weekday }} <span class="font-mono">{{ time(ser.startTime) }}</span> · <span class="font-mono">{{ ser.upcomingCount }}</span> upcoming@if (ser.endDate) { · until {{ shortDate(ser.endDate) }} }
               </p>
             </li>
           }
