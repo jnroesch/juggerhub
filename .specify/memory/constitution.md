@@ -309,10 +309,20 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
   centralized **docker-compose** file brings the full stack up locally.
 - **CI/CD** uses **GitHub Actions** with **Terraform**. Actions test and build the
   Docker images, push them to the **GitHub Container Registry (GHCR)**, and deploy
-  to **Azure App Services**.
+  to **Azure Kubernetes Service (AKS)**. The cluster pulls images from GHCR via an
+  `imagePullSecret` sourced from GitHub Environments (no dedicated registry service).
+- **One infrastructure definition, many environments.** The hosting setup is
+  described once in Terraform and applied to every environment (local dev is
+  compose; **Dev** and **Prod** are AKS, with **Staging** anticipated). Environments
+  are selected via **Terraform workspaces** with one `<env>.tfvars` per environment
+  and differ **only** in configuration/sizing (node/VM size, replica counts,
+  storage/compute, autoscaling) — never in the set or shape of resources.
 - **Terraform state** lives in a single Azure storage account (one container,
-  one state file per environment). The resource group holding that storage
-  account is managed **outside** Terraform. **Azure Key Vault is not used.**
+  one state file per environment — workspaces yield `env:/<env>/…` keys). The
+  resource group holding that storage account is managed **outside** Terraform
+  (a one-time bootstrap) and is never created/modified/destroyed by an apply.
+  **Azure Key Vault is not used** — deployed secrets and configuration flow from
+  **GitHub Environments** into Kubernetes Secrets/ConfigMaps at deploy time.
 - Backend↔frontend communication is primarily a **REST API**.
 
 ### VI. Consistent Conventions & Tooling
@@ -333,7 +343,8 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 | Auth | Microsoft Identity, argon2 (salted), JWT in httpOnly cookies |
 | Frontend | Angular + Nx + Tailwind CSS |
 | Containerization | Docker (per-service) + docker-compose (local) |
-| CI/CD | GitHub Actions, Terraform, GHCR → Azure App Services |
+| Orchestration (deployed) | Azure Kubernetes Service (AKS), Standard tier; PostgreSQL in-cluster |
+| CI/CD | GitHub Actions, Terraform (workspaces + per-env tfvars), GHCR → AKS |
 | Email | Mailpit (local), Resend (Dev/Prod) |
 | Package managers | NuGet (backend), npm (frontend) |
 
@@ -414,7 +425,13 @@ These gates apply to all changes and integrate with the Spec-Kit workflow in
   removals/redefinitions, **MINOR** for new principles/sections or materially
   expanded guidance, **PATCH** for clarifications and wording.
 
-**Version**: 1.1.0 | **Ratified**: 2026-06-29 | **Last Amended**: 2026-07-09
+**Version**: 1.2.0 | **Ratified**: 2026-06-29 | **Last Amended**: 2026-07-11
 
+> **1.2.0** (2026-07-11, MINOR): Principle V deployment target changed from **Azure
+> App Services** to **Azure Kubernetes Service (AKS)** (feature 015); added explicit
+> guidance on one-definition/many-environments (Terraform workspaces + per-env
+> tfvars), workspace-keyed state, and GitHub-Environments→K8s-Secrets injection.
+> Registry (GHCR) and the no-Key-Vault rule are unchanged.
+>
 > **1.1.0** (2026-07-09, MINOR): added Quality Gate 7 (UI/Design compliance) — a
 > DESIGN.md-derived UI review checklist run before verification on UI-bearing changes.

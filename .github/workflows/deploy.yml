@@ -8,15 +8,20 @@ on:
       - completed
     branches: [main]
 
-# Deploy jobs pull the images published by the Build workflow from GHCR.
+# Deploy jobs pull the images published by the Build workflow from GHCR and run
+# `terraform apply` against AKS. id-token:write is required for Azure OIDC login.
 permissions:
   contents: read
   packages: read
+  id-token: write
 
 # Serialize deploys so two runs can't race on the same environment.
 concurrency:
   group: deploy-${{ github.ref }}
   cancel-in-progress: false
+
+env:
+  TF_VERSION: "1.12.2"
 
 jobs:
   # --- dev: always runs once Build succeeds (or on manual dispatch) -----------
@@ -30,33 +35,156 @@ jobs:
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
 
+    env:
+      TF_WORKSPACE_ENV: dev
+      TFVARS: envs/dev.tfvars
+      # Terraform azurerm auth (backend + provider) via the CI service principal (OIDC).
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      # Secrets injected as Terraform variables (from the `development` Environment).
+      TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_postgres_password: ${{ secrets.POSTGRES_PASSWORD }}
+      TF_VAR_jwt_signing_key: ${{ secrets.JWT_SIGNING_KEY }}
+      TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
+      TF_VAR_admin_emails: ${{ secrets.ADMIN_EMAILS }}
+      TF_VAR_ghcr_pull_token: ${{ secrets.GHCR_PULL_TOKEN }}
+
     steps:
       - uses: actions/checkout@v4
 
-      # TODO: replace placeholders with the real dev deploy once the target is known.
-      # The images are at:
-      #   ghcr.io/${{ github.repository }}/backend
-      #   ghcr.io/${{ github.repository }}/frontend
-      # Typical shape:
-      #   - docker/login-action@v3 (registry: ghcr.io, token: GITHUB_TOKEN) to pull
-      #   - deploy step (ssh / k8s / compose on host) using dev secrets from this
-      #     `development` environment (JWT_SIGNING_KEY, DB creds, etc.)
-      - name: Deploy to dev
-        run: echo "Deploy to DEV — target not yet configured"
+      - name: Resolve image tag (matches build.yml `type=sha`)
+        id: img
+        run: |
+          SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
+          echo "tag=sha-${SHA:0:7}" >> "$GITHUB_OUTPUT"
 
-  # --- prod: only after dev succeeds, and gated by manual approval -----------
-  # Manual approval is enforced by a "Required reviewers" protection rule on the
-  # `production` GitHub Environment (Settings → Environments → production).
-  # `needs: deploy-dev` enforces the "prod only after a successful dev deploy" order.
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      # NOTE: the FIRST provisioning of an environment (empty subscription) is done
+      # manually by an operator — see infra/README (two-phase apply for a fresh
+      # cluster). This pipeline handles ongoing rollouts, where only image_tag changes.
+      - name: Terraform apply
+        working-directory: infra
+        run: |
+          terraform init
+          terraform workspace select "$TF_WORKSPACE_ENV" || terraform workspace new "$TF_WORKSPACE_ENV"
+          VARS=(-input=false -auto-approve
+            -var-file="$TFVARS"
+            -var="image_tag=${{ steps.img.outputs.tag }}"
+            -var="image_repo_backend=ghcr.io/${{ github.repository }}/backend"
+            -var="image_repo_frontend=ghcr.io/${{ github.repository }}/frontend"
+            -var="ghcr_username=${{ github.repository_owner }}")
+          # Phase 1 (fresh cluster only; a no-op on every later run): create the
+          # cluster + platform Helm charts so cert-manager's CRDs exist BEFORE the
+          # ClusterIssuer manifests are planned. Avoids the kubernetes_manifest
+          # "cannot connect / CRD not found" failure on first apply.
+          terraform apply "${VARS[@]}" \
+            -target=module.network -target=module.aks \
+            -target=azurerm_role_assignment.aks_ingress_ip \
+            -target=module.platform.helm_release.ingress_nginx \
+            -target=module.platform.helm_release.cert_manager
+          # Phase 2: converge everything (issuers + app + ingress).
+          terraform apply "${VARS[@]}"
+
+      - name: Smoke test
+        working-directory: infra
+        run: |
+          RG="rg-juggerhub-${TF_WORKSPACE_ENV}"
+          CLUSTER="aks-juggerhub-${TF_WORKSPACE_ENV}"
+          az aks get-credentials -g "$RG" -n "$CLUSTER" --overwrite-existing
+          kubectl -n juggerhub rollout status deploy/backend --timeout=180s
+          kubectl -n juggerhub rollout status deploy/frontend --timeout=180s
+          kubectl -n juggerhub rollout status statefulset/postgres --timeout=180s
+          HOST="$(terraform output -raw ingress_host)"
+          # Best-effort: cert/DNS may still be settling on a brand-new host.
+          curl -fsS --retry 5 --retry-delay 10 "https://${HOST}/api/v1/health" || \
+            echo "::warning::health check not green yet (DNS/cert may still be propagating)"
+
+  # --- prod: only after dev succeeds, gated by manual approval ----------------
+  # The `production` Environment has a Required-reviewers rule (you approve each
+  # prod deploy from the Actions run). `needs: deploy-dev` enforces dev-before-prod.
   deploy-prod:
     runs-on: ubuntu-latest
     needs: deploy-dev
     environment: production
 
+    env:
+      TF_WORKSPACE_ENV: prod
+      TFVARS: envs/prod.tfvars
+      ARM_USE_OIDC: "true"
+      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+      TF_VAR_postgres_password: ${{ secrets.POSTGRES_PASSWORD }}
+      TF_VAR_jwt_signing_key: ${{ secrets.JWT_SIGNING_KEY }}
+      TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
+      TF_VAR_admin_emails: ${{ secrets.ADMIN_EMAILS }}
+      TF_VAR_ghcr_pull_token: ${{ secrets.GHCR_PULL_TOKEN }}
+
     steps:
       - uses: actions/checkout@v4
 
-      # TODO: replace placeholders with the real prod deploy once the target is known.
-      # Same shape as dev, but using prod secrets from the `production` environment.
-      - name: Deploy to prod
-        run: echo "Deploy to PROD — target not yet configured"
+      - name: Resolve image tag (matches build.yml `type=sha`)
+        id: img
+        run: |
+          SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
+          echo "tag=sha-${SHA:0:7}" >> "$GITHUB_OUTPUT"
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform apply
+        working-directory: infra
+        run: |
+          terraform init
+          terraform workspace select "$TF_WORKSPACE_ENV" || terraform workspace new "$TF_WORKSPACE_ENV"
+          VARS=(-input=false -auto-approve
+            -var-file="$TFVARS"
+            -var="image_tag=${{ steps.img.outputs.tag }}"
+            -var="image_repo_backend=ghcr.io/${{ github.repository }}/backend"
+            -var="image_repo_frontend=ghcr.io/${{ github.repository }}/frontend"
+            -var="ghcr_username=${{ github.repository_owner }}")
+          # Phase 1 (fresh cluster only; a no-op on every later run): create the
+          # cluster + platform Helm charts so cert-manager's CRDs exist BEFORE the
+          # ClusterIssuer manifests are planned. Avoids the kubernetes_manifest
+          # "cannot connect / CRD not found" failure on first apply.
+          terraform apply "${VARS[@]}" \
+            -target=module.network -target=module.aks \
+            -target=azurerm_role_assignment.aks_ingress_ip \
+            -target=module.platform.helm_release.ingress_nginx \
+            -target=module.platform.helm_release.cert_manager
+          # Phase 2: converge everything (issuers + app + ingress).
+          terraform apply "${VARS[@]}"
+
+      - name: Smoke test
+        working-directory: infra
+        run: |
+          RG="rg-juggerhub-${TF_WORKSPACE_ENV}"
+          CLUSTER="aks-juggerhub-${TF_WORKSPACE_ENV}"
+          az aks get-credentials -g "$RG" -n "$CLUSTER" --overwrite-existing
+          kubectl -n juggerhub rollout status deploy/backend --timeout=180s
+          kubectl -n juggerhub rollout status deploy/frontend --timeout=180s
+          kubectl -n juggerhub rollout status statefulset/postgres --timeout=180s
+          HOST="$(terraform output -raw ingress_host)"
+          curl -fsS --retry 5 --retry-delay 10 "https://${HOST}/api/v1/health" || \
+            echo "::warning::health check not green yet (DNS/cert may still be propagating)"

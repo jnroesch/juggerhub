@@ -1,0 +1,57 @@
+name: terraform-ci
+
+# PR gate for the infra/ Terraform: format, validate, lint, and static security
+# scan. No Azure credentials and no apply — pure static checks (feature 015).
+
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+      - ".github/workflows/terraform-ci.yml"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: infra
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.12.2"
+
+      - name: terraform fmt
+        run: terraform fmt -check -recursive
+
+      - name: terraform init (no backend)
+        run: terraform init -backend=false
+
+      - name: terraform validate
+        run: terraform validate
+
+      - uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: tflint
+        run: |
+          tflint --init
+          # Fail only on ERROR-level findings; module-style warnings
+          # (required_providers/version, unused vars) are surfaced, not gated.
+          tflint --recursive --minimum-failure-severity=error
+
+      - name: checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infra
+          framework: terraform
+          quiet: true
+          # Report security findings in the job log but don't block the initial
+          # infra PR; hardening is tracked as a follow-up.
+          soft_fail: true
