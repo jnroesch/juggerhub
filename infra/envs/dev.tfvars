@@ -25,7 +25,7 @@ aspnetcore_environment = "Development"
 app_hostname           = "dev.juggerhub.com"
 enable_www_redirect    = false
 enable_tls             = true
-letsencrypt_issuer     = "letsencrypt-staging"
+letsencrypt_issuer     = "letsencrypt-prod"
 acme_email             = "admin@juggerhub.com"
 
 # Lock the API server to your CI + operator IPs (fill in real CIDRs), or leave [] open.
