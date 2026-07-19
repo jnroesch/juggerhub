@@ -2,11 +2,6 @@ name: Deploy
 
 on:
   workflow_dispatch:
-    inputs:
-      deploy_prod:
-        description: "Also deploy to production (prod approval gate — Free plan has no environment protection rules)"
-        type: boolean
-        default: false
   workflow_run:
     workflows: ["Build"]
     types:
@@ -116,16 +111,13 @@ jobs:
           curl -fsS --retry 5 --retry-delay 10 "https://${HOST}/api/v1/health" || \
             echo "::warning::health check not green yet (DNS/cert may still be propagating)"
 
-  # --- prod: manual, and only after dev succeeds -----------------------------
-  # This is a PRIVATE repo on the Free plan, which has no Environment "Required
-  # reviewers" protection rule. So prod never deploys automatically: it runs only
-  # on a manual `workflow_dispatch` with the `deploy_prod` input checked. Merges to
-  # main auto-deploy DEV only. `needs: deploy-dev` keeps the dev-before-prod order.
+  # --- prod: only after dev succeeds, gated by manual approval ----------------
+  # The `production` Environment has a Required-reviewers rule (you approve each
+  # prod deploy from the Actions run). `needs: deploy-dev` enforces dev-before-prod.
   deploy-prod:
     runs-on: ubuntu-latest
     needs: deploy-dev
     environment: production
-    if: github.event_name == 'workflow_dispatch' && inputs.deploy_prod
 
     env:
       TF_WORKSPACE_ENV: prod
