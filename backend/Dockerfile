@@ -3,7 +3,7 @@
 
 # --- build: restore + publish the API ---------------------------------------
 # SDK pinned to match backend/global.json and CI.
-FROM mcr.microsoft.com/dotnet/sdk:10.0.203 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.302 AS build
 WORKDIR /src
 
 # Copy global.json first so `dotnet` enforces the pinned SDK for every command below.
