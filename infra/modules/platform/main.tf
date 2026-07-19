@@ -10,23 +10,25 @@ resource "helm_release" "ingress_nginx" {
   create_namespace = true
 
   # Bind the Azure LB to the pre-allocated static IP that lives in the network RG.
-  set {
-    name  = "controller.service.loadBalancerIP"
-    value = var.public_ip_address
-  }
-  set {
-    name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/azure-load-balancer-resource-group"
-    value = var.public_ip_resource_group
-  }
-  set {
-    name  = "controller.ingressClassResource.name"
-    value = var.ingress_class_name
-  }
-  # Preserve the client source IP.
-  set {
-    name  = "controller.service.externalTrafficPolicy"
-    value = "Local"
-  }
+  set = [
+    {
+      name  = "controller.service.loadBalancerIP"
+      value = var.public_ip_address
+    },
+    {
+      name  = "controller.service.annotations.service\\.beta\\.kubernetes\\.io/azure-load-balancer-resource-group"
+      value = var.public_ip_resource_group
+    },
+    {
+      name  = "controller.ingressClassResource.name"
+      value = var.ingress_class_name
+    },
+    # Preserve the client source IP.
+    {
+      name  = "controller.service.externalTrafficPolicy"
+      value = "Local"
+    },
+  ]
 }
 
 resource "helm_release" "cert_manager" {
@@ -37,10 +39,12 @@ resource "helm_release" "cert_manager" {
   namespace        = "cert-manager"
   create_namespace = true
 
-  set {
-    name  = "crds.enabled"
-    value = "true"
-  }
+  set = [
+    {
+      name  = "crds.enabled"
+      value = "true"
+    },
+  ]
 }
 
 # Let's Encrypt issuers (staging for validation, prod for real certs), HTTP-01 via
