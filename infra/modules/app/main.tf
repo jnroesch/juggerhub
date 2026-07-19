@@ -6,6 +6,10 @@ locals {
   backend_image  = "${var.image_repo_backend}:${var.image_tag}"
   frontend_image = "${var.image_repo_frontend}:${var.image_tag}"
 
+  # ghcr_pull_token is sensitive; count/for_each can't derive from a sensitive value
+  # (older Terraform rejects it). Declassify only the "is a token set?" boolean.
+  ghcr_enabled = nonsensitive(var.ghcr_pull_token != "")
+
   tls_hosts = var.enable_www_redirect ? [var.app_hostname, "www.${var.app_hostname}"] : [var.app_hostname]
 
   ingress_annotations = merge(
@@ -73,7 +77,7 @@ resource "kubernetes_secret_v1" "postgres" {
 resource "kubernetes_secret_v1" "ghcr" {
   # Optional: only needed for PRIVATE GHCR packages. With public packages, leave
   # ghcr_pull_token empty and pods pull anonymously (no imagePullSecret).
-  count = var.ghcr_pull_token != "" ? 1 : 0
+  count = local.ghcr_enabled ? 1 : 0
 
   metadata {
     name      = "ghcr-pull"
@@ -195,7 +199,7 @@ resource "kubernetes_deployment_v1" "backend" {
       }
       spec {
         dynamic "image_pull_secrets" {
-          for_each = var.ghcr_pull_token != "" ? [1] : []
+          for_each = local.ghcr_enabled ? [1] : []
           content {
             name = kubernetes_secret_v1.ghcr[0].metadata[0].name
           }
@@ -270,7 +274,7 @@ resource "kubernetes_deployment_v1" "frontend" {
       }
       spec {
         dynamic "image_pull_secrets" {
-          for_each = var.ghcr_pull_token != "" ? [1] : []
+          for_each = local.ghcr_enabled ? [1] : []
           content {
             name = kubernetes_secret_v1.ghcr[0].metadata[0].name
           }
