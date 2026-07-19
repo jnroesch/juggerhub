@@ -166,7 +166,9 @@ test('admin: catalogue — create, edit, retire, then reinstate a badge type (fe
   await page.getByTestId('catalogue-form-description').fill('Created by e2e.');
   await page.getByTestId('catalogue-form-save').click();
   await expect(page.getByTestId('catalogue-form')).toHaveCount(0);
-  await expect(page.getByText(name)).toBeVisible();
+  // The list renders a desktop table and a mobile card list at once (only CSS hides
+  // one), so the name appears twice in the DOM — scope to the visible row.
+  await expect(row()).toBeVisible();
 
   // Edit its description.
   await row().getByTestId('catalogue-edit').click();
@@ -188,7 +190,7 @@ test('admin: catalogue — create, edit, retire, then reinstate a badge type (fe
 
   // It is active again.
   await page.getByTestId('catalogue-filter-active').click();
-  await expect(page.getByText(name)).toBeVisible();
+  await expect(row()).toBeVisible();
 });
 
 test('admin: assign a badge to a team, see it on the public page, then revoke it (feature 014)', async ({ page, request }) => {
@@ -217,7 +219,10 @@ test('admin: assign a badge to a team, see it on the public page, then revoke it
   await page.getByTestId('admin-nav-teams').filter({ visible: true }).first().click();
   await expect(page).toHaveURL((u) => u.pathname.endsWith('/admin/teams'));
   await page.getByTestId('admin-teams-search').fill(slug);
-  await page.getByTestId('admin-teams-row').filter({ visible: true }).first().click();
+  // Search is debounced and the DB holds teams from other specs, so scope the click to the
+  // row for this team (name contains the slug) — this also waits out the debounce/reload
+  // instead of clicking whatever row was showing before results narrowed.
+  await page.getByTestId('admin-teams-row').filter({ hasText: slug }).filter({ visible: true }).first().click();
   await expect(page).toHaveURL((u) => u.pathname.endsWith(`/admin/teams/${slug}`));
 
   await page.getByTestId('assign').click();
