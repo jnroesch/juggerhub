@@ -79,12 +79,23 @@ jobs:
         run: |
           terraform init
           terraform workspace select "$TF_WORKSPACE_ENV" || terraform workspace new "$TF_WORKSPACE_ENV"
-          terraform apply -auto-approve -input=false \
-            -var-file="$TFVARS" \
-            -var="image_tag=${{ steps.img.outputs.tag }}" \
-            -var="image_repo_backend=ghcr.io/${{ github.repository }}/backend" \
-            -var="image_repo_frontend=ghcr.io/${{ github.repository }}/frontend" \
-            -var="ghcr_username=${{ github.repository_owner }}"
+          VARS=(-input=false -auto-approve
+            -var-file="$TFVARS"
+            -var="image_tag=${{ steps.img.outputs.tag }}"
+            -var="image_repo_backend=ghcr.io/${{ github.repository }}/backend"
+            -var="image_repo_frontend=ghcr.io/${{ github.repository }}/frontend"
+            -var="ghcr_username=${{ github.repository_owner }}")
+          # Phase 1 (fresh cluster only; a no-op on every later run): create the
+          # cluster + platform Helm charts so cert-manager's CRDs exist BEFORE the
+          # ClusterIssuer manifests are planned. Avoids the kubernetes_manifest
+          # "cannot connect / CRD not found" failure on first apply.
+          terraform apply "${VARS[@]}" \
+            -target=module.network -target=module.aks \
+            -target=azurerm_role_assignment.aks_ingress_ip \
+            -target=module.platform.helm_release.ingress_nginx \
+            -target=module.platform.helm_release.cert_manager
+          # Phase 2: converge everything (issuers + app + ingress).
+          terraform apply "${VARS[@]}"
 
       - name: Smoke test
         working-directory: infra
@@ -148,12 +159,23 @@ jobs:
         run: |
           terraform init
           terraform workspace select "$TF_WORKSPACE_ENV" || terraform workspace new "$TF_WORKSPACE_ENV"
-          terraform apply -auto-approve -input=false \
-            -var-file="$TFVARS" \
-            -var="image_tag=${{ steps.img.outputs.tag }}" \
-            -var="image_repo_backend=ghcr.io/${{ github.repository }}/backend" \
-            -var="image_repo_frontend=ghcr.io/${{ github.repository }}/frontend" \
-            -var="ghcr_username=${{ github.repository_owner }}"
+          VARS=(-input=false -auto-approve
+            -var-file="$TFVARS"
+            -var="image_tag=${{ steps.img.outputs.tag }}"
+            -var="image_repo_backend=ghcr.io/${{ github.repository }}/backend"
+            -var="image_repo_frontend=ghcr.io/${{ github.repository }}/frontend"
+            -var="ghcr_username=${{ github.repository_owner }}")
+          # Phase 1 (fresh cluster only; a no-op on every later run): create the
+          # cluster + platform Helm charts so cert-manager's CRDs exist BEFORE the
+          # ClusterIssuer manifests are planned. Avoids the kubernetes_manifest
+          # "cannot connect / CRD not found" failure on first apply.
+          terraform apply "${VARS[@]}" \
+            -target=module.network -target=module.aks \
+            -target=azurerm_role_assignment.aks_ingress_ip \
+            -target=module.platform.helm_release.ingress_nginx \
+            -target=module.platform.helm_release.cert_manager
+          # Phase 2: converge everything (issuers + app + ingress).
+          terraform apply "${VARS[@]}"
 
       - name: Smoke test
         working-directory: infra

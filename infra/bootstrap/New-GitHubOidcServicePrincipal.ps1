@@ -72,9 +72,17 @@ function Add-FederatedCredential {
     param([string] $Name, [string] $Subject)
     $exists = az ad app federated-credential list --id $appId --query "[?name=='$Name'] | [0].name" -o tsv
     if ($exists) { Write-Host "    fed-cred '$Name' exists"; return }
-    $params = @{ name = $Name; issuer = $issuer; subject = $Subject; audiences = @($audience) } | ConvertTo-Json -Compress
-    az ad app federated-credential create --id $appId --parameters $params | Out-Null
-    Write-Host "    added fed-cred '$Name' -> $Subject"
+    # Pass JSON via a temp FILE — PowerShell mangles inline JSON quoting for az.
+    $params = [ordered]@{ name = $Name; issuer = $issuer; subject = $Subject; audiences = @($audience) } | ConvertTo-Json -Depth 5
+    $tmp = New-TemporaryFile
+    try {
+        $params | Out-File -FilePath $tmp.FullName -Encoding utf8
+        az ad app federated-credential create --id $appId --parameters $tmp.FullName | Out-Null
+        Write-Host "    added fed-cred '$Name' -> $Subject"
+    }
+    finally {
+        Remove-Item $tmp.FullName -Force -ErrorAction SilentlyContinue
+    }
 }
 
 Write-Host "==> Federated credentials for $RepoOwner/$RepoName" -ForegroundColor Cyan
