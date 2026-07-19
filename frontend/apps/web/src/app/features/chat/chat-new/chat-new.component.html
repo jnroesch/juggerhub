@@ -1,0 +1,133 @@
+<section class="mx-auto max-w-container-sm px-md py-2xl" data-testid="chat-new">
+  <div class="flex items-center justify-between gap-md">
+    <a
+      routerLink="/chat"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      aria-label="Cancel"
+    >
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 6 6 18M6 6l12 12" />
+      </svg>
+    </a>
+
+    <h1 class="text-h4 text-heading">New chat</h1>
+
+    <button
+      type="button"
+      (click)="start()"
+      [disabled]="!canStart()"
+      class="min-h-11 rounded-md px-sm text-body-md font-semibold text-link transition-colors duration-fast hover:bg-surface-sunken disabled:cursor-not-allowed disabled:text-subtle disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      data-testid="start-chat"
+    >
+      Start
+    </button>
+  </div>
+
+  @if (error(); as err) {
+    <p class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
+      {{ err }}
+    </p>
+  }
+
+  <!-- The name field appears exactly when the pick becomes a group -->
+  @if (isGroup()) {
+    <label class="mt-lg block">
+      <span class="text-body-sm font-medium text-body">Group name</span>
+      <input
+        [ngModel]="name()"
+        (ngModelChange)="name.set($event)"
+        name="group-name"
+        type="text"
+        maxlength="120"
+        placeholder="Weekend crew"
+        class="mt-xs min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
+        data-testid="group-name"
+      />
+    </label>
+  }
+
+  <label class="mt-lg block">
+    <span class="sr-only">Add people</span>
+    <input
+      type="search"
+      [ngModel]="term()"
+      (ngModelChange)="onTermChange($event)"
+      name="people-search"
+      placeholder="Add people"
+      class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
+      data-testid="people-search"
+    />
+  </label>
+
+  <!-- Picked people as removable chips -->
+  @if (selected().length > 0) {
+    <ul class="mt-sm flex flex-wrap gap-xs" data-testid="selected-people">
+      @for (p of selected(); track p.userId) {
+        <li>
+          <button
+            type="button"
+            (click)="remove(p.userId)"
+            class="inline-flex min-h-11 items-center gap-xs rounded-pill border border-border-default bg-surface-card px-sm text-body-sm text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            [attr.aria-label]="'Remove ' + p.displayName"
+          >
+            {{ p.displayName }}
+            <svg class="size-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (searching()) {
+    <p class="mt-md text-body-sm text-muted">Searching…</p>
+  }
+
+  @if (hasTerm() && !searching() && people().length === 0) {
+    <p class="mt-lg text-center text-body-sm text-muted">Nobody matched “{{ term() }}”.</p>
+  }
+
+  @if (people().length > 0) {
+    <ul class="mt-md divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card" data-testid="people-results">
+      @for (p of people(); track p.userId) {
+        <li>
+          <button
+            type="button"
+            (click)="toggle(p)"
+            class="flex w-full items-center gap-sm px-md py-sm text-left transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            [attr.aria-pressed]="isSelected(p.userId)"
+          >
+            <span
+              class="inline-flex size-5 shrink-0 items-center justify-center rounded-xs border"
+              [class]="isSelected(p.userId) ? 'border-brand bg-brand text-on-accent' : 'border-border-strong'"
+              aria-hidden="true"
+            >
+              @if (isSelected(p.userId)) {
+                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 6 9 17l-5-5" />
+                </svg>
+              }
+            </span>
+
+            <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+
+            <span class="min-w-0 flex-1">
+              <span class="block truncate text-body-md text-body">{{ p.displayName }}</span>
+              @if (p.handle) {
+                <span class="block truncate text-body-sm text-subtle">&#64;{{ p.handle }}</span>
+              }
+            </span>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+  @if (!hasTerm() && selected().length === 0) {
+    <p class="mt-lg text-center text-body-sm text-muted" data-testid="new-chat-hint">
+      Search for anyone on JuggerHub. Pick one person for a direct message, or two or more to start a
+      named group.
+    </p>
+  }
+</section>

@@ -296,7 +296,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/015-hosting/plan.md` (Azure AKS Hosting & Infrastructure-as-Code).
+`specs/019-chat/plan.md` (Chat).
 <!-- SPECKIT END -->
 
 ## GitHub Issues Workflow

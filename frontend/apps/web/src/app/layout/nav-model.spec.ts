@@ -1,4 +1,4 @@
-import { isActiveDestination, myTeamTarget } from './nav-model';
+import { NAV_DESTINATIONS, badgeText, isActiveDestination, myTeamTarget } from './nav-model';
 import { MyTeam } from '../core/models/home.models';
 
 const team = (slug: string): MyTeam => ({ slug, name: slug, role: 'Member' });
@@ -29,9 +29,46 @@ describe('nav-model', () => {
       expect(isActiveDestination('alerts', '/')).toBe(false);
     });
 
+    it('marks Chat active on the inbox and on an open conversation', () => {
+      expect(isActiveDestination('chat', '/chat')).toBe(true);
+      expect(isActiveDestination('chat', '/chat/0198e1f2-0000-7000-8000-000000000001')).toBe(true);
+      expect(isActiveDestination('chat', '/')).toBe(false);
+      expect(isActiveDestination('chat', '/alerts')).toBe(false);
+    });
+
     it('ignores query and fragment', () => {
       expect(isActiveDestination('home', '/?x=1')).toBe(true);
       expect(isActiveDestination('alerts', '/alerts#top')).toBe(true);
+      expect(isActiveDestination('chat', '/chat#latest')).toBe(true);
+    });
+  });
+
+  describe('NAV_DESTINATIONS', () => {
+    it('exposes Chat as a top-level destination (feature 019)', () => {
+      const chat = NAV_DESTINATIONS.find((d) => d.id === 'chat');
+      expect(chat).toEqual({ id: 'chat', label: 'Chat', path: '/chat' });
+    });
+
+    it('labels every destination in sentence case (DESIGN.md)', () => {
+      for (const d of NAV_DESTINATIONS) {
+        expect(d.label).not.toEqual(d.label.toUpperCase());
+      }
+    });
+  });
+
+  describe('badgeText', () => {
+    // Shared by the Alerts bell (010) and the Chat destination (019) so two badges in the same nav
+    // cannot cap differently.
+    it('is empty when nothing is unread', () => {
+      expect(badgeText(0)).toBe('');
+      expect(badgeText(-1)).toBe('');
+    });
+
+    it('shows the count up to 9 and caps beyond', () => {
+      expect(badgeText(1)).toBe('1');
+      expect(badgeText(9)).toBe('9');
+      expect(badgeText(10)).toBe('9+');
+      expect(badgeText(1200)).toBe('9+');
     });
   });
 

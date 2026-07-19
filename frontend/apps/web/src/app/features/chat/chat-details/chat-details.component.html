@@ -1,0 +1,187 @@
+<section class="mx-auto max-w-container-sm px-md py-lg" data-testid="chat-details">
+  <div class="flex items-center gap-sm">
+    <a
+      [routerLink]="['/chat', conversationId()]"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden"
+      aria-label="Back to the chat"
+    >
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+    </a>
+    <h1 class="text-h4 text-heading">Details</h1>
+  </div>
+
+  @if (loading()) {
+    <div class="mt-lg space-y-md" aria-hidden="true">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="h-12 animate-pulse rounded-lg bg-surface-sunken"></div>
+      }
+    </div>
+  }
+
+  @if (failed()) {
+    <p class="mt-lg rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
+      We couldn't load these details.
+    </p>
+  }
+
+  @if (detail(); as d) {
+    <div class="mt-lg text-center">
+      <span class="mx-auto block size-20 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+      <h2 class="mt-sm text-h4 text-heading">{{ d.name }}</h2>
+      <p class="text-body-sm text-muted">
+        <span class="font-mono">{{ d.memberCount }}</span>
+        @if (d.memberCount === 1) { member } @else { members }
+        @if (d.kind === 'Group') { · group } @else if (d.kind === 'Team') { · team chat } @else if (d.kind === 'Party') { · party chat }
+      </p>
+
+      @if (d.state === 'Archived') {
+        <p class="mt-xs text-body-sm text-subtle">This chat is closed — you can still read it.</p>
+      }
+    </div>
+
+    <!-- Members -->
+    <div class="mt-lg flex items-center justify-between">
+      <h3 class="text-eyebrow uppercase tracking-eyebrow text-muted">
+        Members · <span class="font-mono">{{ d.memberCount }}</span>
+      </h3>
+
+      @if (d.canAddMembers) {
+        <a
+          [routerLink]="['/chat', d.id, 'add']"
+          class="min-h-11 rounded-md px-sm text-body-sm font-medium text-link transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          data-testid="add-people"
+        >
+          + Add
+        </a>
+      }
+    </div>
+
+    <ul class="mt-sm divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card" data-testid="member-list">
+      @for (m of members(); track m.userId) {
+        <li class="flex items-center gap-sm px-md py-sm">
+          <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+          <span class="min-w-0 flex-1">
+            <span class="block truncate text-body-md text-body">
+              {{ m.displayName }}
+              @if (m.isYou) {<span class="text-body-sm text-subtle"> · you</span>}
+            </span>
+            @if (m.viaMarket) {
+              <span class="text-body-sm text-subtle">guest · via market</span>
+            }
+          </span>
+        </li>
+      }
+    </ul>
+
+    <!-- Controls -->
+    <div class="mt-lg space-y-sm">
+      <button
+        type="button"
+        (click)="toggleMute()"
+        [disabled]="busy()"
+        class="flex min-h-11 w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body transition-colors duration-fast hover:bg-surface-sunken disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        data-testid="toggle-mute"
+      >
+        <span>{{ d.isMuted ? 'Unmute this chat' : 'Mute this chat' }}</span>
+        <svg class="size-5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M8.7 3A6 6 0 0 1 18 8c0 2.5.5 4 1 5M6 8a6 6 0 0 0-.4 2c0 4-2 5-2 5h13M9 18a3 3 0 0 0 6 0M2 2l20 20" />
+        </svg>
+      </button>
+
+      <button
+        type="button"
+        (click)="hide()"
+        [disabled]="busy()"
+        class="flex min-h-11 w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body transition-colors duration-fast hover:bg-surface-sunken disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        data-testid="hide-chat"
+      >
+        <span>Hide from my messages</span>
+        <svg class="size-5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9.9 4.2A9 9 0 0 1 12 4c7 0 10 8 10 8a18 18 0 0 1-2.2 3.2M6.6 6.6A18 18 0 0 0 2 12s3 8 10 8a9 9 0 0 0 5.4-1.6M2 2l20 20M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+        </svg>
+      </button>
+
+      <!--
+        A team/party chat offers no Leave: membership follows the roster (FR-026), so the server
+        would refuse it. The flag comes from the API rather than being inferred here.
+      -->
+      @if (d.canLeave) {
+        @if (confirmingLeave()) {
+          <div class="rounded-md border border-danger-border bg-danger-bg p-md">
+            <p class="text-body-sm text-danger-fg">
+              Leave “{{ d.name }}”? The group carries on without you.
+            </p>
+            <div class="mt-sm flex gap-sm">
+              <button
+                type="button"
+                (click)="leave()"
+                [disabled]="busy()"
+                class="min-h-11 flex-1 rounded-md border border-danger-border bg-surface-card px-md text-body-md font-medium text-danger-fg transition-colors duration-fast hover:bg-danger-bg disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                data-testid="confirm-leave"
+              >
+                Leave chat
+              </button>
+              <button
+                type="button"
+                (click)="confirmingLeave.set(false)"
+                class="min-h-11 flex-1 rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                Keep it
+              </button>
+            </div>
+          </div>
+        } @else {
+          <button
+            type="button"
+            (click)="confirmingLeave.set(true)"
+            class="min-h-11 w-full rounded-md border border-danger-border bg-surface-card px-md text-body-md font-medium text-danger-fg transition-colors duration-fast hover:bg-danger-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            data-testid="leave-chat"
+          >
+            Leave chat
+          </button>
+        }
+      }
+
+      <!-- Block: DMs only. A block never touches a group you both belong to (FR-032). -->
+      @if (canBlock() && otherMember(); as other) {
+        @if (confirmingBlock()) {
+          <div class="rounded-md border border-danger-border bg-danger-bg p-md">
+            <p class="text-body-sm text-danger-fg">
+              Block {{ other.displayName }}? They won't be able to message you, and this chat leaves your
+              inbox. You'll both still take part in any group you share.
+            </p>
+            <div class="mt-sm flex gap-sm">
+              <button
+                type="button"
+                (click)="block()"
+                [disabled]="busy()"
+                class="min-h-11 flex-1 rounded-md border border-danger-border bg-surface-card px-md text-body-md font-medium text-danger-fg transition-colors duration-fast hover:bg-danger-bg disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                data-testid="confirm-block"
+              >
+                Block
+              </button>
+              <button
+                type="button"
+                (click)="confirmingBlock.set(false)"
+                class="min-h-11 flex-1 rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        } @else {
+          <button
+            type="button"
+            (click)="confirmingBlock.set(true)"
+            class="min-h-11 w-full rounded-md border border-danger-border bg-surface-card px-md text-body-md font-medium text-danger-fg transition-colors duration-fast hover:bg-danger-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            data-testid="block-user"
+          >
+            Block {{ other.displayName }}
+          </button>
+        }
+      }
+    </div>
+  }
+</section>

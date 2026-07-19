@@ -1,0 +1,206 @@
+<section class="mx-auto max-w-container-md px-md py-2xl" data-testid="chat-inbox">
+  <div class="flex items-center justify-between gap-md">
+    <h1 class="text-h3 text-heading">Messages</h1>
+
+    <a
+      routerLink="/chat/new"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-brand px-md text-body-md font-semibold text-on-accent shadow-sm transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      data-testid="new-chat"
+      aria-label="Start a chat"
+    >
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 5v14M5 12h14" />
+      </svg>
+    </a>
+  </div>
+
+  <!-- Search: finds messages in your chats, and people to start new ones -->
+  <label class="mt-lg block">
+    <span class="sr-only">Search messages and people</span>
+    <span class="relative block">
+      <svg class="pointer-events-none absolute left-sm top-1/2 size-5 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
+      </svg>
+      <input
+        type="search"
+        [ngModel]="term()"
+        (ngModelChange)="onTermChange($event)"
+        name="chat-search"
+        placeholder="Search messages"
+        class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card py-xs pl-11 pr-md text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
+        data-testid="chat-search"
+      />
+    </span>
+  </label>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="mt-lg space-y-md" aria-hidden="true">
+      @for (i of [1, 2, 3]; track i) {
+        <div class="h-16 animate-pulse rounded-lg border border-border-muted bg-surface-sunken"></div>
+      }
+    </div>
+  }
+
+  @if (failed()) {
+    <p class="mt-lg rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
+      We couldn't load your messages. Try again in a moment.
+    </p>
+  }
+
+  <!-- Search results: messages in your chats, and people -->
+  @if (isSearching()) {
+    <div class="mt-lg" data-testid="chat-search-results">
+      @if (searching()) {
+        <p class="text-body-sm text-muted">Searching…</p>
+      } @else if (results(); as r) {
+        @if (r.messages.items.length === 0 && r.people.items.length === 0) {
+          <p class="py-xl text-center text-body-sm text-muted" data-testid="search-empty">
+            Nothing matched “{{ term() }}”.
+          </p>
+        }
+
+        @if (r.messages.items.length > 0) {
+          <h2 class="text-eyebrow uppercase tracking-eyebrow text-muted">In your messages</h2>
+          <ul class="mt-sm divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card">
+            @for (hit of r.messages.items; track hit.messageId) {
+              <li>
+                <a
+                  [routerLink]="['/chat', hit.conversationId]"
+                  class="flex flex-col gap-xs px-md py-sm transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                >
+                  <span class="text-body-sm font-semibold text-heading">{{ hit.conversationName }}</span>
+                  <span class="line-clamp-1 text-body-sm text-muted">
+                    @if (hit.senderName) {<span>{{ hit.senderName }}: </span>}{{ hit.snippet }}
+                  </span>
+                </a>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (r.people.items.length > 0) {
+          <h2 class="mt-lg text-eyebrow uppercase tracking-eyebrow text-muted">People</h2>
+          <ul class="mt-sm divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card">
+            @for (person of r.people.items; track person.userId) {
+              <li class="flex items-center justify-between gap-md px-md py-sm">
+                <span class="flex items-center gap-sm">
+                  <span class="size-10 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+                  <span class="text-body-md text-body">{{ person.displayName }}</span>
+                </span>
+                <button
+                  type="button"
+                  (click)="chatWith(person.userId, person.existingConversationId)"
+                  class="min-h-11 rounded-md px-sm text-body-sm font-medium text-link transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                >
+                  Chat
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      }
+    </div>
+  } @else {
+    <!-- The inbox -->
+    @if (conversations().length > 0) {
+      <ul class="mt-lg divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card" data-testid="conversation-list">
+        @for (c of conversations(); track c.id) {
+          <li>
+            <a
+              [routerLink]="['/chat', c.id]"
+              class="flex items-center gap-sm px-md py-sm transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              [attr.data-testid]="'conversation-' + c.id"
+            >
+              <!-- Round for a DM, a 2x2 cluster for a group/team/party -->
+              @if (c.kind === 'Direct') {
+                <span class="size-11 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+              } @else {
+                <span class="grid size-11 shrink-0 grid-cols-2 gap-px overflow-hidden rounded-pill" aria-hidden="true">
+                  @for (q of [1, 2, 3, 4]; track q) {
+                    <span class="bg-surface-muted"></span>
+                  }
+                </span>
+              }
+
+              <span class="min-w-0 flex-1">
+                <span class="flex items-center gap-xs">
+                  <span class="truncate text-body-md font-semibold text-heading">{{ c.name }}</span>
+
+                  @if (tagFor(c); as tag) {
+                    <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-muted">
+                      {{ tag }}
+                    </span>
+                  }
+
+                  @if (c.state === 'Archived') {
+                    <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-subtle">
+                      Archived
+                    </span>
+                  }
+                </span>
+
+                <!-- Typing beats the last line, exactly as the wireframe shows -->
+                @if (typingIn(c.id); as typing) {
+                  <span class="block truncate text-body-sm text-link" data-testid="row-typing">{{ typing }}</span>
+                } @else if (c.lastMessage; as last) {
+                  <span class="block truncate text-body-sm text-muted">
+                    @if (last.isSystem) {
+                      <em>Someone joined the chat</em>
+                    } @else {
+                      @if (last.isOwn) {<span>You: </span>} @else if (last.senderName && c.kind !== 'Direct') {<span>{{ last.senderName }}: </span>}
+                      @if (last.preview) {{{ last.preview }}} @else {<em class="text-subtle">Message deleted</em>}
+                    }
+                  </span>
+                } @else {
+                  <span class="block text-body-sm text-subtle">No messages yet</span>
+                }
+              </span>
+
+              <span class="flex shrink-0 flex-col items-end gap-xs">
+                @if (c.lastMessage; as last) {
+                  <!-- Times in the mono face (DESIGN.md: times/counts are tabular) -->
+                  <span class="font-mono text-caption text-subtle">{{ rowTime(last.at) }}</span>
+                }
+
+                @if (c.unreadCount > 0) {
+                  <span
+                    class="inline-flex min-w-5 items-center justify-center rounded-pill bg-brand px-xs font-mono text-caption font-semibold text-on-accent"
+                    [attr.aria-label]="c.unreadCount + ' unread messages'"
+                  >
+                    {{ badge(c.unreadCount) }}
+                  </span>
+                }
+
+                @if (c.isMuted) {
+                  <svg class="size-4 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Muted">
+                    <path d="M8.7 3A6 6 0 0 1 18 8c0 2.5.5 4 1 5M6 8a6 6 0 0 0-.4 2c0 4-2 5-2 5h13M9 18a3 3 0 0 0 6 0M2 2l20 20" />
+                  </svg>
+                }
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+
+    <!-- Empty: warm, with a next step (wireframe 9a) -->
+    @if (hasNothing()) {
+      <div class="mt-lg rounded-lg border border-border-muted bg-surface-card px-md py-2xl text-center" data-testid="chat-empty">
+        <h2 class="text-h4 text-heading">No messages yet</h2>
+        <p class="mx-auto mt-xs max-w-sm text-body-md text-muted">
+          Say hi to a teammate, or start a group to sort out carpools and gear.
+        </p>
+        <a
+          routerLink="/chat/new"
+          class="mt-lg inline-flex min-h-11 items-center justify-center rounded-md bg-brand px-lg text-body-md font-semibold text-on-accent shadow-sm transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        >
+          Start a chat
+        </a>
+        <p class="mt-md text-body-sm text-subtle">
+          Your team chat shows up here the moment you join a team.
+        </p>
+      </div>
+    }
+  }
+</section>

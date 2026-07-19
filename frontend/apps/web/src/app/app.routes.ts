@@ -42,6 +42,32 @@ export const appRoutes: Route[] = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/my-team/my-team.component').then((m) => m.MyTeamComponent),
       },
+      // Chat (feature 019). The shell is the inbox on mobile and an inbox rail + open conversation on
+      // desktop; the children fill the pane beside the rail. The open conversation lives in the URL so
+      // it can be linked to and survives a reload (FR-046).
+      {
+        path: 'chat',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/chat/chat-shell/chat-shell.component').then((m) => m.ChatShellComponent),
+        children: [
+          {
+            path: 'new',
+            loadComponent: () => import('./features/chat/chat-new/chat-new.component').then((m) => m.ChatNewComponent),
+          },
+          {
+            path: ':conversationId/details',
+            loadComponent: () =>
+              import('./features/chat/chat-details/chat-details.component').then((m) => m.ChatDetailsComponent),
+          },
+          {
+            path: ':conversationId',
+            loadComponent: () =>
+              import('./features/chat/chat-conversation/chat-conversation.component').then(
+                (m) => m.ChatConversationComponent,
+              ),
+          },
+        ],
+      },
       // Home "see all" lists (feature 008) — full upcoming events + full news feed.
       {
         path: 'up-next',

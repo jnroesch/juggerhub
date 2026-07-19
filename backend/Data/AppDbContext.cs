@@ -105,6 +105,15 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<TrainingResponse> TrainingResponses => Set<TrainingResponse>();
 
+    // Feature 019: chat.
+    public DbSet<Conversation> Conversations => Set<Conversation>();
+
+    public DbSet<ConversationParticipant> ConversationParticipants => Set<ConversationParticipant>();
+
+    public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
+
+    public DbSet<UserBlock> UserBlocks => Set<UserBlock>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -808,6 +817,98 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ---- Feature 019: chat ----
+
+        builder.Entity<Conversation>(entity =>
+        {
+            entity.Property(c => c.Name).HasMaxLength(120);
+            entity.Property(c => c.DirectPairKey).HasMaxLength(73); // two 36-char GUIDs + ':'
+
+            // Exactly one chat per team / per party (FR-024), enforced in the DATABASE rather than by
+            // a service check-then-insert: EnsureForTeamAsync is racy by nature (two roster members
+            // opening Chat at the same moment), and the filtered unique index is what makes the loser
+            // of that race collide instead of creating a second chat.
+            entity.HasIndex(c => c.TeamId).IsUnique().HasFilter("\"TeamId\" IS NOT NULL");
+            entity.HasIndex(c => c.PartyId).IsUnique().HasFilter("\"PartyId\" IS NOT NULL");
+
+            // At most one direct conversation per pair (FR-008). Same reasoning: two clients starting
+            // the same DM simultaneously must resolve to one row, and only the database can promise
+            // that. The key is built from the ORDERED pair, so (A,B) and (B,A) collide.
+            entity.HasIndex(c => c.DirectPairKey).IsUnique().HasFilter("\"DirectPairKey\" IS NOT NULL");
+
+            // The inbox orders by recency.
+            entity.HasIndex(c => c.LastMessageDate);
+
+            entity.HasOne(c => c.Team)
+                .WithMany()
+                .HasForeignKey(c => c.TeamId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(c => c.Party)
+                .WithMany()
+                .HasForeignKey(c => c.PartyId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<ConversationParticipant>(entity =>
+        {
+            // One state row per player per conversation. Also makes a duplicate add a no-op at the
+            // database level rather than relying on a service-side existence check (US3).
+            entity.HasIndex(p => new { p.ConversationId, p.UserId }).IsUnique();
+            // Drives "my inbox".
+            entity.HasIndex(p => p.UserId);
+
+            entity.HasOne(p => p.Conversation)
+                .WithMany(c => c.Participants)
+                .HasForeignKey(p => p.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ChatMessage>(entity =>
+        {
+            entity.Property(m => m.Body).HasMaxLength(2000);
+
+            // Backs BOTH hot paths on one composite: the keyset history page
+            // (WHERE ConversationId = x AND Id < cursor ORDER BY Id DESC) and the unread count
+            // (WHERE ConversationId = x AND Id > lastRead). Id is a UUIDv7, so it sorts chronologically.
+            entity.HasIndex(m => new { m.ConversationId, m.Id });
+            entity.HasIndex(m => m.SenderId);
+
+            entity.HasOne(m => m.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(m => m.ConversationId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // Restrict, not cascade: a departing account must not silently delete its side of other
+            // people's conversations. Feature 013 soft-deletes accounts anyway; history is preserved
+            // and the sender projects to a neutral placeholder.
+            entity.HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<UserBlock>(entity =>
+        {
+            // Blocking is idempotent — a double-block collides here rather than stacking rows.
+            entity.HasIndex(b => new { b.BlockerUserId, b.BlockedUserId }).IsUnique();
+            // The "has anyone blocked me?" direction, which every direct send checks.
+            entity.HasIndex(b => b.BlockedUserId);
+
+            // Restrict on both sides: a block is a safety record and must never be dropped as a side
+            // effect of touching a user row.
+            entity.HasOne(b => b.Blocker)
+                .WithMany()
+                .HasForeignKey(b => b.BlockerUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(b => b.Blocked)
+                .WithMany()
+                .HasForeignKey(b => b.BlockedUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
