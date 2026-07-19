@@ -19,6 +19,18 @@ locals {
       # SignalR /hubs are long-lived WebSockets — keep the upstream sockets open.
       "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600"
       "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600"
+      # Cookie affinity pins a client to one backend pod for the life of the session (feature 019).
+      # The SignalR backplane (Redis) fans messages ACROSS pods, but it does not fix the negotiate
+      # handshake: /hubs/negotiate returns a connection token bound to the pod that answered, and a
+      # follow-up request round-robined to a different pod is rejected. With backend_replicas > 1
+      # (prod runs 2, HPA to 6) both ChatHub (019) and NotificationHub (010) need this to connect at
+      # all. Deliberately cookie affinity rather than skipNegotiation: skipNegotiation forfeits
+      # SignalR's transport fallback on restrictive networks. See specs/019-chat/research.md §10.
+      "nginx.ingress.kubernetes.io/affinity"               = "cookie"
+      "nginx.ingress.kubernetes.io/affinity-mode"          = "persistent"
+      "nginx.ingress.kubernetes.io/session-cookie-name"    = "jugger-affinity"
+      "nginx.ingress.kubernetes.io/session-cookie-expires" = "3600"
+      "nginx.ingress.kubernetes.io/session-cookie-max-age" = "3600"
     },
     var.enable_tls ? { "cert-manager.io/cluster-issuer" = var.cluster_issuer } : {},
   )

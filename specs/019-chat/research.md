@@ -245,17 +245,24 @@ users happened to land on different pods.
 **Sticky sessions are still required.** A backplane fixes fan-out, not connection establishment. With
 the default negotiate handshake, the negotiate response carries a connection token bound to the pod
 that answered it; a follow-up request routed elsewhere fails. Options are (a) cookie affinity on the
-ingress, or (b) WebSockets-only with `skipNegotiation`. **(a)** is the recommendation — `skipNegotiation`
-forfeits the transport fallback that keeps SignalR working on restrictive networks. The nginx-ingress
-annotation belongs on the **`015-hosting`** branch, which owns the ingress:
+ingress, or (b) WebSockets-only with `skipNegotiation`. **(a)** is the choice — `skipNegotiation`
+forfeits the transport fallback that keeps SignalR working on restrictive networks.
+
+**Applied (2026-07-16)**: when `015-hosting` merged to main, its `infra/` arrived in this tree, so
+the annotation was added directly to `infra/modules/app/main.tf` rather than handed off:
 
 ```yaml
 nginx.ingress.kubernetes.io/affinity: "cookie"
+nginx.ingress.kubernetes.io/affinity-mode: "persistent"   # survive HPA scale events
 nginx.ingress.kubernetes.io/session-cookie-name: "jugger-affinity"
 nginx.ingress.kubernetes.io/session-cookie-expires: "3600"
+nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
 ```
 
-Carried as **T097** so it is handed over explicitly rather than assumed.
+`affinity-mode: persistent` matters because prod runs 2 backend replicas with HPA to 6: the default
+`balanced` mode can rebalance an already-connected client onto a new pod when the pod set changes,
+dropping its SignalR connection. `persistent` keeps it pinned. Verified with the 015 CI gates
+(`terraform fmt -check -recursive`, `init -backend=false`, `validate`). Tracked as **T097**.
 
 **Alternatives rejected**: (a) *Azure SignalR Service* — see parity, above. (b) *Postgres LISTEN/NOTIFY
 as a homemade backplane* — no new component, but SignalR has no such provider, so it means writing and
