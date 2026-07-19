@@ -33,7 +33,7 @@ ENTRYPOINT ["dotnet", "test", \
 
 # --- runtime: lean ASP.NET image with only the publish output ---------------
 # ASP.NET runtime pinned (latest 10.0 patch at time of pinning).
-FROM mcr.microsoft.com/dotnet/aspnet:10.0.7 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.10 AS runtime
 WORKDIR /app
 
 # curl is used by the compose healthcheck to probe /api/v1/health.
