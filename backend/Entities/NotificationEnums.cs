@@ -17,6 +17,21 @@ public enum NotificationType
 
     /// <summary>A new team news post was published to a team the recipient belongs to. Link-only.</summary>
     TeamNews = 2,
+
+    /// <summary>A party participation request was posted (or re-nudged) to the recipient's team (feature 016). Carries inline I'm-in/Can't-make-it actions.</summary>
+    PartyRequest = 3,
+
+    /// <summary>A new party news post was published to a party the recipient is in (feature 016). Link-only.</summary>
+    PartyNews = 4,
+
+    /// <summary>A party invited the recipient to join it via the event marketplace (feature 017). Carries inline Accept/Decline actions.</summary>
+    MarketInvite = 5,
+
+    /// <summary>A team scheduled a new training series or one-off the recipient belongs to (feature 018). Link-only.</summary>
+    TrainingScheduled = 6,
+
+    /// <summary>An upcoming training session the recipient responded to was edited (series) or cancelled (feature 018). Link-only.</summary>
+    TrainingUpdated = 7,
 }
 
 /// <summary>
@@ -30,8 +45,11 @@ public enum NotificationCategory
     /// <summary>Team invites and role/roster changes (<see cref="NotificationType.TeamInvite"/>, <see cref="NotificationType.TeamRoleChanged"/>).</summary>
     InvitesAndRoster = 0,
 
-    /// <summary>Team news posts (<see cref="NotificationType.TeamNews"/>).</summary>
+    /// <summary>Team news posts (<see cref="NotificationType.TeamNews"/>) and party news (<see cref="NotificationType.PartyNews"/>).</summary>
     TeamNews = 1,
+
+    /// <summary>Training heads-up and change notices (<see cref="NotificationType.TrainingScheduled"/>, <see cref="NotificationType.TrainingUpdated"/>) — feature 018.</summary>
+    Trainings = 2,
 }
 
 /// <summary>The delivery medium a preference governs (feature 011). Push is out of scope. Serialized as its name.</summary>
@@ -48,7 +66,12 @@ public static class NotificationCategories
     {
         NotificationType.TeamInvite => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamRoleChanged => NotificationCategory.InvitesAndRoster,
+        NotificationType.PartyRequest => NotificationCategory.InvitesAndRoster,
+        NotificationType.MarketInvite => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamNews => NotificationCategory.TeamNews,
+        NotificationType.PartyNews => NotificationCategory.TeamNews,
+        NotificationType.TrainingScheduled => NotificationCategory.Trainings,
+        NotificationType.TrainingUpdated => NotificationCategory.Trainings,
         _ => NotificationCategory.TeamNews,
     };
 }

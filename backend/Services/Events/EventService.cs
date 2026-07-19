@@ -75,6 +75,21 @@ public sealed class EventService : IEventService
             return CreateEventResult.Fail($"Set a participation limit between 1 and {_options.MaxParticipationLimit}.");
         }
 
+        // Roster cap (feature 016): a per-team party size, teams-only. Default 8, minimum 5.
+        int? rosterCap = null;
+        if (request.ParticipantMode == ParticipantMode.Teams)
+        {
+            rosterCap = request.RosterCap ?? 8;
+            if (rosterCap < 5 || rosterCap > 100)
+            {
+                return CreateEventResult.Fail("Set a roster cap of at least 5 players per team.");
+            }
+        }
+        else if (request.RosterCap is not null)
+        {
+            return CreateEventResult.Fail("A roster cap only applies to teams-only events.");
+        }
+
         var locationResult = ResolveLocation(request.LocationKind, request.VenueName, request.Street,
             request.PostalCode, request.City, request.Country, request.VirtualLink);
         if (locationResult.Reason is not null)
@@ -106,6 +121,7 @@ public sealed class EventService : IEventService
             Location = locationResult.LegacyLocation,
             ParticipantMode = request.ParticipantMode,
             ParticipationLimit = request.ParticipationLimit,
+            RosterCap = rosterCap,
             IsPaid = feeResult.IsPaid,
             FeeAmount = feeResult.Amount,
             FeeCurrency = feeResult.Currency,
@@ -463,7 +479,8 @@ public sealed class EventService : IEventService
         e.FeeIban,
         e.FeePaymentDeadline,
         e.Status,
-        viewer);
+        viewer,
+        e.RosterCap);
 
     private static string? Trimmed(string? value)
     {

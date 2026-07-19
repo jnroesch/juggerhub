@@ -34,6 +34,8 @@ export interface CreateEventRequest {
   virtualLink: string | null;
   participantMode: ParticipantMode;
   participationLimit: number;
+  /** Players-per-team cap for teams-only events (feature 016): default 8, min 5; null otherwise. */
+  rosterCap: number | null;
   isPaid: boolean;
   feeAmount: number | null;
   feeCurrency: string | null;
@@ -44,7 +46,7 @@ export interface CreateEventRequest {
 }
 
 /** Edit carries the same fields except participantMode (immutable after creation). */
-export type EditEventRequest = Omit<CreateEventRequest, 'participantMode'>;
+export type EditEventRequest = Omit<CreateEventRequest, 'participantMode' | 'rosterCap'>;
 
 export interface ViewerTeamOption {
   teamId: string;

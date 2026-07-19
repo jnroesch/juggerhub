@@ -1,0 +1,4 @@
+/* Recruiting screen — layout via Tailwind utilities mapped onto DESIGN.md tokens. */
+:host {
+  display: block;
+}

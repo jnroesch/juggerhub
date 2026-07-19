@@ -1,0 +1,160 @@
+<div class="mx-auto max-w-2xl px-md py-lg">
+  @if (loading()) {
+    <p class="text-body-sm text-muted">Loading…</p>
+  } @else if (notFound()) {
+    <div class="rounded-lg border border-border-muted bg-surface-card p-lg text-center">
+      <h1 class="text-body-lg font-semibold text-heading">Session not found</h1>
+      <p class="mt-sm text-body-sm text-muted">It may be private to its team, or no longer scheduled.</p>
+    </div>
+  } @else if (session(); as s) {
+    <a [routerLink]="['/t', s.teamSlug]" class="text-body-sm font-medium text-link hover:text-link-hover">‹ Trainings</a>
+
+    <div class="mt-sm flex items-center gap-xs">
+      <span class="rounded-pill border border-border-muted px-sm py-3xs text-caption font-medium text-secondary">
+        {{ s.isOneOff ? 'One-off' : 'Series' }}
+      </span>
+      @if (s.visibility === 'Public') {
+        <span class="rounded-pill border border-success-border bg-success-bg px-sm py-3xs text-caption font-medium text-success-fg">Public</span>
+      }
+      <span class="text-body-sm text-muted">{{ s.teamName }}</span>
+    </div>
+
+    <h1 class="mt-xs text-heading-lg font-semibold text-heading">{{ s.name }}</h1>
+    <p class="mt-2xs text-body-sm text-body">
+      {{ shortDate(s.sessionDate) }} · <span class="font-mono">{{ time(s.startTime) }}–{{ time(s.endTime) }}</span>
+    </p>
+    <p class="text-body-sm text-muted">
+      @if (s.locationKind === 'Virtual') {
+        <a [href]="s.virtualLink" class="text-link hover:text-link-hover">Online</a>
+      } @else {
+        {{ s.location }}
+      }
+    </p>
+    @if (!s.isOneOff && s.seriesLabel) {
+      <p class="mt-2xs text-caption text-muted">Part of {{ s.name }} · {{ s.seriesLabel }}</p>
+    }
+
+    @if (isCancelled()) {
+      <div class="mt-md rounded-md border border-danger-border bg-danger-bg p-sm text-body-sm text-danger-fg">
+        This session was cancelled.
+      </div>
+    }
+
+    <!-- RSVP -->
+    @if (canRespond()) {
+      <section class="mt-lg rounded-lg border border-border-muted bg-surface-card p-md">
+        <h2 class="text-body-sm font-semibold text-heading">
+          {{ s.viewerIsGuest ? 'Coming along?' : 'Will you make it?' }}
+        </h2>
+        <div class="mt-sm grid grid-cols-3 gap-sm">
+          <button type="button" (click)="respond('Going')" [disabled]="busy()"
+            class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium transition-all duration-fast active:translate-y-px"
+            [class.border-success-border]="s.myAnswer === 'Going'" [class.bg-success-bg]="s.myAnswer === 'Going'"
+            [class.text-success-fg]="s.myAnswer === 'Going'" [class.border-border-strong]="s.myAnswer !== 'Going'">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <span>Going</span>
+          </button>
+          <button type="button" (click)="respond('Maybe')" [disabled]="busy()"
+            class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium transition-all duration-fast active:translate-y-px"
+            [class.border-warning-border]="s.myAnswer === 'Maybe'" [class.bg-warning-bg]="s.myAnswer === 'Maybe'"
+            [class.border-border-strong]="s.myAnswer !== 'Maybe'">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+            <span>Maybe</span>
+          </button>
+          <button type="button" (click)="respond('Cant')" [disabled]="busy()"
+            class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium transition-all duration-fast active:translate-y-px"
+            [class.border-danger-border]="s.myAnswer === 'Cant'" [class.bg-danger-bg]="s.myAnswer === 'Cant'"
+            [class.text-danger-fg]="s.myAnswer === 'Cant'" [class.border-border-strong]="s.myAnswer !== 'Cant'">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+            <span>Can't</span>
+          </button>
+        </div>
+        <p class="mt-sm text-caption text-muted">
+          {{ s.viewerIsGuest ? 'Same three answers as members — no approval needed.' : 'Tap one — change it whenever. No limit; everyone welcome.' }}
+        </p>
+      </section>
+    }
+
+    @if (error()) {
+      <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p>
+    }
+
+    <!-- Who's coming -->
+    <section class="mt-lg">
+      <h2 class="text-body-sm font-semibold text-heading">Who's coming</h2>
+      <p class="mt-2xs text-caption text-muted">
+        <span class="font-mono">{{ s.whosComing.going.count }}</span> going · <span class="font-mono">{{ s.whosComing.maybe.count }}</span> maybe · <span class="font-mono">{{ s.whosComing.cant.count }}</span> out
+      </p>
+      @for (grp of [{ label: 'Going', g: s.whosComing.going }, { label: 'Maybe', g: s.whosComing.maybe }, { label: 'Can\'t make it', g: s.whosComing.cant }]; track grp.label) {
+        @if (grp.g.count > 0) {
+          <div class="mt-sm">
+            <p class="text-caption font-medium text-muted">{{ grp.label }} · <span class="font-mono">{{ grp.g.count }}</span></p>
+            <ul class="mt-2xs divide-y divide-border-muted">
+              @for (p of grp.g.people; track p.handle) {
+                <li class="flex items-center gap-sm py-xs">
+                  <img [src]="avatarUrl(p.handle)" alt="" class="h-8 w-8 rounded-pill bg-surface-secondary-soft object-cover" />
+                  <a [routerLink]="['/u', p.handle]" class="min-w-0 flex-1 truncate text-body-sm font-medium text-heading hover:text-link">
+                    {{ p.displayName }}@if (p.isYou) { <span class="text-muted">· you</span> }
+                  </a>
+                  @if (p.isGuest) {
+                    <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">Guest</span>
+                  }
+                  @if (p.position) {
+                    <span class="text-caption text-muted">{{ p.position }}</span>
+                  }
+                </li>
+              }
+              @if (grp.g.count > grp.g.people.length) {
+                <li class="py-xs text-caption text-muted">+ {{ grp.g.count - grp.g.people.length }} more</li>
+              }
+            </ul>
+          </div>
+        }
+      }
+      @if (s.whosComing.going.count === 0 && s.whosComing.maybe.count === 0 && s.whosComing.cant.count === 0) {
+        <p class="mt-sm text-body-sm text-muted">No answers yet — be the first.</p>
+      }
+    </section>
+
+    @if (s.description) {
+      <section class="mt-lg">
+        <h2 class="text-body-sm font-semibold text-heading">About</h2>
+        <p class="mt-2xs whitespace-pre-line text-body-sm text-body">{{ s.description }}</p>
+      </section>
+    }
+
+    <!-- Admin manage -->
+    @if (s.viewerIsAdmin) {
+      <section class="mt-lg rounded-lg border border-border-muted bg-surface-sunken p-md">
+        <button type="button" (click)="menuOpen.set(!menuOpen())" class="text-body-sm font-semibold text-heading">
+          Manage session {{ menuOpen() ? '▴' : '▾' }}
+        </button>
+        @if (menuOpen()) {
+          <div class="mt-sm flex flex-col gap-xs">
+            @if (canRespond()) {
+              @if (s.isOneOff || s.isDetached) {
+                <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">Edit this session</a>
+              } @else {
+                <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" [queryParams]="{ scope: 'single' }" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">Edit this session</a>
+                <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" [queryParams]="{ scope: 'series' }" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">Edit the whole series</a>
+              }
+            }
+            <a [routerLink]="['/trainings/sessions', sessionId(), 'attendance']" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">See full attendance</a>
+            <button type="button" (click)="toggleVisibility()" [disabled]="busy()" class="rounded-md border border-border-strong bg-surface px-md py-xs text-left text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">
+              {{ s.visibility === 'Public' ? 'Make team-only' : 'Make this session public' }}
+            </button>
+            @if (s.visibility === 'Public') {
+              <button type="button" (click)="copyLink()" class="rounded-md border border-border-strong bg-surface px-md py-xs text-left text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">Copy shareable link</button>
+            }
+            @if (!s.isOneOff && canRespond()) {
+              <button type="button" (click)="skip()" [disabled]="busy()" class="rounded-md border border-border-strong bg-surface px-md py-xs text-left text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">Skip this date</button>
+            }
+            @if (canRespond()) {
+              <button type="button" (click)="cancel()" [disabled]="busy()" class="rounded-md border border-danger-border bg-surface px-md py-xs text-left text-body-sm font-medium text-danger-fg hover:bg-danger-bg transition-all duration-fast active:translate-y-px">Cancel this session</button>
+            }
+          </div>
+        }
+      </section>
+    }
+  }
+</div>

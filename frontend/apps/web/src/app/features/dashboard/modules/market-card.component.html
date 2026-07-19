@@ -1,0 +1,48 @@
+@if (hasAny()) {
+  <section class="rounded-lg border border-border bg-surface-card p-md" data-testid="dashboard-market">
+    <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Your market</h2>
+
+    <!-- Active placements: the events you've put yourself on the board for -->
+    @if (listings().length > 0) {
+      <p class="mt-sm text-caption font-semibold uppercase tracking-wide text-subtle">On the board · <span class="font-mono">{{ listings().length }}</span></p>
+      <ul class="mt-xs space-y-xs" data-testid="my-listings">
+        @for (l of listings(); track l.id) {
+          <li class="rounded-md border border-border-muted px-sm py-xs">
+            <div class="flex items-center justify-between gap-sm">
+              <a [routerLink]="['/events', l.eventId]" class="min-w-0 truncate text-body-sm font-semibold text-body hover:text-brand">{{ l.eventName }}</a>
+              <button type="button" (click)="takeDown(l.eventId)" [disabled]="acting()" class="shrink-0 text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Take down</button>
+            </div>
+            <p class="text-body-sm text-subtle">@for (pos of l.positions; track pos) { <span class="mr-1">{{ label(pos)?.en }}</span> }</p>
+          </li>
+        }
+      </ul>
+    }
+
+    <!-- Invites to answer + applications sent -->
+    @if (items().length > 0) {
+      <p class="mt-sm text-caption font-semibold uppercase tracking-wide text-subtle">Requests · <span class="font-mono">{{ items().length }}</span></p>
+      <ul class="mt-xs space-y-xs">
+        @for (r of items(); track r.id) {
+          <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
+            <div class="min-w-0">
+              @if (r.direction === 'Invite') {
+                <p class="truncate text-body-sm text-body"><span class="font-semibold">{{ r.teamName }}</span> invited you</p>
+              } @else {
+                <p class="truncate text-body-sm text-body">You applied to <span class="font-semibold">{{ r.teamName }}</span></p>
+              }
+              <a [routerLink]="['/events', r.eventId]" class="text-body-sm text-subtle hover:text-brand">{{ r.eventName }}</a>
+            </div>
+            @if (r.direction === 'Invite') {
+              <div class="flex shrink-0 gap-xs">
+                <button type="button" (click)="accept(r.id)" [disabled]="acting()" class="rounded-md bg-brand px-sm py-1 text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Accept</button>
+                <button type="button" (click)="decline(r.id)" class="rounded-md border border-border-strong px-sm py-1 text-body-sm font-semibold text-body hover:bg-surface-sunken">Decline</button>
+              </div>
+            } @else {
+              <span class="shrink-0 rounded-full bg-warning-bg px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-wide text-warning-fg">pending</span>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+}

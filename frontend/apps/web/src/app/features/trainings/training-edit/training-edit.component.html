@@ -1,0 +1,125 @@
+<div class="mx-auto max-w-lg px-md py-lg">
+  <button type="button" (click)="cancel()" class="text-body-sm font-medium text-link hover:text-link-hover">‹ Cancel</button>
+
+  @if (loading()) {
+    <p class="mt-lg text-body-sm text-muted">Loading…</p>
+  } @else if (notFound()) {
+    <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center">
+      <h1 class="text-body-lg font-semibold text-heading">Session not found</h1>
+    </div>
+  } @else if (session(); as s) {
+    @if (!canEdit()) {
+      <div class="mt-lg rounded-md border border-warning-border bg-warning-bg p-sm text-body-sm text-warning-fg">
+        This session is in the past or no longer scheduled — it can't be edited.
+      </div>
+    }
+
+    <!-- Fork: this one, or all of them? -->
+    @if (mode() === 'fork') {
+      <h1 class="mt-md text-heading-lg font-semibold text-heading">This one, or all of them?</h1>
+      <p class="mt-2xs text-body-sm text-muted">This is a repeating session — what should change? Past sessions stay as they were.</p>
+      <div class="mt-md flex flex-col gap-sm">
+        <button type="button" (click)="choose('single')" class="rounded-lg border border-border-muted p-md text-left hover:border-border-strong">
+          <p class="font-medium text-heading">This session only</p>
+          <p class="text-body-sm text-muted">{{ shortDate(s.sessionDate) }} — leaves the rest alone. It detaches from the series.</p>
+        </button>
+        <button type="button" (click)="choose('series')" class="rounded-lg border border-border-muted p-md text-left hover:border-border-strong">
+          <p class="font-medium text-heading">The whole series</p>
+          <p class="text-body-sm text-muted">Every upcoming session. Sessions you edited on their own keep their changes.</p>
+        </button>
+      </div>
+    }
+
+    <!-- Edit this session (detaches) -->
+    @if (mode() === 'single') {
+      <div class="mt-md flex items-center gap-xs">
+        <h1 class="text-heading-lg font-semibold text-heading">Edit this session</h1>
+        @if (!s.isOneOff) {
+          <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">Detaches from series</span>
+        }
+      </div>
+      <label class="mt-md block text-body-sm font-medium text-heading">Date
+        <input [(ngModel)]="sessionDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+      </label>
+      <div class="mt-md grid grid-cols-2 gap-sm">
+        <label class="block text-body-sm font-medium text-heading">Start
+          <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        </label>
+        <label class="block text-body-sm font-medium text-heading">End
+          <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        </label>
+      </div>
+      <div class="mt-md grid grid-cols-2 gap-xs">
+        <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">In person</button>
+        <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">Virtual</button>
+      </div>
+      @if (locationKind === 'InPerson') {
+        <label class="mt-md block text-body-sm font-medium text-heading">Location — just this week
+          <input [(ngModel)]="location" type="text" maxlength="300" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        </label>
+      } @else {
+        <label class="mt-md block text-body-sm font-medium text-heading">Join link
+          <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        </label>
+      }
+      @if (!s.isOneOff) {
+        <p class="mt-sm rounded-md bg-surface-sunken p-sm text-caption text-muted">Only this date changes. It won't follow future edits to the series.</p>
+      }
+      @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
+      <button type="button" (click)="saveSingle()" [disabled]="busy() || !canEdit()" class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-50">
+        {{ busy() ? 'Saving…' : 'Save this session' }}
+      </button>
+    }
+
+    <!-- Edit the whole series -->
+    @if (mode() === 'series') {
+      <h1 class="mt-md text-heading-lg font-semibold text-heading">Edit series</h1>
+      <p class="mt-2xs text-body-sm text-muted">Applies to every upcoming session. Sessions you edited on their own keep their changes.</p>
+      <label class="mt-md block text-body-sm font-medium text-heading">Name
+        <input [(ngModel)]="name" type="text" maxlength="120" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+      </label>
+      <label class="mt-md block text-body-sm font-medium text-heading">Day of the week
+        <select [(ngModel)]="weekday" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body">
+          @for (d of weekdays; track d) { <option [value]="d">{{ d }}</option> }
+        </select>
+      </label>
+      <div class="mt-md grid grid-cols-2 gap-sm">
+        <label class="block text-body-sm font-medium text-heading">Start
+          <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        </label>
+        <label class="block text-body-sm font-medium text-heading">End
+          <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        </label>
+      </div>
+      <div class="mt-md">
+        <span class="text-body-sm font-medium text-heading">Repeats</span>
+        <div class="mt-2xs grid grid-cols-3 gap-xs">
+          @for (opt of [{ v: 'Weekly', l: 'Weekly' }, { v: 'BiWeekly', l: 'Every 2 wks' }, { v: 'Monthly', l: 'Monthly' }]; track opt.v) {
+            <button type="button" (click)="interval = $any(opt.v)" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="interval === opt.v" [class.border-border-strong]="interval !== opt.v">{{ opt.l }}</button>
+          }
+        </div>
+      </div>
+      <div class="mt-md grid grid-cols-2 gap-xs">
+        <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">In person</button>
+        <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">Virtual</button>
+      </div>
+      @if (locationKind === 'InPerson') {
+        <label class="mt-md block text-body-sm font-medium text-heading">Location
+          <input [(ngModel)]="location" type="text" maxlength="300" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        </label>
+      } @else {
+        <label class="mt-md block text-body-sm font-medium text-heading">Join link
+          <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        </label>
+      }
+      <label class="mt-md block text-body-sm font-medium text-heading">Until
+        <input [(ngModel)]="endDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+      </label>
+      <p class="mt-sm rounded-md bg-surface-sunken p-sm text-caption text-muted">Responders are notified of the change. Changing the day, interval or end date regenerates upcoming dates.</p>
+      @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
+      <button type="button" (click)="saveSeries()" [disabled]="busy()" class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-50">
+        {{ busy() ? 'Saving…' : 'Save to all upcoming' }}
+      </button>
+    }
+  }
+</div>

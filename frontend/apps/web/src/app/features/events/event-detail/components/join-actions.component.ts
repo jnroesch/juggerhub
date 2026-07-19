@@ -2,6 +2,7 @@ import { Component, computed, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { EventDetail } from '../../../../core/models/event.models';
+import { PartyContext, PartyContextTeam } from '../../../../core/models/party.models';
 
 /**
  * The prominent bottom sign-up call to action: join / join-waitlist / withdraw for a
@@ -16,6 +17,8 @@ import { EventDetail } from '../../../../core/models/event.models';
 })
 export class EventJoinActionsComponent {
   readonly detail = input.required<EventDetail>();
+  /** Feature 016: the caller's party affordances for a teams-only event. */
+  readonly partyContext = input<PartyContext | null>(null);
   readonly acting = input(false);
   readonly actionError = input<string | null>(null);
   /** Emits the team id for teams-only events, or null for individuals. */
@@ -26,6 +29,13 @@ export class EventJoinActionsComponent {
 
   protected readonly teamOptions = computed(() => this.detail().viewer.teamsICanEnter);
   protected readonly selectedTeamId = computed(() => this.picked() ?? this.teamOptions()[0]?.teamId ?? '');
+
+  /** Teams the caller already has a party in — show a "view party" card instead of the form button. */
+  protected readonly partyCards = computed<PartyContextTeam[]>(
+    () => this.partyContext()?.teams.filter((t) => t.partyId) ?? [],
+  );
+  /** True when the caller administers a team here with no party yet (can form one). */
+  protected readonly canFormParty = computed(() => this.partyContext()?.teams.some((t) => t.canForm) ?? false);
 
   protected readonly cancelled = computed(() => this.detail().status === 'Cancelled');
   protected readonly canJoin = computed(() => {

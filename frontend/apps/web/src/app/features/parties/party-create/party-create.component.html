@@ -1,0 +1,60 @@
+<main class="mx-auto max-w-container-sm px-md py-lg">
+  <button type="button" (click)="cancel()" class="mb-md text-body-sm text-subtle transition-colors hover:text-body">Cancel</button>
+  <h1 class="text-h3 text-heading">Form a party</h1>
+  <p class="mt-xs text-body-sm text-subtle">Your crew for this event — a subset of your team, just for this event.</p>
+
+  @if (loading()) {
+    <p class="mt-lg text-body-sm text-subtle">Loading…</p>
+  } @else if (formableTeams().length === 0) {
+    <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-md text-body-sm text-muted shadow-sm">
+      You don't have a team to enter here — you can only form a party for a team you administer that
+      isn't already entered.
+    </div>
+  } @else {
+    <form (ngSubmit)="submit()" class="mt-lg space-y-md">
+      <div>
+        <p class="text-eyebrow uppercase text-muted">Which of your teams?</p>
+        @if (formableTeams().length === 1) {
+          <p class="mt-xs rounded-md border border-border-muted bg-surface-card px-md py-sm text-body-sm font-medium text-heading">
+            {{ formableTeams()[0].teamName }}
+          </p>
+        } @else {
+          <select [(ngModel)]="selectedTeamId" name="team"
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus">
+            <option value="" disabled>Pick a team…</option>
+            @for (t of formableTeams(); track t.teamId) {
+              <option [value]="t.teamId">{{ t.teamName }}</option>
+            }
+          </select>
+        }
+      </div>
+
+      <div>
+        <p class="text-eyebrow uppercase text-muted">Party size</p>
+        <p class="mt-xs rounded-md border border-border-muted bg-surface-sunken px-md py-sm text-body-sm text-muted">
+          Up to {{ context()?.rosterCap ?? 8 }} players <span class="text-subtle">· set by the event</span>
+        </p>
+      </div>
+
+      <div>
+        <p class="text-eyebrow uppercase text-muted">Message to the team</p>
+        <textarea [(ngModel)]="message" name="message" rows="3" maxlength="500"
+          placeholder="Who's in for this one?"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
+      </div>
+
+      <div class="rounded-md border border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg">
+        This posts a request to all team members — they get a notification and can accept or decline.
+      </div>
+
+      @if (error()) {
+        <p class="text-body-sm text-danger">{{ error() }}</p>
+      }
+
+      <button type="submit" [disabled]="submitting() || !selectedTeamId"
+        class="w-full rounded-md bg-brand px-lg py-md text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">
+        Create party &amp; ask the team
+      </button>
+    </form>
+  }
+</main>

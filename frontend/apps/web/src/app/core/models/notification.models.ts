@@ -8,7 +8,15 @@ import { PagedResult, TeamRole } from './home.models';
 
 export type { PagedResult };
 
-export type NotificationType = 'TeamInvite' | 'TeamRoleChanged' | 'TeamNews';
+export type NotificationType =
+  | 'TeamInvite'
+  | 'TeamRoleChanged'
+  | 'TeamNews'
+  | 'PartyRequest'
+  | 'PartyNews'
+  | 'MarketInvite'
+  | 'TrainingScheduled'
+  | 'TrainingUpdated';
 
 export interface TeamInvitePayload {
   invitationId: string;
@@ -31,7 +39,52 @@ export interface TeamNewsPayload {
   excerpt: string;
 }
 
-export type NotificationPayload = TeamInvitePayload | TeamRoleChangedPayload | TeamNewsPayload;
+/** Party participation request / news (feature 016) — same shape for both. */
+export interface PartyPayload {
+  partyId: string;
+  eventId: string;
+  teamSlug: string;
+  eventName: string;
+  teamName: string;
+}
+
+/** Marketplace invite (feature 017) — a party invited the recipient to join it. */
+export interface MarketInvitePayload {
+  requestId: string;
+  partyId: string;
+  teamName: string;
+  teamSlug: string;
+  eventId: string;
+  eventName: string;
+  positions: string[];
+}
+
+/** Training heads-up (feature 018) — a team scheduled a new series/one-off. */
+export interface TrainingScheduledPayload {
+  teamSlug: string;
+  trainingId: string;
+  trainingName: string;
+  sessionId: string | null;
+  isRecurring: boolean;
+}
+
+/** Training change notice (feature 018) — a series edit or a session cancellation. */
+export interface TrainingUpdatedPayload {
+  teamSlug: string;
+  trainingId: string;
+  sessionId: string | null;
+  trainingName: string;
+  kind: 'seriesEdit' | 'cancelled';
+}
+
+export type NotificationPayload =
+  | TeamInvitePayload
+  | TeamRoleChangedPayload
+  | TeamNewsPayload
+  | PartyPayload
+  | MarketInvitePayload
+  | TrainingScheduledPayload
+  | TrainingUpdatedPayload;
 
 export interface AppNotification {
   id: string;
@@ -64,4 +117,34 @@ export function isTeamNews(
   n: AppNotification,
 ): n is AppNotification & { type: 'TeamNews'; payload: TeamNewsPayload } {
   return n.type === 'TeamNews';
+}
+
+export function isPartyRequest(
+  n: AppNotification,
+): n is AppNotification & { type: 'PartyRequest'; payload: PartyPayload } {
+  return n.type === 'PartyRequest';
+}
+
+export function isPartyNews(
+  n: AppNotification,
+): n is AppNotification & { type: 'PartyNews'; payload: PartyPayload } {
+  return n.type === 'PartyNews';
+}
+
+export function isMarketInvite(
+  n: AppNotification,
+): n is AppNotification & { type: 'MarketInvite'; payload: MarketInvitePayload } {
+  return n.type === 'MarketInvite';
+}
+
+export function isTrainingScheduled(
+  n: AppNotification,
+): n is AppNotification & { type: 'TrainingScheduled'; payload: TrainingScheduledPayload } {
+  return n.type === 'TrainingScheduled';
+}
+
+export function isTrainingUpdated(
+  n: AppNotification,
+): n is AppNotification & { type: 'TrainingUpdated'; payload: TrainingUpdatedPayload } {
+  return n.type === 'TrainingUpdated';
 }

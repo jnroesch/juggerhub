@@ -2,9 +2,14 @@ import { Component, computed, input, output } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   AppNotification,
+  isMarketInvite,
+  isPartyNews,
+  isPartyRequest,
   isTeamInvite,
   isTeamNews,
   isTeamRoleChanged,
+  isTrainingScheduled,
+  isTrainingUpdated,
 } from '../../../core/models/notification.models';
 import { relativeTime } from '../../../core/utils/format';
 
@@ -41,6 +46,19 @@ export class NotificationRowComponent {
       // A handled invite still links to the team it concerned.
       return `/t/${n.payload.teamSlug}`;
     }
+    if (isPartyRequest(n)) {
+      return `/parties/${n.payload.partyId}`;
+    }
+    if (isPartyNews(n)) {
+      return `/parties/${n.payload.partyId}/news`;
+    }
+    if (isMarketInvite(n)) {
+      // Links to the event page, where the market inbox answers the invite (feature 017).
+      return `/events/${n.payload.eventId}`;
+    }
+    if (isTrainingScheduled(n) || isTrainingUpdated(n)) {
+      return n.payload.sessionId ? `/trainings/sessions/${n.payload.sessionId}` : `/t/${n.payload.teamSlug}/trainings`;
+    }
     return null;
   });
 
@@ -56,6 +74,21 @@ export class NotificationRowComponent {
     if (isTeamNews(n)) {
       return `News from ${n.payload.teamName}`;
     }
+    if (isPartyRequest(n)) {
+      return `${n.payload.teamName} is forming a party`;
+    }
+    if (isPartyNews(n)) {
+      return `Party update — ${n.payload.teamName} @ ${n.payload.eventName}`;
+    }
+    if (isMarketInvite(n)) {
+      return `${n.payload.teamName} invited you to their crew`;
+    }
+    if (isTrainingScheduled(n)) {
+      return `New training: ${n.payload.trainingName}`;
+    }
+    if (isTrainingUpdated(n)) {
+      return n.payload.kind === 'cancelled' ? `Training cancelled: ${n.payload.trainingName}` : `Training changed: ${n.payload.trainingName}`;
+    }
     return 'Notification';
   });
 
@@ -69,6 +102,18 @@ export class NotificationRowComponent {
     }
     if (isTeamNews(n)) {
       return n.payload.excerpt;
+    }
+    if (isPartyRequest(n)) {
+      return `Tap to answer — are you in for ${n.payload.eventName}?`;
+    }
+    if (isPartyNews(n)) {
+      return `New update for the ${n.payload.eventName} party`;
+    }
+    if (isTrainingScheduled(n)) {
+      return n.payload.isRecurring ? 'A new series was added — say if you can make it' : 'A one-off was added — say if you can make it';
+    }
+    if (isTrainingUpdated(n)) {
+      return n.payload.kind === 'cancelled' ? 'A session you responded to was cancelled' : 'An upcoming session changed';
     }
     return '';
   });

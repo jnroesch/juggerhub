@@ -84,6 +84,27 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     // Feature 013 — append-only admin account-action log.
     public DbSet<AdminActionRecord> AdminActionRecords => Set<AdminActionRecord>();
 
+    // Feature 016 — event parties (temporary team subset per event).
+    public DbSet<Party> Parties => Set<Party>();
+
+    public DbSet<PartyMember> PartyMembers => Set<PartyMember>();
+
+    public DbSet<PartyNewsPost> PartyNewsPosts => Set<PartyNewsPost>();
+
+    public DbSet<PartyAdminInvitation> PartyAdminInvitations => Set<PartyAdminInvitation>();
+
+    // Feature 017 — event marketplace (mercenaries).
+    public DbSet<MercenaryListing> MercenaryListings => Set<MercenaryListing>();
+
+    public DbSet<MarketRequest> MarketRequests => Set<MarketRequest>();
+
+    // Feature 018 — team-scoped recurring trainings.
+    public DbSet<Training> Trainings => Set<Training>();
+
+    public DbSet<TrainingSession> TrainingSessions => Set<TrainingSession>();
+
+    public DbSet<TrainingResponse> TrainingResponses => Set<TrainingResponse>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -594,6 +615,199 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(r => r.TargetUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---- Feature 016: event parties ----
+
+        builder.Entity<Party>(entity =>
+        {
+            entity.Property(p => p.Message).HasMaxLength(500);
+            entity.Property(p => p.RecruitBlurb).HasMaxLength(500);
+
+            // One party per (team, event) — the race-safe backstop behind the service pre-check.
+            entity.HasIndex(p => new { p.TeamId, p.EventId }).IsUnique();
+            // The team-space discovery read scans a team's active parties.
+            entity.HasIndex(p => p.TeamId);
+            // 1:1 applied↔signup link (only set while Applied).
+            entity.HasIndex(p => p.EventSignupId).IsUnique().HasFilter("\"EventSignupId\" IS NOT NULL");
+
+            entity.HasOne(p => p.Team)
+                .WithMany()
+                .HasForeignKey(p => p.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(p => p.Event)
+                .WithMany()
+                .HasForeignKey(p => p.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // The party owns the signup's lifecycle explicitly (apply/withdraw/disband); do not
+            // cascade-delete the party when the signup is removed.
+            entity.HasOne(p => p.EventSignup)
+                .WithMany()
+                .HasForeignKey(p => p.EventSignupId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(p => p.CreatedBy)
+                .WithMany()
+                .HasForeignKey(p => p.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<PartyMember>(entity =>
+        {
+            // At most one row per member per party.
+            entity.HasIndex(m => new { m.PartyId, m.UserId }).IsUnique();
+            // Roster group reads + In-count.
+            entity.HasIndex(m => new { m.PartyId, m.Status });
+
+            entity.HasOne(m => m.Party)
+                .WithMany(p => p.Members)
+                .HasForeignKey(m => m.PartyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(m => m.User)
+                .WithMany()
+                .HasForeignKey(m => m.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<PartyNewsPost>(entity =>
+        {
+            entity.Property(n => n.Body).HasMaxLength(1000).IsRequired();
+            entity.HasIndex(n => new { n.PartyId, n.CreatedDate });
+
+            entity.HasOne(n => n.Party)
+                .WithMany(p => p.News)
+                .HasForeignKey(n => n.PartyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(n => n.Author)
+                .WithMany()
+                .HasForeignKey(n => n.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<PartyAdminInvitation>(entity =>
+        {
+            entity.Property(i => i.Token).HasMaxLength(64).IsRequired();
+
+            entity.HasIndex(i => i.Token).IsUnique();
+            entity.HasIndex(i => i.PartyId);
+            // At most one active (pending) shared link per party (Kind=Link=0, Status=Pending=0).
+            entity.HasIndex(i => i.PartyId)
+                .IsUnique()
+                .HasFilter("\"Kind\" = 0 AND \"Status\" = 0");
+            // At most one pending targeted invite per (party, user) (Kind=Targeted=1, Status=Pending=0).
+            entity.HasIndex(i => new { i.PartyId, i.TargetUserId })
+                .IsUnique()
+                .HasFilter("\"Kind\" = 1 AND \"Status\" = 0");
+
+            entity.HasOne(i => i.Party)
+                .WithMany(p => p.Invitations)
+                .HasForeignKey(i => i.PartyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(i => i.CreatedBy)
+                .WithMany()
+                .HasForeignKey(i => i.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(i => i.TargetUser)
+                .WithMany()
+                .HasForeignKey(i => i.TargetUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---- Feature 017: event marketplace (mercenaries) ----
+
+        builder.Entity<MercenaryListing>(entity =>
+        {
+            entity.Property(l => l.Pitch).HasMaxLength(280).IsRequired();
+
+            // One live listing per (user, event) — race-safe backstop behind the service pre-check.
+            entity.HasIndex(l => new { l.UserId, l.EventId }).IsUnique();
+            // The board's free-agents read scans an event's listings.
+            entity.HasIndex(l => l.EventId);
+
+            entity.HasOne(l => l.Event)
+                .WithMany()
+                .HasForeignKey(l => l.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(l => l.User)
+                .WithMany()
+                .HasForeignKey(l => l.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<MarketRequest>(entity =>
+        {
+            // At most one active (pending) request per (party, user) (Status=Pending=0) — the race-safe
+            // backstop behind the service pre-check; terminal rows don't conflict (a fresh request may
+            // follow a decline/revoke). Mirrors the PartyAdminInvitation pending filters.
+            entity.HasIndex(r => new { r.PartyId, r.UserId })
+                .IsUnique()
+                .HasFilter("\"Status\" = 0");
+            // The recruiting inbox reads a party's pending applications/invites.
+            entity.HasIndex(r => new { r.PartyId, r.Status });
+            // The mercenary inbox + dashboard read a user's requests.
+            entity.HasIndex(r => new { r.UserId, r.Status });
+
+            entity.HasOne(r => r.Party)
+                .WithMany(p => p.MarketRequests)
+                .HasForeignKey(r => r.PartyId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // CreatedByUserId is a plain audit column (the applicant or inviting admin); no FK/nav.
+        });
+
+        // ---- Feature 018: team-scoped recurring trainings ----
+
+        builder.Entity<Training>(entity =>
+        {
+            entity.Property(t => t.Name).HasMaxLength(120).IsRequired();
+            entity.Property(t => t.Description).HasMaxLength(2000);
+            entity.Property(t => t.Location).HasMaxLength(300);
+            entity.Property(t => t.VirtualLink).HasMaxLength(500);
+
+            // The Trainings tab and active-series overview scan a team's trainings.
+            entity.HasIndex(t => t.TeamId);
+
+            entity.HasOne(t => t.Team)
+                .WithMany()
+                .HasForeignKey(t => t.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(t => t.CreatedBy)
+                .WithMany()
+                .HasForeignKey(t => t.CreatedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TrainingSession>(entity =>
+        {
+            entity.Property(s => s.LocationOverride).HasMaxLength(300);
+            entity.Property(s => s.VirtualLinkOverride).HasMaxLength(500);
+
+            // The tab list and dashboard agenda order by (team, date); the reconciliation reads by training.
+            entity.HasIndex(s => new { s.TeamId, s.SessionDate });
+            entity.HasIndex(s => s.TrainingId);
+
+            entity.HasOne(s => s.Training)
+                .WithMany(t => t.Sessions)
+                .HasForeignKey(s => s.TrainingId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TrainingResponse>(entity =>
+        {
+            // Exactly one current answer per person per session (upsert on change).
+            entity.HasIndex(r => new { r.TrainingSessionId, r.UserId }).IsUnique();
+            entity.HasIndex(r => r.TrainingSessionId);
+
+            entity.HasOne(r => r.Session)
+                .WithMany(s => s.Responses)
+                .HasForeignKey(r => r.TrainingSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

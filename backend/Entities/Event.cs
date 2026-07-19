@@ -48,6 +48,13 @@ public sealed class Event : BaseEntity
     /// <summary>How many teams/people may hold a spot. Positive; never below current occupied count when edited.</summary>
     public int ParticipationLimit { get; set; }
 
+    /// <summary>
+    /// Players-per-team cap for a <see cref="ParticipantMode.Teams"/> event — the maximum size of a
+    /// team's <see cref="Party"/> (feature 016). Set at creation: default 8, minimum 5, no upper
+    /// cap beyond a sane guard. Null for an individuals-only event.
+    /// </summary>
+    public int? RosterCap { get; set; }
+
     // --- Fee (paid events; out-of-band bank transfer, no in-app payment) ---
     public bool IsPaid { get; set; }
     public decimal? FeeAmount { get; set; }

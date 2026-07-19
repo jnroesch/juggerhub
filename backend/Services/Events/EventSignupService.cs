@@ -79,19 +79,10 @@ public sealed class EventSignupService : IEventSignupService
         }
         else
         {
-            if (teamId is not Guid tid)
-            {
-                return SignupResult.Fail(SignupOutcome.ModeMismatch, "This event is for teams; enter a team you administer.");
-            }
-
-            var isTeamAdmin = await _db.TeamMemberships
-                .AnyAsync(m => m.TeamId == tid && m.UserId == userId && m.Role == TeamRole.Admin, ct);
-            if (!isTeamAdmin)
-            {
-                return SignupResult.Fail(SignupOutcome.NotTeamAdmin, "Only a team's admin can enter it into an event.");
-            }
-
-            subjectTeam = tid;
+            // Feature 016: teams enter via a party, not a direct team sign-up. The party's
+            // "apply" step creates the team's EventSignup on its own; this public path refuses.
+            return SignupResult.Fail(SignupOutcome.ModeMismatch,
+                "This event is entered via a party — form one from your team page.");
         }
 
         // Duplicate pre-check (the partial-unique indexes are the race-safe backstop below).

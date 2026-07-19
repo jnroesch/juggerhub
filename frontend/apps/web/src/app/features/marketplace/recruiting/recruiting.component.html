@@ -1,0 +1,131 @@
+<section class="mx-auto max-w-2xl px-md py-lg" data-testid="recruiting-page">
+  <a [routerLink]="['/parties', id]" class="text-body-sm text-subtle hover:text-body">‹ Back to party</a>
+
+  @if (loading()) {
+    <p class="mt-md text-body-sm text-subtle">Loading…</p>
+  } @else if (forbidden()) {
+    <div class="mt-md rounded-lg border border-border bg-surface-card px-md py-lg text-center">
+      <p class="text-body-md font-bold text-ink">Party admins only</p>
+      <p class="mt-xs text-body-sm text-subtle">Only a party admin can manage recruiting.</p>
+    </div>
+  } @else if (loadError()) {
+    <p class="mt-md text-body-sm text-danger">Couldn't load this page. Try again shortly.</p>
+  } @else if (settings(); as s) {
+    <div class="mt-sm flex items-baseline justify-between">
+      <h1 class="text-heading-sm font-bold text-ink">Recruiting</h1>
+      <span class="text-body-sm text-subtle"><span class="font-mono">{{ fill() }}</span> in</span>
+    </div>
+
+    <!-- Toggle + settings -->
+    <div class="mt-md rounded-lg border border-border bg-surface-card p-md">
+      <label class="flex cursor-pointer items-center justify-between gap-sm">
+        <span>
+          <span class="text-body-md font-semibold text-body">Looking for players</span>
+          <span class="mt-0.5 block text-body-sm text-subtle">List this party on the event market so free agents can find you.</span>
+        </span>
+        <input type="checkbox" [checked]="on()" (change)="on.set($any($event.target).checked)"
+          class="h-6 w-11 shrink-0 cursor-pointer appearance-none rounded-full bg-surface-muted transition-colors checked:bg-brand" data-testid="recruiting-toggle" />
+      </label>
+
+      @if (on()) {
+        <hr class="my-md border-t border-border" />
+        <p class="text-eyebrow font-semibold uppercase tracking-wide text-muted">Spots to advertise</p>
+        <div class="mt-xs flex items-center gap-sm">
+          <button type="button" (click)="changeSpots(-1)" class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-body-md font-semibold text-body hover:bg-surface-sunken">−</button>
+          <span class="w-8 text-center font-mono text-body-md">{{ spots() }}</span>
+          <button type="button" (click)="changeSpots(1)" class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-body-md font-semibold text-body hover:bg-surface-sunken">+</button>
+          <span class="text-body-sm text-subtle">of <span class="font-mono">{{ s.rosterCap }}</span> · <span class="font-mono">{{ s.inCount }}</span> in so far</span>
+        </div>
+
+        <p class="mt-md text-eyebrow font-semibold uppercase tracking-wide text-muted">Positions needed</p>
+        <div class="mt-xs flex flex-wrap gap-xs">
+          @for (p of catalog; track p.value) {
+            <button type="button" (click)="togglePosition(p.value)" class="rounded-full border px-sm py-0.5 text-body-sm" [class]="positions().includes(p.value) ? 'border-brand bg-surface-accent-soft text-brand' : 'border-border-strong text-subtle hover:bg-surface-sunken'">{{ p.en }}</button>
+          }
+        </div>
+
+        <p class="mt-md text-eyebrow font-semibold uppercase tracking-wide text-muted">Short blurb — optional</p>
+        <textarea [value]="blurb()" (input)="blurb.set($any($event.target).value)" maxlength="500" rows="2"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-sm text-body focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-coral-1"
+          placeholder="Friendly Köln crew, all divisions. Missing two — come play."></textarea>
+      }
+
+      @if (saveError()) { <p class="mt-sm text-body-sm text-danger">{{ saveError() }}</p> }
+      <button type="button" (click)="save()" [disabled]="saving()"
+        class="mt-md w-full rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50" data-testid="save-recruiting">
+        {{ on() ? 'Save recruiting' : 'Save — filling from within the team' }}
+      </button>
+    </div>
+
+    <!-- Applications to you -->
+    <div class="mt-md rounded-lg border border-border bg-surface-card p-md">
+      <h2 class="text-eyebrow font-semibold uppercase tracking-wide text-muted">Applications to you · <span class="font-mono">{{ applications().length }}</span></h2>
+      @if (applications().length === 0) {
+        <p class="mt-xs text-body-sm text-subtle">No applications yet. Flip recruiting on and free agents can apply.</p>
+      } @else {
+        <ul class="mt-sm space-y-xs" data-testid="applications">
+          @for (app of applications(); track app.id) {
+            <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
+              <div>
+                <a [routerLink]="['/u', app.handle]" class="text-body-sm font-semibold text-body hover:text-brand">{{ app.displayName }}</a>
+                <p class="text-body-sm text-subtle">@for (pos of app.positions; track pos) { {{ label(pos)?.en }} }<span class="ml-1">· applied {{ rel(app.createdDate) }}</span></p>
+              </div>
+              <div class="flex gap-xs">
+                <button type="button" (click)="accept(app.id)" [disabled]="acting()" class="rounded-md bg-brand px-sm py-1 text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Accept</button>
+                <button type="button" (click)="decline(app.id)" class="rounded-md border border-border-strong px-sm py-1 text-body-sm font-semibold text-body hover:bg-surface-sunken">Decline</button>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!-- Invites you've sent -->
+    <div class="mt-md rounded-lg border border-border bg-surface-card p-md">
+      <h2 class="text-eyebrow font-semibold uppercase tracking-wide text-muted">Invites you've sent · <span class="font-mono">{{ sentInvites().length }}</span></h2>
+      @if (sentInvites().length === 0) {
+        <p class="mt-xs text-body-sm text-subtle">No invites out yet.</p>
+      } @else {
+        <ul class="mt-sm space-y-xs" data-testid="sent-invites">
+          @for (inv of sentInvites(); track inv.id) {
+            <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
+              <div>
+                <span class="text-body-sm font-semibold text-body">{{ inv.displayName }}</span>
+                <p class="text-body-sm text-subtle">{{ inv.status === 'Declined' ? 'declined' : 'awaiting reply' }} · invited {{ rel(inv.createdDate) }}</p>
+              </div>
+              @if (inv.status === 'Pending') {
+                <button type="button" (click)="revoke(inv.id)" class="rounded-md border border-border-strong px-sm py-1 text-body-sm font-semibold text-danger hover:bg-surface-sunken">Revoke</button>
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+
+    <!-- Direct invite -->
+    <div class="mt-md rounded-lg border border-border bg-surface-card p-md">
+      <h2 class="text-eyebrow font-semibold uppercase tracking-wide text-muted">Invite anyone directly</h2>
+      <p class="mt-0.5 text-body-sm text-subtle">Search by name or @handle — they don't need to be on the market.</p>
+      <input type="search" [value]="query()" (input)="onQuery($any($event.target).value)" placeholder="Search players…"
+        class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-sm text-body focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-coral-1" data-testid="user-search" />
+      @if (searching()) { <p class="mt-xs text-body-sm text-subtle">Searching…</p> }
+      @if (results().length > 0) {
+        <ul class="mt-sm space-y-xs" data-testid="search-results">
+          @for (u of results(); track u.userId) {
+            <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
+              <div>
+                <span class="text-body-sm font-semibold text-body">{{ u.displayName }}</span>
+                <p class="text-body-sm text-subtle">@{{ u.handle }}@if (u.hometown) { <span> · {{ u.hometown }}</span> }</p>
+              </div>
+              @switch (u.relation) {
+                @case ('Invitable') { <button type="button" (click)="invite(u)" [disabled]="acting()" class="rounded-md bg-brand px-sm py-1 text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Invite</button> }
+                @case ('Invited') { <span class="text-body-sm text-subtle">invited</span> }
+                @case ('Ineligible') { <span class="text-body-sm text-subtle">in a crew</span> }
+              }
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+</section>

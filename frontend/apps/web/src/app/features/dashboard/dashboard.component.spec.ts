@@ -44,6 +44,9 @@ describe('DashboardComponent', () => {
     };
     httpMock.expectOne('/api/v1/home').flush(home);
     f.detectChanges();
+    // The market module (feature 017) mounts with the loaded dashboard and fetches its summary.
+    httpMock.expectOne((r) => r.url === '/api/v1/market/mine').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
+    httpMock.expectOne((r) => r.url === '/api/v1/market/mine/listings').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
 
     expect(q(f, 'home-greeting')!.textContent).toContain('Hi Mira');
     expect(q(f, 'up-next')).toBeTruthy();
@@ -59,6 +62,8 @@ describe('DashboardComponent', () => {
     };
     httpMock.expectOne('/api/v1/home').flush(home);
     f.detectChanges();
+    httpMock.expectOne((r) => r.url === '/api/v1/market/mine').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
+    httpMock.expectOne((r) => r.url === '/api/v1/market/mine/listings').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
 
     expect(q(f, 'home-greeting')!.textContent).toContain('Welcome, Mira');
     expect(q(f, 'find-a-team')).toBeTruthy();

@@ -87,6 +87,13 @@
             (openProfile)="openProfile($event)" />
         </div>
 
+        <!-- Mercenary market (feature 017 — teams events only) -->
+        @if (d.participantMode === 'Teams' && !cancelled()) {
+          <div class="rounded-lg border border-border bg-surface-card p-md">
+            <jh-market-board [eventId]="d.id" [authenticated]="d.viewer.isAuthenticated" />
+          </div>
+        }
+
         <!-- News -->
         <div class="rounded-lg border border-border bg-surface-card p-md">
           <jh-event-news-feed
@@ -117,6 +124,7 @@
             } @else {
               <jh-event-join-actions
                 [detail]="d"
+                [partyContext]="partyContext()"
                 [acting]="acting()"
                 [actionError]="actionError()"
                 (join)="join($event)"

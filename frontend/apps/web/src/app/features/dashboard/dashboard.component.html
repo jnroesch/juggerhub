@@ -115,6 +115,12 @@
 
       <!-- Right rail (stacks under the main column on mobile) -->
       <aside class="flex flex-col gap-lg">
+        <!-- Your trainings (feature 018) — hidden when nothing is upcoming -->
+        <jh-your-trainings-card />
+
+        <!-- Your market (feature 017) — hidden when nothing is pending -->
+        <jh-market-card />
+
         <!-- Team snapshots — desktop only -->
         @if (hasTeam()) {
           <div class="hidden flex-col gap-md lg:flex" data-testid="team-snapshots">

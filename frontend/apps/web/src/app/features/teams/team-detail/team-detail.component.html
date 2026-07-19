@@ -53,6 +53,34 @@
     <div class="mt-lg grid gap-lg lg:grid-cols-[minmax(0,1fr)_300px]">
       <div class="flex flex-col gap-lg">
         <!-- Admin: join-request queue -->
+        <!-- Pinned party requests (feature 016) — members answer here -->
+        @if (isMember() && partyRequests().length > 0) {
+          @for (card of partyRequests(); track card.partyId) {
+            <section class="rounded-lg border border-border-accent bg-surface-accent-soft p-md" data-testid="party-request">
+              <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand">◆ Party request</p>
+              <div class="mt-xs flex items-center justify-between gap-sm">
+                <h2 class="text-body-lg font-semibold text-heading">{{ card.eventName }}</h2>
+                <span class="text-body-sm text-subtle">{{ card.inCount }} / {{ card.rosterCap }}</span>
+              </div>
+              @if (card.message) { <p class="mt-xs text-body-sm text-body">“{{ card.message }}”</p> }
+              @if (card.myState === 'Admin' || card.status === 'Applied') {
+                <a [routerLink]="['/parties', card.partyId]" class="mt-sm inline-block rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent">Manage party</a>
+              } @else if (card.myState === 'In') {
+                <p class="mt-sm text-body-sm font-semibold text-body">You're in ✓ — <a [routerLink]="['/parties', card.partyId]" class="text-brand">open party</a></p>
+              } @else if (card.isFull) {
+                <p class="mt-sm text-body-sm text-subtle">Full right now — reopens automatically if a spot frees.</p>
+              } @else {
+                <div class="mt-sm flex gap-sm">
+                  <button type="button" (click)="answerParty(card, true)" [disabled]="partyBusy()"
+                    class="rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent disabled:opacity-50">I'm in</button>
+                  <button type="button" (click)="answerParty(card, false)" [disabled]="partyBusy()"
+                    class="rounded-md border border-border-strong px-md py-sm text-body-sm font-semibold text-body disabled:opacity-50">Can't make it</button>
+                </div>
+                @if (card.myState === 'Declined') { <p class="mt-xs text-caption text-subtle">You declined — you can still hop in while there's room.</p> }
+              }
+            </section>
+          }
+        }
         @if (isAdmin() && joinRequests().length > 0) {
           <section class="rounded-lg border border-border-accent bg-surface-accent-soft p-md" data-testid="join-queue">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">Join requests</h2>
@@ -185,21 +213,14 @@
 
       <!-- Right rail: upcoming trainings + admin tools -->
       <aside class="flex flex-col gap-lg">
-        <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="trainings">
-          <h2 class="mb-sm text-body-lg font-semibold text-heading">Upcoming trainings</h2>
-          @if (team.upcomingTrainings.length > 0) {
-            <ul class="flex flex-col gap-sm">
-              @for (t of team.upcomingTrainings; track t.eventId) {
-                <li>
-                  <a [routerLink]="['/events', t.eventId]" class="block font-medium text-heading hover:text-link">{{ t.name }}</a>
-                  <span class="block text-caption text-subtle">{{ t.locationLabel }} · <span class="font-mono">{{ t.startsAt | date: 'EEE d MMM' }}</span></span>
-                </li>
-              }
-            </ul>
-          } @else {
-            <p class="rounded-md bg-surface-sunken px-md py-md text-center text-body-sm text-muted">Nothing scheduled.</p>
-          }
-        </section>
+        @if (isMember()) {
+          <!-- Trainings (feature 018): the team's recurring training tab. -->
+          <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="trainings">
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">Trainings</h2>
+            <p class="text-body-sm text-muted">Recurring sessions your team can respond to.</p>
+            <a [routerLink]="['/t', slug(), 'trainings']" class="mt-sm inline-block rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken">View trainings</a>
+          </section>
+        }
 
         @if (isAdmin()) {
           <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">

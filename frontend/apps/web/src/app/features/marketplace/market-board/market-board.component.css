@@ -1,0 +1,4 @@
+/* Marketplace board — layout comes from Tailwind utilities mapped onto DESIGN.md tokens. */
+:host {
+  display: block;
+}

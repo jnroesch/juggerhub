@@ -421,6 +421,9 @@ namespace JuggerHub.Data.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<int?>("RosterCap")
+                        .HasColumnType("integer");
+
                     b.Property<DateTime>("StartsAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -698,6 +701,87 @@ namespace JuggerHub.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.MarketRequest", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Direction")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<int[]>("Positions")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartyId", "Status");
+
+                    b.HasIndex("PartyId", "UserId")
+                        .IsUnique()
+                        .HasFilter("\"Status\" = 0");
+
+                    b.HasIndex("UserId", "Status");
+
+                    b.ToTable("MarketRequests");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.MercenaryListing", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Pitch")
+                        .IsRequired()
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)");
+
+                    b.PrimitiveCollection<int[]>("Positions")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("UserId", "EventId")
+                        .IsUnique();
+
+                    b.ToTable("MercenaryListings");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.Notification", b =>
                 {
                     b.Property<Guid>("Id")
@@ -780,6 +864,198 @@ namespace JuggerHub.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("NotificationPreferences");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.Party", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("EventSignupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsRecruiting")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.PrimitiveCollection<int[]>("PositionsNeeded")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<string>("RecruitBlurb")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("RosterCap")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SpotsAdvertised")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("EventId");
+
+                    b.HasIndex("EventSignupId")
+                        .IsUnique()
+                        .HasFilter("\"EventSignupId\" IS NOT NULL");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("TeamId", "EventId")
+                        .IsUnique();
+
+                    b.ToTable("Parties");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.PartyAdminInvitation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("TargetUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("PartyId")
+                        .IsUnique()
+                        .HasFilter("\"Kind\" = 0 AND \"Status\" = 0");
+
+                    b.HasIndex("TargetUserId");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("PartyId", "TargetUserId")
+                        .IsUnique()
+                        .HasFilter("\"Kind\" = 1 AND \"Status\" = 0");
+
+                    b.ToTable("PartyAdminInvitations");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.PartyMember", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("ViaMarket")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("PartyId", "Status");
+
+                    b.HasIndex("PartyId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("PartyMembers");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.PartyNewsPost", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AuthorUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("PartyId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorUserId");
+
+                    b.HasIndex("PartyId", "CreatedDate");
+
+                    b.ToTable("PartyNewsPosts");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.PlayerProfile", b =>
@@ -1155,6 +1431,172 @@ namespace JuggerHub.Data.Migrations
                     b.HasIndex("TeamId", "CreatedDate");
 
                     b.ToTable("TeamNewsPosts");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.Training", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<int?>("Interval")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsRecurring")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<int>("LocationKind")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateOnly>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("VirtualLink")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("Visibility")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("Weekday")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("Trainings");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TrainingResponse", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Answer")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsGuest")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TrainingSessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainingSessionId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("TrainingSessionId", "UserId")
+                        .IsUnique();
+
+                    b.ToTable("TrainingResponses");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TrainingSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("CancelledDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Detached")
+                        .HasColumnType("boolean");
+
+                    b.Property<TimeOnly?>("EndTimeOverride")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<int?>("LocationKindOverride")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("LocationOverride")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("SessionDate")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly?>("StartTimeOverride")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TrainingId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("VirtualLinkOverride")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("VisibilityOverride")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TrainingId");
+
+                    b.HasIndex("TeamId", "SessionDate");
+
+                    b.ToTable("TrainingSessions");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.User", b =>
@@ -1587,6 +2029,44 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.MarketRequest", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.Party", "Party")
+                        .WithMany("MarketRequests")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Party");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.MercenaryListing", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Event");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.Notification", b =>
                 {
                     b.HasOne("JuggerHub.Entities.User", "Actor")
@@ -1614,6 +2094,104 @@ namespace JuggerHub.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.Party", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.Event", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.EventSignup", "EventSignup")
+                        .WithMany()
+                        .HasForeignKey("EventSignupId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("JuggerHub.Entities.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Event");
+
+                    b.Navigation("EventSignup");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.PartyAdminInvitation", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.Party", "Party")
+                        .WithMany("Invitations")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "TargetUser")
+                        .WithMany()
+                        .HasForeignKey("TargetUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Party");
+
+                    b.Navigation("TargetUser");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.PartyMember", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.Party", "Party")
+                        .WithMany("Members")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Party");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.PartyNewsPost", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.User", "Author")
+                        .WithMany()
+                        .HasForeignKey("AuthorUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.Party", "Party")
+                        .WithMany("News")
+                        .HasForeignKey("PartyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Author");
+
+                    b.Navigation("Party");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.PlayerProfile", b =>
@@ -1750,6 +2328,55 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("Team");
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.Training", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("Team");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TrainingResponse", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.TrainingSession", "Session")
+                        .WithMany("Responses")
+                        .HasForeignKey("TrainingSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TrainingSession", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.Training", "Training")
+                        .WithMany("Sessions")
+                        .HasForeignKey("TrainingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Training");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole<System.Guid>", null)
@@ -1830,6 +2457,17 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("Signups");
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.Party", b =>
+                {
+                    b.Navigation("Invitations");
+
+                    b.Navigation("MarketRequests");
+
+                    b.Navigation("Members");
+
+                    b.Navigation("News");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.PlayerProfile", b =>
                 {
                     b.Navigation("Avatar");
@@ -1846,6 +2484,16 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("Memberships");
 
                     b.Navigation("News");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.Training", b =>
+                {
+                    b.Navigation("Sessions");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TrainingSession", b =>
+                {
+                    b.Navigation("Responses");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.User", b =>

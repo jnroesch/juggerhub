@@ -2,8 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Asp.Versioning;
 using JuggerHub.Common;
+using JuggerHub.Dtos.Parties;
 using JuggerHub.Dtos.Search;
 using JuggerHub.Dtos.Teams;
+using JuggerHub.Services.Parties;
 using JuggerHub.Services.Search;
 using JuggerHub.Services.Teams;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -30,6 +32,7 @@ public sealed class TeamsController : ControllerBase
     private readonly ITeamInvitationService _invitations;
     private readonly ITeamSearchService _search;
     private readonly ITeamJoinRequestService _joinRequests;
+    private readonly IPartyService _parties;
 
     public TeamsController(
         ITeamService teams,
@@ -37,7 +40,8 @@ public sealed class TeamsController : ControllerBase
         ITeamNewsService news,
         ITeamInvitationService invitations,
         ITeamSearchService search,
-        ITeamJoinRequestService joinRequests)
+        ITeamJoinRequestService joinRequests,
+        IPartyService parties)
     {
         _teams = teams;
         _activity = activity;
@@ -45,6 +49,24 @@ public sealed class TeamsController : ControllerBase
         _invitations = invitations;
         _search = search;
         _joinRequests = joinRequests;
+        _parties = parties;
+    }
+
+    /// <summary>The pinned party-request cards a team member can see (feature 016). Member-gated:
+    /// a non-member (or unknown team) yields 404.</summary>
+    [HttpGet("{slug}/party-requests")]
+    public async Task<ActionResult<PagedResult<PartyRequestCardDto>>> PartyRequests(
+        string slug, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var page = await _parties.ListTeamRequestsAsync(slug, userId, pagination, ct);
+        return page is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Team not found", detail: "No team matches that address.")
+            : Ok(page);
     }
 
     // --- Browse (public) ------------------------------------------------------

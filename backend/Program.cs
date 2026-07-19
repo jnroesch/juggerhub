@@ -219,6 +219,30 @@ builder.Services.AddScoped<IEventAdminService, EventAdminService>();
 builder.Services.AddScoped<IEventInvitationService, EventInvitationService>();
 builder.Services.AddScoped<EventEmailService>();
 
+// --- Parties (feature 016) -------------------------------------------------
+// Shared guard/capacity/email registered here; the four story services are registered as their
+// implementations land per user story (see specs/016-event-parties/tasks.md).
+builder.Services.AddScoped<JuggerHub.Services.Parties.PartyGuard>();
+builder.Services.AddScoped<JuggerHub.Services.Parties.PartyCapacity>();
+builder.Services.AddScoped<PartyEmailService>();
+builder.Services.AddScoped<JuggerHub.Services.Parties.IPartyService, JuggerHub.Services.Parties.PartyService>();
+builder.Services.AddScoped<JuggerHub.Services.Parties.IPartyRosterService, JuggerHub.Services.Parties.PartyRosterService>();
+builder.Services.AddScoped<JuggerHub.Services.Parties.IPartyNewsService, JuggerHub.Services.Parties.PartyNewsService>();
+builder.Services.AddScoped<JuggerHub.Services.Parties.IPartyInvitationService, JuggerHub.Services.Parties.PartyInvitationService>();
+
+// --- Event marketplace (feature 017) ---------------------------------------
+builder.Services.AddScoped<JuggerHub.Services.Marketplace.MarketEligibility>();
+builder.Services.AddScoped<MarketEmailService>();
+builder.Services.AddScoped<JuggerHub.Services.Marketplace.IMarketListingService, JuggerHub.Services.Marketplace.MarketListingService>();
+builder.Services.AddScoped<JuggerHub.Services.Marketplace.IMarketRecruitingService, JuggerHub.Services.Marketplace.MarketRecruitingService>();
+builder.Services.AddScoped<JuggerHub.Services.Marketplace.IMarketRequestService, JuggerHub.Services.Marketplace.MarketRequestService>();
+
+// --- Trainings (feature 018) -----------------------------------------------
+builder.Services.AddScoped<JuggerHub.Services.Trainings.TrainingGuard>();
+builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingSeriesService, JuggerHub.Services.Trainings.TrainingSeriesService>();
+builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingSessionService, JuggerHub.Services.Trainings.TrainingSessionService>();
+builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingResponseService, JuggerHub.Services.Trainings.TrainingResponseService>();
+
 // --- Search / browse (feature 007) -----------------------------------------
 builder.Services.Configure<SearchOptions>(builder.Configuration.GetSection(SearchOptions.SectionName));
 builder.Services.AddScoped<ITeamSearchService, TeamSearchService>();
