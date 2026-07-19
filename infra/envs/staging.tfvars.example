@@ -6,7 +6,7 @@
 
 location = "westeurope"
 
-node_vm_size          = "Standard_B2s"
+node_vm_size          = "Standard_D2s_v3"
 system_node_count     = 1
 user_node_min         = 1
 user_node_max         = 2

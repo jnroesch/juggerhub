@@ -40,7 +40,7 @@ variable "kubernetes_version" {
 
 variable "node_vm_size" {
   type    = string
-  default = "Standard_B2s"
+  default = "Standard_D2s_v3"
 }
 
 variable "system_node_count" {
