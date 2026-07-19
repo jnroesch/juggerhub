@@ -34,12 +34,12 @@ resource "kubernetes_config_map_v1" "app" {
     namespace = kubernetes_namespace_v1.app.metadata[0].name
   }
   data = {
-    "ASPNETCORE_ENVIRONMENT"  = var.aspnetcore_environment
-    "Jwt__Issuer"             = var.jwt_issuer
-    "Jwt__Audience"           = var.jwt_audience
-    "Email__Provider"         = "Resend"
-    "Email__FromAddress"      = var.email_from_address
-    "Email__FrontendBaseUrl"  = var.email_frontend_base_url
+    "ASPNETCORE_ENVIRONMENT" = var.aspnetcore_environment
+    "Jwt__Issuer"            = var.jwt_issuer
+    "Jwt__Audience"          = var.jwt_audience
+    "Email__Provider"        = "Resend"
+    "Email__FromAddress"     = var.email_from_address
+    "Email__FrontendBaseUrl" = var.email_frontend_base_url
   }
 }
 

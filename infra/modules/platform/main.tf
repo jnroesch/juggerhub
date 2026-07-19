@@ -53,8 +53,8 @@ resource "kubernetes_manifest" "cluster_issuer_staging" {
     metadata   = { name = "letsencrypt-staging" }
     spec = {
       acme = {
-        server = "https://acme-staging-v02.api.letsencrypt.org/directory"
-        email  = var.acme_email
+        server              = "https://acme-staging-v02.api.letsencrypt.org/directory"
+        email               = var.acme_email
         privateKeySecretRef = { name = "letsencrypt-staging-account-key" }
         solvers = [{
           http01 = { ingress = { class = var.ingress_class_name } }
@@ -73,8 +73,8 @@ resource "kubernetes_manifest" "cluster_issuer_prod" {
     metadata   = { name = "letsencrypt-prod" }
     spec = {
       acme = {
-        server = "https://acme-v02.api.letsencrypt.org/directory"
-        email  = var.acme_email
+        server              = "https://acme-v02.api.letsencrypt.org/directory"
+        email               = var.acme_email
         privateKeySecretRef = { name = "letsencrypt-prod-account-key" }
         solvers = [{
           http01 = { ingress = { class = var.ingress_class_name } }
