@@ -1,0 +1,19 @@
+# Terraform working dirs and state — never commit.
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+
+# Local secret var files — real values come from TF_VAR_* / GitHub Environments.
+*.auto.tfvars
+secrets.tfvars
+
+# Override files (local experiments).
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Committed on purpose (do NOT ignore): .terraform.lock.hcl, envs/*.tfvars

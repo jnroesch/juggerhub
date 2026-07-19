@@ -1,0 +1,29 @@
+# Staging example — proves "add an environment = add one file + a workspace".
+# To activate: copy to staging.tfvars, adjust values, then:
+#   terraform workspace new staging
+#   terraform apply -var-file=envs/staging.tfvars -var image_tag=<sha>
+# No changes to modules/ or the root *.tf are required.
+
+location = "westeurope"
+
+node_vm_size          = "Standard_D2s_v3"
+system_node_count     = 1
+user_node_min         = 1
+user_node_max         = 2
+enable_user_autoscale = true
+
+backend_replicas   = 1
+frontend_replicas  = 1
+enable_backend_hpa = false
+
+postgres_storage_gb    = 16
+postgres_storage_class = "managed-csi"
+
+aspnetcore_environment = "Staging"
+app_hostname           = "staging.juggerhub.com"
+enable_www_redirect    = false
+enable_tls             = true
+letsencrypt_issuer     = "letsencrypt-prod"
+acme_email             = "admin@juggerhub.com"
+
+api_authorized_ip_ranges = []
