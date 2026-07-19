@@ -31,7 +31,7 @@ COPY . .
 ENTRYPOINT ["npx", "nx", "e2e", "web-e2e"]
 
 # --- runtime: nginx serving the SPA + proxying /api -------------------------
-FROM nginx:1.31.2-alpine AS runtime
+FROM nginx:1.31.3-alpine AS runtime
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist/apps/web/browser /usr/share/nginx/html
 EXPOSE 80
