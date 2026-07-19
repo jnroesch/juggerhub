@@ -71,6 +71,10 @@ resource "kubernetes_secret_v1" "postgres" {
 }
 
 resource "kubernetes_secret_v1" "ghcr" {
+  # Optional: only needed for PRIVATE GHCR packages. With public packages, leave
+  # ghcr_pull_token empty and pods pull anonymously (no imagePullSecret).
+  count = var.ghcr_pull_token != "" ? 1 : 0
+
   metadata {
     name      = "ghcr-pull"
     namespace = kubernetes_namespace_v1.app.metadata[0].name
@@ -190,8 +194,11 @@ resource "kubernetes_deployment_v1" "backend" {
         labels = { app = "backend" }
       }
       spec {
-        image_pull_secrets {
-          name = kubernetes_secret_v1.ghcr.metadata[0].name
+        dynamic "image_pull_secrets" {
+          for_each = var.ghcr_pull_token != "" ? [1] : []
+          content {
+            name = kubernetes_secret_v1.ghcr[0].metadata[0].name
+          }
         }
         container {
           name  = "backend"
@@ -262,8 +269,11 @@ resource "kubernetes_deployment_v1" "frontend" {
         labels = { app = "frontend" }
       }
       spec {
-        image_pull_secrets {
-          name = kubernetes_secret_v1.ghcr.metadata[0].name
+        dynamic "image_pull_secrets" {
+          for_each = var.ghcr_pull_token != "" ? [1] : []
+          content {
+            name = kubernetes_secret_v1.ghcr[0].metadata[0].name
+          }
         }
         container {
           name  = "frontend"

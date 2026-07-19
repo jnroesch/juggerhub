@@ -65,9 +65,11 @@ roles):
 
 4. **Populate GitHub Environments** `development` and `production` (the names
    deploy.yml already uses) with the secrets `POSTGRES_PASSWORD`, `JWT_SIGNING_KEY`,
-   `RESEND_API_KEY`, `ADMIN_EMAILS`, `GHCR_PULL_TOKEN`, and the variables
-   `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` (from step 2). The
-   deploy workflow maps the secrets to `TF_VAR_*`. See `../specs/015-hosting/data-model.md`.
+   `RESEND_API_KEY`, `ADMIN_EMAILS`, and the variables `AZURE_CLIENT_ID`,
+   `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` (from step 2). `GHCR_PULL_TOKEN` is
+   **optional** — only needed if the GHCR image packages are private; with public
+   packages it can be omitted and no imagePullSecret is created. The deploy workflow
+   maps the secrets to `TF_VAR_*`. See `../specs/015-hosting/data-model.md`.
 
 ---
 

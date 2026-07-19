@@ -255,10 +255,8 @@ variable "ghcr_username" {
 }
 
 variable "ghcr_pull_token" {
-  type      = string
-  sensitive = true
-  validation {
-    condition     = length(var.ghcr_pull_token) > 0
-    error_message = "ghcr_pull_token must be set (GitHub Environment secret; read:packages)."
-  }
+  type        = string
+  sensitive   = true
+  description = "GHCR pull token (read:packages). Leave empty for PUBLIC packages — no imagePullSecret is created."
+  default     = ""
 }
