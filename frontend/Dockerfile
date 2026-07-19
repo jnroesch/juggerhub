@@ -3,7 +3,7 @@
 
 # --- deps: install node_modules (cached on lockfile) ------------------------
 # Node pinned to match frontend/.nvmrc, package.json "engines", and CI.
-FROM node:22.23.1-alpine AS deps
+FROM node:26.5.0-alpine AS deps
 WORKDIR /app
 ENV NX_DAEMON=false
 COPY package.json package-lock.json ./
