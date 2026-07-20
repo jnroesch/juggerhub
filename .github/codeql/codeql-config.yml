@@ -1,0 +1,7 @@
+name: JuggerHub CodeQL config
+
+# wireframes/ holds offline design prototypes that self-load templates via
+# DOMParser + documentElement.replaceWith. They run from file://, never ship,
+# and aren't referenced by any build — so their js/xss-through-dom hits are noise.
+paths-ignore:
+  - wireframes
