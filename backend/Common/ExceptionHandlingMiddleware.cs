@@ -26,14 +26,18 @@ public sealed class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
+            // Strip CR/LF from user-controlled request values to prevent log forging.
             _logger.LogError(
                 ex,
                 "Unhandled exception for {Method} {Path}",
-                context.Request.Method,
-                context.Request.Path);
+                Sanitize(context.Request.Method),
+                Sanitize(context.Request.Path.ToString()));
             await HandleExceptionAsync(context);
         }
     }
+
+    private static string Sanitize(string value) =>
+        value.Replace("\r", "").Replace("\n", "");
 
     private static Task HandleExceptionAsync(HttpContext context)
     {
