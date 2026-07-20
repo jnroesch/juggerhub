@@ -40,10 +40,13 @@
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.10" />
-    <!-- Pin Microsoft.OpenApi above the transitive 2.0.0 that AspNetCore.OpenApi 10.0.9
+    <!-- Pin Microsoft.OpenApi above the transitive 2.0.0 that AspNetCore.OpenApi 10.0.10
          drags in, which is vulnerable to GHSA-v5pm-xwqc-g5wc (circular-schema DoS,
-         fixed in 2.7.5). Same major, so API-compatible. -->
-    <PackageReference Include="Microsoft.OpenApi" Version="3.9.0" />
+         fixed in 2.7.5). Must stay on the 2.x major: AspNetCore.OpenApi 10.x (net10.0)
+         depends on Microsoft.OpenApi 2.x, and its source generator assigns to
+         IOpenApiMediaType.Example, which became read-only in 3.x (build error CS0200).
+         Moving to 3.x requires AspNetCore.OpenApi 11.x / .NET 11. -->
+    <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
