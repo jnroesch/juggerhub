@@ -26,11 +26,13 @@ public sealed class ExceptionHandlingMiddleware
         }
         catch (Exception ex)
         {
+            // Strip CR/LF from the user-controlled path to prevent log forging.
+            var path = context.Request.Path.ToString().Replace("\r", "").Replace("\n", "");
             _logger.LogError(
                 ex,
                 "Unhandled exception for {Method} {Path}",
                 context.Request.Method,
-                context.Request.Path);
+                path);
             await HandleExceptionAsync(context);
         }
     }
