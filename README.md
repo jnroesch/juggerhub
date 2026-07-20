@@ -5,6 +5,7 @@
 **A warm, community-run home for the sport of Jugger** — find teams, book
 training, follow matches, and start local groups.
 
+[![Live (dev)](https://img.shields.io/badge/live-dev.juggerhub.com-16a34a.svg)](https://dev.juggerhub.com/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![Backend: .NET 10](https://img.shields.io/badge/backend-.NET%2010-512BD4.svg)](backend/)
 [![Frontend: Angular + Nx](https://img.shields.io/badge/frontend-Angular%20%2B%20Nx-DD0031.svg)](frontend/)
@@ -21,27 +22,52 @@ training, follow matches, and start local groups.
 ## What is JuggerHub?
 
 [Jugger](https://en.wikipedia.org/wiki/Jugger) is a fast, full-contact team sport
-played with padded weapons ("pompfen") and a running discipline all its own. It's
-grown up as a grassroots, community-run scene — and JuggerHub is built to match
-that: a friendly, mobile-first webapp where players and teams can organize without
-the friction.
+played with padded weapons ("pompfen") and a running discipline all of its own — a
+grassroots scene that has always run on word-of-mouth, group chats, and shared
+spreadsheets. **JuggerHub replaces that patchwork with one warm
+home** where players and teams can find each other, organize, and stay in touch
+without the friction.
 
-With JuggerHub you can:
+One account gives you everything below:
 
-- **Build a player profile** and share it with a public link.
-- **Create or join a team**, manage its roster, and run a public team page that
-  lets new players request to join.
-- **Run events and training** — post sessions, let people sign up, and see who's
-  coming.
-- **Browse and search** for teams, players, and events near you.
-- **Stay in the loop** with in-app notifications and per-user notification
-  preferences.
-- **Sign in securely** with email + password, verified email, and password reset
-  — everything enforced server-side.
+- **Your player profile** — a shareable public page for who you are and what you play.
+- **Teams** — create or join one, manage the roster, and run a public team page
+  that lets new players request to join.
+- **Events, parties & the mercenary market** — post events, and for team events
+  form a **party** (a temporary crew for one event) or pick up free-agent
+  **mercenaries** from the event marketplace when you're short a player.
+- **Trainings** — team-scoped recurring sessions with per-session Going / Maybe /
+  Can't responses and a "your trainings" agenda on your dashboard.
+- **Chat** — built-in 1:1, group, team, and party conversations with live typing,
+  read state, and link unfurls — no more scattered group chats.
+- **Search & discovery** — browse and search teams, players, and events near you.
+- **Notifications** — an in-app alerts inbox with per-user preferences.
+- **Recognition** — admin-granted badges and achievements on profiles and teams.
+- **Secure by default** — email + password auth with verified email, password
+  reset, and lockout, all enforced server-side.
 
 > **Status:** JuggerHub is in active **pre-1.0** development. Expect rapid change.
+> A live development environment runs at **[dev.juggerhub.com](https://dev.juggerhub.com/)**;
+> the public production site (**juggerhub.com**) is not deployed yet.
 
 <!-- TODO: add screenshots or a short demo GIF here once the UI is stable. -->
+
+---
+
+## Contributing & feedback
+
+Contributions of all kinds are welcome — and **you don't need to be a developer**
+to help shape JuggerHub.
+
+- 🐞 **Found a bug?** · 💡 **Have an idea?** · 💬 **Just want to share feedback?**
+  → [Open an issue](https://github.com/jnroesch/juggerhub/issues/new/choose).
+  The guided forms need no Markdown or git knowledge.
+- 🛠️ **Want to write code or docs?** Read [CONTRIBUTING.md](CONTRIBUTING.md) for
+  how to get started and the pull-request process.
+- 🔒 **Found a security issue?** Please report it **privately** — see
+  [SECURITY.md](SECURITY.md). Don't open a public issue.
+
+Everyone participating agrees to our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
@@ -55,11 +81,16 @@ Each feature is specified before it's built (see [`specs/`](specs/)):
 | **Onboarding** | A first-login flow that gets new players set up quickly |
 | **Profiles** | Player profiles with a shareable public link |
 | **Teams** | Team spaces, member handling, and public team pages with request-to-join |
-| **Events** | Create events/training and let players and teams sign up |
+| **Events** | Create events and let players and teams sign up |
+| **Event parties** | For team events, form a temporary crew ("party") of players for one event — invite/remove members, co-admins, and private party news |
+| **Event marketplace** | A mercenary board on team events — free agents post themselves, short-handed parties post open spots, with a two-way accept |
+| **Trainings** | Team-scoped recurring training sessions with per-session Going / Maybe / Can't and a "your trainings" agenda |
+| **Chat** | Built-in messaging — 1:1, groups, and auto-created team & party chats with live typing, read state, and link unfurls |
 | **Search** | Browse and search teams, players, and events |
 | **Home & nav** | A personalized dashboard and top-level navigation |
 | **Notifications** | In-app notification system with per-user preferences |
 | **Badges & achievements** | Admin-granted badges and achievements shown on player profiles and team pages |
+| **Admin area** | A gated platform-admin area — user management, account actions (suspend/ban/reset), and a badge/achievement catalogue |
 
 ---
 
@@ -71,10 +102,11 @@ Each feature is specified before it's built (see [`specs/`](specs/)):
 | Database | **PostgreSQL 18** (UUIDv7 keys, automatic audit fields) |
 | Auth | Microsoft Identity, Argon2 password hashing, JWT in `httpOnly` cookies |
 | Frontend | **Angular + Nx + Tailwind CSS** |
+| Realtime | **SignalR** (chat, live typing, notifications) with a **Redis** backplane + distributed rate limiting |
 | Mapping | Mapster (entity → DTO) |
 | Email | Mailpit (local), Resend (deployed) |
 | Containers | Docker (per-service) + Docker Compose (local) |
-| CI/CD | GitHub Actions + Terraform → GHCR → Azure App Services |
+| CI/CD | GitHub Actions + Terraform → GHCR → **Azure Kubernetes Service (AKS)** |
 
 Architecture, security, and convention rules live in the project
 [**constitution**](.specify/memory/constitution.md); the visual identity lives in
@@ -92,7 +124,7 @@ git clone https://github.com/jnroesch/juggerhub.git
 cd juggerhub
 
 cp .env.sample .env            # PowerShell: Copy-Item .env.sample .env
-docker compose up -d --build   # database, backend, frontend, Mailpit
+docker compose up -d --build   # database, Redis, backend, frontend, Mailpit
 docker compose ps              # wait for services to become healthy
 ```
 
@@ -146,23 +178,6 @@ $test run --rm playwright      # Playwright e2e (start the stack first)
 ├── .github/              # CI/CD workflows, issue forms, PR template
 └── docker-compose*.yml   # Local development orchestration
 ```
-
----
-
-## Contributing & feedback
-
-Contributions of all kinds are welcome — and **you don't need to be a developer**
-to help shape JuggerHub.
-
-- 🐞 **Found a bug?** · 💡 **Have an idea?** · 💬 **Just want to share feedback?**
-  → [Open an issue](https://github.com/jnroesch/juggerhub/issues/new/choose).
-  The guided forms need no Markdown or git knowledge.
-- 🛠️ **Want to write code or docs?** Read [CONTRIBUTING.md](CONTRIBUTING.md) for
-  how to get started and the pull-request process.
-- 🔒 **Found a security issue?** Please report it **privately** — see
-  [SECURITY.md](SECURITY.md). Don't open a public issue.
-
-Everyone participating agrees to our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
