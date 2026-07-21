@@ -71,7 +71,7 @@
 
     <p class="mt-lg text-center text-body-sm text-subtle">
       New to JuggerHub?
-      <a routerLink="/register" class="font-medium text-link hover:text-link-hover">Create an account</a>
+      <a routerLink="/register" [queryParams]="returnUrl() ? { returnUrl: returnUrl() } : {}" class="font-medium text-link hover:text-link-hover">Create an account</a>
     </p>
   </section>
 </main>

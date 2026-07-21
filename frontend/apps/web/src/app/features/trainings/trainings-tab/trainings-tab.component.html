@@ -19,7 +19,6 @@
       <h2 class="text-body-lg font-semibold text-heading">{{ isAdmin() ? 'No trainings yet' : 'Nothing scheduled' }}</h2>
       @if (isAdmin()) {
         <p class="mt-sm text-body-sm text-muted">Set a weekly session or a one-off — players get a spot to say if they're in.</p>
-        <a [routerLink]="['/t', slug(), 'trainings', 'new']" class="mt-md inline-block rounded-md bg-brand px-lg py-sm text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px">+ Set up a training</a>
       } @else {
         <p class="mt-sm text-body-sm text-muted">When your team schedules a training, it'll show up here.</p>
       }

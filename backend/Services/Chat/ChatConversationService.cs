@@ -288,26 +288,40 @@ public sealed class ChatConversationService : IChatConversationService
             })
             .ToListAsync(ct);
 
+        // A member sees nothing sent before they joined (spec FR-051): it drops out of their unread
+        // count and, when there is no newer message, out of their inbox preview too.
+        var cutoffs = await _guard.ResolveJoinCutoffsAsync(
+            callerId,
+            rows.Select(r => new ChatAccess(r.Id, r.Kind, r.State, r.TeamId, r.PartyId)).ToList(),
+            ct);
+
         var items = new List<ConversationSummaryDto>(rows.Count);
         foreach (var r in rows)
         {
-            var unread = await CountUnreadAsync(r.Id, callerId, r.Me?.LastReadMessageId, ct);
+            var cutoff = cutoffs.GetValueOrDefault(r.Id);
+            var unread = await CountUnreadAsync(r.Id, callerId, r.Me?.LastReadMessageId, cutoff, ct);
+
+            // The last message is the newest, so if it predates the cutoff every message does — the
+            // caller has no post-join history yet and the row shows no preview.
+            var last = r.Last is not null && cutoff is { } joinedAt && r.Last.CreatedDate < joinedAt
+                ? null
+                : r.Last;
 
             items.Add(new ConversationSummaryDto(
                 r.Id,
                 r.Kind,
                 DisplayName(r.Kind, r.Name, r.TeamName, r.Other?.DisplayName),
                 BuildAvatar(r.Kind, r.TeamId, r.Other?.UserId),
-                r.Last is null
+                last is null
                     ? null
                     : new LastMessageDto(
                         // A deleted message surrenders its preview — the inbox must not keep showing
                         // content the sender withdrew (spec FR-050c).
-                        r.Last.IsDeleted ? string.Empty : r.Last.Body,
-                        r.Last.CreatedDate,
-                        r.Last.SenderId == callerId ? null : r.Last.SenderName ?? PlaceholderName,
-                        r.Last.SenderId == callerId,
-                        r.Last.Kind == ChatMessageKind.System),
+                        last.IsDeleted ? string.Empty : last.Body,
+                        last.CreatedDate,
+                        last.SenderId == callerId ? null : last.SenderName ?? PlaceholderName,
+                        last.SenderId == callerId,
+                        last.Kind == ChatMessageKind.System),
                 unread,
                 r.Me?.IsMuted ?? false,
                 r.State,
@@ -326,6 +340,10 @@ public sealed class ChatConversationService : IChatConversationService
             .Select(c => new
             {
                 c.Id,
+                c.Kind,
+                c.State,
+                c.TeamId,
+                c.PartyId,
                 LastRead = c.Participants
                     .Where(p => p.UserId == callerId)
                     .Select(p => p.LastReadMessageId)
@@ -333,10 +351,16 @@ public sealed class ChatConversationService : IChatConversationService
             })
             .ToListAsync(ct);
 
+        // Pre-join messages never count toward the badge (spec FR-051).
+        var cutoffs = await _guard.ResolveJoinCutoffsAsync(
+            callerId,
+            rows.Select(r => new ChatAccess(r.Id, r.Kind, r.State, r.TeamId, r.PartyId)).ToList(),
+            ct);
+
         var total = 0;
         foreach (var r in rows)
         {
-            total += await CountUnreadAsync(r.Id, callerId, r.LastRead, ct);
+            total += await CountUnreadAsync(r.Id, callerId, r.LastRead, cutoffs.GetValueOrDefault(r.Id), ct);
         }
 
         return total;
@@ -406,12 +430,18 @@ public sealed class ChatConversationService : IChatConversationService
     /// timestamp-prefixed — so "greater id" means "sent later". A range scan on the composite
     /// (ConversationId, Id) index rather than a join against a receipt table (research §3).
     /// </remarks>
-    private Task<int> CountUnreadAsync(Guid conversationId, Guid callerId, Guid? lastReadMessageId, CancellationToken ct)
+    private Task<int> CountUnreadAsync(Guid conversationId, Guid callerId, Guid? lastReadMessageId, DateTime? cutoff, CancellationToken ct)
     {
         var q = _db.ChatMessages.AsNoTracking()
             .Where(m => m.ConversationId == conversationId
                 && m.SenderId != callerId
                 && !m.IsDeleted);
+
+        // Messages from before the caller joined are not theirs to be notified about (spec FR-051).
+        if (cutoff is { } joinedAt)
+        {
+            q = q.Where(m => m.CreatedDate >= joinedAt);
+        }
 
         if (lastReadMessageId is { } lastRead)
         {
