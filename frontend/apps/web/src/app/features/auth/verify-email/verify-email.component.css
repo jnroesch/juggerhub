@@ -1,3 +1,12 @@
+/* Focused single-card page: own the scroll so the viewport can't rubberband.
+ * See sign-in.component.css for the rationale. */
 :host {
   display: block;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior-y: none;
+}
+
+:host main {
+  min-height: 100%;
 }

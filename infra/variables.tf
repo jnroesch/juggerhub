@@ -194,7 +194,7 @@ variable "jwt_audience" {
 
 variable "email_from_address" {
   type    = string
-  default = "no-reply@juggerhub.com"
+  default = "hello@juggerhub.com"
 }
 
 variable "email_frontend_base_url" {
