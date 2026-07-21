@@ -25,7 +25,7 @@
       <input [(ngModel)]="name" type="text" maxlength="120" placeholder="Tuesday Training"
         class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
     </label>
-    <button type="button" (click)="next()" [disabled]="!step1Valid()"
+    <button type="button" (click)="next()" [disabled]="!name.trim()"
       class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-50">Continue</button>
   }
 

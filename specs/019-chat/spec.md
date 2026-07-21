@@ -220,7 +220,8 @@ A player on a wide screen sees the inbox become a left rail with every conversat
 - **Message that is only a link**: Renders as its card (or plain link) with no empty text bubble.
 - **Team chat for a team with one member**: Exists and is usable by that single member.
 - **Player is on many teams and parties**: The inbox stays paginated; auto-created chats do not bypass the inbox's bounds.
-- **Rejoining a team**: A player who leaves and rejoins a team regains access to the team chat and its history.
+- **Joining a team, party, or group chat**: A member sees only messages sent at or after they joined — the backlog from before they were part of the conversation is neither shown nor counted toward their unread badge (FR-051).
+- **Rejoining a team**: A player who leaves and rejoins a team regains access to the team chat. The join cutoff resets to the latest join, so they pick up from the point they rejoined rather than regaining the whole prior history.
 - **Archived (disbanded party / deleted team) chat**: Read-only for its members — no send, no typing, no add; it still appears in the inbox marked as such.
 
 ## Requirements *(mandatory)*
@@ -254,6 +255,7 @@ A player on a wide screen sees the inbox become a left rail with every conversat
 - **FR-016**: Opening a conversation MUST mark its messages read for that member, clear its row badge, and reduce the navigation total accordingly, converging across that player's other sessions.
 - **FR-017**: In a direct conversation, the sender MUST see whether their message has been read by the other participant, distinguishing at least a sent state from a read state.
 - **FR-018**: The navigation unread total MUST exclude muted **and hidden** conversations, and MUST cap its displayed value rather than growing unbounded.
+- **FR-051**: A member MUST see only messages sent at or after the point they joined a conversation, across every kind (team, party, group, direct). Messages sent before their join MUST NOT appear in the conversation, in its inbox preview, in the unread count/badge, or in search results. The join point is the member's current roster/participant membership, so leaving and rejoining resets it to the latest join. Archived chats are the sole exception: their full history stays readable to their snapshotted members (FR-027), with no join cutoff applied.
 
 **Live delivery**
 

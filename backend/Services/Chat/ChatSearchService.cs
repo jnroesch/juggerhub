@@ -53,17 +53,23 @@ public sealed class ChatSearchService : IChatSearchService
         // player's own messages — which is both the security boundary and why the scan is cheap.
         var query = _db.ChatMessages.AsNoTracking()
             .Where(m => !m.IsDeleted && m.Kind == ChatMessageKind.Member)
+            // Membership AND the join cutoff, in one predicate: the roster/participant row must both
+            // exist and pre-date the message (its JoinedDate/CreatedDate <= the message), so search
+            // never surfaces a message from before the caller joined (spec FR-035, FR-051). Archived
+            // chats are exempt — their history stays fully searchable (FR-027) — and are checked first
+            // because archival stamps snapshot rows at archive time.
             .Where(m =>
-                ((m.Conversation.Kind == ConversationKind.Direct || m.Conversation.Kind == ConversationKind.Group)
+                (m.Conversation.State == ConversationState.Archived
                     && m.Conversation.Participants.Any(p => p.UserId == callerId && p.LeftDate == null))
+                || ((m.Conversation.Kind == ConversationKind.Direct || m.Conversation.Kind == ConversationKind.Group)
+                    && m.Conversation.Participants.Any(p => p.UserId == callerId && p.LeftDate == null && p.JoinedDate <= m.CreatedDate))
                 || (m.Conversation.Kind == ConversationKind.Team
-                    && _db.TeamMemberships.Any(tm => tm.TeamId == m.Conversation.TeamId && tm.UserId == callerId))
+                    && _db.TeamMemberships.Any(tm => tm.TeamId == m.Conversation.TeamId && tm.UserId == callerId && tm.JoinedDate <= m.CreatedDate))
                 || (m.Conversation.Kind == ConversationKind.Party
                     && _db.PartyMembers.Any(pm => pm.PartyId == m.Conversation.PartyId
                         && pm.UserId == callerId
-                        && pm.Status == PartyMemberStatus.In))
-                || (m.Conversation.State == ConversationState.Archived
-                    && m.Conversation.Participants.Any(p => p.UserId == callerId && p.LeftDate == null)))
+                        && pm.Status == PartyMemberStatus.In
+                        && pm.CreatedDate <= m.CreatedDate)))
             .Where(m => EF.Functions.ILike(AppDbContext.Unaccent(m.Body), AppDbContext.Unaccent(pattern)));
 
         var total = await query.CountAsync(ct);

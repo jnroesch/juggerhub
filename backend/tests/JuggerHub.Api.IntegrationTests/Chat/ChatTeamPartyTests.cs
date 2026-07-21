@@ -114,9 +114,45 @@ public sealed class ChatTeamPartyTests : ChatTestSupport
         Assert.Equal(HttpStatusCode.NotFound, send.StatusCode);
     }
 
-    /// <summary>Edge case: rejoining restores access and the history.</summary>
+    /// <summary>
+    /// FR-051: joining a team chat does not hand you the backlog. A member added after messages were
+    /// already sent sees none of them and gets no unread badge for them; a message sent after they join
+    /// is theirs to see and to be notified about.
+    /// </summary>
     [Fact]
-    public async Task Rejoining_the_team_restores_access_and_history()
+    public async Task A_new_member_sees_no_history_or_unread_from_before_they_joined()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (ben, benId, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+
+        var chat = await FindTeamChatAsync(ada, teamId);
+        var conversationId = chat!.Value.GetProperty("id").GetGuid();
+        await SendAsync(ada, conversationId, "old news");
+
+        await AddTeamMemberAsync(teamId, benId);
+
+        // No backlog, and nothing to badge.
+        var before = await GetMessagesAsync(ben, conversationId);
+        Assert.Empty(before.GetProperty("items").EnumerateArray());
+        Assert.Equal(0, await GetUnreadTotalAsync(ben));
+
+        // A message sent after Ben joined is visible and does count.
+        await SendAsync(ada, conversationId, "welcome ben");
+        var after = await GetMessagesAsync(ben, conversationId);
+        var bodies = after.GetProperty("items").EnumerateArray()
+            .Select(m => m.GetProperty("body").GetString()).ToList();
+        Assert.Contains("welcome ben", bodies);
+        Assert.DoesNotContain("old news", bodies);
+        Assert.Equal(1, await GetUnreadTotalAsync(ben));
+    }
+
+    /// <summary>
+    /// Edge case + FR-051: rejoining restores access, but the cutoff resets to the latest join — the
+    /// returning player picks up from now, not from the whole history they could once read.
+    /// </summary>
+    [Fact]
+    public async Task Rejoining_the_team_restores_access_but_not_pre_rejoin_history()
     {
         var (ada, _, _) = await NewUserAsync();
         var (ben, benId, _) = await NewUserAsync();
@@ -132,8 +168,17 @@ public sealed class ChatTeamPartyTests : ChatTestSupport
 
         await AddTeamMemberAsync(teamId, benId);
 
+        // Access is back…
+        Assert.Equal(HttpStatusCode.OK, (await ben.GetAsync($"/api/v1/chat/conversations/{conversationId}")).StatusCode);
+
+        // …but the history from before this rejoin is not.
         var page = await GetMessagesAsync(ben, conversationId);
-        Assert.Contains(page.GetProperty("items").EnumerateArray(), m => m.GetProperty("body").GetString() == "before ben left");
+        Assert.DoesNotContain(page.GetProperty("items").EnumerateArray(), m => m.GetProperty("body").GetString() == "before ben left");
+
+        // A message sent after the rejoin is visible.
+        await SendAsync(ada, conversationId, "welcome back");
+        var page2 = await GetMessagesAsync(ben, conversationId);
+        Assert.Contains(page2.GetProperty("items").EnumerateArray(), m => m.GetProperty("body").GetString() == "welcome back");
     }
 
     /// <summary>FR-026 / US4 #4-#5: a team chat cannot be left or added to — mute and hide instead.</summary>

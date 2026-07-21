@@ -22,7 +22,7 @@ export class YourTrainingsCardComponent {
   protected readonly busyId = signal<string | null>(null);
 
   constructor() {
-    this.trainings.myAgenda(0, 10).subscribe({
+    this.trainings.myAgenda(0, 4).subscribe({
       next: (p) => {
         this.items.set(p.items);
         this.loading.set(false);
@@ -51,5 +51,9 @@ export class YourTrainingsCardComponent {
 
   protected shortDate(date: string): string {
     return new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  protected place(item: AgendaSession): string | null {
+    return item.locationKind === 'Virtual' ? 'Online' : item.location;
   }
 }

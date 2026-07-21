@@ -43,8 +43,6 @@ export class TrainingCreateComponent {
 
   protected readonly weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-  protected readonly step1Valid = computed(() => this.name.trim().length > 0);
-
   protected readonly summaryCount = computed(() => {
     if (!this.isRecurring) return 1;
     if (!this.startDate || !this.endDate) return null;
