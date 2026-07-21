@@ -1,0 +1,85 @@
+@if (visible()) {
+  <div
+    class="flex flex-col gap-xs border-b border-border px-lg py-sm"
+    data-testid="profile-quick-actions"
+  >
+    <div class="flex flex-wrap items-center gap-sm">
+      <!-- Message (primary) -->
+      <button
+        type="button"
+        (click)="message()"
+        [disabled]="messaging()"
+        data-testid="qa-message"
+        class="inline-flex items-center rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
+      >
+        {{ messaging() ? 'Opening…' : 'Message' }}
+      </button>
+
+      <!-- Invite to a team (secondary), admins only -->
+      @if (showInvite()) {
+        @if (inviteResolved() && !inviteEligible()) {
+          <span class="inline-flex items-center gap-xs">
+            <button
+              type="button"
+              disabled
+              data-testid="qa-invite"
+              class="inline-flex items-center rounded-md bg-secondary px-md py-xs text-body-sm font-semibold text-on-accent opacity-50"
+            >
+              Invite to a team
+            </button>
+            <span class="text-caption text-subtle" data-testid="qa-invite-reason">
+              Already on your team{{ adminTeamCount() > 1 ? 's' : '' }}
+            </span>
+          </span>
+        } @else {
+          <div class="relative">
+            <button
+              type="button"
+              (click)="onInviteClick()"
+              [disabled]="!inviteResolved() || inviting()"
+              [attr.aria-haspopup]="eligibleTeams().length > 1 ? 'menu' : null"
+              [attr.aria-expanded]="eligibleTeams().length > 1 ? pickerOpen() : null"
+              data-testid="qa-invite"
+              class="inline-flex items-center rounded-md bg-secondary px-md py-xs text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-secondary-hover hover:shadow-teal active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
+            >
+              {{ inviting() ? 'Inviting…' : 'Invite to a team' }}
+            </button>
+
+            @if (pickerOpen()) {
+              <div
+                class="absolute left-0 z-10 mt-xs min-w-[12rem] rounded-md border border-border-muted bg-surface-card p-xs shadow-md"
+                role="menu"
+                data-testid="qa-invite-picker"
+              >
+                <p class="px-md py-xs text-caption font-semibold uppercase tracking-[0.06em] text-muted">
+                  Invite to
+                </p>
+                @for (t of eligibleTeams(); track t.slug) {
+                  <button
+                    type="button"
+                    role="menuitem"
+                    (click)="sendInvite(t)"
+                    class="block w-full rounded-sm px-md py-xs text-left text-body-sm text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                  >
+                    {{ t.name }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      }
+    </div>
+
+    <!-- Inline outcomes -->
+    @if (messageError()) {
+      <p class="text-body-sm text-danger" role="alert" data-testid="qa-message-error">{{ messageError() }}</p>
+    }
+    @if (invitedTo()) {
+      <p class="text-body-sm text-success" data-testid="qa-invited">Invited to {{ invitedTo() }}.</p>
+    }
+    @if (inviteError()) {
+      <p class="text-body-sm text-danger" role="alert" data-testid="qa-invite-error">{{ inviteError() }}</p>
+    }
+  </div>
+}

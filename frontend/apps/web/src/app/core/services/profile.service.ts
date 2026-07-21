@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, shareReplay } from 'rxjs';
 import {
   ActivityItem,
   HandleAvailability,
@@ -25,6 +25,18 @@ export class ProfileService {
 
   getMine(): Observable<OwnerProfile> {
     return this.http.get<OwnerProfile>(`${this.base}/me`);
+  }
+
+  private mine$?: Observable<OwnerProfile>;
+
+  /**
+   * Cached owner profile for viewer-context reads (feature 021): handle for
+   * self-detection + administered teams. Shared across profile views so opening
+   * several profiles doesn't refetch. Session-lifetime cache; a page reload refreshes it.
+   */
+  getMineCached(): Observable<OwnerProfile> {
+    this.mine$ ??= this.getMine().pipe(shareReplay(1));
+    return this.mine$;
   }
 
   updateMine(request: UpdateProfileRequest): Observable<OwnerProfile> {
