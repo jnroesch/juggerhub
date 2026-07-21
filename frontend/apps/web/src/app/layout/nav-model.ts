@@ -55,11 +55,12 @@ export function badgeText(count: number): string {
 
 /**
  * Where "My team" navigates, by how many teams the player is on:
- * 0 → find a team (Browse teams); 1 → that team's space; many → the team chooser.
+ * 0 → the "My team" home/empty state (feature 023 — find a team, act on invitations, create one);
+ * 1 → that team's space; many → the team chooser.
  */
 export function myTeamTarget(teams: readonly MyTeam[]): string {
   if (teams.length === 0) {
-    return '/browse/teams';
+    return '/my-team';
   }
   if (teams.length === 1) {
     return `/t/${teams[0].slug}`;

@@ -302,6 +302,40 @@ public sealed class TeamInvitationService : ITeamInvitationService
             new PagedResult<InvitableUserDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake));
     }
 
+    // --- Invitee self-service list (feature 023) ------------------------------
+
+    public async Task<PagedResult<MyInvitationDto>> ListMineAsync(Guid userId, PaginationRequest pagination, CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+
+        // Scoped to the caller: only usable (pending + unexpired) TARGETED invites addressed to them.
+        // Link invites (no target) and expired/revoked/consumed invites are never returned.
+        var query = _db.TeamInvitations.AsNoTracking()
+            .Where(i => i.Kind == InvitationKind.Targeted
+                && i.TargetUserId == userId
+                && i.Status == InvitationStatus.Pending
+                && i.ExpiresDate > now);
+
+        var total = await query.CountAsync(ct);
+        var items = await query
+            .OrderByDescending(i => i.CreatedDate)
+            .Skip(pagination.NormalizedSkip)
+            .Take(pagination.NormalizedTake)
+            .Select(i => new MyInvitationDto(
+                i.Token,
+                i.Team.Name,
+                i.Team.Slug,
+                i.Team.Type,
+                i.Team.City,
+                i.Team.Memberships.Count,
+                i.CreatedBy.Profile != null ? i.CreatedBy.Profile.DisplayName : "A teammate",
+                i.CreatedDate,
+                i.ExpiresDate))
+            .ToListAsync(ct);
+
+        return new PagedResult<MyInvitationDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
+    }
+
     // --- Invitee token flow (anonymous preview + authed accept/decline) -------
 
     public async Task<InvitePreviewDto?> GetPreviewAsync(string token, CancellationToken ct = default)

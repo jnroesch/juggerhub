@@ -73,8 +73,8 @@ describe('nav-model', () => {
   });
 
   describe('myTeamTarget', () => {
-    it('routes a team-less player to find a team', () => {
-      expect(myTeamTarget([])).toBe('/browse/teams');
+    it('routes a team-less player to the "My team" home (feature 023)', () => {
+      expect(myTeamTarget([])).toBe('/my-team');
     });
 
     it('routes a single-team player straight to their team', () => {

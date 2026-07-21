@@ -82,6 +82,11 @@ public interface ITeamInvitationService
 
     Task<UserSearchResult> SearchUsersAsync(string slug, Guid actorUserId, string query, PaginationRequest pagination, CancellationToken ct = default);
 
+    /// <summary>The caller's own usable (pending + unexpired) targeted invitations (feature 023 —
+    /// the "My team" home). Scoped to the authenticated subject; carries each invite's token so the
+    /// UI can accept/decline via the existing token endpoints. Newest-first, paginated.</summary>
+    Task<PagedResult<MyInvitationDto>> ListMineAsync(Guid userId, PaginationRequest pagination, CancellationToken ct = default);
+
     /// <summary>Anonymous invite preview (public team info + inviter + usability); null if unknown token.</summary>
     Task<InvitePreviewDto?> GetPreviewAsync(string token, CancellationToken ct = default);
 
