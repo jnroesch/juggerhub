@@ -134,6 +134,15 @@ export interface ChatSearchResult {
   readonly people: { items: readonly PersonHit[]; totalCount: number };
 }
 
+/**
+ * Result of sending the first message to a player (feature 022 — lazy DM creation): the direct
+ * conversation that now exists (created if it didn't) plus the message that was sent.
+ */
+export interface DirectMessageSent {
+  readonly conversationId: string;
+  readonly message: ChatMessage;
+}
+
 export interface BlockedUser {
   readonly userId: string;
   readonly displayName: string;

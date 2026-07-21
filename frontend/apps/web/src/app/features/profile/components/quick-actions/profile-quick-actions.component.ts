@@ -119,9 +119,10 @@ export class ProfileQuickActionsComponent implements OnInit {
           void this.router.navigate(['/chat', hit.existingConversationId]);
           return;
         }
-        this.chat.start([hit.userId], null).subscribe({
-          next: (c) => void this.router.navigate(['/chat', c.id]),
-          error: () => this.failMessage(),
+        // No conversation yet — open a compose draft (feature 022 lazy creation). Nothing is created
+        // until the first message is sent, so opening Message and leaving pollutes nothing.
+        void this.router.navigate(['/chat/compose', target], {
+          state: { userId: hit.userId, displayName: hit.displayName },
         });
       },
       error: () => this.failMessage(),

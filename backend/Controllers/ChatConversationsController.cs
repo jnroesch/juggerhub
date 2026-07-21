@@ -81,6 +81,29 @@ public sealed class ChatConversationsController : ControllerBase
         return result.IsOk ? Ok(result.Value) : Fail(result.Outcome, result.Error);
     }
 
+    /// <summary>
+    /// Send the first message to a player, creating the direct conversation if none exists yet
+    /// (feature 022 — lazy DM creation). This is now the DM-creation surface, so it carries the same
+    /// open-reach abuse guard as Start (spec FR-049a).
+    /// </summary>
+    [HttpPost("direct/{targetUserId:guid}/messages")]
+    [EnableRateLimiting(RateLimitPolicies.ChatStart)]
+    public async Task<ActionResult<DirectMessageSentDto>> SendDirect(
+        Guid targetUserId,
+        [FromBody] SendMessageRequest request,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _conversations.SendFirstDirectAsync(userId, targetUserId, request.Body ?? string.Empty, ct);
+        return result.IsOk
+            ? Created($"/api/v1/chat/conversations/{result.Value!.ConversationId}", result.Value)
+            : Fail(result.Outcome, result.Error);
+    }
+
     [HttpGet("conversations/{conversationId:guid}")]
     public async Task<ActionResult<ConversationDetailDto>> Detail(Guid conversationId, CancellationToken ct)
     {

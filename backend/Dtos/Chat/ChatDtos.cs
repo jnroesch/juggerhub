@@ -117,6 +117,13 @@ public sealed record BlockedUserDto(Guid UserId, string DisplayName, string? Han
 /// <summary>The nav badge's number.</summary>
 public sealed record UnreadCountDto(int UnreadCount);
 
+/// <summary>
+/// Result of sending the first message to a player (feature 022 — lazy DM creation): the direct
+/// conversation that now exists (created if it didn't) plus the message that was sent, so the client
+/// can navigate into the real thread.
+/// </summary>
+public sealed record DirectMessageSentDto(Guid ConversationId, MessageDto Message);
+
 // --- Requests -------------------------------------------------------------------------------
 
 /// <summary>Start a chat: exactly one participant ⇒ a direct conversation; two or more ⇒ a named group.</summary>

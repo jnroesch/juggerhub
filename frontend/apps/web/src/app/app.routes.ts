@@ -55,6 +55,12 @@ export const appRoutes: Route[] = [
             loadComponent: () => import('./features/chat/chat-new/chat-new.component').then((m) => m.ChatNewComponent),
           },
           {
+            // Compose a new DM (feature 022 — lazy creation): a transient draft to :handle. Persists
+            // nothing until the first message is sent, then replaces the URL with /chat/:id.
+            path: 'compose/:handle',
+            loadComponent: () => import('./features/chat/chat-compose/chat-compose.component').then((m) => m.ChatComposeComponent),
+          },
+          {
             path: ':conversationId/details',
             loadComponent: () =>
               import('./features/chat/chat-details/chat-details.component').then((m) => m.ChatDetailsComponent),

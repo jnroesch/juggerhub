@@ -296,7 +296,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/021-profile-quick-actions/plan.md` (Profile Quick-Actions).
+`specs/022-lazy-dm-creation/plan.md` (Lazy Direct-Message Creation).
 <!-- SPECKIT END -->
 
 ## GitHub Issues Workflow

@@ -8,6 +8,16 @@
 
 **Input**: User description: "Chat — in-app messaging between users and in groups. Chat is a new top-level destination in the main nav carrying a total unread badge. Four kinds of conversation: 1:1 direct messages, named groups a user creates manually, an auto-created chat per team mirroring the roster, and an auto-created chat per event party. Inbox rows with avatar, last line, time and unread badge; live typing; search across messages and people; a warm empty state. Conversations deliver live with typing indicators, sent/read state, a new-messages divider and a jump-to-latest pill. Pasted JuggerHub links unfurl into view-only cards that deep-link to the full page. A details panel per conversation holds members, shared items and controls. On desktop the layout opens into an inbox rail + conversation + details side panel."
 
+## Amendments
+
+> **Amended by feature 022 (2026-07-21) — direct messages are created lazily.** A 1:1
+> direct conversation is now created **on the first message send**, not when the chat is
+> opened. Opening a chat with someone you don't yet message is a transient client compose
+> view that persists nothing; the first send atomically ensures-or-creates the
+> one-per-pair conversation (block enforced at send). This keeps empty, message-less DMs
+> out of the inbox. Groups and team/party auto-chats are unchanged. See
+> `specs/022-lazy-dm-creation/`.
+
 ## Clarifications
 
 ### Session 2026-07-16
