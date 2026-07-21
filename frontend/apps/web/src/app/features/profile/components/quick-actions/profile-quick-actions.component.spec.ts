@@ -121,12 +121,14 @@ describe('ProfileQuickActionsComponent', () => {
     expect(chat.start).not.toHaveBeenCalled();
   });
 
-  it('starts a new DM and navigates when none exists', () => {
+  it('routes to a compose draft when no conversation exists yet (feature 022 lazy creation)', () => {
     chat.search.mockReturnValue(of(chatResult([person('u-bob', 'bob', null)])));
     const fixture = create('bob');
     (el(fixture, 'qa-message') as HTMLButtonElement).click();
-    expect(chat.start).toHaveBeenCalledWith(['u-bob'], null);
-    expect(router.navigate).toHaveBeenCalledWith(['/chat', 'newconv']);
+    expect(router.navigate).toHaveBeenCalledWith(['/chat/compose', 'bob'], {
+      state: { userId: 'u-bob', displayName: 'bob' },
+    });
+    expect(chat.start).not.toHaveBeenCalled();
   });
 
   it('shows a friendly failure when the player cannot be resolved (e.g. blocked)', () => {
@@ -138,13 +140,13 @@ describe('ProfileQuickActionsComponent', () => {
     expect(router.navigate).not.toHaveBeenCalled();
   });
 
-  it('shows a friendly failure when starting the DM errors', () => {
-    chat.search.mockReturnValue(of(chatResult([person('u-bob', 'bob', null)])));
-    chat.start.mockReturnValue(throwError(() => new Error('429')));
+  it('shows a friendly failure when the search errors', () => {
+    chat.search.mockReturnValue(throwError(() => new Error('boom')));
     const fixture = create('bob');
     (el(fixture, 'qa-message') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(el(fixture, 'qa-message-error')).not.toBeNull();
+    expect(router.navigate).not.toHaveBeenCalled();
   });
 
   // --- US2: Invite ---------------------------------------------------------

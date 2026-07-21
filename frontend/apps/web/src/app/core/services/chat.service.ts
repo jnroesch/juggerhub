@@ -10,6 +10,7 @@ import {
   ChatSearchResult,
   Conversation,
   ConversationDetail,
+  DirectMessageSent,
   MessagePage,
   TypingSignal,
 } from '../models/chat.models';
@@ -127,6 +128,16 @@ export class ChatService {
     return this.http
       .post<Conversation>(`${this.base}/conversations`, { participantUserIds, name })
       .pipe(tap((c) => this.upsertConversation(c)));
+  }
+
+  /**
+   * Send the FIRST message to a player, creating the direct conversation on the fly (feature 022 —
+   * lazy DM creation). This is how a new DM comes into existence: opening a compose view persists
+   * nothing; only this call creates the conversation. Returns the (possibly newly created)
+   * conversation id + the message so the caller can navigate into the real thread.
+   */
+  sendDirect(targetUserId: string, body: string): Observable<DirectMessageSent> {
+    return this.http.post<DirectMessageSent>(`${this.base}/direct/${targetUserId}/messages`, { body });
   }
 
   addMembers(conversationId: string, userIds: string[]): Observable<void> {

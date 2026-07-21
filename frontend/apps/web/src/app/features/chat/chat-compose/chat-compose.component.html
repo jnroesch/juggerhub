@@ -1,0 +1,78 @@
+<div class="flex h-full min-h-0 flex-col" data-testid="chat-compose">
+  <!-- Header: who you're messaging -->
+  <header class="flex items-center gap-sm border-b border-border-muted bg-surface-card px-md py-sm">
+    <a
+      routerLink="/chat"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden"
+      aria-label="Back to messages"
+    >
+      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m15 18-6-6 6-6" />
+      </svg>
+    </a>
+
+    <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+
+    <span class="min-w-0 flex-1">
+      <h1 class="truncate text-body-lg font-semibold text-heading" data-testid="compose-recipient">
+        {{ displayName() || ('@' + handle()) }}
+      </h1>
+      <span class="block truncate text-body-sm text-muted">New message · &#64;{{ handle() }}</span>
+    </span>
+  </header>
+
+  <!-- Body -->
+  <div class="min-h-0 flex-1 overflow-y-auto px-md py-lg">
+    @if (resolving()) {
+      <p class="text-center text-body-sm text-muted">Loading…</p>
+    } @else if (unavailable()) {
+      <p class="mx-auto max-w-sm text-center text-body-sm text-muted" data-testid="compose-unavailable">
+        You can't message this player right now.
+      </p>
+    } @else {
+      <p class="mx-auto max-w-sm text-center text-body-sm text-muted" data-testid="compose-hint">
+        This is the start of your conversation with {{ displayName() }}. Say hello — the chat is
+        created when you send your first message.
+      </p>
+    }
+  </div>
+
+  <!-- Composer -->
+  <footer class="border-t border-border-muted bg-surface-card px-md py-sm">
+    @if (sendError(); as err) {
+      <p class="mb-xs rounded-md border border-danger-border bg-danger-bg px-sm py-xs text-body-sm text-danger-fg" role="alert" data-testid="compose-error">
+        {{ err }}
+      </p>
+    }
+
+    <form (ngSubmit)="send()" class="flex items-end gap-sm">
+      <label class="min-w-0 flex-1">
+        <span class="sr-only">Message</span>
+        <input
+          [ngModel]="draft()"
+          (ngModelChange)="onDraftChange($event)"
+          name="draft"
+          type="text"
+          [disabled]="unavailable()"
+          [placeholder]="'Message ' + (displayName() || 'them') + '…'"
+          maxlength="2000"
+          class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+          data-testid="compose-composer"
+        />
+      </label>
+
+      <!-- The one coral CTA in this view -->
+      <button
+        type="submit"
+        [disabled]="!canSend()"
+        class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-brand text-on-accent shadow-sm transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        aria-label="Send message"
+        data-testid="compose-send"
+      >
+        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 19V5M5 12l7-7 7 7" />
+        </svg>
+      </button>
+    </form>
+  </footer>
+</div>

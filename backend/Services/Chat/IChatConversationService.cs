@@ -20,6 +20,18 @@ public interface IChatConversationService
         string? name,
         CancellationToken ct = default);
 
+    /// <summary>
+    /// Send the first message to a player, creating the direct conversation if none exists yet
+    /// (feature 022 — lazy DM creation). Returns the (possibly newly created) conversation id and the
+    /// sent message. Race-safe: concurrent first sends resolve to a single conversation. Enforces the
+    /// block rule at send time — a blocked pair cannot bring a DM into existence.
+    /// </summary>
+    Task<ChatResult<DirectMessageSentDto>> SendFirstDirectAsync(
+        Guid callerId,
+        Guid targetUserId,
+        string body,
+        CancellationToken ct = default);
+
     /// <summary>The caller's inbox, most recently active first. Excludes hidden and blocked-counterpart DMs.</summary>
     Task<PagedResult<ConversationSummaryDto>> GetInboxAsync(
         Guid callerId,

@@ -69,11 +69,28 @@ public sealed class ChatConversationService : IChatConversationService
         Guid otherId,
         CancellationToken ct)
     {
-        // Reach is open (spec FR-049) — no shared-context check. Block is the one gate, and it holds
-        // in both directions so a blocked player cannot open a fresh thread to get around it (FR-049b).
+        var ensured = await EnsureDirectAsync(callerId, otherId, ct);
+        return ensured.IsOk
+            ? await SummariseAsync(callerId, ensured.Value, ct)
+            : ChatResult<ConversationSummaryDto>.Fail(ensured.Outcome, ensured.Error);
+    }
+
+    /// <summary>
+    /// Get the direct conversation for a pair, creating it if absent. The one place a DM comes into
+    /// existence — shared by <see cref="StartDirectAsync"/> (idempotent open) and
+    /// <see cref="SendFirstDirectAsync"/> (feature 022 lazy creation).
+    /// </summary>
+    /// <remarks>
+    /// Reach is open (spec FR-049) — no shared-context check. Block is the one gate, and it holds in
+    /// both directions so a blocked player cannot open a fresh thread to get around it (FR-049b). The
+    /// create is race-safe by the unique filtered index on <c>DirectPairKey</c>: two concurrent creates
+    /// collide and the loser resolves to the winner rather than making a second row (spec FR-008).
+    /// </remarks>
+    private async Task<ChatResult<Guid>> EnsureDirectAsync(Guid callerId, Guid otherId, CancellationToken ct)
+    {
         if (await _guard.IsBlockedBetweenAsync(callerId, otherId, ct))
         {
-            return ChatResult<ConversationSummaryDto>.Fail(ChatOutcome.Forbidden, "You can't message this player.");
+            return ChatResult<Guid>.Fail(ChatOutcome.Forbidden, "You can't message this player.");
         }
 
         var pairKey = Conversation.BuildDirectPairKey(callerId, otherId);
@@ -85,7 +102,7 @@ public sealed class ChatConversationService : IChatConversationService
 
         if (existing != Guid.Empty)
         {
-            return await SummariseAsync(callerId, existing, ct);
+            return ChatResult<Guid>.Ok(existing);
         }
 
         var conversation = new Conversation
@@ -103,9 +120,9 @@ public sealed class ChatConversationService : IChatConversationService
         }
         catch (DbUpdateException)
         {
-            // Two clients started the same DM at the same moment; the unique index on DirectPairKey
-            // caught the loser. That is the point of having the constraint — resolve to the winner
-            // rather than returning an error the user would not understand (spec FR-008).
+            // Two clients created the same DM at the same moment; the unique index on DirectPairKey
+            // caught the loser. Resolve to the winner rather than returning an error the user would not
+            // understand (spec FR-008 / FR-006).
             _db.ChangeTracker.Clear();
             var winner = await _db.Conversations.AsNoTracking()
                 .Where(c => c.DirectPairKey == pairKey)
@@ -117,10 +134,50 @@ public sealed class ChatConversationService : IChatConversationService
                 throw;
             }
 
-            return await SummariseAsync(callerId, winner, ct);
+            return ChatResult<Guid>.Ok(winner);
         }
 
-        return await SummariseAsync(callerId, conversation.Id, ct);
+        return ChatResult<Guid>.Ok(conversation.Id);
+    }
+
+    /// <summary>
+    /// Lazy DM creation (feature 022): create the direct conversation only when the first message is
+    /// sent. Validates the target, ensures the (race-safe) conversation, then writes the message —
+    /// so a chat opened but never written to leaves nothing behind.
+    /// </summary>
+    public async Task<ChatResult<DirectMessageSentDto>> SendFirstDirectAsync(
+        Guid callerId,
+        Guid targetUserId,
+        string body,
+        CancellationToken ct = default)
+    {
+        if (targetUserId == callerId)
+        {
+            return ChatResult<DirectMessageSentDto>.Fail(ChatOutcome.Invalid, "Pick someone to chat with.");
+        }
+
+        // Never trust the client's target id: it must be a real, non-banned account (mirrors StartAsync).
+        var known = await _db.Users.AsNoTracking()
+            .AnyAsync(u => u.Id == targetUserId && u.Status != AccountStatus.Banned, ct);
+        if (!known)
+        {
+            return ChatResult<DirectMessageSentDto>.Fail(ChatOutcome.Invalid, "That player is unavailable.");
+        }
+
+        var ensured = await EnsureDirectAsync(callerId, targetUserId, ct);
+        if (!ensured.IsOk)
+        {
+            return ChatResult<DirectMessageSentDto>.Fail(ensured.Outcome, ensured.Error);
+        }
+
+        var conversationId = ensured.Value;
+        var sent = await _messages.SendAsync(callerId, conversationId, body, ct);
+        if (!sent.IsOk)
+        {
+            return ChatResult<DirectMessageSentDto>.Fail(sent.Outcome, sent.Error);
+        }
+
+        return ChatResult<DirectMessageSentDto>.Ok(new DirectMessageSentDto(conversationId, sent.Value!));
     }
 
     private async Task<ChatResult<ConversationSummaryDto>> StartGroupAsync(

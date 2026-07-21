@@ -92,14 +92,19 @@ export class ChatNewComponent {
     const ids = this.selected().map((p) => p.userId);
     const groupName = this.isGroup() ? this.name().trim() : null;
 
-    // One person already chatting with us goes straight to the existing thread — the server is
-    // idempotent about this too (FR-008), but skipping the round trip is nicer.
+    // A single person is a direct message. An existing thread opens straight away; otherwise open a
+    // compose draft (feature 022 lazy creation) — the DM is created only when the first message is
+    // sent, so picking someone and leaving pollutes nothing. Groups (2+) are still created on start.
     if (ids.length === 1) {
-      const existing = this.selected()[0].existingConversationId;
-      if (existing) {
-        void this.router.navigate(['/chat', existing]);
-        return;
+      const person = this.selected()[0];
+      if (person.existingConversationId) {
+        void this.router.navigate(['/chat', person.existingConversationId]);
+      } else {
+        void this.router.navigate(['/chat/compose', person.handle ?? person.userId], {
+          state: { userId: person.userId, displayName: person.displayName },
+        });
       }
+      return;
     }
 
     this.starting.set(true);
