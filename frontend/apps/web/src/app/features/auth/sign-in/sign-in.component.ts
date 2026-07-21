@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { safeReturnUrl } from '../../../core/utils/return-url';
 
 /**
  * US2 — sign in. Generic failure for bad credentials; a 403 (correct password but
@@ -48,11 +49,15 @@ export class SignInComponent {
         // First-login gate: new (not-yet-onboarded) users start the guided flow;
         // everyone else goes to the app — or back to a pending returnUrl (e.g. an
         // invite opened while signed out). The server is the authority for the flag.
+        // A pending returnUrl is carried *through* onboarding so the intended action
+        // (e.g. accepting an invite) still resumes after the wizard, rather than being
+        // dropped at the first-login gate.
+        const returnUrl = this.returnUrl();
         if (!user.onboardingCompleted) {
-          this.router.navigate(['/onboarding']);
+          this.router.navigate(['/onboarding'], returnUrl ? { queryParams: { returnUrl } } : {});
           return;
         }
-        this.router.navigateByUrl(this.safeReturnUrl() ?? '/');
+        this.router.navigateByUrl(returnUrl ?? '/');
       },
       error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
@@ -69,10 +74,9 @@ export class SignInComponent {
     });
   }
 
-  /** Only internal, single-slash paths are honoured (guards against open redirects). */
-  private safeReturnUrl(): string | null {
-    const url = this.route.snapshot.queryParamMap.get('returnUrl');
-    return url && url.startsWith('/') && !url.startsWith('//') ? url : null;
+  /** The pending returnUrl, if any — only internal paths survive (open-redirect guard). */
+  protected returnUrl(): string | null {
+    return safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
   }
 
   resendVerification(): void {

@@ -1,10 +1,11 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NgTemplateOutlet } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { of, switchMap } from 'rxjs';
 import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
+import { safeReturnUrl } from '../../core/utils/return-url';
 import { PompfeSelectorComponent } from '../profile/components/pompfe-selector/pompfe-selector.component';
 import { Pompfe } from '../../shared/pompfen.catalog';
 
@@ -32,6 +33,7 @@ export class OnboardingComponent implements OnInit {
   private readonly profiles = inject(ProfileService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
 
   protected readonly step = signal<Step>('welcome');
   protected readonly coreSteps = CORE_STEPS;
@@ -149,11 +151,16 @@ export class OnboardingComponent implements OnInit {
       });
   }
 
-  /** Refresh the cached session (so the guard sees onboardingCompleted) and enter the app. */
+  /**
+   * Refresh the cached session (so the guard sees onboardingCompleted) and enter the
+   * app. A returnUrl carried in from sign-in — an action pending since before the user
+   * signed up, e.g. an invite — takes precedence over the dashboard so it can resume.
+   */
   protected enterApp(): void {
+    const target = safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')) ?? '/';
     this.auth.loadSession().subscribe({
-      next: () => this.router.navigate(['/']),
-      error: () => this.router.navigate(['/']),
+      next: () => this.router.navigateByUrl(target),
+      error: () => this.router.navigateByUrl(target),
     });
   }
 
