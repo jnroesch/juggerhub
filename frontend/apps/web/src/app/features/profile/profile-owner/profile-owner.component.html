@@ -104,44 +104,6 @@
 
     <hr class="my-lg border-border" />
 
-    <!-- Discovery / search opt-in (feature 007) -->
-    <section>
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Discovery</p>
-      @if (editing()) {
-        <div class="mt-sm flex items-center justify-between gap-sm">
-          <span class="flex flex-col">
-            <span class="text-body-md text-ink">Appear in search</span>
-            <span class="text-body-sm text-subtle">Let others find you on the players browse page.</span>
-          </span>
-          <button
-            type="button"
-            role="switch"
-            [attr.aria-checked]="appearInSearch()"
-            aria-label="Appear in search"
-            class="relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border transition-colors duration-fast"
-            [class.bg-brand]="appearInSearch()"
-            [class.border-brand]="appearInSearch()"
-            [class.bg-surface-sunken]="!appearInSearch()"
-            [class.border-border]="!appearInSearch()"
-            (click)="toggleAppearInSearch()"
-            data-testid="profile-appear-in-search"
-          >
-            <span
-              class="inline-block h-4 w-4 rounded-full bg-surface-card shadow-coral transition-transform duration-fast"
-              [class.translate-x-4]="appearInSearch()"
-              [class.translate-x-1]="!appearInSearch()"
-            ></span>
-          </button>
-        </div>
-      } @else {
-        <p class="mt-xs text-body-sm text-subtle">
-          {{ p.appearInSearch ? 'You appear in player search.' : 'You are hidden from player search.' }}
-        </p>
-      }
-    </section>
-
-    <hr class="my-lg border-border" />
-
     <!-- Badges & achievements (feature 012) -->
     <jh-recognition-display [badges]="p.badges" [achievements]="p.achievements" />
       </div>

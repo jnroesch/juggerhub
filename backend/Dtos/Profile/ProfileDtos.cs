@@ -16,10 +16,7 @@ public sealed record UpdateProfileRequest(
     [Required, MaxLength(50)] string DisplayName,
     [MaxLength(80)] string? Hometown,
     [MaxLength(280)] string? Description,
-    Pompfe[]? Pompfen,
-    // Feature 007 — opt-in to appear in player search. Trailing optional so existing
-    // callers/payloads stay valid; absent ⇒ false (privacy-safe default).
-    bool AppearInSearch = false);
+    Pompfe[]? Pompfen);
 
 /// <summary>One recent-activity item: an event the player took part in, with team.</summary>
 public sealed record ActivityItemDto(string EventName, DateOnly Date, string Location, string TeamLabel);
@@ -42,9 +39,7 @@ public sealed record OwnerProfileDto(
     IReadOnlyList<ProfileTeamDto> Teams,
     // Feature 012 — earned badges & achievements (active only).
     IReadOnlyList<EarnedRecognitionDto> Badges,
-    IReadOnlyList<EarnedRecognitionDto> Achievements,
-    // Feature 007 — whether the owner opted into appearing in player search.
-    bool AppearInSearch = false);
+    IReadOnlyList<EarnedRecognitionDto> Achievements);
 
 /// <summary>
 /// The public profile served anonymously at <c>/u/&lt;handle&gt;</c>. MUST NOT

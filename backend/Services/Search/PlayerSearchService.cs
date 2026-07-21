@@ -8,10 +8,10 @@ using Microsoft.Extensions.Options;
 namespace JuggerHub.Services.Search;
 
 /// <summary>
-/// Anonymous player browse/search (feature 007). PRIVACY INVARIANT — only players with
-/// <see cref="Entities.PlayerProfile.AppearInSearch"/> = true are ever returned, for every
-/// query/filter/sort and regardless of the caller's auth. The gate is applied first and
-/// cannot be bypassed (spec FR-042 / SC-003).
+/// Anonymous player browse/search (feature 007). Returns every non-banned player matching the
+/// query. Banned accounts are excluded globally by the <see cref="Entities.PlayerProfile"/> query
+/// filter (feature 013); suspended accounts stay visible. The former per-player opt-in gate
+/// (AppearInSearch) was removed in feature 020 — see specs/020-remove-search-optout.
 /// </summary>
 public interface IPlayerSearchService
 {
@@ -34,8 +34,9 @@ public sealed class PlayerSearchService : IPlayerSearchService
     public async Task<PagedResult<PlayerCardDto>> BrowseAsync(
         PlayerBrowseQuery query, PaginationRequest pagination, CancellationToken ct = default)
     {
-        // OPT-IN GATE — applied unconditionally, before any query/filter/sort. Non-negotiable.
-        var q = _db.PlayerProfiles.AsNoTracking().Where(p => p.AppearInSearch);
+        // All non-banned players are browseable (the AppearInSearch opt-in was removed in feature
+        // 020). Banned accounts are still excluded by the global PlayerProfile query filter.
+        var q = _db.PlayerProfiles.AsNoTracking();
 
         if (query.Positions is { Count: > 0 } positions)
         {

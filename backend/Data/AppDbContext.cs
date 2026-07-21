@@ -130,12 +130,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Property(p => p.DisplayName).HasMaxLength(50).IsRequired();
             entity.Property(p => p.Hometown).HasMaxLength(80);
             entity.Property(p => p.Description).HasMaxLength(280);
-            entity.Property(p => p.AppearInSearch).HasDefaultValue(false);
 
             // Handle addresses the public profile — unique & the true uniqueness guarantee.
             entity.HasIndex(p => p.Handle).IsUnique();
-            // Partial index backs the opt-in browse scan (feature 007) — only opted-in rows.
-            entity.HasIndex(p => p.AppearInSearch).HasFilter("\"AppearInSearch\"");
             // 1:1 with the account.
             entity.HasIndex(p => p.UserId).IsUnique();
 

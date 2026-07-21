@@ -66,16 +66,11 @@ public sealed class AccountEnforcementTests
     public async Task Ban_hides_the_player_everywhere_and_unban_restores_intact()
     {
         var (admin, _) = await AdminAreaTestSupport.AdminClientAsync(_factory);
-        var (playerClient, playerId, handle, _) = await AdminAreaTestSupport.PlayerClientAsync(_factory);
+        var (playerClient, _, handle, _) = await AdminAreaTestSupport.PlayerClientAsync(_factory);
         var anon = _factory.CreateClient();
 
-        // Fixtures: opt into browse; found a team (owner roster entry); second member views roster.
-        await AdminAreaTestSupport.WithDbAsync(_factory, async db =>
-        {
-            await db.PlayerProfiles.Where(p => p.UserId == playerId)
-                .ExecuteUpdateAsync(s => s.SetProperty(p => p.AppearInSearch, true)
-                    .SetProperty(p => p.ModifiedDate, DateTime.UtcNow));
-        });
+        // Fixtures: found a team (owner roster entry); second member views roster. The player is
+        // directory-visible by default (the search opt-in was removed in feature 020).
         var teamSlug = await RecognitionTestSupport.CreateTeamAsync(playerClient);
         var (viewerClient, viewerId, _, _) = await AdminAreaTestSupport.PlayerClientAsync(_factory);
         await AdminAreaTestSupport.WithDbAsync(_factory, async db =>

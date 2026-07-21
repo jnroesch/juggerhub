@@ -40,11 +40,11 @@ public sealed class ProfilesController : ControllerBase
         _home = home;
     }
 
-    // --- Browse (public, opt-in gated) ----------------------------------------
+    // --- Browse (public) ------------------------------------------------------
 
-    /// <summary>Anonymous player browse/search (feature 007). PRIVACY: only players who
-    /// opted in (<c>AppearInSearch</c>) are ever returned, enforced server-side for all
-    /// callers. Public card fields only.</summary>
+    /// <summary>Anonymous player browse/search (feature 007). Returns every non-banned player
+    /// matching the query (banned accounts are excluded globally; the per-player search opt-in
+    /// was removed in feature 020). Public card fields only.</summary>
     [HttpGet]
     [AllowAnonymous]
     public async Task<ActionResult<PagedResult<PlayerCardDto>>> Browse(

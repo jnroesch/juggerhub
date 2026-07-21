@@ -8,6 +8,18 @@
 
 **Input**: User description: "Search / Browse — a shared discovery surface for the JuggerHub community app. A Browse area with three sibling pages (Teams, Events, Players) that share one shell and behave identically; only the filter set and default sort differ per entity. Live search, filters on demand (bottom sheet on mobile, drawer on desktop), active-filter chips, result counts, compact list rows, empty + no-results states, and a locked 'Near me' coming-soon hook. Players are opt-in. Implemented from the Search Wireframes design handoff; styled per DESIGN.md; backend per the constitution."
 
+## Amendments
+
+> **Amended by feature 020 (2026-07-21) — player search opt-in removed.** The
+> per-player "Appear in search" opt-in described below — **FR-041, FR-042, FR-044,
+> SC-003**, the User Story 3 "opt-in only" framing, and the data-model
+> `AppearInSearch` field — has been **retired**. The Players directory now returns
+> every non-banned player unconditionally: there is no opt-in setting, no stored
+> `AppearInSearch` field, and no opt-in note on the page. Banned accounts remain
+> excluded by the global account-status query filter (feature 013); suspended
+> accounts stay visible. See `specs/020-remove-search-optout/`. The historical text
+> below is preserved for provenance but no longer reflects shipped behavior.
+
 ## Clarifications
 
 ### Session 2026-07-07
