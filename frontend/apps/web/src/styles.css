@@ -204,6 +204,10 @@
   html,
   body {
     height: 100%;
+    /* No elastic rubberband/overscroll on the app viewport. The shell's sticky top nav and
+       fixed mobile bottom bar must not bounce with the page — that reads as broken on desktop,
+       where there's no touch surface expecting the effect. Normal scrolling is unaffected. */
+    overscroll-behavior: none;
   }
 
   body {
