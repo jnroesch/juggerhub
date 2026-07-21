@@ -84,11 +84,11 @@ paths:
   /profiles:
     get:
       tags: [browse, profiles]
-      summary: Browse/search players (anonymous, opt-in gated)
+      summary: Browse/search players (anonymous)
       description: >-
-        PRIVACY INVARIANT — only players with AppearInSearch = true are ever
-        returned, for every query/filter/sort and regardless of auth. The opt-in
-        is NOT a query parameter; it is enforced unconditionally server-side.
+        Returns every non-banned player matching the query, for any
+        query/filter/sort and regardless of auth. (The AppearInSearch opt-in that
+        formerly gated this was removed in feature 020.)
       security: []
       parameters:
         - { name: q, in: query, schema: { type: string }, description: "Case/accent-insensitive substring over display name." }
@@ -114,8 +114,8 @@ paths:
   /profiles/me:
     put:
       tags: [profiles]
-      summary: Update own profile (existing endpoint — extended)
-      description: Extended with the AppearInSearch opt-in. Only mutates the caller's own profile.
+      summary: Update own profile (existing endpoint)
+      description: Only mutates the caller's own profile. (The AppearInSearch opt-in was removed in feature 020.)
       requestBody:
         required: true
         content:
@@ -194,14 +194,17 @@ components:
       required: [beginnersWelcome]
     UpdateProfileRequest:
       type: object
-      description: Existing request extended with appearInSearch (other existing fields omitted here for brevity).
-      properties:
-        appearInSearch: { type: boolean }
+      description: >-
+        Existing request. Feature 007 formerly added appearInSearch, which was
+        removed in feature 020; no fields are added here now (base profile fields
+        omitted for brevity).
+      properties: {}
     OwnerProfileDto:
       type: object
-      description: Existing owner DTO extended with appearInSearch (other fields omitted).
-      properties:
-        appearInSearch: { type: boolean }
+      description: >-
+        Existing owner DTO. Feature 007 formerly added appearInSearch, removed in
+        feature 020; no fields added here now (base fields omitted).
+      properties: {}
     ProblemDetails:
       type: object
       properties:

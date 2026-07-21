@@ -6,10 +6,9 @@ using JuggerHub.Api.IntegrationTests.Auth;
 namespace JuggerHub.Api.IntegrationTests.Search;
 
 /// <summary>
-/// Player browse/search (007, US3). The central assertion is the opt-in privacy invariant:
-/// a player who has not opted in is never returned, for any query/filter/sort and regardless
-/// of auth (spec FR-042 / SC-003). Also covers the position filter, name search, and the
-/// self-service opt-in write. Exercises the real API + Postgres container.
+/// Player browse/search (007). After feature 020 the directory is unconditionally inclusive:
+/// every non-banned player is returned, with no per-player opt-in. Covers that inclusivity across
+/// query/filter/sort and auth, the position filter, case-insensitive name search, and pagination.
 /// </summary>
 [Collection("Search")]
 public sealed class PlayerBrowseTests
@@ -19,47 +18,46 @@ public sealed class PlayerBrowseTests
     public PlayerBrowseTests(JuggerHubApiFactory factory) => _factory = factory;
 
     [Fact]
-    public async Task Non_opted_in_player_is_never_returned_across_query_filter_sort_and_auth()
+    public async Task All_players_are_returned_across_query_filter_sort_and_auth()
     {
-        // A hidden player (opted out) and a visible player (opted in), both matching the query.
-        var hiddenName = "Zzhidden" + Guid.NewGuid().ToString("N")[..8];
-        var visibleName = "Zzvisible" + Guid.NewGuid().ToString("N")[..8];
+        // Two players matching the same query — after removing the opt-in gate, BOTH appear.
+        var nameA = "Zzalpha" + Guid.NewGuid().ToString("N")[..8];
+        var nameB = "Zzbeta" + Guid.NewGuid().ToString("N")[..8];
 
-        var (_, hiddenUserId, hiddenHandle, _) = await SearchTestSupport.NewUserAsync(_factory);
-        await SearchTestSupport.ConfigurePlayerAsync(_factory, hiddenUserId, appearInSearch: false,
-            displayName: hiddenName, hometown: "Berlin", pompfen: Entities.Pompfe.Laeufer);
+        var (_, userAId, handleA, _) = await SearchTestSupport.NewUserAsync(_factory);
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, userAId,
+            displayName: nameA, hometown: "Berlin", pompfen: Entities.Pompfe.Laeufer);
 
-        var (_, visibleUserId, _, _) = await SearchTestSupport.NewUserAsync(_factory);
-        await SearchTestSupport.ConfigurePlayerAsync(_factory, visibleUserId, appearInSearch: true,
-            displayName: visibleName, hometown: "Berlin", pompfen: Entities.Pompfe.Laeufer);
+        var (_, userBId, handleB, _) = await SearchTestSupport.NewUserAsync(_factory);
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, userBId,
+            displayName: nameB, hometown: "Berlin", pompfen: Entities.Pompfe.Laeufer);
 
         var anon = _factory.CreateClient();
         var (authed, _, _, _) = await SearchTestSupport.NewUserAsync(_factory);
 
-        // Every query/filter/sort combination, anonymous AND authenticated — never the hidden one.
-        string[] queries =
-        {
-            "/api/v1/profiles",
-            $"/api/v1/profiles?q={hiddenName}",
-            $"/api/v1/profiles?q={hiddenHandle}",
-            "/api/v1/profiles?positions=Laeufer",
-            "/api/v1/profiles?city=Berlin",
-            "/api/v1/profiles?positions=Laeufer&city=Berlin&sort=DisplayNameAsc",
-            "/api/v1/profiles?take=100",
-        };
-
+        // Both players are reachable by name for anonymous and authenticated callers.
         foreach (var client in new[] { anon, authed })
         {
-            foreach (var url in queries)
-            {
-                var handles = await HandlesAsync(client, url);
-                Assert.DoesNotContain(hiddenHandle, handles);
-            }
+            Assert.Contains(handleA, await HandlesAsync(client, $"/api/v1/profiles?q={nameA}"));
+            Assert.Contains(handleB, await HandlesAsync(client, $"/api/v1/profiles?q={nameB}"));
         }
 
-        // Sanity: the opted-in player IS reachable by name.
-        var visibleHandles = await HandlesAsync(anon, $"/api/v1/profiles?q={visibleName}");
-        Assert.NotEmpty(visibleHandles);
+        // And both appear together under a shared filter/sort.
+        var filtered = await HandlesAsync(anon, "/api/v1/profiles?positions=Laeufer&city=Berlin&sort=DisplayNameAsc&take=100");
+        Assert.Contains(handleA, filtered);
+        Assert.Contains(handleB, filtered);
+    }
+
+    [Fact]
+    public async Task Player_appears_without_any_opt_in()
+    {
+        // The new default: a freshly registered player is directory-visible with no action.
+        var name = "Fresh" + Guid.NewGuid().ToString("N")[..8];
+        var (_, userId, handle, _) = await SearchTestSupport.NewUserAsync(_factory);
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, userId, displayName: name);
+
+        var anon = _factory.CreateClient();
+        Assert.Contains(handle, await HandlesAsync(anon, $"/api/v1/profiles?q={name}"));
     }
 
     [Fact]
@@ -69,11 +67,11 @@ public sealed class PlayerBrowseTests
         var chainName = "Chainer" + Guid.NewGuid().ToString("N")[..8];
 
         var (_, runnerId, runnerHandle, _) = await SearchTestSupport.NewUserAsync(_factory);
-        await SearchTestSupport.ConfigurePlayerAsync(_factory, runnerId, true, displayName: runnerName,
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, runnerId, displayName: runnerName,
             pompfen: Entities.Pompfe.Laeufer);
 
         var (_, chainId, chainHandle, _) = await SearchTestSupport.NewUserAsync(_factory);
-        await SearchTestSupport.ConfigurePlayerAsync(_factory, chainId, true, displayName: chainName,
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, chainId, displayName: chainName,
             pompfen: Entities.Pompfe.Kette);
 
         var anon = _factory.CreateClient();
@@ -88,7 +86,7 @@ public sealed class PlayerBrowseTests
     {
         var name = "Casing" + Guid.NewGuid().ToString("N")[..8];
         var (_, userId, handle, _) = await SearchTestSupport.NewUserAsync(_factory);
-        await SearchTestSupport.ConfigurePlayerAsync(_factory, userId, true, displayName: name);
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, userId, displayName: name);
 
         var anon = _factory.CreateClient();
         var lower = await HandlesAsync(anon, $"/api/v1/profiles?q={name.ToLowerInvariant()}");
@@ -96,29 +94,6 @@ public sealed class PlayerBrowseTests
 
         Assert.Contains(handle, lower);
         Assert.Contains(handle, upper);
-    }
-
-    [Fact]
-    public async Task Opt_in_write_toggles_visibility_and_is_owner_only()
-    {
-        var name = "Toggler" + Guid.NewGuid().ToString("N")[..8];
-        var (client, userId, handle, _) = await SearchTestSupport.NewUserAsync(_factory);
-        await SearchTestSupport.ConfigurePlayerAsync(_factory, userId, false, displayName: name);
-
-        var anon = _factory.CreateClient();
-        Assert.DoesNotContain(handle, await HandlesAsync(anon, $"/api/v1/profiles?q={name}"));
-
-        // Opt in via the owner endpoint.
-        var optIn = await client.PutAsJsonAsync("/api/v1/profiles/me",
-            new { displayName = name, hometown = (string?)null, description = (string?)null, pompfen = Array.Empty<string>(), appearInSearch = true });
-        optIn.EnsureSuccessStatusCode();
-        Assert.Contains(handle, await HandlesAsync(anon, $"/api/v1/profiles?q={name}"));
-
-        // Opt back out.
-        var optOut = await client.PutAsJsonAsync("/api/v1/profiles/me",
-            new { displayName = name, hometown = (string?)null, description = (string?)null, pompfen = Array.Empty<string>(), appearInSearch = false });
-        optOut.EnsureSuccessStatusCode();
-        Assert.DoesNotContain(handle, await HandlesAsync(anon, $"/api/v1/profiles?q={name}"));
     }
 
     [Fact]

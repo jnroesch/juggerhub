@@ -18,6 +18,8 @@
 |---|---|---|---|
 | `AppearInSearch` | `bool` | `false` (DB default) | Self-managed opt-in. **Privacy invariant**: only `true` rows are ever returned by player browse (all callers, all queries). |
 
+> **Amended by feature 020 (2026-07-21):** `AppearInSearch` and its partial index were **dropped** (migration `RemoveAppearInSearch`), and it was removed from `UpdateProfileRequest`/`OwnerProfileDto`. Player browse now returns every non-banned player. See `specs/020-remove-search-optout/`.
+
 *No position/looking-for-team/experience fields.* Position is derived from existing `ProfilePompfe` (see §3).
 
 ## 2. Card DTOs (read models — public fields only) — `backend/Dtos/Search/`

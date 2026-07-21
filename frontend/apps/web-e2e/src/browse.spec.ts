@@ -60,7 +60,7 @@ test('a nonsense query shows the no-results state with a clear action', async ({
   await expect(page.getByTestId('browse-no-results')).toBeHidden();
 });
 
-test('players page states the opt-in visibility rule', async ({ page }) => {
+test('players page lists every player', async ({ page }) => {
   await page.goto('/browse/players');
-  await expect(page.getByText(/only players who chose to appear in search/i)).toBeVisible();
+  await expect(page.getByText(/every player on JuggerHub is listed/i)).toBeVisible();
 });

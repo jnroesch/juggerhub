@@ -45,14 +45,13 @@ internal static class SearchTestSupport
     public static Task<Guid> ProfileIdAsync(JuggerHubApiFactory factory, Guid userId) =>
         WithDbAsync(factory, db => db.PlayerProfiles.Where(p => p.UserId == userId).Select(p => p.Id).FirstAsync());
 
-    /// <summary>Set a player's search opt-in + optional display name/hometown, and add declared pompfen.</summary>
+    /// <summary>Set a player's optional display name/hometown, and add declared pompfen.</summary>
     public static Task ConfigurePlayerAsync(
-        JuggerHubApiFactory factory, Guid userId, bool appearInSearch,
+        JuggerHubApiFactory factory, Guid userId,
         string? displayName = null, string? hometown = null, params Pompfe[] pompfen) =>
         WithDbAsync(factory, async db =>
         {
             var profile = await db.PlayerProfiles.Include(p => p.Pompfen).FirstAsync(p => p.UserId == userId);
-            profile.AppearInSearch = appearInSearch;
             if (displayName is not null)
             {
                 profile.DisplayName = displayName;

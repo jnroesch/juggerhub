@@ -1,3 +1,17 @@
+/* Focused single-card page: own the scroll so the viewport can't rubberband.
+ * The card is shorter than the screen, so the browser's overscroll bounce is
+ * pure noise here. Making the host a full-height scroll container with
+ * `overscroll-behavior-y: none` swallows the bounce instead of chaining it to
+ * the body, while still allowing a genuine scroll if the form ever outgrows a
+ * short viewport. `main` fills the host (dvh) rather than 100vh so there's no
+ * vh/dvh gap to scroll. */
 :host {
   display: block;
+  height: 100dvh;
+  overflow-y: auto;
+  overscroll-behavior-y: none;
+}
+
+:host main {
+  min-height: 100%;
 }

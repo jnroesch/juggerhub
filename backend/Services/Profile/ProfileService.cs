@@ -65,8 +65,7 @@ public sealed class ProfileService : IProfileService
             .Select(p => new ProfileProjection(
                 p.Id, p.UserId, p.Handle, p.DisplayName, p.Hometown, p.Description,
                 p.Avatar != null,
-                p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList(),
-                p.AppearInSearch))
+                p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList()))
             .FirstOrDefaultAsync(ct);
 
         if (projection is null)
@@ -79,8 +78,7 @@ public sealed class ProfileService : IProfileService
         var recognitions = await _recognitions.ForPlayerAsync(projection.Id, ct);
         return new OwnerProfileDto(projection.Handle, projection.DisplayName, projection.Hometown,
             projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams,
-            recognitions.Badges, recognitions.Achievements,
-            projection.AppearInSearch);
+            recognitions.Badges, recognitions.Achievements);
     }
 
     public async Task<bool> HasCompletedOnboardingAsync(Guid userId, CancellationToken ct = default)
@@ -166,7 +164,6 @@ public sealed class ProfileService : IProfileService
         profile.DisplayName = request.DisplayName.Trim();
         profile.Hometown = BlankToNull(request.Hometown);
         profile.Description = BlankToNull(request.Description);
-        profile.AppearInSearch = request.AppearInSearch;
 
         // Replace the selection set with the requested one (distinct). Operate on the
         // DbSet directly (not the navigation collection): a new ProfilePompfe carries a
@@ -311,7 +308,5 @@ public sealed class ProfileService : IProfileService
         string? Hometown,
         string? Description,
         bool HasAvatar,
-        List<Pompfe> Pompfen,
-        // Owner-only; the public projection leaves it at the default (never exposed publicly).
-        bool AppearInSearch = false);
+        List<Pompfe> Pompfen);
 }
