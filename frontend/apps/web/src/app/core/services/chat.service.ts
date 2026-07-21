@@ -137,7 +137,10 @@ export class ChatService {
    * conversation id + the message so the caller can navigate into the real thread.
    */
   sendDirect(targetUserId: string, body: string): Observable<DirectMessageSent> {
-    return this.http.post<DirectMessageSent>(`${this.base}/direct/${targetUserId}/messages`, { body });
+    return this.http
+      .post<DirectMessageSent>(`${this.base}/direct/${targetUserId}/messages`, { body })
+      // Drop the new thread into the inbox rail immediately (mirrors start()), so it shows without a reload.
+      .pipe(tap((r) => this.upsertConversation(r.conversation)));
   }
 
   addMembers(conversationId: string, userIds: string[]): Observable<void> {

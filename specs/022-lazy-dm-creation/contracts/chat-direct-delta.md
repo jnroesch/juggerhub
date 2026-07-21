@@ -16,7 +16,7 @@ atomically. This is the only path that creates a DM.
 
   ```json
   {
-    "conversationId": "uuid",
+    "conversation": { /* ConversationSummaryDto — the inbox row, so the client can add it to the rail immediately */ },
     "message": { /* MessageDto, exactly as returned by POST .../messages today */ }
   }
   ```
@@ -48,8 +48,10 @@ the residual API-only create path is rate-limited and out of normal use.
 
 ## Client consumption (frontend)
 
-- `ChatService.sendDirect(targetUserId, body)` → the new endpoint; on `201`, navigate
-  (`replaceUrl`) to `/chat/{conversationId}`.
+- `ChatService.sendDirect(targetUserId, body)` → the new endpoint; on `201`, it upserts
+  the returned `conversation` into the inbox rail signal (so the new thread appears
+  without a reload) and the compose view navigates (`replaceUrl`) to
+  `/chat/{conversation.id}`.
 - The 021 profile **Message** action and the chat **new-message** picker: existing DM
   (`existingConversationId` present) → open `/chat/{id}`; otherwise → `/chat/compose/{handle}`.
 - Groups from the new-message picker still use `POST /conversations` via `ChatService.start`.

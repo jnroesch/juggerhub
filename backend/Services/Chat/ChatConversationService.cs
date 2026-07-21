@@ -177,7 +177,14 @@ public sealed class ChatConversationService : IChatConversationService
             return ChatResult<DirectMessageSentDto>.Fail(sent.Outcome, sent.Error);
         }
 
-        return ChatResult<DirectMessageSentDto>.Ok(new DirectMessageSentDto(conversationId, sent.Value!));
+        // Return the inbox summary too, so the client can show the new thread in the rail immediately.
+        var summary = await SummariseAsync(callerId, conversationId, ct);
+        if (!summary.IsOk || summary.Value is null)
+        {
+            return ChatResult<DirectMessageSentDto>.Fail(ChatOutcome.NotFound);
+        }
+
+        return ChatResult<DirectMessageSentDto>.Ok(new DirectMessageSentDto(summary.Value, sent.Value!));
     }
 
     private async Task<ChatResult<ConversationSummaryDto>> StartGroupAsync(

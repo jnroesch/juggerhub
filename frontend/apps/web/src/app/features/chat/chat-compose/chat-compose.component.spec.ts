@@ -47,7 +47,7 @@ describe('ChatComposeComponent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     chat.search.mockReturnValue(of(results([])));
-    chat.sendDirect.mockReturnValue(of({ conversationId: 'c-new', message: {} }));
+    chat.sendDirect.mockReturnValue(of({ conversation: { id: 'c-new' }, message: {} }));
   });
 
   it('renders the recipient from navigation state without resolving or creating anything', () => {

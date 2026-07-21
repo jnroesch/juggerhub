@@ -55,7 +55,7 @@ public sealed class ChatLazyDirectTests : ChatTestSupport
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
 
         var payload = await resp.Content.ReadFromJsonAsync<JsonElement>(Json);
-        var conversationId = payload.GetProperty("conversationId").GetGuid().ToString();
+        var conversationId = payload.GetProperty("conversation").GetProperty("id").GetGuid().ToString();
         Assert.Equal("hey bob", payload.GetProperty("message").GetProperty("body").GetString());
 
         Assert.Equal(1, await DirectConversationCountAsync(aliceId, bobId));

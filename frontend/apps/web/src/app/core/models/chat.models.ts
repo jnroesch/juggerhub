@@ -139,7 +139,7 @@ export interface ChatSearchResult {
  * conversation that now exists (created if it didn't) plus the message that was sent.
  */
 export interface DirectMessageSent {
-  readonly conversationId: string;
+  readonly conversation: Conversation;
   readonly message: ChatMessage;
 }
 

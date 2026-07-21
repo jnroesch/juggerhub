@@ -100,7 +100,7 @@ public sealed class ChatConversationsController : ControllerBase
 
         var result = await _conversations.SendFirstDirectAsync(userId, targetUserId, request.Body ?? string.Empty, ct);
         return result.IsOk
-            ? Created($"/api/v1/chat/conversations/{result.Value!.ConversationId}", result.Value)
+            ? Created($"/api/v1/chat/conversations/{result.Value!.Conversation.Id}", result.Value)
             : Fail(result.Outcome, result.Error);
     }
 

@@ -119,10 +119,11 @@ public sealed record UnreadCountDto(int UnreadCount);
 
 /// <summary>
 /// Result of sending the first message to a player (feature 022 — lazy DM creation): the direct
-/// conversation that now exists (created if it didn't) plus the message that was sent, so the client
-/// can navigate into the real thread.
+/// conversation that now exists (created if it didn't) plus the message that was sent. The full
+/// conversation summary (not just an id) lets the client drop the new thread straight into the inbox
+/// rail without a reload.
 /// </summary>
-public sealed record DirectMessageSentDto(Guid ConversationId, MessageDto Message);
+public sealed record DirectMessageSentDto(ConversationSummaryDto Conversation, MessageDto Message);
 
 // --- Requests -------------------------------------------------------------------------------
 

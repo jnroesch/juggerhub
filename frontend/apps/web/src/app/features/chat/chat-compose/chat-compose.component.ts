@@ -91,7 +91,7 @@ export class ChatComposeComponent implements OnInit {
     this.sendError.set(null);
 
     this.chat.sendDirect(userId, body).subscribe({
-      next: (r) => void this.router.navigate(['/chat', r.conversationId], { replaceUrl: true }),
+      next: (r) => void this.router.navigate(['/chat', r.conversation.id], { replaceUrl: true }),
       error: (e: { error?: { detail?: string } }) => {
         this.sending.set(false);
         this.sendError.set(e.error?.detail ?? "That message couldn't be sent.");
