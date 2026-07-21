@@ -13,7 +13,7 @@
             </div>
             <a [routerLink]="['/trainings/sessions', i.sessionId]" class="min-w-0 flex-1">
               <p class="truncate font-medium text-heading hover:text-link">{{ i.name }}</p>
-              <p class="text-caption text-muted">{{ i.teamName }} · <span class="font-mono">{{ time(i.startTime) }}</span>@if (i.isPublicGuest) { · public training }</p>
+              <p class="text-caption text-muted">@if (place(i)) { {{ place(i) }} · }<span class="font-mono">{{ time(i.startTime) }}</span>@if (i.isPublicGuest) { · public training }</p>
             </a>
           </div>
           <div class="mt-sm grid grid-cols-3 gap-xs">

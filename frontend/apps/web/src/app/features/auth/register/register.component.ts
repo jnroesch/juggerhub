@@ -1,12 +1,13 @@
 import { Component, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import { AuthService } from '../../../core/services/auth.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { passwordsMatch } from '../../../core/utils/passwords-match.validator';
 import { problemDetail } from '../../../core/utils/problem';
+import { safeReturnUrl } from '../../../core/utils/return-url';
 import { PasswordRulesComponent } from '../password-policy/password-rules.component';
 
 /** URL-safe handle: lowercase alphanumeric segments joined by single hyphens. */
@@ -29,6 +30,18 @@ export class RegisterComponent {
   private readonly auth = inject(AuthService);
   private readonly profiles = inject(ProfileService);
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
+
+  /**
+   * A pending returnUrl (e.g. an invite opened while signed out) arrives here via the
+   * sign-in → register link. It's forwarded onto the "sign in" links so the intended
+   * action survives the register → verify → sign-in hop instead of being dropped.
+   * Only internal paths survive the open-redirect guard.
+   */
+  protected readonly signInParams = ((): Record<string, string> => {
+    const returnUrl = safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
+    return returnUrl ? { returnUrl } : {};
+  })();
 
   protected readonly form = this.fb.nonNullable.group(
     {

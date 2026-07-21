@@ -164,7 +164,7 @@ public sealed class ChatMessageService : IChatMessageService
     /// </summary>
     private async Task<int> UnreadTotalAsync(Guid userId, CancellationToken ct)
     {
-        var conversationIds = await _db.Conversations.AsNoTracking()
+        var conversations = await _db.Conversations.AsNoTracking()
             .Where(c =>
                 ((c.Kind == ConversationKind.Direct || c.Kind == ConversationKind.Group)
                     && c.Participants.Any(p => p.UserId == userId && p.LeftDate == null))
@@ -178,15 +178,31 @@ public sealed class ChatMessageService : IChatMessageService
             .Select(c => new
             {
                 c.Id,
+                c.Kind,
+                c.State,
+                c.TeamId,
+                c.PartyId,
                 LastRead = c.Participants.Where(p => p.UserId == userId).Select(p => p.LastReadMessageId).FirstOrDefault(),
             })
             .ToListAsync(ct);
 
+        // Messages from before the caller joined never count toward the badge (spec FR-051), the same
+        // rule the inbox applies — resolved once, in batch, through the guard.
+        var cutoffs = await _guard.ResolveJoinCutoffsAsync(
+            userId,
+            conversations.Select(c => new ChatAccess(c.Id, c.Kind, c.State, c.TeamId, c.PartyId)).ToList(),
+            ct);
+
         var total = 0;
-        foreach (var c in conversationIds)
+        foreach (var c in conversations)
         {
             var q = _db.ChatMessages.AsNoTracking()
                 .Where(m => m.ConversationId == c.Id && m.SenderId != userId && !m.IsDeleted);
+
+            if (cutoffs.GetValueOrDefault(c.Id) is { } joinedAt)
+            {
+                q = q.Where(m => m.CreatedDate >= joinedAt);
+            }
 
             if (c.LastRead is { } lastRead)
             {
@@ -230,6 +246,14 @@ public sealed class ChatMessageService : IChatMessageService
         // rapidly-changing tables).
         var q = _db.ChatMessages.AsNoTracking()
             .Where(m => m.ConversationId == conversationId);
+
+        // Nothing from before the caller joined — being added to a team/party/group chat does not hand
+        // you the backlog (spec FR-051). Null for archived chats and DMs, where full history is correct.
+        var cutoff = await _guard.ResolveJoinCutoffAsync(a, callerId, ct);
+        if (cutoff is { } joinedAt)
+        {
+            q = q.Where(m => m.CreatedDate >= joinedAt);
+        }
 
         if (before is { } cursor)
         {

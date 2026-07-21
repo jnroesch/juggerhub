@@ -191,6 +191,125 @@ public sealed class ChatGuard
                         || (x.BlockerUserId == b && x.BlockedUserId == a), ct);
 
     /// <summary>
+    /// The moment before which a caller should see nothing in a conversation: their <em>current</em>
+    /// join. Messages older than this are neither shown nor counted as unread — being added to a
+    /// team/party/group chat does not hand you the backlog from before you were there (spec FR-051).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Derived from the same source of truth as membership, per kind: a team member's
+    /// <see cref="TeamMembership.JoinedDate"/>, a party member's <see cref="PartyMember"/> row date, a
+    /// group/direct member's <see cref="ConversationParticipant.JoinedDate"/>. Because leave-and-rejoin
+    /// starts a fresh roster/participant row, the cutoff resets on rejoin — a returning player picks up
+    /// from their latest join, not their first.
+    /// </para>
+    /// <para>
+    /// <b>Archived auto chats are exempt</b> (returns null): archival snapshots the roster into
+    /// participant rows stamped at archive time, so a join-time cutoff would hide the whole history from
+    /// everyone. FR-027 keeps archived history fully readable, so there is deliberately no cutoff there.
+    /// A null return likewise means "no cutoff" for a caller with no resolvable join row.
+    /// </para>
+    /// </remarks>
+    public async Task<DateTime?> ResolveJoinCutoffAsync(ChatAccess access, Guid userId, CancellationToken ct = default)
+    {
+        if (access.IsArchived)
+        {
+            return null;
+        }
+
+        return access.Kind switch
+        {
+            ConversationKind.Team => await _db.TeamMemberships.AsNoTracking()
+                .Where(m => m.TeamId == access.TeamId && m.UserId == userId)
+                .Select(m => (DateTime?)m.JoinedDate)
+                .FirstOrDefaultAsync(ct),
+
+            ConversationKind.Party => await _db.PartyMembers.AsNoTracking()
+                .Where(pm => pm.PartyId == access.PartyId && pm.UserId == userId && pm.Status == PartyMemberStatus.In)
+                .Select(pm => (DateTime?)pm.CreatedDate)
+                .FirstOrDefaultAsync(ct),
+
+            _ => await _db.ConversationParticipants.AsNoTracking()
+                .Where(p => p.ConversationId == access.ConversationId && p.UserId == userId && p.LeftDate == null)
+                .Select(p => (DateTime?)p.JoinedDate)
+                .FirstOrDefaultAsync(ct),
+        };
+    }
+
+    /// <summary>
+    /// Batched <see cref="ResolveJoinCutoffAsync"/> for the inbox and nav-badge loops, which resolve a
+    /// cutoff for many conversations at once. Three queries total (teams, parties, group/direct) rather
+    /// than one per conversation. Archived conversations map to null (no cutoff).
+    /// </summary>
+    public async Task<Dictionary<Guid, DateTime?>> ResolveJoinCutoffsAsync(
+        Guid userId,
+        IReadOnlyCollection<ChatAccess> conversations,
+        CancellationToken ct = default)
+    {
+        var result = new Dictionary<Guid, DateTime?>(conversations.Count);
+        foreach (var c in conversations)
+        {
+            result[c.ConversationId] = null;
+        }
+
+        var teamConvos = conversations
+            .Where(c => !c.IsArchived && c.Kind == ConversationKind.Team && c.TeamId is not null)
+            .ToList();
+        if (teamConvos.Count > 0)
+        {
+            var teamIds = teamConvos.Select(c => c.TeamId!.Value).Distinct().ToList();
+            var joins = (await _db.TeamMemberships.AsNoTracking()
+                    .Where(m => m.UserId == userId && teamIds.Contains(m.TeamId))
+                    .Select(m => new { m.TeamId, m.JoinedDate })
+                    .ToListAsync(ct))
+                .ToDictionary(x => x.TeamId, x => (DateTime?)x.JoinedDate);
+
+            foreach (var c in teamConvos)
+            {
+                result[c.ConversationId] = joins.GetValueOrDefault(c.TeamId!.Value);
+            }
+        }
+
+        var partyConvos = conversations
+            .Where(c => !c.IsArchived && c.Kind == ConversationKind.Party && c.PartyId is not null)
+            .ToList();
+        if (partyConvos.Count > 0)
+        {
+            var partyIds = partyConvos.Select(c => c.PartyId!.Value).Distinct().ToList();
+            var joins = (await _db.PartyMembers.AsNoTracking()
+                    .Where(pm => pm.UserId == userId && pm.Status == PartyMemberStatus.In && partyIds.Contains(pm.PartyId))
+                    .Select(pm => new { pm.PartyId, pm.CreatedDate })
+                    .ToListAsync(ct))
+                .ToDictionary(x => x.PartyId, x => (DateTime?)x.CreatedDate);
+
+            foreach (var c in partyConvos)
+            {
+                result[c.ConversationId] = joins.GetValueOrDefault(c.PartyId!.Value);
+            }
+        }
+
+        var localConvos = conversations
+            .Where(c => !c.IsArchived && c.Kind is ConversationKind.Direct or ConversationKind.Group)
+            .ToList();
+        if (localConvos.Count > 0)
+        {
+            var ids = localConvos.Select(c => c.ConversationId).ToList();
+            var joins = (await _db.ConversationParticipants.AsNoTracking()
+                    .Where(p => p.UserId == userId && p.LeftDate == null && ids.Contains(p.ConversationId))
+                    .Select(p => new { p.ConversationId, p.JoinedDate })
+                    .ToListAsync(ct))
+                .ToDictionary(x => x.ConversationId, x => (DateTime?)x.JoinedDate);
+
+            foreach (var c in localConvos)
+            {
+                result[c.ConversationId] = joins.GetValueOrDefault(c.ConversationId);
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Get or create the caller's per-user state row (read marker, mute, hide) for a conversation.
     /// </summary>
     /// <remarks>

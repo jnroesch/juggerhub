@@ -4,7 +4,7 @@ import {
   provideHttpClientTesting,
 } from '@angular/common/http/testing';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { WritableSignal, Signal } from '@angular/core';
 import { OnboardingComponent } from './onboarding.component';
 import { OwnerProfile, UpdateProfileRequest } from '../../core/models/profile.models';
@@ -36,15 +36,29 @@ interface OnboardingApi {
 
 describe('OnboardingComponent', () => {
   let httpMock: HttpTestingController;
+  // Mutable ActivatedRoute stub — a test sets a pending returnUrl via withReturnUrl().
+  let routeStub: { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> } };
 
   beforeEach(() => {
+    routeStub = { snapshot: { queryParamMap: convertToParamMap({}) } };
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ActivatedRoute, useValue: routeStub },
+      ],
     });
     httpMock = TestBed.inject(HttpTestingController);
     const router = TestBed.inject(Router);
     jest.spyOn(router, 'navigate').mockResolvedValue(true);
+    jest.spyOn(router, 'navigateByUrl').mockResolvedValue(true);
   });
+
+  /** Set a pending returnUrl query param on the injected ActivatedRoute stub. */
+  function withReturnUrl(returnUrl: string): void {
+    routeStub.snapshot.queryParamMap = convertToParamMap({ returnUrl });
+  }
 
   afterEach(() => httpMock.verify());
 
@@ -143,5 +157,35 @@ describe('OnboardingComponent', () => {
     httpMock
       .expectOne('/api/v1/auth/me')
       .flush({ id: 'u1', email: 'a@example.com', emailConfirmed: true, onboardingCompleted: true });
+  });
+
+  it('resumes a pending returnUrl after onboarding instead of the dashboard', () => {
+    withReturnUrl('/join/berlin-jugger/tok123?action=accept');
+    const fixture = createComponent();
+    const comp = api(fixture);
+    const router = TestBed.inject(Router);
+
+    comp.dismiss();
+    httpMock.expectOne('/api/v1/profiles/me/onboarding/complete').flush(null);
+    httpMock
+      .expectOne('/api/v1/auth/me')
+      .flush({ id: 'u1', email: 'a@example.com', emailConfirmed: true, onboardingCompleted: true });
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/join/berlin-jugger/tok123?action=accept');
+  });
+
+  it('ignores an external returnUrl (open-redirect guard) and enters the app', () => {
+    withReturnUrl('https://evil.example.com');
+    const fixture = createComponent();
+    const comp = api(fixture);
+    const router = TestBed.inject(Router);
+
+    comp.dismiss();
+    httpMock.expectOne('/api/v1/profiles/me/onboarding/complete').flush(null);
+    httpMock
+      .expectOne('/api/v1/auth/me')
+      .flush({ id: 'u1', email: 'a@example.com', emailConfirmed: true, onboardingCompleted: true });
+
+    expect(router.navigateByUrl).toHaveBeenCalledWith('/');
   });
 });

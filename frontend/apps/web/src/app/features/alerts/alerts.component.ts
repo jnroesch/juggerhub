@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { NotificationService } from '../../core/services/notification.service';
 import { TeamService } from '../../core/services/team.service';
+import { MembershipService } from '../../core/services/membership.service';
 import { AppNotification, isTeamInvite } from '../../core/models/notification.models';
 import { NotificationRowComponent } from './notification-row/notification-row.component';
 
@@ -20,6 +21,7 @@ import { NotificationRowComponent } from './notification-row/notification-row.co
 export class AlertsComponent implements OnInit {
   private readonly notifications = inject(NotificationService);
   private readonly teams = inject(TeamService);
+  private readonly membership = inject(MembershipService);
 
   protected readonly items = this.notifications.items;
   protected readonly hasMore = this.notifications.hasMore;
@@ -79,6 +81,9 @@ export class AlertsComponent implements OnInit {
     this.teams.acceptInvite(n.payload.token).subscribe({
       next: () => {
         this.notifications.markInviteResolved(n.id);
+        // Joining changed this player's teams — refresh the cache the nav's "My team"
+        // target reads from, so it reflects the new membership without a page reload.
+        this.membership.load();
         this.setBusy(n.id, false);
       },
       // Expired/revoked/out-of-band: reconcile the row to resolved rather than erroring at the user.

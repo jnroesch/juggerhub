@@ -212,6 +212,17 @@ export class TeamDetailComponent {
     return pompfen.map((p) => pompfeLabel(p)?.de ?? p).join(' · ');
   }
 
+  /**
+   * First letter for an avatar fallback, null-safe. The roster DTO can hand back a
+   * null name for a member whose account has no profile row (an EF LEFT-JOIN projection
+   * yields null despite the non-null type). Calling `.charAt` on that threw during change
+   * detection and — because the app is zoneless — aborted the whole tick, which silently
+   * broke unrelated UI on the page (e.g. the account menu wouldn't open). Coalesce instead.
+   */
+  protected initial(name: string | null | undefined): string {
+    return (name?.trim()?.charAt(0) || '?').toUpperCase();
+  }
+
   protected avatarUrl(handle: string): string {
     return `/api/v1/profiles/${encodeURIComponent(handle)}/avatar`;
   }

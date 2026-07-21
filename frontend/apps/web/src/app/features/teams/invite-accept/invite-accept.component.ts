@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { InvitePreview } from '../../../core/models/team.models';
 import { AuthService } from '../../../core/services/auth.service';
+import { MembershipService } from '../../../core/services/membership.service';
 import { TeamService } from '../../../core/services/team.service';
 import { problemDetail } from '../../../core/utils/problem';
 
@@ -27,6 +28,7 @@ type PendingAction = 'accept' | 'decline';
 export class InviteAcceptComponent {
   private readonly teams = inject(TeamService);
   private readonly auth = inject(AuthService);
+  private readonly membership = inject(MembershipService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -113,7 +115,11 @@ export class InviteAcceptComponent {
     this.working.set(true);
     this.error.set(null);
     this.teams.acceptInvite(this.token()).subscribe({
-      next: (r) => this.router.navigateByUrl(`/t/${r.teamSlug}`),
+      next: (r) => {
+        // Refresh the nav's "My team" cache so it reflects the team just joined.
+        this.membership.load();
+        this.router.navigateByUrl(`/t/${r.teamSlug}`);
+      },
       error: (err) => {
         this.working.set(false);
         this.error.set(problemDetail(err));

@@ -12,6 +12,7 @@
       </p>
       <a
         routerLink="/sign-in"
+        [queryParams]="signInParams"
         class="mt-lg inline-block rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         Back to sign in
@@ -106,7 +107,7 @@
 
       <p class="mt-lg text-center text-body-sm text-subtle">
         Already have an account?
-        <a routerLink="/sign-in" class="font-medium text-link hover:text-link-hover">Sign in</a>
+        <a routerLink="/sign-in" [queryParams]="signInParams" class="font-medium text-link hover:text-link-hover">Sign in</a>
       </p>
     }
   </section>
