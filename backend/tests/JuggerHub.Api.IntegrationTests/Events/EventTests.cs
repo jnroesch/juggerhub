@@ -691,8 +691,11 @@ public sealed class EventTests
         name = "Pompfen Skills Session",
         type = "Workshop",
         description = "Online technique clinic for runners and chains.",
-        startsAt = "2026-07-20T18:00:00Z",
-        endsAt = "2026-07-20T20:00:00Z",
+        // Relative to now so the fixture never silently expires (a fixed past date makes every
+        // signup test fail once the wall clock passes it). EndedIndividuals() overrides these to
+        // the past on purpose.
+        startsAt = DateTime.UtcNow.AddDays(30).ToString("yyyy-MM-ddTHH:mm:ssZ"),
+        endsAt = DateTime.UtcNow.AddDays(30).AddHours(2).ToString("yyyy-MM-ddTHH:mm:ssZ"),
         locationKind = "Virtual",
         venueName = (string?)null,
         street = (string?)null,
