@@ -14,7 +14,7 @@
     <!-- Header -->
     <header class="flex flex-wrap items-start gap-md">
       <span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-brand-gradient text-h4 font-bold text-on-accent" aria-hidden="true">
-        {{ team.name.charAt(0) }}
+        {{ initial(team.name) }}
       </span>
       <div class="min-w-0 flex-1">
         <h1 class="text-h3 text-heading">{{ team.name }}</h1>
@@ -104,10 +104,10 @@
               @for (m of members(); track m.userId) {
                 <li class="flex items-center gap-sm border-b border-border-muted py-xs last:border-0">
                   <a [routerLink]="['/u', m.handle]" class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary">
-                    @if (m.hasAvatar) { <img [src]="avatarUrl(m.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ m.displayName.charAt(0) }} }
+                    @if (m.hasAvatar) { <img [src]="avatarUrl(m.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ initial(m.displayName) }} }
                   </a>
                   <span class="min-w-0 flex-1">
-                    <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName }}</a>
+                    <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName || m.handle }}</a>
                     <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) || '—' }}</span>
                   </span>
                   @if (m.role === 'Admin') { <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Admin</span> }
@@ -130,10 +130,10 @@
               @for (m of publicRoster(); track m.handle) {
                 <li class="flex items-center gap-sm border-b border-border-muted py-xs last:border-0">
                   <a [routerLink]="['/u', m.handle]" class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary">
-                    @if (m.hasAvatar) { <img [src]="avatarUrl(m.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ m.displayName.charAt(0) }} }
+                    @if (m.hasAvatar) { <img [src]="avatarUrl(m.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ initial(m.displayName) }} }
                   </a>
                   <span class="min-w-0 flex-1">
-                    <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName }}</a>
+                    <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName || m.handle }}</a>
                     <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) || '—' }}</span>
                   </span>
                   @if (m.role === 'Admin') { <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Admin</span> }
