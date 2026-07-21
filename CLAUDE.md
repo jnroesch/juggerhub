@@ -296,7 +296,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/022-lazy-dm-creation/plan.md` (Lazy Direct-Message Creation).
+`specs/023-my-team-home/plan.md` ("My team" home for teamless players).
 <!-- SPECKIT END -->
 
 ## GitHub Issues Workflow
