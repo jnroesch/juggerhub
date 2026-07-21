@@ -117,6 +117,12 @@ describe('ChatService', () => {
     TestBed.tick();
     flushInitialUnread();
 
+    // Seed the inbox so the send can also refresh the row (matches real use: the conversation is listed).
+    service.loadInbox().subscribe();
+    httpMock
+      .expectOne('/api/v1/chat/conversations?skip=0&take=20')
+      .flush({ items: [conversation({ id: 'c1' })], totalCount: 1, skip: 0, take: 20 });
+
     service.openConversation('c1').subscribe();
     httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({ items: [], nextBefore: null });
 
@@ -126,6 +132,32 @@ describe('ChatService', () => {
       .flush(message({ id: 'm9', body: 'hey', isOwn: true }));
 
     expect(service.messages().map((m) => m.body)).toEqual(['hey']);
+  });
+
+  it('refreshes the inbox row preview when the sender sends (server only pushes to others)', () => {
+    TestBed.tick();
+    flushInitialUnread();
+
+    // A freshly-created group with no messages yet — the left rail shows "no messages" (lastMessage null).
+    service.loadInbox().subscribe();
+    httpMock.expectOne('/api/v1/chat/conversations?skip=0&take=20').flush({
+      items: [conversation({ id: 'g1', kind: 'Group', name: 'Weekend crew', lastMessage: null })],
+      totalCount: 1,
+      skip: 0,
+      take: 20,
+    });
+    expect(service.conversations()[0].lastMessage).toBeNull();
+
+    // Send the first message without the conversation open (the rail must still update).
+    service.send('g1', 'first!').subscribe();
+    httpMock
+      .expectOne((r) => r.url === '/api/v1/chat/conversations/g1/messages' && r.method === 'POST')
+      .flush(message({ id: 'm9', body: 'first!', isOwn: true }));
+
+    const row = service.conversations()[0];
+    expect(row.id).toBe('g1');
+    expect(row.lastMessage?.preview).toBe('first!');
+    expect(row.lastMessage?.isOwn).toBe(true);
   });
 
   it('tombstones a deleted message rather than removing it', () => {

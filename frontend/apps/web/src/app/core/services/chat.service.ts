@@ -209,6 +209,10 @@ export class ChatService {
           if (this._openId() === conversationId) {
             this.appendMessage(message);
           }
+          // Refresh the inbox row's preview + ordering for the sender too. The server only pushes the
+          // new message to the OTHER members, so without this our own left rail keeps showing the old
+          // preview (e.g. "no messages yet" on a group we just created) until a reload.
+          this.bumpConversationWithMessage(conversationId, message);
         }),
       );
   }
@@ -372,6 +376,16 @@ export class ChatService {
     }
 
     // Keep the row's preview and ordering fresh even when the conversation isn't open.
+    this.bumpConversationWithMessage(conversationId, message);
+  }
+
+  /**
+   * Update a conversation's inbox row from a new message: refresh its preview + time, move it to the
+   * top, and bump the unread count unless the message is the caller's own or the conversation is open.
+   * Shared by the caller's own sends and messages arriving over the socket, so the left rail stays in
+   * step without a reload. If the row isn't known yet, re-seed the inbox.
+   */
+  private bumpConversationWithMessage(conversationId: string, message: ChatMessage): void {
     this._conversations.update((cs) => {
       const found = cs.find((c) => c.id === conversationId);
       if (!found) {
