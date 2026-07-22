@@ -4,7 +4,7 @@
       <a [routerLink]="link(item)" class="flex items-start gap-sm rounded-md px-xs py-xs transition-colors duration-fast hover:bg-surface-sunken">
         <span
           class="mt-0.5 shrink-0 rounded-pill px-xs py-0.5 text-eyebrow font-semibold uppercase"
-          [class]="item.source === 'team' ? 'bg-surface-secondary-soft text-secondary' : 'bg-info-bg text-info-fg'"
+          [class]="pillClass(item)"
         >
           {{ item.source }}
         </span>

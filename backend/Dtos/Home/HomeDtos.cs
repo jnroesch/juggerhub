@@ -3,21 +3,23 @@ using JuggerHub.Entities;
 namespace JuggerHub.Dtos.Home;
 
 /// <summary>
-/// The composite Home dashboard for the signed-in player (feature 008). Viewer summary +
-/// a capped top-N per module for a fast first paint. New-player viewers (no team) get
-/// empty team-scoped lists and a populated <see cref="OpenToEveryone"/>; the client
-/// derives the variant from <c>Teams.Count &gt; 0</c>. Read-only — RSVP reuses the
-/// existing event sign-up endpoints.
+/// The composite Home dashboard for the signed-in player (feature 008, reshaped by feature 025
+/// around participation + action). Viewer summary + a capped top-N per section for a fast first
+/// paint. The four sections read top-to-bottom as a priority order: <see cref="NeedsYou"/>
+/// (actionable, hidden when empty) → <see cref="UpNext"/> (unified events + trainings agenda) →
+/// <see cref="News"/> (authored team/event/party posts) → <see cref="Activity"/> (quiet passive
+/// "what's going on"). New-player viewers (no team) get empty team-scoped sections and a populated
+/// <see cref="OpenToEveryone"/>; the client derives the variant from <c>Teams.Count &gt; 0</c>.
+/// Read-only — every action reuses the existing per-domain endpoints.
 /// </summary>
 public sealed record HomeDto(
     ViewerSummaryDto Viewer,
     IReadOnlyList<MyTeamDto> Teams,
-    IReadOnlyList<UpNextItemDto> UpNext,
-    IReadOnlyList<UpNextItemDto> OpenToEveryone,
-    IReadOnlyList<TeamActivityDto> TeamsActivity,
+    IReadOnlyList<NeedsYouItemDto> NeedsYou,
+    IReadOnlyList<AgendaItemDto> UpNext,
+    IReadOnlyList<AgendaItemDto> OpenToEveryone,
     IReadOnlyList<HomeNewsDto> News,
-    IReadOnlyList<TournamentCardDto> Tournaments,
-    IReadOnlyList<TeamSnapshotDto> Snapshots);
+    IReadOnlyList<ActivityEntryDto> Activity);
 
 /// <summary>The signed-in player: greeting name + whether an avatar exists.</summary>
 public sealed record ViewerSummaryDto(string DisplayName, string Handle, bool HasAvatar);
@@ -25,46 +27,127 @@ public sealed record ViewerSummaryDto(string DisplayName, string Handle, bool Ha
 /// <summary>One of the caller's team memberships. Also the payload of GET /profiles/me/teams.</summary>
 public sealed record MyTeamDto(string Slug, string Name, TeamRole Role);
 
+// ---- Needs you (actionable) ------------------------------------------------
+
+/// <summary>The kind of an actionable "Needs you" item — drives the icon, copy, and which existing
+/// per-domain endpoint the client calls to resolve it. Serialized by name.</summary>
+public enum NeedsYouKind
+{
+    /// <summary>A pending targeted team invite. Resolve via the team invitation token endpoints.</summary>
+    TeamInvite,
+
+    /// <summary>A party participation request to the viewer's team (feature 016). Resolve via the party request endpoints.</summary>
+    PartyRequest,
+
+    /// <summary>A pending party co-admin invite (feature 016). Resolve via the party invitation token endpoints.</summary>
+    PartyCoAdminInvite,
+
+    /// <summary>A marketplace invite the viewer can accept/decline (feature 017).</summary>
+    MarketInvite,
+
+    /// <summary>A marketplace application the viewer sent — shown pending (withdraw only) (feature 017).</summary>
+    MarketApplication,
+}
+
 /// <summary>
-/// An upcoming event on the player's agenda. Individuals-mode items the viewer is signed up
-/// to carry <see cref="ViewerSignupId"/> + <see cref="ViewerStatus"/> (toggle to withdraw);
-/// open individuals-mode items (Open to everyone) carry neither (RSVP button); team-mode
-/// items carry <see cref="TeamGoing"/> and are read-only ("your team is going").
+/// One invite or request awaiting the viewer's response, aggregated from its authoritative source
+/// domain (never the notification display-cache). Trainings are deliberately excluded — RSVP lives in
+/// "Up next". <see cref="Id"/> is the action key the client passes to the kind's resolving endpoint
+/// (invitation token or request id); <see cref="LinkTarget"/> is the optional navigation target.
 /// </summary>
-public sealed record UpNextItemDto(
-    Guid EventId,
+public sealed record NeedsYouItemDto(
+    NeedsYouKind Kind,
+    string Id,
     string Title,
-    string TypeLabel,
+    string? Context,
+    string? LinkTarget,
+    DateTime OccurredAt);
+
+// ---- Up next (unified agenda) ----------------------------------------------
+
+/// <summary>Whether a unified agenda item is an event or a training session. Serialized by name.</summary>
+public enum AgendaKind
+{
+    Event,
+    Training,
+}
+
+/// <summary>
+/// One item in the unified "Up next" participation agenda (feature 025). <see cref="Kind"/> selects
+/// which optional block is populated. Events carry the mode/RSVP fields (individuals-mode items the
+/// viewer joined carry <see cref="ViewerSignupId"/> + <see cref="ViewerStatus"/> and toggle to
+/// withdraw; team-mode items carry <see cref="TeamGoing"/> and are read-only). Trainings carry the
+/// session's time and the viewer's answer. Near-window un-answered trainings live in
+/// <see cref="NeedsYouItemDto"/> instead and are excluded here (FR-006b).
+/// </summary>
+public sealed record AgendaItemDto(
+    AgendaKind Kind,
+    Guid Id,
+    string Title,
     DateTime StartsAt,
-    DateTime EndsAt,
+    DateTime? EndsAt,
     string LocationLabel,
-    int SpotsRemaining,
-    int ParticipationLimit,
-    ParticipantMode Mode,
+
+    // Event-only (Kind == Event)
+    string? TypeLabel,
+    int? SpotsRemaining,
+    int? ParticipationLimit,
+    ParticipantMode? Mode,
     Guid? ViewerSignupId,
     SignupStatus? ViewerStatus,
-    TeamGoingDto? TeamGoing);
+    TeamGoingDto? TeamGoing,
+
+    // Training-only (Kind == Training)
+    string? TrainingName,
+    string? StartTime,
+    bool? IsPublicGuest,
+    TrainingRsvp? MyAnswer);
 
 /// <summary>Which of the viewer's teams entered a team-mode event.</summary>
 public sealed record TeamGoingDto(string Slug, string Name);
 
-/// <summary>Recent activity in one of the viewer's teams (sourced from team news today).</summary>
-public sealed record TeamActivityDto(string TeamSlug, string TeamName, string Summary, DateTime OccurredAt);
+// ---- News (authored broadcast) ---------------------------------------------
 
 /// <summary>A news item the viewer is connected to, tagged by source.</summary>
 public sealed record HomeNewsDto(
-    string Source,          // "team" | "event" (a future "league" adds a value; contract unchanged)
+    string Source,          // "team" | "event" | "party"
     string SourceName,
-    string SourceSlugOrId,  // team slug or event id → link target
+    string SourceSlugOrId,  // team slug, event id, or event id for a party post → link target
     string Body,
     DateTime CreatedDate);
 
-/// <summary>A promoted upcoming tournament.</summary>
-public sealed record TournamentCardDto(
-    Guid EventId, string Name, string LocationLabel, DateTime StartsAt, int SpotsRemaining);
+// ---- What's going on (passive activity) ------------------------------------
 
-/// <summary>Desktop right-rail snapshot for one team (name + next fixture; no win/loss record).</summary>
-public sealed record TeamSnapshotDto(string Slug, string Name, NextFixtureDto? NextFixture);
+/// <summary>The kind of a passive "What's going on" activity entry (feature 025). Serialized by name.</summary>
+public enum ActivityKind
+{
+    /// <summary>A teammate signed up for an event.</summary>
+    TeammateJoinedEvent,
 
-/// <summary>The soonest upcoming event a team is signed up to.</summary>
-public sealed record NextFixtureDto(Guid EventId, string Name, DateTime StartsAt);
+    /// <summary>A new member joined one of the viewer's teams.</summary>
+    NewTeamMember,
+
+    /// <summary>A badge was awarded to the viewer or a teammate.</summary>
+    BadgeAwarded,
+
+    /// <summary>A member joined one of the viewer's parties.</summary>
+    PartyMemberJoined,
+
+    /// <summary>The viewer's role in a team changed.</summary>
+    RoleChanged,
+
+    /// <summary>A training the viewer responded to was rescheduled or cancelled.</summary>
+    TrainingChanged,
+}
+
+/// <summary>
+/// A passive, read-only "What's going on" entry (feature 025). Carries no actions. Derived on read
+/// from domain rows (event sign-ups, team memberships, badge awards, party members) plus the viewer's
+/// own passive notification rows for pure state-changes (role change, training reschedule/cancel).
+/// All entries are scoped to the viewer or the viewer's teams/parties server-side.
+/// </summary>
+public sealed record ActivityEntryDto(
+    ActivityKind Kind,
+    string Summary,
+    string? LinkTarget,
+    DateTime OccurredAt);

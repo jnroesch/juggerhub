@@ -1,7 +1,7 @@
 <div class="flex items-center gap-sm rounded-md border border-border-muted bg-surface-card px-sm py-sm">
   <!-- Date chip -->
   <a
-    [routerLink]="['/events', item().eventId]"
+    [routerLink]="route()"
     class="grid h-12 w-12 shrink-0 place-items-center rounded-sm bg-surface-inverse text-on-inverse"
     [attr.aria-label]="weekday() + ' ' + day()"
   >
@@ -11,10 +11,12 @@
 
   <!-- Title + meta -->
   <div class="min-w-0 flex-1">
-    <a [routerLink]="['/events', item().eventId]" class="block truncate font-semibold text-heading hover:text-link">{{ item().title }}</a>
+    <a [routerLink]="route()" class="block truncate font-semibold text-heading hover:text-link">{{ item().title }}</a>
     <p class="truncate text-caption text-muted">
       {{ item().locationLabel }} · <span class="font-mono">{{ time() }}</span>
-      @if (!isTeamMode() && item().spotsRemaining > 0) {
+      @if (isTraining()) {
+        @if (item().isPublicGuest) { · public training }
+      } @else if (!isTeamMode() && (item().spotsRemaining ?? 0) > 0) {
         · <span class="font-mono">{{ item().spotsRemaining }}</span> left
       }
     </p>
@@ -25,7 +27,19 @@
 
   <!-- Action -->
   <div class="shrink-0">
-    @if (isTeamMode()) {
+    @if (isTraining()) {
+      <div class="flex gap-xs" role="group" aria-label="Respond to training">
+        <button type="button" (click)="respond('Going')" [disabled]="busy()" data-testid="training-going"
+          class="rounded-md border px-sm py-1 text-caption font-medium transition-colors duration-fast disabled:opacity-50"
+          [class.border-success-border]="answer() === 'Going'" [class.bg-success-bg]="answer() === 'Going'" [class.text-success-fg]="answer() === 'Going'" [class.border-border-strong]="answer() !== 'Going'">Going</button>
+        <button type="button" (click)="respond('Maybe')" [disabled]="busy()" data-testid="training-maybe"
+          class="rounded-md border px-sm py-1 text-caption font-medium transition-colors duration-fast disabled:opacity-50"
+          [class.border-warning-border]="answer() === 'Maybe'" [class.bg-warning-bg]="answer() === 'Maybe'" [class.border-border-strong]="answer() !== 'Maybe'">Maybe</button>
+        <button type="button" (click)="respond('Cant')" [disabled]="busy()" data-testid="training-cant"
+          class="rounded-md border px-sm py-1 text-caption font-medium transition-colors duration-fast disabled:opacity-50"
+          [class.border-danger-border]="answer() === 'Cant'" [class.bg-danger-bg]="answer() === 'Cant'" [class.text-danger-fg]="answer() === 'Cant'" [class.border-border-strong]="answer() !== 'Cant'">Can't</button>
+      </div>
+    } @else if (isTeamMode()) {
       <span class="inline-flex items-center gap-1 rounded-pill bg-surface-secondary-soft px-sm py-1 text-caption font-medium text-secondary" data-testid="team-going">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
         Team going

@@ -17,7 +17,9 @@
       @if (hasTeam()) {
         <h1 class="text-h3 text-heading">Hi {{ home.viewer.displayName }}</h1>
         <p class="mt-xs text-body-sm text-muted">
-          @if (home.upNext.length > 0) {
+          @if (home.needsYou.length > 0) {
+            You've got <span class="font-mono">{{ home.needsYou.length }}</span> thing{{ home.needsYou.length === 1 ? '' : 's' }} waiting on you.
+          } @else if (home.upNext.length > 0) {
             You've got <span class="font-mono">{{ home.upNext.length }}</span> coming up.
           } @else {
             Nothing on your calendar yet — go find a game.
@@ -29,11 +31,18 @@
       }
     </header>
 
-    <div class="mt-lg grid gap-lg lg:grid-cols-[minmax(0,1fr)_320px]">
+    <!-- Two-column on desktop: actions + agenda (main) · reading + ambient (rail).
+         Stacks in priority order on mobile: Needs you → Up next → News → What's going on. -->
+    <div class="mt-lg grid items-start gap-lg lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
       <!-- Main column -->
       <div class="flex flex-col gap-lg">
+        <!-- 1. Needs you — actionable, pinned top -->
+        @if (home.needsYou.length > 0) {
+          <jh-needs-you-card [items]="home.needsYou" (resolved)="onResolved($event)" />
+        }
+
         @if (hasTeam()) {
-          <!-- Up next -->
+          <!-- 2. Up next — unified participation agenda (events + trainings) -->
           <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="up-next">
             <div class="mb-sm flex items-center justify-between">
               <h2 class="text-body-lg font-semibold text-heading">Up next</h2>
@@ -43,7 +52,7 @@
             </div>
             @if (home.upNext.length > 0) {
               <div class="flex flex-col gap-xs">
-                @for (item of home.upNext; track item.eventId) {
+                @for (item of home.upNext; track item.id) {
                   <jh-up-next-card [item]="item" />
                 }
               </div>
@@ -51,26 +60,6 @@
               <p class="rounded-md bg-surface-sunken px-md py-lg text-center text-body-sm text-muted">
                 Nothing coming up. <a routerLink="/browse/events" class="font-medium text-link hover:text-link-hover">Browse open events</a>.
               </p>
-            }
-          </section>
-
-          <!-- Your teams -->
-          <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="your-teams">
-            <h2 class="mb-sm text-body-lg font-semibold text-heading">Your teams</h2>
-            @if (home.teamsActivity.length > 0) {
-              <ul class="flex flex-col gap-sm">
-                @for (a of home.teamsActivity; track $index) {
-                  <li class="flex items-start gap-sm">
-                    <a [routerLink]="['/t', a.teamSlug]" class="mt-0.5 shrink-0 rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-eyebrow font-semibold uppercase text-secondary">{{ a.teamName }}</a>
-                    <span class="min-w-0 flex-1">
-                      <span class="block text-body-sm text-body">{{ a.summary }}</span>
-                      <span class="block text-caption text-subtle">{{ rel(a.occurredAt) }}</span>
-                    </span>
-                  </li>
-                }
-              </ul>
-            } @else {
-              <jh-empty-state inline>No recent team activity.</jh-empty-state>
             }
           </section>
         } @else {
@@ -89,15 +78,18 @@
             <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="open-to-everyone">
               <h2 class="mb-sm text-body-lg font-semibold text-heading">Open to everyone</h2>
               <div class="flex flex-col gap-xs">
-                @for (item of home.openToEveryone; track item.eventId) {
+                @for (item of home.openToEveryone; track item.id) {
                   <jh-up-next-card [item]="item" />
                 }
               </div>
             </section>
           }
         }
+      </div>
 
-        <!-- News (both variants) -->
+      <!-- Rail — reading + ambient -->
+      <aside class="flex flex-col gap-lg">
+        <!-- 3. News — authored broadcast (team + event + party) -->
         <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="news">
           <div class="mb-sm flex items-center justify-between">
             <h2 class="text-body-lg font-semibold text-heading">News</h2>
@@ -111,58 +103,10 @@
             <jh-empty-state inline>No news yet.</jh-empty-state>
           }
         </section>
-      </div>
 
-      <!-- Right rail (stacks under the main column on mobile) -->
-      <aside class="flex flex-col gap-lg">
-        <!-- Your trainings (feature 018) — hidden when nothing is upcoming -->
-        <jh-your-trainings-card />
-
-        <!-- Your market (feature 017) — hidden when nothing is pending -->
-        <jh-market-card />
-
-        <!-- Team snapshots — desktop only -->
-        @if (hasTeam()) {
-          <div class="hidden flex-col gap-md lg:flex" data-testid="team-snapshots">
-            @for (snap of home.snapshots; track snap.slug) {
-              <div class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
-                <p class="font-semibold text-heading">{{ snap.name }}</p>
-                @if (snap.nextFixture; as fx) {
-                  <p class="mt-xs text-caption text-muted">Next</p>
-                  <p class="text-body-sm text-body">{{ fx.name }}</p>
-                  <p class="font-mono text-caption text-subtle">{{ fixtureDate(fx.startsAt) }}</p>
-                } @else {
-                  <p class="mt-xs text-caption text-muted">No upcoming fixture</p>
-                }
-                <a [routerLink]="['/t', snap.slug]" class="mt-sm inline-block rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken">View team</a>
-              </div>
-            }
-          </div>
-        }
-
-        <!-- Tournaments (both variants, both viewports) -->
-        @if (home.tournaments.length > 0) {
-          <div class="flex flex-col gap-md" data-testid="tournaments">
-            @for (t of home.tournaments; track t.eventId) {
-              <div class="overflow-hidden rounded-lg border border-border-muted bg-surface-card shadow-sm">
-                <div class="bg-brand-gradient-soft px-md py-xs">
-                  <span class="text-eyebrow font-semibold uppercase text-secondary">Tournament</span>
-                </div>
-                <div class="p-md">
-                  <p class="font-semibold text-heading">{{ t.name }}</p>
-                  <p class="mt-xs text-caption text-muted">{{ t.locationLabel }} · <span class="font-mono">{{ fixtureDate(t.startsAt) }}</span></p>
-                  <div class="mt-sm flex items-center justify-between">
-                    @if (t.spotsRemaining > 0) {
-                      <span class="rounded-pill bg-warning-bg px-xs py-0.5 text-caption font-medium text-warning-fg"><span class="font-mono">{{ t.spotsRemaining }}</span> spots</span>
-                    } @else {
-                      <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Full</span>
-                    }
-                    <a [routerLink]="['/events', t.eventId]" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken">View</a>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
+        <!-- 4. What's going on — quiet passive activity log; hides itself when empty -->
+        @if (home.activity.length > 0) {
+          <jh-activity-list [items]="home.activity" />
         }
       </aside>
     </div>

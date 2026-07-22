@@ -1,12 +1,13 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { HomeService } from '../../../core/services/home.service';
-import { UpNextItem } from '../../../core/models/home.models';
+import { AgendaItem } from '../../../core/models/home.models';
 import { UpNextCardComponent } from '../modules/up-next-card.component';
 
 /**
- * "See all" for Up next (feature 008): the player's full upcoming-events list, paginated over
- * GET /home/up-next, reusing the interactive up-next card.
+ * "See all" for Up next (feature 008, unified by feature 025): the player's full upcoming
+ * participation agenda (events + trainings), paginated over GET /home/up-next, reusing the
+ * interactive up-next card.
  */
 @Component({
   selector: 'jh-up-next-list',
@@ -17,7 +18,7 @@ import { UpNextCardComponent } from '../modules/up-next-card.component';
 export class UpNextListComponent implements OnInit {
   private readonly home = inject(HomeService);
 
-  protected readonly items = signal<UpNextItem[]>([]);
+  protected readonly items = signal<AgendaItem[]>([]);
   protected readonly loading = signal(true);
   protected readonly failed = signal(false);
   private readonly total = signal(0);

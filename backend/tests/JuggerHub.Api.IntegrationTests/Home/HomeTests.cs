@@ -14,7 +14,6 @@ namespace JuggerHub.Api.IntegrationTests.Home;
 public sealed class HomeTests
 {
     private static readonly DateTime Soon = DateTime.UtcNow.AddDays(3);
-    private static readonly DateTime Later = DateTime.UtcNow.AddDays(10);
 
     private readonly JuggerHubApiFactory _factory;
 
@@ -135,19 +134,20 @@ public sealed class HomeTests
     }
 
     [Fact]
-    public async Task NewPlayer_variant_has_no_teams_but_open_events_and_tournaments()
+    public async Task NewPlayer_variant_has_no_teams_but_open_events_to_join()
     {
         var (client, _) = await HomeTestSupport.NewUserAsync(_factory);
 
         await HomeTestSupport.SeedEventAsync(_factory, "Everyone welcome", Soon, Soon.AddHours(2), ParticipantMode.Individuals);
-        await HomeTestSupport.SeedEventAsync(_factory, "Summer Cup", Later, Later.AddDays(1), ParticipantMode.Teams, type: EventType.Tournament);
 
         var home = await client.GetFromJsonAsync<JsonElement>("/api/v1/home");
 
         Assert.Empty(home.GetProperty("teams").EnumerateArray());
         Assert.Empty(home.GetProperty("upNext").EnumerateArray());
+        Assert.Empty(home.GetProperty("needsYou").EnumerateArray());
         Assert.Contains(home.GetProperty("openToEveryone").EnumerateArray(), i => i.GetProperty("title").GetString() == "Everyone welcome");
-        Assert.Contains(home.GetProperty("tournaments").EnumerateArray(), t => t.GetProperty("name").GetString() == "Summer Cup");
+        var item = home.GetProperty("openToEveryone").EnumerateArray().First(i => i.GetProperty("title").GetString() == "Everyone welcome");
+        Assert.Equal("Event", item.GetProperty("kind").GetString());
     }
 
     [Fact]

@@ -43,18 +43,43 @@ internal static class HomeProjections
     internal static string TypeLabel(EventType type, string? customLabel) =>
         type == EventType.Other ? (string.IsNullOrWhiteSpace(customLabel) ? "Other" : customLabel!) : type.ToString();
 
-    /// <summary>Build the client DTO from a raw row.</summary>
-    internal static UpNextItemDto ToItem(UpNextRaw r) => new(
+    /// <summary>Build a unified agenda item (Kind=Event) from a raw event row (feature 025).</summary>
+    internal static AgendaItemDto ToItem(UpNextRaw r) => new(
+        AgendaKind.Event,
         r.EventId,
         r.Name,
-        TypeLabel(r.Type, r.CustomTypeLabel),
         r.StartsAt,
         r.EndsAt,
         LocationLabel(r.City, r.VenueName, r.Location),
+        TypeLabel(r.Type, r.CustomTypeLabel),
         Math.Max(r.ParticipationLimit - r.Occupied, 0),
         r.ParticipationLimit,
         r.Mode,
         r.SignupId,
         r.Status,
-        r.TeamSlug is null ? null : new TeamGoingDto(r.TeamSlug, r.TeamName ?? r.TeamSlug));
+        r.TeamSlug is null ? null : new TeamGoingDto(r.TeamSlug, r.TeamName ?? r.TeamSlug),
+        null,
+        null,
+        null,
+        null);
+
+    /// <summary>Build a unified agenda item (Kind=Training) from a training agenda row (feature 025).</summary>
+    internal static AgendaItemDto ToItem(Dtos.Trainings.AgendaSessionDto s) => new(
+        AgendaKind.Training,
+        s.SessionId,
+        s.Name,
+        s.SessionDate.ToDateTime(s.StartTime),
+        s.SessionDate.ToDateTime(s.EndTime),
+        s.LocationKind == LocationKind.Virtual ? "Online" : (s.Location ?? string.Empty),
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        s.Name,
+        s.StartTime.ToString("HH\\:mm"),
+        s.IsPublicGuest,
+        s.MyAnswer);
 }
