@@ -29,10 +29,10 @@
     <button type="button" class="ml-sm font-semibold underline" (click)="load()">Try again</button>
   </div>
 } @else if (items().length === 0) {
-  <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm" data-testid="admin-teams-empty">
+  <jh-empty-state class="mt-lg" data-testid="admin-teams-empty">
     <p class="text-body-md text-body">No teams match that.</p>
     <p class="mt-1 text-body-sm text-muted">Try a different name or city.</p>
-  </div>
+  </jh-empty-state>
 } @else {
   <!-- Desktop: a calm table -->
   <div class="mt-md hidden overflow-hidden rounded-lg border border-border-muted bg-surface-card shadow-sm md:block">

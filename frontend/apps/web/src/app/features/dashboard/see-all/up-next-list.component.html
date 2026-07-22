@@ -9,7 +9,7 @@
       }
     </div>
   } @else if (!loading() && !failed()) {
-    <p class="mt-lg rounded-lg bg-surface-sunken px-md py-2xl text-center text-body-sm text-muted">Nothing coming up right now.</p>
+    <jh-empty-state class="mt-lg">Nothing coming up right now.</jh-empty-state>
   }
 
   @if (failed()) {

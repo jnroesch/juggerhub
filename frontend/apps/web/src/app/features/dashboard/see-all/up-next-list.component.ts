@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { LoadingComponent } from '../../../shared/ui';
+import { LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { HomeService } from '../../../core/services/home.service';
 import { UpNextItem } from '../../../core/models/home.models';
 import { UpNextCardComponent } from '../modules/up-next-card.component';
@@ -10,7 +10,7 @@ import { UpNextCardComponent } from '../modules/up-next-card.component';
  */
 @Component({
   selector: 'jh-up-next-list',
-  imports: [UpNextCardComponent, LoadingComponent],
+  imports: [UpNextCardComponent, LoadingComponent, EmptyStateComponent],
   templateUrl: './up-next-list.component.html',
   styleUrl: './up-next-list.component.css',
 })

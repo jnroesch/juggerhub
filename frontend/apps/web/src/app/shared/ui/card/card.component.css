@@ -5,8 +5,11 @@
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-muted);
   background-color: var(--surface-card);
-  padding: 24px; /* spacing-6 (DESIGN.md card padding) */
   box-shadow: var(--shadow-sm);
+  /* Padding is intentionally the caller's — cards vary (compact rows, header
+     strips, full-bleed lists). The primitive owns the DESIGN.md *surface*
+     (white / muted border / lg radius / soft shadow); the recommended body
+     padding is spacing-6 (`p-xl` = 24px). */
 }
 
 /* Clickable cards lift 3px with a deeper shadow on hover (DESIGN.md). */

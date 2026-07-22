@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { CardComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
 import { AgendaSession, TrainingRsvp } from '../../../core/models/trainings.models';
@@ -10,7 +11,7 @@ import { AgendaSession, TrainingRsvp } from '../../../core/models/trainings.mode
  */
 @Component({
   selector: 'jh-your-trainings-card',
-  imports: [RouterLink],
+  imports: [RouterLink, CardComponent],
   templateUrl: './your-trainings-card.component.html',
   styleUrl: './your-trainings-card.component.css',
 })

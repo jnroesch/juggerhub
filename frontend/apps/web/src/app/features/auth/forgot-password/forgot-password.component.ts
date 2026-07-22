@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { problemDetail } from '../../../core/utils/problem';
-import { ButtonDirective, AlertComponent } from '../../../shared/ui';
+import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/ui';
 
 /**
  * US3 — request a password reset. The response is enumeration-neutral; we always
@@ -11,7 +11,7 @@ import { ButtonDirective, AlertComponent } from '../../../shared/ui';
  */
 @Component({
   selector: 'jh-forgot-password',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CardComponent],
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.css',
 })

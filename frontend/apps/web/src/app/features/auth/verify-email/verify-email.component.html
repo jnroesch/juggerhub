@@ -1,9 +1,5 @@
 <main class="grid min-h-screen place-items-center p-md">
-  <section
-    class="relative w-full max-w-md overflow-hidden rounded-lg border border-border-muted bg-surface-card p-xl text-center shadow-sm"
-    data-testid="verify-email"
-  >
-    <span class="absolute inset-x-0 top-0 h-1 bg-brand-gradient" aria-hidden="true"></span>
+  <jh-card accent class="w-full max-w-md p-xl text-center" data-testid="verify-email">
     @switch (state()) {
       @case ('verifying') {
         <h1 class="text-heading-md font-semibold text-ink">Verifying your email…</h1>
@@ -54,5 +50,5 @@
         }
       }
     }
-  </section>
+  </jh-card>
 </main>

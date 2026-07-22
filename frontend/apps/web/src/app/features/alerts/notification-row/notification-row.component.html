@@ -1,5 +1,5 @@
-<article
-  class="flex gap-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm transition-colors duration-fast"
+<jh-card
+  class="flex gap-md p-md transition-colors duration-fast"
   [class.opacity-80]="notification().isRead"
   [attr.aria-label]="title()"
 >
@@ -72,4 +72,4 @@
   @if (!notification().isRead) {
     <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-pill bg-brand" aria-label="Unread"></span>
   }
-</article>
+</jh-card>

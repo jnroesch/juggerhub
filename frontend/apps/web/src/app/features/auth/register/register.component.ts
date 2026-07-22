@@ -9,7 +9,7 @@ import { passwordsMatch } from '../../../core/utils/passwords-match.validator';
 import { problemDetail } from '../../../core/utils/problem';
 import { safeReturnUrl } from '../../../core/utils/return-url';
 import { PasswordRulesComponent } from '../password-policy/password-rules.component';
-import { ButtonDirective, AlertComponent } from '../../../shared/ui';
+import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/ui';
 
 /** URL-safe handle: lowercase alphanumeric segments joined by single hyphens. */
 const HANDLE_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -23,7 +23,7 @@ type HandleState = 'idle' | 'checking' | 'available' | 'unavailable';
  */
 @Component({
   selector: 'jh-register',
-  imports: [ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent],
+  imports: [ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent, CardComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
 })

@@ -1,9 +1,5 @@
 <main class="grid min-h-screen place-items-center p-md">
-  <section
-    class="relative w-full max-w-md overflow-hidden rounded-lg border border-border-muted bg-surface-card p-xl shadow-sm"
-    data-testid="register"
-  >
-    <span class="absolute inset-x-0 top-0 h-1 bg-brand-gradient" aria-hidden="true"></span>
+  <jh-card accent class="w-full max-w-md p-xl" data-testid="register">
     @if (sent()) {
       <h1 class="text-heading-md font-semibold text-ink">Check your email</h1>
       <p class="mt-sm text-body-md text-text-muted">
@@ -59,7 +55,7 @@
             Your permanent profile link: <span class="font-medium text-text">jugger.app/u/{{ form.controls.handle.value || 'your-handle' }}</span> — this can't be changed later.
           </p>
           @if (handleState() === 'unavailable' && handleReason()) {
-            <p class="mt-xs text-body-sm text-danger" role="alert">{{ handleReason() }}</p>
+            <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ handleReason() }}</p>
           }
         </div>
 
@@ -87,7 +83,7 @@
             class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
           />
           @if (form.hasError('passwordMismatch') && form.controls.confirmPassword.value && form.controls.confirmPassword.touched) {
-            <p class="mt-xs text-body-sm text-danger" data-testid="register-mismatch" role="alert">Passwords don't match.</p>
+            <p class="mt-xs text-body-sm text-danger-fg" data-testid="register-mismatch" role="alert">Passwords don't match.</p>
           }
         </div>
 
@@ -110,5 +106,5 @@
         <a routerLink="/sign-in" [queryParams]="signInParams" class="font-medium text-link hover:text-link-hover">Sign in</a>
       </p>
     }
-  </section>
+  </jh-card>
 </main>
