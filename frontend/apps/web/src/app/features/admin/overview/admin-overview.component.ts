@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { LoadingComponent } from '../../../shared/ui';
+import { LoadingComponent, CardComponent } from '../../../shared/ui';
 import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +14,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-admin-overview',
-  imports: [DatePipe, RouterLink, FormsModule, LoadingComponent],
+  imports: [DatePipe, RouterLink, FormsModule, LoadingComponent, CardComponent],
   templateUrl: './admin-overview.component.html',
   styleUrl: './admin-overview.component.css',
 })

@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, LoadingComponent } from '../../../shared/ui';
+import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -20,7 +20,7 @@ type AwardKind = 'badge' | 'achievement';
  */
 @Component({
   selector: 'jh-admin-team-detail',
-  imports: [DatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent],
+  imports: [DatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent],
   templateUrl: './admin-team-detail.component.html',
   styleUrl: './admin-team-detail.component.css',
 })

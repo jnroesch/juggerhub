@@ -3,12 +3,11 @@
     @if (loading()) {
       <jh-loading />
     } @else if (notFound()) {
-      <section class="relative mx-auto mt-2xl max-w-md overflow-hidden rounded-lg border border-border-muted bg-surface-card p-xl text-center shadow-sm" data-testid="profile-notfound">
-        <span class="absolute inset-x-0 top-0 h-1 bg-brand-gradient" aria-hidden="true"></span>
+      <jh-card accent class="mx-auto mt-2xl max-w-md p-xl text-center" data-testid="profile-notfound">
         <h1 class="text-heading-md text-ink">Profile not found</h1>
         <p class="mt-sm text-body-md text-text-muted">This link doesn't point to a player profile.</p>
         <a routerLink="/" class="mt-lg inline-block text-body-md font-medium text-link hover:text-link-hover">Go to JuggerHub</a>
-      </section>
+      </jh-card>
     } @else if (profile(); as p) {
       <article class="overflow-hidden rounded-lg border border-border-muted bg-surface-card shadow-sm" data-testid="profile-public">
         <div class="h-1 bg-brand-gradient" aria-hidden="true"></div>

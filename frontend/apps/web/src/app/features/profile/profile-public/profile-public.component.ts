@@ -1,6 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ButtonDirective, LoadingComponent } from '../../../shared/ui';
+import { ButtonDirective, LoadingComponent, CardComponent } from '../../../shared/ui';
 import { pompfeLabel } from '../../../shared/pompfen.catalog';
 import { PublicProfile } from '../../../core/models/profile.models';
 import { ProfileService } from '../../../core/services/profile.service';
@@ -14,7 +14,7 @@ import { ProfileQuickActionsComponent } from '../components/quick-actions/profil
  */
 @Component({
   selector: 'jh-profile-public',
-  imports: [RouterLink, RecognitionDisplayComponent, ProfileQuickActionsComponent, ButtonDirective, LoadingComponent],
+  imports: [RouterLink, RecognitionDisplayComponent, ProfileQuickActionsComponent, ButtonDirective, LoadingComponent, CardComponent],
   templateUrl: './profile-public.component.html',
   styleUrl: './profile-public.component.css',
 })
