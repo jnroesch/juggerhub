@@ -13,6 +13,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { LoadingComponent } from '../../../shared/ui';
 import { ChatService } from '../../../core/services/chat.service';
 import { ChatMessage, ConversationDetail } from '../../../core/models/chat.models';
 
@@ -26,7 +27,7 @@ import { ChatMessage, ConversationDetail } from '../../../core/models/chat.model
  */
 @Component({
   selector: 'jh-chat-conversation',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, LoadingComponent],
   templateUrl: './chat-conversation.component.html',
   styleUrl: './chat-conversation.component.css',
 })

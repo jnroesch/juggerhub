@@ -59,7 +59,7 @@
             Your permanent profile link: <span class="font-medium text-text">jugger.app/u/{{ form.controls.handle.value || 'your-handle' }}</span> — this can't be changed later.
           </p>
           @if (handleState() === 'unavailable' && handleReason()) {
-            <p class="mt-xs text-body-sm text-danger" role="alert">{{ handleReason() }}</p>
+            <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ handleReason() }}</p>
           }
         </div>
 
@@ -87,7 +87,7 @@
             class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
           />
           @if (form.hasError('passwordMismatch') && form.controls.confirmPassword.value && form.controls.confirmPassword.touched) {
-            <p class="mt-xs text-body-sm text-danger" data-testid="register-mismatch" role="alert">Passwords don't match.</p>
+            <p class="mt-xs text-body-sm text-danger-fg" data-testid="register-mismatch" role="alert">Passwords don't match.</p>
           }
         </div>
 

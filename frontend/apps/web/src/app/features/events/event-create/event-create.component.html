@@ -1,4 +1,4 @@
-<section class="mx-auto max-w-lg px-md py-lg" data-testid="event-create">
+<section class="mx-auto max-w-container-md px-md py-lg" data-testid="event-create">
   <a routerLink="/" class="text-body-sm text-subtle hover:text-text">‹ Home</a>
 
   <!-- Round-knob progress -->
@@ -62,7 +62,7 @@
             </div>
           </div>
           @if (form.getRawValue().startsAt && form.getRawValue().endsAt && !canAdvance()) {
-            <p class="text-body-sm text-danger" role="alert">The event must end on or after it starts.</p>
+            <p class="text-body-sm text-danger-fg" role="alert">The event must end on or after it starts.</p>
           }
         </div>
       }

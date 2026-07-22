@@ -62,7 +62,7 @@
     }
 
     @if (hasMoreHistory() && !loading()) {
-      <p class="pb-md text-center text-body-sm text-subtle">Loading earlier messages…</p>
+      <jh-loading label="Loading earlier messages…" align="center" />
     }
 
     <ul class="space-y-sm" data-testid="message-list">

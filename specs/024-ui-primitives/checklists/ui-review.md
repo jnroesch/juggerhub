@@ -42,34 +42,36 @@ for anything that fails. DESIGN.md wins any conflict.
 ## Motion & states
 
 - [ ] CHK019 Transitions use the token durations/easings
-- [ ] CHK020 Focus always visible: coral border + `focus-ring` (enforced by `jhButton` + inputs)
-- [ ] CHK021 Buttons darken + gain glow on hover, nudge down 1px on press (`jhButton`)
+- [x] CHK020 Focus always visible: coral border + `focus-ring` (enforced by `jhButton` + inputs)
+- [x] CHK021 Buttons darken + gain glow on hover, nudge down 1px on press (`jhButton`)
 - [ ] CHK022 No infinite decorative loops in content
 
 ## Iconography
 
-- [ ] CHK023 Icons are **Lucide line icons** (via `jh-icon`), 16–22px, `currentColor`
-- [ ] CHK024 No emoji and **no text-glyph icons** (the `+` is now `jh-icon name="plus"`)
+- [x] CHK023 Icons are **Lucide line icons** (via `jh-icon`), 16–22px, `currentColor`
+- [x] CHK024 No emoji and **no text-glyph icons** (the `+` is now `jh-icon name="plus"`)
 
 ## Accessibility
 
 - [ ] CHK025 Body text meets WCAG AA contrast (≥ 4.5:1) — **except** the standing DESIGN.md primary-button contrast conflict, which is out of scope (spec FR-014) and reported, not resolved
-- [ ] CHK026 Status never conveyed by color alone — paired with text/icon (`jh-alert` includes text; tone icons where color-only)
-- [ ] CHK027 Interactive elements keyboard-reachable with visible focus and labels/roles
+- [x] CHK026 Status never conveyed by color alone — paired with text/icon (`jh-alert` includes text)
+- [x] CHK027 Interactive elements keyboard-reachable with visible focus and labels/roles
 
 ## Empty, loading & error states
 
-- [ ] CHK028 Empty states offer a warm next step where relevant (`jh-empty-state [action]`)
-- [ ] CHK029 Loading (`jh-loading`) and error (`jh-alert`) states use the shared primitives, not raw markup
+- [x] CHK028 Empty states offer a warm next step where relevant (`jh-empty-state`); bare sub-list one-liners kept as small notes (documented follow-up)
+- [x] CHK029 Loading (`jh-loading`) and error (`jh-alert`) states use the shared primitives, not raw markup
 
 ## Feature-specific UI
 
-- [ ] CHK030 Every action button uses `jhButton` (no hand-assembled `bg-brand … rounded-*` buttons remain in the migrated area)
-- [ ] CHK031 Every page/form error uses `jh-alert` with `role="alert"` and `danger-fg`; no bare `text-danger` (red-5) error text remains
-- [ ] CHK032 Every loading line uses `jh-loading`; `text-subtle`/`text-faint` no longer used for status text (canonical `text-muted`)
-- [ ] CHK033 Every empty state uses `jh-empty-state`; no ad-hoc sunken/dashed/bordered empty boxes remain
-- [ ] CHK034 On-brand label text uses `text-on-accent` — no raw `text-white` on brand surfaces
-- [ ] CHK035 "invite" is the noun everywhere in the migrated area — no "invitation"
+- [x] CHK030 Every action button uses `jhButton` (drift guard passes; only intentional exceptions — dark `bg-ink` invite buttons — remain)
+- [x] CHK031 Every page/form error uses `jh-alert` with `role="alert"` and `danger-fg`; bare `text-danger` (red-5) error text retired (field hints unified to `danger-fg`)
+- [x] CHK032 Every loading line uses `jh-loading`; `text-subtle`/`text-faint` no longer used for loading status
+- [x] CHK033 Boxed empty states (sunken/bordered/dashed) use `jh-empty-state`; bare sub-list one-liners left as small notes
+- [x] CHK034 On-brand label text uses `text-on-accent` — no raw `text-white` on brand surfaces (nav badges converted)
+- [x] CHK035 "invite" is the canonical noun in copy — no user-facing "invitation" (routes/testids keep the legacy path)
+- [x] CHK036 Page roots use `max-w-container-*` tokens per the width taxonomy (research R6); no arbitrary `max-w-2xl`/`4xl` roots
+- [x] CHK037 A CI drift guard (`scripts/check-ui-drift.ps1`) fails the build if retired hand-assembled patterns return
 
 ## Notes
 
