@@ -1,5 +1,5 @@
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, LoadingComponent } from '../../../shared/ui';
+import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -23,7 +23,7 @@ const ICON_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
  */
 @Component({
   selector: 'jh-admin-catalogue',
-  imports: [DatePipe, FormsModule, ButtonDirective, LoadingComponent],
+  imports: [DatePipe, FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent],
   templateUrl: './admin-catalogue.component.html',
   styleUrl: './admin-catalogue.component.css',
 })

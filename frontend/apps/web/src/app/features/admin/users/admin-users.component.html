@@ -56,10 +56,10 @@
     <button type="button" class="ml-sm font-semibold underline" (click)="load()">Try again</button>
   </div>
 } @else if (items().length === 0) {
-  <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm" data-testid="admin-users-empty">
+  <jh-empty-state class="mt-lg" data-testid="admin-users-empty">
     <p class="text-body-md text-body">No players match that.</p>
     <p class="mt-1 text-body-sm text-muted">Try a different name, &#64;handle, or team — or clear the filter.</p>
-  </div>
+  </jh-empty-state>
 } @else {
   <!-- Desktop: a calm table -->
   <div class="mt-md hidden overflow-hidden rounded-lg border border-border-muted bg-surface-card shadow-sm md:block">

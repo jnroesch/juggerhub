@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { LoadingComponent } from '../../../shared/ui';
+import { LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime } from 'rxjs';
@@ -17,7 +17,7 @@ const PAGE_SIZE = 20;
  */
 @Component({
   selector: 'jh-admin-teams',
-  imports: [RouterLink, FormsModule, LoadingComponent],
+  imports: [RouterLink, FormsModule, LoadingComponent, EmptyStateComponent],
   templateUrl: './admin-teams.component.html',
   styleUrl: './admin-teams.component.css',
 })

@@ -70,7 +70,7 @@
                 }
               </ul>
             } @else {
-              <p class="rounded-md bg-surface-sunken px-md py-lg text-center text-body-sm text-muted">No recent team activity.</p>
+              <jh-empty-state inline>No recent team activity.</jh-empty-state>
             }
           </section>
         } @else {
@@ -108,7 +108,7 @@
           @if (home.news.length > 0) {
             <jh-news-list [news]="home.news" />
           } @else {
-            <p class="rounded-md bg-surface-sunken px-md py-lg text-center text-body-sm text-muted">No news yet.</p>
+            <jh-empty-state inline>No news yet.</jh-empty-state>
           }
         </section>
       </div>

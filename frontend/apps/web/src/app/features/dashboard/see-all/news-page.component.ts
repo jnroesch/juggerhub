@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { LoadingComponent } from '../../../shared/ui';
+import { LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { HomeService } from '../../../core/services/home.service';
 import { HomeNews } from '../../../core/models/home.models';
 import { NewsListComponent } from '../modules/news-list.component';
@@ -10,7 +10,7 @@ import { NewsListComponent } from '../modules/news-list.component';
  */
 @Component({
   selector: 'jh-news-page',
-  imports: [NewsListComponent, LoadingComponent],
+  imports: [NewsListComponent, LoadingComponent, EmptyStateComponent],
   templateUrl: './news-page.component.html',
   styleUrl: './news-page.component.css',
 })

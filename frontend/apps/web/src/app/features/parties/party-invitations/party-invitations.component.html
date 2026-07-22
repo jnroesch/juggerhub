@@ -42,7 +42,7 @@
           <button type="button" (click)="revoke(i.id)" jhButton variant="danger" size="sm">Revoke</button>
         </li>
       } @empty {
-        <li class="px-md py-lg text-center text-body-sm text-subtle">No pending invites.</li>
+        <li><jh-empty-state inline>No pending invites.</jh-empty-state></li>
       }
     </ul>
   </section>

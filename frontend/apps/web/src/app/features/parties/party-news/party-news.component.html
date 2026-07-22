@@ -28,7 +28,7 @@
           <p class="mt-xs whitespace-pre-line text-body-sm text-body">{{ n.body }}</p>
         </li>
       } @empty {
-        <li class="rounded-lg border border-dashed border-border-strong p-lg text-center text-body-sm text-subtle">No updates yet.</li>
+        <li><jh-empty-state inline>No updates yet.</jh-empty-state></li>
       }
     </ul>
   }
