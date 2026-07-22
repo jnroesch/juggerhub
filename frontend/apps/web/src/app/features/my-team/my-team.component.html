@@ -1,8 +1,8 @@
 <section class="mx-auto max-w-container-md px-md py-2xl">
-  <h1 class="text-h3 text-heading">Your teams</h1>
-  <p class="mt-xs text-body-sm text-muted">Jump into any of your teams.</p>
-
   @if (teams().length > 0) {
+    <h1 class="text-h3 text-heading">Your teams</h1>
+    <p class="mt-xs text-body-sm text-muted">Jump into any of your teams.</p>
+
     <ul class="mt-lg flex flex-col gap-sm">
       @for (team of teams(); track team.slug) {
         <li>
@@ -24,15 +24,83 @@
       }
     </ul>
   } @else if (loaded()) {
-    <div class="mt-lg rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-2xl text-center">
-      <p class="text-body-lg font-semibold text-heading">You're not on a team yet</p>
+    <!-- Teamless home / empty state (feature 023). -->
+    <h1 class="text-h3 text-heading">My team</h1>
+    <p class="mt-xs text-body-sm text-muted">You're not on a team yet — join one near you, accept an invitation, or start your own.</p>
+
+    @if (notice(); as msg) {
+      <p role="status" data-testid="my-team-notice" class="mt-md rounded-md border border-warning-border bg-warning-bg px-md py-sm text-body-sm text-warning-fg">{{ msg }}</p>
+    }
+
+    @if (invites().length > 0) {
+      <section class="mt-lg" aria-labelledby="my-team-invites-heading">
+        <h2 id="my-team-invites-heading" class="text-eyebrow font-semibold uppercase tracking-[0.04em] text-muted">Your invitations</h2>
+        <ul class="mt-sm flex flex-col gap-sm">
+          @for (inv of invites(); track inv.token) {
+            <li class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" [attr.data-testid]="'invite-' + inv.teamSlug">
+              <div class="flex items-start gap-sm">
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary" aria-hidden="true">{{ inv.teamName.charAt(0) }}</span>
+                <div class="min-w-0 flex-1">
+                  <span class="block truncate font-semibold text-heading">{{ inv.teamName }}</span>
+                  <span class="block text-caption text-subtle">{{ inv.teamType === 'CityTeam' ? 'City team' : 'Mixteam' }}@if (inv.city) { · {{ inv.city }}} · <span class="font-mono">{{ inv.memberCount }}</span> {{ inv.memberCount === 1 ? 'member' : 'members' }}</span>
+                  <span class="mt-0.5 block text-caption text-subtle">Invited by {{ inv.inviterDisplayName }}</span>
+                </div>
+              </div>
+              <div class="mt-sm flex gap-sm">
+                <button
+                  type="button"
+                  (click)="accept(inv)"
+                  [attr.data-testid]="'accept-' + inv.teamSlug"
+                  class="inline-flex min-h-[44px] items-center rounded-md bg-brand px-lg py-xs font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px"
+                >
+                  Accept
+                </button>
+                <button
+                  type="button"
+                  (click)="decline(inv)"
+                  [attr.data-testid]="'decline-' + inv.teamSlug"
+                  class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong px-lg py-xs font-medium text-subtle transition-colors duration-fast hover:bg-surface-sunken active:translate-y-px"
+                >
+                  Decline
+                </button>
+              </div>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <div class="mt-lg rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-xl text-center">
+      <p class="text-body-lg font-semibold text-heading">{{ invites().length > 0 ? 'Or find your own team' : 'Find your team' }}</p>
       <p class="mx-auto mt-xs max-w-sm text-body-sm text-muted">Discover teams near you — many lend gear and welcome newcomers.</p>
-      <a
-        routerLink="/browse/teams"
-        class="mt-md inline-flex min-h-[44px] items-center rounded-md bg-brand px-lg py-xs font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px"
-      >
-        Find a team near you
-      </a>
+      <div class="mt-md flex flex-col items-center justify-center gap-sm sm:flex-row">
+        @if (invites().length > 0) {
+          <a
+            routerLink="/browse/teams"
+            data-testid="my-team-find"
+            class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong px-lg py-xs font-medium text-body transition-colors duration-fast hover:bg-surface-sunken"
+          >
+            Find a team near you
+          </a>
+        } @else {
+          <a
+            routerLink="/browse/teams"
+            data-testid="my-team-find"
+            class="inline-flex min-h-[44px] items-center rounded-md bg-brand px-lg py-xs font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px"
+          >
+            Find a team near you
+          </a>
+        }
+        <a
+          routerLink="/teams/new"
+          data-testid="my-team-create"
+          class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong px-lg py-xs font-medium text-body transition-colors duration-fast hover:bg-surface-sunken"
+        >
+          Create your own team
+        </a>
+      </div>
     </div>
+  } @else {
+    <p class="mt-lg text-body-sm text-muted" data-testid="my-team-loading">Loading…</p>
   }
 </section>

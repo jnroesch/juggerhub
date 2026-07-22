@@ -27,7 +27,7 @@ Web app: backend at `backend/`, Angular SPA at `frontend/apps/web/src/app/`. Pat
 
 **Purpose**: Feature-level scaffolding. No new project/tooling — this feature extends an existing app.
 
-- [ ] T001 [P] Instantiate the UI review checklist: copy `.specify/templates/ui-review-checklist-template.md` to `specs/023-my-team-home/checklists/ui-review.md` (Constitution Gate 7; this is a UI-bearing change).
+- [X] T001 [P] Instantiate the UI review checklist: copy `.specify/templates/ui-review-checklist-template.md` to `specs/023-my-team-home/checklists/ui-review.md` (Constitution Gate 7; this is a UI-bearing change).
 
 ---
 
@@ -37,7 +37,7 @@ Web app: backend at `backend/`, Angular SPA at `frontend/apps/web/src/app/`. Pat
 
 **⚠️ CRITICAL**: Complete before starting user stories.
 
-- [ ] T002 Establish a green baseline: run `dotnet build backend/JuggerHub.Api.csproj` and `npx nx test web` (from `frontend/`) and confirm both pass; confirm `TeamInvitation.TargetUserId` exists in `backend/Entities/TeamInvitation.cs` so no migration is required.
+- [X] T002 Establish a green baseline: run `dotnet build backend/JuggerHub.Api.csproj` and `npx nx test web` (from `frontend/`) and confirm both pass; confirm `TeamInvitation.TargetUserId` exists in `backend/Entities/TeamInvitation.cs` so no migration is required.
 
 **Checkpoint**: Baseline green — user stories can begin.
 
@@ -51,14 +51,14 @@ Web app: backend at `backend/`, Angular SPA at `frontend/apps/web/src/app/`. Pat
 
 ### Tests for User Story 1 ⚠️ (write first, expect fail)
 
-- [ ] T003 [P] [US1] Update `frontend/apps/web/src/app/layout/nav-model.spec.ts`: assert `myTeamTarget([])` returns `/my-team` (was `/browse/teams`); keep the single-team (`/t/:slug`) and many-team (`/my-team`) expectations green.
-- [ ] T004 [P] [US1] In `frontend/apps/web/src/app/features/my-team/my-team.component.spec.ts`, add cases: teamless + no invites renders Find + Create and **no** invites section; a player on ≥1 team still renders the existing "Your teams" chooser.
+- [X] T003 [P] [US1] Update `frontend/apps/web/src/app/layout/nav-model.spec.ts`: assert `myTeamTarget([])` returns `/my-team` (was `/browse/teams`); keep the single-team (`/t/:slug`) and many-team (`/my-team`) expectations green.
+- [X] T004 [P] [US1] In `frontend/apps/web/src/app/features/my-team/my-team.component.spec.ts`, add cases: teamless + no invites renders Find + Create and **no** invites section; a player on ≥1 team still renders the existing "Your teams" chooser.
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] In `frontend/apps/web/src/app/layout/nav-model.ts`, change `myTeamTarget` so `teams.length === 0` returns `/my-team` instead of `/browse/teams` (single/many branches unchanged). Update the function's doc comment.
-- [ ] T006 [US1] Rebuild the teamless branch of `frontend/apps/web/src/app/features/my-team/my-team.component.html` per DESIGN.md: heading + "not on a team yet" copy, a **Find a team** action (`routerLink="/browse/teams"`) and a **Create a team** action (`routerLink="/teams/new"`), with loading/empty states. Preserve the `teams().length > 0` chooser branch.
-- [ ] T007 [US1] Update `frontend/apps/web/src/app/features/my-team/my-team.component.ts` so the teamless branch is driven by `membership.loaded()`/`teams()`; ensure `membership.load()` runs on init (already present) and the component exposes what the template needs.
+- [X] T005 [US1] In `frontend/apps/web/src/app/layout/nav-model.ts`, change `myTeamTarget` so `teams.length === 0` returns `/my-team` instead of `/browse/teams` (single/many branches unchanged). Update the function's doc comment.
+- [X] T006 [US1] Rebuild the teamless branch of `frontend/apps/web/src/app/features/my-team/my-team.component.html` per DESIGN.md: heading + "not on a team yet" copy, a **Find a team** action (`routerLink="/browse/teams"`) and a **Create a team** action (`routerLink="/teams/new"`), with loading/empty states. Preserve the `teams().length > 0` chooser branch.
+- [X] T007 [US1] Update `frontend/apps/web/src/app/features/my-team/my-team.component.ts` so the teamless branch is driven by `membership.loaded()`/`teams()`; ensure `membership.load()` runs on init (already present) and the component exposes what the template needs.
 
 **Checkpoint**: Teamless players reach an actionable `/my-team`; nav highlights "My team"; Find/Create work. **US1 is a shippable MVP.**
 
@@ -72,22 +72,22 @@ Web app: backend at `backend/`, Angular SPA at `frontend/apps/web/src/app/`. Pat
 
 ### Tests for User Story 2 ⚠️ (write first, expect fail)
 
-- [ ] T008 [P] [US2] Add `backend/tests/JuggerHub.Api.IntegrationTests/Teams/MyInvitationsTests.cs` covering `GET /api/v1/profiles/me/invitations`: 401 when anonymous; returns only the caller's invites (not another user's); excludes link invites and expired/revoked/accepted/declined invites (targeted + usable only); respects pagination (`take` > 100 normalized); and a list→accept round-trip (an invite from the list, accepted via `POST /api/v1/invitations/{token}/accept`, no longer appears and the caller has a membership).
+- [X] T008 [P] [US2] Add `backend/tests/JuggerHub.Api.IntegrationTests/Teams/MyInvitationsTests.cs` covering `GET /api/v1/profiles/me/invitations`: 401 when anonymous; returns only the caller's invites (not another user's); excludes link invites and expired/revoked/accepted/declined invites (targeted + usable only); respects pagination (`take` > 100 normalized); and a list→accept round-trip (an invite from the list, accepted via `POST /api/v1/invitations/{token}/accept`, no longer appears and the caller has a membership).
 
 ### Implementation for User Story 2 — Backend
 
-- [ ] T009 [P] [US2] Add the `MyInvitationDto` record in `backend/Dtos/Teams/` (fields: `Token`, `TeamName`, `TeamSlug`, `TeamType`, `City`, `MemberCount`, `InviterDisplayName`, `CreatedDate`, `ExpiresDate`) per [data-model.md](./data-model.md).
-- [ ] T010 [US2] Add `Task<PagedResult<MyInvitationDto>> ListMineAsync(Guid userId, PaginationRequest pagination, CancellationToken ct = default)` to `backend/Services/Teams/ITeamInvitationService.cs`.
-- [ ] T011 [US2] Implement `ListMineAsync` in `backend/Services/Teams/TeamInvitationService.cs`: `AsNoTracking`, filter `Kind == Targeted && Status == Pending && ExpiresDate > now && TargetUserId == userId`, project to `MyInvitationDto` in `.Select(...)` (member count from `Team.Memberships.Count`, inviter from `CreatedBy.Profile.DisplayName` fallback "A teammate"), order `CreatedDate` descending, return `PagedResult`. (depends on T009, T010)
-- [ ] T012 [US2] Add `GET me/invitations` to `backend/Controllers/ProfilesController.cs`: inject `ITeamInvitationService`, authorize with the JwtBearer scheme, resolve the subject via the existing `TryGetUserId` (401 if absent), bind `[FromQuery] PaginationRequest`, return `Ok(PagedResult<MyInvitationDto>)`. (depends on T011)
+- [X] T009 [P] [US2] Add the `MyInvitationDto` record in `backend/Dtos/Teams/` (fields: `Token`, `TeamName`, `TeamSlug`, `TeamType`, `City`, `MemberCount`, `InviterDisplayName`, `CreatedDate`, `ExpiresDate`) per [data-model.md](./data-model.md).
+- [X] T010 [US2] Add `Task<PagedResult<MyInvitationDto>> ListMineAsync(Guid userId, PaginationRequest pagination, CancellationToken ct = default)` to `backend/Services/Teams/ITeamInvitationService.cs`.
+- [X] T011 [US2] Implement `ListMineAsync` in `backend/Services/Teams/TeamInvitationService.cs`: `AsNoTracking`, filter `Kind == Targeted && Status == Pending && ExpiresDate > now && TargetUserId == userId`, project to `MyInvitationDto` in `.Select(...)` (member count from `Team.Memberships.Count`, inviter from `CreatedBy.Profile.DisplayName` fallback "A teammate"), order `CreatedDate` descending, return `PagedResult`. (depends on T009, T010)
+- [X] T012 [US2] Add `GET me/invitations` to `backend/Controllers/ProfilesController.cs`: inject `ITeamInvitationService`, authorize with the JwtBearer scheme, resolve the subject via the existing `TryGetUserId` (401 if absent), bind `[FromQuery] PaginationRequest`, return `Ok(PagedResult<MyInvitationDto>)`. (depends on T011)
 
 ### Implementation for User Story 2 — Frontend
 
-- [ ] T013 [P] [US2] Add the `MyInvitation` interface to `frontend/apps/web/src/app/core/models/team.models.ts` (mirror of `MyInvitationDto`, ISO date strings) per [data-model.md](./data-model.md).
-- [ ] T014 [US2] Add `frontend/apps/web/src/app/core/services/invitation.service.ts` with `listMine(skip = 0, take = 100)` → `GET /api/v1/profiles/me/invitations` returning `PagedResult<MyInvitation>`; reuse the existing `TeamService.acceptInvite(token)` / `declineInvite(token)` for actions. (depends on T013)
-- [ ] T015 [US2] Add the invitations section to `frontend/apps/web/src/app/features/my-team/my-team.component.html` (shown only when teamless): one card per invite with team name/type/city + inviter and **Accept**/**Decline** buttons, per DESIGN.md (incl. empty/error states).
-- [ ] T016 [US2] Wire `frontend/apps/web/src/app/features/my-team/my-team.component.ts`: when teamless, load invites via `InvitationService.listMine()`; `accept(token)` → on success remove the row; `decline(token)` → remove the row; on a stale/`409`/`404` result show a friendly message and remove the stale row (FR-015). (depends on T014)
-- [ ] T017 [P] [US2] Extend `frontend/apps/web/src/app/features/my-team/my-team.component.spec.ts`: teamless + invites renders cards; accept removes the row; decline removes the row; a stale/error accept removes the row and surfaces a message.
+- [X] T013 [P] [US2] Add the `MyInvitation` interface to `frontend/apps/web/src/app/core/models/team.models.ts` (mirror of `MyInvitationDto`, ISO date strings) per [data-model.md](./data-model.md).
+- [X] T014 [US2] Add `frontend/apps/web/src/app/core/services/invitation.service.ts` with `listMine(skip = 0, take = 100)` → `GET /api/v1/profiles/me/invitations` returning `PagedResult<MyInvitation>`; reuse the existing `TeamService.acceptInvite(token)` / `declineInvite(token)` for actions. (depends on T013)
+- [X] T015 [US2] Add the invitations section to `frontend/apps/web/src/app/features/my-team/my-team.component.html` (shown only when teamless): one card per invite with team name/type/city + inviter and **Accept**/**Decline** buttons, per DESIGN.md (incl. empty/error states).
+- [X] T016 [US2] Wire `frontend/apps/web/src/app/features/my-team/my-team.component.ts`: when teamless, load invites via `InvitationService.listMine()`; `accept(token)` → on success remove the row; `decline(token)` → remove the row; on a stale/`409`/`404` result show a friendly message and remove the stale row (FR-015). (depends on T014)
+- [X] T017 [P] [US2] Extend `frontend/apps/web/src/app/features/my-team/my-team.component.spec.ts`: teamless + invites renders cards; accept removes the row; decline removes the row; a stale/error accept removes the row and surfaces a message.
 
 **Checkpoint**: Invites list works end-to-end; accept joins server-side, decline removes. (Auto-navigation is added in US3.)
 
@@ -101,8 +101,8 @@ Web app: backend at `backend/`, Angular SPA at `frontend/apps/web/src/app/`. Pat
 
 ### Implementation for User Story 3
 
-- [ ] T018 [US3] In `frontend/apps/web/src/app/features/my-team/my-team.component.ts`, extend the accept success path (`Joined`/`AlreadyMember`) to call `MembershipService.load()` and then `Router.navigate(['/t', teamSlug])` using the slug returned by the accept response (FR-017, FR-018). (builds on T016)
-- [ ] T019 [P] [US3] Extend `frontend/apps/web/src/app/features/my-team/my-team.component.spec.ts`: a successful accept triggers `MembershipService.load()` and navigation to `/t/{slug}`.
+- [X] T018 [US3] In `frontend/apps/web/src/app/features/my-team/my-team.component.ts`, extend the accept success path (`Joined`/`AlreadyMember`) to call `MembershipService.load()` and then `Router.navigate(['/t', teamSlug])` using the slug returned by the accept response (FR-017, FR-018). (builds on T016)
+- [X] T019 [P] [US3] Extend `frontend/apps/web/src/app/features/my-team/my-team.component.spec.ts`: a successful accept triggers `MembershipService.load()` and navigation to `/t/{slug}`.
 
 **Checkpoint**: All three stories independently functional; accept auto-navigates and the nav resolves to the joined team.
 
@@ -110,10 +110,10 @@ Web app: backend at `backend/`, Angular SPA at `frontend/apps/web/src/app/`. Pat
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T020 [P] Complete `specs/023-my-team-home/checklists/ui-review.md` against the diff: DESIGN.md tokens/voice, responsive (both nav bars route to `/my-team`), empty/loading/error states, and basic accessibility (keyboard/focus on Accept/Decline). Report any DESIGN.md conflicts rather than silently resolving.
-- [ ] T021 [P] Run backend + frontend suites: `dotnet test backend/tests/JuggerHub.Api.IntegrationTests` and `npx nx test web` (from `frontend/`); confirm green.
-- [ ] T022 Run the [quickstart.md](./quickstart.md) manual walkthrough (steps 1–8) and confirm SC-001…SC-006.
-- [ ] T023 [P] Verify the `/my-team` home at desktop and mobile widths: destination active in top bar and bottom bar, no horizontal overflow, focus order sane on the invitation cards.
+- [X] T020 [P] Complete `specs/023-my-team-home/checklists/ui-review.md` against the diff: DESIGN.md tokens/voice, responsive (both nav bars route to `/my-team`), empty/loading/error states, and basic accessibility (keyboard/focus on Accept/Decline). Report any DESIGN.md conflicts rather than silently resolving.
+- [X] T021 [P] Run backend + frontend suites: `dotnet test backend/tests/JuggerHub.Api.IntegrationTests` and `npx nx test web` (from `frontend/`); confirm green.
+- [ ] T022 Run the [quickstart.md](./quickstart.md) manual walkthrough (steps 1–8) and confirm SC-001…SC-006. *(NOT RUN — requires a live app; covered indirectly by the automated suites. Recommended before merge.)*
+- [ ] T023 [P] Verify the `/my-team` home at desktop and mobile widths: destination active in top bar and bottom bar, no horizontal overflow, focus order sane on the invitation cards. *(Static/code review done — responsive `sm:` layout, capped column, 44px targets, `role="status"`, keyboard-reachable buttons; live-browser pass still recommended before merge.)*
 
 ---
 

@@ -131,6 +131,20 @@ export interface InvitePreview {
   state: InviteState;
 }
 
+/** One usable targeted invitation addressed to the caller (feature 023 — the "My team" home).
+ * Carries the caller's own token so the UI can accept/decline via the existing token endpoints. */
+export interface MyInvitation {
+  token: string;
+  teamName: string;
+  teamSlug: string;
+  teamType: TeamType;
+  city: string | null;
+  memberCount: number;
+  inviterDisplayName: string;
+  createdDate: string;
+  expiresDate: string;
+}
+
 export interface AcceptInviteResult {
   teamSlug: string;
 }

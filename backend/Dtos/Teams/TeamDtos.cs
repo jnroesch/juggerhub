@@ -159,6 +159,21 @@ public sealed record InvitePreviewDto(
     string InviterDisplayName,
     InviteState State);
 
+/// <summary>One usable (pending + unexpired) targeted invitation addressed to the caller
+/// (feature 023 — the "My team" home). Carries the caller's own <see cref="Token"/> so the UI
+/// can accept/decline via the existing token endpoints; safe because the list is scoped
+/// server-side to the caller, who already holds this token from the invitation email.</summary>
+public sealed record MyInvitationDto(
+    string Token,
+    string TeamName,
+    string TeamSlug,
+    TeamType TeamType,
+    string? City,
+    int MemberCount,
+    string InviterDisplayName,
+    DateTime CreatedDate,
+    DateTime ExpiresDate);
+
 /// <summary>Result of accepting an invite (where to land).</summary>
 public sealed record AcceptInviteResultDto(string TeamSlug);
 

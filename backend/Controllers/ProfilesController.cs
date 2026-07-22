@@ -5,10 +5,12 @@ using JuggerHub.Common;
 using JuggerHub.Dtos.Home;
 using JuggerHub.Dtos.Profile;
 using JuggerHub.Dtos.Search;
+using JuggerHub.Dtos.Teams;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Home;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Search;
+using JuggerHub.Services.Teams;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -30,14 +32,17 @@ public sealed class ProfilesController : ControllerBase
     private readonly IEventActivityService _activity;
     private readonly IPlayerSearchService _search;
     private readonly IHomeService _home;
+    private readonly ITeamInvitationService _invitations;
 
     public ProfilesController(
-        IProfileService profiles, IEventActivityService activity, IPlayerSearchService search, IHomeService home)
+        IProfileService profiles, IEventActivityService activity, IPlayerSearchService search, IHomeService home,
+        ITeamInvitationService invitations)
     {
         _profiles = profiles;
         _activity = activity;
         _search = search;
         _home = home;
+        _invitations = invitations;
     }
 
     // --- Browse (public) ------------------------------------------------------
@@ -121,6 +126,22 @@ public sealed class ProfilesController : ControllerBase
         }
 
         return Ok(await _home.ListMyTeamsAsync(userId, pagination, ct));
+    }
+
+    /// <summary>The caller's usable targeted invitations — powers the "My team" home for teamless
+    /// players (feature 023). Owner-only: acts on the authenticated subject alone; a player can only
+    /// see invitations addressed to them. Paginated.</summary>
+    [HttpGet("me/invitations")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<ActionResult<PagedResult<MyInvitationDto>>> GetMyInvitations(
+        [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return Ok(await _invitations.ListMineAsync(userId, pagination, ct));
     }
 
     [HttpPost("me/onboarding/complete")]
