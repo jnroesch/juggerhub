@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-2xl px-md py-lg lg:max-w-5xl" data-testid="event-detail">
   @if (loading()) {
-    <p class="text-body-md text-subtle">Loading…</p>
+    <jh-loading />
   } @else if (loadError()) {
     <div class="rounded-lg border border-border bg-surface-card px-md py-lg text-center">
       <p class="text-heading-sm font-bold text-ink">Event not found</p>

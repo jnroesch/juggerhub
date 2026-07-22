@@ -5,7 +5,7 @@
       <input type="text" [ngModel]="body()" (ngModelChange)="body.set($event)" placeholder="Post an update…" data-testid="news-input"
         class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
       <button type="button" (click)="submit()" [disabled]="posting() || !body().trim()" data-testid="news-post"
-        class="rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Post</button>
+        jhButton size="sm">Post</button>
     </div>
   }
   @if (news().length === 0) {

@@ -2,7 +2,7 @@
   <button type="button" (click)="cancel()" class="text-body-sm font-medium text-link hover:text-link-hover">‹ Cancel</button>
 
   @if (loading()) {
-    <p class="mt-lg text-body-sm text-muted">Loading…</p>
+    <jh-loading />
   } @else if (notFound()) {
     <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center">
       <h1 class="text-body-lg font-semibold text-heading">Session not found</h1>
@@ -66,7 +66,7 @@
         <p class="mt-sm rounded-md bg-surface-sunken p-sm text-caption text-muted">Only this date changes. It won't follow future edits to the series.</p>
       }
       @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
-      <button type="button" (click)="saveSingle()" [disabled]="busy() || !canEdit()" class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-50">
+      <button type="button" (click)="saveSingle()" [disabled]="busy() || !canEdit()" jhButton class="mt-lg w-full">
         {{ busy() ? 'Saving…' : 'Save this session' }}
       </button>
     }
@@ -117,7 +117,7 @@
       </label>
       <p class="mt-sm rounded-md bg-surface-sunken p-sm text-caption text-muted">Responders are notified of the change. Changing the day, interval or end date regenerates upcoming dates.</p>
       @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
-      <button type="button" (click)="saveSeries()" [disabled]="busy()" class="mt-lg w-full rounded-md bg-brand px-lg py-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-50">
+      <button type="button" (click)="saveSeries()" [disabled]="busy()" jhButton class="mt-lg w-full">
         {{ busy() ? 'Saving…' : 'Save to all upcoming' }}
       </button>
     }

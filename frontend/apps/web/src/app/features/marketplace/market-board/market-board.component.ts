@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { MarketService } from '../../../core/services/market.service';
 import {
@@ -25,7 +26,7 @@ type BoardAction =
  */
 @Component({
   selector: 'jh-market-board',
-  imports: [RouterLink],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
   templateUrl: './market-board.component.html',
   styleUrl: './market-board.component.css',
 })

@@ -10,7 +10,7 @@
     } @else {
       <p class="mt-xs text-body-sm text-subtle">No active link yet.</p>
     }
-    <button type="button" (click)="rotateLink()" class="mt-xs rounded-md border border-border-strong px-sm py-xs text-caption font-semibold text-muted transition-colors hover:bg-surface-sunken">
+    <button type="button" (click)="rotateLink()" jhButton variant="secondary" size="sm" class="mt-xs">
       {{ link() ? 'Regenerate link' : 'Create link' }}
     </button>
   </section>
@@ -24,7 +24,7 @@
         <li class="flex items-center justify-between py-sm">
           <span class="text-body-sm text-body">{{ u.displayName }} <span class="text-subtle">@{{ u.handle }}</span></span>
           @if (u.relation === 'Invitable') {
-            <button type="button" (click)="invite(u)" class="rounded-md bg-brand px-sm py-xs text-caption font-semibold text-on-accent transition-all hover:bg-brand-hover">Invite</button>
+            <button type="button" (click)="invite(u)" jhButton size="sm">Invite</button>
           } @else {
             <span class="text-caption text-subtle">{{ u.relation === 'Invited' ? 'Invited' : 'Admin' }}</span>
           }
@@ -34,15 +34,15 @@
   </section>
 
   <section class="mt-md">
-    <p class="text-eyebrow uppercase text-muted">Pending invitations</p>
+    <p class="text-eyebrow uppercase text-muted">Pending invites</p>
     <ul class="mt-xs divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card shadow-sm">
       @for (i of pending(); track i.id) {
         <li class="flex items-center justify-between px-md py-sm">
           <span class="text-body-sm text-body">{{ i.targetDisplayName ?? 'Shared link' }}</span>
-          <button type="button" (click)="revoke(i.id)" class="rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger transition-colors hover:bg-danger-bg">Revoke</button>
+          <button type="button" (click)="revoke(i.id)" jhButton variant="danger" size="sm">Revoke</button>
         </li>
       } @empty {
-        <li class="px-md py-lg text-center text-body-sm text-subtle">No pending invitations.</li>
+        <li class="px-md py-lg text-center text-body-sm text-subtle">No pending invites.</li>
       }
     </ul>
   </section>

@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { ButtonDirective } from '../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
@@ -12,7 +13,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-training-create',
-  imports: [FormsModule],
+  imports: [FormsModule, ButtonDirective],
   templateUrl: './training-create.component.html',
   styleUrl: './training-create.component.css',
 })

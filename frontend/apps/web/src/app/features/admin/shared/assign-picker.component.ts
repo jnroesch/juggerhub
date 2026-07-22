@@ -1,4 +1,5 @@
 import { Component, HostListener, computed, inject, input, output, signal } from '@angular/core';
+import { ButtonDirective } from '../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import {
   AdminSubjectAwards,
@@ -19,7 +20,7 @@ type Tab = 'badge' | 'achievement';
  */
 @Component({
   selector: 'jh-assign-picker',
-  imports: [FormsModule],
+  imports: [FormsModule, ButtonDirective],
   templateUrl: './assign-picker.component.html',
   styleUrl: './assign-picker.component.css',
 })

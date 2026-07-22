@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ButtonDirective } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { MarketService } from '../../../core/services/market.service';
 import { MyListing, MyMarketRequest } from '../../../core/models/market.models';
@@ -12,7 +13,7 @@ import { pompfeLabel } from '../../../shared/pompfen.catalog';
  */
 @Component({
   selector: 'jh-market-card',
-  imports: [RouterLink],
+  imports: [RouterLink, ButtonDirective],
   templateUrl: './market-card.component.html',
   styleUrl: './market-card.component.css',
 })

@@ -1,7 +1,7 @@
 <main class="flex min-h-screen items-center justify-center bg-surface-sunken px-md py-lg">
   <div class="w-full max-w-sm rounded-lg border border-border bg-surface-card px-lg py-lg text-center shadow-sm" data-testid="event-invite-accept">
     @if (loading()) {
-      <p class="text-body-md text-subtle">Loading…</p>
+      <jh-loading />
     } @else if (notFound() || !preview()) {
       <p class="text-heading-sm font-bold text-ink">Invite not found</p>
       <p class="mt-xs text-body-sm text-subtle">This invite link isn't valid.</p>
@@ -15,7 +15,7 @@
         @case ('Usable') {
           <div class="mt-lg space-y-xs">
             <button type="button" (click)="accept()" [disabled]="acting()" data-testid="invite-accept"
-              class="w-full rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Accept &amp; help run it</button>
+              jhButton class="w-full">Accept &amp; help run it</button>
             <button type="button" (click)="decline()" [disabled]="acting()" data-testid="invite-decline"
               class="w-full rounded-md px-lg py-sm text-body-sm font-semibold text-subtle hover:text-text disabled:opacity-50">Decline</button>
           </div>

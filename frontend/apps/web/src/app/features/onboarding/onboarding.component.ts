@@ -8,6 +8,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { safeReturnUrl } from '../../core/utils/return-url';
 import { PompfeSelectorComponent } from '../profile/components/pompfe-selector/pompfe-selector.component';
 import { Pompfe } from '../../shared/pompfen.catalog';
+import { ButtonDirective, AlertComponent } from '../../shared/ui';
 
 type Step = 'welcome' | 'name' | 'city' | 'pompfen' | 'team' | 'photo' | 'done';
 
@@ -25,7 +26,7 @@ const FLOW: readonly Step[] = ['welcome', 'name', 'city', 'pompfen', 'team', 'ph
  */
 @Component({
   selector: 'jh-onboarding',
-  imports: [FormsModule, NgTemplateOutlet, PompfeSelectorComponent],
+  imports: [FormsModule, NgTemplateOutlet, PompfeSelectorComponent, ButtonDirective, AlertComponent],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.css',
 })

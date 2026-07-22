@@ -3,7 +3,7 @@
   <h1 class="mt-sm text-heading-lg font-semibold text-heading">Attendance</h1>
 
   @if (loading()) {
-    <p class="mt-lg text-body-sm text-muted">Loading…</p>
+    <jh-loading />
   } @else {
     @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
     <ul class="mt-md divide-y divide-border-muted">

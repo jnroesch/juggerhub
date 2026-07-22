@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { ButtonDirective } from '../../../shared/ui';
 
 type VerifyState = 'verifying' | 'success' | 'failed';
 
@@ -11,7 +12,7 @@ type VerifyState = 'verifying' | 'success' | 'failed';
  */
 @Component({
   selector: 'jh-verify-email',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective],
   templateUrl: './verify-email.component.html',
   styleUrl: './verify-email.component.css',
 })

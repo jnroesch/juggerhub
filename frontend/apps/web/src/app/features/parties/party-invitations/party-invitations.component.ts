@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { ButtonDirective } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { PartyInvitableUser, PartyInvitation, PartyInviteLink } from '../../../core/models/party.models';
@@ -10,7 +11,7 @@ import { PartyService } from '../../../core/services/party.service';
  */
 @Component({
   selector: 'jh-party-invitations',
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, ButtonDirective],
   templateUrl: './party-invitations.component.html',
   styleUrl: './party-invitations.component.css',
 })

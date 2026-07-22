@@ -62,11 +62,11 @@
     }
 
     @if (error()) {
-      <p class="text-body-sm text-danger" role="alert" data-testid="team-create-error">{{ error() }}</p>
+      <jh-alert data-testid="team-create-error">{{ error() }}</jh-alert>
     }
 
     <button type="submit" [disabled]="form.invalid || submitting() || slugStatus()?.available === false" data-testid="team-create-submit"
-      class="w-full rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none">
+      jhButton class="w-full">
       {{ submitting() ? 'Creating…' : 'Create team' }}
     </button>
   </form>

@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ButtonDirective } from '../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { HomeService } from '../../core/services/home.service';
 import { Home } from '../../core/models/home.models';
@@ -16,7 +17,7 @@ import { relativeTime, shortDate } from '../../core/utils/format';
  */
 @Component({
   selector: 'jh-dashboard',
-  imports: [RouterLink, UpNextCardComponent, NewsListComponent, MarketCardComponent, YourTrainingsCardComponent],
+  imports: [RouterLink, UpNextCardComponent, NewsListComponent, MarketCardComponent, YourTrainingsCardComponent, ButtonDirective],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })

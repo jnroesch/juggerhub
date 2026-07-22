@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-lg px-md py-lg" data-testid="event-admins">
   @if (loading()) {
-    <p class="text-body-md text-subtle">Loading…</p>
+    <jh-loading />
   } @else if (forbidden()) {
     <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
       <p class="text-heading-sm font-bold text-ink">Not allowed</p>
@@ -11,7 +11,7 @@
     <h1 class="mt-md text-heading-lg font-bold text-ink">Co-admins</h1>
     <p class="text-body-sm text-subtle">Co-admins can edit, post news, and manage participants.</p>
 
-    @if (error()) { <p class="mt-sm text-body-sm text-danger" role="alert">{{ error() }}</p> }
+    @if (error()) { <jh-alert class="mt-sm">{{ error() }}</jh-alert> }
 
     <!-- Current admins -->
     <ul class="mt-md space-y-xs">
@@ -36,7 +36,7 @@
         <button type="button" (click)="rotateLink()" class="mt-xs text-body-sm font-semibold text-subtle hover:text-text">Regenerate link</button>
       } @else {
         <button type="button" (click)="rotateLink()" data-testid="create-link"
-          class="mt-xs rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover">Create an invite link</button>
+          jhButton size="sm" class="mt-xs">Create an invite link</button>
       }
     </section>
 
@@ -55,7 +55,7 @@
                 @case ('Invited') { <span class="text-body-sm text-faint">Invited</span> }
                 @default {
                   <button type="button" (click)="invite(u)" data-testid="admin-invite"
-                    class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent hover:bg-brand-hover">Invite</button>
+                    jhButton size="sm">Invite</button>
                 }
               }
             </li>
@@ -67,7 +67,7 @@
     <!-- Pending invitations -->
     @if (invitations().length > 0) {
       <section class="mt-lg">
-        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Pending invitations</h2>
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Pending invites</h2>
         <ul class="mt-xs space-y-xs">
           @for (i of invitations(); track i.id) {
             <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">

@@ -43,7 +43,7 @@
       </label>
 
       @if (error()) {
-        <p class="text-body-sm text-danger" data-testid="sign-in-error" role="alert">{{ error() }}</p>
+        <jh-alert data-testid="sign-in-error">{{ error() }}</jh-alert>
       }
 
       @if (needsVerification()) {
@@ -63,7 +63,7 @@
         type="submit"
         data-testid="sign-in-submit"
         [disabled]="form.invalid || submitting()"
-        class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
+        jhButton class="w-full"
       >
         {{ submitting() ? 'Signing in…' : 'Sign in' }}
       </button>

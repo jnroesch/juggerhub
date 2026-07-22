@@ -7,7 +7,7 @@
     }
 
     @if (!detail().viewer.isAuthenticated) {
-      <a routerLink="/sign-in" class="block rounded-md bg-brand px-lg py-md text-center text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral">Sign in to join</a>
+      <a routerLink="/sign-in" jhButton full>Sign in to join</a>
     } @else if (detail().viewer.mySignupStatus) {
       <div class="rounded-md bg-surface-sunken px-md py-sm text-center" data-testid="my-status">
         <p class="text-body-sm font-semibold text-body">{{ statusLabel() }}</p>
@@ -31,7 +31,7 @@
               <p class="mt-xs text-body-sm text-muted">Being filled — not on the event yet</p>
             }
             <a [routerLink]="['/parties', card.partyId]" data-testid="view-party"
-              class="mt-sm block w-full rounded-md bg-brand px-lg py-md text-center text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral">
+              jhButton full class="mt-sm">
               View party
             </a>
           </div>
@@ -50,11 +50,11 @@
         }
       } @else {
         <button type="button" (click)="emitJoin()" [disabled]="acting()" data-testid="join"
-          class="block w-full rounded-md bg-brand px-lg py-md text-center text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">
+          jhButton full>
           {{ detail().isFull ? 'Join the waiting list' : 'Join' }}
         </button>
       }
     }
-    @if (actionError()) { <p class="text-body-sm text-danger" role="alert">{{ actionError() }}</p> }
+    @if (actionError()) { <jh-alert>{{ actionError() }}</jh-alert> }
   }
 </div>

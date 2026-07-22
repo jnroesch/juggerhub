@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
+import { ButtonDirective } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { EventService } from '../../../core/services/event.service';
 import { Signup, SignupStatus } from '../../../core/models/event.models';
@@ -12,7 +13,7 @@ import { dayOfMonth, shortWeekday, timeHm } from '../../../core/utils/format';
  */
 @Component({
   selector: 'jh-up-next-card',
-  imports: [RouterLink],
+  imports: [RouterLink, ButtonDirective],
   templateUrl: './up-next-card.component.html',
   styleUrl: './up-next-card.component.css',
 })

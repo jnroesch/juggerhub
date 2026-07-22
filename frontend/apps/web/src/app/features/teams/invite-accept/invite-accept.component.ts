@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { InvitePreview } from '../../../core/models/team.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { MembershipService } from '../../../core/services/membership.service';
@@ -21,7 +22,7 @@ type PendingAction = 'accept' | 'decline';
  */
 @Component({
   selector: 'jh-invite-accept',
-  imports: [RouterLink],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
   templateUrl: './invite-accept.component.html',
   styleUrl: './invite-accept.component.css',
 })

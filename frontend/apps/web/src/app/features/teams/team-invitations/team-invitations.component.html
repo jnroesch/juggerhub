@@ -3,12 +3,12 @@
   <h1 class="mt-md text-heading-lg font-bold text-ink">Invite people</h1>
 
   @if (loading()) {
-    <p class="mt-md text-body-md text-subtle">Loading…</p>
+    <jh-loading />
   } @else if (denied()) {
-    <p class="mt-md text-body-md text-danger" data-testid="invitations-denied">Only admins can manage invitations.</p>
+    <jh-alert class="mt-md" data-testid="invitations-denied">Only admins can manage invites.</jh-alert>
   } @else {
     @if (error()) {
-      <p class="mt-md text-body-sm text-danger" role="alert">{{ error() }}</p>
+      <jh-alert class="mt-md">{{ error() }}</jh-alert>
     }
 
     <div class="lg:grid lg:grid-cols-3 lg:gap-xl">
@@ -28,7 +28,7 @@
             {{ copied() ? 'Copied!' : 'Copy link' }}
           </button>
           <button type="button" (click)="rotate()" data-testid="rotate-link"
-            class="rounded-md border border-border-strong px-md py-sm text-body-sm font-medium text-subtle hover:bg-surface-sunken">New link</button>
+            jhButton variant="secondary" size="sm">New link</button>
         </div>
         <p class="mt-xs rounded-md border border-dashed border-warning-border bg-warning-bg px-md py-xs text-body-sm text-warning-fg">
           {{ expiresIn(l.expiresDate) }} · anyone with it can accept and join as a player.
@@ -91,7 +91,7 @@
                 <p class="text-body-sm text-subtle">{{ expiresIn(i.expiresDate) }}</p>
               </div>
               <button type="button" (click)="revoke(i.id)" [attr.data-testid]="'revoke-' + i.id"
-                class="rounded-md border border-danger-border px-md py-xs text-body-sm font-medium text-danger hover:bg-danger-bg">Revoke</button>
+                jhButton variant="danger" size="sm">Revoke</button>
             </li>
           }
         </ul>

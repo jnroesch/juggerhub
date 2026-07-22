@@ -10,7 +10,7 @@
         (click)="message()"
         [disabled]="messaging()"
         data-testid="qa-message"
-        class="inline-flex items-center rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
+        jhButton
       >
         {{ messaging() ? 'Opening…' : 'Message' }}
       </button>
@@ -23,7 +23,7 @@
               type="button"
               disabled
               data-testid="qa-invite"
-              class="inline-flex items-center rounded-md bg-secondary px-md py-xs text-body-sm font-semibold text-on-accent opacity-50"
+              jhButton variant="secondary"
             >
               Invite to a team
             </button>
@@ -40,7 +40,7 @@
               [attr.aria-haspopup]="eligibleTeams().length > 1 ? 'menu' : null"
               [attr.aria-expanded]="eligibleTeams().length > 1 ? pickerOpen() : null"
               data-testid="qa-invite"
-              class="inline-flex items-center rounded-md bg-secondary px-md py-xs text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-secondary-hover hover:shadow-teal active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
+              jhButton variant="secondary"
             >
               {{ inviting() ? 'Inviting…' : 'Invite to a team' }}
             </button>
@@ -73,13 +73,13 @@
 
     <!-- Inline outcomes -->
     @if (messageError()) {
-      <p class="text-body-sm text-danger" role="alert" data-testid="qa-message-error">{{ messageError() }}</p>
+      <jh-alert data-testid="qa-message-error">{{ messageError() }}</jh-alert>
     }
     @if (invitedTo()) {
       <p class="text-body-sm text-success" data-testid="qa-invited">Invited to {{ invitedTo() }}.</p>
     }
     @if (inviteError()) {
-      <p class="text-body-sm text-danger" role="alert" data-testid="qa-invite-error">{{ inviteError() }}</p>
+      <jh-alert data-testid="qa-invite-error">{{ inviteError() }}</jh-alert>
     }
   </div>
 }

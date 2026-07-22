@@ -24,7 +24,7 @@
   <!-- Body -->
   <div class="min-h-0 flex-1 overflow-y-auto px-md py-lg">
     @if (resolving()) {
-      <p class="text-center text-body-sm text-muted">Loading…</p>
+      <jh-loading align="center" />
     } @else if (unavailable()) {
       <p class="mx-auto max-w-sm text-center text-body-sm text-muted" data-testid="compose-unavailable">
         You can't message this player right now.

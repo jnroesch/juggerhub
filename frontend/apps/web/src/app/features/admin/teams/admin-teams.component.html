@@ -22,7 +22,7 @@
 </div>
 
 @if (loading()) {
-  <p class="mt-md text-body-md text-muted">Finding teams…</p>
+  <jh-loading label="Finding teams…" />
 } @else if (error(); as message) {
   <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
     {{ message }}

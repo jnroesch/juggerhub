@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-2xl px-md py-lg lg:max-w-4xl" data-testid="event-manage">
   @if (loading()) {
-    <p class="text-body-md text-subtle">Loading…</p>
+    <jh-loading />
   } @else if (forbidden()) {
     <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
       <p class="text-heading-sm font-bold text-ink">Not allowed</p>
@@ -12,7 +12,7 @@
     <p class="text-body-sm text-subtle">{{ d.name }} · {{ d.occupiedSpots }}/{{ d.participationLimit }} spots occupied</p>
     <a [routerLink]="['/events', d.id, 'edit']" class="mt-xs inline-block text-body-sm font-semibold text-brand" data-testid="to-settings">Edit details &amp; cancel ›</a>
 
-    @if (error()) { <p class="mt-sm text-body-sm text-danger" role="alert">{{ error() }}</p> }
+    @if (error()) { <jh-alert class="mt-sm">{{ error() }}</jh-alert> }
 
     <!-- Participants -->
     <div class="mt-lg space-y-md lg:grid lg:grid-cols-2 lg:items-start lg:gap-xl lg:space-y-0">
@@ -25,7 +25,7 @@
               <span class="text-body-sm text-body">{{ label(p) }}</span>
               <span class="flex gap-xs">
                 <button type="button" (click)="approve(p.id)" [disabled]="acting()" data-testid="approve"
-                  class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Approve</button>
+                  jhButton size="sm">Approve</button>
                 <button type="button" (click)="remove(p.id)" [disabled]="acting()"
                   class="rounded-md px-md py-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Remove</button>
               </span>

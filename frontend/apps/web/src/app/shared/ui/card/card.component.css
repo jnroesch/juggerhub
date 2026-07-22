@@ -1,0 +1,22 @@
+:host {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-muted);
+  background-color: var(--surface-card);
+  padding: 24px; /* spacing-6 (DESIGN.md card padding) */
+  box-shadow: var(--shadow-sm);
+}
+
+/* Clickable cards lift 3px with a deeper shadow on hover (DESIGN.md). */
+:host(.jh-card--interactive) {
+  transition:
+    transform var(--duration-base) var(--ease-standard),
+    box-shadow var(--duration-base) var(--ease-standard);
+}
+
+:host(.jh-card--interactive:hover) {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}

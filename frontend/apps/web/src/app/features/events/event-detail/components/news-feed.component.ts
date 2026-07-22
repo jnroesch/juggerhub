@@ -1,12 +1,13 @@
 import { DatePipe } from '@angular/common';
 import { Component, input, output, signal } from '@angular/core';
+import { ButtonDirective } from '../../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { EventNews } from '../../../../core/models/event.models';
 
 /** The public news feed, with an admin-only inline composer. */
 @Component({
   selector: 'jh-event-news-feed',
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, ButtonDirective],
   templateUrl: './news-feed.component.html',
   styleUrl: './news-feed.component.css',
 })

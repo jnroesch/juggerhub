@@ -7,7 +7,7 @@
     type="button"
     (click)="openCreate()"
     data-testid="catalogue-new"
-    class="inline-flex h-11 items-center gap-xs rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent shadow-coral transition-colors duration-fast hover:bg-brand-hover"
+    jhButton
   >
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
     New type
@@ -53,7 +53,7 @@
 </div>
 
 @if (loading()) {
-  <p class="mt-md text-body-md text-muted">Loading the catalogue…</p>
+  <jh-loading label="Loading the catalogue…" />
 } @else if (error(); as message) {
   <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
     {{ message }}
@@ -114,12 +114,12 @@
               <span class="flex items-center justify-end gap-xs">
                 @if (d.isRetired) {
                   <button type="button" (click)="reinstate(d)" [disabled]="actionBusy()" data-testid="catalogue-reinstate"
-                    class="rounded-md border border-border-strong px-sm py-xs text-caption font-semibold text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40">Reinstate</button>
+                    jhButton variant="secondary" size="sm">Reinstate</button>
                 } @else {
                   <button type="button" (click)="openIcon(d)" data-testid="catalogue-icon"
-                    class="rounded-md border border-border-strong px-sm py-xs text-caption font-medium text-body transition-colors duration-fast hover:bg-surface-sunken">Icon</button>
+                    jhButton variant="secondary" size="sm">Icon</button>
                   <button type="button" (click)="openEdit(d)" data-testid="catalogue-edit"
-                    class="rounded-md border border-border-strong px-sm py-xs text-caption font-medium text-body transition-colors duration-fast hover:bg-surface-sunken">Edit</button>
+                    jhButton variant="secondary" size="sm">Edit</button>
                   <button type="button" (click)="askRetire(d)" data-testid="catalogue-retire"
                     class="rounded-md border border-warning-border px-sm py-xs text-caption font-semibold text-warning-fg transition-colors duration-fast hover:bg-warning-bg">Retire</button>
                 }
@@ -163,12 +163,12 @@
         <div class="mt-sm flex flex-wrap justify-end gap-xs">
           @if (d.isRetired) {
             <button type="button" (click)="reinstate(d)" [disabled]="actionBusy()" data-testid="catalogue-reinstate"
-              class="rounded-md border border-border-strong px-sm py-xs text-caption font-semibold text-body enabled:hover:bg-surface-sunken disabled:opacity-40">Reinstate</button>
+              jhButton variant="secondary" size="sm">Reinstate</button>
           } @else {
             <button type="button" (click)="openIcon(d)" data-testid="catalogue-icon"
-              class="rounded-md border border-border-strong px-sm py-xs text-caption font-medium text-body hover:bg-surface-sunken">Icon</button>
+              jhButton variant="secondary" size="sm">Icon</button>
             <button type="button" (click)="openEdit(d)" data-testid="catalogue-edit"
-              class="rounded-md border border-border-strong px-sm py-xs text-caption font-medium text-body hover:bg-surface-sunken">Edit</button>
+              jhButton variant="secondary" size="sm">Edit</button>
             <button type="button" (click)="askRetire(d)" data-testid="catalogue-retire"
               class="rounded-md border border-warning-border px-sm py-xs text-caption font-semibold text-warning-fg hover:bg-warning-bg">Retire</button>
           }
@@ -250,9 +250,9 @@
       </div>
 
       <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
-        <button type="button" (click)="closeForm()" class="rounded-md border border-border-strong px-md py-xs text-body-sm font-medium text-body hover:bg-surface-sunken">Cancel</button>
+        <button type="button" (click)="closeForm()" jhButton variant="secondary" size="sm">Cancel</button>
         <button type="button" (click)="save()" [disabled]="!formValid() || saving()" data-testid="catalogue-form-save"
-          class="rounded-md bg-brand px-lg py-xs text-body-sm font-semibold text-on-accent shadow-coral hover:bg-brand-hover disabled:opacity-50">
+          jhButton size="sm">
           {{ saving() ? 'Saving…' : editing() ? 'Save changes' : 'Create type' }}
         </button>
       </div>
@@ -319,12 +319,12 @@
       <div class="flex items-center justify-between gap-sm border-t border-border-muted px-md py-sm">
         @if (iconTarget()?.hasIcon) {
           <button type="button" (click)="removeIcon()" [disabled]="iconBusy()" data-testid="catalogue-icon-remove"
-            class="rounded-md border border-danger-border px-md py-xs text-body-sm font-medium text-danger-fg hover:bg-danger-bg disabled:opacity-50">Remove</button>
+            jhButton variant="danger" size="sm">Remove</button>
         } @else { <span></span> }
         <span class="flex items-center gap-sm">
-          <button type="button" (click)="closeIcon()" class="rounded-md border border-border-strong px-md py-xs text-body-sm font-medium text-body hover:bg-surface-sunken">Cancel</button>
+          <button type="button" (click)="closeIcon()" jhButton variant="secondary" size="sm">Cancel</button>
           <button type="button" (click)="saveIcon()" [disabled]="!iconFile() || iconBusy()" data-testid="catalogue-icon-save"
-            class="rounded-md bg-brand px-lg py-xs text-body-sm font-semibold text-on-accent shadow-coral hover:bg-brand-hover disabled:opacity-50">
+            jhButton size="sm">
             {{ iconBusy() ? 'Saving…' : 'Use this image' }}
           </button>
         </span>
@@ -350,7 +350,7 @@
         </ul>
       </div>
       <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
-        <button type="button" (click)="cancelRetire()" class="rounded-md border border-border-strong px-md py-xs text-body-sm font-medium text-body hover:bg-surface-sunken">Cancel</button>
+        <button type="button" (click)="cancelRetire()" jhButton variant="secondary" size="sm">Cancel</button>
         <button type="button" (click)="confirmRetire()" [disabled]="actionBusy()" data-testid="catalogue-retire-confirm"
           class="rounded-md border border-warning-border bg-warning-bg px-lg py-xs text-body-sm font-semibold text-warning-fg hover:opacity-90 disabled:opacity-50">
           {{ actionBusy() ? 'Retiring…' : 'Retire type' }}

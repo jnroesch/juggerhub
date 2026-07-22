@@ -5,7 +5,7 @@
 </nav>
 
 @if (loading()) {
-  <p class="mt-md text-body-md text-muted">Loading team…</p>
+  <jh-loading label="Loading team…" />
 } @else if (notFound()) {
   <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm" data-testid="admin-team-not-found">
     <p class="text-body-md text-body">No team matches that slug.</p>
@@ -40,7 +40,7 @@
         type="button"
         (click)="openAssign()"
         data-testid="assign"
-        class="inline-flex h-11 items-center gap-xs rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent shadow-coral transition-colors duration-fast hover:bg-brand-hover"
+        jhButton
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
         Assign
@@ -63,7 +63,7 @@
                     @if (a.note) { <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span> }
                   </span>
                   <button type="button" (click)="revoke(a, 'badge')"
-                    class="shrink-0 rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger-fg hover:bg-danger-bg">Revoke</button>
+                    jhButton variant="danger" size="sm" class="shrink-0">Revoke</button>
                 </li>
               }
             </ul>
@@ -88,7 +88,7 @@
                     }
                   </span>
                   <button type="button" (click)="revoke(a, 'achievement')"
-                    class="shrink-0 rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger-fg hover:bg-danger-bg">Revoke</button>
+                    jhButton variant="danger" size="sm" class="shrink-0">Revoke</button>
                 </li>
               }
             </ul>

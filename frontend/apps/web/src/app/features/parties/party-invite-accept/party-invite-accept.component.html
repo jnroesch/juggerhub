@@ -1,9 +1,9 @@
 <main class="mx-auto flex min-h-screen max-w-container-sm flex-col justify-center gap-lg p-md">
   @if (loading()) {
-    <p class="text-center text-body-sm text-subtle">Loading invitation…</p>
+    <jh-loading label="Loading invite…" align="center" />
   } @else if (notFound()) {
     <div class="rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm">
-      <h1 class="text-body-lg font-semibold text-heading">Invitation not found</h1>
+      <h1 class="text-body-lg font-semibold text-heading">Invite not found</h1>
       <p class="mt-xs text-body-sm text-subtle">This invite link isn't valid.</p>
     </div>
   } @else if (preview(); as p) {
@@ -15,16 +15,16 @@
       @if (p.state === 'Usable') {
         <p class="mt-md text-body-sm text-body">Accept to help run this party — manage the roster, post news, and apply to the event.</p>
         @if (error()) {
-          <p class="mt-sm text-body-sm text-danger">{{ error() }}</p>
+          <jh-alert class="mt-sm">{{ error() }}</jh-alert>
         }
         <div class="mt-lg flex gap-sm">
           <button type="button" (click)="accept()" [disabled]="acting()"
-            class="flex-1 rounded-md bg-brand px-lg py-md text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">I'm in</button>
+            jhButton class="flex-1">I'm in</button>
           <button type="button" (click)="decline()" [disabled]="acting()"
-            class="flex-1 rounded-md border border-border-strong px-lg py-md text-body-sm font-semibold text-body transition-colors duration-fast hover:bg-surface-sunken disabled:opacity-50">Decline</button>
+            jhButton variant="secondary" class="flex-1">Decline</button>
         </div>
       } @else {
-        <p class="mt-md text-body-sm text-danger">This invitation has expired or is no longer valid.</p>
+        <jh-alert class="mt-md">This invite has expired or is no longer valid.</jh-alert>
       }
     </div>
   }

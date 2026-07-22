@@ -1,5 +1,6 @@
 import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { ButtonDirective, LoadingComponent } from '../../shared/ui';
 import { MembershipService } from '../../core/services/membership.service';
 import { InvitationService } from '../../core/services/invitation.service';
 import { TeamService } from '../../core/services/team.service';
@@ -14,7 +15,7 @@ import { MyInvitation } from '../../core/models/team.models';
  */
 @Component({
   selector: 'jh-my-team',
-  imports: [RouterLink],
+  imports: [RouterLink, ButtonDirective, LoadingComponent],
   templateUrl: './my-team.component.html',
   styleUrl: './my-team.component.css',
 })

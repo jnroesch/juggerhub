@@ -1,6 +1,6 @@
 <div class="mx-auto max-w-2xl px-md py-lg">
   @if (loading()) {
-    <p class="text-body-sm text-muted">Loading…</p>
+    <jh-loading />
   } @else if (notFound()) {
     <div class="rounded-lg border border-border-muted bg-surface-card p-lg text-center">
       <h1 class="text-body-lg font-semibold text-heading">Session not found</h1>
@@ -150,7 +150,7 @@
               <button type="button" (click)="skip()" [disabled]="busy()" class="rounded-md border border-border-strong bg-surface px-md py-xs text-left text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">Skip this date</button>
             }
             @if (canRespond()) {
-              <button type="button" (click)="cancel()" [disabled]="busy()" class="rounded-md border border-danger-border bg-surface px-md py-xs text-left text-body-sm font-medium text-danger-fg hover:bg-danger-bg transition-all duration-fast active:translate-y-px">Cancel this session</button>
+              <button type="button" (click)="cancel()" [disabled]="busy()" jhButton variant="danger" size="sm">Cancel this session</button>
             }
           </div>
         }

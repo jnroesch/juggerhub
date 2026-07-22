@@ -8,16 +8,16 @@
       <textarea [(ngModel)]="body" name="body" rows="2" maxlength="1000"
         placeholder="Meet 07:00 at the Aral on the A3…"
         class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
-      @if (error()) { <p class="mt-xs text-body-sm text-danger">{{ error() }}</p> }
+      @if (error()) { <jh-alert class="mt-xs">{{ error() }}</jh-alert> }
       <div class="mt-sm text-right">
         <button type="submit" [disabled]="posting()"
-          class="rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">Post update</button>
+          jhButton size="sm">Post update</button>
       </div>
     </form>
   }
 
   @if (loading()) {
-    <p class="mt-lg text-body-sm text-subtle">Loading…</p>
+    <jh-loading />
   } @else {
     <ul class="mt-md space-y-sm">
       @for (n of posts(); track n.id) {

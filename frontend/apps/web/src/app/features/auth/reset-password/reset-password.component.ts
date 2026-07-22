@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { passwordsMatch } from '../../../core/utils/passwords-match.validator';
 import { problemDetail } from '../../../core/utils/problem';
 import { PasswordRulesComponent } from '../password-policy/password-rules.component';
+import { ButtonDirective, AlertComponent } from '../../../shared/ui';
 
 /**
  * US3 — set a new password from the emailed reset link (userId + token in the
@@ -14,7 +15,7 @@ import { PasswordRulesComponent } from '../password-policy/password-rules.compon
  */
 @Component({
   selector: 'jh-reset-password',
-  imports: [ReactiveFormsModule, RouterLink, PasswordRulesComponent],
+  imports: [ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.css',
 })

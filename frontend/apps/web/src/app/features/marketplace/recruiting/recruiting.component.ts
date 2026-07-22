@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { MarketService } from '../../../core/services/market.service';
 import {
@@ -18,7 +19,7 @@ import { relativeTime } from '../../../core/utils/format';
  */
 @Component({
   selector: 'jh-recruiting',
-  imports: [RouterLink],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
   templateUrl: './recruiting.component.html',
   styleUrl: './recruiting.component.css',
 })

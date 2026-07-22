@@ -13,7 +13,7 @@
       <a
         routerLink="/sign-in"
         [queryParams]="signInParams"
-        class="mt-lg inline-block rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        jhButton class="mt-lg"
       >
         Back to sign in
       </a>
@@ -92,14 +92,14 @@
         </div>
 
         @if (error()) {
-          <p class="text-body-sm text-danger" data-testid="register-error" role="alert">{{ error() }}</p>
+          <jh-alert data-testid="register-error">{{ error() }}</jh-alert>
         }
 
         <button
           type="submit"
           data-testid="register-submit"
           [disabled]="!canSubmit"
-          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
+          jhButton class="w-full"
         >
           {{ submitting() ? 'Creating account…' : 'Create account' }}
         </button>
