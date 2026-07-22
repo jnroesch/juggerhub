@@ -34,9 +34,9 @@
       <!-- Join action (state-aware) -->
       <div class="shrink-0">
         @if (isAnon()) {
-          <a routerLink="/sign-in" class="inline-flex min-h-[44px] items-center rounded-md bg-brand px-lg py-xs font-semibold text-on-accent hover:bg-brand-hover hover:shadow-coral" data-testid="signin-to-join">Sign in to join</a>
+          <a routerLink="/sign-in" jhButton data-testid="signin-to-join">Sign in to join</a>
         } @else if (canRequest()) {
-          <button type="button" class="inline-flex min-h-[44px] items-center rounded-md bg-brand px-lg py-xs font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px disabled:opacity-60" [disabled]="requestBusy()" data-testid="request-to-join" (click)="requestToJoin()">Request to join</button>
+          <button type="button" jhButton [disabled]="requestBusy()" data-testid="request-to-join" (click)="requestToJoin()">Request to join</button>
         } @else if (requested()) {
           <span class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted" data-testid="requested">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
@@ -64,7 +64,7 @@
               </div>
               @if (card.message) { <p class="mt-xs text-body-sm text-body">“{{ card.message }}”</p> }
               @if (card.myState === 'Admin' || card.status === 'Applied') {
-                <a [routerLink]="['/parties', card.partyId]" class="mt-sm inline-block rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent">Manage party</a>
+                <a [routerLink]="['/parties', card.partyId]" jhButton size="sm" class="mt-sm">Manage party</a>
               } @else if (card.myState === 'In') {
                 <p class="mt-sm text-body-sm font-semibold text-body">You're in ✓ — <a [routerLink]="['/parties', card.partyId]" class="text-brand">open party</a></p>
               } @else if (card.isFull) {
@@ -72,9 +72,9 @@
               } @else {
                 <div class="mt-sm flex gap-sm">
                   <button type="button" (click)="answerParty(card, true)" [disabled]="partyBusy()"
-                    class="rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent disabled:opacity-50">I'm in</button>
+                    jhButton size="sm">I'm in</button>
                   <button type="button" (click)="answerParty(card, false)" [disabled]="partyBusy()"
-                    class="rounded-md border border-border-strong px-md py-sm text-body-sm font-semibold text-body disabled:opacity-50">Can't make it</button>
+                    jhButton variant="secondary" size="sm">Can't make it</button>
                 </div>
                 @if (card.myState === 'Declined') { <p class="mt-xs text-caption text-subtle">You declined — you can still hop in while there's room.</p> }
               }
@@ -88,7 +88,7 @@
               @for (req of joinRequests(); track req.id) {
                 <li class="flex items-center gap-sm rounded-md bg-surface-card px-sm py-xs">
                   <a [routerLink]="['/u', req.handle]" class="min-w-0 flex-1 truncate font-medium text-heading hover:text-link">{{ req.displayName }}</a>
-                  <button type="button" class="rounded-md bg-brand px-md py-1 text-caption font-semibold text-on-accent hover:bg-brand-hover" data-testid="approve" (click)="approve(req)">Approve</button>
+                  <button type="button" jhButton size="sm" data-testid="approve" (click)="approve(req)">Approve</button>
                   <button type="button" class="rounded-md px-md py-1 text-caption font-medium text-subtle hover:bg-surface-sunken" (click)="decline(req)">Decline</button>
                 </li>
               }
@@ -186,7 +186,7 @@
                     type="button"
                     (click)="postNews(newsBody)"
                     [disabled]="postingNews()"
-                    class="rounded-pill bg-brand px-lg py-xs text-body-sm font-semibold text-white transition-colors duration-fast hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60"
+                    jhButton size="sm"
                     data-testid="post-news"
                   >
                     {{ postingNews() ? 'Posting…' : 'Post news' }}
@@ -218,7 +218,7 @@
           <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="trainings">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">Trainings</h2>
             <p class="text-body-sm text-muted">Recurring sessions your team can respond to.</p>
-            <a [routerLink]="['/t', slug(), 'trainings']" class="mt-sm inline-block rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken">View trainings</a>
+            <a [routerLink]="['/t', slug(), 'trainings']" jhButton variant="secondary" size="sm" class="mt-sm">View trainings</a>
           </section>
         }
 
@@ -226,8 +226,8 @@
           <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">Team tools</h2>
             <div class="flex flex-col gap-xs">
-              <a [routerLink]="['/t', slug(), 'invitations']" class="rounded-md border border-border-strong bg-surface px-md py-xs text-center text-body-sm font-medium text-text hover:bg-surface-sunken">Invitations</a>
-              <a [routerLink]="['/t', slug(), 'settings']" class="rounded-md border border-border-strong bg-surface px-md py-xs text-center text-body-sm font-medium text-text hover:bg-surface-sunken">Settings</a>
+              <a [routerLink]="['/t', slug(), 'invitations']" jhButton variant="secondary" size="sm">Invites</a>
+              <a [routerLink]="['/t', slug(), 'settings']" jhButton variant="secondary" size="sm">Settings</a>
             </div>
           </section>
         }

@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime } from 'rxjs';
@@ -19,7 +20,7 @@ const PAGE_SIZE = 20;
  */
 @Component({
   selector: 'jh-admin-users',
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, LoadingComponent],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.css',
 })

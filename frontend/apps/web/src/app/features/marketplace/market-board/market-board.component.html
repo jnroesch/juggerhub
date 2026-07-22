@@ -26,8 +26,8 @@
             <div class="mt-xs flex items-center justify-between gap-sm">
               <p class="text-body-sm text-body"><span class="font-semibold">{{ inv.teamName }}</span> wants you in @if (inv.positions.length) { <span class="text-subtle">at {{ label(inv.positions[0])?.en }}</span> }</p>
               <div class="flex gap-xs">
-                <button type="button" (click)="accept(inv.id)" class="rounded-md bg-brand px-sm py-1 text-body-sm font-semibold text-on-accent hover:bg-brand-hover">Accept</button>
-                <button type="button" (click)="decline(inv.id)" class="rounded-md border border-border-strong px-sm py-1 text-body-sm font-semibold text-body hover:bg-surface-sunken">Decline</button>
+                <button type="button" (click)="accept(inv.id)" jhButton size="sm">Accept</button>
+                <button type="button" (click)="decline(inv.id)" jhButton variant="secondary" size="sm">Decline</button>
               </div>
             </div>
           }
@@ -61,9 +61,9 @@
 
   <!-- Two-sided board: recruiting parties + free agents, side by side (like "Who's taking part") -->
   @if (loading()) {
-    <p class="mt-md text-body-sm text-subtle">Loading the market…</p>
+    <jh-loading label="Loading the market…" />
   } @else if (loadError()) {
-    <p class="mt-md text-body-sm text-danger">Couldn't load the market. Try again shortly.</p>
+    <jh-alert class="mt-md">Couldn't load the market. Try again shortly.</jh-alert>
   } @else {
     <div class="mt-md grid grid-cols-1 gap-md md:grid-cols-2">
       <!-- Parties recruiting -->
@@ -86,7 +86,7 @@
                       <div class="shrink-0">
                         @if (inviteFor(party); as inv) {
                           <div class="flex gap-xs">
-                            <button type="button" (click)="accept(inv.id)" class="rounded-md bg-brand px-sm py-1 text-body-sm font-semibold text-on-accent hover:bg-brand-hover">Accept</button>
+                            <button type="button" (click)="accept(inv.id)" jhButton size="sm">Accept</button>
                             <button type="button" (click)="decline(inv.id)" aria-label="Decline invite" title="Decline"
                               class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-subtle hover:bg-surface-sunken hover:text-body">
                               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
@@ -190,12 +190,12 @@
             placeholder="Quick feet, 3 yrs in. Happy to run or Q-Tip. Will travel."></textarea>
         }
 
-        @if (actionError()) { <p class="mt-sm text-body-sm text-danger" data-testid="modal-error">{{ actionError() }}</p> }
+        @if (actionError()) { <jh-alert class="mt-sm" data-testid="modal-error">{{ actionError() }}</jh-alert> }
 
         <div class="mt-md flex justify-end gap-sm">
-          <button type="button" (click)="closeAction()" class="rounded-md border border-border-strong px-md py-sm text-body-sm font-semibold text-body hover:bg-surface-sunken">Cancel</button>
+          <button type="button" (click)="closeAction()" jhButton variant="secondary" size="sm">Cancel</button>
           <button type="button" (click)="submit()" [disabled]="acting() || (a.kind === 'post' && !postValid())"
-            class="rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">
+            jhButton size="sm">
             @switch (a.kind) { @case ('apply') { Send application } @case ('invite') { Send invite } @case ('post') { {{ a.editing ? 'Save' : 'Post to the market' }} } }
           </button>
         </div>

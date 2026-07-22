@@ -2,14 +2,14 @@
   <a [routerLink]="['/parties', id]" class="text-body-sm text-subtle hover:text-body">‹ Back to party</a>
 
   @if (loading()) {
-    <p class="mt-md text-body-sm text-subtle">Loading…</p>
+    <jh-loading />
   } @else if (forbidden()) {
     <div class="mt-md rounded-lg border border-border bg-surface-card px-md py-lg text-center">
       <p class="text-body-md font-bold text-ink">Party admins only</p>
       <p class="mt-xs text-body-sm text-subtle">Only a party admin can manage recruiting.</p>
     </div>
   } @else if (loadError()) {
-    <p class="mt-md text-body-sm text-danger">Couldn't load this page. Try again shortly.</p>
+    <jh-alert class="mt-md">Couldn't load this page. Try again shortly.</jh-alert>
   } @else if (settings(); as s) {
     <div class="mt-sm flex items-baseline justify-between">
       <h1 class="text-heading-sm font-bold text-ink">Recruiting</h1>
@@ -50,9 +50,9 @@
           placeholder="Friendly Köln crew, all divisions. Missing two — come play."></textarea>
       }
 
-      @if (saveError()) { <p class="mt-sm text-body-sm text-danger">{{ saveError() }}</p> }
+      @if (saveError()) { <jh-alert class="mt-sm">{{ saveError() }}</jh-alert> }
       <button type="button" (click)="save()" [disabled]="saving()"
-        class="mt-md w-full rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50" data-testid="save-recruiting">
+        jhButton size="sm" class="mt-md w-full" data-testid="save-recruiting">
         {{ on() ? 'Save recruiting' : 'Save — filling from within the team' }}
       </button>
     </div>
@@ -71,8 +71,8 @@
                 <p class="text-body-sm text-subtle">@for (pos of app.positions; track pos) { {{ label(pos)?.en }} }<span class="ml-1">· applied {{ rel(app.createdDate) }}</span></p>
               </div>
               <div class="flex gap-xs">
-                <button type="button" (click)="accept(app.id)" [disabled]="acting()" class="rounded-md bg-brand px-sm py-1 text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Accept</button>
-                <button type="button" (click)="decline(app.id)" class="rounded-md border border-border-strong px-sm py-1 text-body-sm font-semibold text-body hover:bg-surface-sunken">Decline</button>
+                <button type="button" (click)="accept(app.id)" [disabled]="acting()" jhButton size="sm">Accept</button>
+                <button type="button" (click)="decline(app.id)" jhButton variant="secondary" size="sm">Decline</button>
               </div>
             </li>
           }
@@ -94,7 +94,7 @@
                 <p class="text-body-sm text-subtle">{{ inv.status === 'Declined' ? 'declined' : 'awaiting reply' }} · invited {{ rel(inv.createdDate) }}</p>
               </div>
               @if (inv.status === 'Pending') {
-                <button type="button" (click)="revoke(inv.id)" class="rounded-md border border-border-strong px-sm py-1 text-body-sm font-semibold text-danger hover:bg-surface-sunken">Revoke</button>
+                <button type="button" (click)="revoke(inv.id)" jhButton variant="danger" size="sm">Revoke</button>
               }
             </li>
           }
@@ -118,7 +118,7 @@
                 <p class="text-body-sm text-subtle">@{{ u.handle }}@if (u.hometown) { <span> · {{ u.hometown }}</span> }</p>
               </div>
               @switch (u.relation) {
-                @case ('Invitable') { <button type="button" (click)="invite(u)" [disabled]="acting()" class="rounded-md bg-brand px-sm py-1 text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Invite</button> }
+                @case ('Invitable') { <button type="button" (click)="invite(u)" [disabled]="acting()" jhButton size="sm">Invite</button> }
                 @case ('Invited') { <span class="text-body-sm text-subtle">invited</span> }
                 @case ('Ineligible') { <span class="text-body-sm text-subtle">in a crew</span> }
               }

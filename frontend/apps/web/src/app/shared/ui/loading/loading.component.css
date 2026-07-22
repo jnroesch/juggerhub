@@ -1,0 +1,4 @@
+:host {
+  display: block;
+  margin-top: 16px; /* spacing-md — consistent standoff, so screens stop hand-setting mt-* */
+}

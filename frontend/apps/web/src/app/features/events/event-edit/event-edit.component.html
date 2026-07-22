@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-lg px-md py-lg" data-testid="event-edit">
   @if (loading()) {
-    <p class="text-body-md text-subtle">Loading…</p>
+    <jh-loading />
   } @else if (forbidden()) {
     <div class="rounded-lg border border-border bg-surface-card px-md py-lg text-center">
       <p class="text-heading-sm font-bold text-ink">Not allowed</p>
@@ -42,10 +42,10 @@
           class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
         <p class="mt-xs text-body-sm text-faint">Can't drop below the {{ d.occupiedSpots }} already taking part. Teams-vs-individuals can't change after sign-ups.</p>
       </div>
-      @if (editError()) { <p class="text-body-sm text-danger" role="alert">{{ editError() }}</p> }
+      @if (editError()) { <jh-alert>{{ editError() }}</jh-alert> }
       @if (editSaved()) { <p class="text-body-sm text-success">Saved.</p> }
       <button type="submit" [disabled]="form.invalid || savingEdit()" data-testid="edit-save"
-        class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">{{ savingEdit() ? 'Saving…' : 'Save changes' }}</button>
+        jhButton>{{ savingEdit() ? 'Saving…' : 'Save changes' }}</button>
     </form>
 
     <!-- Danger zone -->
@@ -56,7 +56,7 @@
         @if (cancelError()) { <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ cancelError() }}</p> }
         @if (!confirmingCancel()) {
           <button type="button" (click)="confirmingCancel.set(true)" data-testid="cancel-open"
-            class="mt-sm rounded-md border border-danger-border px-md py-xs text-body-sm font-semibold text-danger-fg hover:bg-danger-bg">Cancel this event</button>
+            jhButton variant="danger" size="sm" class="mt-sm">Cancel this event</button>
         } @else {
           <div class="mt-sm flex gap-xs">
             <button type="button" (click)="cancelEvent()" [disabled]="cancelling()" data-testid="cancel-confirm"

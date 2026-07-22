@@ -17,7 +17,7 @@
         <a
           routerLink="/sign-in"
           data-testid="verify-success-signin"
-          class="mt-lg inline-block rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          jhButton class="mt-lg"
         >
           Sign in
         </a>
@@ -46,7 +46,7 @@
               type="submit"
               data-testid="verify-resend-submit"
               [disabled]="resendForm.invalid"
-              class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
+              jhButton class="w-full"
             >
               Resend verification email
             </button>

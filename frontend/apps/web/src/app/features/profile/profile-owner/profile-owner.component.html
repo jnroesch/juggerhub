@@ -1,19 +1,19 @@
 <section class="mx-auto max-w-xl px-md py-lg md:max-w-4xl" data-testid="profile-owner">
   @if (loading()) {
-    <p class="text-body-md text-subtle">Loading your profile…</p>
+    <jh-loading label="Loading your profile…" />
   } @else if (profile(); as p) {
     <!-- Top bar: back + edit toggle -->
     <div class="flex items-center justify-between">
       <a routerLink="/" class="text-body-sm text-subtle hover:text-text">‹ Back</a>
       @if (!editing()) {
         <button type="button" (click)="startEdit()" data-testid="profile-edit"
-          class="inline-flex items-center gap-xs rounded-pill border border-brand px-md py-xs text-body-sm font-medium text-brand transition-colors duration-fast hover:bg-surface-accent-soft">
+          jhButton variant="secondary" size="sm">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
           Edit
         </button>
       } @else {
         <button type="button" (click)="cancelEdit()" data-testid="profile-cancel"
-          class="rounded-full border border-border-strong px-md py-xs text-body-sm font-medium text-subtle hover:bg-surface-subtle">
+          jhButton variant="secondary" size="sm">
           Cancel
         </button>
       }
@@ -131,7 +131,7 @@
     </div>
 
     @if (error()) {
-      <p class="mt-lg text-body-sm text-danger" role="alert" data-testid="profile-error">{{ error() }}</p>
+      <jh-alert class="mt-lg" data-testid="profile-error">{{ error() }}</jh-alert>
     }
     @if (saved() && !editing()) {
       <p class="mt-lg text-body-sm text-success" role="status" data-testid="profile-saved">Saved.</p>
@@ -140,7 +140,7 @@
     @if (editing()) {
       <div class="sticky bottom-0 mt-lg flex justify-end gap-sm bg-background/80 py-md backdrop-blur">
         <button type="button" (click)="save()" [disabled]="form.invalid || saving()" data-testid="profile-save"
-          class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none">
+          jhButton>
           {{ saving() ? 'Saving…' : 'Save changes' }}
         </button>
       </div>
@@ -150,6 +150,6 @@
       <a [routerLink]="['/u', p.handle]" class="text-body-sm font-medium text-link hover:text-link-hover">View public profile ↗</a>
     </div>
   } @else {
-    <p class="text-body-md text-danger">{{ error() ?? 'Could not load your profile.' }}</p>
+    <jh-alert>{{ error() ?? 'Could not load your profile.' }}</jh-alert>
   }
 </section>

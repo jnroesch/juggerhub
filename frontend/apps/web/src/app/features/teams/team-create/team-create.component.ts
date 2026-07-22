@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ButtonDirective, AlertComponent } from '../../../shared/ui';
 import { EMPTY, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { SlugAvailability, TeamType } from '../../../core/models/team.models';
 import { TeamService } from '../../../core/services/team.service';
@@ -14,7 +15,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-team-create',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent],
   templateUrl: './team-create.component.html',
   styleUrl: './team-create.component.css',
 })

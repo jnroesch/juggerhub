@@ -6,6 +6,7 @@ import { ChatService } from '../../../../core/services/chat.service';
 import { ProfileService } from '../../../../core/services/profile.service';
 import { TeamService } from '../../../../core/services/team.service';
 import { ProfileTeam } from '../../../../core/models/profile.models';
+import { ButtonDirective, AlertComponent } from '../../../../shared/ui';
 
 /** A team the viewer administers and to which the target player can be invited. */
 interface EligibleTeam {
@@ -27,6 +28,7 @@ interface EligibleTeam {
   selector: 'jh-profile-quick-actions',
   templateUrl: './profile-quick-actions.component.html',
   styleUrl: './profile-quick-actions.component.css',
+  imports: [ButtonDirective, AlertComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileQuickActionsComponent implements OnInit {

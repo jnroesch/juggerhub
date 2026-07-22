@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ButtonDirective } from '../../../shared/ui';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../../core/services/chat.service';
@@ -14,7 +15,7 @@ import { ChatSearchResult, Conversation } from '../../../core/models/chat.models
  */
 @Component({
   selector: 'jh-chat-inbox',
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, ButtonDirective],
   templateUrl: './chat-inbox.component.html',
   styleUrl: './chat-inbox.component.css',
 })

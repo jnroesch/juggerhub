@@ -1,7 +1,7 @@
 <h1 class="text-h3 font-bold text-heading">Overview</h1>
 
 @if (loading()) {
-  <p class="mt-md text-body-md text-muted" data-testid="admin-overview-loading">Loading the overview…</p>
+  <jh-loading label="Loading the overview…" data-testid="admin-overview-loading" />
 } @else if (error(); as message) {
   <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
     {{ message }}

@@ -4,7 +4,7 @@
   <p class="mt-xs text-body-sm text-subtle">Your crew for this event — a subset of your team, just for this event.</p>
 
   @if (loading()) {
-    <p class="mt-lg text-body-sm text-subtle">Loading…</p>
+    <jh-loading />
   } @else if (formableTeams().length === 0) {
     <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-md text-body-sm text-muted shadow-sm">
       You don't have a team to enter here — you can only form a party for a team you administer that
@@ -48,11 +48,11 @@
       </div>
 
       @if (error()) {
-        <p class="text-body-sm text-danger">{{ error() }}</p>
+        <jh-alert>{{ error() }}</jh-alert>
       }
 
       <button type="submit" [disabled]="submitting() || !selectedTeamId"
-        class="w-full rounded-md bg-brand px-lg py-md text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">
+        jhButton class="w-full">
         Create party &amp; ask the team
       </button>
     </form>

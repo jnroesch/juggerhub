@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-lg px-md py-lg" data-testid="event-contacts">
   @if (loading()) {
-    <p class="text-body-md text-subtle">Loading…</p>
+    <jh-loading />
   } @else if (forbidden()) {
     <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
       <p class="text-heading-sm font-bold text-ink">Not allowed</p>
@@ -54,10 +54,10 @@
           class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
       </div>
       <p class="text-body-sm text-faint">Add a phone, an email, or both.</p>
-      @if (error()) { <p class="text-body-sm text-danger" role="alert">{{ error() }}</p> }
+      @if (error()) { <jh-alert>{{ error() }}</jh-alert> }
       <div class="flex items-center gap-sm">
         <button type="submit" [disabled]="form.invalid || saving()" data-testid="contact-add"
-          class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">{{ saving() ? 'Saving…' : editingId() ? 'Save changes' : 'Add contact' }}</button>
+          jhButton>{{ saving() ? 'Saving…' : editingId() ? 'Save changes' : 'Add contact' }}</button>
         @if (editingId()) {
           <button type="button" (click)="cancelEdit()" data-testid="contact-cancel-edit"
             class="text-body-sm font-semibold text-subtle hover:text-text">Cancel</button>

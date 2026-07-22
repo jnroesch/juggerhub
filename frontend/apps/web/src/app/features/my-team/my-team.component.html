@@ -26,7 +26,7 @@
   } @else if (loaded()) {
     <!-- Teamless home / empty state (feature 023). -->
     <h1 class="text-h3 text-heading">My team</h1>
-    <p class="mt-xs text-body-sm text-muted">You're not on a team yet — join one near you, accept an invitation, or start your own.</p>
+    <p class="mt-xs text-body-sm text-muted">You're not on a team yet — join one near you, accept an invite, or start your own.</p>
 
     @if (notice(); as msg) {
       <p role="status" data-testid="my-team-notice" class="mt-md rounded-md border border-warning-border bg-warning-bg px-md py-sm text-body-sm text-warning-fg">{{ msg }}</p>
@@ -34,7 +34,7 @@
 
     @if (invites().length > 0) {
       <section class="mt-lg" aria-labelledby="my-team-invites-heading">
-        <h2 id="my-team-invites-heading" class="text-eyebrow font-semibold uppercase tracking-[0.04em] text-muted">Your invitations</h2>
+        <h2 id="my-team-invites-heading" class="text-eyebrow font-semibold uppercase tracking-[0.04em] text-muted">Your invites</h2>
         <ul class="mt-sm flex flex-col gap-sm">
           @for (inv of invites(); track inv.token) {
             <li class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" [attr.data-testid]="'invite-' + inv.teamSlug">
@@ -51,7 +51,7 @@
                   type="button"
                   (click)="accept(inv)"
                   [attr.data-testid]="'accept-' + inv.teamSlug"
-                  class="inline-flex min-h-[44px] items-center rounded-md bg-brand px-lg py-xs font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px"
+                  jhButton
                 >
                   Accept
                 </button>
@@ -59,7 +59,7 @@
                   type="button"
                   (click)="decline(inv)"
                   [attr.data-testid]="'decline-' + inv.teamSlug"
-                  class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong px-lg py-xs font-medium text-subtle transition-colors duration-fast hover:bg-surface-sunken active:translate-y-px"
+                  jhButton variant="secondary"
                 >
                   Decline
                 </button>
@@ -78,7 +78,7 @@
           <a
             routerLink="/browse/teams"
             data-testid="my-team-find"
-            class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong px-lg py-xs font-medium text-body transition-colors duration-fast hover:bg-surface-sunken"
+            jhButton variant="secondary"
           >
             Find a team near you
           </a>
@@ -86,7 +86,7 @@
           <a
             routerLink="/browse/teams"
             data-testid="my-team-find"
-            class="inline-flex min-h-[44px] items-center rounded-md bg-brand px-lg py-xs font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px"
+            jhButton
           >
             Find a team near you
           </a>
@@ -94,13 +94,13 @@
         <a
           routerLink="/teams/new"
           data-testid="my-team-create"
-          class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong px-lg py-xs font-medium text-body transition-colors duration-fast hover:bg-surface-sunken"
+          jhButton variant="secondary"
         >
           Create your own team
         </a>
       </div>
     </div>
   } @else {
-    <p class="mt-lg text-body-sm text-muted" data-testid="my-team-loading">Loading…</p>
+    <jh-loading data-testid="my-team-loading" />
   }
 </section>

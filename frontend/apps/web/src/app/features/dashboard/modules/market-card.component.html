@@ -34,8 +34,8 @@
             </div>
             @if (r.direction === 'Invite') {
               <div class="flex shrink-0 gap-xs">
-                <button type="button" (click)="accept(r.id)" [disabled]="acting()" class="rounded-md bg-brand px-sm py-1 text-body-sm font-semibold text-on-accent hover:bg-brand-hover disabled:opacity-50">Accept</button>
-                <button type="button" (click)="decline(r.id)" class="rounded-md border border-border-strong px-sm py-1 text-body-sm font-semibold text-body hover:bg-surface-sunken">Decline</button>
+                <button type="button" (click)="accept(r.id)" [disabled]="acting()" jhButton size="sm">Accept</button>
+                <button type="button" (click)="decline(r.id)" jhButton variant="secondary" size="sm">Decline</button>
               </div>
             } @else {
               <span class="shrink-0 rounded-full bg-warning-bg px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-wide text-warning-fg">pending</span>

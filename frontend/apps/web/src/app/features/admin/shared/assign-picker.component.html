@@ -108,7 +108,7 @@
     </div>
 
     <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
-      <button type="button" (click)="close()" class="rounded-md border border-border-strong px-md py-xs text-body-sm font-medium text-body hover:bg-surface-sunken">
+      <button type="button" (click)="close()" jhButton variant="secondary" size="sm">
         Cancel
       </button>
       <button
@@ -116,7 +116,7 @@
         (click)="grant()"
         [disabled]="!selectedDefId() || granting()"
         data-testid="grant-submit"
-        class="rounded-md bg-brand px-lg py-xs text-body-sm font-semibold text-on-accent shadow-coral hover:bg-brand-hover disabled:opacity-50"
+        jhButton size="sm"
       >
         {{ granting() ? 'Granting…' : 'Grant' }}
       </button>

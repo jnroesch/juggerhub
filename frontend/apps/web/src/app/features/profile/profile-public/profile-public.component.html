@@ -1,7 +1,7 @@
 <main class="min-h-screen bg-background px-md py-xl">
   <div class="mx-auto max-w-4xl">
     @if (loading()) {
-      <p class="text-body-md text-subtle">Loading…</p>
+      <jh-loading />
     } @else if (notFound()) {
       <section class="relative mx-auto mt-2xl max-w-md overflow-hidden rounded-lg border border-border-muted bg-surface-card p-xl text-center shadow-sm" data-testid="profile-notfound">
         <span class="absolute inset-x-0 top-0 h-1 bg-brand-gradient" aria-hidden="true"></span>
@@ -18,7 +18,7 @@
             <span class="h-2 w-2 rounded-full bg-success"></span> Public profile
           </span>
           <button type="button" (click)="copyLink(p.handle)" data-testid="copy-link"
-            class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+            jhButton variant="secondary" size="sm">
             {{ copied() ? 'Copied!' : 'Copy link' }}
           </button>
         </div>

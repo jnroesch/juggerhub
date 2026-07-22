@@ -1,4 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
+import { LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
 import { AttendanceEntry } from '../../../core/models/trainings.models';
@@ -11,7 +12,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-training-attendance',
-  imports: [RouterLink],
+  imports: [RouterLink, LoadingComponent],
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css',
 })

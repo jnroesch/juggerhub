@@ -3,6 +3,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { BrowseState, FilterChip } from '../../../core/models/search.models';
+import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 
 /**
  * Shared browse shell (feature 007) — the single implementation of the discovery behaviour
@@ -14,7 +15,7 @@ import { BrowseState, FilterChip } from '../../../core/models/search.models';
  */
 @Component({
   selector: 'jh-browse-shell',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, ButtonDirective, LoadingComponent, AlertComponent],
   templateUrl: './browse-shell.component.html',
   styleUrl: './browse-shell.component.css',
 })

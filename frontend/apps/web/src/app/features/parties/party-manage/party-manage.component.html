@@ -1,6 +1,6 @@
 <main class="mx-auto max-w-container-md px-md py-lg">
   @if (loading()) {
-    <p class="text-body-sm text-subtle">Loading party…</p>
+    <jh-loading label="Loading party…" />
   } @else if (notFound()) {
     <div class="rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm">
       <h1 class="text-body-lg font-semibold text-heading">Party not found</h1>
@@ -23,7 +23,7 @@
     </div>
 
     @if (error()) {
-      <p class="mt-sm text-body-sm text-danger" role="alert">{{ error() }}</p>
+      <jh-alert class="mt-sm">{{ error() }}</jh-alert>
     }
 
     <!-- Member (non-admin) self actions -->
@@ -32,15 +32,15 @@
         @if (p.myState === 'In') {
           <p class="text-body-sm text-body">You're in this crew.</p>
           <button type="button" (click)="leave()" [disabled]="acting()"
-            class="mt-sm rounded-md border border-border-strong px-md py-sm text-body-sm font-semibold text-body transition-colors hover:bg-surface-sunken disabled:opacity-50">Leave the party</button>
+            jhButton variant="secondary" size="sm" class="mt-sm">Leave the party</button>
         } @else if (p.isFull) {
           <p class="text-body-sm text-muted">The party is full right now — it reopens automatically if a spot frees.</p>
         } @else {
           <div class="flex gap-sm">
             <button type="button" (click)="join()" [disabled]="acting()"
-              class="flex-1 rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">I'm in</button>
+              jhButton size="sm" class="flex-1">I'm in</button>
             <button type="button" (click)="declineRequest()" [disabled]="acting()"
-              class="flex-1 rounded-md border border-border-strong px-md py-sm text-body-sm font-semibold text-body transition-colors hover:bg-surface-sunken disabled:opacity-50">Can't make it</button>
+              jhButton variant="secondary" size="sm" class="flex-1">Can't make it</button>
           </div>
         }
       </div>
@@ -57,10 +57,10 @@
         <div class="mt-md flex flex-wrap gap-sm">
           @if (!isApplied()) {
             <button type="button" (click)="apply()" [disabled]="acting()"
-              class="rounded-md bg-brand px-lg py-md text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">Apply to event</button>
+              jhButton>Apply to event</button>
           } @else {
             <button type="button" (click)="withdraw()" [disabled]="acting()"
-              class="rounded-md border border-border-strong px-md py-sm text-body-sm font-semibold text-body transition-colors hover:bg-surface-sunken disabled:opacity-50">Withdraw from event</button>
+              jhButton variant="secondary" size="sm">Withdraw from event</button>
           }
         </div>
       </section>
@@ -99,9 +99,9 @@
             @if (isAdmin()) {
               <div class="shrink-0">
                 @if (activeTab() === 'NoResponse') {
-                  <button type="button" (click)="nudge(m.userId)" class="rounded-md border border-border-strong px-sm py-xs text-caption font-semibold text-muted transition-colors hover:bg-surface-sunken">Nudge</button>
+                  <button type="button" (click)="nudge(m.userId)" jhButton variant="secondary" size="sm">Nudge</button>
                 } @else if (!m.isYou) {
-                  <button type="button" (click)="remove(m.userId)" class="rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger transition-colors hover:bg-danger-bg">Remove</button>
+                  <button type="button" (click)="remove(m.userId)" jhButton variant="danger" size="sm">Remove</button>
                 }
               </div>
             }
@@ -123,7 +123,7 @@
               class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
             <div class="mt-xs text-right">
               <button type="submit" [disabled]="posting()"
-                class="rounded-md bg-brand px-md py-sm text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:opacity-50">Post update</button>
+                jhButton size="sm">Post update</button>
             </div>
           </form>
         }
@@ -154,7 +154,7 @@
         </div>
         <div class="mt-md border-t border-border-muted pt-md">
           <button type="button" (click)="disband()" [disabled]="acting()"
-            class="w-full rounded-md border border-danger-border px-md py-sm text-body-sm font-semibold text-danger transition-colors hover:bg-danger-bg disabled:opacity-50">Disband this party</button>
+            jhButton variant="danger" class="w-full">Disband this party</button>
           <p class="mt-xs text-center text-caption text-subtle">Can't be undone. Usually done once the event is over.</p>
         </div>
       </section>

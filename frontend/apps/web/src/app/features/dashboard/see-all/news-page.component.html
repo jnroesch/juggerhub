@@ -16,7 +16,7 @@
       <button type="button" class="mt-sm rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="loadMore()">Try again</button>
     </div>
   } @else if (loading()) {
-    <p class="mt-lg text-center text-body-sm text-subtle">Loading…</p>
+    <jh-loading align="center" />
   } @else if (hasMore()) {
     <div class="mt-md text-center">
       <button type="button" class="rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="loadMore()">Load more</button>

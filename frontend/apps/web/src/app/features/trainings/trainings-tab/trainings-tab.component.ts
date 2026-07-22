@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { ButtonDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
@@ -14,7 +15,7 @@ import { TrainingSeriesSummary, TrainingSessionRow } from '../../../core/models/
  */
 @Component({
   selector: 'jh-trainings-tab',
-  imports: [RouterLink],
+  imports: [RouterLink, ButtonDirective, IconComponent, LoadingComponent],
   templateUrl: './trainings-tab.component.html',
   styleUrl: './trainings-tab.component.css',
 })

@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { ButtonDirective, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { InvitePreview } from '../../../core/models/event.models';
@@ -12,7 +13,7 @@ import { EventService } from '../../../core/services/event.service';
  */
 @Component({
   selector: 'jh-event-invite-accept',
-  imports: [DatePipe],
+  imports: [DatePipe, ButtonDirective, LoadingComponent],
   templateUrl: './event-invite-accept.component.html',
   styleUrl: './event-invite-accept.component.css',
 })

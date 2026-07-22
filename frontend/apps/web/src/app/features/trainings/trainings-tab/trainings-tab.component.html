@@ -3,12 +3,12 @@
   <div class="mt-sm flex items-center justify-between">
     <h1 class="text-heading-lg font-semibold text-heading">Trainings</h1>
     @if (isAdmin()) {
-      <a [routerLink]="['/t', slug(), 'trainings', 'new']" class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px">+ New training</a>
+      <a [routerLink]="['/t', slug(), 'trainings', 'new']" jhButton size="sm"><jh-icon name="plus" />New training</a>
     }
   </div>
 
   @if (loading()) {
-    <p class="mt-lg text-body-sm text-muted">Loading…</p>
+    <jh-loading />
   } @else if (notFound()) {
     <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center">
       <h2 class="text-body-lg font-semibold text-heading">Not available</h2>

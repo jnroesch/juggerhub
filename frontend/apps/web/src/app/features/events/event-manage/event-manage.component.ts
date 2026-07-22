@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { EventDetail, Signup } from '../../../core/models/event.models';
@@ -12,7 +13,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-event-manage',
-  imports: [RouterLink],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
   templateUrl: './event-manage.component.html',
   styleUrl: './event-manage.component.css',
 })

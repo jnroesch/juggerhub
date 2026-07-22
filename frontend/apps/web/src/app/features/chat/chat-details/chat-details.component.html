@@ -118,7 +118,7 @@
                 type="button"
                 (click)="leave()"
                 [disabled]="busy()"
-                class="min-h-11 flex-1 rounded-md border border-danger-border bg-surface-card px-md text-body-md font-medium text-danger-fg transition-colors duration-fast hover:bg-danger-bg disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                jhButton variant="danger" class="flex-1"
                 data-testid="confirm-leave"
               >
                 Leave chat
@@ -126,7 +126,7 @@
               <button
                 type="button"
                 (click)="confirmingLeave.set(false)"
-                class="min-h-11 flex-1 rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                jhButton variant="secondary" class="flex-1"
               >
                 Keep it
               </button>
@@ -136,7 +136,7 @@
           <button
             type="button"
             (click)="confirmingLeave.set(true)"
-            class="min-h-11 w-full rounded-md border border-danger-border bg-surface-card px-md text-body-md font-medium text-danger-fg transition-colors duration-fast hover:bg-danger-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            jhButton variant="danger" class="w-full"
             data-testid="leave-chat"
           >
             Leave chat
@@ -157,7 +157,7 @@
                 type="button"
                 (click)="block()"
                 [disabled]="busy()"
-                class="min-h-11 flex-1 rounded-md border border-danger-border bg-surface-card px-md text-body-md font-medium text-danger-fg transition-colors duration-fast hover:bg-danger-bg disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                jhButton variant="danger" class="flex-1"
                 data-testid="confirm-block"
               >
                 Block
@@ -165,7 +165,7 @@
               <button
                 type="button"
                 (click)="confirmingBlock.set(false)"
-                class="min-h-11 flex-1 rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                jhButton variant="secondary" class="flex-1"
               >
                 Cancel
               </button>
@@ -175,7 +175,7 @@
           <button
             type="button"
             (click)="confirmingBlock.set(true)"
-            class="min-h-11 w-full rounded-md border border-danger-border bg-surface-card px-md text-body-md font-medium text-danger-fg transition-colors duration-fast hover:bg-danger-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            jhButton variant="danger" class="w-full"
             data-testid="block-user"
           >
             Block {{ other.displayName }}

@@ -3,12 +3,12 @@
   <h1 class="mt-md text-heading-lg font-bold text-ink">Team settings</h1>
 
   @if (loading()) {
-    <p class="mt-md text-body-md text-subtle">Loading…</p>
+    <jh-loading />
   } @else if (notFound()) {
-    <p class="mt-md text-body-md text-danger">This team doesn't exist, or you're not a member.</p>
+    <jh-alert class="mt-md">This team doesn't exist, or you're not a member.</jh-alert>
   } @else if (detail(); as t) {
     @if (error()) {
-      <p class="mt-md text-body-sm text-danger" role="alert" data-testid="settings-error">{{ error() }}</p>
+      <jh-alert class="mt-md" data-testid="settings-error">{{ error() }}</jh-alert>
     }
 
     @if (isAdmin()) {
@@ -64,7 +64,7 @@
         <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-danger">Danger zone</p>
         @if (!confirmingDelete()) {
           <button type="button" (click)="confirmingDelete.set(true)" data-testid="delete-team"
-            class="mt-xs w-full rounded-md border border-danger-border px-md py-sm text-body-md font-semibold text-danger transition-colors hover:bg-danger-bg">
+            jhButton variant="danger" class="mt-xs w-full">
             Delete team
           </button>
         } @else {
@@ -76,7 +76,7 @@
                 {{ working() ? 'Deleting…' : 'Yes, delete team' }}
               </button>
               <button type="button" (click)="confirmingDelete.set(false)" [disabled]="working()"
-                class="rounded-md border border-border-strong px-md py-sm text-body-sm font-medium text-subtle hover:bg-surface-sunken">Cancel</button>
+                jhButton variant="secondary" size="sm">Cancel</button>
             </div>
           </div>
         }

@@ -22,7 +22,7 @@
           type="button"
           data-testid="onboarding-start"
           (click)="next()"
-          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          jhButton class="w-full"
         >
           Get started
         </button>
@@ -61,7 +61,7 @@
           data-testid="onboarding-continue"
           (click)="next()"
           [disabled]="nameEmpty()"
-          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
+          jhButton class="w-full"
         >
           Continue
         </button>
@@ -89,7 +89,7 @@
           type="button"
           data-testid="onboarding-continue"
           (click)="next()"
-          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          jhButton class="w-full"
         >
           Continue
         </button>
@@ -116,7 +116,7 @@
           type="button"
           data-testid="onboarding-continue"
           (click)="next()"
-          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          jhButton class="w-full"
         >
           Continue
         </button>
@@ -168,7 +168,7 @@
           type="button"
           data-testid="onboarding-continue"
           (click)="next()"
-          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          jhButton class="w-full"
         >
           Continue
         </button>
@@ -225,7 +225,7 @@
         ></textarea>
 
         @if (error()) {
-          <p class="mt-sm text-body-sm text-danger" data-testid="onboarding-error" role="alert">{{ error() }}</p>
+          <jh-alert class="mt-sm" data-testid="onboarding-error">{{ error() }}</jh-alert>
         }
       </div>
       <div class="space-y-sm">
@@ -235,7 +235,7 @@
           data-testid="onboarding-finish"
           (click)="finish()"
           [disabled]="saving()"
-          class="w-full rounded-md bg-brand px-md py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
+          jhButton class="w-full"
         >
           {{ saving() ? 'Saving…' : 'Finish' }}
         </button>
@@ -266,7 +266,7 @@
         type="button"
         data-testid="onboarding-enter"
         (click)="enterApp()"
-        class="w-full rounded-md bg-primary px-md py-sm text-body-md font-semibold text-surface hover:bg-primary-hover"
+        jhButton class="w-full"
       >
         3… 2… 1… Jugger!
       </button>

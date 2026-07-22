@@ -1,4 +1,5 @@
 import { Component, ElementRef, HostListener, effect, input, output, viewChild } from '@angular/core';
+import { ButtonDirective } from '../../../shared/ui';
 
 /**
  * On-demand filter panel (feature 007) — a bottom sheet on mobile, a slide-over drawer on
@@ -12,7 +13,7 @@ import { Component, ElementRef, HostListener, effect, input, output, viewChild }
  */
 @Component({
   selector: 'jh-filter-panel',
-  imports: [],
+  imports: [ButtonDirective],
   templateUrl: './filter-panel.component.html',
   styleUrl: './filter-panel.component.css',
 })

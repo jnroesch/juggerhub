@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -13,7 +14,7 @@ import { PartyService } from '../../../core/services/party.service';
  */
 @Component({
   selector: 'jh-party-create',
-  imports: [FormsModule],
+  imports: [FormsModule, ButtonDirective, LoadingComponent, AlertComponent],
   templateUrl: './party-create.component.html',
   styleUrl: './party-create.component.css',
 })

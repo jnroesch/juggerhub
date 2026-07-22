@@ -1,4 +1,5 @@
 import { Component, computed, input, output, signal } from '@angular/core';
+import { ButtonDirective, AlertComponent } from '../../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { EventDetail } from '../../../../core/models/event.models';
@@ -11,7 +12,7 @@ import { PartyContext, PartyContextTeam } from '../../../../core/models/party.mo
  */
 @Component({
   selector: 'jh-event-join-actions',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, ButtonDirective, AlertComponent],
   templateUrl: './join-actions.component.html',
   styleUrl: './join-actions.component.css',
 })

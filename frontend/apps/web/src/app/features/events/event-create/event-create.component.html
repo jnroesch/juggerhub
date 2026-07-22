@@ -189,7 +189,7 @@
             <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Fee</dt><dd class="text-body-sm font-semibold text-body">{{ isPaid() ? (form.getRawValue().feeAmount ?? '') + ' ' + form.getRawValue().feeCurrency : 'Free' }}</dd></div>
           </dl>
           @if (error()) {
-            <p class="text-body-sm text-danger" role="alert" data-testid="event-create-error">{{ error() }}</p>
+            <jh-alert data-testid="event-create-error">{{ error() }}</jh-alert>
           }
         </div>
       }
@@ -205,10 +205,10 @@
 
       @if (step() !== 'review') {
         <button type="button" (click)="next()" [disabled]="!canAdvance()" data-testid="event-next"
-          class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none">Next</button>
+          jhButton>Next</button>
       } @else {
         <button type="submit" [disabled]="submitting()" data-testid="event-publish"
-          class="rounded-md bg-brand px-lg py-sm text-body-md font-semibold text-on-accent transition-all duration-fast hover:bg-brand-hover hover:shadow-coral disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none">{{ submitting() ? 'Publishing…' : 'Publish event' }}</button>
+          jhButton>{{ submitting() ? 'Publishing…' : 'Publish event' }}</button>
       }
     </div>
   </form>

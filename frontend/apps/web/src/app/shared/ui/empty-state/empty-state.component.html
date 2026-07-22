@@ -1,0 +1,8 @@
+<div [class]="containerClasses()">
+  @if (heading()) {
+    <h2 class="text-h4 text-heading">{{ heading() }}</h2>
+  }
+  <div class="text-body-sm text-muted" [class.mt-xs]="heading()">
+    <ng-content></ng-content>
+  </div>
+</div>

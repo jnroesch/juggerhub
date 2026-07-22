@@ -1,20 +1,20 @@
 <main class="grid min-h-screen place-items-center bg-hero px-md py-lg">
   <div class="w-full max-w-sm rounded-xl border border-border-muted bg-surface-card p-lg text-center shadow-md" data-testid="invite-accept">
     @if (loading()) {
-      <p class="text-body-md text-subtle">Loading invite…</p>
+      <jh-loading label="Loading invite…" />
     } @else if (notFound() || preview()?.state === 'Invalid') {
       <div data-testid="invite-invalid">
         <div class="mx-auto grid h-16 w-16 place-items-center rounded-lg border border-dashed border-border-strong bg-surface-subtle text-heading-md text-faint">✕</div>
         <h1 class="mt-md text-heading-md font-bold text-ink">This invite isn't valid</h1>
         <p class="mt-sm text-body-md text-subtle">Ask a team admin to send you a fresh one.</p>
-        <a routerLink="/" class="mt-lg inline-block rounded-md border border-border-strong px-lg py-sm text-body-md font-medium text-body hover:bg-surface-sunken">Back to JuggerHub</a>
+        <a routerLink="/" jhButton variant="secondary" class="mt-lg">Back to JuggerHub</a>
       </div>
     } @else if (preview()?.state === 'Expired') {
       <div data-testid="invite-expired">
         <div class="mx-auto grid h-16 w-16 place-items-center rounded-lg border border-dashed border-border-strong bg-surface-subtle text-heading-md text-faint">✕</div>
         <h1 class="mt-md text-heading-md font-bold text-ink">This invite has expired</h1>
         <p class="mt-sm text-body-md text-subtle">Invite links last 7 days. Ask a team admin to send you a fresh one.</p>
-        <a routerLink="/" class="mt-lg inline-block rounded-md border border-border-strong px-lg py-sm text-body-md font-medium text-body hover:bg-surface-sunken">Back to JuggerHub</a>
+        <a routerLink="/" jhButton variant="secondary" class="mt-lg">Back to JuggerHub</a>
       </div>
     } @else if (preview(); as p) {
       <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">You're invited</p>
@@ -32,7 +32,7 @@
       <p class="mt-sm text-body-md text-text-muted">{{ p.inviterDisplayName }} invited you to join. New members join as players.</p>
 
       @if (error()) {
-        <p class="mt-md text-body-sm text-danger" role="alert" data-testid="accept-error">{{ error() }}</p>
+        <jh-alert class="mt-md" data-testid="accept-error">{{ error() }}</jh-alert>
       }
 
       <button type="button" (click)="accept()" [disabled]="working()" data-testid="accept-join"
@@ -40,7 +40,7 @@
         {{ working() ? 'Joining…' : 'Accept & join' }}
       </button>
       <button type="button" (click)="decline()" [disabled]="working()" data-testid="decline"
-        class="mt-xs w-full rounded-md border border-border-strong px-lg py-sm text-body-md font-medium text-subtle hover:bg-surface-sunken disabled:opacity-60">
+        jhButton variant="secondary" class="mt-xs w-full">
         Decline
       </button>
       <p class="mt-sm text-body-sm text-faint">This invite expires in 7 days.</p>

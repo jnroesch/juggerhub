@@ -5,7 +5,7 @@
 </nav>
 
 @if (loading()) {
-  <p class="mt-md text-body-md text-muted">Loading player…</p>
+  <jh-loading label="Loading player…" />
 } @else if (notFound()) {
   <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm" data-testid="admin-user-not-found">
     <p class="text-body-md text-body">No player matches that handle.</p>
@@ -140,7 +140,7 @@
           <div>
             <p class="text-body-sm font-semibold text-danger-fg">Ban account</p>
             <p class="text-caption text-muted">Removes them from the app entirely and blocks their email from re-registering. An admin can reinstate later.</p>
-            <button type="button" class="mt-xs h-11 rounded-md border border-danger-border bg-danger-bg px-sm text-body-sm font-medium text-danger-fg transition-colors duration-fast disabled:opacity-40" [disabled]="acting()" (click)="act('ban')" data-testid="admin-action-ban">
+            <button type="button" jhButton variant="danger" class="mt-xs" [disabled]="acting()" (click)="act('ban')" data-testid="admin-action-ban">
               Ban…
             </button>
           </div>
@@ -170,7 +170,7 @@
           type="button"
           (click)="openAssign()"
           data-testid="assign"
-          class="inline-flex h-11 items-center gap-xs rounded-md bg-brand px-md text-body-sm font-semibold text-on-accent shadow-coral transition-colors duration-fast hover:bg-brand-hover"
+          jhButton
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
           Assign
@@ -195,7 +195,7 @@
                     <button
                       type="button"
                       (click)="revoke(a, 'badge')"
-                      class="shrink-0 rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger-fg hover:bg-danger-bg"
+                      jhButton variant="danger" size="sm" class="shrink-0"
                     >
                       Revoke
                     </button>
@@ -225,7 +225,7 @@
                     <button
                       type="button"
                       (click)="revoke(a, 'achievement')"
-                      class="shrink-0 rounded-md border border-danger-border px-sm py-xs text-caption font-semibold text-danger-fg hover:bg-danger-bg"
+                      jhButton variant="danger" size="sm" class="shrink-0"
                     >
                       Revoke
                     </button>

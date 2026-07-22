@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
 import { OwnerProfile } from '../../../core/models/profile.models';
 import { ProfileService } from '../../../core/services/profile.service';
@@ -16,7 +17,7 @@ import { RecognitionDisplayComponent } from '../components/recognition-display/r
  */
 @Component({
   selector: 'jh-profile-owner',
-  imports: [ReactiveFormsModule, RouterLink, PompfeSelectorComponent, RecognitionDisplayComponent],
+  imports: [ReactiveFormsModule, RouterLink, PompfeSelectorComponent, RecognitionDisplayComponent, ButtonDirective, LoadingComponent, AlertComponent],
   templateUrl: './profile-owner.component.html',
   styleUrl: './profile-owner.component.css',
 })

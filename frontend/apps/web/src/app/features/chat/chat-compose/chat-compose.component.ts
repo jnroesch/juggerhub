@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { LoadingComponent } from '../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ChatService } from '../../../core/services/chat.service';
@@ -14,7 +15,7 @@ import { ChatService } from '../../../core/services/chat.service';
  */
 @Component({
   selector: 'jh-chat-compose',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, LoadingComponent],
   templateUrl: './chat-compose.component.html',
   styleUrl: './chat-compose.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
