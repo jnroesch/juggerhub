@@ -3,7 +3,7 @@
   <h1 class="mt-xs text-h3 text-heading">Invite co-admins</h1>
   <p class="mt-xs text-body-sm text-subtle">Co-admins must be members of this team. They can manage the roster, post news, and apply to the event.</p>
 
-  <section class="mt-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+  <jh-card class="mt-md p-md">
     <p class="text-eyebrow uppercase text-muted">Shareable link</p>
     @if (link(); as l) {
       <input readonly [value]="l.url" class="mt-xs w-full rounded-md border border-border-muted bg-surface-sunken px-md py-sm text-caption text-muted" />
@@ -13,9 +13,9 @@
     <button type="button" (click)="rotateLink()" jhButton variant="secondary" size="sm" class="mt-xs">
       {{ link() ? 'Regenerate link' : 'Create link' }}
     </button>
-  </section>
+  </jh-card>
 
-  <section class="mt-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+  <jh-card class="mt-md p-md">
     <p class="text-eyebrow uppercase text-muted">Invite a team member</p>
     <input [(ngModel)]="query" (input)="search()" placeholder="Search team members…"
       class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
@@ -31,7 +31,7 @@
         </li>
       }
     </ul>
-  </section>
+  </jh-card>
 
   <section class="mt-md">
     <p class="text-eyebrow uppercase text-muted">Pending invites</p>

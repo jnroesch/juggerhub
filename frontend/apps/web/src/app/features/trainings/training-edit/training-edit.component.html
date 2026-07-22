@@ -4,9 +4,7 @@
   @if (loading()) {
     <jh-loading />
   } @else if (notFound()) {
-    <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center">
-      <h1 class="text-body-lg font-semibold text-heading">Session not found</h1>
-    </div>
+    <jh-empty-state class="mt-lg" heading="Session not found"></jh-empty-state>
   } @else if (session(); as s) {
     @if (!canEdit()) {
       <div class="mt-lg rounded-md border border-warning-border bg-warning-bg p-sm text-body-sm text-warning-fg">

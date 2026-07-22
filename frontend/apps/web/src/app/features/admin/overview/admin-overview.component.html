@@ -27,22 +27,22 @@
 
   <!-- Four numbers that matter (2×2 on mobile, 4-up on desktop) -->
   <dl class="mt-md grid grid-cols-2 gap-sm lg:grid-cols-4" data-testid="admin-overview-stats">
-    <div class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+    <jh-card class="p-md">
       <dd class="font-mono text-h3 font-bold text-heading">{{ data.players }}</dd>
       <dt class="mt-1 text-body-sm text-muted">Players</dt>
-    </div>
-    <div class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+    </jh-card>
+    <jh-card class="p-md">
       <dd class="font-mono text-h3 font-bold text-heading">{{ data.teams }}</dd>
       <dt class="mt-1 text-body-sm text-muted">Teams</dt>
-    </div>
-    <div class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+    </jh-card>
+    <jh-card class="p-md">
       <dd class="font-mono text-h3 font-bold text-heading">{{ data.eventsLast30Days }}</dd>
       <dt class="mt-1 text-body-sm text-muted">Events · 30 days</dt>
-    </div>
-    <div class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+    </jh-card>
+    <jh-card class="p-md">
       <dd class="font-mono text-h3 font-bold" [class]="data.suspended > 0 ? 'text-danger-fg' : 'text-heading'">{{ data.suspended }}</dd>
       <dt class="mt-1 text-body-sm text-muted">Suspended</dt>
-    </div>
+    </jh-card>
   </dl>
 
   <div class="mt-lg grid gap-md lg:grid-cols-2">

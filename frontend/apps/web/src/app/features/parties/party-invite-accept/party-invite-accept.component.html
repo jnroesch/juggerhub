@@ -2,12 +2,9 @@
   @if (loading()) {
     <jh-loading label="Loading invite…" align="center" />
   } @else if (notFound()) {
-    <div class="rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm">
-      <h1 class="text-body-lg font-semibold text-heading">Invite not found</h1>
-      <p class="mt-xs text-body-sm text-subtle">This invite link isn't valid.</p>
-    </div>
+    <jh-empty-state heading="Invite not found">This invite link isn't valid.</jh-empty-state>
   } @else if (preview(); as p) {
-    <div class="rounded-lg border border-border-muted bg-surface-card p-lg shadow-sm">
+    <jh-card class="p-lg">
       <p class="text-eyebrow uppercase text-brand">Party co-admin invite</p>
       <h1 class="mt-xs text-h3 text-heading">{{ p.teamName }} @ {{ p.eventName }}</h1>
       <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | date: 'mediumDate' }} · invited by {{ p.inviterDisplayName }}</p>
@@ -26,6 +23,6 @@
       } @else {
         <jh-alert class="mt-md">This invite has expired or is no longer valid.</jh-alert>
       }
-    </div>
+    </jh-card>
   }
 </main>

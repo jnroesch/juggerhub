@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, LoadingComponent } from '../../../shared/ui';
+import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
@@ -24,7 +24,7 @@ type EditMode = 'fork' | 'single' | 'series';
  */
 @Component({
   selector: 'jh-training-edit',
-  imports: [FormsModule, ButtonDirective, LoadingComponent],
+  imports: [FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent],
   templateUrl: './training-edit.component.html',
   styleUrl: './training-edit.component.css',
 })

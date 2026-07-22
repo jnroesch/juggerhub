@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, LoadingComponent } from '../../../shared/ui';
+import { ButtonDirective, LoadingComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
@@ -14,7 +14,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-training-session',
-  imports: [RouterLink, ButtonDirective, LoadingComponent],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, EmptyStateComponent, CardComponent],
   templateUrl: './training-session.component.html',
   styleUrl: './training-session.component.css',
 })

@@ -10,19 +10,15 @@
   @if (loading()) {
     <jh-loading />
   } @else if (notFound()) {
-    <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center">
-      <h2 class="text-body-lg font-semibold text-heading">Not available</h2>
-      <p class="mt-sm text-body-sm text-muted">Trainings are visible to team members.</p>
-    </div>
+    <jh-empty-state class="mt-lg" heading="Not available">Trainings are visible to team members.</jh-empty-state>
   } @else if (!hasSessions()) {
-    <div class="mt-lg rounded-lg border border-border-muted bg-surface-card p-lg text-center">
-      <h2 class="text-body-lg font-semibold text-heading">{{ isAdmin() ? 'No trainings yet' : 'Nothing scheduled' }}</h2>
+    <jh-empty-state class="mt-lg" [heading]="isAdmin() ? 'No trainings yet' : 'Nothing scheduled'">
       @if (isAdmin()) {
-        <p class="mt-sm text-body-sm text-muted">Set a weekly session or a one-off — players get a spot to say if they're in.</p>
+        Set a weekly session or a one-off — players get a spot to say if they're in.
       } @else {
-        <p class="mt-sm text-body-sm text-muted">When your team schedules a training, it'll show up here.</p>
+        When your team schedules a training, it'll show up here.
       }
-    </div>
+    </jh-empty-state>
   } @else {
     <ul class="mt-lg flex flex-col gap-sm">
       @for (s of sessions(); track s.sessionId) {

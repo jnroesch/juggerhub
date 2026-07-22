@@ -5,11 +5,10 @@
       <div class="mt-md h-32 rounded-lg bg-surface-muted"></div>
     </div>
   } @else if (notFound()) {
-    <div class="rounded-lg border border-border-muted bg-surface-card px-md py-2xl text-center shadow-sm">
-      <p class="text-body-lg font-semibold text-heading">Team not found</p>
-      <p class="mt-xs text-body-sm text-muted">No team exists at that address.</p>
+    <jh-empty-state heading="Team not found">
+      No team exists at that address.
       <a routerLink="/browse/teams" class="mt-md inline-block text-body-sm font-medium text-link hover:text-link-hover">Browse teams</a>
-    </div>
+    </jh-empty-state>
   } @else if (pub(); as team) {
     <!-- Header -->
     <header class="flex flex-wrap items-start gap-md">
@@ -97,7 +96,7 @@
         }
 
         <!-- Roster -->
-        <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="roster">
+        <jh-card class="p-md" data-testid="roster">
           <h2 class="mb-sm text-body-lg font-semibold text-heading">Roster</h2>
           @if (isMember()) {
             <ul class="flex flex-col">
@@ -141,10 +140,10 @@
               }
             </ul>
           }
-        </section>
+        </jh-card>
 
         <!-- Recent activity -->
-        <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="activity">
+        <jh-card class="p-md" data-testid="activity">
           <h2 class="mb-sm text-body-lg font-semibold text-heading">Recent activity</h2>
           @if (team.recentActivity.length > 0) {
             <ul class="flex flex-col gap-xs">
@@ -158,17 +157,17 @@
           } @else {
             <jh-empty-state inline>No activity yet.</jh-empty-state>
           }
-        </section>
+        </jh-card>
 
         <!-- Badges & achievements (feature 012) -->
-        <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="recognitions">
+        <jh-card class="p-md" data-testid="recognitions">
           <h2 class="mb-sm text-body-lg font-semibold text-heading">Badges &amp; achievements</h2>
           <jh-recognition-display [badges]="team.badges" [achievements]="team.achievements" />
-        </section>
+        </jh-card>
 
         <!-- News (members only) -->
         @if (isMember()) {
-          <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="news">
+          <jh-card class="p-md" data-testid="news">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">News</h2>
 
             <!-- Admin composer (feature 010): posting notifies the whole roster. -->
@@ -207,7 +206,7 @@
             } @else {
               <jh-empty-state inline>No news yet.</jh-empty-state>
             }
-          </section>
+          </jh-card>
         }
       </div>
 
@@ -215,21 +214,21 @@
       <aside class="flex flex-col gap-lg">
         @if (isMember()) {
           <!-- Trainings (feature 018): the team's recurring training tab. -->
-          <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="trainings">
+          <jh-card class="p-md" data-testid="trainings">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">Trainings</h2>
             <p class="text-body-sm text-muted">Recurring sessions your team can respond to.</p>
             <a [routerLink]="['/t', slug(), 'trainings']" jhButton variant="secondary" size="sm" class="mt-sm">View trainings</a>
-          </section>
+          </jh-card>
         }
 
         @if (isAdmin()) {
-          <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+          <jh-card class="p-md">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">Team tools</h2>
             <div class="flex flex-col gap-xs">
               <a [routerLink]="['/t', slug(), 'invitations']" jhButton variant="secondary" size="sm">Invites</a>
               <a [routerLink]="['/t', slug(), 'settings']" jhButton variant="secondary" size="sm">Settings</a>
             </div>
-          </section>
+          </jh-card>
         }
       </aside>
     </div>
