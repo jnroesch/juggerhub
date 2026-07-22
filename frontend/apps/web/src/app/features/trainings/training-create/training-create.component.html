@@ -117,12 +117,12 @@
     @if (isRecurring && summaryCount() !== null) {
       <p class="mt-2xs text-body-sm text-muted">This makes about <span class="font-mono">{{ summaryCount() }}</span> sessions players can respond to.</p>
     }
-    <div class="mt-md rounded-lg border border-border-muted bg-surface-card p-md text-body-sm">
+    <jh-card class="mt-md p-md text-body-sm">
       <p class="font-medium text-heading">{{ name }}</p>
       <p class="mt-2xs text-muted">{{ isRecurring ? weekday + ' · ' + interval : 'One-off' }} · {{ startTime }}–{{ endTime }}</p>
       <p class="text-muted">{{ locationKind === 'InPerson' ? location : 'Online' }}</p>
       <p class="text-muted">{{ visibility === 'Public' ? 'Public' : 'Team only' }}@if (isRecurring) { · until {{ endDate }} }</p>
-    </div>
+    </jh-card>
     @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
     <button type="button" (click)="create()" [disabled]="busy()" jhButton class="mt-lg w-full">
       {{ busy() ? 'Creating…' : 'Create training' }}

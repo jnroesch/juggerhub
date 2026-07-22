@@ -2,10 +2,7 @@
   @if (loading()) {
     <jh-loading label="Loading party…" />
   } @else if (notFound()) {
-    <div class="rounded-lg border border-border-muted bg-surface-card p-lg text-center shadow-sm">
-      <h1 class="text-body-lg font-semibold text-heading">Party not found</h1>
-      <p class="mt-xs text-body-sm text-subtle">This party may have been disbanded.</p>
-    </div>
+    <jh-empty-state heading="Party not found">This party may have been disbanded.</jh-empty-state>
   } @else if (party(); as p) {
     <a [routerLink]="['/t', p.teamSlug]" class="text-body-sm text-subtle transition-colors hover:text-body">‹ {{ p.teamName }}</a>
     <div class="mt-xs flex flex-wrap items-center justify-between gap-sm">
@@ -28,7 +25,7 @@
 
     <!-- Member (non-admin) self actions -->
     @if (!isAdmin()) {
-      <div class="mt-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+      <jh-card class="mt-md p-md">
         @if (p.myState === 'In') {
           <p class="text-body-sm text-body">You're in this crew.</p>
           <button type="button" (click)="leave()" [disabled]="acting()"
@@ -43,12 +40,12 @@
               jhButton variant="secondary" size="sm" class="flex-1">Can't make it</button>
           </div>
         }
-      </div>
+      </jh-card>
     }
 
     <!-- Readiness + apply (admin) -->
     @if (isAdmin()) {
-      <section class="mt-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+      <jh-card class="mt-md p-md">
         <ul class="space-y-1 text-body-sm text-muted">
           <li>{{ p.readiness.enoughToFieldTeam ? '✓' : '·' }} At least 5 players — enough to field a team</li>
           <li>· {{ p.readiness.spotsOpen }} of {{ p.rosterCap }} spots still open — optional</li>
@@ -63,7 +60,7 @@
               jhButton variant="secondary" size="sm">Withdraw from event</button>
           }
         </div>
-      </section>
+      </jh-card>
     }
 
     <!-- Roster tabs -->
@@ -144,7 +141,7 @@
 
     <!-- Tools (admin) -->
     @if (isAdmin()) {
-      <section class="mt-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+      <jh-card class="mt-md p-md">
         <p class="text-eyebrow uppercase text-muted">Party tools</p>
         <div class="mt-sm grid gap-xs">
           <a [routerLink]="['/parties', id, 'recruiting']" class="rounded-md border border-border-muted px-md py-sm text-body-sm font-medium text-body transition-colors hover:bg-surface-sunken">Recruiting &amp; market</a>
@@ -157,7 +154,7 @@
             jhButton variant="danger" class="w-full">Disband this party</button>
           <p class="mt-xs text-center text-caption text-subtle">Can't be undone. Usually done once the event is over.</p>
         </div>
-      </section>
+      </jh-card>
     }
   }
 </main>

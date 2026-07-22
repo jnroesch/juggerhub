@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ButtonDirective, EmptyStateComponent } from '../../../shared/ui';
+import { ButtonDirective, EmptyStateComponent, CardComponent } from '../../../shared/ui';
 import { Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
 import {
   JoinRequest,
@@ -25,7 +25,7 @@ import { RecognitionDisplayComponent } from '../../profile/components/recognitio
  */
 @Component({
   selector: 'jh-team-detail',
-  imports: [RouterLink, DatePipe, RecognitionDisplayComponent, ButtonDirective, EmptyStateComponent],
+  imports: [RouterLink, DatePipe, RecognitionDisplayComponent, ButtonDirective, EmptyStateComponent, CardComponent],
   templateUrl: './team-detail.component.html',
   styleUrl: './team-detail.component.css',
 })
