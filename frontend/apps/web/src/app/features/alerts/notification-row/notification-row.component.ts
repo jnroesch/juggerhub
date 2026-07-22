@@ -1,5 +1,5 @@
 import { Component, computed, input, output } from '@angular/core';
-import { ButtonDirective } from '../../../shared/ui';
+import { ButtonDirective, CardComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import {
   AppNotification,
@@ -22,7 +22,7 @@ import { relativeTime } from '../../../core/utils/format';
  */
 @Component({
   selector: 'jh-notification-row',
-  imports: [RouterLink, ButtonDirective],
+  imports: [RouterLink, ButtonDirective, CardComponent],
   templateUrl: './notification-row.component.html',
   styleUrl: './notification-row.component.css',
 })

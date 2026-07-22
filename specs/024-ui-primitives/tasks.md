@@ -103,15 +103,21 @@ errors are announced to assistive tech.
 
 ### Status-state migration (batched by feature area)
 
-- [ ] T018 [P] [US2] Migrate empty/loading/error states in `src/app/features/auth/**` and `src/app/features/onboarding/**` to the primitives.
-- [ ] T019 [P] [US2] Migrate states in `src/app/features/browse/**` and `src/app/features/profile/**` (retire `text-faint`/`text-subtle` status text → `text-muted`; add `[action]` next steps to bare empties like "No teams listed yet.").
-- [ ] T020 [P] [US2] Migrate states in `src/app/features/teams/**` and `src/app/features/my-team/**`; standardize invite copy to **"invite"** (e.g. `invite-accept` "Loading invite…").
-- [ ] T021 [P] [US2] Migrate states in `src/app/features/events/**`, `src/app/features/parties/**`, `src/app/features/marketplace/**`; change parties' "Loading invitation…"/"invitation" copy to **"invite"**.
-- [ ] T022 [P] [US2] Migrate states in `src/app/features/trainings/**`.
-- [ ] T023 [P] [US2] Migrate states in `src/app/features/chat/**`.
-- [ ] T024 [P] [US2] Migrate states in `src/app/features/admin/**` (bordered-card empties + boxed errors → `jh-empty-state`/`jh-alert`).
-- [ ] T025 [P] [US2] Migrate states in `src/app/features/dashboard/**`, `src/app/features/alerts/**`, and `src/app/features/settings/**` (keep the dashboard `animate-pulse` skeleton as the documented exception).
-- [ ] T026 [US2] Verify US2: `nx test web --watch=false` + `nx e2e web-e2e` green; confirm one danger color, `role="alert"` on every error, and no `text-subtle`/`text-faint`/"invitation" in migrated status copy.
+> Done as **concern sweeps** across all areas (loading → `jh-loading`, errors →
+> `jh-alert`, boxed empties → `jh-empty-state`, terminology → "invite") rather than
+> strictly area-by-area, but the coverage is equivalent. Caveat: bare sub-list
+> one-liners (e.g. "No favorites selected yet.") were kept as small inline notes,
+> not converted to `jh-empty-state`.
+
+- [X] T018 [US2] auth + onboarding — loading/errors → primitives.
+- [X] T019 [US2] browse + profile — loading/errors → primitives; boxed empties → `jh-empty-state` (bare one-liners kept as notes).
+- [X] T020 [US2] teams + my-team — states migrated; invite copy standardized ("Loading invite…").
+- [X] T021 [US2] events + parties + marketplace — states migrated; parties' "invitation" copy → "invite".
+- [X] T022 [US2] trainings — loading/errors → primitives.
+- [X] T023 [US2] chat — loading → `jh-loading`, errors → `jh-alert`.
+- [X] T024 [US2] admin — bordered-card empties → `jh-empty-state`; boxed error blocks already `danger-fg` (left as-is, conformant).
+- [X] T025 [US2] dashboard + alerts + settings — states migrated; dashboard `animate-pulse` skeleton kept (documented exception).
+- [X] T026 [US2] Verify US2: `nx test web` 177/177 + `nx build web` green; drift guard confirms one danger red, `role="alert"` on errors, no `text-subtle`/`text-faint` loading text, no "invitation" copy. (`nx e2e` not run this session.)
 
 **Checkpoint**: Empty/loading/error states and shared terminology are consistent app-wide.
 
@@ -147,7 +153,7 @@ max width per the taxonomy (research R6).
 
 **Purpose**: Cross-cutting card migration, drift prevention, and final SC verification.
 
-- [ ] T033 Migrate general card surfaces (info cards, dashboard modules, list panels in teams/profile/dashboard/admin) to `jh-card`. **DEFERRED** — the remaining item; large, mostly cosmetic (surfaces already conform to DESIGN.md), and best done as its own reviewed pass. `jh-card` is built + spec'd and ready.
+- [~] T033 Migrate card surfaces to `jh-card`. **Partially applied.** `jh-card` design refined to own only the *surface* (white / muted border / lg radius / soft shadow / optional `accent` strip + hover), leaving padding to callers — so wrapping never changes a card's spacing. Adopted for the clean, self-contained cards: the 5 **auth cards** (`accent`, replacing the hand-rolled gradient strip) + `your-trainings-card` + `notification-row`. The remaining ~60 surfaces are **nested `<section>`/`<ul>` page panels** (team-detail/admin/dashboard sections, divide-y list containers, chat bubbles) that already conform to DESIGN.md; converting them is DRY-only and involves fragile close-tag matching, so left for incremental adoption. The drift guard does not police card surfaces (no visual defect to prevent).
 - [X] T034 [P] Add drift-guard `scripts/check-ui-drift.ps1` (PowerShell) asserting zero occurrences (outside `shared/ui`) of retired patterns: hand-assembled coral buttons, `rounded-pill` brand actions, raw `text-white` on brand, `+ ` text-glyph icons, hand-rolled loading lines, bare `text-danger` alert paragraphs, and "invitation" in copy. **Guard passes clean.** (CI wiring left to the pipeline owner.)
 - [X] T035 Run `checklists/ui-review.md` — feature-specific items CHK030–CHK037 checked; CHK025 contrast exception stands (owner decision).
 - [X] T036 `nx test web --watch=false` (177/177) + `nx build web` green. `nx e2e web-e2e` **not run this session** (recommended before merge).

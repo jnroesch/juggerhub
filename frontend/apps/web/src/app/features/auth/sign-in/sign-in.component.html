@@ -1,9 +1,5 @@
 <main class="grid min-h-screen place-items-center p-md">
-  <section
-    class="relative w-full max-w-md overflow-hidden rounded-lg border border-border-muted bg-surface-card p-xl shadow-sm"
-    data-testid="sign-in"
-  >
-    <span class="absolute inset-x-0 top-0 h-1 bg-brand-gradient" aria-hidden="true"></span>
+  <jh-card accent class="w-full max-w-md p-xl" data-testid="sign-in">
     <h1 class="text-heading-md text-ink">Sign in</h1>
     <p class="mt-xs text-body-sm text-subtle">Welcome back to JuggerHub.</p>
 
@@ -73,5 +69,5 @@
       New to JuggerHub?
       <a routerLink="/register" [queryParams]="returnUrl() ? { returnUrl: returnUrl() } : {}" class="font-medium text-link hover:text-link-hover">Create an account</a>
     </p>
-  </section>
+  </jh-card>
 </main>
