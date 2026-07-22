@@ -3,13 +3,16 @@ import { ButtonDirective } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { EventService } from '../../../core/services/event.service';
 import { Signup, SignupStatus } from '../../../core/models/event.models';
-import { UpNextItem } from '../../../core/models/home.models';
+import { AgendaItem } from '../../../core/models/home.models';
+import { TrainingRsvp } from '../../../core/models/trainings.models';
+import { TrainingsService } from '../../../core/services/trainings.service';
 import { dayOfMonth, shortWeekday, timeHm } from '../../../core/utils/format';
 
 /**
- * One "Up next" / "Open to everyone" item (feature 008). Individuals-mode items carry a one-tap
- * RSVP that toggles to "going" and back (a brief inline confirm guards withdrawal), reusing the
- * existing event sign-up endpoints. Team-mode items are read-only ("your team is going").
+ * One "Up next" / "Open to everyone" agenda item (feature 008, unified by feature 025). An Event item
+ * carries a one-tap RSVP that toggles to "going" and back (a brief inline confirm guards withdrawal),
+ * reusing the event sign-up endpoints; team-mode events are read-only ("your team is going"). A
+ * Training item carries an inline going/maybe/can't answer via the training response endpoint.
  */
 @Component({
   selector: 'jh-up-next-card',
@@ -19,8 +22,11 @@ import { dayOfMonth, shortWeekday, timeHm } from '../../../core/utils/format';
 })
 export class UpNextCardComponent {
   private readonly events = inject(EventService);
+  private readonly trainings = inject(TrainingsService);
 
-  readonly item = input.required<UpNextItem>();
+  readonly item = input.required<AgendaItem>();
+
+  protected readonly isTraining = computed(() => this.item().kind === 'Training');
 
   /** Local override of the viewer's sign-up state after an optimistic RSVP/withdraw. */
   private readonly override = signal<{ signupId: string | null; status: SignupStatus | null } | null>(null);
@@ -44,9 +50,21 @@ export class UpNextCardComponent {
     }
   });
 
+  // --- Training answer (local override after an inline response) ---
+  private readonly answerOverride = signal<TrainingRsvp | null | undefined>(undefined);
+  protected readonly answer = computed(() => {
+    const o = this.answerOverride();
+    return o === undefined ? this.item().myAnswer : o;
+  });
+
   protected readonly weekday = computed(() => shortWeekday(this.item().startsAt));
   protected readonly day = computed(() => dayOfMonth(this.item().startsAt));
   protected readonly time = computed(() => timeHm(this.item().startsAt));
+
+  /** The route target for the item's title, by kind. */
+  protected readonly route = computed<unknown[]>(() =>
+    this.isTraining() ? ['/trainings/sessions', this.item().id] : ['/events', this.item().id],
+  );
 
   rsvp(): void {
     if (this.busy()) {
@@ -54,7 +72,7 @@ export class UpNextCardComponent {
     }
     this.busy.set(true);
     this.error.set(null);
-    this.events.signup(this.item().eventId, null).subscribe({
+    this.events.signup(this.item().id, null).subscribe({
       next: (s: Signup) => {
         this.override.set({ signupId: s.id, status: s.status });
         this.busy.set(false);
@@ -82,9 +100,27 @@ export class UpNextCardComponent {
     this.busy.set(true);
     this.confirming.set(false);
     this.error.set(null);
-    this.events.withdraw(this.item().eventId, signupId).subscribe({
+    this.events.withdraw(this.item().id, signupId).subscribe({
       next: () => {
         this.override.set({ signupId: null, status: null });
+        this.busy.set(false);
+      },
+      error: () => {
+        this.error.set("Couldn't update — try again.");
+        this.busy.set(false);
+      },
+    });
+  }
+
+  respond(answer: TrainingRsvp): void {
+    if (this.busy()) {
+      return;
+    }
+    this.busy.set(true);
+    this.error.set(null);
+    this.trainings.respond(this.item().id, answer).subscribe({
+      next: (row) => {
+        this.answerOverride.set(row.myAnswer);
         this.busy.set(false);
       },
       error: () => {

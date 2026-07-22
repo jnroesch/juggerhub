@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Home, HomeNews, PagedResult, UpNextItem } from '../models/home.models';
+import { AgendaItem, Home, HomeNews, PagedResult } from '../models/home.models';
 
 /**
  * Home dashboard API client (feature 008). Reads only — RSVP goes through EventService
@@ -17,9 +17,9 @@ export class HomeService {
     return this.http.get<Home>(this.base);
   }
 
-  /** The player's full upcoming-events list ("see all"), paginated. */
-  getUpNext(skip = 0, take = 20): Observable<PagedResult<UpNextItem>> {
-    return this.http.get<PagedResult<UpNextItem>>(`${this.base}/up-next`, {
+  /** The player's full upcoming participation agenda ("see all"), paginated. */
+  getUpNext(skip = 0, take = 20): Observable<PagedResult<AgendaItem>> {
+    return this.http.get<PagedResult<AgendaItem>>(`${this.base}/up-next`, {
       params: new HttpParams().set('skip', skip).set('take', take),
     });
   }

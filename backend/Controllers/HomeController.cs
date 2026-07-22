@@ -41,9 +41,9 @@ public sealed class HomeController : ControllerBase
         return Ok(await _home.GetHomeAsync(userId, ct));
     }
 
-    /// <summary>The caller's full upcoming-events list ("see all"), paginated.</summary>
+    /// <summary>The caller's full upcoming participation agenda ("see all"), paginated.</summary>
     [HttpGet("up-next")]
-    public async Task<ActionResult<PagedResult<UpNextItemDto>>> UpNext(
+    public async Task<ActionResult<PagedResult<AgendaItemDto>>> UpNext(
         [FromQuery] PaginationRequest pagination, CancellationToken ct)
     {
         if (!TryGetUserId(out var userId))

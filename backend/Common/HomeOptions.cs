@@ -14,13 +14,13 @@ public sealed class HomeOptions
     /// <summary>Max news items in the composite read.</summary>
     public int NewsCap { get; set; } = 5;
 
-    /// <summary>Max team-activity items in the composite read.</summary>
+    /// <summary>Max "What's going on" activity entries in the composite read (feature 025).</summary>
     public int ActivityCap { get; set; } = 6;
 
-    /// <summary>Max tournament cards in the composite read.</summary>
-    public int TournamentCap { get; set; } = 3;
+    /// <summary>Max "Needs you" actionable items in the composite read (feature 025).</summary>
+    public int NeedsYouCap { get; set; } = 8;
 
-    /// <summary>Max teams surfaced (snapshots + membership aggregate).</summary>
+    /// <summary>Max teams surfaced (membership aggregate).</summary>
     public int TeamsCap { get; set; } = 12;
 
     /// <summary>Max "Open to everyone" items for the new-player variant.</summary>

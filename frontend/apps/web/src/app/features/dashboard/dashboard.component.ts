@@ -3,21 +3,21 @@ import { ButtonDirective, EmptyStateComponent } from '../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { HomeService } from '../../core/services/home.service';
 import { Home } from '../../core/models/home.models';
+import { NeedsYouCardComponent } from './modules/needs-you-card.component';
 import { UpNextCardComponent } from './modules/up-next-card.component';
 import { NewsListComponent } from './modules/news-list.component';
-import { MarketCardComponent } from './modules/market-card.component';
-import { YourTrainingsCardComponent } from './modules/your-trainings-card.component';
-import { relativeTime, shortDate } from '../../core/utils/format';
+import { ActivityListComponent } from './modules/activity-list.component';
 
 /**
- * Home — the logged-in entry point (feature 008). Loads the composite dashboard and renders an
- * agenda-led layout: Up next (with one-tap RSVP), Your teams activity, News, and Tournaments,
- * plus a desktop right rail. Players on no team get the warm find-a-team variant. Each module
- * owns loading/empty states; a load failure shows a retry rather than blanking the page.
+ * Home — the logged-in entry point (feature 008, reshaped by feature 025). Loads the composite
+ * dashboard and renders a participation-and-action layout, top to bottom: Needs you (actionable),
+ * Up next (unified events + trainings agenda with inline RSVP), News (authored team/event/party),
+ * and What's going on (quiet passive activity). Players on no team get the warm find-a-team variant
+ * plus open-to-everyone. A load failure shows a retry rather than blanking the page.
  */
 @Component({
   selector: 'jh-dashboard',
-  imports: [RouterLink, UpNextCardComponent, NewsListComponent, MarketCardComponent, YourTrainingsCardComponent, ButtonDirective, EmptyStateComponent],
+  imports: [RouterLink, NeedsYouCardComponent, UpNextCardComponent, NewsListComponent, ActivityListComponent, ButtonDirective, EmptyStateComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })
@@ -49,11 +49,8 @@ export class DashboardComponent implements OnInit {
     });
   }
 
-  protected rel(iso: string): string {
-    return relativeTime(iso);
-  }
-
-  protected fixtureDate(iso: string): string {
-    return shortDate(iso);
+  /** A "Needs you" item was resolved in place — refresh the composite so all sections reconcile. */
+  protected onResolved(_id: string): void {
+    this.home.getHome().subscribe({ next: (h) => this.data.set(h) });
   }
 }

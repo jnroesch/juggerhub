@@ -1,7 +1,10 @@
 /**
- * Home dashboard API contracts (feature 008) — mirror of backend Dtos/Home. Read-only;
- * RSVP reuses the event endpoints. Enums arrive as their names.
+ * Home dashboard API contracts (feature 008, reshaped by feature 025) — mirror of backend Dtos/Home.
+ * Read-only; every action reuses the existing per-domain endpoints. Enums arrive as their names.
+ * The composite reads top-to-bottom: Needs you → Up next → News → What's going on.
  */
+
+import { TrainingRsvp } from './trainings.models';
 
 export interface PagedResult<T> {
   items: T[];
@@ -13,7 +16,7 @@ export interface PagedResult<T> {
 export type TeamRole = 'Member' | 'Admin';
 export type ParticipantMode = 'Individuals' | 'Teams';
 export type SignupStatus = 'Joined' | 'AwaitingApproval' | 'Waitlisted';
-export type NewsSource = 'team' | 'event';
+export type NewsSource = 'team' | 'event' | 'party';
 
 export interface ViewerSummary {
   displayName: string;
@@ -32,32 +35,64 @@ export interface TeamGoing {
   name: string;
 }
 
+// ---- Needs you (actionable) ------------------------------------------------
+
+export type NeedsYouKind =
+  | 'TeamInvite'
+  | 'PartyRequest'
+  | 'PartyCoAdminInvite'
+  | 'MarketInvite'
+  | 'MarketApplication';
+
 /**
- * An upcoming agenda item. `viewerSignupId` set ⇒ individuals-mode, viewer is going
- * (toggle to withdraw); all-null individuals item ⇒ RSVP prompt (Open to everyone);
- * `teamGoing` set ⇒ team-mode, read-only "your team is going".
+ * One item awaiting the viewer's response, aggregated from its authoritative source domain.
+ * `id` is the action key passed to the kind's resolving endpoint (invitation token, request id, or
+ * session id); `linkTarget` is the optional navigation target.
  */
-export interface UpNextItem {
-  eventId: string;
+export interface NeedsYouItem {
+  kind: NeedsYouKind;
+  id: string;
   title: string;
-  typeLabel: string;
+  context: string | null;
+  linkTarget: string | null;
+  occurredAt: string;
+}
+
+// ---- Up next (unified agenda) ----------------------------------------------
+
+export type AgendaKind = 'Event' | 'Training';
+
+/**
+ * A unified agenda item. `kind` selects which optional block applies. Event items: individuals-mode
+ * the viewer joined carry `viewerSignupId`+`viewerStatus` (toggle to withdraw); an all-null
+ * individuals item is an RSVP prompt; `teamGoing` set ⇒ team-mode, read-only. Training items carry
+ * `startTime`/`myAnswer`. Near-window un-answered trainings live in Needs you, not here.
+ */
+export interface AgendaItem {
+  kind: AgendaKind;
+  id: string;
+  title: string;
   startsAt: string;
-  endsAt: string;
+  endsAt: string | null;
   locationLabel: string;
-  spotsRemaining: number;
-  participationLimit: number;
-  mode: ParticipantMode;
+
+  // Event-only
+  typeLabel: string | null;
+  spotsRemaining: number | null;
+  participationLimit: number | null;
+  mode: ParticipantMode | null;
   viewerSignupId: string | null;
   viewerStatus: SignupStatus | null;
   teamGoing: TeamGoing | null;
+
+  // Training-only
+  trainingName: string | null;
+  startTime: string | null;
+  isPublicGuest: boolean | null;
+  myAnswer: TrainingRsvp | null;
 }
 
-export interface TeamActivity {
-  teamSlug: string;
-  teamName: string;
-  summary: string;
-  occurredAt: string;
-}
+// ---- News (authored broadcast) ---------------------------------------------
 
 export interface HomeNews {
   source: NewsSource;
@@ -67,33 +102,32 @@ export interface HomeNews {
   createdDate: string;
 }
 
-export interface TournamentCard {
-  eventId: string;
-  name: string;
-  locationLabel: string;
-  startsAt: string;
-  spotsRemaining: number;
+// ---- What's going on (passive activity) ------------------------------------
+
+export type ActivityKind =
+  | 'TeammateJoinedEvent'
+  | 'NewTeamMember'
+  | 'BadgeAwarded'
+  | 'PartyMemberJoined'
+  | 'RoleChanged'
+  | 'TrainingChanged';
+
+/** A passive, read-only "What's going on" entry. No actions. */
+export interface ActivityEntry {
+  kind: ActivityKind;
+  summary: string;
+  linkTarget: string | null;
+  occurredAt: string;
 }
 
-export interface NextFixture {
-  eventId: string;
-  name: string;
-  startsAt: string;
-}
-
-export interface TeamSnapshot {
-  slug: string;
-  name: string;
-  nextFixture: NextFixture | null;
-}
+// ---- Composite -------------------------------------------------------------
 
 export interface Home {
   viewer: ViewerSummary;
   teams: MyTeam[];
-  upNext: UpNextItem[];
-  openToEveryone: UpNextItem[];
-  teamsActivity: TeamActivity[];
+  needsYou: NeedsYouItem[];
+  upNext: AgendaItem[];
+  openToEveryone: AgendaItem[];
   news: HomeNews[];
-  tournaments: TournamentCard[];
-  snapshots: TeamSnapshot[];
+  activity: ActivityEntry[];
 }

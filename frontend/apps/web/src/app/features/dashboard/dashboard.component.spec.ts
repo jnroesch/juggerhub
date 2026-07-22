@@ -6,12 +6,11 @@ import { Home } from '../../core/models/home.models';
 import { DashboardComponent } from './dashboard.component';
 
 const EMPTY: Omit<Home, 'viewer' | 'teams'> = {
+  needsYou: [],
   upNext: [],
   openToEveryone: [],
-  teamsActivity: [],
   news: [],
-  tournaments: [],
-  snapshots: [],
+  activity: [],
 };
 
 describe('DashboardComponent', () => {
@@ -44,11 +43,8 @@ describe('DashboardComponent', () => {
     };
     httpMock.expectOne('/api/v1/home').flush(home);
     f.detectChanges();
-    // The market module (feature 017) mounts with the loaded dashboard and fetches its summary.
-    httpMock.expectOne((r) => r.url === '/api/v1/market/mine').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
-    httpMock.expectOne((r) => r.url === '/api/v1/market/mine/listings').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
-    // …and so does the "Your trainings" agenda (feature 018).
-    httpMock.expectOne((r) => r.url === '/api/v1/me/trainings').flush({ items: [], totalCount: 0, skip: 0, take: 10 });
+    // The reshaped home (feature 025) fetches only the composite — the removed market/trainings
+    // rail modules no longer make their own requests; Needs-you/activity render from inputs.
 
     expect(q(f, 'home-greeting')!.textContent).toContain('Hi Mira');
     expect(q(f, 'up-next')).toBeTruthy();
@@ -64,10 +60,6 @@ describe('DashboardComponent', () => {
     };
     httpMock.expectOne('/api/v1/home').flush(home);
     f.detectChanges();
-    httpMock.expectOne((r) => r.url === '/api/v1/market/mine').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
-    httpMock.expectOne((r) => r.url === '/api/v1/market/mine/listings').flush({ items: [], totalCount: 0, skip: 0, take: 20 });
-    // The "Your trainings" agenda (feature 018) loads for a team-less player too.
-    httpMock.expectOne((r) => r.url === '/api/v1/me/trainings').flush({ items: [], totalCount: 0, skip: 0, take: 10 });
 
     expect(q(f, 'home-greeting')!.textContent).toContain('Welcome, Mira');
     expect(q(f, 'find-a-team')).toBeTruthy();
