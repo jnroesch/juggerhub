@@ -59,6 +59,9 @@ public interface IProfileService
     /// <summary>True iff the user's profile has completed onboarding (<c>OnboardingCompletedAt != null</c>); false if no profile.</summary>
     Task<bool> HasCompletedOnboardingAsync(Guid userId, CancellationToken ct = default);
 
+    /// <summary>The user's immutable handle (their profile slug), or null if they have no profile.</summary>
+    Task<string?> GetHandleAsync(Guid userId, CancellationToken ct = default);
+
     /// <summary>
     /// Mark the owner's onboarding complete. Idempotent: sets the timestamp only if
     /// currently unset, so the first completion stands and repeats are no-ops.
@@ -68,15 +71,22 @@ public interface IProfileService
     /// <summary>Update the owner's editable fields + pompfen selection; null if no profile.</summary>
     Task<OwnerProfileDto?> UpdateAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct = default);
 
-    /// <summary>The public, sensitive-data-free profile for a handle, or null if unknown.</summary>
-    Task<PublicProfileDto?> GetPublicAsync(string handle, CancellationToken ct = default);
+    /// <summary>
+    /// The public, sensitive-data-free profile for a handle, or null if unknown OR hidden from
+    /// this viewer. Visibility gate (feature 026): an anonymous caller (<paramref name="viewerUserId"/>
+    /// is null) sees the profile only when it is public; an authenticated caller sees any profile.
+    /// A private profile therefore returns the SAME null as a missing handle (no existence oracle).
+    /// </summary>
+    Task<PublicProfileDto?> GetPublicAsync(string handle, Guid? viewerUserId, CancellationToken ct = default);
 
-    /// <summary>The internal profile id for a handle (for activity paging), or null if unknown.</summary>
-    Task<Guid?> GetProfileIdAsync(string handle, CancellationToken ct = default);
+    /// <summary>The internal profile id for a handle (for activity paging), or null if unknown OR
+    /// hidden from this viewer (same visibility gate as <see cref="GetPublicAsync"/>).</summary>
+    Task<Guid?> GetProfileIdAsync(string handle, Guid? viewerUserId, CancellationToken ct = default);
 
     /// <summary>Validate (sniff + size) and store the owner's avatar.</summary>
     Task<AvatarSetResult> SetAvatarAsync(Guid userId, byte[] content, string? declaredContentType, CancellationToken ct = default);
 
-    /// <summary>The avatar bytes for a handle, or null if none / unknown handle.</summary>
-    Task<AvatarData?> GetAvatarAsync(string handle, CancellationToken ct = default);
+    /// <summary>The avatar bytes for a handle, or null if none / unknown handle / hidden from this
+    /// viewer (same visibility gate as <see cref="GetPublicAsync"/>).</summary>
+    Task<AvatarData?> GetAvatarAsync(string handle, Guid? viewerUserId, CancellationToken ct = default);
 }

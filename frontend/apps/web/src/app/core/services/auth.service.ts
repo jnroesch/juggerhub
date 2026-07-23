@@ -30,6 +30,12 @@ export class AuthService {
 
   readonly currentUser = computed(() => this.user() ?? null);
   readonly isAuthenticated = computed(() => !!this.user());
+  /**
+   * Raw session state: `undefined` = not yet probed, `null` = known anonymous, `AuthUser` = signed in.
+   * The shell uses this to show its public (Sign in) bar ONLY once we know the visitor is anonymous,
+   * avoiding a nav flash for signed-in users on first load.
+   */
+  readonly userState = this.user.asReadonly();
 
   register(request: RegisterRequest): Observable<MessageResponse> {
     return this.http.post<MessageResponse>(`${this.base}/register`, request);

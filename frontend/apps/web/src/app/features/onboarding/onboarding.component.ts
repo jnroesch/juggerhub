@@ -132,6 +132,9 @@ export class OnboardingComponent implements OnInit {
         hometown: this.blankToNull(this.hometown()),
         description: this.blankToNull(this.description()),
         pompfen: this.selectedPompfen(),
+        // First-login flow (feature 026): profiles start private; visibility is opted into later
+        // from the profile page, never during onboarding.
+        isPublic: false,
       })
       .pipe(
         switchMap(() => {

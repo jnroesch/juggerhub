@@ -15,6 +15,7 @@ const OWNER: OwnerProfile = {
   hasAvatar: false,
   pompfen: ['Stab', 'Schild'],
   recentActivity: [],
+  isPublic: false,
 };
 
 const PUBLIC: PublicProfile = {

@@ -41,7 +41,7 @@ public sealed class MarketplaceTests : PartyTestSupport
     }
 
     [Fact]
-    public async Task Board_is_public_and_filters_by_position()
+    public async Task Board_is_visible_to_signed_in_users_and_filters_by_position()
     {
         var (admin, _, _, _) = await NewUserAsync();
         var (teamId, _) = await CreateTeamAsync(admin);
@@ -49,10 +49,11 @@ public sealed class MarketplaceTests : PartyTestSupport
         var (merc, _, _, _) = await NewUserAsync();
         await PostListingAsync(merc, eventId, "Schild");
 
-        var anon = Factory.CreateClient();
-        var schild = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{eventId}/market/free-agents?position=Schild");
+        // The market board is authenticated-only since feature 026 (event data is never anonymous).
+        var (viewer, _, _, _) = await NewUserAsync();
+        var schild = await viewer.GetFromJsonAsync<JsonElement>($"/api/v1/events/{eventId}/market/free-agents?position=Schild");
         Assert.Equal(1, schild.GetProperty("totalCount").GetInt32());
-        var kette = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{eventId}/market/free-agents?position=Kette");
+        var kette = await viewer.GetFromJsonAsync<JsonElement>($"/api/v1/events/{eventId}/market/free-agents?position=Kette");
         Assert.Equal(0, kette.GetProperty("totalCount").GetInt32());
     }
 

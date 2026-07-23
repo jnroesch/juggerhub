@@ -29,8 +29,9 @@ public sealed class DisplayTests
         await admin.PostAsJsonAsync($"/api/v1/admin/achievements/{achId}/awards",
             new { playerHandle = handle, contextYear = 2026, contextLabel = "Nationals" });
 
-        var anon = _factory.CreateClient();
-        var profile = await (await anon.GetAsync($"/api/v1/profiles/{handle}")).Content.ReadFromJsonAsync<JsonElement>();
+        // Read the public profile as an authenticated viewer (the admin); the public projection
+        // strips the note for every viewer (feature 026 — profiles aren't anonymous by default).
+        var profile = await (await admin.GetAsync($"/api/v1/profiles/{handle}")).Content.ReadFromJsonAsync<JsonElement>();
 
         var badge = profile.GetProperty("badges").EnumerateArray().Single();
         Assert.Equal("Beta Tester", badge.GetProperty("name").GetString());
@@ -44,7 +45,7 @@ public sealed class DisplayTests
 
         // Revoke the badge → it disappears from the public profile.
         await admin.DeleteAsync($"/api/v1/admin/badges/awards/{badgeAwardId}");
-        var after = await (await anon.GetAsync($"/api/v1/profiles/{handle}")).Content.ReadFromJsonAsync<JsonElement>();
+        var after = await (await admin.GetAsync($"/api/v1/profiles/{handle}")).Content.ReadFromJsonAsync<JsonElement>();
         Assert.Empty(after.GetProperty("badges").EnumerateArray());
     }
 
@@ -58,8 +59,8 @@ public sealed class DisplayTests
 
         await admin.PostAsJsonAsync($"/api/v1/admin/badges/{badgeId}/awards", new { teamSlug = slug });
 
-        var anon = _factory.CreateClient();
-        var page = await (await anon.GetAsync($"/api/v1/teams/{slug}/public")).Content.ReadFromJsonAsync<JsonElement>();
+        // Feature 026: the team public view is authenticated-only; read it as the signed-in owner.
+        var page = await (await userClient.GetAsync($"/api/v1/teams/{slug}/public")).Content.ReadFromJsonAsync<JsonElement>();
         var badge = page.GetProperty("badges").EnumerateArray().Single();
         Assert.Equal("Founding club", badge.GetProperty("name").GetString());
     }

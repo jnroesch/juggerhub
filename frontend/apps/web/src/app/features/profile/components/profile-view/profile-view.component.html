@@ -1,0 +1,92 @@
+@let p = profile();
+<div class="grid gap-xl md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]" data-testid="profile-view">
+  <!-- Left column: identity → teams → plays → badges -->
+  <div class="space-y-lg">
+    <header class="flex items-center gap-md">
+      @if (p.avatarUrl; as url) {
+        <img [src]="url" alt="{{ p.displayName }}" class="h-20 w-20 rounded-full border border-border object-cover" />
+      } @else {
+        <div class="grid h-20 w-20 place-items-center rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle">Photo</div>
+      }
+      <div>
+        <h1 class="text-heading-lg font-bold text-ink">{{ p.displayName }}</h1>
+        <p class="text-body-md text-subtle">&#64;{{ p.handle }}</p>
+        @if (p.hometown) {
+          <p class="mt-xs inline-flex items-center gap-xs text-body-sm text-text-muted">
+            <svg class="h-3.5 w-3.5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{{ p.hometown }}
+          </p>
+        }
+      </div>
+    </header>
+
+    @if (p.description) {
+      <p class="text-body-md text-text-muted">{{ p.description }}</p>
+    }
+
+    <hr class="border-border" />
+
+    <!-- Teams -->
+    <section>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Teams · clubs</p>
+      @if (p.teams.length === 0) {
+        <p class="mt-xs text-body-sm text-faint">No teams yet.</p>
+      } @else {
+        <ul class="mt-sm flex flex-wrap gap-xs">
+          @for (t of p.teams; track t.slug) {
+            <li [attr.data-testid]="'profile-team-' + t.slug">
+              <a [routerLink]="['/t', t.slug]"
+                class="inline-flex items-center gap-xs rounded-pill border border-border-strong bg-surface px-md py-xs text-body-sm transition-colors duration-fast hover:bg-surface-sunken">
+                <span class="font-medium text-ink">{{ t.name }}</span>
+                @if (t.city) { <span class="text-subtle">· {{ t.city }}</span> }
+                @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand">admin</span> }
+              </a>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+
+    <hr class="border-border" />
+
+    <!-- Plays -->
+    <section>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Plays</p>
+      @if (p.pompfen.length === 0) {
+        <p class="mt-xs text-body-sm text-faint">No favorites selected yet.</p>
+      } @else {
+        <div class="mt-sm flex flex-wrap gap-xs">
+          @for (pompfe of p.pompfen; track pompfe) {
+            <span class="rounded-pill bg-teal-1 px-md py-xs text-body-sm font-medium text-teal-7" [attr.data-testid]="'profile-pompfe-' + pompfe">
+              {{ labelOf(pompfe)?.de }}
+            </span>
+          }
+        </div>
+      }
+    </section>
+
+    <hr class="border-border" />
+
+    <!-- Badges & achievements (feature 012) -->
+    <jh-recognition-display [badges]="p.badges" [achievements]="p.achievements" />
+  </div>
+
+  <!-- Right column: recent activity -->
+  <section class="md:border-l md:border-border md:pl-xl">
+    <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Recent activity</p>
+    @if (p.recentActivity.length === 0) {
+      <p class="mt-sm text-body-sm text-faint" data-testid="profile-activity-empty">No recent events.</p>
+    } @else {
+      <ul class="mt-sm divide-y divide-border">
+        @for (item of p.recentActivity; track $index) {
+          <li class="flex gap-md py-sm">
+            <span class="w-14 shrink-0 pt-0.5 font-mono text-body-sm text-faint">{{ item.date }}</span>
+            <div>
+              <p class="text-body-md text-ink">{{ item.eventName }}</p>
+              <p class="text-body-sm text-subtle">{{ item.location }} · with {{ item.teamLabel }}</p>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+</div>

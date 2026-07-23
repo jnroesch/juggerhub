@@ -158,12 +158,25 @@ builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection(AdminO
 builder.Services.AddScoped<PlatformAdminRoleSync>();
 builder.Services.AddScoped<IAuthorizationHandler, PlatformAdminHandler>();
 builder.Services.AddAuthorization(options =>
+{
+    // Secure-by-default (feature 026): every endpoint requires an authenticated user
+    // (JWT-in-cookie scheme) UNLESS it carries an explicit [AllowAnonymous]. This closes
+    // the "forgot to authorize" class (OWASP A01) — new endpoints are private by default.
+    // The intentionally-anonymous allowlist is: Auth flows, Health, RecognitionIcons
+    // (icon bytes only), invite previews (Invitations/EventInvitations/PartyInvitations/
+    // Market preview reads), and the visibility-gated public-profile reads
+    // (ProfilesController {handle}, {handle}/avatar, {handle}/activity).
+    options.FallbackPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+        .RequireAuthenticatedUser()
+        .Build();
+
     options.AddPolicy(PlatformAdminPolicy.Name, policy =>
     {
         policy.AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme);
         policy.RequireAuthenticatedUser();
         policy.Requirements.Add(new PlatformAdminRequirement());
-    }));
+    });
+});
 builder.Services.Configure<RecognitionOptions>(builder.Configuration.GetSection(RecognitionOptions.SectionName));
 
 // --- Mapping (Mapster) -----------------------------------------------------
@@ -372,8 +385,10 @@ app.UseMiddleware<ExceptionHandlingMiddleware>();
 // Development-only so the schema/UI is never exposed in Prod.
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference();
+    // Anonymous by intent: the doc endpoints must stay reachable without a session,
+    // otherwise the global FallbackPolicy (feature 026) would 401 them in dev.
+    app.MapOpenApi().AllowAnonymous();
+    app.MapScalarApiReference().AllowAnonymous();
 }
 
 app.UseAuthentication();

@@ -1,5 +1,10 @@
 # Feature Specification: Search / Browse
 
+> **⚠️ Superseded in part by [feature 026](../026-authenticated-only-access/spec.md) (2026-07-22):**
+> player/team/event browse & search are now **authenticated-only** — the "anonymous browse"
+> invariant is reversed. Discovery is direct-link only; there is no anonymous search surface. The
+> filtering/sorting/pagination behavior otherwise stands.
+
 **Feature Branch**: `007-search`
 
 **Created**: 2026-07-07

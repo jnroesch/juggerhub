@@ -111,6 +111,7 @@ describe('OnboardingComponent', () => {
       hometown: 'Berlin',
       description: 'Läufer at heart.',
       pompfen: ['Stab', 'Laeufer'],
+      isPublic: false,
     });
     update.flush(PROFILE);
 
@@ -135,6 +136,7 @@ describe('OnboardingComponent', () => {
       hometown: null,
       description: null,
       pompfen: [],
+      isPublic: false,
     });
     update.flush(PROFILE);
     httpMock.expectOne('/api/v1/profiles/me/onboarding/complete').flush(null);

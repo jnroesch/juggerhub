@@ -33,9 +33,9 @@ public sealed class TeamBrowseTests
         var eventId = await SearchTestSupport.SeedEventAsync(_factory, "Recent Cup " + Rnd(), recent, recent.AddHours(6));
         await SearchTestSupport.AddParticipationAsync(_factory, profileId, eventId, active.Id, "Active FC");
 
-        var anon = _factory.CreateClient();
-        var activeOnly = await SlugsAsync(anon, "/api/v1/teams?activeOnly=true&city=Bremen&take=100");
-        var all = await SlugsAsync(anon, "/api/v1/teams?activeOnly=false&city=Bremen&take=100");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var activeOnly = await SlugsAsync(viewer, "/api/v1/teams?activeOnly=true&city=Bremen&take=100");
+        var all = await SlugsAsync(viewer, "/api/v1/teams?activeOnly=false&city=Bremen&take=100");
 
         Assert.Contains(active.Slug, activeOnly);
         Assert.DoesNotContain(dormant.Slug, activeOnly);
@@ -54,8 +54,8 @@ public sealed class TeamBrowseTests
         var eventId = await SearchTestSupport.SeedEventAsync(_factory, "Old Cup " + Rnd(), old, old.AddHours(6));
         await SearchTestSupport.AddParticipationAsync(_factory, profileId, eventId, team.Id, "Stale FC");
 
-        var anon = _factory.CreateClient();
-        var activeOnly = await SlugsAsync(anon, "/api/v1/teams?activeOnly=true&city=Ulm&take=100");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var activeOnly = await SlugsAsync(viewer, "/api/v1/teams?activeOnly=true&city=Ulm&take=100");
         Assert.DoesNotContain(team.Slug, activeOnly);
     }
 
@@ -65,8 +65,8 @@ public sealed class TeamBrowseTests
         // A brand-new team (created now, no events yet) counts as active (feature 008).
         var fresh = await SearchTestSupport.SeedTeamAsync(_factory, "Fresh FC " + Rnd(), "Trier");
 
-        var anon = _factory.CreateClient();
-        var activeOnly = await SlugsAsync(anon, "/api/v1/teams?activeOnly=true&city=Trier&take=100");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var activeOnly = await SlugsAsync(viewer, "/api/v1/teams?activeOnly=true&city=Trier&take=100");
         Assert.Contains(fresh.Slug, activeOnly);
     }
 
@@ -77,8 +77,8 @@ public sealed class TeamBrowseTests
         var welcoming = await SearchTestSupport.SeedTeamAsync(_factory, "Newbies FC " + Rnd(), city, beginnersWelcome: true);
         var closed = await SearchTestSupport.SeedTeamAsync(_factory, "Vets FC " + Rnd(), city, beginnersWelcome: false);
 
-        var anon = _factory.CreateClient();
-        var beginners = await SlugsAsync(anon, $"/api/v1/teams?activeOnly=false&beginnersWelcome=true&city={city}&take=100");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var beginners = await SlugsAsync(viewer, $"/api/v1/teams?activeOnly=false&beginnersWelcome=true&city={city}&take=100");
 
         Assert.Contains(welcoming.Slug, beginners);
         Assert.DoesNotContain(closed.Slug, beginners);
@@ -88,11 +88,11 @@ public sealed class TeamBrowseTests
     public async Task Search_is_accent_and_case_insensitive_over_name_and_city()
     {
         var team = await SearchTestSupport.SeedTeamAsync(_factory, "Kölner Kettenhunde " + Rnd(), "Köln");
-        var anon = _factory.CreateClient();
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
 
         foreach (var q in new[] { "koln", "KÖLN", "kölner", "KOLNER" })
         {
-            var slugs = await SlugsAsync(anon, $"/api/v1/teams?activeOnly=false&q={Uri.EscapeDataString(q)}&take=100");
+            var slugs = await SlugsAsync(viewer, $"/api/v1/teams?activeOnly=false&q={Uri.EscapeDataString(q)}&take=100");
             Assert.Contains(team.Slug, slugs);
         }
     }
@@ -105,8 +105,8 @@ public sealed class TeamBrowseTests
             await SearchTestSupport.SeedTeamAsync(_factory, $"Page FC {Rnd()}", "Aachen");
         }
 
-        var anon = _factory.CreateClient();
-        var resp = await anon.GetAsync("/api/v1/teams?activeOnly=false&city=Aachen&take=2");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var resp = await viewer.GetAsync("/api/v1/teams?activeOnly=false&city=Aachen&take=2");
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
         var page = await resp.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(2, page.GetProperty("take").GetInt32());
@@ -128,8 +128,8 @@ public sealed class TeamBrowseTests
         var patch = await admin.PatchAsJsonAsync($"/api/v1/teams/{slug}", new { beginnersWelcome = true });
         Assert.Equal(HttpStatusCode.NoContent, patch.StatusCode);
 
-        var anon = _factory.CreateClient();
-        var beginners = await SlugsAsync(anon, "/api/v1/teams?activeOnly=false&beginnersWelcome=true&city=Trier&take=100");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var beginners = await SlugsAsync(viewer, "/api/v1/teams?activeOnly=false&beginnersWelcome=true&city=Trier&take=100");
         Assert.Contains(slug, beginners);
     }
 

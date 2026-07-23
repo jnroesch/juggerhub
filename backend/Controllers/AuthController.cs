@@ -39,6 +39,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request, CancellationToken ct)
     {
         var result = await _auth.RegisterAsync(request, ct);
@@ -65,6 +66,7 @@ public sealed class AuthController : ControllerBase
         => Ok(await _profiles.CheckHandleAsync(handle ?? string.Empty, ct));
 
     [HttpPost("verify-email")]
+    [AllowAnonymous]
     public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequest request, CancellationToken ct)
     {
         var ok = await _auth.VerifyEmailAsync(request, ct);
@@ -75,6 +77,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("resend-verification")]
+    [AllowAnonymous]
     public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationRequest request, CancellationToken ct)
     {
         await _auth.ResendVerificationAsync(request, ct);
@@ -82,6 +85,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginRequest request, CancellationToken ct)
     {
         var result = await _auth.LoginAsync(request, ClientIp, ct);
@@ -101,6 +105,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
+    [AllowAnonymous]
     public async Task<IActionResult> Refresh(CancellationToken ct)
     {
         Request.Cookies.TryGetValue(AuthCookieDefaults.RefreshTokenCookie, out var raw);
@@ -117,6 +122,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("logout")]
+    [AllowAnonymous]
     public async Task<IActionResult> Logout(CancellationToken ct)
     {
         // Anonymous on purpose: an expired access token must not prevent sign-out.
@@ -127,6 +133,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("forgot-password")]
+    [AllowAnonymous]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request, CancellationToken ct)
     {
         await _auth.ForgotPasswordAsync(request, ct);
@@ -134,6 +141,7 @@ public sealed class AuthController : ControllerBase
     }
 
     [HttpPost("reset-password")]
+    [AllowAnonymous]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request, CancellationToken ct)
     {
         var result = await _auth.ResetPasswordAsync(request, ClientIp, ct);

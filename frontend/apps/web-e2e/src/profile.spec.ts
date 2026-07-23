@@ -59,18 +59,21 @@ test('register with handle → edit profile → public page hides email', async 
   // bounces it back to /sign-in.
   await expect(page).toHaveURL(/onboarding/);
 
-  // 3. Edit the profile.
-  await page.goto('/profile');
+  // 3. Edit the profile — one URL for your own profile is your slug (/u/<handle>), owner view.
+  await page.goto(`/u/${handle}`);
   await expect(page.getByTestId('profile-owner')).toBeVisible();
   await page.getByTestId('profile-edit').click();
   await page.getByTestId('profile-displayname').fill('Nik Berlin');
   await page.getByTestId('profile-hometown').fill('Berlin');
   await page.getByTestId('pompfe-Stab').click();
   await page.getByTestId('pompfe-Laeufer').click();
+  // Feature 026: opt the profile into public so a signed-out visitor can see it below
+  // (profiles are private by default).
+  await page.getByTestId('profile-ispublic').check();
   await page.getByTestId('profile-save').click();
   await expect(page.getByTestId('profile-saved')).toBeVisible();
 
-  // 4. Public page, signed out: shows the profile but never the email (SC-002).
+  // 4. Same URL, signed out: shows the public profile but never the email (SC-002).
   await page.context().clearCookies();
   const apiResponse = await request.get(`/api/v1/profiles/${handle}`);
   expect(apiResponse.ok()).toBeTruthy();
@@ -80,5 +83,6 @@ test('register with handle → edit profile → public page hides email', async 
   await expect(page.getByTestId('profile-public')).toContainText('Nik Berlin');
   await expect(page.getByTestId('profile-public')).toContainText(`@${handle}`);
   await expect(page.locator('body')).not.toContainText(email);
-  await page.getByTestId('copy-link').click();
+  // Signed-out visitors get the shell's public bar, not the full nav.
+  await expect(page.getByTestId('public-top-bar')).toBeVisible();
 });

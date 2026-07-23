@@ -33,6 +33,8 @@ export interface OwnerProfile {
   /** Feature 012 — earned badges & achievements. */
   badges: EarnedRecognition[];
   achievements: EarnedRecognition[];
+  /** Feature 026 — whether the owner has made their profile anonymously viewable by link. */
+  isPublic: boolean;
 }
 
 export interface PublicProfile {
@@ -54,6 +56,27 @@ export interface UpdateProfileRequest {
   hometown: string | null;
   description: string | null;
   pompfen: Pompfe[];
+  /** Feature 026 — owner-controlled anonymous visibility (default private). */
+  isPublic: boolean;
+}
+
+/**
+ * Normalized, read-only profile for the shared presentational view (feature 026). Both the owner's
+ * own profile and another player's profile map to this, so they render through one component and
+ * can never drift apart in structure/styling.
+ */
+export interface ProfileView {
+  handle: string;
+  displayName: string;
+  hometown: string | null;
+  description: string | null;
+  /** Resolved avatar URL (with a cache-buster for the owner after an upload); null if none. */
+  avatarUrl: string | null;
+  pompfen: Pompfe[];
+  teams: ProfileTeam[];
+  recentActivity: ActivityItem[];
+  badges: EarnedRecognition[];
+  achievements: EarnedRecognition[];
 }
 
 export interface HandleAvailability {

@@ -126,7 +126,10 @@ public sealed class TeamTests
         Assert.Equal(HttpStatusCode.NotFound, (await outsider.GetAsync($"/api/v1/teams/{slug}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await outsider.GetAsync($"/api/v1/teams/{slug}/members")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await outsider.GetAsync($"/api/v1/teams/{slug}/news")).StatusCode);
-        Assert.Equal(HttpStatusCode.OK, (await anon.GetAsync($"/api/v1/teams/{slug}/public")).StatusCode);
+        // The limited "public" view is visible to an authenticated non-member, but anonymous
+        // callers are refused entirely (feature 026 — teams are never anonymous).
+        Assert.Equal(HttpStatusCode.OK, (await outsider.GetAsync($"/api/v1/teams/{slug}/public")).StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await anon.GetAsync($"/api/v1/teams/{slug}/public")).StatusCode);
     }
 
     [Fact]
@@ -347,7 +350,8 @@ public sealed class TeamTests
         var del = await admin.DeleteAsync($"/api/v1/teams/{slug}");
         Assert.Equal(HttpStatusCode.NoContent, del.StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await admin.GetAsync($"/api/v1/teams/{slug}")).StatusCode);
-        Assert.Equal(HttpStatusCode.NotFound, (await _factory.CreateClient().GetAsync($"/api/v1/teams/{slug}/public")).StatusCode);
+        // Authenticated read of the deleted team's public view → 404 (anon would be 401, masking the 404).
+        Assert.Equal(HttpStatusCode.NotFound, (await admin.GetAsync($"/api/v1/teams/{slug}/public")).StatusCode);
     }
 
     [Fact]
@@ -378,7 +382,9 @@ public sealed class TeamTests
         Assert.Equal("Admin", team.GetProperty("role").GetString());
         Assert.Equal("Rheinfeuer", team.GetProperty("name").GetString());
 
-        var pub = await _factory.CreateClient().GetFromJsonAsync<JsonElement>($"/api/v1/profiles/{handle}");
+        // Read the public profile as the authenticated owner (feature 026 — profiles aren't anonymous
+        // by default; an authenticated caller sees any profile).
+        var pub = await client.GetFromJsonAsync<JsonElement>($"/api/v1/profiles/{handle}");
         var publicTeams = pub.GetProperty("teams").EnumerateArray()
             .Select(t => t.GetProperty("slug").GetString()).ToArray();
         Assert.Contains(slug, publicTeams);

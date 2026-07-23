@@ -16,7 +16,9 @@ public sealed record UpdateProfileRequest(
     [Required, MaxLength(50)] string DisplayName,
     [MaxLength(80)] string? Hometown,
     [MaxLength(280)] string? Description,
-    Pompfe[]? Pompfen);
+    Pompfe[]? Pompfen,
+    // Feature 026 — owner-controlled anonymous visibility (default private).
+    bool IsPublic = false);
 
 /// <summary>One recent-activity item: an event the player took part in, with team.</summary>
 public sealed record ActivityItemDto(string EventName, DateOnly Date, string Location, string TeamLabel);
@@ -39,7 +41,9 @@ public sealed record OwnerProfileDto(
     IReadOnlyList<ProfileTeamDto> Teams,
     // Feature 012 — earned badges & achievements (active only).
     IReadOnlyList<EarnedRecognitionDto> Badges,
-    IReadOnlyList<EarnedRecognitionDto> Achievements);
+    IReadOnlyList<EarnedRecognitionDto> Achievements,
+    // Feature 026 — whether the owner has made their profile anonymously viewable.
+    bool IsPublic);
 
 /// <summary>
 /// The public profile served anonymously at <c>/u/&lt;handle&gt;</c>. MUST NOT

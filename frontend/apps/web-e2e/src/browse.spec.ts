@@ -1,11 +1,17 @@
 import { expect, test } from '@playwright/test';
+import { registerVerifySignIn } from './support/auth';
 
 /**
  * Search / Browse (feature 007). The three pages share one shell, so these checks assert the
  * common controls on all three, then exercise the filter panel, the no-results state, and the
- * players opt-in note. Browse is anonymous, so no sign-in is needed. Runs at the desktop and
- * mobile projects from playwright.config.mts (sheet on mobile, drawer on desktop).
+ * players list note. Browse is authenticated-only since feature 026, so each test signs in first.
+ * Runs at the desktop and mobile projects from playwright.config.mts (sheet on mobile, drawer on desktop).
  */
+
+// Browse requires a session (feature 026) — sign in before each test.
+test.beforeEach(async ({ page, request }) => {
+  await registerVerifySignIn(page, request);
+});
 
 const pages = [
   { path: '/browse/teams', title: 'Teams' },

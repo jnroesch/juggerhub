@@ -135,30 +135,35 @@ public sealed class EventTests
     // --- US2: public page -----------------------------------------------------
 
     [Fact]
-    public async Task Public_event_detail_is_readable_anonymously()
+    public async Task Event_detail_is_readable_to_signed_in_users_but_not_anonymously()
     {
         var (creator, _, _, _) = await NewUserAsync();
         var id = await CreateEventAsync(creator, ValidInPersonPaidTeams());
 
-        var anon = _factory.CreateClient();
-        var resp = await anon.GetAsync($"/api/v1/events/{id}");
-
+        // Feature 026: event data is authenticated-only. A signed-in non-admin viewer reads it;
+        // an anonymous caller is refused.
+        var (viewer, _, _, _) = await NewUserAsync();
+        var resp = await viewer.GetAsync($"/api/v1/events/{id}");
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await _factory.CreateClient().GetAsync($"/api/v1/events/{id}")).StatusCode);
+
         var dto = await resp.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("Berlin Cup", dto.GetProperty("name").GetString());
         Assert.Equal("Deutschland", dto.GetProperty("country").GetString());
         Assert.Equal("DE89370400440532013000", dto.GetProperty("feeIban").GetString());
-        var viewer = dto.GetProperty("viewer");
-        Assert.False(viewer.GetProperty("isAuthenticated").GetBoolean());
-        Assert.False(viewer.GetProperty("isAdmin").GetBoolean());
+        var v = dto.GetProperty("viewer");
+        Assert.True(v.GetProperty("isAuthenticated").GetBoolean());
+        Assert.False(v.GetProperty("isAdmin").GetBoolean());
     }
 
     [Fact]
     public async Task Unknown_event_detail_is_404()
     {
-        var anon = _factory.CreateClient();
+        // Authenticated (anonymous would be 401, masking the 404).
+        var (viewer, _, _, _) = await NewUserAsync();
 
-        var resp = await anon.GetAsync($"/api/v1/events/{Guid.NewGuid()}");
+        var resp = await viewer.GetAsync($"/api/v1/events/{Guid.NewGuid()}");
 
         Assert.Equal(HttpStatusCode.NotFound, resp.StatusCode);
     }
@@ -177,20 +182,25 @@ public sealed class EventTests
     }
 
     [Fact]
-    public async Task Participant_groups_are_public_and_start_empty()
+    public async Task Participant_groups_are_readable_to_signed_in_users_and_start_empty()
     {
         var (creator, _, _, _) = await NewUserAsync();
         var id = await CreateEventAsync(creator, ValidVirtualFreeIndividuals());
-        var anon = _factory.CreateClient();
+        // Feature 026: participant lists are authenticated-only.
+        var (viewer, _, _, _) = await NewUserAsync();
 
-        var joined = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/participants?group=joined");
+        var joined = await viewer.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/participants?group=joined");
         Assert.Equal(0, joined.GetProperty("totalCount").GetInt32());
 
-        var bad = await anon.GetAsync($"/api/v1/events/{id}/participants?group=nope");
+        var bad = await viewer.GetAsync($"/api/v1/events/{id}/participants?group=nope");
         Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
 
-        var unknown = await anon.GetAsync($"/api/v1/events/{Guid.NewGuid()}/participants?group=joined");
+        var unknown = await viewer.GetAsync($"/api/v1/events/{Guid.NewGuid()}/participants?group=joined");
         Assert.Equal(HttpStatusCode.NotFound, unknown.StatusCode);
+
+        var anon = _factory.CreateClient();
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await anon.GetAsync($"/api/v1/events/{id}/participants?group=joined")).StatusCode);
     }
 
     // --- US3: sign up ---------------------------------------------------------
@@ -293,7 +303,7 @@ public sealed class EventTests
         var withdraw = await u.DeleteAsync($"/api/v1/events/{id}/signup/{signupId}");
         Assert.Equal(HttpStatusCode.NoContent, withdraw.StatusCode);
 
-        var anon = _factory.CreateClient();
+        var (anon, _, _, _) = await NewUserAsync();
         var joined = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/participants?group=joined");
         Assert.Equal(0, joined.GetProperty("totalCount").GetInt32());
     }
@@ -327,7 +337,7 @@ public sealed class EventTests
             c.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null })));
         Assert.All(results, r => Assert.Equal(HttpStatusCode.Created, r.StatusCode));
 
-        var anon = _factory.CreateClient();
+        var (anon, _, _, _) = await NewUserAsync();
         var joined = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/participants?group=joined");
         var waitlist = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/participants?group=waitlist");
 
@@ -430,7 +440,7 @@ public sealed class EventTests
         var post = await org.PostAsJsonAsync($"/api/v1/events/{id}/news", new { body = "First whistle 10:00 sharp." });
         Assert.Equal(HttpStatusCode.Created, post.StatusCode);
 
-        var anon = _factory.CreateClient();
+        var (anon, _, _, _) = await NewUserAsync();
         var feed = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/news");
         Assert.Equal(1, feed.GetProperty("totalCount").GetInt32());
         Assert.Equal("First whistle 10:00 sharp.", feed.GetProperty("items")[0].GetProperty("body").GetString());
@@ -445,7 +455,7 @@ public sealed class EventTests
     {
         var (org, _, _, _) = await NewUserAsync();
         var id = await CreateEventAsync(org, IndividualsFree(4));
-        var anon = _factory.CreateClient();
+        var (anon, _, _, _) = await NewUserAsync();
 
         var feed = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/news");
 
@@ -465,7 +475,7 @@ public sealed class EventTests
         Assert.Equal(HttpStatusCode.Created, add.StatusCode);
         var contactId = (await add.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
 
-        var anon = _factory.CreateClient();
+        var (anon, _, _, _) = await NewUserAsync();
         var list = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}/contacts");
         Assert.Equal(1, list.GetProperty("totalCount").GetInt32());
 
@@ -531,8 +541,9 @@ public sealed class EventTests
         Assert.NotNull(mail);
         var token = ExtractInviteToken(mail!.HtmlBody);
 
-        var anon = _factory.CreateClient();
-        var preview = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/event-invitations/{token}");
+        // Invite preview stays anonymous (accept-flow allowlist), so read it without a session.
+        var anonPreview = _factory.CreateClient();
+        var preview = await anonPreview.GetFromJsonAsync<JsonElement>($"/api/v1/event-invitations/{token}");
         Assert.Equal("Usable", preview.GetProperty("state").GetString());
 
         var accept = await target.PostAsync($"/api/v1/event-invitations/{token}/accept", null);
@@ -592,7 +603,7 @@ public sealed class EventTests
         var again = await u2.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
         Assert.Equal(HttpStatusCode.Conflict, again.StatusCode);
 
-        var detail = await _factory.CreateClient().GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}");
+        var detail = await org.GetFromJsonAsync<JsonElement>($"/api/v1/events/{id}");
         Assert.Equal("Cancelled", detail.GetProperty("status").GetString());
     }
 

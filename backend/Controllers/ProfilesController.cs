@@ -18,14 +18,18 @@ using Microsoft.AspNetCore.Mvc;
 namespace JuggerHub.Controllers;
 
 /// <summary>
-/// Player-profile endpoints. Owner routes (<c>/me*</c>) require the JWT-in-cookie
-/// scheme and act ONLY on the authenticated subject (never a client-supplied id).
-/// Public routes (<c>/{handle}*</c>) are anonymous by design and return DTOs that
-/// carry no email/account/security data (constitution Principle I; SC-002).
+/// Player-profile endpoints. The controller requires authentication by default (feature 026);
+/// owner routes (<c>/me*</c>) act ONLY on the authenticated subject (never a client-supplied id).
+/// The public-profile routes (<c>/{handle}*</c>) are the sole <see cref="AllowAnonymousAttribute"/>
+/// exception: they are visibility-gated in the service so an anonymous caller sees a profile only
+/// when its owner opted it public (else the same 404 as a missing handle — no existence oracle),
+/// while an authenticated caller may view any profile. They return DTOs that carry no
+/// email/account/security data (constitution Principle I; SC-002).
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
 [Route("api/v{version:apiVersion}/profiles")]
+[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
 public sealed class ProfilesController : ControllerBase
 {
     private readonly IProfileService _profiles;
@@ -47,11 +51,10 @@ public sealed class ProfilesController : ControllerBase
 
     // --- Browse (public) ------------------------------------------------------
 
-    /// <summary>Anonymous player browse/search (feature 007). Returns every non-banned player
-    /// matching the query (banned accounts are excluded globally; the per-player search opt-in
-    /// was removed in feature 020). Public card fields only.</summary>
+    /// <summary>Player browse/search (feature 007; authenticated-only since feature 026). Returns
+    /// every non-banned player matching the query (banned accounts are excluded globally; the
+    /// per-player search opt-in was removed in feature 020). Public card fields only.</summary>
     [HttpGet]
-    [AllowAnonymous]
     public async Task<ActionResult<PagedResult<PlayerCardDto>>> Browse(
         [FromQuery] PlayerBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
         Ok(await _search.BrowseAsync(query, pagination, ct));
@@ -165,7 +168,7 @@ public sealed class ProfilesController : ControllerBase
     [AllowAnonymous]
     public async Task<ActionResult<PublicProfileDto>> GetPublic(string handle, CancellationToken ct)
     {
-        var profile = await _profiles.GetPublicAsync(handle, ct);
+        var profile = await _profiles.GetPublicAsync(handle, GetOptionalUserId(), ct);
         return profile is null
             ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Profile not found",
                 detail: "No profile exists for that handle.")
@@ -176,7 +179,7 @@ public sealed class ProfilesController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> GetAvatar(string handle, CancellationToken ct)
     {
-        var avatar = await _profiles.GetAvatarAsync(handle, ct);
+        var avatar = await _profiles.GetAvatarAsync(handle, GetOptionalUserId(), ct);
         return avatar is null ? NotFound() : File(avatar.Value.Bytes, avatar.Value.ContentType);
     }
 
@@ -185,7 +188,7 @@ public sealed class ProfilesController : ControllerBase
     public async Task<ActionResult<PagedResult<ActivityItemDto>>> GetActivity(
         string handle, [FromQuery] PaginationRequest pagination, CancellationToken ct)
     {
-        var profileId = await _profiles.GetProfileIdAsync(handle, ct);
+        var profileId = await _profiles.GetProfileIdAsync(handle, GetOptionalUserId(), ct);
         if (profileId is null)
         {
             return Problem(statusCode: StatusCodes.Status404NotFound, title: "Profile not found",
@@ -204,4 +207,9 @@ public sealed class ProfilesController : ControllerBase
             ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
         return Guid.TryParse(subject, out userId);
     }
+
+    /// <summary>The caller's id when a valid auth cookie is present; null for an anonymous caller.
+    /// Used by the public-profile reads to apply the visibility gate (feature 026): an anonymous
+    /// caller sees only public profiles; an authenticated caller sees any.</summary>
+    private Guid? GetOptionalUserId() => TryGetUserId(out var userId) ? userId : null;
 }

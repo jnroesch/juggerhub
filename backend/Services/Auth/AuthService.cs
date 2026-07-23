@@ -332,7 +332,12 @@ public sealed class AuthService : IAuthService
     /// is resolved by a lightweight projection rather than via Mapster (research §3).
     /// </summary>
     private async Task<AuthUserDto> ToAuthUserDtoAsync(User user, CancellationToken ct) =>
-        user.Adapt<AuthUserDto>() with { OnboardingCompleted = await _profiles.HasCompletedOnboardingAsync(user.Id, ct) };
+        user.Adapt<AuthUserDto>() with
+        {
+            OnboardingCompleted = await _profiles.HasCompletedOnboardingAsync(user.Id, ct),
+            // The handle (profile slug) powers the frontend's own-profile link + owner detection (feature 026).
+            Handle = await _profiles.GetHandleAsync(user.Id, ct) ?? string.Empty,
+        };
 
     private async Task<IssuedTokens> IssueTokensAsync(User user, bool rememberMe, string? ip, Guid? familyId, CancellationToken ct)
     {

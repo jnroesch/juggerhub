@@ -12,6 +12,11 @@ export interface AuthUser {
    * `/onboarding`. UX-only; the server is the authority for the gate.
    */
   onboardingCompleted: boolean;
+  /**
+   * The signed-in user's immutable handle / profile slug (feature 026). Powers the
+   * link to their own profile (`/u/<handle>`) and owner detection on the profile page.
+   */
+  handle: string;
 }
 
 export interface RegisterRequest {

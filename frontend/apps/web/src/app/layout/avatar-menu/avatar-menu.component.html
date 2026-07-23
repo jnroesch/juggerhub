@@ -43,7 +43,7 @@
         Create team
       </a>
       <a
-        routerLink="/profile"
+        [routerLink]="['/u', user()?.handle]"
         role="menuitem"
         class="block px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
         (click)="close()"
