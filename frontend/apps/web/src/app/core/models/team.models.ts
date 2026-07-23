@@ -56,6 +56,7 @@ export interface PublicMember {
 
 /** The public team page (feature 009). */
 export interface TeamPublicDetail {
+  id: string;
   slug: string;
   name: string;
   type: TeamType;

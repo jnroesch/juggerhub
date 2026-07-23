@@ -125,6 +125,21 @@ public sealed record UnreadCountDto(int UnreadCount);
 /// </summary>
 public sealed record DirectMessageSentDto(ConversationSummaryDto Conversation, MessageDto Message);
 
+/// <summary>
+/// Result of sending the first message to a team's/event's admins (feature 027 — contact the admins):
+/// the inquiry conversation that now exists (created if it didn't) plus the message that was sent.
+/// Same shape and reasoning as <see cref="DirectMessageSentDto"/> — the full summary lets the client
+/// drop the new thread into the inbox rail without a reload.
+/// </summary>
+public sealed record InquiryMessageSentDto(ConversationSummaryDto Conversation, MessageDto Message);
+
+/// <summary>
+/// Whether the caller already has an inquiry thread for a given team/event (feature 027). Lets the
+/// "Contact admins" button deep-link into an existing thread instead of opening a fresh compose.
+/// <see cref="ConversationId"/> is null when none exists yet. Reveals only the caller's own thread.
+/// </summary>
+public sealed record InquiryThreadRefDto(Guid? ConversationId);
+
 // --- Requests -------------------------------------------------------------------------------
 
 /// <summary>Start a chat: exactly one participant ⇒ a direct conversation; two or more ⇒ a named group.</summary>

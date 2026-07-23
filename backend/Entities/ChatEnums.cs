@@ -27,6 +27,23 @@ public enum ConversationKind
 
     /// <summary>The auto-created chat for an event party (feature 016); membership mirrors the party roster. Tagged PARTY.</summary>
     Party = 3,
+
+    /// <summary>
+    /// A player's "contact the admins" thread for a team (feature 027). A <b>mirrored</b> kind like
+    /// <see cref="Team"/>: membership is derived, never stored — the fixed requester
+    /// (<see cref="Conversation.RequesterUserId"/>) plus whoever currently holds
+    /// <see cref="TeamRole.Admin"/> on the target team (<see cref="Conversation.TeamId"/>). Tagged
+    /// ADMINS. At most one per (requester, team). Named "Inquiry" rather than "Contact" to avoid a clash
+    /// with the unrelated <see cref="EventContact"/> entity (feature 006).
+    /// </summary>
+    TeamInquiry = 4,
+
+    /// <summary>
+    /// A player's "contact the admins" thread for an event (feature 027). Mirrored like
+    /// <see cref="TeamInquiry"/>, but the roster is the event's <see cref="EventAdmin"/> set and the
+    /// target is <see cref="Conversation.EventId"/>. Tagged ADMINS. At most one per (requester, event).
+    /// </summary>
+    EventInquiry = 5,
 }
 
 /// <summary>

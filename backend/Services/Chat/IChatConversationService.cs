@@ -32,6 +32,31 @@ public interface IChatConversationService
         string body,
         CancellationToken ct = default);
 
+    /// <summary>
+    /// Send the first message to a team's or event's admins, creating the inquiry thread if none exists
+    /// yet (feature 027 — contact the admins). <paramref name="kind"/> must be
+    /// <see cref="Entities.ConversationKind.TeamInquiry"/> or
+    /// <see cref="Entities.ConversationKind.EventInquiry"/>; <paramref name="targetId"/> is the team or
+    /// event id. Rejects a caller who already administers the target (FR-002). Race-safe: concurrent
+    /// first sends resolve to a single thread per (requester, target).
+    /// </summary>
+    Task<ChatResult<InquiryMessageSentDto>> SendFirstInquiryAsync(
+        Guid callerId,
+        Entities.ConversationKind kind,
+        Guid targetId,
+        string body,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// The caller's existing inquiry thread id for a team/event, or null. Never creates anything; used
+    /// by the "Contact admins" entry point to reuse a thread rather than open a fresh compose (FR-004).
+    /// </summary>
+    Task<Guid?> FindInquiryThreadAsync(
+        Guid callerId,
+        Entities.ConversationKind kind,
+        Guid targetId,
+        CancellationToken ct = default);
+
     /// <summary>The caller's inbox, most recently active first. Excludes hidden and blocked-counterpart DMs.</summary>
     Task<PagedResult<ConversationSummaryDto>> GetInboxAsync(
         Guid callerId,
@@ -106,4 +131,10 @@ public interface IChatConversationService
 
     /// <summary>Archive a party's chat before the party row is hard-deleted (data-model R3a).</summary>
     Task ArchiveForPartyAsync(Guid partyId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Archive every inquiry thread addressed to an event when it is cancelled (feature 027). Snapshot,
+    /// not a flag — see <see cref="ArchiveForTeamAsync"/> (data-model R3a).
+    /// </summary>
+    Task ArchiveInquiriesForEventAsync(Guid eventId, CancellationToken ct = default);
 }

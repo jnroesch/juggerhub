@@ -17,7 +17,13 @@
       <h1 class="truncate text-body-lg font-semibold text-heading" data-testid="compose-recipient">
         {{ displayName() || ('@' + handle()) }}
       </h1>
-      <span class="block truncate text-body-sm text-muted">New message · &#64;{{ handle() }}</span>
+      <span class="block truncate text-body-sm text-muted">
+        @if (mode() === 'direct') {
+          New message · &#64;{{ handle() }}
+        } @else {
+          New message · Admins
+        }
+      </span>
     </span>
   </header>
 

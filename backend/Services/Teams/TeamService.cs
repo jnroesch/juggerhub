@@ -236,7 +236,7 @@ public sealed class TeamService : ITeamService
             .ToList();
 
         var recognitions = await _recognitions.ForTeamAsync(team.Id, ct);
-        return new TeamPublicDetailDto(team.Slug, team.Name, team.Type, team.City, team.MemberCount,
+        return new TeamPublicDetailDto(team.Id, team.Slug, team.Name, team.Type, team.City, team.MemberCount,
             team.BeginnersWelcome, team.IsActive, relation, roster, activity,
             recognitions.Badges, recognitions.Achievements);
     }

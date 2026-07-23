@@ -11,6 +11,8 @@ import {
   Conversation,
   ConversationDetail,
   DirectMessageSent,
+  InquiryMessageSent,
+  InquiryThreadRef,
   MessagePage,
   TypingSignal,
 } from '../models/chat.models';
@@ -141,6 +143,34 @@ export class ChatService {
       .post<DirectMessageSent>(`${this.base}/direct/${targetUserId}/messages`, { body })
       // Drop the new thread into the inbox rail immediately (mirrors start()), so it shows without a reload.
       .pipe(tap((r) => this.upsertConversation(r.conversation)));
+  }
+
+  /**
+   * Send the FIRST message to a team's admins, creating the inquiry thread on the fly (feature 027 —
+   * contact the admins). Like {@link sendDirect}, opening the entry point persists nothing; only this
+   * call creates the thread. Returns the (possibly newly created) conversation + message.
+   */
+  sendInquiryToTeam(teamId: string, body: string): Observable<InquiryMessageSent> {
+    return this.http
+      .post<InquiryMessageSent>(`${this.base}/contact/team/${teamId}/messages`, { body })
+      .pipe(tap((r) => this.upsertConversation(r.conversation)));
+  }
+
+  /** Send the FIRST message to an event's admins (feature 027). See {@link sendInquiryToTeam}. */
+  sendInquiryToEvent(eventId: string, body: string): Observable<InquiryMessageSent> {
+    return this.http
+      .post<InquiryMessageSent>(`${this.base}/contact/event/${eventId}/messages`, { body })
+      .pipe(tap((r) => this.upsertConversation(r.conversation)));
+  }
+
+  /** The caller's existing inquiry thread id for a team, or null (feature 027). Creates nothing. */
+  findTeamInquiry(teamId: string): Observable<InquiryThreadRef> {
+    return this.http.get<InquiryThreadRef>(`${this.base}/contact/team/${teamId}`);
+  }
+
+  /** The caller's existing inquiry thread id for an event, or null (feature 027). Creates nothing. */
+  findEventInquiry(eventId: string): Observable<InquiryThreadRef> {
+    return this.http.get<InquiryThreadRef>(`${this.base}/contact/event/${eventId}`);
   }
 
   addMembers(conversationId: string, userIds: string[]): Observable<void> {

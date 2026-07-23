@@ -4,13 +4,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace JuggerHub.Services.Chat;
 
-/// <summary>A caller's resolved access to a single conversation (feature 019).</summary>
+/// <summary>A caller's resolved access to a single conversation (feature 019, extended feature 027).</summary>
 public readonly record struct ChatAccess(
     Guid ConversationId,
     ConversationKind Kind,
     ConversationState State,
     Guid? TeamId,
-    Guid? PartyId)
+    Guid? PartyId,
+    Guid? EventId = null,
+    Guid? RequesterUserId = null)
 {
     /// <summary>Archived conversations are readable but closed to writes (spec FR-027).</summary>
     public bool IsArchived => State == ConversationState.Archived;
@@ -20,6 +22,9 @@ public readonly record struct ChatAccess(
 
     /// <summary>Blocks apply to direct conversations and nothing else (spec FR-032).</summary>
     public bool IsDirect => Kind == ConversationKind.Direct;
+
+    /// <summary>A "contact the admins" thread for a team or event (feature 027). Mirrored membership.</summary>
+    public bool IsInquiry => Kind is ConversationKind.TeamInquiry or ConversationKind.EventInquiry;
 }
 
 /// <summary>
@@ -74,6 +79,14 @@ public sealed class ChatGuard
                 ? c.Participants.Any(p => p.UserId == userId && p.LeftDate == null)
             : c.Kind == ConversationKind.Team
                 ? db.TeamMemberships.Any(m => m.TeamId == c.TeamId && m.UserId == userId)
+            // Inquiry threads (feature 027): the fixed requester, or whoever currently administers the
+            // target. Derived live, so a granted/revoked admin gains/loses the thread by construction.
+            : c.Kind == ConversationKind.TeamInquiry
+                ? c.RequesterUserId == userId
+                    || db.TeamMemberships.Any(m => m.TeamId == c.TeamId && m.UserId == userId && m.Role == TeamRole.Admin)
+            : c.Kind == ConversationKind.EventInquiry
+                ? c.RequesterUserId == userId
+                    || db.EventAdmins.Any(a => a.EventId == c.EventId && a.UserId == userId)
             : c.Kind == ConversationKind.Party
                 && db.PartyMembers.Any(pm => pm.PartyId == c.PartyId
                     && pm.UserId == userId
@@ -94,15 +107,17 @@ public sealed class ChatGuard
                 c.State,
                 c.TeamId,
                 c.PartyId,
+                c.EventId,
+                c.RequesterUserId,
                 // The membership predicate, evaluated in the database in the same round trip.
                 // Each kind reads its own source of truth; the roster branches are what make
                 // removal take effect immediately, with no sync step.
                 //
                 // ARCHIVED auto chats are checked FIRST, and must be: archiving snapshots the roster
-                // into participant rows and nulls TeamId/PartyId (data-model R3a), precisely because
-                // the team/party row is about to be hard-deleted. After that the roster branches below
-                // would find nothing and lock every former member out of history they are entitled to
-                // read (FR-027).
+                // into participant rows and nulls TeamId/PartyId/EventId (data-model R3a), precisely
+                // because the team/party/event link may be about to be deleted. After that the roster
+                // branches below would find nothing and lock every former member out of history they
+                // are entitled to read (FR-027).
                 IsMember =
                     c.State == ConversationState.Archived
                         ? c.Participants.Any(p => p.UserId == userId && p.LeftDate == null)
@@ -110,6 +125,12 @@ public sealed class ChatGuard
                         ? c.Participants.Any(p => p.UserId == userId && p.LeftDate == null)
                     : c.Kind == ConversationKind.Team
                         ? _db.TeamMemberships.Any(m => m.TeamId == c.TeamId && m.UserId == userId)
+                    : c.Kind == ConversationKind.TeamInquiry
+                        ? c.RequesterUserId == userId
+                            || _db.TeamMemberships.Any(m => m.TeamId == c.TeamId && m.UserId == userId && m.Role == TeamRole.Admin)
+                    : c.Kind == ConversationKind.EventInquiry
+                        ? c.RequesterUserId == userId
+                            || _db.EventAdmins.Any(a => a.EventId == c.EventId && a.UserId == userId)
                     : c.Kind == ConversationKind.Party
                         ? _db.PartyMembers.Any(pm => pm.PartyId == c.PartyId
                             && pm.UserId == userId
@@ -123,7 +144,7 @@ public sealed class ChatGuard
             return null;
         }
 
-        return new ChatAccess(row.Id, row.Kind, row.State, row.TeamId, row.PartyId);
+        return new ChatAccess(row.Id, row.Kind, row.State, row.TeamId, row.PartyId, row.EventId, row.RequesterUserId);
     }
 
     /// <summary>
@@ -137,7 +158,7 @@ public sealed class ChatGuard
     {
         var conversation = await _db.Conversations.AsNoTracking()
             .Where(c => c.Id == conversationId)
-            .Select(c => new { c.Kind, c.State, c.TeamId, c.PartyId })
+            .Select(c => new { c.Kind, c.State, c.TeamId, c.PartyId, c.EventId, c.RequesterUserId })
             .FirstOrDefaultAsync(ct);
 
         if (conversation is null)
@@ -168,6 +189,25 @@ public sealed class ChatGuard
             ConversationKind.Party => await _db.PartyMembers.AsNoTracking()
                 .Where(pm => pm.PartyId == conversation.PartyId && pm.Status == PartyMemberStatus.In)
                 .Select(pm => pm.UserId)
+                .ToListAsync(ct),
+
+            // Inquiry threads (feature 027): the fixed requester plus the target's live admin roster.
+            // Distinct so a requester who is somehow also an admin (not offered the action, but
+            // defensively) is counted once.
+            ConversationKind.TeamInquiry => await _db.TeamMemberships.AsNoTracking()
+                .Where(m => m.TeamId == conversation.TeamId && m.Role == TeamRole.Admin)
+                .Select(m => m.UserId)
+                .Concat(_db.Conversations.Where(c => c.Id == conversationId && c.RequesterUserId != null)
+                    .Select(c => c.RequesterUserId!.Value))
+                .Distinct()
+                .ToListAsync(ct),
+
+            ConversationKind.EventInquiry => await _db.EventAdmins.AsNoTracking()
+                .Where(a => a.EventId == conversation.EventId)
+                .Select(a => a.UserId)
+                .Concat(_db.Conversations.Where(c => c.Id == conversationId && c.RequesterUserId != null)
+                    .Select(c => c.RequesterUserId!.Value))
+                .Distinct()
                 .ToListAsync(ct),
 
             _ => await _db.ConversationParticipants.AsNoTracking()
@@ -217,6 +257,22 @@ public sealed class ChatGuard
             return null;
         }
 
+        // Inquiry threads (feature 027): the requester's cutoff is their stored participant row (≈ thread
+        // creation); an admin's cutoff is when they became an admin, so a newly-granted admin sees history
+        // from their grant forward and no earlier (FR-019).
+        if (access.IsInquiry && access.RequesterUserId != userId)
+        {
+            return access.Kind == ConversationKind.TeamInquiry
+                ? await _db.TeamMemberships.AsNoTracking()
+                    .Where(m => m.TeamId == access.TeamId && m.UserId == userId && m.Role == TeamRole.Admin)
+                    .Select(m => (DateTime?)m.JoinedDate)
+                    .FirstOrDefaultAsync(ct)
+                : await _db.EventAdmins.AsNoTracking()
+                    .Where(a => a.EventId == access.EventId && a.UserId == userId)
+                    .Select(a => (DateTime?)a.AddedDate)
+                    .FirstOrDefaultAsync(ct);
+        }
+
         return access.Kind switch
         {
             ConversationKind.Team => await _db.TeamMemberships.AsNoTracking()
@@ -229,6 +285,7 @@ public sealed class ChatGuard
                 .Select(pm => (DateTime?)pm.CreatedDate)
                 .FirstOrDefaultAsync(ct),
 
+            // Direct/Group, and the requester side of an inquiry: their stored participant JoinedDate.
             _ => await _db.ConversationParticipants.AsNoTracking()
                 .Where(p => p.ConversationId == access.ConversationId && p.UserId == userId && p.LeftDate == null)
                 .Select(p => (DateTime?)p.JoinedDate)
@@ -288,8 +345,52 @@ public sealed class ChatGuard
             }
         }
 
+        // Inquiry threads where the viewer is an ADMIN (not the requester): cutoff = their admin grant
+        // date, so a newly-granted admin sees history only from their grant (FR-019). The requester side
+        // falls through to the participant-row query below (they are a stored participant).
+        var teamInquiryAdmin = conversations
+            .Where(c => !c.IsArchived && c.Kind == ConversationKind.TeamInquiry
+                && c.RequesterUserId != userId && c.TeamId is not null)
+            .ToList();
+        if (teamInquiryAdmin.Count > 0)
+        {
+            var teamIds = teamInquiryAdmin.Select(c => c.TeamId!.Value).Distinct().ToList();
+            var grants = (await _db.TeamMemberships.AsNoTracking()
+                    .Where(m => m.UserId == userId && m.Role == TeamRole.Admin && teamIds.Contains(m.TeamId))
+                    .Select(m => new { m.TeamId, m.JoinedDate })
+                    .ToListAsync(ct))
+                .ToDictionary(x => x.TeamId, x => (DateTime?)x.JoinedDate);
+
+            foreach (var c in teamInquiryAdmin)
+            {
+                result[c.ConversationId] = grants.GetValueOrDefault(c.TeamId!.Value);
+            }
+        }
+
+        var eventInquiryAdmin = conversations
+            .Where(c => !c.IsArchived && c.Kind == ConversationKind.EventInquiry
+                && c.RequesterUserId != userId && c.EventId is not null)
+            .ToList();
+        if (eventInquiryAdmin.Count > 0)
+        {
+            var eventIds = eventInquiryAdmin.Select(c => c.EventId!.Value).Distinct().ToList();
+            var grants = (await _db.EventAdmins.AsNoTracking()
+                    .Where(a => a.UserId == userId && eventIds.Contains(a.EventId))
+                    .Select(a => new { a.EventId, a.AddedDate })
+                    .ToListAsync(ct))
+                .ToDictionary(x => x.EventId, x => (DateTime?)x.AddedDate);
+
+            foreach (var c in eventInquiryAdmin)
+            {
+                result[c.ConversationId] = grants.GetValueOrDefault(c.EventId!.Value);
+            }
+        }
+
+        // Direct/Group, plus the requester side of an inquiry (a stored participant with a JoinedDate).
         var localConvos = conversations
-            .Where(c => !c.IsArchived && c.Kind is ConversationKind.Direct or ConversationKind.Group)
+            .Where(c => !c.IsArchived
+                && (c.Kind is ConversationKind.Direct or ConversationKind.Group
+                    || (c.IsInquiry && c.RequesterUserId == userId)))
             .ToList();
         if (localConvos.Count > 0)
         {

@@ -60,6 +60,12 @@ export const appRoutes: Route[] = [
             loadComponent: () => import('./features/chat/chat-compose/chat-compose.component').then((m) => m.ChatComposeComponent),
           },
           {
+            // Contact a team's/event's admins (feature 027): the same transient compose, in inquiry
+            // mode. :kind is 'team' | 'event', :targetId the team/event id. Nothing persists until send.
+            path: 'contact/:kind/:targetId',
+            loadComponent: () => import('./features/chat/chat-compose/chat-compose.component').then((m) => m.ChatComposeComponent),
+          },
+          {
             path: ':conversationId/details',
             loadComponent: () =>
               import('./features/chat/chat-details/chat-details.component').then((m) => m.ChatDetailsComponent),

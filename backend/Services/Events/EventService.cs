@@ -21,6 +21,7 @@ public sealed class EventService : IEventService
     private readonly EventCapacity _capacity;
     private readonly EventAdminGuard _guard;
     private readonly Email.EventEmailService _email;
+    private readonly Chat.IChatConversationService _chat;
     private readonly ILogger<EventService> _logger;
 
     public EventService(
@@ -29,6 +30,7 @@ public sealed class EventService : IEventService
         EventCapacity capacity,
         EventAdminGuard guard,
         Email.EventEmailService email,
+        Chat.IChatConversationService chat,
         ILogger<EventService> logger)
     {
         _db = db;
@@ -36,6 +38,7 @@ public sealed class EventService : IEventService
         _capacity = capacity;
         _guard = guard;
         _email = email;
+        _chat = chat;
         _logger = logger;
     }
 
@@ -330,6 +333,10 @@ public sealed class EventService : IEventService
         ev.Status = EventStatus.Cancelled;
         ev.CancelledDate = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
+
+        // Close any "contact the admins" threads for this event — a cancelled event's inquiries become
+        // read-only history (feature 027, FR-014).
+        await _chat.ArchiveInquiriesForEventAsync(eventId, ct);
 
         await NotifyCancellationAsync(eventId, ev.Name, ct);
         return CancelEventStatus.Cancelled;
