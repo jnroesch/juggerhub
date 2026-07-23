@@ -101,7 +101,11 @@ test('first login opens onboarding; completing it lands in the app and it is sho
   await page.getByTestId('sign-in-email').fill(email);
   await page.getByTestId('sign-in-password').fill(PASSWORD);
   await page.getByTestId('sign-in-submit').click();
-  await expect(page).not.toHaveURL(/onboarding/);
+  // Wait for the login to actually land in the app before navigating on. Asserting only
+  // `not /onboarding` would pass instantly while still on /sign-in and race the session cookie,
+  // bouncing the next goto back to sign-in (see auth.spec.ts). Feature 026 makes that bounce a
+  // /sign-in?returnUrl=/onboarding URL, which the loose regex would then also match.
+  await expect(page).not.toHaveURL(/sign-in|onboarding/);
 
   // Directly opening the flow after onboarding bounces to the app.
   await page.goto('/onboarding');
