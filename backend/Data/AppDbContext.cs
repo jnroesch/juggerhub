@@ -130,6 +130,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Property(p => p.DisplayName).HasMaxLength(50).IsRequired();
             entity.Property(p => p.Hometown).HasMaxLength(80);
             entity.Property(p => p.Description).HasMaxLength(280);
+            // Feature 026: anonymous visibility is opt-in. Non-null, default private — the
+            // migration backfills every existing row to false (FR-017/FR-018).
+            entity.Property(p => p.IsPublic).IsRequired().HasDefaultValue(false);
 
             // Handle addresses the public profile — unique & the true uniqueness guarantee.
             entity.HasIndex(p => p.Handle).IsUnique();

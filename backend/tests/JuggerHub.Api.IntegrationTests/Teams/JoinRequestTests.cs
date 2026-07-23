@@ -17,17 +17,21 @@ public sealed class JoinRequestTests
     public JoinRequestTests(JuggerHubApiFactory factory) => _factory = factory;
 
     [Fact]
-    public async Task Public_page_is_anonymous_and_shows_roster_but_no_internal_data()
+    public async Task Public_page_shows_roster_but_no_internal_data_to_a_signed_in_non_member()
     {
         var (admin, _, _, _) = await NewUserAsync();
         var slug = await NewTeamAsync(admin);
 
-        var anon = _factory.CreateClient();
-        var res = await anon.GetAsync($"/api/v1/teams/{slug}/public");
+        // Feature 026: the public view is authenticated-only. A signed-in non-member sees it
+        // (relation NonMember); an anonymous caller is refused (asserted below).
+        var (outsider, _, _, _) = await NewUserAsync();
+        var res = await outsider.GetAsync($"/api/v1/teams/{slug}/public");
         Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await _factory.CreateClient().GetAsync($"/api/v1/teams/{slug}/public")).StatusCode);
 
         var dto = await res.Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal("Anonymous", dto.GetProperty("viewerRelation").GetString());
+        Assert.Equal("NonMember", dto.GetProperty("viewerRelation").GetString());
         Assert.True(dto.GetProperty("roster").GetArrayLength() >= 1); // the admin
         // No internal fields leak into the public payload.
         var raw = dto.GetRawText();

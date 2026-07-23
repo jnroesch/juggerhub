@@ -296,7 +296,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/025-home-participation-makeover/plan.md` (Home dashboard reshaped around participation + action).
+`specs/026-authenticated-only-access/plan.md` (All data behind auth; opt-in public profiles by direct link).
 <!-- SPECKIT END -->
 
 ## GitHub Issues Workflow

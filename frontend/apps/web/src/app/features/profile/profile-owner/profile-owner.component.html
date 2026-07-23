@@ -1,10 +1,9 @@
-<section class="mx-auto max-w-container-sm px-md py-lg md:max-w-container-lg" data-testid="profile-owner">
+<section class="mx-auto max-w-container-md px-md py-lg" data-testid="profile-owner">
   @if (loading()) {
     <jh-loading label="Loading your profile…" />
   } @else if (profile(); as p) {
-    <!-- Top bar: back + edit toggle -->
-    <div class="flex items-center justify-between">
-      <a routerLink="/" class="text-body-sm text-subtle hover:text-text">‹ Back</a>
+    <!-- Owner action bar: Edit / Cancel. No back button (consistent with team/event pages). -->
+    <div class="flex justify-end">
       @if (!editing()) {
         <button type="button" (click)="startEdit()" data-testid="profile-edit"
           jhButton variant="secondary" size="sm">
@@ -19,125 +18,87 @@
       }
     </div>
 
-    <div class="md:mt-lg md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:gap-xl">
-      <!-- Left column: identity → teams → plays → badges -->
-      <div>
-    <!-- Centered identity -->
-    <header class="mt-lg flex flex-col items-center text-center md:mt-0">
-      <div class="relative">
-        @if (avatarUrl(); as url) {
-          <img [src]="url" alt="Your profile picture" class="h-24 w-24 rounded-full border border-border object-cover" />
-        } @else {
-          <div class="grid h-24 w-24 place-items-center rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle">Photo</div>
-        }
-        @if (editing()) {
-          <label class="absolute -bottom-1 -right-1 grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-brand text-on-accent shadow-coral transition-colors duration-fast hover:bg-brand-hover" aria-label="Change photo">
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-            <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" data-testid="avatar-input" (change)="onAvatarSelected($event)" />
-          </label>
-        }
-      </div>
-
-      @if (!editing()) {
-        <h1 class="mt-md text-heading-lg font-bold text-ink">{{ p.displayName }}</h1>
-        <p class="text-body-md text-subtle">&#64;{{ p.handle }}</p>
-        @if (p.hometown) {
-          <p class="mt-xs inline-flex items-center gap-xs text-body-sm text-text-muted"><svg class="h-3.5 w-3.5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{{ p.hometown }}</p>
-        }
-        @if (p.description) {
-          <p class="mt-sm max-w-md text-body-md text-text-muted">{{ p.description }}</p>
-        }
-      } @else {
-        <form class="mt-md w-full max-w-sm space-y-sm text-left" [formGroup]="form">
-          <input type="text" formControlName="displayName" placeholder="Display name" data-testid="profile-displayname"
-            class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-center text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
-          <p class="text-center text-body-sm text-subtle">&#64;{{ p.handle }}</p>
-          <input type="text" formControlName="hometown" placeholder="Hometown" data-testid="profile-hometown"
-            class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
-          <textarea rows="2" formControlName="description" maxlength="280" placeholder="Short bio" data-testid="profile-description"
-            class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
-        </form>
+    @if (!editing()) {
+      <!-- View mode: the SAME shared presentation as any other player's profile. -->
+      @if (view(); as v) {
+        <jh-profile-view [profile]="v" class="mt-md block" />
       }
-    </header>
 
-    <hr class="my-lg border-border" />
+      <hr class="my-lg border-border" />
 
-    <!-- Teams -->
-    <section>
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Teams · clubs</p>
-      @if (p.teams.length === 0) {
-        <p class="mt-xs text-body-sm text-faint">You're not on a team yet. <a routerLink="/teams/new" class="font-medium text-link hover:text-link-hover">Create one ↗</a></p>
-      } @else {
-        <ul class="mt-sm flex flex-wrap gap-xs">
-          @for (t of p.teams; track t.slug) {
-            <li>
-              <a [routerLink]="['/t', t.slug]" [attr.data-testid]="'owner-team-' + t.slug"
-                class="inline-flex items-center gap-xs rounded-pill border border-border-strong bg-surface px-md py-xs text-body-sm transition-colors duration-fast hover:bg-surface-sunken">
-                <span class="font-medium text-ink">{{ t.name }}</span>
-                @if (t.city) { <span class="text-subtle">· {{ t.city }}</span> }
-                @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand">admin</span> }
-              </a>
-            </li>
-          }
-        </ul>
+      <!-- Profile visibility (feature 026) — owner-only instant toggle, no edit round trip. -->
+      <section data-testid="profile-visibility">
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Profile visibility</p>
+        <label class="mt-sm flex cursor-pointer items-center justify-between gap-md rounded-md border border-border-strong bg-surface-card p-md">
+          <span class="text-body-sm">
+            <span class="font-medium text-ink">Make my profile public</span>
+            <span class="mt-2xs block text-subtle" data-testid="profile-visibility-state">
+              @if (p.isPublic) {
+                On — anyone with your link can view your profile, teams, and activity.
+              } @else {
+                Off — only signed-in members can find you. Teams and events always stay inside the app.
+              }
+            </span>
+          </span>
+          <input type="checkbox" role="switch" data-testid="profile-ispublic-toggle"
+            [checked]="p.isPublic" [disabled]="visibilitySaving()"
+            (change)="toggleVisibility($any($event.target).checked)"
+            class="h-6 w-6 shrink-0 rounded-sm border-border-strong text-brand focus:ring-2 focus:ring-focus disabled:opacity-50" />
+        </label>
+        @if (visibilitySaving()) {
+          <p class="mt-xs text-body-sm text-subtle" role="status">Saving…</p>
+        }
+      </section>
+
+      @if (saved()) {
+        <p class="mt-lg text-body-sm text-success" role="status" data-testid="profile-saved">Saved.</p>
       }
-    </section>
-
-    <hr class="my-lg border-border" />
-
-    <!-- Plays -->
-    <section>
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Plays</p>
-      @if (editing()) {
-        <p class="mb-sm text-body-sm text-subtle">Pick favorites · filled = selected · dotted = available</p>
-        <jh-pompfe-selector [selected]="selectedPompfen()" (selectionChange)="onPompfenChange($event)" />
-      } @else if (p.pompfen.length === 0) {
-        <p class="mt-xs text-body-sm text-faint">No favorites selected yet.</p>
-      } @else {
-        <div class="mt-sm flex flex-wrap gap-xs">
-          @for (pompfe of p.pompfen; track pompfe) {
-            <span class="rounded-pill bg-teal-1 px-md py-xs text-body-sm font-medium text-teal-7">{{ pompfeName(pompfe) }}</span>
-          }
+    } @else {
+      <!-- Edit mode: inline form for the editable fields. -->
+      <form class="mt-md space-y-lg" [formGroup]="form">
+        <div class="flex items-start gap-md">
+          <div class="relative shrink-0">
+            @if (avatarUrl(); as url) {
+              <img [src]="url" alt="Your profile picture" class="h-20 w-20 rounded-full border border-border object-cover" />
+            } @else {
+              <div class="grid h-20 w-20 place-items-center rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle">Photo</div>
+            }
+            <label class="absolute -bottom-1 -right-1 grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-brand text-on-accent shadow-coral transition-colors duration-fast hover:bg-brand-hover" aria-label="Change photo">
+              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" data-testid="avatar-input" (change)="onAvatarSelected($event)" />
+            </label>
+          </div>
+          <div class="min-w-0 flex-1 space-y-sm">
+            <input type="text" formControlName="displayName" placeholder="Display name" data-testid="profile-displayname"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
+            <p class="text-body-sm text-subtle">&#64;{{ p.handle }}</p>
+            <input type="text" formControlName="hometown" placeholder="Hometown" data-testid="profile-hometown"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
+          </div>
         </div>
-      }
-    </section>
 
-    <hr class="my-lg border-border" />
+        <textarea rows="2" formControlName="description" maxlength="280" placeholder="Short bio" data-testid="profile-description"
+          class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
 
-    <!-- Badges & achievements (feature 012) -->
-    <jh-recognition-display [badges]="p.badges" [achievements]="p.achievements" />
-      </div>
+        <div>
+          <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Plays</p>
+          <p class="mb-sm mt-xs text-body-sm text-subtle">Pick favorites · filled = selected · dotted = available</p>
+          <jh-pompfe-selector [selected]="selectedPompfen()" (selectionChange)="onPompfenChange($event)" />
+        </div>
 
-      <!-- Right column: recent activity -->
-      <section class="md:border-l md:border-border md:pl-xl">
-      <hr class="my-lg border-border md:hidden" />
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Recent activity</p>
-      @if (p.recentActivity.length === 0) {
-        <p class="mt-xs text-body-sm text-faint" data-testid="activity-empty">No events yet.</p>
-      } @else {
-        <ul class="mt-sm divide-y divide-border">
-          @for (item of p.recentActivity; track $index) {
-            <li class="flex gap-md py-sm">
-              <span class="w-14 shrink-0 pt-0.5 font-mono text-body-sm text-faint">{{ item.date }}</span>
-              <div>
-                <p class="text-body-md text-ink">{{ item.eventName }}</p>
-                <p class="text-body-sm text-subtle">{{ item.location }} · with {{ item.teamLabel }}</p>
-              </div>
-            </li>
-          }
-        </ul>
-      }
-    </section>
-    </div>
+        <div>
+          <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Profile visibility</p>
+          <label class="mt-sm flex cursor-pointer items-start gap-sm rounded-md border border-border-strong bg-surface-card p-md">
+            <input type="checkbox" formControlName="isPublic" data-testid="profile-ispublic"
+              class="mt-0.5 h-5 w-5 shrink-0 rounded-sm border-border-strong text-brand focus:ring-2 focus:ring-focus" />
+            <span class="text-body-sm">
+              <span class="font-medium text-ink">Make my profile public</span>
+              <span class="mt-2xs block text-subtle">When on, anyone with your profile link can see your profile, teams, and activity — even without an account. When off, only signed-in members can find you.</span>
+            </span>
+          </label>
+        </div>
+      </form>
 
-    @if (error()) {
-      <jh-alert class="mt-lg" data-testid="profile-error">{{ error() }}</jh-alert>
-    }
-    @if (saved() && !editing()) {
-      <p class="mt-lg text-body-sm text-success" role="status" data-testid="profile-saved">Saved.</p>
-    }
-
-    @if (editing()) {
       <div class="sticky bottom-0 mt-lg flex justify-end gap-sm bg-background/80 py-md backdrop-blur">
         <button type="button" (click)="save()" [disabled]="form.invalid || saving()" data-testid="profile-save"
           jhButton>
@@ -146,9 +107,9 @@
       </div>
     }
 
-    <div class="mt-lg text-center">
-      <a [routerLink]="['/u', p.handle]" class="text-body-sm font-medium text-link hover:text-link-hover">View public profile ↗</a>
-    </div>
+    @if (error()) {
+      <jh-alert class="mt-lg" data-testid="profile-error">{{ error() }}</jh-alert>
+    }
   } @else {
     <jh-alert>{{ error() ?? 'Could not load your profile.' }}</jh-alert>
   }

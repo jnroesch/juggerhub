@@ -25,17 +25,18 @@ public sealed class ProfileTests
     // --- US1: handle at registration ------------------------------------------
 
     [Fact]
-    public async Task Register_with_valid_handle_creates_a_profile()
+    public async Task Register_creates_a_private_by_default_profile()
     {
-        var client = _factory.CreateClient();
-        var handle = AuthTestHelpers.NewHandle();
-        var email = AuthTestHelpers.NewEmail();
+        var (client, handle, _) = await RegisterVerifyLoginAsync();
 
-        var response = await AuthTestHelpers.RegisterAsync(client, email, handle: handle);
+        // The profile exists and is private by default (feature 026): the owner sees it via /me,
+        // while an anonymous visitor gets the same 404 as a missing handle.
+        var mine = await client.GetAsync("/api/v1/profiles/me");
+        Assert.Equal(HttpStatusCode.OK, mine.StatusCode);
+        Assert.False((await mine.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("isPublic").GetBoolean());
 
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var public_ = await client.GetAsync($"/api/v1/profiles/{handle}");
-        Assert.Equal(HttpStatusCode.OK, public_.StatusCode);
+        var anon = _factory.CreateClient();
+        Assert.Equal(HttpStatusCode.NotFound, (await anon.GetAsync($"/api/v1/profiles/{handle}")).StatusCode);
     }
 
     [Fact]
@@ -97,10 +98,8 @@ public sealed class ProfileTests
     [Fact]
     public async Task Public_profile_never_exposes_email_or_account_data()
     {
-        var client = _factory.CreateClient();
-        var handle = AuthTestHelpers.NewHandle();
-        var email = AuthTestHelpers.NewEmail();
-        await AuthTestHelpers.RegisterAsync(client, email, handle: handle);
+        var (client, handle, email) = await RegisterVerifyLoginAsync();
+        await MakeProfilePublicAsync(client);
 
         // Anonymous fetch — no session.
         var anon = _factory.CreateClient();
@@ -112,6 +111,8 @@ public sealed class ProfileTests
         Assert.DoesNotContain("email", raw, StringComparison.OrdinalIgnoreCase);
         using var doc = JsonDocument.Parse(raw);
         Assert.False(doc.RootElement.TryGetProperty("email", out _));
+        // The public projection must not leak the visibility flag either (FR-013).
+        Assert.False(doc.RootElement.TryGetProperty("isPublic", out _));
     }
 
     [Fact]
@@ -136,8 +137,8 @@ public sealed class ProfileTests
             pompfen = new[] { "Stab", "Schild" },
         });
 
-        var anon = _factory.CreateClient();
-        var dto = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/profiles/{handle}");
+        // Read as the authenticated owner (sees any profile regardless of visibility, feature 026).
+        var dto = await client.GetFromJsonAsync<JsonElement>($"/api/v1/profiles/{handle}");
         var selected = dto.GetProperty("selectedPompfen").EnumerateArray().Select(e => e.GetString()).ToArray();
 
         Assert.Equal(2, selected.Length);
@@ -224,7 +225,8 @@ public sealed class ProfileTests
         var upload = await client.PutAsync("/api/v1/profiles/me/avatar", content);
 
         Assert.Equal(HttpStatusCode.NoContent, upload.StatusCode);
-        var avatar = await _factory.CreateClient().GetAsync($"/api/v1/profiles/{handle}/avatar");
+        // Read as the authenticated owner (feature 026 — a private profile's avatar isn't anonymous).
+        var avatar = await client.GetAsync($"/api/v1/profiles/{handle}/avatar");
         Assert.Equal(HttpStatusCode.OK, avatar.StatusCode);
         Assert.Equal("image/png", avatar.Content.Headers.ContentType?.MediaType);
     }
@@ -238,8 +240,8 @@ public sealed class ProfileTests
         var profileId = await GetProfileIdAsync(handle);
         await SeedActivityAsync(profileId);
 
-        var anon = _factory.CreateClient();
-        var page = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/profiles/{handle}/activity?take=2");
+        // Read as the authenticated owner (feature 026 — private activity isn't served anonymously).
+        var page = await client.GetFromJsonAsync<JsonElement>($"/api/v1/profiles/{handle}/activity?take=2");
         var items = page.GetProperty("items").EnumerateArray().ToArray();
 
         Assert.Equal(4, page.GetProperty("totalCount").GetInt32());
@@ -252,10 +254,9 @@ public sealed class ProfileTests
     [Fact]
     public async Task Activity_for_profile_with_none_is_empty()
     {
-        var (_, handle, _) = await RegisterVerifyLoginAsync();
+        var (client, handle, _) = await RegisterVerifyLoginAsync();
 
-        var anon = _factory.CreateClient();
-        var page = await anon.GetFromJsonAsync<JsonElement>($"/api/v1/profiles/{handle}/activity");
+        var page = await client.GetFromJsonAsync<JsonElement>($"/api/v1/profiles/{handle}/activity");
 
         Assert.Equal(0, page.GetProperty("totalCount").GetInt32());
         Assert.Empty(page.GetProperty("items").EnumerateArray());
@@ -271,6 +272,20 @@ public sealed class ProfileTests
         var login = await AuthTestHelpers.LoginAsync(client, email, AuthTestHelpers.ValidPassword);
         login.EnsureSuccessStatusCode();
         return (client, handle, email);
+    }
+
+    /// <summary>Flip the authenticated caller's own profile to public (feature 026).</summary>
+    private static async Task MakeProfilePublicAsync(HttpClient client)
+    {
+        var resp = await client.PutAsJsonAsync("/api/v1/profiles/me", new
+        {
+            displayName = "Public Player",
+            hometown = (string?)null,
+            description = (string?)null,
+            pompfen = Array.Empty<string>(),
+            isPublic = true,
+        });
+        resp.EnsureSuccessStatusCode();
     }
 
     private async Task<Guid> GetProfileIdAsync(string handle)

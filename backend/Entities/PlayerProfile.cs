@@ -32,6 +32,15 @@ public sealed class PlayerProfile : BaseEntity
     public string? Description { get; set; }
 
     /// <summary>
+    /// Owner-controlled anonymous visibility (feature 026). <c>false</c> (private, the default)
+    /// = an anonymous caller gets the same 404 as a missing handle; <c>true</c> (public) = the
+    /// profile is viewable anonymously at <c>/u/&lt;handle&gt;</c>. Authenticated callers can view
+    /// any profile regardless. Independent of ban state — the global query filter still hides a
+    /// banned owner even when this is <c>true</c>. Changed only by the owner via their own update.
+    /// </summary>
+    public bool IsPublic { get; set; }
+
+    /// <summary>
     /// When the owner finished (or dismissed) first-login onboarding, in UTC.
     /// <c>null</c> = not yet onboarded (the guided flow still shows on sign-in);
     /// a value = onboarded. Set once and idempotently (see specs/004-onboarding);

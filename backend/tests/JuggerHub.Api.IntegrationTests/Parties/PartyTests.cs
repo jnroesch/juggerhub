@@ -286,12 +286,12 @@ public sealed class PartyTests : PartyTestSupport
         Assert.Equal("Applied", applied.GetProperty("status").GetString());
         Assert.Equal("Joined", applied.GetProperty("appliedGroup").GetString());
 
-        var joined = await Factory.CreateClient().GetFromJsonAsync<JsonElement>($"/api/v1/events/{eventId}/participants?group=joined");
+        var joined = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/events/{eventId}/participants?group=joined");
         Assert.Equal(1, joined.GetProperty("totalCount").GetInt32());
 
         var withdraw = await admin.PostAsync($"/api/v1/parties/{partyId}/withdraw", null);
         Assert.Equal(HttpStatusCode.OK, withdraw.StatusCode);
-        var after = await Factory.CreateClient().GetFromJsonAsync<JsonElement>($"/api/v1/events/{eventId}/participants?group=joined");
+        var after = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/events/{eventId}/participants?group=joined");
         Assert.Equal(0, after.GetProperty("totalCount").GetInt32());
     }
 

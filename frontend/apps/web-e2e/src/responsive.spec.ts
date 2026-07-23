@@ -1,15 +1,19 @@
 import { expect, test } from '@playwright/test';
+import { registerVerifySignIn } from './support/auth';
 
 /**
  * US3 — the shell stays usable at both the desktop and mobile projects
  * (playwright.config.mts): primary navigation is reachable and there is no
  * unintended horizontal scrolling / clipped content (FR-025, SC-009).
  *
- * `/browse` is inside the app shell but anonymous (app.routes.ts), so it renders the
- * real navigation chrome without an auth journey. Feature 008 replaced the pre-001
+ * `/browse` is inside the app shell and authenticated-only since feature 026, so each test signs
+ * in first, then the shell renders the real navigation chrome. Feature 008 replaced the pre-001
  * sidebar + off-canvas `menu-toggle` with a persistent top-nav (desktop) and a fixed
  * bottom tab bar (mobile), so navigation is anchored on those instead.
  */
+test.beforeEach(async ({ page, request }) => {
+  await registerVerifySignIn(page, request);
+});
 test('the shell renders with no horizontal overflow', async ({ page }) => {
   await page.goto('/browse');
 

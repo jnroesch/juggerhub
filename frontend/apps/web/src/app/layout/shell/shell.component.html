@@ -1,10 +1,30 @@
 <div class="flex min-h-screen flex-col bg-background">
-  <jh-top-nav />
+  @if (anonymous()) {
+    <!-- Public bar: shown to signed-out visitors (only the /u/:handle profile is reachable). -->
+    <header class="sticky top-0 z-30 flex h-14 items-center justify-between gap-sm border-b border-border bg-surface px-md" data-testid="public-top-bar">
+      <a routerLink="/" class="flex items-center gap-xs" aria-label="JuggerHub home">
+        <span class="grid h-7 w-7 place-items-center rounded-md bg-brand-gradient shadow-sm" aria-hidden="true">
+          <span class="h-1.5 w-1.5 rounded-full bg-highlight"></span>
+        </span>
+        <span class="font-display text-heading-md font-bold text-ink">JuggerHub</span>
+      </a>
+      <nav class="flex items-center gap-xs" aria-label="Account">
+        <a routerLink="/sign-in" data-testid="public-sign-in"
+          class="rounded-md px-sm py-xs text-body-sm font-medium text-text hover:bg-surface-sunken">Sign in</a>
+        <a routerLink="/register" data-testid="public-register"
+          class="rounded-md bg-brand px-md py-xs text-body-sm font-semibold text-on-accent transition-colors duration-fast hover:bg-brand-hover">Register</a>
+      </nav>
+    </header>
+  } @else {
+    <jh-top-nav />
+  }
 
   <!-- pb makes room for the fixed mobile bottom bar; removed at desktop width. -->
   <main class="min-w-0 flex-1 pb-[76px] md:pb-0">
     <router-outlet />
   </main>
 
-  <jh-bottom-nav />
+  @if (!anonymous()) {
+    <jh-bottom-nav />
+  }
 </div>

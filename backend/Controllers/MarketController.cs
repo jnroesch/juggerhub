@@ -36,16 +36,14 @@ public sealed class MarketController : ControllerBase
         _requests = requests;
     }
 
-    // --- Board (public) -------------------------------------------------------
+    // --- Board (authenticated since feature 026 — event market data is not anonymous) ---------
 
     [HttpGet("events/{eventId:guid}/market/free-agents")]
-    [AllowAnonymous]
     public async Task<ActionResult<PagedResult<MarketListingCardDto>>> FreeAgents(
         Guid eventId, [FromQuery] string? position, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
         Ok(await _listings.ListFreeAgentsAsync(eventId, ParsePosition(position), pagination, ct));
 
     [HttpGet("events/{eventId:guid}/market/parties")]
-    [AllowAnonymous]
     public async Task<ActionResult<PagedResult<RecruitingPartyCardDto>>> RecruitingParties(
         Guid eventId, [FromQuery] string? position, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
         Ok(await _recruiting.ListRecruitingPartiesAsync(eventId, ParsePosition(position), pagination, ct));

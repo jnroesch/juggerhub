@@ -1,121 +1,18 @@
-<main class="min-h-screen bg-background px-md py-xl">
-  <div class="mx-auto max-w-4xl">
-    @if (loading()) {
-      <jh-loading />
-    } @else if (notFound()) {
-      <jh-card accent class="mx-auto mt-2xl max-w-md p-xl text-center" data-testid="profile-notfound">
-        <h1 class="text-heading-md text-ink">Profile not found</h1>
-        <p class="mt-sm text-body-md text-text-muted">This link doesn't point to a player profile.</p>
-        <a routerLink="/" class="mt-lg inline-block text-body-md font-medium text-link hover:text-link-hover">Go to JuggerHub</a>
-      </jh-card>
-    } @else if (profile(); as p) {
-      <article class="overflow-hidden rounded-lg border border-border-muted bg-surface-card shadow-sm" data-testid="profile-public">
-        <div class="h-1 bg-brand-gradient" aria-hidden="true"></div>
-        <!-- Header: public label + copy link -->
-        <div class="flex items-center justify-between gap-md border-b border-border px-lg py-sm">
-          <span class="inline-flex items-center gap-xs rounded-full border border-border-strong px-md py-xs text-body-sm text-subtle">
-            <span class="h-2 w-2 rounded-full bg-success"></span> Public profile
-          </span>
-          <button type="button" (click)="copyLink(p.handle)" data-testid="copy-link"
-            jhButton variant="secondary" size="sm">
-            {{ copied() ? 'Copied!' : 'Copy link' }}
-          </button>
-        </div>
+<section class="mx-auto max-w-container-md px-md py-lg" data-testid="profile-public-page">
+  @if (loading()) {
+    <jh-loading />
+  } @else if (notFound()) {
+    <jh-card accent class="mx-auto mt-2xl max-w-md p-xl text-center" data-testid="profile-notfound">
+      <h1 class="text-heading-md text-ink">Profile not found</h1>
+      <p class="mt-sm text-body-md text-text-muted">This link doesn't point to a player profile.</p>
+      <a routerLink="/" class="mt-lg inline-block text-body-md font-medium text-link hover:text-link-hover">Go to JuggerHub</a>
+    </jh-card>
+  } @else if (view(); as v) {
+    <div data-testid="profile-public">
+      <!-- Quick actions (feature 021) — signed-in, non-self viewers only. Renders nothing otherwise. -->
+      <jh-profile-quick-actions [handle]="v.handle" class="mb-lg block" />
 
-        <!-- Quick actions (feature 021) — signed-in, non-self viewers only. Renders nothing otherwise. -->
-        <jh-profile-quick-actions [handle]="p.handle" />
-
-        <div class="grid gap-xl p-lg md:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] md:p-xl">
-          <!-- Left column: identity → teams → plays → badges -->
-          <div class="space-y-lg">
-            <header class="flex items-center gap-md">
-              @if (p.hasAvatar) {
-                <img [src]="avatarUrl(p.handle)" alt="{{ p.displayName }}" class="h-20 w-20 rounded-full border border-border object-cover" />
-              } @else {
-                <div class="grid h-20 w-20 place-items-center rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle">Photo</div>
-              }
-              <div>
-                <h1 class="text-heading-lg font-bold text-ink">{{ p.displayName }}</h1>
-                <p class="text-body-md text-subtle">&#64;{{ p.handle }}</p>
-                @if (p.hometown) {
-                  <p class="mt-xs inline-flex items-center gap-xs text-body-sm text-text-muted">
-                    <svg class="h-3.5 w-3.5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{{ p.hometown }}
-                  </p>
-                }
-              </div>
-            </header>
-
-            @if (p.description) {
-              <p class="text-body-md text-text-muted">{{ p.description }}</p>
-            }
-
-            <hr class="border-border" />
-
-            <!-- Teams -->
-            <section>
-              <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Teams · clubs</p>
-              @if (p.teams.length === 0) {
-                <p class="mt-xs text-body-sm text-faint">No teams listed yet.</p>
-              } @else {
-                <ul class="mt-sm flex flex-wrap gap-xs">
-                  @for (t of p.teams; track t.slug) {
-                    <li class="inline-flex items-center gap-xs rounded-pill border border-border-strong bg-surface px-md py-xs text-body-sm" [attr.data-testid]="'public-team-' + t.slug">
-                      <span class="font-medium text-ink">{{ t.name }}</span>
-                      @if (t.city) { <span class="text-subtle">· {{ t.city }}</span> }
-                      @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand">admin</span> }
-                    </li>
-                  }
-                </ul>
-              }
-            </section>
-
-            <hr class="border-border" />
-
-            <!-- Plays: only selected pompfen -->
-            <section>
-              <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Plays</p>
-              @if (p.selectedPompfen.length === 0) {
-                <p class="mt-xs text-body-sm text-faint">No favorites selected yet.</p>
-              } @else {
-                <div class="mt-sm flex flex-wrap gap-xs">
-                  @for (pompfe of p.selectedPompfen; track pompfe) {
-                    <span class="rounded-pill bg-teal-1 px-md py-xs text-body-sm font-medium text-teal-7" [attr.data-testid]="'public-pompfe-' + pompfe">
-                      {{ labelOf(pompfe)?.de }}
-                    </span>
-                  }
-                </div>
-              }
-            </section>
-
-            <hr class="border-border" />
-
-            <!-- Badges & achievements (feature 012) -->
-            <jh-recognition-display [badges]="p.badges" [achievements]="p.achievements" />
-          </div>
-
-          <!-- Right column: recent activity -->
-          <section class="md:border-l md:border-border md:pl-xl">
-            <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Recent activity</p>
-            @if (p.recentActivity.length === 0) {
-              <p class="mt-sm text-body-sm text-faint" data-testid="public-activity-empty">No recent events.</p>
-            } @else {
-              <ul class="mt-sm divide-y divide-border">
-                @for (item of p.recentActivity; track $index) {
-                  <li class="flex gap-md py-sm">
-                    <span class="w-14 shrink-0 pt-0.5 font-mono text-body-sm text-faint">{{ item.date }}</span>
-                    <div>
-                      <p class="text-body-md text-ink">{{ item.eventName }}</p>
-                      <p class="text-body-sm text-subtle">{{ item.location }} · with {{ item.teamLabel }}</p>
-                    </div>
-                  </li>
-                }
-              </ul>
-            }
-          </section>
-        </div>
-      </article>
-
-      <p class="mt-md text-center text-body-sm text-faint">Public view · no email · only selected pompfen shown.</p>
-    }
-  </div>
-</main>
+      <jh-profile-view [profile]="v" />
+    </div>
+  }
+</section>

@@ -1,5 +1,10 @@
 # Feature Specification: Events
 
+> **⚠️ Superseded in part by [feature 026](../026-authenticated-only-access/spec.md) (2026-07-22):**
+> the "anonymous / public event reads" invariant is reversed — event detail, participants, news,
+> and contacts are now **authenticated-only**. Anonymous access is no longer supported for any
+> event data. The rest of this spec (creation, sign-up, admin) stands.
+
 **Feature Branch**: `006-events`
 
 **Created**: 2026-07-03

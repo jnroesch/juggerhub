@@ -64,7 +64,7 @@ public sealed class ProfileService : IProfileService
             .Where(p => p.UserId == userId)
             .Select(p => new ProfileProjection(
                 p.Id, p.UserId, p.Handle, p.DisplayName, p.Hometown, p.Description,
-                p.Avatar != null,
+                p.Avatar != null, p.IsPublic,
                 p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList()))
             .FirstOrDefaultAsync(ct);
 
@@ -78,7 +78,7 @@ public sealed class ProfileService : IProfileService
         var recognitions = await _recognitions.ForPlayerAsync(projection.Id, ct);
         return new OwnerProfileDto(projection.Handle, projection.DisplayName, projection.Hometown,
             projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams,
-            recognitions.Badges, recognitions.Achievements);
+            recognitions.Badges, recognitions.Achievements, projection.IsPublic);
     }
 
     public async Task<bool> HasCompletedOnboardingAsync(Guid userId, CancellationToken ct = default)
@@ -91,6 +91,13 @@ public sealed class ProfileService : IProfileService
             .Select(p => p.OnboardingCompletedAt != null)
             .FirstOrDefaultAsync(ct);
     }
+
+    public async Task<string?> GetHandleAsync(Guid userId, CancellationToken ct = default) =>
+        await _db.PlayerProfiles
+            .AsNoTracking()
+            .Where(p => p.UserId == userId)
+            .Select(p => p.Handle)
+            .FirstOrDefaultAsync(ct);
 
     public async Task<CompleteOnboardingStatus> CompleteOnboardingAsync(Guid userId, CancellationToken ct = default)
     {
@@ -111,7 +118,7 @@ public sealed class ProfileService : IProfileService
         return CompleteOnboardingStatus.Completed;
     }
 
-    public async Task<PublicProfileDto?> GetPublicAsync(string handle, CancellationToken ct = default)
+    public async Task<PublicProfileDto?> GetPublicAsync(string handle, Guid? viewerUserId, CancellationToken ct = default)
     {
         var normalized = HandlePolicy.Normalize(handle);
 
@@ -122,11 +129,13 @@ public sealed class ProfileService : IProfileService
             .Where(p => p.Handle == normalized)
             .Select(p => new ProfileProjection(
                 p.Id, p.UserId, p.Handle, p.DisplayName, p.Hometown, p.Description,
-                p.Avatar != null,
+                p.Avatar != null, p.IsPublic,
                 p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList()))
             .FirstOrDefaultAsync(ct);
 
-        if (projection is null)
+        // Visibility gate (feature 026): a private profile is invisible to anonymous callers —
+        // returning the SAME null as a missing handle so the two are indistinguishable (no oracle).
+        if (projection is null || !IsVisibleTo(projection.IsPublic, viewerUserId))
         {
             return null;
         }
@@ -139,15 +148,18 @@ public sealed class ProfileService : IProfileService
             recognitions.Badges, recognitions.Achievements);
     }
 
-    public async Task<Guid?> GetProfileIdAsync(string handle, CancellationToken ct = default)
+    public async Task<Guid?> GetProfileIdAsync(string handle, Guid? viewerUserId, CancellationToken ct = default)
     {
         var normalized = HandlePolicy.Normalize(handle);
-        var id = await _db.PlayerProfiles
+        var row = await _db.PlayerProfiles
             .AsNoTracking()
             .Where(p => p.Handle == normalized)
-            .Select(p => (Guid?)p.Id)
+            .Select(p => new { p.Id, p.IsPublic })
             .FirstOrDefaultAsync(ct);
-        return id;
+
+        // Same visibility gate as GetPublicAsync: a private profile is invisible to anonymous
+        // callers, so its activity page 404s exactly like a missing handle.
+        return row is null || !IsVisibleTo(row.IsPublic, viewerUserId) ? null : row.Id;
     }
 
     public async Task<OwnerProfileDto?> UpdateAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct = default)
@@ -164,6 +176,9 @@ public sealed class ProfileService : IProfileService
         profile.DisplayName = request.DisplayName.Trim();
         profile.Hometown = BlankToNull(request.Hometown);
         profile.Description = BlankToNull(request.Description);
+        // Owner-controlled anonymous visibility (feature 026). Acts only on the caller's own
+        // profile (resolved by userId), so a player can never change another's visibility.
+        profile.IsPublic = request.IsPublic;
 
         // Replace the selection set with the requested one (distinct). Operate on the
         // DbSet directly (not the navigation collection): a new ProfilePompfe carries a
@@ -245,17 +260,26 @@ public sealed class ProfileService : IProfileService
         return AvatarSetResult.Ok();
     }
 
-    public async Task<AvatarData?> GetAvatarAsync(string handle, CancellationToken ct = default)
+    public async Task<AvatarData?> GetAvatarAsync(string handle, Guid? viewerUserId, CancellationToken ct = default)
     {
         var normalized = HandlePolicy.Normalize(handle);
         var data = await _db.ProfileAvatars
             .AsNoTracking()
             .Where(a => a.Profile.Handle == normalized)
-            .Select(a => new { a.Bytes, a.ContentType })
+            .Select(a => new { a.Bytes, a.ContentType, a.Profile.IsPublic })
             .FirstOrDefaultAsync(ct);
 
-        return data is null ? null : new AvatarData(data.Bytes, data.ContentType);
+        // Same visibility gate: a private profile's avatar is not served anonymously.
+        return data is null || !IsVisibleTo(data.IsPublic, viewerUserId)
+            ? null
+            : new AvatarData(data.Bytes, data.ContentType);
     }
+
+    /// <summary>
+    /// Visibility rule (feature 026): an authenticated caller (non-null viewer) may view any
+    /// profile; an anonymous caller may view a profile only when its owner opted it public.
+    /// </summary>
+    private static bool IsVisibleTo(bool isPublic, Guid? viewerUserId) => isPublic || viewerUserId is not null;
 
     private async Task<IReadOnlyList<ProfileTeamDto>> GetTeamsAsync(Guid userId, CancellationToken ct)
     {
@@ -308,5 +332,6 @@ public sealed class ProfileService : IProfileService
         string? Hometown,
         string? Description,
         bool HasAvatar,
+        bool IsPublic,
         List<Pompfe> Pompfen);
 }

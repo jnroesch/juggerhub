@@ -7,9 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace JuggerHub.Controllers;
 
 /// <summary>
-/// Public read of badge/achievement icon images (feature 012). Icons are shown on public profile
-/// and team pages, so these endpoints are anonymous; they expose only the icon bytes, never any
-/// award or subject data.
+/// Anonymous read of badge/achievement icon images (feature 012). Icons are referenced by
+/// public profiles (a profile whose owner opted it public — feature 026) as well as authenticated
+/// profile/team pages, so these endpoints stay anonymous by intent; they expose only the icon
+/// bytes, never any award or subject data. This is part of the feature-026 anonymous allowlist.
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]

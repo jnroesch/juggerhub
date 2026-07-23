@@ -31,7 +31,7 @@ public sealed record AccountSuspendedResponse(string Status, string Message)
 /// is server-derived (<c>PlayerProfile.OnboardingCompletedAt != null</c>) and is a UX
 /// routing hint only — never the authority for gating the onboarding flow (SC-008).
 /// </summary>
-public sealed record AuthUserDto(Guid Id, string Email, bool EmailConfirmed, bool OnboardingCompleted);
+public sealed record AuthUserDto(Guid Id, string Email, bool EmailConfirmed, bool OnboardingCompleted, string Handle);
 
 /// <summary>The published password policy, rendered live by the frontend.</summary>
 public sealed record PasswordPolicyDto(

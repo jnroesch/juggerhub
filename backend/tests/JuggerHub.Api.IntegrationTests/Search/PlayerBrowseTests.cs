@@ -32,18 +32,18 @@ public sealed class PlayerBrowseTests
         await SearchTestSupport.ConfigurePlayerAsync(_factory, userBId,
             displayName: nameB, hometown: "Berlin", pompfen: Entities.Pompfe.Laeufer);
 
-        var anon = _factory.CreateClient();
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
         var (authed, _, _, _) = await SearchTestSupport.NewUserAsync(_factory);
 
         // Both players are reachable by name for anonymous and authenticated callers.
-        foreach (var client in new[] { anon, authed })
+        foreach (var client in new[] { viewer, authed })
         {
             Assert.Contains(handleA, await HandlesAsync(client, $"/api/v1/profiles?q={nameA}"));
             Assert.Contains(handleB, await HandlesAsync(client, $"/api/v1/profiles?q={nameB}"));
         }
 
         // And both appear together under a shared filter/sort.
-        var filtered = await HandlesAsync(anon, "/api/v1/profiles?positions=Laeufer&city=Berlin&sort=DisplayNameAsc&take=100");
+        var filtered = await HandlesAsync(viewer, "/api/v1/profiles?positions=Laeufer&city=Berlin&sort=DisplayNameAsc&take=100");
         Assert.Contains(handleA, filtered);
         Assert.Contains(handleB, filtered);
     }
@@ -56,8 +56,8 @@ public sealed class PlayerBrowseTests
         var (_, userId, handle, _) = await SearchTestSupport.NewUserAsync(_factory);
         await SearchTestSupport.ConfigurePlayerAsync(_factory, userId, displayName: name);
 
-        var anon = _factory.CreateClient();
-        Assert.Contains(handle, await HandlesAsync(anon, $"/api/v1/profiles?q={name}"));
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        Assert.Contains(handle, await HandlesAsync(viewer, $"/api/v1/profiles?q={name}"));
     }
 
     [Fact]
@@ -74,8 +74,8 @@ public sealed class PlayerBrowseTests
         await SearchTestSupport.ConfigurePlayerAsync(_factory, chainId, displayName: chainName,
             pompfen: Entities.Pompfe.Kette);
 
-        var anon = _factory.CreateClient();
-        var runners = await HandlesAsync(anon, "/api/v1/profiles?positions=Laeufer&take=100");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var runners = await HandlesAsync(viewer, "/api/v1/profiles?positions=Laeufer&take=100");
 
         Assert.Contains(runnerHandle, runners);
         Assert.DoesNotContain(chainHandle, runners);
@@ -88,9 +88,9 @@ public sealed class PlayerBrowseTests
         var (_, userId, handle, _) = await SearchTestSupport.NewUserAsync(_factory);
         await SearchTestSupport.ConfigurePlayerAsync(_factory, userId, displayName: name);
 
-        var anon = _factory.CreateClient();
-        var lower = await HandlesAsync(anon, $"/api/v1/profiles?q={name.ToLowerInvariant()}");
-        var upper = await HandlesAsync(anon, $"/api/v1/profiles?q={name.ToUpperInvariant()}");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var lower = await HandlesAsync(viewer, $"/api/v1/profiles?q={name.ToLowerInvariant()}");
+        var upper = await HandlesAsync(viewer, $"/api/v1/profiles?q={name.ToUpperInvariant()}");
 
         Assert.Contains(handle, lower);
         Assert.Contains(handle, upper);
@@ -99,8 +99,8 @@ public sealed class PlayerBrowseTests
     [Fact]
     public async Task Browse_is_anonymous_and_paginates()
     {
-        var anon = _factory.CreateClient();
-        var resp = await anon.GetAsync("/api/v1/profiles?take=5");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var resp = await viewer.GetAsync("/api/v1/profiles?take=5");
 
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
         var page = await resp.Content.ReadFromJsonAsync<JsonElement>();

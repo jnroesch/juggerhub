@@ -15,10 +15,12 @@ using Microsoft.AspNetCore.Mvc;
 namespace JuggerHub.Controllers;
 
 /// <summary>
-/// Team space + member handling. Internal reads (detail/roster/activity/news/invitations)
+/// Team space + member handling. ALL reads require authentication (feature 026 — teams are
+/// never anonymous). Internal reads (detail/roster/activity/news/invitations) additionally
 /// require an authenticated MEMBER; a non-member and an unknown team both yield 404 (no
-/// membership oracle). Mutations require the ADMIN role, enforced server-side in the service
-/// layer. Only <c>{slug}/public</c> is anonymous (constitution Principle I).
+/// membership oracle). The <c>{slug}/public</c> route is the limited "public" view but is
+/// still authenticated — an authenticated non-member sees it; anonymous callers get 401.
+/// Mutations require the ADMIN role, enforced server-side in the service layer.
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
@@ -71,10 +73,9 @@ public sealed class TeamsController : ControllerBase
 
     // --- Browse (public) ------------------------------------------------------
 
-    /// <summary>Anonymous team browse/search (feature 007). Public card fields only; all
-    /// filtering/sorting/paging server-side.</summary>
+    /// <summary>Team browse/search (feature 007; authenticated-only since feature 026). Public
+    /// card fields only; all filtering/sorting/paging server-side.</summary>
     [HttpGet]
-    [AllowAnonymous]
     public async Task<ActionResult<PagedResult<TeamCardDto>>> Browse(
         [FromQuery] TeamBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
         Ok(await _search.BrowseAsync(query, pagination, ct));
@@ -115,11 +116,10 @@ public sealed class TeamsController : ControllerBase
         return dto is null ? TeamNotFound() : Ok(dto);
     }
 
-    /// <summary>The public team page (feature 009). Anonymous; optional auth populates the
-    /// viewer's relation so members/admins get their extra sections client-side. Public
-    /// fields only — never news or contact details.</summary>
+    /// <summary>The team's limited "public" view (feature 009; authenticated-only since feature
+    /// 026). The viewer's relation is populated so members/admins get their extra sections
+    /// client-side. Public fields only — never news or contact details.</summary>
     [HttpGet("{slug}/public")]
-    [AllowAnonymous]
     public async Task<ActionResult<TeamPublicDetailDto>> GetPublic(string slug, CancellationToken ct)
     {
         var dto = await _teams.GetPublicDetailAsync(slug, GetOptionalUserId(), ct);

@@ -28,6 +28,14 @@ internal static class SearchTestSupport
         return (client, userId, handle, email);
     }
 
+    /// <summary>An authenticated client (registered + verified + logged in). Browse/search is
+    /// authenticated-only since feature 026, so the browse tests view as a signed-in user.</summary>
+    public static async Task<HttpClient> AuthedClientAsync(JuggerHubApiFactory factory)
+    {
+        var (client, _, _, _) = await NewUserAsync(factory);
+        return client;
+    }
+
     public static async Task<T> WithDbAsync<T>(JuggerHubApiFactory factory, Func<AppDbContext, Task<T>> action)
     {
         using var scope = factory.Services.CreateScope();

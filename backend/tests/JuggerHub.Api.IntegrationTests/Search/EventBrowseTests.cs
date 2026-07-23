@@ -27,15 +27,15 @@ public sealed class EventBrowseTests
         var cancelled = await SearchTestSupport.SeedEventAsync(_factory, "Cancelled " + Rnd(), now.AddDays(11), now.AddDays(12),
             city: city, status: EventStatus.Cancelled);
 
-        var anon = _factory.CreateClient();
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
 
-        var upcoming = await IdsAsync(anon, $"/api/v1/events?city={city}&take=100");
+        var upcoming = await IdsAsync(viewer, $"/api/v1/events?city={city}&take=100");
         Assert.Contains(future.ToString(), upcoming);
         Assert.DoesNotContain(past.ToString(), upcoming);
         Assert.DoesNotContain(cancelled.ToString(), upcoming);
 
         // hidePast=false reveals past, but cancelled stays hidden either way.
-        var withPast = await IdsAsync(anon, $"/api/v1/events?city={city}&hidePast=false&take=100");
+        var withPast = await IdsAsync(viewer, $"/api/v1/events?city={city}&hidePast=false&take=100");
         Assert.Contains(past.ToString(), withPast);
         Assert.Contains(future.ToString(), withPast);
         Assert.DoesNotContain(cancelled.ToString(), withPast);
@@ -51,17 +51,17 @@ public sealed class EventBrowseTests
         var later = await SearchTestSupport.SeedEventAsync(_factory, "Later " + Rnd(), now.AddDays(40), now.AddDays(41),
             type: EventType.Workshop, city: city);
 
-        var anon = _factory.CreateClient();
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
 
         // A range covering only the soon event.
         var from = DateOnly.FromDateTime(now.AddDays(1));
         var to = DateOnly.FromDateTime(now.AddDays(10));
-        var ranged = await IdsAsync(anon, $"/api/v1/events?city={city}&from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}&take=100");
+        var ranged = await IdsAsync(viewer, $"/api/v1/events?city={city}&from={from:yyyy-MM-dd}&to={to:yyyy-MM-dd}&take=100");
         Assert.Contains(soon.ToString(), ranged);
         Assert.DoesNotContain(later.ToString(), ranged);
 
         // Type filter.
-        var workshops = await IdsAsync(anon, $"/api/v1/events?city={city}&type=Workshop&take=100");
+        var workshops = await IdsAsync(viewer, $"/api/v1/events?city={city}&type=Workshop&take=100");
         Assert.Contains(later.ToString(), workshops);
         Assert.DoesNotContain(soon.ToString(), workshops);
     }
@@ -73,8 +73,8 @@ public sealed class EventBrowseTests
         var now = DateTime.UtcNow;
         var id = await SearchTestSupport.SeedEventAsync(_factory, "Süd Turnier " + Rnd(), now.AddDays(5), now.AddDays(6), city: city);
 
-        var anon = _factory.CreateClient();
-        var byUnaccented = await IdsAsync(anon, $"/api/v1/events?city={city}&q=sud&take=100");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var byUnaccented = await IdsAsync(viewer, $"/api/v1/events?city={city}&q=sud&take=100");
         Assert.Contains(id.ToString(), byUnaccented);
     }
 
@@ -86,8 +86,8 @@ public sealed class EventBrowseTests
         var later = await SearchTestSupport.SeedEventAsync(_factory, "B Later " + Rnd(), now.AddDays(20), now.AddDays(21), city: city);
         var sooner = await SearchTestSupport.SeedEventAsync(_factory, "A Sooner " + Rnd(), now.AddDays(5), now.AddDays(6), city: city);
 
-        var anon = _factory.CreateClient();
-        var ids = await IdsAsync(anon, $"/api/v1/events?city={city}&take=100");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var ids = await IdsAsync(viewer, $"/api/v1/events?city={city}&take=100");
 
         Assert.True(ids.IndexOf(sooner.ToString()) < ids.IndexOf(later.ToString()));
     }
@@ -95,8 +95,8 @@ public sealed class EventBrowseTests
     [Fact]
     public async Task Browse_is_anonymous_and_paginates()
     {
-        var anon = _factory.CreateClient();
-        var resp = await anon.GetAsync("/api/v1/events?take=5");
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var resp = await viewer.GetAsync("/api/v1/events?take=5");
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
         var page = await resp.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(5, page.GetProperty("take").GetInt32());

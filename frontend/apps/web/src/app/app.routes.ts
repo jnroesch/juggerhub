@@ -9,8 +9,7 @@ import { RegisterComponent } from './features/auth/register/register.component';
 import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
 import { VerifyEmailComponent } from './features/auth/verify-email/verify-email.component';
-import { ProfileOwnerComponent } from './features/profile/profile-owner/profile-owner.component';
-import { ProfilePublicComponent } from './features/profile/profile-public/profile-public.component';
+import { ProfilePageComponent } from './features/profile/profile-page/profile-page.component';
 import { OnboardingComponent } from './features/onboarding/onboarding.component';
 import { TeamCreateComponent } from './features/teams/team-create/team-create.component';
 import { TeamDetailComponent } from './features/teams/team-detail/team-detail.component';
@@ -96,15 +95,19 @@ export const appRoutes: Route[] = [
             (m) => m.NotificationSettingsComponent,
           ),
       },
-      // Owner profile view/edit lives inside the shell, behind the auth guard.
-      { path: 'profile', component: ProfileOwnerComponent, canActivate: [authGuard] },
+      // The single profile URL (feature 026): /u/:handle, in-shell. The owner viewing their own
+      // handle gets the editable view; everyone else the read-only one; a signed-out visitor to a
+      // private/unknown profile is redirected to sign-in by the read-only view. NOT authGuarded —
+      // signed-out visitors can see public profiles (the shell shows a slim public bar for them).
+      { path: 'u/:handle', component: ProfilePageComponent },
       // Teams (feature 005) — create + the members-only team space, in the shell.
       { path: 'teams/new', component: TeamCreateComponent, canActivate: [authGuard] },
-      // Public team page (feature 009) — anonymous-viewable; members/admins see more inline.
-      { path: 't/:slug', component: TeamDetailComponent },
+      // Team page (feature 009). Authenticated-only since feature 026 — teams are never anonymous;
+      // members/admins see more inline. The limited "public" view is for signed-in non-members.
+      { path: 't/:slug', component: TeamDetailComponent, canActivate: [authGuard] },
       { path: 't/:slug/invitations', component: TeamInvitationsComponent, canActivate: [authGuard] },
       { path: 't/:slug/settings', component: TeamSettingsComponent, canActivate: [authGuard] },
-      // Events (feature 006) — create is authed; the event page itself is public. Lazy-loaded.
+      // Events (feature 006) — authenticated-only since feature 026 (events are never anonymous). Lazy-loaded.
       {
         path: 'events/new',
         canActivate: [authGuard],
@@ -112,6 +115,7 @@ export const appRoutes: Route[] = [
       },
       {
         path: 'events/:id',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/events/event-detail/event-detail.component').then((m) => m.EventDetailComponent),
       },
       {
@@ -188,18 +192,22 @@ export const appRoutes: Route[] = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/trainings/attendance/attendance.component').then((m) => m.AttendanceComponent),
       },
-      // Browse / search (feature 007) — anonymous (no guard), in the shell, lazy-loaded.
+      // Browse / search (feature 007) — authenticated-only since feature 026 (direct-link-only
+      // discovery; no anonymous browse). In the shell, lazy-loaded.
       { path: 'browse', pathMatch: 'full', redirectTo: 'browse/teams' },
       {
         path: 'browse/teams',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/browse/browse-teams/browse-teams.component').then((m) => m.BrowseTeamsComponent),
       },
       {
         path: 'browse/events',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/browse/browse-events/browse-events.component').then((m) => m.BrowseEventsComponent),
       },
       {
         path: 'browse/players',
+        canActivate: [authGuard],
         loadComponent: () => import('./features/browse/browse-players/browse-players.component').then((m) => m.BrowsePlayersComponent),
       },
     ],
@@ -213,8 +221,6 @@ export const appRoutes: Route[] = [
   // First-login onboarding — full-screen, outside the shell. authGuard requires a
   // session; onboardingGuard bounces already-onboarded users to the dashboard.
   { path: 'onboarding', component: OnboardingComponent, canActivate: [authGuard, onboardingGuard] },
-  // Public, unauthenticated share page — full-screen, outside the shell.
-  { path: 'u/:handle', component: ProfilePublicComponent },
   // Admin area (feature 013) — full-screen shell with its own shield header and nav;
   // gated to platform admins (server-enforced; adminGuard is UX only). Lazy-loaded.
   // Children: overview (landing) · users (search/list) · users/:handle (player detail)

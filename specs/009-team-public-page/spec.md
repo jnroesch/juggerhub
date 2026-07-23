@@ -1,5 +1,11 @@
 # Feature Specification: Public team page & request to join
 
+> **⚠️ Superseded in part by [feature 026](../026-authenticated-only-access/spec.md) (2026-07-22):**
+> the team "public" page is no longer **anonymous** — it is authenticated-only like the rest of the
+> team space. The public/internal *content* split still holds within the app (a signed-in
+> non-member sees the limited view; the viewer relation is now never "Anonymous"). Request-to-join
+> and the roster/limited-fields behavior otherwise stand.
+
 **Feature Branch**: `008-home-dashboard-nav` (stacked) → `009-team-public-page`
 
 **Created**: 2026-07-08

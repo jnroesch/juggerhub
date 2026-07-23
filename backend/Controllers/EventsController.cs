@@ -71,10 +71,10 @@ public sealed class EventsController : ControllerBase
 
     // --- Browse (public) ------------------------------------------------------
 
-    /// <summary>Anonymous event browse/search (feature 007). Cancelled events are always
-    /// excluded; past events hidden by default. Public card fields only.</summary>
+    /// <summary>Event browse/search (feature 007; authenticated-only since feature 026).
+    /// Cancelled events are always excluded; past events hidden by default. Public card
+    /// fields only.</summary>
     [HttpGet]
-    [AllowAnonymous]
     public async Task<ActionResult<PagedResult<EventCardDto>>> Browse(
         [FromQuery] EventBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
         Ok(await _search.BrowseAsync(query, pagination, ct));
@@ -97,10 +97,9 @@ public sealed class EventsController : ControllerBase
         };
     }
 
-    // --- Public reads (anonymous; optional auth populates the viewer relation) ---
+    // --- Reads (authenticated since feature 026; auth populates the viewer relation) ---
 
     [HttpGet("{id:guid}")]
-    [AllowAnonymous]
     public async Task<ActionResult<EventDetailDto>> GetDetail(Guid id, CancellationToken ct)
     {
         var dto = await _events.GetDetailAsync(id, GetOptionalUserId(), ct);
@@ -108,7 +107,6 @@ public sealed class EventsController : ControllerBase
     }
 
     [HttpGet("{id:guid}/participants")]
-    [AllowAnonymous]
     public async Task<ActionResult<PagedResult<SignupDto>>> GetParticipants(
         Guid id, [FromQuery] string group, [FromQuery] PaginationRequest pagination, CancellationToken ct)
     {
@@ -209,10 +207,9 @@ public sealed class EventsController : ControllerBase
         return MapAdmit(await _signups.PromoteAsync(id, signupId, userId, ct));
     }
 
-    // --- News (public read, admin post) ---------------------------------------
+    // --- News (authenticated read, admin post) --------------------------------
 
     [HttpGet("{id:guid}/news")]
-    [AllowAnonymous]
     public async Task<ActionResult<PagedResult<EventNewsDto>>> GetNews(
         Guid id, [FromQuery] PaginationRequest pagination, CancellationToken ct)
     {
@@ -237,10 +234,9 @@ public sealed class EventsController : ControllerBase
         };
     }
 
-    // --- Contacts (public read, admin CUD) ------------------------------------
+    // --- Contacts (authenticated read, admin CUD) -----------------------------
 
     [HttpGet("{id:guid}/contacts")]
-    [AllowAnonymous]
     public async Task<ActionResult<PagedResult<EventContactDto>>> GetContacts(
         Guid id, [FromQuery] PaginationRequest pagination, CancellationToken ct)
     {

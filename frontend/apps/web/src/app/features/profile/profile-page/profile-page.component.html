@@ -1,0 +1,13 @@
+@switch (mode()) {
+  @case ('owner') {
+    <jh-profile-owner />
+  }
+  @case ('viewer') {
+    <jh-profile-public />
+  }
+  @default {
+    <section class="mx-auto max-w-container-md px-md py-lg">
+      <jh-loading />
+    </section>
+  }
+}
