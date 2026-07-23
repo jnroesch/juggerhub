@@ -68,6 +68,24 @@ public sealed class Conversation : BaseEntity
     /// <summary>The mirrored party; set while <see cref="Kind"/> is <see cref="ConversationKind.Party"/> and live. Nulled on archival — see <see cref="TeamId"/>.</summary>
     public Guid? PartyId { get; set; }
 
+    /// <summary>
+    /// The mirrored event, for an <see cref="ConversationKind.EventInquiry"/> (feature 027). Membership
+    /// derives from this event's <see cref="EventAdmin"/> roster. <b>Nulled on archival</b> for the same
+    /// reason as <see cref="TeamId"/>: the roster can vanish, so the snapshot must detach first. Null for
+    /// every other kind. A <see cref="ConversationKind.TeamInquiry"/> reuses <see cref="TeamId"/> as its
+    /// target instead.
+    /// </summary>
+    public Guid? EventId { get; set; }
+
+    /// <summary>
+    /// For the two inquiry kinds (feature 027): the fixed non-admin player who started the thread. This
+    /// is the <em>only</em> stored side of the membership — the admin side is derived from the team/event
+    /// roster on every request (see <c>ChatGuard</c>). Together with <see cref="TeamId"/>/<see cref="EventId"/>
+    /// it forms the pair a unique filtered index enforces at most one thread over (data-model R2).
+    /// Retained through archival so the inbox can still name the thread. Null for every non-inquiry kind.
+    /// </summary>
+    public Guid? RequesterUserId { get; set; }
+
     public ConversationState State { get; set; } = ConversationState.Active;
 
     /// <summary>
@@ -89,6 +107,12 @@ public sealed class Conversation : BaseEntity
     public Team? Team { get; set; }
 
     public Party? Party { get; set; }
+
+    /// <summary>The mirrored event for an <see cref="ConversationKind.EventInquiry"/>; null otherwise.</summary>
+    public Event? Event { get; set; }
+
+    /// <summary>The fixed requesting player for an inquiry thread (feature 027); null otherwise.</summary>
+    public User? Requester { get; set; }
 
     public ICollection<ConversationParticipant> Participants { get; set; } = new List<ConversationParticipant>();
 

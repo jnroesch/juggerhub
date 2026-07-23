@@ -7,7 +7,7 @@
  * The discriminator that drives everything conditional in chat: how the name is derived, whether the
  * conversation can be left or added to, and which tag the inbox row wears.
  */
-export type ConversationKind = 'Direct' | 'Group' | 'Team' | 'Party';
+export type ConversationKind = 'Direct' | 'Group' | 'Team' | 'Party' | 'TeamInquiry' | 'EventInquiry';
 
 /** Archived = the underlying party disbanded or team was deleted: readable, closed to writes. */
 export type ConversationState = 'Active' | 'Archived';
@@ -141,6 +141,20 @@ export interface ChatSearchResult {
 export interface DirectMessageSent {
   readonly conversation: Conversation;
   readonly message: ChatMessage;
+}
+
+/**
+ * Result of sending the first message to a team's/event's admins (feature 027 — contact the admins):
+ * the inquiry conversation that now exists (created if it didn't) plus the message that was sent.
+ */
+export interface InquiryMessageSent {
+  readonly conversation: Conversation;
+  readonly message: ChatMessage;
+}
+
+/** Whether the caller already has an inquiry thread for a team/event; null id ⇒ none yet (feature 027). */
+export interface InquiryThreadRef {
+  readonly conversationId: string | null;
 }
 
 export interface BlockedUser {

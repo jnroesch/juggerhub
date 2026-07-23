@@ -104,6 +104,81 @@ public sealed class ChatConversationsController : ControllerBase
             : Fail(result.Outcome, result.Error);
     }
 
+    // --- Contact the admins (feature 027) -------------------------------------
+
+    /// <summary>
+    /// Send the first message to a team's admins, creating the inquiry thread if none exists yet
+    /// (feature 027). Rate-limited like every new-conversation reach (spec FR-013 / 019 FR-049a).
+    /// </summary>
+    [HttpPost("contact/team/{teamId:guid}/messages")]
+    [EnableRateLimiting(RateLimitPolicies.ChatStart)]
+    public async Task<ActionResult<InquiryMessageSentDto>> ContactTeam(
+        Guid teamId,
+        [FromBody] SendMessageRequest request,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _conversations.SendFirstInquiryAsync(
+            userId, Entities.ConversationKind.TeamInquiry, teamId, request.Body ?? string.Empty, ct);
+        return result.IsOk
+            ? Created($"/api/v1/chat/conversations/{result.Value!.Conversation.Id}", result.Value)
+            : Fail(result.Outcome, result.Error);
+    }
+
+    /// <summary>Send the first message to an event's admins (feature 027). See <see cref="ContactTeam"/>.</summary>
+    [HttpPost("contact/event/{eventId:guid}/messages")]
+    [EnableRateLimiting(RateLimitPolicies.ChatStart)]
+    public async Task<ActionResult<InquiryMessageSentDto>> ContactEvent(
+        Guid eventId,
+        [FromBody] SendMessageRequest request,
+        CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _conversations.SendFirstInquiryAsync(
+            userId, Entities.ConversationKind.EventInquiry, eventId, request.Body ?? string.Empty, ct);
+        return result.IsOk
+            ? Created($"/api/v1/chat/conversations/{result.Value!.Conversation.Id}", result.Value)
+            : Fail(result.Outcome, result.Error);
+    }
+
+    /// <summary>
+    /// Whether the caller already has an inquiry thread for this team, so the "Contact admins" button can
+    /// jump into it rather than open a fresh compose (FR-004). Never creates anything; reveals only the
+    /// caller's own thread.
+    /// </summary>
+    [HttpGet("contact/team/{teamId:guid}")]
+    public async Task<ActionResult<InquiryThreadRefDto>> FindTeamInquiry(Guid teamId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var id = await _conversations.FindInquiryThreadAsync(userId, Entities.ConversationKind.TeamInquiry, teamId, ct);
+        return Ok(new InquiryThreadRefDto(id));
+    }
+
+    /// <summary>Whether the caller already has an inquiry thread for this event (feature 027).</summary>
+    [HttpGet("contact/event/{eventId:guid}")]
+    public async Task<ActionResult<InquiryThreadRefDto>> FindEventInquiry(Guid eventId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var id = await _conversations.FindInquiryThreadAsync(userId, Entities.ConversationKind.EventInquiry, eventId, ct);
+        return Ok(new InquiryThreadRefDto(id));
+    }
+
     [HttpGet("conversations/{conversationId:guid}")]
     public async Task<ActionResult<ConversationDetailDto>> Detail(Guid conversationId, CancellationToken ct)
     {

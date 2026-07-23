@@ -13,7 +13,14 @@ function results(people: PersonHit[]): ChatSearchResult {
   return { messages: { items: [], totalCount: 0 }, people: { items: people, totalCount: people.length } };
 }
 
-const chat = { search: jest.fn(), sendDirect: jest.fn() };
+const chat = {
+  search: jest.fn(),
+  sendDirect: jest.fn(),
+  findTeamInquiry: jest.fn(),
+  findEventInquiry: jest.fn(),
+  sendInquiryToTeam: jest.fn(),
+  sendInquiryToEvent: jest.fn(),
+};
 let navigate: jest.SpyInstance;
 
 function create(handle: string, state?: { userId?: string; displayName?: string }) {
@@ -24,6 +31,20 @@ function create(handle: string, state?: { userId?: string; displayName?: string 
   navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
   const fixture = TestBed.createComponent(ChatComposeComponent);
   fixture.componentRef.setInput('handle', handle);
+  fixture.detectChanges();
+  return fixture;
+}
+
+/** Instantiate the compose view in inquiry mode (feature 027): a team/event target, no handle. */
+function createInquiry(kind: 'team' | 'event', targetId: string, state?: { name?: string }) {
+  window.history.replaceState(state ?? {}, '');
+  TestBed.configureTestingModule({
+    providers: [{ provide: ChatService, useValue: chat }, provideRouter([])],
+  });
+  navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+  const fixture = TestBed.createComponent(ChatComposeComponent);
+  fixture.componentRef.setInput('kind', kind);
+  fixture.componentRef.setInput('targetId', targetId);
   fixture.detectChanges();
   return fixture;
 }
@@ -48,6 +69,10 @@ describe('ChatComposeComponent', () => {
     jest.clearAllMocks();
     chat.search.mockReturnValue(of(results([])));
     chat.sendDirect.mockReturnValue(of({ conversation: { id: 'c-new' }, message: {} }));
+    chat.findTeamInquiry.mockReturnValue(of({ conversationId: null }));
+    chat.findEventInquiry.mockReturnValue(of({ conversationId: null }));
+    chat.sendInquiryToTeam.mockReturnValue(of({ conversation: { id: 'c-inq' }, message: {} }));
+    chat.sendInquiryToEvent.mockReturnValue(of({ conversation: { id: 'c-inq' }, message: {} }));
   });
 
   it('renders the recipient from navigation state without resolving or creating anything', () => {
@@ -87,5 +112,31 @@ describe('ChatComposeComponent', () => {
     fixture.detectChanges();
     expect(el(fixture, 'compose-error')).not.toBeNull();
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  // --- Inquiry mode (feature 027) -------------------------------------------
+
+  it('opens an existing inquiry thread instead of composing when one already exists', () => {
+    chat.findTeamInquiry.mockReturnValue(of({ conversationId: 'c-existing' }));
+    createInquiry('team', 'team-1', { name: 'Rheinfeuer' });
+    expect(chat.findTeamInquiry).toHaveBeenCalledWith('team-1');
+    expect(navigate).toHaveBeenCalledWith(['/chat', 'c-existing'], { replaceUrl: true });
+  });
+
+  it('creates a team inquiry on first send and navigates into the new thread', () => {
+    const fixture = createInquiry('team', 'team-1', { name: 'Rheinfeuer' });
+    type(fixture, 'When is training?');
+    submit(fixture);
+    expect(chat.sendInquiryToTeam).toHaveBeenCalledWith('team-1', 'When is training?');
+    expect(chat.sendDirect).not.toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['/chat', 'c-inq'], { replaceUrl: true });
+  });
+
+  it('creates an event inquiry on first send', () => {
+    const fixture = createInquiry('event', 'event-1', { name: 'Sommerturnier' });
+    type(fixture, 'Is there parking?');
+    submit(fixture);
+    expect(chat.sendInquiryToEvent).toHaveBeenCalledWith('event-1', 'Is there parking?');
+    expect(navigate).toHaveBeenCalledWith(['/chat', 'c-inq'], { replaceUrl: true });
   });
 });

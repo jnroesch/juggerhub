@@ -82,6 +82,7 @@ public enum TeamViewerRelation
 /// roster and recent activity. Carries NO contact details or news. Real trainings (feature 018) live
 /// on the members-only Trainings tab, not this public payload.</summary>
 public sealed record TeamPublicDetailDto(
+    Guid Id,
     string Slug,
     string Name,
     TeamType Type,

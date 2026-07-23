@@ -130,6 +130,11 @@
                 (join)="join($event)"
                 (withdraw)="withdraw()" />
             }
+
+            @if (canContactAdmins()) {
+              <button type="button" (click)="contactAdmins()" data-testid="contact-admins"
+                class="mt-sm block w-full rounded-md border border-border-strong px-lg py-md text-center text-body-md font-semibold text-body hover:bg-surface-sunken">Contact admins</button>
+            }
           </div>
 
           <!-- Entrance fee -->

@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ButtonDirective, EmptyStateComponent, CardComponent } from '../../../shared/ui';
 import { Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
 import {
@@ -33,6 +33,7 @@ export class TeamDetailComponent {
   private readonly teams = inject(TeamService);
   private readonly parties = inject(PartyService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly slug = signal('');
   protected readonly pub = signal<TeamPublicDetail | null>(null);
@@ -57,6 +58,17 @@ export class TeamDetailComponent {
   protected readonly isAnon = computed(() => this.relation() === 'Anonymous');
   protected readonly canRequest = computed(() => this.relation() === 'NonMember');
   protected readonly requested = computed(() => this.relation() === 'Requested');
+  /** Feature 027: any signed-in non-admin may contact the team's admins (FR-001/FR-002). */
+  protected readonly canContactAdmins = computed(() => !this.isAnon() && !this.isAdmin());
+
+  /** Open a "contact the admins" thread (feature 027). Nothing persists until the first message is sent. */
+  protected contactAdmins(): void {
+    const team = this.pub();
+    if (!team) {
+      return;
+    }
+    void this.router.navigate(['/chat', 'contact', 'team', team.id], { state: { name: team.name } });
+  }
 
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((pm) => {

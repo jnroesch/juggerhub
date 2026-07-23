@@ -62,6 +62,20 @@ export class EventDetailComponent implements OnInit {
   private id = '';
 
   protected readonly cancelled = computed(() => this.detail()?.status === 'Cancelled');
+  /** Feature 027: a signed-in non-admin may contact the event's admins, unless the event is cancelled. */
+  protected readonly canContactAdmins = computed(() => {
+    const d = this.detail();
+    return !!d && d.viewer.isAuthenticated && !d.viewer.isAdmin && d.status !== 'Cancelled';
+  });
+
+  /** Open a "contact the admins" thread for this event (feature 027). Nothing persists until first send. */
+  protected contactAdmins(): void {
+    const d = this.detail();
+    if (!d) {
+      return;
+    }
+    void this.router.navigate(['/chat', 'contact', 'event', this.id], { state: { name: d.name } });
+  }
   /** Occupied-spots fill for the occupancy bar (0–100). */
   protected readonly occupancyPct = computed(() => {
     const d = this.detail();

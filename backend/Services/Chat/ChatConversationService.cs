@@ -187,6 +187,148 @@ public sealed class ChatConversationService : IChatConversationService
         return ChatResult<DirectMessageSentDto>.Ok(new DirectMessageSentDto(summary.Value, sent.Value!));
     }
 
+    // --- Inquiry threads (feature 027 — contact the admins) ---------------------
+
+    /// <summary>
+    /// Send the first message to a team's/event's admins, creating the inquiry thread on first send
+    /// (feature 027, mirrors feature 022's lazy DM creation). Validates the target, rejects a caller who
+    /// already administers it (FR-002), ensures the race-safe thread, then writes the message — so an
+    /// entry point opened but never sent from leaves nothing behind.
+    /// </summary>
+    public async Task<ChatResult<InquiryMessageSentDto>> SendFirstInquiryAsync(
+        Guid callerId,
+        ConversationKind kind,
+        Guid targetId,
+        string body,
+        CancellationToken ct = default)
+    {
+        if (kind is not (ConversationKind.TeamInquiry or ConversationKind.EventInquiry))
+        {
+            return ChatResult<InquiryMessageSentDto>.Fail(ChatOutcome.Invalid, "Not an inquiry conversation.");
+        }
+
+        // Validate the target server-side, and reject a caller who is already an admin — they ARE the
+        // admin group and cannot meaningfully contact themselves (FR-002). Absent/invisible ⇒ NotFound.
+        if (kind == ConversationKind.TeamInquiry)
+        {
+            var exists = await _db.Teams.AsNoTracking().AnyAsync(t => t.Id == targetId, ct);
+            if (!exists)
+            {
+                return ChatResult<InquiryMessageSentDto>.Fail(ChatOutcome.NotFound);
+            }
+
+            var isAdmin = await _db.TeamMemberships.AsNoTracking()
+                .AnyAsync(m => m.TeamId == targetId && m.UserId == callerId && m.Role == TeamRole.Admin, ct);
+            if (isAdmin)
+            {
+                return ChatResult<InquiryMessageSentDto>.Fail(ChatOutcome.Conflict, "You're already an admin of this team.");
+            }
+        }
+        else
+        {
+            var status = await _db.Events.AsNoTracking()
+                .Where(e => e.Id == targetId)
+                .Select(e => (EventStatus?)e.Status)
+                .FirstOrDefaultAsync(ct);
+            if (status is null)
+            {
+                return ChatResult<InquiryMessageSentDto>.Fail(ChatOutcome.NotFound);
+            }
+
+            if (status == EventStatus.Cancelled)
+            {
+                return ChatResult<InquiryMessageSentDto>.Fail(ChatOutcome.Conflict, "This event is closed.");
+            }
+
+            var isAdmin = await _db.EventAdmins.AsNoTracking()
+                .AnyAsync(a => a.EventId == targetId && a.UserId == callerId, ct);
+            if (isAdmin)
+            {
+                return ChatResult<InquiryMessageSentDto>.Fail(ChatOutcome.Conflict, "You're already an admin of this event.");
+            }
+        }
+
+        var conversationId = await EnsureInquiryAsync(callerId, kind, targetId, ct);
+
+        var sent = await _messages.SendAsync(callerId, conversationId, body, ct);
+        if (!sent.IsOk)
+        {
+            return ChatResult<InquiryMessageSentDto>.Fail(sent.Outcome, sent.Error);
+        }
+
+        var summary = await SummariseAsync(callerId, conversationId, ct);
+        if (!summary.IsOk || summary.Value is null)
+        {
+            return ChatResult<InquiryMessageSentDto>.Fail(ChatOutcome.NotFound);
+        }
+
+        return ChatResult<InquiryMessageSentDto>.Ok(new InquiryMessageSentDto(summary.Value, sent.Value!));
+    }
+
+    public Task<Guid?> FindInquiryThreadAsync(
+        Guid callerId,
+        ConversationKind kind,
+        Guid targetId,
+        CancellationToken ct = default) =>
+        FindInquiryAsync(callerId, kind, targetId, ct);
+
+    /// <summary>
+    /// Get the inquiry thread for a (requester, target), creating it if absent. Race-safe by the unique
+    /// filtered indexes on (TeamId, RequesterUserId)/(EventId, RequesterUserId): two concurrent first
+    /// sends collide and the loser resolves to the winner rather than making a second row (FR-004).
+    /// </summary>
+    private async Task<Guid> EnsureInquiryAsync(Guid callerId, ConversationKind kind, Guid targetId, CancellationToken ct)
+    {
+        var existing = await FindInquiryAsync(callerId, kind, targetId, ct);
+        if (existing is { } found)
+        {
+            return found;
+        }
+
+        var conversation = new Conversation
+        {
+            Kind = kind,
+            TeamId = kind == ConversationKind.TeamInquiry ? targetId : null,
+            EventId = kind == ConversationKind.EventInquiry ? targetId : null,
+            RequesterUserId = callerId,
+            State = ConversationState.Active,
+        };
+        _db.Conversations.Add(conversation);
+        // The requester is a STORED participant (their side of the thread is fixed, not derived), which
+        // also anchors their join-time read cutoff. Admins are never stored — they derive from the roster.
+        AddParticipants(conversation.Id, new[] { callerId });
+
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+        catch (DbUpdateException)
+        {
+            _db.ChangeTracker.Clear();
+            var winner = await FindInquiryAsync(callerId, kind, targetId, ct);
+            if (winner is not { } id)
+            {
+                throw;
+            }
+
+            return id;
+        }
+
+        return conversation.Id;
+    }
+
+    private async Task<Guid?> FindInquiryAsync(Guid callerId, ConversationKind kind, Guid targetId, CancellationToken ct)
+    {
+        var id = await _db.Conversations.AsNoTracking()
+            .Where(c => c.Kind == kind
+                && c.RequesterUserId == callerId
+                && (kind == ConversationKind.TeamInquiry ? c.TeamId == targetId : c.EventId == targetId))
+            .Select(c => c.Id)
+            .FirstOrDefaultAsync(ct);
+
+        return id == Guid.Empty ? null : id;
+    }
+
     private async Task<ChatResult<ConversationSummaryDto>> StartGroupAsync(
         Guid callerId,
         List<Guid> others,
@@ -265,7 +407,11 @@ public sealed class ChatConversationService : IChatConversationService
                 c.State,
                 c.TeamId,
                 c.PartyId,
+                c.EventId,
+                c.RequesterUserId,
                 TeamName = c.Team!.Name,
+                EventName = c.Event!.Name,
+                RequesterName = c.Requester!.Profile!.DisplayName,
                 State_ = c.State,
                 Me = c.Participants.FirstOrDefault(p => p.UserId == callerId),
                 Other = c.Participants
@@ -292,7 +438,7 @@ public sealed class ChatConversationService : IChatConversationService
         // count and, when there is no newer message, out of their inbox preview too.
         var cutoffs = await _guard.ResolveJoinCutoffsAsync(
             callerId,
-            rows.Select(r => new ChatAccess(r.Id, r.Kind, r.State, r.TeamId, r.PartyId)).ToList(),
+            rows.Select(r => new ChatAccess(r.Id, r.Kind, r.State, r.TeamId, r.PartyId, r.EventId, r.RequesterUserId)).ToList(),
             ct);
 
         var items = new List<ConversationSummaryDto>(rows.Count);
@@ -307,11 +453,13 @@ public sealed class ChatConversationService : IChatConversationService
                 ? null
                 : r.Last;
 
+            var isRequester = r.RequesterUserId == callerId;
+
             items.Add(new ConversationSummaryDto(
                 r.Id,
                 r.Kind,
-                DisplayName(r.Kind, r.Name, r.TeamName, r.Other?.DisplayName),
-                BuildAvatar(r.Kind, r.TeamId, r.Other?.UserId),
+                DisplayName(r.Kind, r.Name, r.TeamName, r.Other?.DisplayName, r.EventName, r.RequesterName, isRequester),
+                BuildAvatar(r.Kind, r.TeamId, r.Other?.UserId, r.RequesterUserId, isRequester),
                 last is null
                     ? null
                     : new LastMessageDto(
@@ -473,7 +621,11 @@ public sealed class ChatConversationService : IChatConversationService
                 c.State,
                 c.TeamId,
                 c.PartyId,
+                c.EventId,
+                c.RequesterUserId,
                 TeamName = c.Team!.Name,
+                EventName = c.Event!.Name,
+                RequesterName = c.Requester!.Profile!.DisplayName,
                 Other = c.Participants
                     .Where(p => p.UserId != callerId)
                     .Select(p => new { p.UserId, p.User.Profile!.DisplayName })
@@ -483,12 +635,13 @@ public sealed class ChatConversationService : IChatConversationService
             .FirstAsync(ct);
 
         var memberCount = (await _guard.ResolveParticipantUserIdsAsync(conversationId, ct)).Count;
+        var isRequester = row.RequesterUserId == callerId;
 
         return ChatResult<ConversationDetailDto>.Ok(new ConversationDetailDto(
             conversationId,
             row.Kind,
-            DisplayName(row.Kind, row.Name, row.TeamName, row.Other?.DisplayName),
-            BuildAvatar(row.Kind, row.TeamId, row.Other?.UserId),
+            DisplayName(row.Kind, row.Name, row.TeamName, row.Other?.DisplayName, row.EventName, row.RequesterName, isRequester),
+            BuildAvatar(row.Kind, row.TeamId, row.Other?.UserId, row.RequesterUserId, isRequester),
             row.State,
             row.Me?.IsMuted ?? false,
             row.Me?.IsHidden ?? false,
@@ -858,23 +1011,46 @@ public sealed class ChatConversationService : IChatConversationService
             .Select(c => c.Id)
             .FirstOrDefaultAsync(ct);
 
-    public Task ArchiveForTeamAsync(Guid teamId, CancellationToken ct = default) =>
-        ArchiveAutoAsync(ConversationKind.Team, teamId, ct);
+    /// <summary>
+    /// Archive a team's chat AND every inquiry thread addressed to that team, before the team row is
+    /// hard-deleted (data-model R3a). Both derive membership from <c>TeamMemberships</c>, which cascades
+    /// away with the team, so both must be snapshotted first.
+    /// </summary>
+    public async Task ArchiveForTeamAsync(Guid teamId, CancellationToken ct = default)
+    {
+        var ids = await _db.Conversations.AsNoTracking()
+            .Where(c => c.TeamId == teamId
+                && (c.Kind == ConversationKind.Team || c.Kind == ConversationKind.TeamInquiry))
+            .Select(c => c.Id)
+            .ToListAsync(ct);
+
+        foreach (var id in ids)
+        {
+            await ArchiveConversationAsync(id, ct);
+        }
+    }
 
     public Task ArchiveForPartyAsync(Guid partyId, CancellationToken ct = default) =>
         ArchiveAutoAsync(ConversationKind.Party, partyId, ct);
 
     /// <summary>
-    /// Archive an auto chat <b>before</b> its team/party row is hard-deleted (data-model R3a).
+    /// Archive every inquiry thread addressed to an event when the event is cancelled (feature 027).
+    /// Unlike a team delete, cancellation does not remove the <c>EventAdmin</c> roster, but archiving
+    /// still snapshots it so the "archived = detached, read-only" invariant holds uniformly (research §8).
     /// </summary>
-    /// <remarks>
-    /// This is a <b>snapshot, not a flag</b>, and the distinction is the whole point. Team delete and
-    /// party disband are hard deletes, and <c>TeamMemberships</c>/<c>PartyMembers</c> cascade away with
-    /// them. Since a live auto chat <em>derives</em> membership from that roster, simply setting
-    /// <c>State = Archived</c> would leave a conversation nobody can read — the roster it asks "are you
-    /// a member?" no longer exists — silently breaking FR-027's "members can still read the history".
-    /// So: freeze the roster into real participant rows, freeze the name, drop the link.
-    /// </remarks>
+    public async Task ArchiveInquiriesForEventAsync(Guid eventId, CancellationToken ct = default)
+    {
+        var ids = await _db.Conversations.AsNoTracking()
+            .Where(c => c.EventId == eventId && c.Kind == ConversationKind.EventInquiry)
+            .Select(c => c.Id)
+            .ToListAsync(ct);
+
+        foreach (var id in ids)
+        {
+            await ArchiveConversationAsync(id, ct);
+        }
+    }
+
     private async Task ArchiveAutoAsync(ConversationKind kind, Guid ownerId, CancellationToken ct)
     {
         var conversationId = await FindAutoAsync(kind, ownerId, ct);
@@ -883,6 +1059,25 @@ public sealed class ChatConversationService : IChatConversationService
             return; // Nobody ever opened the chat, so there is nothing to preserve.
         }
 
+        await ArchiveConversationAsync(conversationId, ct);
+    }
+
+    /// <summary>
+    /// Snapshot a derived-membership conversation and close it, <b>before</b> its team/party/event link
+    /// can be hard-deleted (data-model R3a).
+    /// </summary>
+    /// <remarks>
+    /// This is a <b>snapshot, not a flag</b>, and the distinction is the whole point. Team delete and
+    /// party disband are hard deletes, and <c>TeamMemberships</c>/<c>PartyMembers</c> cascade away with
+    /// them. Since a live auto chat / inquiry <em>derives</em> membership from that roster, simply setting
+    /// <c>State = Archived</c> would leave a conversation nobody can read — the roster it asks "are you
+    /// a member?" no longer exists — silently breaking FR-027's "members can still read the history".
+    /// So: freeze the roster into real participant rows, freeze the name, drop the link. One-way and
+    /// idempotent. Works uniformly for <see cref="ConversationKind.Team"/>, <see cref="ConversationKind.Party"/>,
+    /// and the two inquiry kinds (feature 027).
+    /// </remarks>
+    private async Task ArchiveConversationAsync(Guid conversationId, CancellationToken ct)
+    {
         var conversation = await _db.Conversations.FirstAsync(c => c.Id == conversationId, ct);
         if (conversation.State == ConversationState.Archived)
         {
@@ -914,18 +1109,26 @@ public sealed class ChatConversationService : IChatConversationService
             }
         }
 
-        // 2. Freeze the display name — the link it was derived from is about to vanish.
-        conversation.Name ??= kind == ConversationKind.Team
-            ? await _db.Teams.AsNoTracking().Where(t => t.Id == ownerId).Select(t => t.Name).FirstOrDefaultAsync(ct)
-                ?? "Team chat"
-            : "Party chat";
+        // 2. Freeze the display name — the link it was derived from is about to vanish. An inquiry's
+        //    per-viewer name collapses to a single stable label (what it was about) once archived.
+        conversation.Name ??= conversation.Kind switch
+        {
+            ConversationKind.Team or ConversationKind.TeamInquiry => conversation.TeamId is { } tId
+                ? await _db.Teams.AsNoTracking().Where(t => t.Id == tId).Select(t => t.Name).FirstOrDefaultAsync(ct) ?? "Team chat"
+                : "Team chat",
+            ConversationKind.EventInquiry => conversation.EventId is { } eId
+                ? await _db.Events.AsNoTracking().Where(e => e.Id == eId).Select(e => e.Name).FirstOrDefaultAsync(ct) ?? "Event"
+                : "Event",
+            _ => "Party chat",
+        };
 
-        // 3. Drop the link so the hard delete is not blocked by the Restrict FK…
+        // 3. Drop the links so a subsequent hard delete is not blocked by the Restrict FKs…
         conversation.TeamId = null;
         conversation.PartyId = null;
+        conversation.EventId = null;
 
-        // 4. …and close it to writes. Kind is deliberately left alone, so the inbox still tags it
-        //    TEAM/PARTY and the history still reads as what it was.
+        // 4. …and close it to writes. Kind is deliberately left alone, so the inbox still tags it and
+        //    the history still reads as what it was.
         conversation.State = ConversationState.Archived;
 
         await _db.SaveChangesAsync(ct);
@@ -964,22 +1167,64 @@ public sealed class ChatConversationService : IChatConversationService
     /// A conversation's display name. Only a group stores one; the rest derive it — except an archived
     /// auto chat, which froze its name at archival because the link it derived from is gone (R3a).
     /// </summary>
-    private static string DisplayName(ConversationKind kind, string? stored, string? teamName, string? otherName) =>
+    /// <remarks>
+    /// Inquiry threads (feature 027) name themselves <b>per viewer</b>: the requester sees the team
+    /// name / event title (what they're asking about); an admin sees the requester's name <em>and</em>
+    /// the team/event it concerns — e.g. "Ada K. · Rheinfeuer" — because an admin of several teams/events
+    /// needs the context to tell inquiries apart. A frozen <paramref name="stored"/> name (set at
+    /// archival, when the link is severed) wins for every derived kind.
+    /// </remarks>
+    private static string DisplayName(
+        ConversationKind kind,
+        string? stored,
+        string? teamName,
+        string? otherName,
+        string? eventName,
+        string? requesterName,
+        bool isRequester) =>
         kind switch
         {
             ConversationKind.Group => stored ?? "Group",
             ConversationKind.Direct => otherName ?? PlaceholderName,
             ConversationKind.Team => stored ?? teamName ?? "Team chat",
             ConversationKind.Party => stored ?? "Party chat",
+            ConversationKind.TeamInquiry => stored ?? (isRequester ? teamName : InquiryAdminLabel(requesterName, teamName)) ?? PlaceholderName,
+            ConversationKind.EventInquiry => stored ?? (isRequester ? eventName : InquiryAdminLabel(requesterName, eventName)) ?? PlaceholderName,
             _ => stored ?? "Chat",
         };
 
-    private static ConversationAvatarDto BuildAvatar(ConversationKind kind, Guid? teamId, Guid? otherUserId) =>
+    /// <summary>
+    /// The admin-side label for an inquiry row: the requester's name plus the team/event it concerns,
+    /// so an admin who manages several can tell them apart (feature 027). Degrades gracefully when
+    /// either part is missing.
+    /// </summary>
+    private static string InquiryAdminLabel(string? requesterName, string? context) =>
+        (requesterName, context) switch
+        {
+            ({ } r, { } c) => $"{r} · {c}",
+            ({ } r, null) => r,
+            (null, { } c) => c,
+            _ => PlaceholderName,
+        };
+
+    private static ConversationAvatarDto BuildAvatar(
+        ConversationKind kind,
+        Guid? teamId,
+        Guid? otherUserId,
+        Guid? requesterUserId,
+        bool isRequester) =>
         kind switch
         {
             ConversationKind.Direct => new ConversationAvatarDto("User", otherUserId, null, null),
             ConversationKind.Team => new ConversationAvatarDto("Team", null, teamId, null),
             ConversationKind.Party => new ConversationAvatarDto("Party", null, null, null),
+            // Requester sees the team/event crest; an admin sees the requester's avatar.
+            ConversationKind.TeamInquiry => isRequester
+                ? new ConversationAvatarDto("Team", null, teamId, null)
+                : new ConversationAvatarDto("User", requesterUserId, null, null),
+            ConversationKind.EventInquiry => isRequester
+                ? new ConversationAvatarDto("Event", null, null, null)
+                : new ConversationAvatarDto("User", requesterUserId, null, null),
             _ => new ConversationAvatarDto("Group", null, null, null),
         };
 }

@@ -31,7 +31,10 @@
       </div>
 
       <!-- Join action (state-aware) -->
-      <div class="shrink-0">
+      <div class="flex shrink-0 items-center gap-sm">
+        @if (canContactAdmins()) {
+          <button type="button" jhButton variant="secondary" data-testid="contact-admins" (click)="contactAdmins()">Contact admins</button>
+        }
         @if (isAnon()) {
           <a routerLink="/sign-in" jhButton data-testid="signin-to-join">Sign in to join</a>
         } @else if (canRequest()) {

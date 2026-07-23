@@ -100,9 +100,20 @@ export class ChatInboxComponent implements OnInit {
     return who.length === 1 ? `${who[0].displayName} is typing…` : 'Several people are typing…';
   }
 
-  /** The TEAM / PARTY eyebrow tag, or null for a DM/group. */
+  /** The TEAM / PARTY / ADMINS eyebrow tag, or null for a DM/group. */
   protected tagFor(c: Conversation): string | null {
-    return c.kind === 'Team' ? 'Team' : c.kind === 'Party' ? 'Party' : null;
+    switch (c.kind) {
+      case 'Team':
+        return 'Team';
+      case 'Party':
+        return 'Party';
+      // Both inquiry kinds (feature 027) wear the same tag — a player's line to the admins.
+      case 'TeamInquiry':
+      case 'EventInquiry':
+        return 'Admins';
+      default:
+        return null;
+    }
   }
 
   protected badge(count: number): string {

@@ -830,8 +830,18 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             // a service check-then-insert: EnsureForTeamAsync is racy by nature (two roster members
             // opening Chat at the same moment), and the filtered unique index is what makes the loser
             // of that race collide instead of creating a second chat.
-            entity.HasIndex(c => c.TeamId).IsUnique().HasFilter("\"TeamId\" IS NOT NULL");
+            //
+            // Feature 027 reuses TeamId for TeamInquiry threads too, so this one-per-team rule must be
+            // scoped to the team CHAT (Kind = 2) — otherwise a second inquiry for the same team would
+            // collide with the team chat. Inquiry uniqueness is a separate (target, requester) index below.
+            entity.HasIndex(c => c.TeamId).IsUnique().HasFilter("\"TeamId\" IS NOT NULL AND \"Kind\" = 2");
             entity.HasIndex(c => c.PartyId).IsUnique().HasFilter("\"PartyId\" IS NOT NULL");
+
+            // At most one inquiry thread per (requester, target) (feature 027, FR-004). Same race-safety
+            // reasoning as DirectPairKey: two tabs sending a first message at once must resolve to one
+            // row, and only the database can promise it. Kind 4 = TeamInquiry, 5 = EventInquiry.
+            entity.HasIndex(c => new { c.TeamId, c.RequesterUserId }).IsUnique().HasFilter("\"Kind\" = 4");
+            entity.HasIndex(c => new { c.EventId, c.RequesterUserId }).IsUnique().HasFilter("\"Kind\" = 5");
 
             // At most one direct conversation per pair (FR-008). Same reasoning: two clients starting
             // the same DM simultaneously must resolve to one row, and only the database can promise
@@ -848,6 +858,17 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasOne(c => c.Party)
                 .WithMany()
                 .HasForeignKey(c => c.PartyId)
+                .OnDelete(DeleteBehavior.Restrict);
+            // Restrict (fail-closed), mirroring Team/Party: a delete path that forgets to archive-first
+            // (snapshotting the derived roster) fails loudly rather than orphaning an Active inquiry
+            // whose membership resolves to nobody. Archival nulls EventId before any event hard-delete.
+            entity.HasOne(c => c.Event)
+                .WithMany()
+                .HasForeignKey(c => c.EventId)
+                .OnDelete(DeleteBehavior.Restrict);
+            entity.HasOne(c => c.Requester)
+                .WithMany()
+                .HasForeignKey(c => c.RequesterUserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
