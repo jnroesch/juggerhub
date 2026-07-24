@@ -1,4 +1,6 @@
 using System.Text;
+using JuggerHub.Common;
+using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Services;
 
@@ -6,20 +8,20 @@ public class EmailTemplateService : IEmailTemplateService
 {
     private readonly IWebHostEnvironment _environment;
     private readonly ILogger<EmailTemplateService> _logger;
-    private readonly IConfiguration _configuration;
-    
+    private readonly EmailOptions _emailOptions;
+
     // Cache templates to avoid reading files repeatedly
     private static readonly Dictionary<string, string> _templateCache = new();
     private static readonly object _cacheLock = new();
 
     public EmailTemplateService(
-        IWebHostEnvironment environment, 
+        IWebHostEnvironment environment,
         ILogger<EmailTemplateService> logger,
-        IConfiguration configuration)
+        IOptions<EmailOptions> emailOptions)
     {
         _environment = environment;
         _logger = logger;
-        _configuration = configuration;
+        _emailOptions = emailOptions.Value;
     }
 
     /// <inheritdoc />
@@ -31,7 +33,6 @@ public class EmailTemplateService : IEmailTemplateService
             ["RESET_URL"] = resetUrl,
             ["RESET_TOKEN"] = resetToken,
             ["USER_EMAIL"] = userEmail,
-            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com"),
             ["FOOTER_REASON"] = "You're getting this because a password reset was requested for your account."
         };
 
@@ -67,7 +68,6 @@ public class EmailTemplateService : IEmailTemplateService
             {"RECIPIENT_NAME", recipientName},
             {"PLAN_NAME", planName},
             {"PLAN_FEATURES", string.Join("<br/>", features.Select(f => $"• {f}"))},
-            {"DASHBOARD_URL", GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")},
             {"FOOTER_REASON", $"You're getting this because you subscribed to JuggerHub {planName}."}
         };
 
@@ -98,7 +98,6 @@ public class EmailTemplateService : IEmailTemplateService
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
             {"COMPANY_NAME", companyName},
-            {"DASHBOARD_URL", GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")},
             {"CREATED_DATE", createdDate.ToString("MMMM dd, yyyy")},
             {"FOOTER_REASON", "You're getting this because you created a JuggerHub account."}
         };
@@ -117,7 +116,6 @@ public class EmailTemplateService : IEmailTemplateService
             ["CHANGE_DATE"] = changeDate.ToString("MMMM dd, yyyy"),
             ["CHANGE_TIME"] = changeDate.ToString("HH:mm:ss UTC"),
             ["IP_ADDRESS"] = ipAddress,
-            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com"),
             ["FOOTER_REASON"] = "You're getting this because your JuggerHub password was changed."
         };
 
@@ -141,8 +139,7 @@ public class EmailTemplateService : IEmailTemplateService
             ["DEVICE_INFO"] = deviceInfo,
             ["LOGIN_STATUS"] = isSuccessful ? "Successful" : "Failed",
             ["STATUS_STYLE"] = statusStyle,
-            ["UNUSUAL_REASONS"] = unusualReasons,
-            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com")
+            ["UNUSUAL_REASONS"] = unusualReasons
         };
 
         return await GenerateEmailAsync("unusual-login", variables);
@@ -159,7 +156,6 @@ public class EmailTemplateService : IEmailTemplateService
             ["TEMPLATE_NAME"] = templateName,
             ["REQUESTER_EMAIL"] = string.IsNullOrWhiteSpace(requesterEmail) ? "anonymous" : requesterEmail,
             ["REQUEST_MESSAGE"] = message,
-            ["DASHBOARD_URL"] = GetConfigValue("EmailSettings:FrontendUrl", "https://app.juggerhub.com"),
             ["CURRENT_YEAR"] = DateTime.Now.Year
         };
 
@@ -199,10 +195,36 @@ public class EmailTemplateService : IEmailTemplateService
         return await GenerateEmailAsync("team-news", variables);
     }
 
+    /// <summary>
+    /// Every template is wrapped in the shared header/footer, so the SPA links those chrome
+    /// pieces need are supplied here rather than by each caller. The base URL is
+    /// <see cref="EmailOptions.FrontendBaseUrl"/> — the same value the auth links are built
+    /// from, so an email can never point at a different host than the link beside it.
+    /// A caller may still pass its own value; <c>TryAdd</c> leaves it alone.
+    /// </summary>
+    private void AddSharedUrls(Dictionary<string, object> variables)
+    {
+        var baseUrl = _emailOptions.FrontendBaseUrl.TrimEnd('/');
+
+        if (baseUrl.Length == 0)
+        {
+            // Not fatal here, but every link in this email is about to be href="" — and the
+            // verification/reset links built elsewhere from the same setting are equally dead.
+            // Say so, because a silently linkless email looks like a template bug for a while.
+            _logger.LogWarning(
+                "Email:FrontendBaseUrl is not configured — links in outgoing email will be empty.");
+        }
+
+        variables.TryAdd("DASHBOARD_URL", baseUrl);
+        variables.TryAdd("SETTINGS_URL", $"{baseUrl}/settings/notifications");
+    }
+
     private async Task<string> GenerateEmailAsync(string templateName, Dictionary<string, object> variables)
     {
         try
         {
+            AddSharedUrls(variables);
+
             // Load templates
             var baseTemplate = await LoadTemplateAsync("base-styles.html");
             var headerTemplate = await LoadTemplateAsync("header.html");
@@ -294,10 +316,5 @@ public class EmailTemplateService : IEmailTemplateService
             System.Text.RegularExpressions.RegexOptions.Singleline);
 
         return result;
-    }
-
-    private string GetConfigValue(string key, string defaultValue)
-    {
-        return _configuration[key] ?? defaultValue;
     }
 } 

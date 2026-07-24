@@ -13,7 +13,11 @@ public sealed class EmailOptions
     /// <summary><c>Smtp</c> | <c>Resend</c>.</summary>
     public string Provider { get; set; } = "Smtp";
 
-    /// <summary>From address on outgoing auth emails.</summary>
+    /// <summary>
+    /// From header on outgoing mail. May carry a display name in the standard
+    /// <c>Name &lt;addr&gt;</c> form — both senders accept it (MailKit parses it,
+    /// Resend passes it through), so the display name is configuration, not code.
+    /// </summary>
     public string FromAddress { get; set; } = string.Empty;
 
     /// <summary>SMTP host (Mailpit = <c>mailpit</c> in compose). Used when Provider=Smtp.</summary>
