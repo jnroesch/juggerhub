@@ -193,8 +193,9 @@ variable "jwt_audience" {
 }
 
 variable "email_from_address" {
-  type    = string
-  default = "hello@juggerhub.com"
+  description = "From header on outgoing mail; may carry a display name (\"Name <addr>\"). Must be a Resend-verified sender."
+  type        = string
+  default     = "JuggerHub <hello@juggerhub.com>"
 }
 
 variable "email_frontend_base_url" {

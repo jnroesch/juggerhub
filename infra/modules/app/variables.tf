@@ -108,7 +108,8 @@ variable "resend_api_key" {
 }
 
 variable "email_from_address" {
-  type = string
+  description = "From header on outgoing mail; may carry a display name (\"Name <addr>\")."
+  type        = string
 }
 
 variable "email_frontend_base_url" {
