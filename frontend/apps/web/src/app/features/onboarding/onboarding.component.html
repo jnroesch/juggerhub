@@ -124,43 +124,117 @@
       </div>
     }
 
-    <!-- 4 · Team (visual stub — persists nothing) ------------------------------>
+    <!-- 4 · Team — real search + an explicit ask to join (feature 029) ---------->
+    <!--
+      Continue and "I'm not on a team yet" below are plain next() calls and must stay that
+      way: nothing on this step may sit between a brand-new player and the rest of the app.
+    -->
     @case ('team') {
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
         <h1 class="text-heading-lg font-semibold text-ink">Find your team</h1>
-        <p class="mt-xs text-body-md text-subtle">Search by name — skip if you're not on one yet.</p>
+        <p class="mt-xs text-body-md text-subtle">
+          These teams are looking for new players — or search by name to find any other team.
+        </p>
 
-        <input
-          type="text"
-          data-testid="onboarding-team-search"
-          placeholder="Search teams…"
-          disabled
-          class="mt-lg w-full cursor-not-allowed rounded-md border border-border-strong bg-surface-subtle px-md py-xs text-body-md text-subtle"
-        />
+        <label
+          class="mt-lg flex items-center gap-xs rounded-md border border-border-strong bg-surface-card px-md py-xs transition-shadow duration-fast focus-within:border-brand focus-within:ring-2 focus-within:ring-focus"
+        >
+          <jh-icon name="search" [size]="18" class="shrink-0 text-subtle" />
+          <input
+            type="search"
+            data-testid="onboarding-team-search"
+            placeholder="Search teams…"
+            aria-label="Search teams by name"
+            (input)="onTeamQuery($any($event.target).value)"
+            class="w-full min-h-11 bg-transparent text-body-md text-ink outline-none placeholder:text-faint"
+          />
+        </label>
 
-        <div class="mt-sm space-y-xs">
-          @for (team of [{ name: 'Team A', city: 'Berlin' }, { name: 'Team B', city: 'Hamburg' }]; track team.name) {
+        @switch (teams.state()) {
+          @case ('loading') {
+            <jh-loading
+              class="mt-sm block"
+              align="center"
+              label="Finding teams…"
+              patientLabel="Still looking…"
+              data-testid="onboarding-team-loading"
+            />
+          }
+          @case ('error') {
+            <div class="mt-sm flex flex-col items-center gap-sm text-center" data-testid="onboarding-team-error">
+              <jh-alert>We couldn't load teams just now.</jh-alert>
+              <button type="button" jhButton variant="secondary" size="sm" (click)="teams.reload()">
+                Try again
+              </button>
+            </div>
+          }
+          @case ('no-results') {
+            <p class="mt-sm text-center text-body-sm text-subtle" data-testid="onboarding-team-empty">
+              No teams match that — try a different name.
+            </p>
+          }
+          @case ('empty') {
+            <p class="mt-sm text-center text-body-sm text-subtle" data-testid="onboarding-team-empty">
+              No teams are looking for new players right now — search by name to find any team.
+            </p>
+          }
+          @default {
+            <div class="mt-sm flex flex-col">
+              @for (team of teams.items(); track team.slug) {
+                <button
+                  type="button"
+                  data-testid="onboarding-team-row"
+                  (click)="selectTeam(team)"
+                  [attr.aria-pressed]="selectedTeam()?.slug === team.slug"
+                  class="flex min-h-11 items-center gap-sm rounded-sm border-b border-border px-xs py-sm text-left transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                  [class.bg-surface-sunken]="selectedTeam()?.slug === team.slug"
+                >
+                  <span
+                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-dashed border-border-strong bg-surface-subtle text-body-sm font-semibold text-ink"
+                    aria-hidden="true"
+                  >{{ team.logoInitial }}</span>
+                  <span class="flex flex-1 flex-col">
+                    <span class="text-body-md text-ink">{{ team.name }}</span>
+                    <span class="text-body-sm text-subtle">
+                      @if (team.city) {
+                        {{ team.city }} ·
+                      }
+                      <span class="font-mono">{{ team.playerCount }}</span> players
+                    </span>
+                  </span>
+                  @if (requestedSlugs().has(team.slug)) {
+                    <span class="rounded-pill border border-border-strong px-sm py-0 text-caption text-subtle">Asked</span>
+                  } @else if (team.beginnersWelcome) {
+                    <span class="rounded-pill border border-brand px-sm py-0 text-caption text-brand">Beginners</span>
+                  }
+                </button>
+              }
+            </div>
+          }
+        }
+
+        @if (selectedTeam(); as team) {
+          @if (selectedRequested()) {
+            <p class="mt-sm text-body-sm text-subtle" data-testid="onboarding-team-confirmation">
+              We've asked {{ team.name }} to let you in — an admin still has to say yes.
+            </p>
+          } @else {
             <button
               type="button"
-              (click)="teamStub.set(team.name)"
-              [attr.data-testid]="'onboarding-team-' + team.name"
-              class="flex w-full items-center gap-md rounded-md border bg-surface px-md py-sm text-left"
-              [class.border-primary]="teamStub() === team.name"
-              [class.border-border]="teamStub() !== team.name"
+              data-testid="onboarding-team-ask"
+              (click)="askToJoin()"
+              [disabled]="askingSlug() !== null"
+              jhButton variant="secondary" class="mt-sm w-full"
             >
-              <span class="h-8 w-8 rounded-full bg-surface-subtle"></span>
-              <span>
-                <span class="block text-body-md text-text">{{ team.name }}</span>
-                <span class="block text-body-sm text-subtle">{{ team.city }}</span>
-              </span>
+              {{ askingSlug() ? 'Asking…' : 'Ask to join ' + team.name }}
             </button>
           }
-        </div>
+        }
 
-        <p class="mt-sm text-body-sm text-faint">
-          Teams are coming soon — your pick here isn't saved yet.
-        </p>
+        @if (teamRequestError()) {
+          <jh-alert class="mt-sm" data-testid="onboarding-team-request-error">{{ teamRequestError() }}</jh-alert>
+        }
       </div>
       <div class="space-y-sm">
         <ng-container [ngTemplateOutlet]="progress" />

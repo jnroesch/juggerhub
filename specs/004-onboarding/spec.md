@@ -129,6 +129,14 @@ The flow feels light and focused: one centered question per screen, a clear sens
 
 #### Team placeholder
 
+> **Superseded by feature 029** ([`specs/029-onboarding-team-search/spec.md`](../029-onboarding-team-search/spec.md)).
+> FR-021 was correct for its moment — feature 003 had shipped teams as a UI-only stub and no teams
+> model existed, so a working team step could not have been built. Feature 005 shipped the teams
+> model and join requests and 007 shipped team search, so the rationale is now historical. The step
+> searches real teams and can send a join request; the requirement below is kept as the record of
+> the original decision, not as current behaviour. The out-of-scope line "a real teams model or team
+> search" in Assumptions is superseded on the same terms.
+
 - **FR-021**: The team step MUST be presented as a clear placeholder for a future teams feature; any selection there MUST NOT be persisted and MUST NOT imply stored team membership.
 
 #### Security & cross-cutting
