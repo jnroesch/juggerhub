@@ -336,8 +336,10 @@ operation identified.
 - **FR-020**: The final outcome of an outbound call MUST NOT leak provider detail,
   credentials, or internal errors to any user-facing response, per the never-leak rule.
 - **FR-021**: When an email cannot be delivered after all immediate attempts, the system
-  MUST record the failure in operational logs with the recipient, the kind of message, and
-  the reason, at a severity that makes it noticeable. It MUST NOT store the message for
+  MUST record the failure in operational logs with the recipient in **masked** form
+  (local part obscured, domain kept), the kind of message, and the reason, at a severity
+  that makes it noticeable. The full address MUST NOT be written to logs — it is personal
+  data, and an operator can recover it from the account record when acting on the entry. It MUST NOT store the message for
   later delivery and MUST NOT attempt delivery again outside the originating operation —
   durable delivery is deliberately deferred to a follow-up feature (see Out of Scope).
 - **FR-021a**: This feature MUST NOT introduce any persistent data. All resilience state
@@ -403,8 +405,8 @@ below exist so the rest of the specification has consistent vocabulary.
   automatic retries.
 - **SC-005**: At least **99%** of transactional emails are delivered despite a transient
   provider failure that would previously have lost them outright.
-- **SC-006**: **100%** of emails that ultimately fail appear in operational logs naming
-  the recipient and the reason; none fail silently. (Recovering such an email still
+- **SC-006**: **100%** of emails that ultimately fail appear in operational logs with a
+  masked recipient and the reason; none fail silently. (Recovering such an email still
   requires the person to request it again — durable delivery is out of scope here.)
 - **SC-007**: During a total outage of an external service, the number of calls made to
   it stays within **twice** the normal call volume rather than growing with retries.

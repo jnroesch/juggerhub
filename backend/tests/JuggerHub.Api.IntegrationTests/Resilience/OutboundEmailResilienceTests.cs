@@ -1,4 +1,5 @@
 using System.Net;
+using JuggerHub.Services.Email;
 using Microsoft.Extensions.Logging;
 
 namespace JuggerHub.Api.IntegrationTests.Resilience;
@@ -99,8 +100,36 @@ public sealed class OutboundEmailResilienceTests
 
         // An operator must be able to tell WHO lost WHAT — without these the entry is unactionable,
         // and since durable delivery is out of scope this log is the only recovery path (FR-021).
-        Assert.Contains("player@example.com", giveUp.Message);
+        // The recipient is MASKED: enough to act on, without a full address in log storage.
+        Assert.Contains("p***@example.com", giveUp.Message);
         Assert.Contains("Verify your email", giveUp.Message);
+        Assert.DoesNotContain("player@example.com", giveUp.Message);
+    }
+
+    [Theory]
+    [InlineData("player@example.com", "p***@example.com")]
+    [InlineData("a@b.de", "a***@b.de")]
+    [InlineData("  spaced@example.com  ", "s***@example.com")]
+    [InlineData("@nolocal.com", "***")]
+    [InlineData("not-an-address", "***")]
+    [InlineData("", "(none)")]
+    public void A_recipient_is_masked_before_it_reaches_a_log(string address, string expected)
+    {
+        Assert.Equal(expected, ResendEmailSender.MaskForLog(address));
+    }
+
+    [Fact]
+    public void A_recipient_cannot_forge_log_lines()
+    {
+        // cs/log-forging: the address is user-supplied, so a CR/LF payload could otherwise inject
+        // fabricated entries and make the audit trail lie.
+        var hostile = "evil\r\nfatal: system compromised\n@example.com";
+
+        var masked = ResendEmailSender.MaskForLog(hostile);
+
+        Assert.DoesNotContain('\r', masked);
+        Assert.DoesNotContain('\n', masked);
+        Assert.DoesNotContain("fatal:", masked);
     }
 
     [Fact]

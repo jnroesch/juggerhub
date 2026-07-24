@@ -103,7 +103,13 @@ the explicit give-up log (FR-021, FR-027).
 | Outcome | succeeded / retried / timed out / given up |
 | Breaker transition | State change, logged at a noticeable severity (FR-027) |
 
-**Redaction rules (FR-028)** — permitted: recipient address, message kind, provider status code,
-attempt counts, durations. **Forbidden**: response bodies, credentials, tokens, personal message
-content, full request bodies. This extends the existing rule in `ResendEmailSender`, which already
-logs failures *by status code only, never the body*, on the grounds that the body may carry detail.
+**Redaction rules (FR-028)** — permitted: **masked** recipient address (`p***@example.com`),
+message kind, provider status code, attempt counts, durations. **Forbidden**: full email addresses,
+response bodies, credentials, tokens, personal message content, full request bodies. This extends
+the existing rule in `ResendEmailSender`, which already logs failures *by status code only, never
+the body*, on the grounds that the body may carry detail.
+
+Masking serves two rules at once, both raised by CodeQL against the first implementation of this
+feature: it keeps personal data out of log storage (`cs/exposure-of-sensitive-information`), and
+stripping control characters stops a hostile address forging log lines (`cs/log-forging`) — the
+address is user-supplied, so a CR/LF payload could otherwise make the audit trail lie.

@@ -54,7 +54,7 @@ public sealed class ResendEmailSender : IEmailSender
                 "Email give-up: '{Subject}' to {Recipient} could not be delivered via Resend after all "
                 + "attempts. The message is LOST — there is no retry queue. The recipient must request it again.",
                 subject,
-                to);
+                MaskForLog(to));
             throw new InvalidOperationException("Email send failed.");
         }
 
@@ -63,18 +63,58 @@ public sealed class ResendEmailSender : IEmailSender
             if (!response.IsSuccessStatusCode)
             {
                 // Status only, never the body — the body may carry provider detail we must not log
-                // (constitution Principle I; FR-028). Recipient and subject ARE logged: without them
-                // the entry is undiagnosable, and neither is a secret.
+                // (constitution Principle I; FR-028). The recipient is logged MASKED: enough to act
+                // on, without putting a full address into log storage.
                 _logger.LogError(
                     "Email give-up: '{Subject}' to {Recipient} was rejected by Resend with status {Status}. "
                     + "The message is LOST — there is no retry queue.",
                     subject,
-                    to,
+                    MaskForLog(to),
                     (int)response.StatusCode);
                 throw new InvalidOperationException("Email send failed.");
             }
         }
 
         _logger.LogInformation("Sent '{Subject}' email via Resend", subject);
+    }
+
+    /// <summary>
+    /// Renders a recipient address safe to write to a log: local part masked, control characters
+    /// stripped. <c>player@example.com</c> becomes <c>p***@example.com</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Two separate problems, one helper (both raised by CodeQL on this file):
+    /// </para>
+    /// <para>
+    /// <b>Log forging</b> (<c>cs/log-forging</c>) — the address is user-supplied, so a value
+    /// containing CR/LF could inject fabricated lines into the log and make the audit trail lie.
+    /// Control characters are removed rather than escaped, because nothing legitimate needs them.
+    /// </para>
+    /// <para>
+    /// <b>PII exposure</b> (<c>cs/exposure-of-sensitive-information</c>) — a full address is
+    /// personal data, and log storage is the wrong place for it. Masking keeps the entry
+    /// actionable (an operator sees the domain and the message kind, and can recover the full
+    /// address from the users table) without persisting the address itself. This narrows FR-021 /
+    /// SC-006, which originally called for naming the recipient outright; the spec was updated to
+    /// match rather than left contradicting the code.
+    /// </para>
+    /// </remarks>
+    public static string MaskForLog(string address)
+    {
+        var clean = new string(address.Where(c => !char.IsControl(c)).ToArray()).Trim();
+        if (clean.Length == 0)
+        {
+            return "(none)";
+        }
+
+        var at = clean.IndexOf('@', StringComparison.Ordinal);
+        if (at <= 0)
+        {
+            // Not an address shape — reveal nothing rather than guess where to cut.
+            return "***";
+        }
+
+        return $"{clean[0]}***{clean[at..]}";
     }
 }
