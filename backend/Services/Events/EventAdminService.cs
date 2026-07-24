@@ -60,29 +60,38 @@ public sealed class EventAdminService : IEventAdminService
             return AdminOpStatus.Forbidden;
         }
 
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-
-        // Serialize admin mutations for this event on the event row.
-        await _db.Database.ExecuteSqlInterpolatedAsync(
-            $"SELECT 1 FROM \"Events\" WHERE \"Id\" = {eventId} FOR UPDATE", ct);
-
-        var target = await _db.EventAdmins
-            .FirstOrDefaultAsync(a => a.EventId == eventId && a.UserId == targetUserId, ct);
-        if (target is null)
+        // Connection resiliency (feature 028): lock, re-count and remove as ONE retriable unit, so
+        // a replay re-checks the last-admin invariant against current state rather than a stale
+        // count. Nothing is mutated outside the delegate.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            return AdminOpStatus.AdminNotFound;
-        }
+            _db.ChangeTracker.Clear();
 
-        var adminCount = await _db.EventAdmins.CountAsync(a => a.EventId == eventId, ct);
-        if (adminCount <= 1)
-        {
-            return AdminOpStatus.LastAdmin;
-        }
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
-        _db.EventAdmins.Remove(target);
-        await _db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+            // Serialize admin mutations for this event on the event row.
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"SELECT 1 FROM \"Events\" WHERE \"Id\" = {eventId} FOR UPDATE", ct);
 
-        return AdminOpStatus.Ok;
+            var target = await _db.EventAdmins
+                .FirstOrDefaultAsync(a => a.EventId == eventId && a.UserId == targetUserId, ct);
+            if (target is null)
+            {
+                return AdminOpStatus.AdminNotFound;
+            }
+
+            var adminCount = await _db.EventAdmins.CountAsync(a => a.EventId == eventId, ct);
+            if (adminCount <= 1)
+            {
+                return AdminOpStatus.LastAdmin;
+            }
+
+            _db.EventAdmins.Remove(target);
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            return AdminOpStatus.Ok;
+        });
     }
 }

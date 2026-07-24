@@ -29,7 +29,22 @@ public sealed class SmtpEmailSender : IEmailSender
         message.Subject = subject;
         message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
 
-        using var client = new SmtpClient();
+        using var client = new SmtpClient
+        {
+            // Nothing waits forever (constitution VII). MailKit talks over a raw socket, so the
+            // shared HTTP resilience handler cannot reach this sender — but the hang-protection
+            // half of the rule still applies, and a wedged SMTP server must not hold a request
+            // open indefinitely.
+            //
+            // Retry and circuit breaking are deliberately ABSENT here: this sender is selected only
+            // when Email:Provider=Smtp, which per the constitution's stack table means local
+            // development against Mailpit on the same compose network, where transient network
+            // faults are not a real failure mode. Recorded as an accepted deviation in
+            // specs/028-network-resilience/plan.md (Complexity Tracking). If SMTP ever becomes a
+            // deployed path, it needs the full policy — via a provider-agnostic pipeline around
+            // IEmailSender, not by bolting a retry loop on here.
+            Timeout = (int)TimeSpan.FromSeconds(10).TotalMilliseconds,
+        };
         await client.ConnectAsync(_options.SmtpHost, _options.SmtpPort, SecureSocketOptions.None, ct);
         await client.SendAsync(message, ct);
         await client.DisconnectAsync(true, ct);

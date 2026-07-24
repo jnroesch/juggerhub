@@ -25,6 +25,13 @@ services:
       - Email__Resend__ApiKey=${EMAIL_RESEND_API_KEY:-}
       # Feature 012 — temporary platform-admin allowlist (comma-separated emails). See GH #21.
       - Admin__Emails=${ADMIN_EMAILS:-}
+      # Feature 028 — outbound resilience limits (constitution VII). Passed through even though
+      # local email goes to Mailpit over SMTP, so the configuration path itself is exercised
+      # locally rather than existing only in deployed environments (Principle V).
+      - Resilience__Outbound__Resend__AttemptTimeoutSeconds=${RESILIENCE_RESEND_ATTEMPT_TIMEOUT_SECONDS:-10}
+      - Resilience__Outbound__Resend__TotalTimeoutSeconds=${RESILIENCE_RESEND_TOTAL_TIMEOUT_SECONDS:-30}
+      - Resilience__Outbound__Resend__MaxRetryAttempts=${RESILIENCE_RESEND_MAX_RETRY_ATTEMPTS:-3}
+      - Resilience__Outbound__Resend__BreakerMinimumThroughput=${RESILIENCE_RESEND_BREAKER_MIN_THROUGHPUT:-5}
     networks:
       - juggerhub-network
     depends_on:

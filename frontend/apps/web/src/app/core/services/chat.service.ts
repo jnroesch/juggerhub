@@ -17,6 +17,7 @@ import {
   TypingSignal,
 } from '../models/chat.models';
 import { AuthService } from './auth.service';
+import { IndefiniteHubRetryPolicy } from './hub-reconnect.policy';
 
 /** Client-side debounce for the typing signal: at most one call per this many ms while composing. */
 const TYPING_DEBOUNCE_MS = 3000;
@@ -358,7 +359,9 @@ export class ChatService {
 
       const hub = new HubConnectionBuilder()
         .withUrl('/hubs/chat') // same-origin: the httpOnly auth cookie rides the handshake
-        .withAutomaticReconnect()
+        // Indefinite backoff rather than the default schedule, which gives up permanently after
+        // ~42s and silently stops delivering (feature 028, FR-012).
+        .withAutomaticReconnect(new IndefiniteHubRetryPolicy())
         .configureLogging(LogLevel.Warning)
         .build();
 

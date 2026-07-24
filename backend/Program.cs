@@ -3,6 +3,7 @@ using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Entities;
+using JuggerHub.Resilience;
 using JuggerHub.Services;
 using JuggerHub.Services.Achievements;
 using JuggerHub.Services.Auth;
@@ -46,7 +47,16 @@ builder.Services.AddDbContext<AppDbContext>((sp, options) =>
 {
     var connectionString = sp.GetRequiredService<IConfiguration>()
         .GetConnectionString("DefaultConnection");
-    options.UseNpgsql(connectionString);
+    // Connection resiliency (feature 028; constitution VII). A rolling deploy or a database
+    // restart is the most predictable transient fault we have, and without this every request in
+    // flight during those seconds surfaces as a 500.
+    //
+    // This has a hard consequence: a retrying execution strategy REFUSES user-initiated
+    // transactions. Every Database.BeginTransactionAsync call site must run through
+    // Database.CreateExecutionStrategy().ExecuteAsync(...) as one retriable unit, with all state
+    // mutation inside the delegate. Ten sites were restructured for this — see
+    // specs/028-network-resilience/research.md §5 before adding another.
+    options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure());
     options.AddInterceptors(sp.GetRequiredService<AuditFieldsInterceptor>());
 });
 
@@ -195,7 +205,12 @@ builder.Services.AddScoped<AuthEmailService>();
 var emailProvider = builder.Configuration.GetValue<string>("Email:Provider") ?? "Smtp";
 if (string.Equals(emailProvider, "Resend", StringComparison.OrdinalIgnoreCase))
 {
-    builder.Services.AddHttpClient<IEmailSender, ResendEmailSender>();
+    // Feature 028 / constitution VII: the ONE opt-in. Timeout, jittered retry and circuit breaker
+    // all arrive from the shared policy; this client carries no resilience logic of its own, and
+    // the next outbound integration inherits the same behaviour with the same single line.
+    builder.Services
+        .AddHttpClient<IEmailSender, ResendEmailSender>()
+        .AddJuggerHubResilience(builder.Configuration, "Resend");
 }
 else
 {

@@ -363,6 +363,34 @@ subtle `ease-bounce` for toggles and playful moments.
 - **Chips / badges / tags** — `pill` radius; sage for position/roster chips,
   lemon for "New"/highlight badges.
 
+## Loading, error & retry states
+
+Networks wobble. These states are where the app either stays calm or feels broken —
+so they get the same care as the happy path. **Reassure, don't alarm.**
+
+- **Loading** — one muted text line (`body-sm` / `text-muted`) via `jh-loading`, never a
+  spinner or skeleton. Carries `role="status"` so it is announced. The label may be
+  contextual: *"Loading your profile…"*.
+- **Still loading** — if a load runs long (a slow connection, or a request being quietly
+  retried), the *same* line switches to patient copy: *"Still loading…"*. Never a new
+  banner, overlay, toast, or spinner, and never a layout shift — the line is already
+  there, it just says something kinder. Silence first: a fast load must never flash this.
+- **Error** — a short, human sentence plus a **way out**, usually a "Try again" secondary
+  button. Say what happened in plain words (*"We couldn't load your teams."*) and never
+  surface a status code, stack trace, or internal detail. Page- and form-level status uses
+  `jh-alert` with `tone="danger"`, which carries `role="alert"`.
+- **Error vs. empty** — they are different and must look different. *Empty* means "nothing
+  here yet" and invites a next step (`jh-empty-state`). *Error* means "we couldn't find
+  out" and offers a retry. Showing an empty state for a failed load quietly lies to the
+  reader.
+- **Never colour alone** — every one of these states carries text; tone and icon are
+  reinforcement, never the whole message.
+- **Voice** — the same warm, sentence-case "you" voice as everywhere else. *"We couldn't
+  load that just now — give it another go."* Not *"ERROR: Request failed"*, and no emoji.
+- **Don't** block the whole page for a slow section, stack multiple spinners in one view,
+  or replace loaded content with a spinner while refreshing — keep what's there and let
+  the quiet line do the talking.
+
 ## Iconography
 
 - **Icon set: [Lucide](https://lucide.dev)** — friendly, rounded, 2px-stroke

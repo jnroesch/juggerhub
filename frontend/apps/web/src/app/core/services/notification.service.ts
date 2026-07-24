@@ -4,6 +4,7 @@ import type { HubConnection } from '@microsoft/signalr';
 import { Observable, tap } from 'rxjs';
 import { AppNotification, PagedResult, UnreadCount } from '../models/notification.models';
 import { AuthService } from './auth.service';
+import { IndefiniteHubRetryPolicy } from './hub-reconnect.policy';
 
 /**
  * In-app notifications client (feature 010). Owns the app-wide unread badge and the Alerts inbox
@@ -148,7 +149,9 @@ export class NotificationService {
 
       const hub = new HubConnectionBuilder()
         .withUrl('/hubs/notifications') // same-origin: the httpOnly auth cookie rides the handshake
-        .withAutomaticReconnect()
+        // Indefinite backoff rather than the default schedule, which gives up permanently after
+        // ~42s and silently stops delivering (feature 028, FR-012).
+        .withAutomaticReconnect(new IndefiniteHubRetryPolicy())
         .configureLogging(LogLevel.Warning)
         .build();
 

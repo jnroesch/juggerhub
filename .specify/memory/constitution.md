@@ -1,3 +1,42 @@
+<!--
+SYNC IMPACT REPORT — 2026-07-24
+================================
+Version change: 1.2.0 → 1.3.0 (MINOR — new principle + new quality gate, no removals)
+
+Modified principles:
+  (none renamed, none redefined)
+
+Added sections:
+  + Principle VII — Resilient by Default, Never Amplifying
+  + Development Workflow & Quality Gates → gate 8 (Resilience)
+  + Technology Stack → Resilience row (Microsoft.Extensions.Http.Resilience / Polly v8;
+    EF Core EnableRetryOnFailure)
+
+Removed sections:
+  (none)
+
+Cross-references introduced:
+  - VII cites III (client-generated UUIDv7 keys make commit-failure replay safe)
+  - VII cites V (limits identical in shape across environments)
+  - VII cites I (no secrets or bodies in resilience telemetry)
+
+Templates requiring updates:
+  ✅ .specify/templates/plan-template.md — no change needed; its Constitution Check
+     section is generic ("[Gates determined based on constitution file]") and derives
+     gates at plan time, so it picks up VII and gate 8 automatically
+  ✅ .specify/templates/spec-template.md — no change needed; contains no constitution
+     references and adds no mandatory sections under this amendment
+  ✅ .specify/templates/tasks-template.md — no change needed; task categorisation is
+     driven by the feature's own stories, not by a principle list
+  ✅ .specify/templates/ui-review-checklist-template.md — unaffected (gate 7 unchanged)
+  ✅ CLAUDE.md — no change needed; it defers to the constitution by reference rather
+     than restating principles
+
+Follow-up TODOs:
+  - None deferred. Note that existing code is non-conforming with VII until feature 028
+    lands; see the migration note in the 1.3.0 governance entry.
+-->
+
 # JuggerHub Constitution
 
 This constitution is the single source of truth for architecture, security, and
@@ -331,6 +370,81 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
   **separate `.html`, `.css`, and `.ts` files** — never combine them into one file.
 - **Scripts**: use **PowerShell (`.ps1`) only**. Do not add `.sh` scripts anywhere.
 
+### VII. Resilient by Default, Never Amplifying
+
+Networks fail briefly and constantly. A transient fault must degrade into a short pause,
+never into lost work or a dead screen — and the recovery must never become the outage.
+Resilience is **infrastructure, not a per-call-site decision**.
+
+- **Nothing waits forever.** Every network call — browser→backend and
+  backend→external service alike — has a bounded time limit, per attempt *and* in
+  total. No request may remain outstanding indefinitely. An unbounded wait is a
+  defect even when it never fires.
+- **Retry transient faults; fail fast on rejections.** Transient means no response,
+  connection failure, timeout, or a temporarily-unavailable/gateway response.
+  Everything else — not found, not permitted, invalid, conflicting — fails
+  immediately. Retrying a rejected request only multiplies the rejection.
+- **Delays grow and are jittered.** Backoff increases between attempts and carries a
+  randomised component, so many clients failing at the same moment do not retry in
+  lockstep and turn a blip into a thundering herd.
+- **Never retry a mutation on the browser hop.** Requests that create, change, or
+  delete data are **never** retried automatically: a request that timed out may
+  already have been applied, and the client cannot tell. Server-to-server calls may
+  retry a non-idempotent call *only* where the cost of a duplicate is demonstrably
+  lower than the cost of a loss — the transactional-email case, where a duplicate is
+  an annoyance and a loss is an account nobody can activate. That judgement MUST be
+  written down where it is made, not left to be inferred.
+- **`429` is not one thing.** Rejections from **our own** fail-closed rate limiter are
+  never retried against, on either hop — retrying defeats the limit. A **provider**
+  throttling *us* is retried with backoff, honouring `Retry-After`. Same status code,
+  opposite correct behaviour; the distinction MUST be explicit wherever it is
+  implemented.
+- **Applied by default, never per call site.** Resilience is registered once as shared
+  infrastructure and inherited by opting in — for a new outbound integration, one
+  chained call plus one configuration section. Hand-rolled retry loops, ad-hoc
+  `Task.Delay` backoff, per-client `HttpClient.Timeout`, and stacked resilience
+  handlers are review-rejectable.
+- **Limits are configuration with safe defaults.** Time limits, attempt counts, and
+  breaker thresholds are configurable per integration and identical in *shape* across
+  local/Dev/Prod (Principle V). Missing or invalid configuration falls back to safe
+  built-in defaults — never to "unlimited", never to a disabled limit.
+- **Tune circuit breakers to actual call volume.** A breaker whose minimum-throughput
+  threshold exceeds the real call rate never opens and is decorative — it passes review
+  and does nothing in production. Thresholds are derived from the integration's expected
+  volume, never copied from library defaults. (Concretely: the .NET standard handler
+  defaults to 100 calls per 30s sampling window, which JuggerHub's transactional-email
+  volume never reaches.)
+- **Retries must not amplify an incident.** Total attempts stay bounded under sustained
+  failure, and a circuit breaker or equivalent stop-condition is **required** wherever
+  retry is used. Retry without a stop condition is a hazard, not a safeguard.
+- **Database access uses connection resiliency.** Transient database faults are retried
+  via the provider's execution strategy. Because a retrying execution strategy forbids
+  user-initiated transactions, any multi-step transaction MUST run through the execution
+  strategy as a single retriable unit, with **all state mutation inside the retried
+  delegate** and the operation verified replay-safe:
+
+```csharp
+var strategy = db.Database.CreateExecutionStrategy();
+await strategy.ExecuteAsync(async () =>
+{
+    await using var tx = await db.Database.BeginTransactionAsync(ct);
+    // Everything that mutates state lives INSIDE this delegate: the strategy
+    // replays the whole block on a transient fault, so anything staged outside
+    // would be applied twice.
+    await db.SaveChangesAsync(ct);
+    await tx.CommitAsync(ct);
+});
+```
+
+  The client-generated UUIDv7 keys mandated by Principle III are what make this safe
+  when a connection drops *during* commit: a replay collides on the known key instead of
+  silently inserting a duplicate row.
+
+- **Observable, and leaks nothing.** Retries, timeouts, and breaker state changes are
+  logged or metered with the affected operation identified, and breaker transitions at a
+  severity that gets noticed. These records never contain secrets, credentials, tokens,
+  personal message content, response bodies, or full request bodies (Principle I).
+
 ---
 
 ## Technology Stack
@@ -346,6 +460,7 @@ builder.Services.AddIdentity<User, IdentityRole>(options =>
 | Orchestration (deployed) | Azure Kubernetes Service (AKS), Standard tier; PostgreSQL in-cluster |
 | CI/CD | GitHub Actions, Terraform (workspaces + per-env tfvars), GHCR → AKS |
 | Email | Mailpit (local), Resend (Dev/Prod) |
+| Resilience | `Microsoft.Extensions.Http.Resilience` (Polly v8) for outbound HTTP; EF Core `EnableRetryOnFailure` for database |
 | Package managers | NuGet (backend), npm (frontend) |
 
 ---
@@ -409,6 +524,12 @@ These gates apply to all changes and integrate with the Spec-Kit workflow in
    as `specs/<feature>/checklists/ui-review.md`) before verification. DESIGN.md is
    the source of truth for tokens, voice, layout, motion, and component specs;
    conflicts are reported, not silently resolved.
+8. **Resilience**: any change that adds a network call or an outbound integration is
+   checked against Principle VII — bounded time limit, transient-only retry with
+   jittered backoff, no automatic retry of browser-hop mutations, a stop-condition
+   wherever retry is used, breaker thresholds derived from real call volume, limits in
+   configuration with safe defaults, and no secrets or bodies in resilience logs.
+   Multi-step transactions run through the execution strategy.
 
 ---
 
@@ -425,8 +546,23 @@ These gates apply to all changes and integrate with the Spec-Kit workflow in
   removals/redefinitions, **MINOR** for new principles/sections or materially
   expanded guidance, **PATCH** for clarifications and wording.
 
-**Version**: 1.2.0 | **Ratified**: 2026-06-29 | **Last Amended**: 2026-07-11
+**Version**: 1.3.0 | **Ratified**: 2026-06-29 | **Last Amended**: 2026-07-24
 
+> **1.3.0** (2026-07-24, MINOR): added **Principle VII — Resilient by Default, Never
+> Amplifying** and **Quality Gate 8 (Resilience)**, derived from feature 028
+> (`specs/028-network-resilience/`). Codifies bounded time limits on both hops,
+> transient-only retry with jittered backoff, the never-retry-a-browser-mutation rule,
+> the two opposite meanings of `429`, resilience as shared infrastructure rather than a
+> per-call-site choice, configuration with safe defaults, breaker thresholds derived
+> from real call volume, a mandatory stop-condition wherever retry is used, EF execution
+> strategy for multi-step transactions, and redaction rules for resilience telemetry.
+> Added the resilience row to the Technology Stack table. No existing principle was
+> removed or redefined; Principle III's UUIDv7 mandate is newly cited as the reason
+> commit-failure replay is safe. **Migration note**: existing code predating this
+> amendment is non-conforming until 028 lands — notably the ten `BeginTransactionAsync`
+> call sites, which will throw once `EnableRetryOnFailure` is enabled and must be
+> restructured as part of that feature, not lazily.
+>
 > **1.2.0** (2026-07-11, MINOR): Principle V deployment target changed from **Azure
 > App Services** to **Azure Kubernetes Service (AKS)** (feature 015); added explicit
 > guidance on one-definition/many-environments (Terraform workspaces + per-env

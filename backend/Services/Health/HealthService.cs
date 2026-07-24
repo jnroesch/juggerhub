@@ -36,11 +36,37 @@ public sealed class HealthService : IHealthService
             Timestamp: DateTime.UtcNow);
     }
 
+    /// <summary>
+    /// How long the probe may spend deciding. Deliberately short — see the remarks on
+    /// <see cref="CanReachDatabaseAsync"/>.
+    /// </summary>
+    private static readonly TimeSpan ProbeBudget = TimeSpan.FromSeconds(3);
+
+    /// <remarks>
+    /// This probe must <b>report</b> status, not survive an outage — so it deliberately opts OUT of
+    /// the connection resiliency added in feature 028.
+    /// <para>
+    /// Found while validating that feature against a stopped database: with retry enabled,
+    /// <c>CanConnectAsync</c> retries the connection for roughly 30 seconds before giving up, so
+    /// the health endpoint stopped answering promptly and simply hung. That is actively harmful
+    /// here. The Kubernetes liveness probe polls this endpoint with a short timeout, so a database
+    /// blip would fail the probe repeatedly and get the perfectly healthy API pod **restarted** —
+    /// turning a recoverable database hiccup into an application outage, the exact opposite of what
+    /// this feature is for.
+    /// </para>
+    /// <para>
+    /// Every other database path keeps the retrying strategy. Only the probe is capped, because
+    /// only the probe's job is to answer quickly and truthfully.
+    /// </para>
+    /// </remarks>
     private async Task<bool> CanReachDatabaseAsync(CancellationToken cancellationToken)
     {
+        using var budget = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        budget.CancelAfter(ProbeBudget);
+
         try
         {
-            return await _db.Database.CanConnectAsync(cancellationToken);
+            return await _db.Database.CanConnectAsync(budget.Token);
         }
         catch (Exception ex)
         {
