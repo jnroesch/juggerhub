@@ -1,4 +1,5 @@
 import { Component, OnChanges, computed, inject, input, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { ButtonDirective } from '../../../shared/ui';
 import { Router, RouterLink } from '@angular/router';
 import { ChatService } from '../../../core/services/chat.service';
@@ -14,7 +15,7 @@ import { ChatMember, ConversationDetail } from '../../../core/models/chat.models
  */
 @Component({
   selector: 'jh-chat-details',
-  imports: [RouterLink, ButtonDirective],
+  imports: [RouterLink, NgTemplateOutlet, ButtonDirective],
   templateUrl: './chat-details.component.html',
   styleUrl: './chat-details.component.css',
 })
