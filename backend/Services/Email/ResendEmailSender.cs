@@ -102,7 +102,15 @@ public sealed class ResendEmailSender : IEmailSender
     /// </remarks>
     public static string MaskForLog(string address)
     {
-        var clean = new string(address.Where(c => !char.IsControl(c)).ToArray()).Trim();
+        // char.IsControl alone is NOT enough: it covers C0/C1 only (U+0000–U+001F, U+007F–U+009F),
+        // while U+2028 LINE SEPARATOR and U+2029 PARAGRAPH SEPARATOR are categories Zl/Zp and would
+        // slip through — and log viewers, JSON tooling and JS contexts routinely treat those as line
+        // breaks. Masking hides a payload in the local part but keeps the DOMAIN verbatim, so that
+        // was a real hole, not a theoretical one (pinned by a test).
+        var clean = new string(
+            address
+                .Where(c => !char.IsControl(c) && !IsLineSeparator(c))
+                .ToArray()).Trim();
         if (clean.Length == 0)
         {
             return "(none)";
@@ -117,4 +125,10 @@ public sealed class ResendEmailSender : IEmailSender
 
         return $"{clean[0]}***{clean[at..]}";
     }
+
+    /// <summary>Unicode line/paragraph separators, which <c>char.IsControl</c> does not cover.</summary>
+    private static bool IsLineSeparator(char c) =>
+        System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c)
+            is System.Globalization.UnicodeCategory.LineSeparator
+            or System.Globalization.UnicodeCategory.ParagraphSeparator;
 }

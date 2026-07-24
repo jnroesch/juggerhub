@@ -119,6 +119,23 @@ public sealed class OutboundEmailResilienceTests
     }
 
     [Fact]
+    public void Unicode_line_separators_are_stripped_too()
+    {
+        // char.IsControl covers only C0/C1 (U+0000-U+001F, U+007F-U+009F). U+2028 LINE SEPARATOR
+        // and U+2029 PARAGRAPH SEPARATOR are categories Zl/Zp, so a control-character filter alone
+        // lets them through - and plenty of log viewers, JSON tooling and JS contexts treat them as
+        // line breaks. That is still log forging, just through a narrower door.
+        // Payload in the DOMAIN, not the local part: masking discards everything between the first
+        // character and the "@", so a local-part payload proves nothing. The domain is kept verbatim.
+        var hostile = "a@ex\u2028ample\u2029.com";
+
+        var masked = ResendEmailSender.MaskForLog(hostile);
+
+        Assert.DoesNotContain('\u2028', masked);
+        Assert.DoesNotContain('\u2029', masked);
+    }
+
+    [Fact]
     public void A_recipient_cannot_forge_log_lines()
     {
         // cs/log-forging: the address is user-supplied, so a CR/LF payload could otherwise inject
