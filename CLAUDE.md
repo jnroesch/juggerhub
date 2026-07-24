@@ -296,7 +296,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/028-network-resilience/plan.md` (Generic resilience across both hops — frontend retry/timeout interceptor, Polly-based outbound HTTP policy, EF connection resiliency; no new entities or migration).
+`specs/029-onboarding-team-search/plan.md` (Onboarding "Find your team" step — replace the feature-004 placeholder with real team search plus an explicit ask-to-join; frontend-only, reuses `SearchService.browseTeams` + `TeamService.requestToJoin`, no new API, DTO, or migration).
 <!-- SPECKIT END -->
 
 ## GitHub Issues Workflow
