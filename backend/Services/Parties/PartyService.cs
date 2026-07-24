@@ -312,28 +312,46 @@ public sealed class PartyService : IPartyService
             .Select(e => new { e.IsPaid, e.ParticipationLimit })
             .FirstAsync(ct);
 
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        await _eventCapacity.LockEventRowAsync(eventId, ct);
-        var occupied = await _eventCapacity.OccupiedCountAsync(eventId, ct);
-        var status = occupied < ev.ParticipationLimit
-            ? (ev.IsPaid ? SignupStatus.AwaitingApproval : SignupStatus.Joined)
-            : SignupStatus.Waitlisted;
-
-        var signup = new EventSignup { EventId = eventId, TeamId = access.Value.TeamId, Status = status };
-        _db.EventSignups.Add(signup);
-
-        var party = await _db.Parties.FirstAsync(p => p.Id == partyId, ct);
-        party.EventSignupId = signup.Id;
-        party.Status = PartyStatus.Applied;
-
-        try
+        // Connection resiliency (feature 028): capacity check, signup insert and party update run as
+        // ONE retriable unit.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        var failure = await strategy.ExecuteAsync<PartyResult<PartyDto>?>(async () =>
         {
-            await _db.SaveChangesAsync(ct);
-            await tx.CommitAsync(ct);
-        }
-        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            // A rollback does NOT undo the change tracker, so anything staged by a previous attempt
+            // would be inserted a second time on replay. Start each attempt from a clean slate —
+            // this is the in-scope equivalent of EF's "use a fresh context per attempt" guidance.
+            _db.ChangeTracker.Clear();
+
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            await _eventCapacity.LockEventRowAsync(eventId, ct);
+            var occupied = await _eventCapacity.OccupiedCountAsync(eventId, ct);
+            var status = occupied < ev.ParticipationLimit
+                ? (ev.IsPaid ? SignupStatus.AwaitingApproval : SignupStatus.Joined)
+                : SignupStatus.Waitlisted;
+
+            var signup = new EventSignup { EventId = eventId, TeamId = access.Value.TeamId, Status = status };
+            _db.EventSignups.Add(signup);
+
+            var party = await _db.Parties.FirstAsync(p => p.Id == partyId, ct);
+            party.EventSignupId = signup.Id;
+            party.Status = PartyStatus.Applied;
+
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+                await tx.CommitAsync(ct);
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                return PartyResult<PartyDto>.Fail(PartyOutcome.Conflict, "This team is already entered on the event.");
+            }
+
+            return null;
+        });
+
+        if (failure is { } failed)
         {
-            return PartyResult<PartyDto>.Fail(PartyOutcome.Conflict, "This team is already entered on the event.");
+            return failed;
         }
 
         var dto = await ProjectAsync(partyId, actorUserId, ct);
@@ -355,25 +373,41 @@ public sealed class PartyService : IPartyService
             return PartyResult<PartyDto>.Fail(PartyOutcome.Forbidden, "Only a party admin can withdraw.");
         }
 
-        var party = await _db.Parties.FirstOrDefaultAsync(p => p.Id == partyId, ct);
-        if (party is null)
+        // Connection resiliency (feature 028): the party is loaded INSIDE the delegate, not before
+        // it. Loading a tracked entity outside and mutating it inside would leave a replay working
+        // against state the previous attempt already modified.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        var failure = await strategy.ExecuteAsync<PartyResult<PartyDto>?>(async () =>
         {
-            return PartyResult<PartyDto>.Fail(PartyOutcome.NotFound);
-        }
+            _db.ChangeTracker.Clear();
 
-        if (party.Status != PartyStatus.Applied || party.EventSignupId is not Guid signupId)
+            var party = await _db.Parties.FirstOrDefaultAsync(p => p.Id == partyId, ct);
+            if (party is null)
+            {
+                return PartyResult<PartyDto>.Fail(PartyOutcome.NotFound);
+            }
+
+            if (party.Status != PartyStatus.Applied || party.EventSignupId is not Guid signupId)
+            {
+                return PartyResult<PartyDto>.Fail(PartyOutcome.Conflict, "This party isn't currently entered on the event.");
+            }
+
+            // Clear the FK reference first, then delete the signup — the FK is Restrict, so the row
+            // can't be deleted while the party still points at it.
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            party.EventSignupId = null;
+            party.Status = PartyStatus.Open;
+            await _db.SaveChangesAsync(ct);
+            await _db.EventSignups.Where(s => s.Id == signupId).ExecuteDeleteAsync(ct);
+            await tx.CommitAsync(ct);
+
+            return null;
+        });
+
+        if (failure is { } failed)
         {
-            return PartyResult<PartyDto>.Fail(PartyOutcome.Conflict, "This party isn't currently entered on the event.");
+            return failed;
         }
-
-        // Clear the FK reference first, then delete the signup — the FK is Restrict, so the row
-        // can't be deleted while the party still points at it.
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        party.EventSignupId = null;
-        party.Status = PartyStatus.Open;
-        await _db.SaveChangesAsync(ct);
-        await _db.EventSignups.Where(s => s.Id == signupId).ExecuteDeleteAsync(ct);
-        await tx.CommitAsync(ct);
 
         var dto = await ProjectAsync(partyId, actorUserId, ct);
         return PartyResult<PartyDto>.Ok(dto!);
@@ -394,33 +428,43 @@ public sealed class PartyService : IPartyService
             return PartyResult.Fail(PartyOutcome.Forbidden, "Only a party admin can disband the party.");
         }
 
-        var party = await _db.Parties.FirstOrDefaultAsync(p => p.Id == partyId, ct);
-        if (party is null)
+        // Connection resiliency (feature 028): the whole teardown — chat archival, party delete and
+        // signup delete — is ONE retriable unit, and the party is loaded inside it. Archival is
+        // replay-safe: it snapshots and clears a conversation that a second pass simply finds
+        // already archived.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            return PartyResult.Fail(PartyOutcome.NotFound);
-        }
+            _db.ChangeTracker.Clear();
 
-        // Hard-delete the party first (members, news, and invitations cascade), which removes the
-        // Restrict FK reference, then delete the applied signup. The team, its roster, and badges
-        // are untouched. Wrapped in a transaction so the event entry can't be orphaned.
-        var signupId = party.EventSignupId;
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            var party = await _db.Parties.FirstOrDefaultAsync(p => p.Id == partyId, ct);
+            if (party is null)
+            {
+                return PartyResult.Fail(PartyOutcome.NotFound);
+            }
 
-        // Archive the party's chat BEFORE the party goes (feature 019, data-model R3a). Order matters
-        // twice over: PartyMembers cascade away with the party, and the chat DERIVES its membership
-        // from them — so archiving afterwards would leave a conversation nobody can read. It also
-        // clears the chat's Restrict FK, which would otherwise block this delete outright.
-        await _chat.ArchiveForPartyAsync(partyId, ct);
+            // Hard-delete the party first (members, news, and invitations cascade), which removes the
+            // Restrict FK reference, then delete the applied signup. The team, its roster, and badges
+            // are untouched. Wrapped in a transaction so the event entry can't be orphaned.
+            var signupId = party.EventSignupId;
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
 
-        _db.Parties.Remove(party);
-        await _db.SaveChangesAsync(ct);
-        if (signupId is Guid sid)
-        {
-            await _db.EventSignups.Where(s => s.Id == sid).ExecuteDeleteAsync(ct);
-        }
+            // Archive the party's chat BEFORE the party goes (feature 019, data-model R3a). Order matters
+            // twice over: PartyMembers cascade away with the party, and the chat DERIVES its membership
+            // from them — so archiving afterwards would leave a conversation nobody can read. It also
+            // clears the chat's Restrict FK, which would otherwise block this delete outright.
+            await _chat.ArchiveForPartyAsync(partyId, ct);
 
-        await tx.CommitAsync(ct);
-        return PartyResult.Ok();
+            _db.Parties.Remove(party);
+            await _db.SaveChangesAsync(ct);
+            if (signupId is Guid sid)
+            {
+                await _db.EventSignups.Where(s => s.Id == sid).ExecuteDeleteAsync(ct);
+            }
+
+            await tx.CommitAsync(ct);
+            return PartyResult.Ok();
+        });
     }
 
     // --- Helpers --------------------------------------------------------------

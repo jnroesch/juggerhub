@@ -11,6 +11,7 @@ import {
 } from '@angular/common/http';
 import { appRoutes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { retryInterceptor } from './core/interceptors/retry.interceptor';
 import { ChunkLoadErrorHandler } from './core/chunk-load-error.handler';
 
 export const appConfig: ApplicationConfig = {
@@ -26,6 +27,14 @@ export const appConfig: ApplicationConfig = {
     // All API calls are relative ("/api/v1/...") and same-origin via the nginx
     // proxy, so httpOnly auth cookies stay first-party. The auth interceptor
     // attaches credentials and routes 401s toward sign-in.
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor])),
+    //
+    // ORDER IS A CONTRACT, not a style choice (feature 028). Angular chains interceptors in array
+    // order, so retryInterceptor is the INNER of the two:
+    //   - a 401 is not retryable, so it passes through retry untouched and the auth interceptor
+    //     handles it exactly once — refresh once, retry once;
+    //   - a transient fault is absorbed by retry and never reaches the auth interceptor.
+    // Reversing them puts retry OUTSIDE the refresh, letting one expired session drive several
+    // refresh cycles. Do not swap these.
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor, retryInterceptor])),
   ],
 };

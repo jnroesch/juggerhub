@@ -312,69 +312,81 @@ public sealed class MarketRequestService : IMarketRequestService
             return PartyResult<MarketRequestDto>.Fail(PartyOutcome.Closed, "This event isn't accepting the marketplace.");
         }
 
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        await _capacity.LockPartyRowAsync(meta.PartyId, ct);
-
-        var req = await _db.MarketRequests.FirstOrDefaultAsync(r => r.Id == requestId, ct);
-        if (req is null || req.Status != MarketRequestStatus.Pending)
+        // Connection resiliency (feature 028): lock, re-check eligibility and cap, seat the player
+        // and revoke their other requests — all ONE retriable unit. Every check is inside the
+        // delegate because a replay must re-validate against current state: the roster cap and the
+        // "one event, one crew" rule are both enforced here and nowhere else.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        var failure = await strategy.ExecuteAsync<PartyResult<MarketRequestDto>?>(async () =>
         {
-            return PartyResult<MarketRequestDto>.Fail(PartyOutcome.Conflict, "This request is no longer pending.");
-        }
+            _db.ChangeTracker.Clear();
 
-        // Re-check eligibility atomically — the user may have joined another crew since.
-        var alreadyIn = await _db.PartyMembers.AnyAsync(
-            m => m.UserId == meta.UserId && m.Status == PartyMemberStatus.In && m.Party.EventId == meta.EventId, ct);
-        if (alreadyIn)
-        {
-            return PartyResult<MarketRequestDto>.Fail(PartyOutcome.Conflict, "That player is already in a crew for this event.");
-        }
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            await _capacity.LockPartyRowAsync(meta.PartyId, ct);
 
-        var inCount = await _capacity.InCountAsync(meta.PartyId, ct);
-        if (inCount >= meta.RosterCap)
-        {
-            return PartyResult<MarketRequestDto>.Fail(PartyOutcome.Full, "The party is full right now.");
-        }
-
-        // A player already on the party's team is seated as a normal member; anyone else is a guest.
-        var onTeam = await _db.TeamMemberships.AnyAsync(tm => tm.TeamId == meta.TeamId && tm.UserId == meta.UserId, ct);
-
-        var member = await _db.PartyMembers.FirstOrDefaultAsync(m => m.PartyId == meta.PartyId && m.UserId == meta.UserId, ct);
-        if (member is null)
-        {
-            _db.PartyMembers.Add(new PartyMember
+            var req = await _db.MarketRequests.FirstOrDefaultAsync(r => r.Id == requestId, ct);
+            if (req is null || req.Status != MarketRequestStatus.Pending)
             {
-                PartyId = meta.PartyId,
-                UserId = meta.UserId,
-                Status = PartyMemberStatus.In,
-                Role = PartyMemberRole.Member,
-                ViaMarket = !onTeam,
-            });
-        }
-        else
-        {
-            member.Status = PartyMemberStatus.In;
-            member.ViaMarket = !onTeam && member.Role != PartyMemberRole.Admin;
-        }
+                return PartyResult<MarketRequestDto>.Fail(PartyOutcome.Conflict, "This request is no longer pending.");
+            }
 
-        req.Status = MarketRequestStatus.Accepted;
+            // Re-check eligibility atomically — the user may have joined another crew since.
+            var alreadyIn = await _db.PartyMembers.AnyAsync(
+                m => m.UserId == meta.UserId && m.Status == PartyMemberStatus.In && m.Party.EventId == meta.EventId, ct);
+            if (alreadyIn)
+            {
+                return PartyResult<MarketRequestDto>.Fail(PartyOutcome.Conflict, "That player is already in a crew for this event.");
+            }
 
-        // "One event, one crew": revoke the joiner's other pending requests for this event and take
-        // down their free-agent listing.
-        var now = DateTime.UtcNow;
-        await _db.MarketRequests
-            .Where(r => r.UserId == meta.UserId && r.Id != requestId && r.Status == MarketRequestStatus.Pending
-                && _db.Parties.Any(p => p.Id == r.PartyId && p.EventId == meta.EventId))
-            .ExecuteUpdateAsync(s => s
-                .SetProperty(r => r.Status, MarketRequestStatus.Revoked)
-                .SetProperty(r => r.ModifiedDate, now), ct);
-        await _db.MercenaryListings
-            .Where(l => l.EventId == meta.EventId && l.UserId == meta.UserId)
-            .ExecuteDeleteAsync(ct);
+            var inCount = await _capacity.InCountAsync(meta.PartyId, ct);
+            if (inCount >= meta.RosterCap)
+            {
+                return PartyResult<MarketRequestDto>.Fail(PartyOutcome.Full, "The party is full right now.");
+            }
 
-        await _db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+            // A player already on the party's team is seated as a normal member; anyone else is a guest.
+            var onTeam = await _db.TeamMemberships.AnyAsync(tm => tm.TeamId == meta.TeamId && tm.UserId == meta.UserId, ct);
 
-        return PartyResult<MarketRequestDto>.Ok(await LoadDtoAsync(requestId, ct));
+            var member = await _db.PartyMembers.FirstOrDefaultAsync(m => m.PartyId == meta.PartyId && m.UserId == meta.UserId, ct);
+            if (member is null)
+            {
+                _db.PartyMembers.Add(new PartyMember
+                {
+                    PartyId = meta.PartyId,
+                    UserId = meta.UserId,
+                    Status = PartyMemberStatus.In,
+                    Role = PartyMemberRole.Member,
+                    ViaMarket = !onTeam,
+                });
+            }
+            else
+            {
+                member.Status = PartyMemberStatus.In;
+                member.ViaMarket = !onTeam && member.Role != PartyMemberRole.Admin;
+            }
+
+            req.Status = MarketRequestStatus.Accepted;
+
+            // "One event, one crew": revoke the joiner's other pending requests for this event and take
+            // down their free-agent listing.
+            var now = DateTime.UtcNow;
+            await _db.MarketRequests
+                .Where(r => r.UserId == meta.UserId && r.Id != requestId && r.Status == MarketRequestStatus.Pending
+                    && _db.Parties.Any(p => p.Id == r.PartyId && p.EventId == meta.EventId))
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Status, MarketRequestStatus.Revoked)
+                    .SetProperty(r => r.ModifiedDate, now), ct);
+            await _db.MercenaryListings
+                .Where(l => l.EventId == meta.EventId && l.UserId == meta.UserId)
+                .ExecuteDeleteAsync(ct);
+
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            return null;
+        });
+
+        return failure ?? PartyResult<MarketRequestDto>.Ok(await LoadDtoAsync(requestId, ct));
     }
 
     // --- Decline / Revoke -----------------------------------------------------

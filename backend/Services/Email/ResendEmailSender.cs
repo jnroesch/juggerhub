@@ -38,13 +38,97 @@ public sealed class ResendEmailSender : IEmailSender
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.Resend.ApiKey);
 
-        using var response = await _http.SendAsync(request, ct);
-        if (!response.IsSuccessStatusCode)
+        HttpResponseMessage response;
+        try
         {
-            _logger.LogError("Resend email send failed with status {Status}", (int)response.StatusCode);
+            response = await _http.SendAsync(request, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException && !ct.IsCancellationRequested)
+        {
+            // Every attempt, retry and backoff the shared policy allows has already been spent by
+            // the time this is reached — see AddJuggerHubResilience. Log LOUDLY, because this email
+            // is now permanently lost: durable delivery is deliberately out of scope for feature
+            // 028, so an operator noticing is the only recovery path (FR-021).
+            _logger.LogError(
+                ex,
+                "Email give-up: '{Subject}' to {Recipient} could not be delivered via Resend after all "
+                + "attempts. The message is LOST — there is no retry queue. The recipient must request it again.",
+                subject,
+                MaskForLog(to));
             throw new InvalidOperationException("Email send failed.");
+        }
+
+        using (response)
+        {
+            if (!response.IsSuccessStatusCode)
+            {
+                // Status only, never the body — the body may carry provider detail we must not log
+                // (constitution Principle I; FR-028). The recipient is logged MASKED: enough to act
+                // on, without putting a full address into log storage.
+                _logger.LogError(
+                    "Email give-up: '{Subject}' to {Recipient} was rejected by Resend with status {Status}. "
+                    + "The message is LOST — there is no retry queue.",
+                    subject,
+                    MaskForLog(to),
+                    (int)response.StatusCode);
+                throw new InvalidOperationException("Email send failed.");
+            }
         }
 
         _logger.LogInformation("Sent '{Subject}' email via Resend", subject);
     }
+
+    /// <summary>
+    /// Renders a recipient address safe to write to a log: local part masked, control characters
+    /// stripped. <c>player@example.com</c> becomes <c>p***@example.com</c>.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Two separate problems, one helper (both raised by CodeQL on this file):
+    /// </para>
+    /// <para>
+    /// <b>Log forging</b> (<c>cs/log-forging</c>) — the address is user-supplied, so a value
+    /// containing CR/LF could inject fabricated lines into the log and make the audit trail lie.
+    /// Control characters are removed rather than escaped, because nothing legitimate needs them.
+    /// </para>
+    /// <para>
+    /// <b>PII exposure</b> (<c>cs/exposure-of-sensitive-information</c>) — a full address is
+    /// personal data, and log storage is the wrong place for it. Masking keeps the entry
+    /// actionable (an operator sees the domain and the message kind, and can recover the full
+    /// address from the users table) without persisting the address itself. This narrows FR-021 /
+    /// SC-006, which originally called for naming the recipient outright; the spec was updated to
+    /// match rather than left contradicting the code.
+    /// </para>
+    /// </remarks>
+    public static string MaskForLog(string address)
+    {
+        // char.IsControl alone is NOT enough: it covers C0/C1 only (U+0000–U+001F, U+007F–U+009F),
+        // while U+2028 LINE SEPARATOR and U+2029 PARAGRAPH SEPARATOR are categories Zl/Zp and would
+        // slip through — and log viewers, JSON tooling and JS contexts routinely treat those as line
+        // breaks. Masking hides a payload in the local part but keeps the DOMAIN verbatim, so that
+        // was a real hole, not a theoretical one (pinned by a test).
+        var clean = new string(
+            address
+                .Where(c => !char.IsControl(c) && !IsLineSeparator(c))
+                .ToArray()).Trim();
+        if (clean.Length == 0)
+        {
+            return "(none)";
+        }
+
+        var at = clean.IndexOf('@', StringComparison.Ordinal);
+        if (at <= 0)
+        {
+            // Not an address shape — reveal nothing rather than guess where to cut.
+            return "***";
+        }
+
+        return $"{clean[0]}***{clean[at..]}";
+    }
+
+    /// <summary>Unicode line/paragraph separators, which <c>char.IsControl</c> does not cover.</summary>
+    private static bool IsLineSeparator(char c) =>
+        System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c)
+            is System.Globalization.UnicodeCategory.LineSeparator
+            or System.Globalization.UnicodeCategory.ParagraphSeparator;
 }

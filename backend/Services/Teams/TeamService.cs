@@ -349,44 +349,65 @@ public sealed class TeamService : ITeamService
             return MemberOpResult.Fail(MemberOpStatus.Forbidden, "Only admins can manage members.");
         }
 
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-
-        // Pessimistic lock on the team row serializes concurrent membership mutations for it.
-        await _db.Database.ExecuteSqlInterpolatedAsync(
-            $"SELECT 1 FROM \"Teams\" WHERE \"Id\" = {a.TeamId} FOR UPDATE", ct);
-
-        var target = await _db.TeamMemberships
-            .FirstOrDefaultAsync(m => m.TeamId == a.TeamId && m.UserId == targetUserId, ct);
-        if (target is null)
+        // Connection resiliency (feature 028) forbids user-initiated transactions outside an
+        // execution strategy, so the transactional core runs as ONE retriable unit. Every read,
+        // lock and mutation lives inside the delegate; the notification/email side effects
+        // deliberately do NOT, because a replayed delegate would send them twice.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        var (failure, previousRole) = await strategy.ExecuteAsync(async () =>
         {
-            return MemberOpResult.Fail(MemberOpStatus.MemberNotFound);
-        }
+            // A rollback does not undo the change tracker, so a replay must start clean or it
+            // re-applies what the previous attempt already staged.
+            _db.ChangeTracker.Clear();
 
-        var removesAdmin = target.Role == TeamRole.Admin
-            && (remove || (newRole is { } r && r != TeamRole.Admin));
-        if (removesAdmin)
-        {
-            var adminCount = await _db.TeamMemberships
-                .CountAsync(m => m.TeamId == a.TeamId && m.Role == TeamRole.Admin, ct);
-            if (adminCount <= 1)
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+            // Pessimistic lock on the team row serializes concurrent membership mutations for it.
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"SELECT 1 FROM \"Teams\" WHERE \"Id\" = {a.TeamId} FOR UPDATE", ct);
+
+            var target = await _db.TeamMemberships
+                .FirstOrDefaultAsync(m => m.TeamId == a.TeamId && m.UserId == targetUserId, ct);
+            if (target is null)
             {
-                return MemberOpResult.Fail(MemberOpStatus.LastAdmin,
-                    "Make someone else an admin before you step down or leave.");
+                return (MemberOpResult.Fail(MemberOpStatus.MemberNotFound), (TeamRole?)null);
             }
-        }
 
-        var previousRole = target.Role;
-        if (remove)
-        {
-            _db.TeamMemberships.Remove(target);
-        }
-        else if (newRole is { } nr)
-        {
-            target.Role = nr;
-        }
+            var removesAdmin = target.Role == TeamRole.Admin
+                && (remove || (newRole is { } r && r != TeamRole.Admin));
+            if (removesAdmin)
+            {
+                var adminCount = await _db.TeamMemberships
+                    .CountAsync(m => m.TeamId == a.TeamId && m.Role == TeamRole.Admin, ct);
+                if (adminCount <= 1)
+                {
+                    return (
+                        MemberOpResult.Fail(MemberOpStatus.LastAdmin,
+                            "Make someone else an admin before you step down or leave."),
+                        (TeamRole?)null);
+                }
+            }
 
-        await _db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+            var roleBefore = target.Role;
+            if (remove)
+            {
+                _db.TeamMemberships.Remove(target);
+            }
+            else if (newRole is { } nr)
+            {
+                target.Role = nr;
+            }
+
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            return ((MemberOpResult?)null, (TeamRole?)roleBefore);
+        });
+
+        if (failure is not null)
+        {
+            return failure;
+        }
 
         if (remove)
         {

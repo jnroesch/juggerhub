@@ -296,7 +296,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/027-contact-admins/plan.md` (Contact-the-admins chat threads for teams/events — new mirrored TeamInquiry/EventInquiry conversation kinds).
+`specs/028-network-resilience/plan.md` (Generic resilience across both hops — frontend retry/timeout interceptor, Polly-based outbound HTTP policy, EF connection resiliency; no new entities or migration).
 <!-- SPECKIT END -->
 
 ## GitHub Issues Workflow

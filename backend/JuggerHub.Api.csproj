@@ -48,6 +48,9 @@
          Moving to 3.x requires AspNetCore.OpenApi 11.x / .NET 11. -->
     <PackageReference Include="Microsoft.OpenApi" Version="2.11.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.10" />
+    <!-- Outbound HTTP resilience (feature 028 / constitution Principle VII). This is Polly v8
+         packaged as a DelegatingHandler; every typed client opts in via AddJuggerHubResilience. -->
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.8.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>

@@ -94,37 +94,64 @@ public sealed class EventSignupService : IEventSignupService
             return SignupResult.Fail(SignupOutcome.Duplicate, "You're already taking part in this event.");
         }
 
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-
-        // Serialize concurrent sign-ups for this event on the event row.
-        await _capacity.LockEventRowAsync(eventId, ct);
-        var occupied = await _capacity.OccupiedCountAsync(eventId, ct);
-        var status = occupied < ev.ParticipationLimit
-            ? (ev.IsPaid ? SignupStatus.AwaitingApproval : SignupStatus.Joined)
-            : SignupStatus.Waitlisted;
-
-        var signup = new EventSignup
+        // Connection resiliency (feature 028): the capacity-critical section runs as ONE retriable
+        // unit. The row lock, the occupancy count and the insert must all be inside the delegate —
+        // a replay has to recompute occupancy from current state, never reuse a stale read, or the
+        // event could be oversubscribed.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        var (failure, signupId) = await strategy.ExecuteAsync(async () =>
         {
-            EventId = eventId,
-            UserId = subjectUser,
-            TeamId = subjectTeam,
-            Status = status,
-        };
-        _db.EventSignups.Add(signup);
+            // A rollback does not undo the change tracker: without this, a replay would stage a
+            // SECOND EventSignup alongside the one the failed attempt already added, and both
+            // would be inserted.
+            _db.ChangeTracker.Clear();
 
-        try
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+            // Serialize concurrent sign-ups for this event on the event row.
+            await _capacity.LockEventRowAsync(eventId, ct);
+            var occupied = await _capacity.OccupiedCountAsync(eventId, ct);
+            var status = occupied < ev.ParticipationLimit
+                ? (ev.IsPaid ? SignupStatus.AwaitingApproval : SignupStatus.Joined)
+                : SignupStatus.Waitlisted;
+
+            // Constructed inside the delegate so a replay inserts a fresh row rather than
+            // re-submitting one the previous attempt may already have written.
+            var signup = new EventSignup
+            {
+                EventId = eventId,
+                UserId = subjectUser,
+                TeamId = subjectTeam,
+                Status = status,
+            };
+            _db.EventSignups.Add(signup);
+
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+                await tx.CommitAsync(ct);
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                // Lost the partial-unique race to a concurrent sign-up by the same subject. Also
+                // the backstop that makes a commit-time replay safe: the client-generated UUIDv7
+                // key collides instead of silently inserting a duplicate (constitution III).
+                _db.Entry(signup).State = EntityState.Detached;
+                return (
+                    SignupResult.Fail(SignupOutcome.Duplicate, "You're already taking part in this event."),
+                    Guid.Empty);
+            }
+
+            return ((SignupResult?)null, signup.Id);
+        });
+
+        if (failure is not null)
         {
-            await _db.SaveChangesAsync(ct);
-            await tx.CommitAsync(ct);
-        }
-        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
-        {
-            // Lost the partial-unique race to a concurrent sign-up by the same subject.
-            return SignupResult.Fail(SignupOutcome.Duplicate, "You're already taking part in this event.");
+            return failure;
         }
 
         var dto = await _db.EventSignups.AsNoTracking()
-            .Where(s => s.Id == signup.Id)
+            .Where(s => s.Id == signupId)
             .Select(Projection)
             .FirstAsync(ct);
         return SignupResult.Ok(dto);
@@ -222,31 +249,42 @@ public sealed class EventSignupService : IEventSignupService
             .Select(e => new { e.IsPaid, e.ParticipationLimit })
             .FirstAsync(ct);
 
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        await _capacity.LockEventRowAsync(eventId, ct);
-
-        var signup = await _db.EventSignups.FirstOrDefaultAsync(s => s.Id == signupId && s.EventId == eventId, ct);
-        if (signup is null)
+        // Connection resiliency (feature 028): lock, re-read status, re-check capacity and promote
+        // as ONE retriable unit. Every check is inside the delegate so a replay re-validates
+        // against current state — promoting on a stale occupancy count would overfill the event.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        var failure = await strategy.ExecuteAsync(async () =>
         {
-            return AdmitResult.Fail(AdmitOutcome.NotFound);
-        }
+            _db.ChangeTracker.Clear();
 
-        if (signup.Status != SignupStatus.Waitlisted)
-        {
-            return AdmitResult.Fail(AdmitOutcome.NotApplicable, "Only a waiting-list entry can be promoted.");
-        }
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            await _capacity.LockEventRowAsync(eventId, ct);
 
-        var occupied = await _capacity.OccupiedCountAsync(eventId, ct);
-        if (occupied >= ev.ParticipationLimit)
-        {
-            return AdmitResult.Fail(AdmitOutcome.CapacityExceeded, "There's no open spot to promote into.");
-        }
+            var signup = await _db.EventSignups.FirstOrDefaultAsync(s => s.Id == signupId && s.EventId == eventId, ct);
+            if (signup is null)
+            {
+                return AdmitResult.Fail(AdmitOutcome.NotFound);
+            }
 
-        signup.Status = ev.IsPaid ? SignupStatus.AwaitingApproval : SignupStatus.Joined;
-        await _db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+            if (signup.Status != SignupStatus.Waitlisted)
+            {
+                return AdmitResult.Fail(AdmitOutcome.NotApplicable, "Only a waiting-list entry can be promoted.");
+            }
 
-        return AdmitResult.Ok(await LoadDtoAsync(signup.Id, ct));
+            var occupied = await _capacity.OccupiedCountAsync(eventId, ct);
+            if (occupied >= ev.ParticipationLimit)
+            {
+                return AdmitResult.Fail(AdmitOutcome.CapacityExceeded, "There's no open spot to promote into.");
+            }
+
+            signup.Status = ev.IsPaid ? SignupStatus.AwaitingApproval : SignupStatus.Joined;
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+
+            return null;
+        });
+
+        return failure ?? AdmitResult.Ok(await LoadDtoAsync(signupId, ct));
     }
 
     // --- Helpers --------------------------------------------------------------

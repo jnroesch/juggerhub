@@ -98,40 +98,50 @@ public sealed class PartyRosterService : IPartyRosterService
 
         var cap = await _db.Parties.Where(p => p.Id == partyId).Select(p => p.RosterCap).FirstAsync(ct);
 
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        await _capacity.LockPartyRowAsync(partyId, ct);
-
-        var mine = await _db.PartyMembers.FirstOrDefaultAsync(m => m.PartyId == partyId && m.UserId == actorUserId, ct);
-        if (mine is { Status: PartyMemberStatus.In })
+        // Connection resiliency (feature 028): lock, re-count and join as ONE retriable unit, so a
+        // replay re-checks the roster cap against current state rather than a stale count.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        var failure = await strategy.ExecuteAsync<PartyResult<PartyMemberDto>?>(async () =>
         {
-            await tx.CommitAsync(ct);
-            return PartyResult<PartyMemberDto>.Ok(await LoadMineAsync(partyId, actorUserId, ct));
-        }
+            _db.ChangeTracker.Clear();
 
-        var inCount = await _capacity.InCountAsync(partyId, ct);
-        if (inCount >= cap)
-        {
-            return PartyResult<PartyMemberDto>.Fail(PartyOutcome.Full, "The party is full right now.");
-        }
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            await _capacity.LockPartyRowAsync(partyId, ct);
 
-        if (mine is null)
-        {
-            _db.PartyMembers.Add(new PartyMember
+            var mine = await _db.PartyMembers.FirstOrDefaultAsync(m => m.PartyId == partyId && m.UserId == actorUserId, ct);
+            if (mine is { Status: PartyMemberStatus.In })
             {
-                PartyId = partyId,
-                UserId = actorUserId,
-                Status = PartyMemberStatus.In,
-                Role = PartyMemberRole.Member,
-            });
-        }
-        else
-        {
-            mine.Status = PartyMemberStatus.In;
-        }
+                await tx.CommitAsync(ct);
+                return null;
+            }
 
-        await _db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
-        return PartyResult<PartyMemberDto>.Ok(await LoadMineAsync(partyId, actorUserId, ct));
+            var inCount = await _capacity.InCountAsync(partyId, ct);
+            if (inCount >= cap)
+            {
+                return PartyResult<PartyMemberDto>.Fail(PartyOutcome.Full, "The party is full right now.");
+            }
+
+            if (mine is null)
+            {
+                _db.PartyMembers.Add(new PartyMember
+                {
+                    PartyId = partyId,
+                    UserId = actorUserId,
+                    Status = PartyMemberStatus.In,
+                    Role = PartyMemberRole.Member,
+                });
+            }
+            else
+            {
+                mine.Status = PartyMemberStatus.In;
+            }
+
+            await _db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            return null;
+        });
+
+        return failure ?? PartyResult<PartyMemberDto>.Ok(await LoadMineAsync(partyId, actorUserId, ct));
     }
 
     public async Task<PartyResult<PartyMemberDto>> DeclineAsync(Guid partyId, Guid actorUserId, CancellationToken ct = default)

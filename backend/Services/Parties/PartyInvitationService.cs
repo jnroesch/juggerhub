@@ -302,74 +302,84 @@ public sealed class PartyInvitationService : IPartyInvitationService
 
     public async Task<PartyResult<Guid>> AcceptAsync(string token, Guid userId, CancellationToken ct = default)
     {
-        var now = DateTime.UtcNow;
-        var invite = await _db.PartyAdminInvitations.FirstOrDefaultAsync(i => i.Token == token, ct);
-        if (invite is null)
+        // Connection resiliency (feature 028): the invitation is re-read INSIDE the retriable unit.
+        // It is a tracked entity that gets mutated here, so loading it outside would leave a replay
+        // holding state the previous attempt already changed — and clearing the tracker per attempt
+        // would silently discard those writes.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
         {
-            return PartyResult<Guid>.Fail(PartyOutcome.NotFound);
-        }
+            _db.ChangeTracker.Clear();
 
-        var partyId = invite.PartyId;
-        if (!(invite.Status == InvitationStatus.Pending && invite.ExpiresDate > now))
-        {
-            return PartyResult<Guid>.Fail(PartyOutcome.Closed, "This invitation is no longer usable.");
-        }
+            var now = DateTime.UtcNow;
+            var invite = await _db.PartyAdminInvitations.FirstOrDefaultAsync(i => i.Token == token, ct);
+            if (invite is null)
+            {
+                return PartyResult<Guid>.Fail(PartyOutcome.NotFound);
+            }
 
-        var teamId = await _db.Parties.AsNoTracking().Where(p => p.Id == partyId).Select(p => new { p.TeamId, p.RosterCap }).FirstAsync(ct);
-        if (!await _db.TeamMemberships.AnyAsync(tm => tm.TeamId == teamId.TeamId && tm.UserId == userId, ct))
-        {
-            return PartyResult<Guid>.Fail(PartyOutcome.Forbidden, "Only a member of the party's team can co-run it.");
-        }
+            var partyId = invite.PartyId;
+            if (!(invite.Status == InvitationStatus.Pending && invite.ExpiresDate > now))
+            {
+                return PartyResult<Guid>.Fail(PartyOutcome.Closed, "This invitation is no longer usable.");
+            }
 
-        await using var tx = await _db.Database.BeginTransactionAsync(ct);
-        await _capacity.LockPartyRowAsync(partyId, ct);
+            var teamId = await _db.Parties.AsNoTracking().Where(p => p.Id == partyId).Select(p => new { p.TeamId, p.RosterCap }).FirstAsync(ct);
+            if (!await _db.TeamMemberships.AnyAsync(tm => tm.TeamId == teamId.TeamId && tm.UserId == userId, ct))
+            {
+                return PartyResult<Guid>.Fail(PartyOutcome.Forbidden, "Only a member of the party's team can co-run it.");
+            }
 
-        var mine = await _db.PartyMembers.FirstOrDefaultAsync(m => m.PartyId == partyId && m.UserId == userId, ct);
-        if (mine is { Role: PartyMemberRole.Admin })
-        {
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            await _capacity.LockPartyRowAsync(partyId, ct);
+
+            var mine = await _db.PartyMembers.FirstOrDefaultAsync(m => m.PartyId == partyId && m.UserId == userId, ct);
+            if (mine is { Role: PartyMemberRole.Admin })
+            {
+                if (invite.Kind == InvitationKind.Targeted)
+                {
+                    invite.Status = InvitationStatus.Accepted;
+                    await _db.SaveChangesAsync(ct);
+                }
+
+                await tx.CommitAsync(ct);
+                return PartyResult<Guid>.Ok(partyId);
+            }
+
+            if (mine is null || mine.Status != PartyMemberStatus.In)
+            {
+                var inCount = await _capacity.InCountAsync(partyId, ct);
+                if (inCount >= teamId.RosterCap)
+                {
+                    return PartyResult<Guid>.Fail(PartyOutcome.Full, "The party is full — free a spot before seating another admin.");
+                }
+            }
+
+            if (mine is null)
+            {
+                _db.PartyMembers.Add(new PartyMember
+                {
+                    PartyId = partyId,
+                    UserId = userId,
+                    Status = PartyMemberStatus.In,
+                    Role = PartyMemberRole.Admin,
+                });
+            }
+            else
+            {
+                mine.Status = PartyMemberStatus.In;
+                mine.Role = PartyMemberRole.Admin;
+            }
+
             if (invite.Kind == InvitationKind.Targeted)
             {
                 invite.Status = InvitationStatus.Accepted;
-                await _db.SaveChangesAsync(ct);
             }
 
+            await _db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
             return PartyResult<Guid>.Ok(partyId);
-        }
-
-        if (mine is null || mine.Status != PartyMemberStatus.In)
-        {
-            var inCount = await _capacity.InCountAsync(partyId, ct);
-            if (inCount >= teamId.RosterCap)
-            {
-                return PartyResult<Guid>.Fail(PartyOutcome.Full, "The party is full — free a spot before seating another admin.");
-            }
-        }
-
-        if (mine is null)
-        {
-            _db.PartyMembers.Add(new PartyMember
-            {
-                PartyId = partyId,
-                UserId = userId,
-                Status = PartyMemberStatus.In,
-                Role = PartyMemberRole.Admin,
-            });
-        }
-        else
-        {
-            mine.Status = PartyMemberStatus.In;
-            mine.Role = PartyMemberRole.Admin;
-        }
-
-        if (invite.Kind == InvitationKind.Targeted)
-        {
-            invite.Status = InvitationStatus.Accepted;
-        }
-
-        await _db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
-        return PartyResult<Guid>.Ok(partyId);
+        });
     }
 
     public async Task<PartyResult> DeclineAsync(string token, Guid userId, CancellationToken ct = default)
