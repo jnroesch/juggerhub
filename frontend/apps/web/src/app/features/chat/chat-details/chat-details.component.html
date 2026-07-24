@@ -1,9 +1,15 @@
 <section class="mx-auto max-w-container-sm px-md py-lg" data-testid="chat-details">
   <div class="flex items-center gap-sm">
+    <!--
+      Shown at every width, unlike the conversation's own back button (which is lg:hidden because
+      the inbox rail is already on screen beside it). Details *replaces* the conversation in the
+      pane, so on desktop this is the only way back to it short of re-picking it from the rail.
+    -->
     <a
       [routerLink]="['/chat', conversationId()]"
-      class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden"
+      class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       aria-label="Back to the chat"
+      data-testid="back-to-chat"
     >
       <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="m15 18-6-6 6-6" />
@@ -58,22 +64,43 @@
       }
     </div>
 
-    <ul class="mt-sm divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card" data-testid="member-list">
+    <!--
+      A member row links to their profile like every other player listing does. `handle` is nullable
+      (a guest without one), and a link to nowhere is worse than no link — those rows stay plain.
+    -->
+    <ul class="mt-sm divide-y divide-border-muted overflow-hidden rounded-lg border border-border-muted bg-surface-card" data-testid="member-list">
       @for (m of members(); track m.userId) {
-        <li class="flex items-center gap-sm px-md py-sm">
-          <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
-          <span class="min-w-0 flex-1">
-            <span class="block truncate text-body-md text-body">
-              {{ m.displayName }}
-              @if (m.isYou) {<span class="text-body-sm text-subtle"> · you</span>}
-            </span>
-            @if (m.viaMarket) {
-              <span class="text-body-sm text-subtle">guest · via market</span>
-            }
-          </span>
+        <li>
+          @if (m.handle) {
+            <a
+              [routerLink]="['/u', m.handle]"
+              class="flex min-h-11 items-center gap-sm px-md py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-focus"
+              data-testid="member-row"
+            >
+              <ng-container [ngTemplateOutlet]="memberRow" [ngTemplateOutletContext]="{ $implicit: m }" />
+            </a>
+          } @else {
+            <div class="flex min-h-11 items-center gap-sm px-md py-sm" data-testid="member-row">
+              <ng-container [ngTemplateOutlet]="memberRow" [ngTemplateOutletContext]="{ $implicit: m }" />
+            </div>
+          }
         </li>
       }
     </ul>
+
+    <!-- The row's contents, shared by the linked and plain shapes above so they can't drift apart. -->
+    <ng-template #memberRow let-m>
+      <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+      <span class="min-w-0 flex-1">
+        <span class="block truncate text-body-md text-body">
+          {{ m.displayName }}
+          @if (m.isYou) {<span class="text-body-sm text-subtle"> · you</span>}
+        </span>
+        @if (m.viaMarket) {
+          <span class="text-body-sm text-subtle">guest · via market</span>
+        }
+      </span>
+    </ng-template>
 
     <!-- Controls -->
     <div class="mt-lg space-y-sm">
