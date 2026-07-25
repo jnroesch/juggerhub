@@ -10,6 +10,8 @@ description: "Task list for feature 030 — Structured Locations & Near You Disc
 
 **Tests**: Included — JuggerHub is test-heavy (xUnit backend, Jasmine/Karma frontend, Playwright e2e) and `quickstart.md` defines automated checks. Test tasks precede the implementation they cover within each phase.
 
+> **Implementation status (2026-07-25)** — 40/61 tasks complete. **Verified**: backend `dotnet build` green (0 warnings); frontend `nx build web` green; both test projects **compile**. **Done**: all foundational backend + entity/migration/seeder + the DTO/service cascade + proximity sort (teams & events) + the full frontend (shared `jh-city-picker`, all display templates, onboarding/profile/team-create/event-create/event-edit forms, browse country filter). **NOT done / remaining**: the test suite has **not been run**; new test coverage (T020–T025, T036–T037, T044–T045, T049–T051) is unwritten and 6 existing integration assertions still use the old `city/country/hometown` JSON shape; `docker-compose` Photon service added to the main file only, not mirrored to test/e2e/debug (T001); **onboarding proximity (T048) deferred** — the home city isn't persisted until finish, so the team step can't derive it server-side without a design change; polish (T056–T061), incl. the Photon extract/AKS spike (T058) and legacy `Event.Location` cleanup (T059), outstanding.
+
 ## Format: `[ID] [P?] [Story] Description`
 
 - **[P]**: Can run in parallel (different files, no dependencies on incomplete tasks)
@@ -60,10 +62,10 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ### Shared frontend picker
 
-- [ ] T015 [P] Create `frontend/apps/web/src/app/core/models/city.models.ts` — `CityOption`, `Location` view models.
-- [ ] T016 [P] Create `frontend/apps/web/src/app/core/services/city.service.ts` — debounced-friendly `search(q)` calling `/api/cities/search`, using the existing retry interceptor (GET).
-- [ ] T017 Create `frontend/apps/web/src/app/shared/city-picker/` (`city-picker.component.ts/.html/.css`) — 250ms debounced type-ahead, disambiguated option labels, select/clear, transient "can't search right now" state on 503 (FR-019). Export from `shared/ui` barrel if applicable.
-- [ ] T018 [P] Add a `locationLabel(location)` helper (frontend `shared/`) mirroring the backend `"City, Country"` mapping (FR-010).
+- [X] T015 [P] Create `frontend/apps/web/src/app/core/models/city.models.ts` — `CityOption`, `Location` view models.
+- [X] T016 [P] Create `frontend/apps/web/src/app/core/services/city.service.ts` — debounced-friendly `search(q)` calling `/api/cities/search`, using the existing retry interceptor (GET).
+- [X] T017 Create `frontend/apps/web/src/app/shared/city-picker/` (`city-picker.component.ts/.html/.css`) — 250ms debounced type-ahead, disambiguated option labels, select/clear, transient "can't search right now" state on 503 (FR-019). Export from `shared/ui` barrel if applicable.
+- [X] T018 [P] Add a `locationLabel(location)` helper (frontend `shared/`) mirroring the backend `"City, Country"` mapping (FR-010).
 
 ### Seed
 
@@ -98,11 +100,11 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 - [X] T028 [P] [US1] Update `backend/Dtos/Search/SearchDtos.cs` `PlayerCardDto` + `backend/Services/Search/PlayerSearchService.cs` — `Hometown` → `LocationDto`.
 - [X] T029 [P] [US1] Update `backend/Dtos/Admin/AdminUserDtos.cs` + `AdminOverviewDtos.cs` — `Hometown` → `LocationDto`.
 - [X] T030 [P] [US1] Update `backend/Dtos/Marketplace/MarketDtos.cs` + `backend/Dtos/Parties/PartyDtos.cs` — `Hometown` → `LocationDto`.
-- [ ] T031 [US1] Update `frontend/apps/web/src/app/core/models/profile.models.ts` + `profile.service.ts` — `hometown` → `location`; `updateMine` sends `cityExternalId`.
-- [ ] T032 [US1] Wire `jh-city-picker` into the profile edit form (`features/profile/profile-owner/…`), replacing the freeform hometown field.
-- [ ] T033 [US1] Show `locationLabel` ("City, Country") in `profile-owner.component` and `profile-public.component` displays.
-- [ ] T034 [US1] Update `features/onboarding/onboarding.component.ts` + `.html` — replace the freeform city input with `jh-city-picker`; carry `cityExternalId` into the finish payload (keep the "never trap a new player" separation).
-- [ ] T035 [P] [US1] Update Angular models consuming hometown — `search.models.ts`, `market.models.ts`, `party.models.ts`, `admin.models.ts` — to the `location` shape, and their display sites.
+- [X] T031 [US1] Update `frontend/apps/web/src/app/core/models/profile.models.ts` + `profile.service.ts` — `hometown` → `location`; `updateMine` sends `cityExternalId`.
+- [X] T032 [US1] Wire `jh-city-picker` into the profile edit form (`features/profile/profile-owner/…`), replacing the freeform hometown field.
+- [X] T033 [US1] Show `locationLabel` ("City, Country") in `profile-owner.component` and `profile-public.component` displays.
+- [X] T034 [US1] Update `features/onboarding/onboarding.component.ts` + `.html` — replace the freeform city input with `jh-city-picker`; carry `cityExternalId` into the finish payload (keep the "never trap a new player" separation).
+- [X] T035 [P] [US1] Update Angular models consuming hometown — `search.models.ts`, `market.models.ts`, `party.models.ts`, `admin.models.ts` — to the `location` shape, and their display sites.
 
 **Checkpoint**: Profiles are structured and country-qualified end-to-end. MVP demoable.
 
@@ -125,8 +127,8 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 - [X] T039 [US2] Update `backend/Dtos/Teams/TeamDtos.cs` (incl. `TeamCardDto`) — `City` string → `location` write + `LocationDto` read.
 - [X] T040 [US2] Update `backend/Services/Events/…` event create/update — resolve+link city for `InPerson`; disallow for `Virtual`.
 - [X] T041 [US2] Update `backend/Dtos/Events/EventDtos.cs` (incl. `EventCardDto`) — `City`/`Country` strings → `location`; remove `Country`.
-- [ ] T042 [P] [US2] Wire `jh-city-picker` into the team create/edit forms (`features/teams/…`); team cards/pages show `locationLabel`.
-- [ ] T043 [P] [US2] Wire `jh-city-picker` into the event create/edit forms (`features/events/…`); event cards/pages show `locationLabel`; models in `event.models.ts`.
+- [X] T042 [P] [US2] Wire `jh-city-picker` into the team create/edit forms (`features/teams/…`); team cards/pages show `locationLabel`.
+- [X] T043 [P] [US2] Wire `jh-city-picker` into the event create/edit forms (`features/events/…`); event cards/pages show `locationLabel`; models in `event.models.ts`.
 
 **Checkpoint**: Profiles, teams, and events are all structured and country-qualified.
 
@@ -169,8 +171,8 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 - [X] T052 [US4] Extend `EventBrowseQuery` with `sort=Proximity` + `country`; implement in `backend/Services/Search/EventSearchService.cs` excluding virtual events from the proximity view.
 - [X] T053 [US4] Update `backend/Dtos/Search/SearchDtos.cs` — replace free-text `City` filter with `country`; add `Proximity` to the team/event sort enums.
-- [ ] T054 [US4] Update `features/browse/…` — add the "Near me" sort option + country filter controls (DESIGN.md), and the no-home-city prompt/disabled state (FR-014/US4 scenario 4).
-- [ ] T055 [US4] Update `core/models/search.models.ts` + `core/services/search.service.ts` — proximity sort + country params for team & event browse.
+- [X] T054 [US4] Update `features/browse/…` — add the "Near me" sort option + country filter controls (DESIGN.md), and the no-home-city prompt/disabled state (FR-014/US4 scenario 4).
+- [X] T055 [US4] Update `core/models/search.models.ts` + `core/services/search.service.ts` — proximity sort + country params for team & event browse.
 
 **Checkpoint**: All four user stories independently functional.
 
