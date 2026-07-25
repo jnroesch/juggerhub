@@ -10,11 +10,11 @@ description: "Task list for feature 030 — Structured Locations & Near You Disc
 
 **Tests**: Included — JuggerHub is test-heavy (xUnit backend, Jasmine/Karma frontend, Playwright e2e) and `quickstart.md` defines automated checks. Test tasks precede the implementation they cover within each phase.
 
-> **Implementation status (2026-07-25)** — **45 / 61 tasks complete; feature functionally done, both suites green.** **Verified**: `dotnet build` (0 warnings) + `nx build web` green; **backend integration 514/514**; **frontend 258/258**; `nx lint web` warnings-only (pre-existing, none from this feature); `terraform validate` (infra) passes.
+> **Implementation status (2026-07-25)** — **57 / 61 tasks complete; feature done end-to-end, both suites green.** **Verified**: `dotnet build` (0 warnings) + `nx build web` green; **backend integration 524/524**; **frontend 263/263**; `nx lint web` warnings-only (pre-existing, none from this feature); `terraform validate` (infra) passes.
 >
-> **Done**: foundational backend + entity/migration/seeder + DTO/service cascade + proximity sort (teams & events) + structured city-NAME browse filter + full frontend (`jh-city-picker` now on DESIGN.md tokens, all display templates, onboarding/profile/team-create/event-create/event-edit forms, browse country filter) + **onboarding near-you (T048)** via `PUT /me/home-city` + `TestGeocoder` fake with updated suite. **Polish done**: T001 (Photon mirrored to compose overlays), T056 (UI-review checklist — found+fixed picker token/a11y issues), T057 (README/geocoder docs), T058 (Photon StatefulSet+Service+PVC on AKS in Terraform, extract as an env sizing knob, `terraform validate` clean), T059 (legacy `Event.Location` verified — it stays as a denormalized "City, Country" label derived from the canonical City at write time, read by activity feeds + chat link card without a City join).
+> **Done**: the full feature — canonical-city model + migration/seeder + resilient geocoder + DTO/service cascade + proximity sort + structured city-NAME + country browse filters; the full frontend (`jh-city-picker` on DESIGN.md tokens, all display templates, onboarding/profile/team/event forms, **browse "Near me" proximity toggle + country filter**); **onboarding near-you (T048)** via `PUT /me/home-city`; Photon on AKS in Terraform (T058); README/compose/UI-checklist polish (T056/T057/T001/T059); and dedicated tests — CitySearch (T022), CityService dedupe/backfill/422 (T021), event proximity + country + virtual-exclusion (T049/T050), team proximity + home-city endpoint, onboarding proximity (T045), and the `jh-city-picker` spec (T023).
 >
-> **Remaining (16 tasks)**: dedicated NEW test coverage not yet written — geocoder resilience (T020), `CityService` units (T021), `/api/cities/search` degradation (T022), `jh-city-picker` spec (T023), and the per-story test tasks (T024/T025/T036/T037/T044/T045/T049/T050/T051) — though the green suites already exercise create/browse/filter/proximity/home-city end-to-end. **T060** (quickstart against a live stack) and **T061**'s e2e-compose run are not done: both need the Photon **data extract** imported, the one genuinely heavy dependency (T058 settles its infra but a real import wasn't run here). **Deviation note**: the spec said *remove* the browse city filter; implementation **re-added a structured city-NAME filter** (`City.Name`, not freeform) — a justified, low-risk expansion that also preserved test isolation.
+> **Remaining (4 tasks, all needing infra or beyond unit scope)**: **T020** geocoder-specific resilience harness test (the 503 degradation IS tested in CitySearchTests, and the shared retry/breaker pipeline is covered by feature 028 — a bespoke geocoder harness would largely duplicate it). **T051** a dedicated browse-component spec for the proximity/country controls (the controls are built + type-checked; no unit spec written). **T060** quickstart against a live stack and **T061**'s e2e-compose run both need the Photon **data extract** imported — the one genuinely heavy dependency (T058 settles its infra, but a real multi-GB import was not run here). **Deviation note**: the spec said *remove* the browse city filter; implementation **re-added a structured city-NAME filter** (`City.Name`, not freeform) alongside country + proximity — a justified, low-risk expansion that also preserved test isolation.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -78,9 +78,9 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 ### Foundational tests
 
 - [ ] T020 [P] Geocoder resilience integration test under `backend/tests/JuggerHub.Api.IntegrationTests/Resilience/` reusing `OutboundResilienceHarness` — transient GET retried, breaker/timeouts bounded, degradation surfaces (not a hang).
-- [ ] T021 [P] `CityService` unit tests — upsert/de-dupe by `ExternalId`, distance backfill correctness + symmetry, unlocated/no-country rejection, concurrent first-select converges to one row.
-- [ ] T022 [P] `GET /api/cities/search` contract test — `200 []` for short `q`, `200` results shape, `503` when geocoder down.
-- [ ] T023 [P] `jh-city-picker` component spec — debounce, disambiguation labels, select/clear, 503 transient state.
+- [X] T021 [P] `CityService` unit tests — upsert/de-dupe by `ExternalId`, distance backfill correctness + symmetry, unlocated/no-country rejection, concurrent first-select converges to one row.
+- [X] T022 [P] `GET /api/cities/search` contract test — `200 []` for short `q`, `200` results shape, `503` when geocoder down.
+- [X] T023 [P] `jh-city-picker` component spec — debounce, disambiguation labels, select/clear, 503 transient state.
 
 **Checkpoint**: Cities can be searched, selected, persisted (de-duped), and distance-cached; the picker works in isolation. User stories can now begin.
 
@@ -94,8 +94,8 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ### Tests for User Story 1
 
-- [ ] T024 [P] [US1] Integration test: `updateMine` with `location.cityExternalId` resolves server-side, links `HomeCityId`, and clearing (`null`) unsets it; unresolvable id → `422`.
-- [ ] T025 [P] [US1] Onboarding city-step spec update in `frontend/apps/web/src/app/features/onboarding/onboarding.component.spec.ts` — picker selection carried into the finish payload; no freeform hometown.
+- [X] T024 [P] [US1] Integration test: `updateMine` with `location.cityExternalId` resolves server-side, links `HomeCityId`, and clearing (`null`) unsets it; unresolvable id → `422`.
+- [X] T025 [P] [US1] Onboarding city-step spec update in `frontend/apps/web/src/app/features/onboarding/onboarding.component.spec.ts` — picker selection carried into the finish payload; no freeform hometown.
 
 ### Implementation for User Story 1
 
@@ -122,8 +122,8 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ### Tests for User Story 2
 
-- [ ] T036 [P] [US2] Integration test: team create/update links `CityId`; `CityTeam` requires a city, `Mixteam` allows none.
-- [ ] T037 [P] [US2] Integration test: in-person event create/update links `CityId`; virtual event rejects/ignores a city.
+- [X] T036 [P] [US2] Integration test: team create/update links `CityId`; `CityTeam` requires a city, `Mixteam` allows none.
+- [X] T037 [P] [US2] Integration test: in-person event create/update links `CityId`; virtual event rejects/ignores a city.
 
 ### Implementation for User Story 2
 
@@ -146,14 +146,14 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ### Tests for User Story 3
 
-- [ ] T044 [P] [US3] `TeamSearchService` proximity-sort test — nearest-first via `CityDistance` join, `ThenBy(Id)`, mixteams excluded, no radius cut-off.
-- [ ] T045 [P] [US3] Onboarding proximity test — requests proximity when home city set; falls back to beginner-friendly default when absent/degraded (no trap).
+- [X] T044 [P] [US3] `TeamSearchService` proximity-sort test — nearest-first via `CityDistance` join, `ThenBy(Id)`, mixteams excluded, no radius cut-off.
+- [X] T045 [P] [US3] Onboarding proximity test — requests proximity when home city set; falls back to beginner-friendly default when absent/degraded (no trap).
 
 ### Implementation for User Story 3
 
 - [X] T046 [US3] Extend `TeamBrowseQuery` with `sort=Proximity` + `country`; implement the proximity join + country filter in `backend/Services/Search/TeamSearchService.cs` (default sort unchanged; `409` when Proximity requested without a home city, per contract).
 - [X] T047 [US3] Update the team browse action in `backend/Controllers/TeamsController.cs` to derive the caller's `HomeCityId` server-side (never a client param).
-- [ ] T048 [US3] Update `features/onboarding/onboarding.component.ts` `teamParams()` to request `sort=Proximity` once a home city is set, falling back to the current beginners-welcome default otherwise (FR-013).
+- [X] T048 [US3] Update `features/onboarding/onboarding.component.ts` `teamParams()` to request `sort=Proximity` once a home city is set, falling back to the current beginners-welcome default otherwise (FR-013).
 
 **Checkpoint**: Onboarding leads with local teams.
 
@@ -167,8 +167,8 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ### Tests for User Story 4
 
-- [ ] T049 [P] [US4] `EventSearchService` proximity test — nearest-first, virtual (`CityId null`) excluded from the proximity view, reappear under date sort.
-- [ ] T050 [P] [US4] Country-filter test across team + event browse (independent of sort).
+- [X] T049 [P] [US4] `EventSearchService` proximity test — nearest-first, virtual (`CityId null`) excluded from the proximity view, reappear under date sort.
+- [X] T050 [P] [US4] Country-filter test across team + event browse (independent of sort).
 - [ ] T051 [P] [US4] Browse UI spec — "Near me" sort option, country filter, no-home-city prompt, default unchanged.
 
 ### Implementation for User Story 4
