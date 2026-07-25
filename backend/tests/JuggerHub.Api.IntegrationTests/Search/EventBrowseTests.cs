@@ -103,6 +103,64 @@ public sealed class EventBrowseTests
         Assert.True(page.GetProperty("items").GetArrayLength() <= 5);
     }
 
+    // --- Feature 030: proximity + country filter -----------------------------
+
+    [Fact]
+    public async Task Proximity_sort_orders_events_nearest_to_the_players_home_city_first()
+    {
+        var now = DateTime.UtcNow;
+        var token = "EvtProx" + Rnd();
+        var berlin = await SearchTestSupport.SeedEventAsync(_factory, $"{token} Berlin", now.AddDays(5), now.AddDays(6), city: "Berlin");
+        var munich = await SearchTestSupport.SeedEventAsync(_factory, $"{token} Munich", now.AddDays(5), now.AddDays(6), city: "München");
+
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        (await viewer.PutAsJsonAsync("/api/v1/profiles/me/home-city",
+            new { cityExternalId = "TEST:berlin", name = "Berlin" })).EnsureSuccessStatusCode();
+
+        var ids = await IdsAsync(viewer, $"/api/v1/events?q={Uri.EscapeDataString(token)}&sort=Proximity&take=100");
+
+        var iBerlin = ids.IndexOf(berlin.ToString());
+        var iMunich = ids.IndexOf(munich.ToString());
+        Assert.True(iBerlin >= 0 && iMunich >= 0, "both located events are present");
+        Assert.True(iBerlin < iMunich, "the home-city (Berlin) event ranks ahead of the Munich event");
+    }
+
+    [Fact]
+    public async Task Proximity_sort_excludes_virtual_events()
+    {
+        var now = DateTime.UtcNow;
+        var token = "EvtVirt" + Rnd();
+        var inPerson = await SearchTestSupport.SeedEventAsync(_factory, $"{token} InPerson", now.AddDays(5), now.AddDays(6), city: "Berlin");
+        var virtual_ = await SearchTestSupport.SeedEventAsync(_factory, $"{token} Online", now.AddDays(5), now.AddDays(6), city: null);
+
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        (await viewer.PutAsJsonAsync("/api/v1/profiles/me/home-city",
+            new { cityExternalId = "TEST:berlin", name = "Berlin" })).EnsureSuccessStatusCode();
+
+        var proximity = await IdsAsync(viewer, $"/api/v1/events?q={Uri.EscapeDataString(token)}&sort=Proximity&take=100");
+        Assert.Contains(inPerson.ToString(), proximity);
+        Assert.DoesNotContain(virtual_.ToString(), proximity); // no city → not in the proximity view (FR-016)
+
+        // …but it reappears under the default date sort.
+        var byDate = await IdsAsync(viewer, $"/api/v1/events?q={Uri.EscapeDataString(token)}&take=100");
+        Assert.Contains(virtual_.ToString(), byDate);
+    }
+
+    [Fact]
+    public async Task Country_filter_matches_the_events_country_and_excludes_others()
+    {
+        var now = DateTime.UtcNow;
+        var token = "EvtCtry" + Rnd();
+        var id = await SearchTestSupport.SeedEventAsync(_factory, $"{token} Cup", now.AddDays(5), now.AddDays(6), city: "Berlin");
+
+        var viewer = await SearchTestSupport.AuthedClientAsync(_factory);
+        var matched = await IdsAsync(viewer, $"/api/v1/events?q={Uri.EscapeDataString(token)}&country=DE&take=100");
+        var other = await IdsAsync(viewer, $"/api/v1/events?q={Uri.EscapeDataString(token)}&country=France&take=100");
+
+        Assert.Contains(id.ToString(), matched);
+        Assert.DoesNotContain(id.ToString(), other);
+    }
+
     private static string Rnd() => Guid.NewGuid().ToString("N")[..6];
 
     private static async Task<List<string>> IdsAsync(HttpClient client, string url)
