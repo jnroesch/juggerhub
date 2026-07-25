@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SearchService } from '../../../core/services/search.service';
+import { ProfileService } from '../../../core/services/profile.service';
 import { FilterChip, TeamBrowseParams, TeamCard } from '../../../core/models/search.models';
 import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
@@ -19,18 +20,24 @@ import { FilterToggleComponent } from '../filter-panel/filter-toggle.component';
 })
 export class BrowseTeamsComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
+  private readonly profiles = inject(ProfileService);
 
   // Applied state (drives results).
   protected readonly query = signal('');
   protected readonly activeOnly = signal(true);
   protected readonly beginners = signal(false);
   protected readonly city = signal('');
+  // Feature 030 — opt-in nearest-first ordering, only offered once the player has a home city
+  // (the server derives the anchor from their profile; without one it would 409).
+  protected readonly proximity = signal(false);
+  protected readonly hasHomeCity = signal(false);
 
   // Pending state (edited in the panel until "Show N").
   protected readonly filtersOpen = signal(false);
   protected readonly pendingActiveOnly = signal(true);
   protected readonly pendingBeginners = signal(false);
   protected readonly pendingCity = signal('');
+  protected readonly pendingProximity = signal(false);
   protected readonly pendingCount = signal<number | null>(null);
 
   protected readonly list = new BrowseList<TeamCard>((skip, take) =>
@@ -52,6 +59,9 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     if (this.city().trim()) {
       chips.push({ key: 'city', label: this.city().trim() });
     }
+    if (this.proximity()) {
+      chips.push({ key: 'proximity', label: 'Near me' });
+    }
     return chips;
   });
 
@@ -72,6 +82,11 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reload();
+    // Offer "Near me" only when the player has a home city to measure from.
+    this.profiles.getMineCached().subscribe({
+      next: (p) => this.hasHomeCity.set(p.location != null),
+      error: () => this.hasHomeCity.set(false),
+    });
   }
 
   ngOnDestroy(): void {
@@ -87,6 +102,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.pendingActiveOnly.set(this.activeOnly());
     this.pendingBeginners.set(this.beginners());
     this.pendingCity.set(this.city());
+    this.pendingProximity.set(this.proximity());
     this.refreshPendingCount();
     this.filtersOpen.set(true);
   }
@@ -95,6 +111,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.activeOnly.set(this.pendingActiveOnly());
     this.beginners.set(this.pendingBeginners());
     this.city.set(this.pendingCity());
+    this.proximity.set(this.hasHomeCity() && this.pendingProximity());
     this.filtersOpen.set(false);
     this.reload();
   }
@@ -103,6 +120,12 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.pendingActiveOnly.set(true);
     this.pendingBeginners.set(false);
     this.pendingCity.set('');
+    this.pendingProximity.set(false);
+    this.refreshPendingCount();
+  }
+
+  protected setPendingProximity(value: boolean): void {
+    this.pendingProximity.set(value);
     this.refreshPendingCount();
   }
 
@@ -113,6 +136,8 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
       this.beginners.set(false);
     } else if (key === 'city') {
       this.city.set('');
+    } else if (key === 'proximity') {
+      this.proximity.set(false);
     }
     this.reload();
   }
@@ -122,6 +147,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.activeOnly.set(true);
     this.beginners.set(false);
     this.city.set('');
+    this.proximity.set(false);
     this.reload();
   }
 
@@ -146,7 +172,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
       activeOnly: this.activeOnly(),
       beginnersWelcome: this.beginners() || undefined,
       country: this.city().trim() || undefined,
-      sort: 'NameAsc',
+      sort: this.proximity() ? 'Proximity' : 'NameAsc',
     };
   }
 

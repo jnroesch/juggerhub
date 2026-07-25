@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SearchService } from '../../../core/services/search.service';
+import { ProfileService } from '../../../core/services/profile.service';
 import { EventBrowseParams, EventCard, EventType, FilterChip } from '../../../core/models/search.models';
 import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
@@ -23,6 +24,7 @@ const EVENT_TYPES: readonly EventType[] = ['Tournament', 'Workshop', 'Other'];
 })
 export class BrowseEventsComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
+  private readonly profiles = inject(ProfileService);
   protected readonly eventTypes = EVENT_TYPES;
 
   protected readonly query = signal('');
@@ -31,6 +33,10 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
   protected readonly to = signal('');
   protected readonly type = signal<EventType | ''>('');
   protected readonly city = signal('');
+  // Feature 030 — opt-in nearest-first ordering; only offered with a home city (server-derived
+  // anchor). Virtual events drop out of this view (FR-016).
+  protected readonly proximity = signal(false);
+  protected readonly hasHomeCity = signal(false);
 
   protected readonly filtersOpen = signal(false);
   protected readonly pendingHidePast = signal(true);
@@ -38,6 +44,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
   protected readonly pendingTo = signal('');
   protected readonly pendingType = signal<EventType | ''>('');
   protected readonly pendingCity = signal('');
+  protected readonly pendingProximity = signal(false);
   protected readonly pendingCount = signal<number | null>(null);
 
   protected readonly list = new BrowseList<EventCard>((skip, take) =>
@@ -66,6 +73,9 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     if (this.city().trim()) {
       chips.push({ key: 'city', label: this.city().trim() });
     }
+    if (this.proximity()) {
+      chips.push({ key: 'proximity', label: 'Near me' });
+    }
     return chips;
   });
 
@@ -86,6 +96,10 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reload();
+    this.profiles.getMineCached().subscribe({
+      next: (p) => this.hasHomeCity.set(p.location != null),
+      error: () => this.hasHomeCity.set(false),
+    });
   }
 
   ngOnDestroy(): void {
@@ -103,6 +117,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.pendingTo.set(this.to());
     this.pendingType.set(this.type());
     this.pendingCity.set(this.city());
+    this.pendingProximity.set(this.proximity());
     this.refreshPendingCount();
     this.filtersOpen.set(true);
   }
@@ -113,6 +128,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.to.set(this.pendingTo());
     this.type.set(this.pendingType());
     this.city.set(this.pendingCity());
+    this.proximity.set(this.hasHomeCity() && this.pendingProximity());
     this.filtersOpen.set(false);
     this.reload();
   }
@@ -123,6 +139,12 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.pendingTo.set('');
     this.pendingType.set('');
     this.pendingCity.set('');
+    this.pendingProximity.set(false);
+    this.refreshPendingCount();
+  }
+
+  protected setPendingProximity(value: boolean): void {
+    this.pendingProximity.set(value);
     this.refreshPendingCount();
   }
 
@@ -136,6 +158,8 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
       this.type.set('');
     } else if (key === 'city') {
       this.city.set('');
+    } else if (key === 'proximity') {
+      this.proximity.set(false);
     }
     this.reload();
   }
@@ -147,6 +171,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.to.set('');
     this.type.set('');
     this.city.set('');
+    this.proximity.set(false);
     this.reload();
   }
 
@@ -190,7 +215,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
       to: this.to() || undefined,
       type: this.type() || undefined,
       country: this.city().trim() || undefined,
-      sort: 'StartsAtAsc',
+      sort: this.proximity() ? 'Proximity' : 'StartsAtAsc',
     };
   }
 

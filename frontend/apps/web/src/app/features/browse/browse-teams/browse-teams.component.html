@@ -65,6 +65,14 @@
       [checked]="pendingBeginners()"
       (toggled)="setPendingBeginners($event)"
     />
+    @if (hasHomeCity()) {
+      <jh-filter-toggle
+        label="Near me"
+        hint="Closest to your home city first"
+        [checked]="pendingProximity()"
+        (toggled)="setPendingProximity($event)"
+      />
+    }
   </div>
 
   <label class="flex flex-col gap-xs">
