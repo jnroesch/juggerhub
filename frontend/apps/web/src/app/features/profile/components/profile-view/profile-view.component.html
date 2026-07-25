@@ -11,9 +11,9 @@
       <div>
         <h1 class="text-heading-lg font-bold text-ink">{{ p.displayName }}</h1>
         <p class="text-body-md text-subtle">&#64;{{ p.handle }}</p>
-        @if (p.hometown) {
+        @if (p.location) {
           <p class="mt-xs inline-flex items-center gap-xs text-body-sm text-text-muted">
-            <svg class="h-3.5 w-3.5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{{ p.hometown }}
+            <svg class="h-3.5 w-3.5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{{ p.location.label }}
           </p>
         }
       </div>
@@ -37,7 +37,7 @@
               <a [routerLink]="['/t', t.slug]"
                 class="inline-flex items-center gap-xs rounded-pill border border-border-strong bg-surface px-md py-xs text-body-sm transition-colors duration-fast hover:bg-surface-sunken">
                 <span class="font-medium text-ink">{{ t.name }}</span>
-                @if (t.city) { <span class="text-subtle">· {{ t.city }}</span> }
+                @if (t.location) { <span class="text-subtle">· {{ t.location.label }}</span> }
                 @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand">admin</span> }
               </a>
             </li>

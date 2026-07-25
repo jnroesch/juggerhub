@@ -189,7 +189,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
       from: this.from() || undefined,
       to: this.to() || undefined,
       type: this.type() || undefined,
-      city: this.city().trim() || undefined,
+      country: this.city().trim() || undefined,
       sort: 'StartsAtAsc',
     };
   }
@@ -210,7 +210,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
         from: this.pendingFrom() || undefined,
         to: this.pendingTo() || undefined,
         type: this.pendingType() || undefined,
-        city: this.pendingCity().trim() || undefined,
+        country: this.pendingCity().trim() || undefined,
         take: 0,
       })
       .subscribe({

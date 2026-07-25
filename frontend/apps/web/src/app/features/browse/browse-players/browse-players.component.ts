@@ -131,7 +131,7 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
     return {
       q: this.query() || undefined,
       positions: this.positions().length ? this.positions() : undefined,
-      city: this.city().trim() || undefined,
+      country: this.city().trim() || undefined,
       sort: 'DisplayNameAsc',
     };
   }
@@ -147,7 +147,7 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
       .browsePlayers({
         q: this.query() || undefined,
         positions: this.pendingPositions().length ? this.pendingPositions() : undefined,
-        city: this.pendingCity().trim() || undefined,
+        country: this.pendingCity().trim() || undefined,
         take: 0,
       })
       .subscribe({

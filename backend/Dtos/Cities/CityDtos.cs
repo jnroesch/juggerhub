@@ -21,6 +21,8 @@ public sealed record CityOptionDto(
 /// (FR-010).
 /// </summary>
 public sealed record LocationDto(
+    // The provider place id, echoed so an edit form can resend the current city without re-picking.
+    string ExternalId,
     string Name,
     string? Region,
     string CountryName,

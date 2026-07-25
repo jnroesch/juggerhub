@@ -9,7 +9,7 @@ export type AccountStatus = 'Active' | 'Suspended' | 'Banned';
 export interface AdminNewPlayer {
   handle: string;
   displayName: string;
-  hometown: string | null;
+  location: string | null;
   joinedAt: string;
 }
 
@@ -56,7 +56,7 @@ export interface AdminUserDetail {
   userId: string;
   handle: string;
   displayName: string;
-  hometown: string | null;
+  location: string | null;
   joinedAt: string;
   status: AccountStatus;
   statusChangedAt: string | null;
@@ -74,7 +74,7 @@ export type TeamType = 'CityTeam' | 'Mixteam';
 export interface AdminTeamListItem {
   slug: string;
   name: string;
-  city: string | null;
+  location: string | null;
   type: TeamType;
   memberCount: number;
   awardCount: number;
@@ -85,7 +85,7 @@ export interface AdminTeamDetail {
   teamId: string;
   slug: string;
   name: string;
-  city: string | null;
+  location: string | null;
   type: TeamType;
   memberCount: number;
   createdAt: string;

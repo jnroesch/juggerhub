@@ -2,8 +2,11 @@
  * Profile API contracts (mirror of backend Dtos/Profile). The public profile is
  * intentionally free of email/account data — the server strips it at the boundary.
  */
+import { Location, LocationSelection } from './city.models';
 import { Pompfe } from '../../shared/pompfen.catalog';
 import { EarnedRecognition } from './recognition.models';
+
+export type { Location, LocationSelection };
 
 export interface ActivityItem {
   eventName: string;
@@ -17,14 +20,14 @@ export interface ProfileTeam {
   slug: string;
   name: string;
   type: 'CityTeam' | 'Mixteam';
-  city: string | null;
+  location: Location | null;
   role: 'Member' | 'Admin';
 }
 
 export interface OwnerProfile {
   handle: string;
   displayName: string;
-  hometown: string | null;
+  location: Location | null;
   description: string | null;
   hasAvatar: boolean;
   pompfen: Pompfe[];
@@ -40,7 +43,7 @@ export interface OwnerProfile {
 export interface PublicProfile {
   handle: string;
   displayName: string;
-  hometown: string | null;
+  location: Location | null;
   description: string | null;
   hasAvatar: boolean;
   selectedPompfen: Pompfe[];
@@ -53,7 +56,8 @@ export interface PublicProfile {
 
 export interface UpdateProfileRequest {
   displayName: string;
-  hometown: string | null;
+  /** Feature 030 — structured city selection (null ⇒ leave unchanged; { cityExternalId: null } clears). */
+  location: LocationSelection | null;
   description: string | null;
   pompfen: Pompfe[];
   /** Feature 026 — owner-controlled anonymous visibility (default private). */
@@ -68,7 +72,7 @@ export interface UpdateProfileRequest {
 export interface ProfileView {
   handle: string;
   displayName: string;
-  hometown: string | null;
+  location: Location | null;
   description: string | null;
   /** Resolved avatar URL (with a cache-buster for the owner after an upload); null if none. */
   avatarUrl: string | null;

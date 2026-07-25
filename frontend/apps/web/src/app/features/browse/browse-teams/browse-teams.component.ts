@@ -145,7 +145,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
       q: this.query() || undefined,
       activeOnly: this.activeOnly(),
       beginnersWelcome: this.beginners() || undefined,
-      city: this.city().trim() || undefined,
+      country: this.city().trim() || undefined,
       sort: 'NameAsc',
     };
   }
@@ -162,7 +162,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
         q: this.query() || undefined,
         activeOnly: this.pendingActiveOnly(),
         beginnersWelcome: this.pendingBeginners() || undefined,
-        city: this.pendingCity().trim() || undefined,
+        country: this.pendingCity().trim() || undefined,
         take: 0,
       })
       .subscribe({

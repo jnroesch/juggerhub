@@ -1,0 +1,44 @@
+@if (selectedLabel(); as label) {
+  <!-- Confirmed selection: a chip with the "City, Country" label and a clear button. -->
+  <div class="jh-city-chip">
+    <jh-icon name="check" class="jh-city-chip__icon" />
+    <span class="jh-city-chip__label">{{ label }}</span>
+    <button type="button" class="jh-city-chip__clear" (click)="clear()" aria-label="Clear city">
+      <jh-icon name="x" />
+    </button>
+  </div>
+} @else {
+  <div class="jh-city-picker">
+    <input
+      type="text"
+      class="jh-city-picker__input"
+      [placeholder]="placeholder"
+      [ngModel]="query()"
+      (ngModelChange)="onQuery($event)"
+      autocomplete="off"
+      role="combobox"
+      aria-expanded="true"
+      aria-label="City search"
+    />
+
+    @if (searching()) {
+      <p class="jh-city-picker__status">Searching…</p>
+    } @else if (unavailable()) {
+      <p class="jh-city-picker__status jh-city-picker__status--warn">
+        City search isn’t available right now. Please try again in a moment.
+      </p>
+    } @else if (results().length > 0) {
+      <ul class="jh-city-picker__results" role="listbox">
+        @for (option of results(); track option.externalId) {
+          <li>
+            <button type="button" class="jh-city-picker__option" (click)="pick(option)" role="option">
+              {{ option.label }}
+            </button>
+          </li>
+        }
+      </ul>
+    } @else if (searched()) {
+      <p class="jh-city-picker__status">No matching city — try a different spelling.</p>
+    }
+  </div>
+}

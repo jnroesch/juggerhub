@@ -30,7 +30,7 @@
     }
   </div>
   <p class="mt-1 text-body-sm text-muted">
-    &#64;{{ player.handle }}@if (player.hometown) { · {{ player.hometown }}} · joined {{ player.joinedAt | date: 'MMM y' }}
+    &#64;{{ player.handle }}@if (player.location) { · {{ player.location }}} · joined {{ player.joinedAt | date: 'MMM y' }}
     · <a [href]="'/u/' + player.handle" target="_blank" rel="noopener" class="font-medium text-link hover:text-link-hover">View public profile</a>
   </p>
 

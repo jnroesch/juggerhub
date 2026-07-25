@@ -72,7 +72,7 @@ public sealed class PlayerSearchService : IPlayerSearchService
                 p.HomeCity == null
                     ? null
                     : new LocationDto(
-                        p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
+                        p.HomeCity.ExternalId, p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
                         p.HomeCity.Name + ", " + p.HomeCity.CountryName),
                 p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList(),
                 p.Avatar != null))

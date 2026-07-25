@@ -72,8 +72,9 @@
             <input type="text" formControlName="displayName" placeholder="Display name" data-testid="profile-displayname"
               class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
             <p class="text-body-sm text-subtle">&#64;{{ p.handle }}</p>
-            <input type="text" formControlName="hometown" placeholder="Hometown" data-testid="profile-hometown"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
+            <div data-testid="profile-hometown">
+              <jh-city-picker [initial]="initialLocation()" placeholder="Your home city" (selectedChange)="onCitySelected($event)" />
+            </div>
           </div>
         </div>
 

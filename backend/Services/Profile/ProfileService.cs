@@ -72,7 +72,7 @@ public sealed class ProfileService : IProfileService
                 p.HomeCity == null
                     ? null
                     : new LocationDto(
-                        p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
+                        p.HomeCity.ExternalId, p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
                         p.HomeCity.Name + ", " + p.HomeCity.CountryName),
                 p.Description,
                 p.Avatar != null, p.IsPublic,
@@ -150,7 +150,7 @@ public sealed class ProfileService : IProfileService
                 p.HomeCity == null
                     ? null
                     : new LocationDto(
-                        p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
+                        p.HomeCity.ExternalId, p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
                         p.HomeCity.Name + ", " + p.HomeCity.CountryName),
                 p.Description,
                 p.Avatar != null, p.IsPublic,
@@ -333,7 +333,7 @@ public sealed class ProfileService : IProfileService
                 m.Team.City == null
                     ? null
                     : new LocationDto(
-                        m.Team.City.Name, m.Team.City.Region, m.Team.City.CountryName, m.Team.City.CountryCode,
+                        m.Team.City.ExternalId, m.Team.City.Name, m.Team.City.Region, m.Team.City.CountryName, m.Team.City.CountryCode,
                         m.Team.City.Name + ", " + m.Team.City.CountryName),
                 m.Role))
             .ToListAsync(ct);

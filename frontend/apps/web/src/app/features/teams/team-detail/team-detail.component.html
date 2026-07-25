@@ -18,7 +18,7 @@
       <div class="min-w-0 flex-1">
         <h1 class="text-h3 text-heading">{{ team.name }}</h1>
         <p class="mt-1 flex flex-wrap items-center gap-xs text-body-sm text-muted">
-          <span>{{ team.type === 'CityTeam' ? (team.city || 'City team') : 'Mixteam' }}</span>
+          <span>{{ team.type === 'CityTeam' ? (team.location?.label || 'City team') : 'Mixteam' }}</span>
           <span aria-hidden="true">·</span>
           <span><span class="font-mono">{{ team.memberCount }}</span> {{ team.memberCount === 1 ? 'member' : 'members' }}</span>
           @if (team.isActive) {

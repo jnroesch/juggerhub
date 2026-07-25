@@ -3,6 +3,7 @@
  * are public; sign-up requires auth; every admin action is authorized server-side.
  * Enums are serialized as names by the backend.
  */
+import { Location, LocationSelection } from './city.models';
 import { PagedResult } from './profile.models';
 
 export type { PagedResult };
@@ -29,8 +30,8 @@ export interface CreateEventRequest {
   venueName: string | null;
   street: string | null;
   postalCode: string | null;
-  city: string | null;
-  country: string | null;
+  /** Feature 030 — structured city selection (in-person only; null/absent for virtual). */
+  location: LocationSelection | null;
   virtualLink: string | null;
   participantMode: ParticipantMode;
   participationLimit: number;
@@ -74,8 +75,8 @@ export interface EventDetail {
   venueName: string | null;
   street: string | null;
   postalCode: string | null;
-  city: string | null;
-  country: string | null;
+  /** Feature 030 — structured city (null for virtual events); country derived from it. */
+  location: Location | null;
   virtualLink: string | null;
   participantMode: ParticipantMode;
   participationLimit: number;
@@ -152,7 +153,8 @@ export interface InvitableUser {
   userId: string;
   handle: string;
   displayName: string;
-  hometown: string | null;
+  /** Feature 030 — "City, Country" display label. */
+  location: string | null;
   relation: UserRelation;
 }
 

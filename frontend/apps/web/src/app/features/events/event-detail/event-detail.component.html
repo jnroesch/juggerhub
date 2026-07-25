@@ -29,7 +29,7 @@
       </li>
       <li class="flex items-center gap-sm">
         <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.3-7-11a7 7 0 0114 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-        @if (d.locationKind === 'InPerson') { {{ d.venueName || d.city }}{{ d.venueName && d.city ? ', ' + d.city : '' }} } @else { Online }
+        @if (d.locationKind === 'InPerson') { {{ d.venueName || d.location?.name }}{{ d.venueName && d.location ? ', ' + d.location.name : '' }} } @else { Online }
       </li>
       <li class="flex items-center gap-sm">
         <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0114 0M17 4.5a3.5 3.5 0 010 7M15 21a7 7 0 017 0"/></svg>
@@ -71,7 +71,7 @@
           @if (d.locationKind === 'InPerson') {
             <p class="mt-xs text-body-md text-body">
               @if (d.venueName) { <span class="font-semibold">{{ d.venueName }}</span><br /> }
-              {{ d.street }}<br />{{ d.postalCode }} {{ d.city }}<br />{{ d.country }}
+              {{ d.street }}<br />{{ d.postalCode }} {{ d.location?.name }}<br />{{ d.location?.countryName }}
             </p>
           } @else {
             <a [href]="d.virtualLink" target="_blank" rel="noopener" class="mt-xs inline-block break-all text-body-md font-semibold text-brand">{{ d.virtualLink }}</a>

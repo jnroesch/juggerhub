@@ -15,6 +15,8 @@ import { safeReturnUrl } from '../../core/utils/return-url';
 import { PompfeSelectorComponent } from '../profile/components/pompfe-selector/pompfe-selector.component';
 import { Pompfe } from '../../shared/pompfen.catalog';
 import { ButtonDirective, AlertComponent, IconComponent, LoadingComponent } from '../../shared/ui';
+import { CityPickerComponent } from '../../shared/city-picker/city-picker.component';
+import { CityOption, Location, toSelection } from '../../core/models/city.models';
 
 type Step = 'welcome' | 'name' | 'city' | 'pompfen' | 'team' | 'photo' | 'done';
 
@@ -42,6 +44,7 @@ const FLOW: readonly Step[] = ['welcome', 'name', 'city', 'pompfen', 'team', 'ph
     FormsModule,
     NgTemplateOutlet,
     PompfeSelectorComponent,
+    CityPickerComponent,
     ButtonDirective,
     AlertComponent,
     IconComponent,
@@ -66,7 +69,12 @@ export class OnboardingComponent implements OnInit, OnDestroy {
   // an existing value (the finish payload re-sends what's here).
   protected readonly handle = signal('');
   protected readonly displayName = signal('');
-  protected readonly hometown = signal('');
+  // Feature 030 — structured home city. `initialLocation` prefills the picker's chip from an
+  // existing profile city; `selectedCity` holds a fresh pick; `cityTouched` distinguishes "left
+  // unchanged" (omit from the payload) from an explicit clear.
+  protected readonly initialLocation = signal<Location | null>(null);
+  protected readonly selectedCity = signal<CityOption | null>(null);
+  protected readonly cityTouched = signal(false);
   protected readonly description = signal('');
   protected readonly selectedPompfen = signal<Pompfe[]>([]);
   protected readonly avatarFile = signal<File | null>(null);
@@ -124,7 +132,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
       next: (p) => {
         this.handle.set(p.handle);
         this.displayName.set(p.displayName);
-        this.hometown.set(p.hometown ?? '');
+        this.initialLocation.set(p.location ?? null);
         this.description.set(p.description ?? '');
         this.selectedPompfen.set([...p.pompfen]);
       },
@@ -142,6 +150,12 @@ export class OnboardingComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.teams.destroy();
+  }
+
+  /** The city picker's selection changed (a pick or a clear). Recorded so finish() can persist it. */
+  protected onCitySelected(option: CityOption | null): void {
+    this.selectedCity.set(option);
+    this.cityTouched.set(true);
   }
 
   protected next(): void {
@@ -270,7 +284,9 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     this.profiles
       .updateMine({
         displayName: this.displayName().trim(),
-        hometown: this.blankToNull(this.hometown()),
+        // Only send a location change if the player touched the picker; otherwise leave it unchanged
+        // (feature 030 contract: null location ⇒ no change).
+        location: this.cityTouched() ? toSelection(this.selectedCity()) : null,
         description: this.blankToNull(this.description()),
         pompfen: this.selectedPompfen(),
         // First-login flow (feature 026): profiles start private; visibility is opted into later

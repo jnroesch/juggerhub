@@ -122,7 +122,7 @@ export interface PartyInvitableUser {
   userId: string;
   handle: string;
   displayName: string;
-  hometown: string | null;
+  location: string | null;
   relation: UserRelation;
 }
 

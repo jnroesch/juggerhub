@@ -8,8 +8,10 @@ import {
   LocationKind,
   ParticipantMode,
 } from '../../../core/models/event.models';
+import { CityOption, toSelection } from '../../../core/models/city.models';
 import { EventService } from '../../../core/services/event.service';
 import { problemDetail } from '../../../core/utils/problem';
+import { CityPickerComponent } from '../../../shared/city-picker/city-picker.component';
 
 type Step = 'type' | 'when' | 'where' | 'who' | 'fee' | 'review';
 
@@ -24,7 +26,7 @@ const STEPS: readonly Step[] = ['type', 'when', 'where', 'who', 'fee', 'review']
  */
 @Component({
   selector: 'jh-event-create',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CityPickerComponent],
   templateUrl: './event-create.component.html',
   styleUrl: './event-create.component.css',
 })
@@ -45,6 +47,8 @@ export class EventCreateComponent {
 
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
+  // Feature 030 — structured city for an in-person event.
+  protected readonly selectedCity = signal<CityOption | null>(null);
 
   protected readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(120)]],
@@ -55,8 +59,6 @@ export class EventCreateComponent {
     venueName: ['', [Validators.maxLength(120)]],
     street: ['', [Validators.maxLength(160)]],
     postalCode: ['', [Validators.maxLength(20)]],
-    city: ['', [Validators.maxLength(120)]],
-    country: ['', [Validators.maxLength(80)]],
     virtualLink: ['', [Validators.maxLength(500)]],
     participationLimit: [16, [Validators.required, Validators.min(1)]],
     rosterCap: [8, [Validators.min(5)]],
@@ -85,7 +87,7 @@ export class EventCreateComponent {
         return !!v.startsAt && !!v.endsAt && v.endsAt >= v.startsAt;
       case 'where':
         return this.locationKind() === 'InPerson'
-          ? [v.street, v.postalCode, v.city, v.country].every((s) => s.trim().length > 0)
+          ? v.street.trim().length > 0 && v.postalCode.trim().length > 0 && this.selectedCity() !== null
           // Lenient: accept a domain with or without the scheme (server defaults to https).
           : /\S\.\S/.test(v.virtualLink.trim());
       case 'who':
@@ -130,6 +132,10 @@ export class EventCreateComponent {
     });
   }
 
+  protected onCitySelected(option: CityOption | null): void {
+    this.selectedCity.set(option);
+  }
+
   private buildRequest(): CreateEventRequest {
     const v = this.form.getRawValue();
     const inPerson = this.locationKind() === 'InPerson';
@@ -145,8 +151,7 @@ export class EventCreateComponent {
       venueName: inPerson ? this.blankToNull(v.venueName) : null,
       street: inPerson ? this.blankToNull(v.street) : null,
       postalCode: inPerson ? this.blankToNull(v.postalCode) : null,
-      city: inPerson ? this.blankToNull(v.city) : null,
-      country: inPerson ? this.blankToNull(v.country) : null,
+      location: inPerson ? toSelection(this.selectedCity()) : null,
       virtualLink: inPerson ? null : this.blankToNull(v.virtualLink),
       participantMode: this.participantMode(),
       participationLimit: v.participationLimit,

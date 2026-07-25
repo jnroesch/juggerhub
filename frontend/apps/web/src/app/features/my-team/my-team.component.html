@@ -42,7 +42,7 @@
                 <span class="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary" aria-hidden="true">{{ inv.teamName.charAt(0) }}</span>
                 <div class="min-w-0 flex-1">
                   <span class="block truncate font-semibold text-heading">{{ inv.teamName }}</span>
-                  <span class="block text-caption text-subtle">{{ inv.teamType === 'CityTeam' ? 'City team' : 'Mixteam' }}@if (inv.city) { · {{ inv.city }}} · <span class="font-mono">{{ inv.memberCount }}</span> {{ inv.memberCount === 1 ? 'member' : 'members' }}</span>
+                  <span class="block text-caption text-subtle">{{ inv.teamType === 'CityTeam' ? 'City team' : 'Mixteam' }}@if (inv.location) { · {{ inv.location }}} · <span class="font-mono">{{ inv.memberCount }}</span> {{ inv.memberCount === 1 ? 'member' : 'members' }}</span>
                   <span class="mt-0.5 block text-caption text-subtle">Invited by {{ inv.inviterDisplayName }}</span>
                 </div>
               </div>

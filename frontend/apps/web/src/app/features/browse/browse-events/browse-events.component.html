@@ -93,11 +93,11 @@
   </label>
 
   <label class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">City or region</span>
+    <span class="text-eyebrow uppercase text-faint">Country</span>
     <input
       type="text"
       class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none placeholder:text-faint"
-      placeholder="Any city"
+      placeholder="Any country"
       [value]="pendingCity()"
       (input)="onPendingCity($any($event.target).value)"
     />

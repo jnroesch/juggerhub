@@ -3,9 +3,12 @@
  * are members-only; public info (name/type/city/count) and the invite preview are
  * anonymous. Enums are serialized as names by the backend.
  */
+import { Location, LocationSelection } from './city.models';
 import { Pompfe } from '../../shared/pompfen.catalog';
 import { ActivityItem, PagedResult } from './profile.models';
 import { EarnedRecognition } from './recognition.models';
+
+export type { Location, LocationSelection };
 
 export type { ActivityItem, PagedResult };
 
@@ -20,14 +23,15 @@ export interface CreateTeamRequest {
   name: string;
   slug: string;
   type: TeamType;
-  city: string | null;
+  /** Feature 030 — structured city selection (required for a CityTeam, null for a Mixteam). */
+  location: LocationSelection | null;
 }
 
 export interface TeamDetail {
   slug: string;
   name: string;
   type: TeamType;
-  city: string | null;
+  location: Location | null;
   memberCount: number;
   myRole: TeamRole;
   /** Feature 007 — self-managed recruitment flag surfaced in browse. */
@@ -38,7 +42,7 @@ export interface TeamPublic {
   slug: string;
   name: string;
   type: TeamType;
-  city: string | null;
+  location: Location | null;
   memberCount: number;
 }
 
@@ -60,7 +64,7 @@ export interface TeamPublicDetail {
   slug: string;
   name: string;
   type: TeamType;
-  city: string | null;
+  location: Location | null;
   memberCount: number;
   beginnersWelcome: boolean;
   isActive: boolean;
@@ -118,7 +122,8 @@ export interface InvitableUser {
   userId: string;
   handle: string;
   displayName: string;
-  city: string | null;
+  /** Feature 030 — "City, Country" display label. */
+  location: string | null;
   relation: UserRelation;
 }
 
@@ -126,7 +131,8 @@ export interface InvitePreview {
   teamName: string;
   teamSlug: string;
   type: TeamType;
-  city: string | null;
+  /** Feature 030 — "City, Country" display label (null for a Mixteam). */
+  location: string | null;
   memberCount: number;
   inviterDisplayName: string;
   state: InviteState;
@@ -139,7 +145,8 @@ export interface MyInvitation {
   teamName: string;
   teamSlug: string;
   teamType: TeamType;
-  city: string | null;
+  /** Feature 030 — "City, Country" display label (null for a Mixteam). */
+  location: string | null;
   memberCount: number;
   inviterDisplayName: string;
   createdDate: string;

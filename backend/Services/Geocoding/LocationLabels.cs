@@ -28,5 +28,5 @@ public static class LocationLabels
     /// <summary>Maps a persisted city to the read DTO; null in ⇒ null out (no location set).</summary>
     public static LocationDto? ToLocation(City? c) => c is null
         ? null
-        : new LocationDto(c.Name, c.Region, c.CountryName, c.CountryCode, Display(c.Name, c.CountryName));
+        : new LocationDto(c.ExternalId, c.Name, c.Region, c.CountryName, c.CountryCode, Display(c.Name, c.CountryName));
 }

@@ -117,7 +117,7 @@ public sealed class TeamSearchService : ITeamSearchService
             t.City == null
                 ? null
                 : new LocationDto(
-                    t.City.Name, t.City.Region, t.City.CountryName, t.City.CountryCode,
+                    t.City.ExternalId, t.City.Name, t.City.Region, t.City.CountryName, t.City.CountryCode,
                     t.City.Name + ", " + t.City.CountryName),
             t.Memberships.Count, t.BeginnersWelcome, string.Empty);
 

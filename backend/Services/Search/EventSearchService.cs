@@ -126,7 +126,7 @@ public sealed class EventSearchService : IEventSearchService
             e.City == null
                 ? null
                 : new LocationDto(
-                    e.City.Name, e.City.Region, e.City.CountryName, e.City.CountryCode,
+                    e.City.ExternalId, e.City.Name, e.City.Region, e.City.CountryName, e.City.CountryCode,
                     e.City.Name + ", " + e.City.CountryName),
             e.LocationKind == LocationKind.Virtual
                 ? "Online"

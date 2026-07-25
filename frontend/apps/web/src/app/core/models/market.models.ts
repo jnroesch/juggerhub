@@ -123,7 +123,7 @@ export interface MarketInvitableUser {
   userId: string;
   handle: string;
   displayName: string;
-  hometown: string | null;
+  location: string | null;
   hasAvatar: boolean;
   relation: MarketInviteRelation;
 }
