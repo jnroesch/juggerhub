@@ -105,6 +105,7 @@ Each feature is specified before it's built (see [`specs/`](specs/)):
 | Realtime | **SignalR** (chat, live typing, notifications) with a **Redis** backplane + distributed rate limiting |
 | Mapping | Mapster (entity → DTO) |
 | Email | Mailpit (local), Resend (deployed) |
+| Geocoding | Self-hosted **Photon** (OpenStreetMap) — same image everywhere, backend-proxied; powers the city picker + "near you" |
 | Containers | Docker (per-service) + Docker Compose (local) |
 | CI/CD | GitHub Actions + Terraform → GHCR → **Azure Kubernetes Service (AKS)** |
 
@@ -124,13 +125,19 @@ git clone https://github.com/jnroesch/juggerhub.git
 cd juggerhub
 
 cp .env.sample .env            # PowerShell: Copy-Item .env.sample .env
-docker compose up -d --build   # database, Redis, backend, frontend, Mailpit
+docker compose up -d --build   # database, Redis, backend, frontend, Mailpit, Photon
 docker compose ps              # wait for services to become healthy
 ```
 
 The backend **auto-applies EF Core migrations on startup** against the (initially
 empty) database — there's no manual migration step. Stop with
 `docker compose down` (add `-v` to also drop the database volume).
+
+> **Geocoder (city picker):** the `photon` service imports its OSM extract on **first
+> start** (`PHOTON_REGION`, default `de`), so its container can take a while to become
+> ready and city search returns a retryable "unavailable" state until it is. The extract
+> region + disk size are the only per-environment differences (a Principle V sizing knob);
+> deployed environments set a broader extract via Terraform (`infra/envs/*.tfvars`).
 
 | Surface | URL |
 |---------|-----|

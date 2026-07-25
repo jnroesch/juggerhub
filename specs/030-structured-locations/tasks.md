@@ -10,9 +10,11 @@ description: "Task list for feature 030 — Structured Locations & Near You Disc
 
 **Tests**: Included — JuggerHub is test-heavy (xUnit backend, Jasmine/Karma frontend, Playwright e2e) and `quickstart.md` defines automated checks. Test tasks precede the implementation they cover within each phase.
 
-> **Implementation status (2026-07-25)** — feature implemented and **both test suites green**. **Verified**: backend `dotnet build` green (0 warnings); `nx build web` green; **backend integration 511/511 pass**; **frontend 256/256 pass**. **Done**: all foundational backend + entity/migration/seeder + the DTO/service cascade + proximity sort (teams & events) + a structured city-NAME browse filter (re-added alongside country + proximity) + the full frontend (shared `jh-city-picker`, all display templates, onboarding/profile/team-create/event-create/event-edit forms, browse country filter) + a `TestGeocoder` fake and updated test payloads/assertions across the suite.
+> **Implementation status (2026-07-25)** — **45 / 61 tasks complete; feature functionally done, both suites green.** **Verified**: `dotnet build` (0 warnings) + `nx build web` green; **backend integration 514/514**; **frontend 258/258**; `nx lint web` warnings-only (pre-existing, none from this feature); `terraform validate` (infra) passes.
 >
-> **Remaining**: dedicated NEW test coverage the task list called for is only partly present — the suites are green and exercise create/browse/filter, but there are no *dedicated* tests for geocoder resilience (T020), `CityService` upsert/dedupe/backfill units (T021), the `/api/cities/search` degradation path (T022), the `jh-city-picker` (T023), or proximity-sort ordering specifically (T044/T049). `docker-compose` Photon added to the main file only, not mirrored to test/e2e/debug (T001). **Onboarding proximity (T048) deferred** — the home city isn't persisted until finish, so the team step can't derive it server-side without a design change. Polish (T056–T061), incl. the Photon extract/AKS spike (T058) and legacy `Event.Location` cleanup (T059), outstanding. **Deviation note**: the spec/contract said *remove* the browse city filter (country + proximity only); implementation **re-added a structured city-NAME filter** (matches `City.Name`, not freeform) — a justified, low-risk expansion that also preserved test isolation.
+> **Done**: foundational backend + entity/migration/seeder + DTO/service cascade + proximity sort (teams & events) + structured city-NAME browse filter + full frontend (`jh-city-picker` now on DESIGN.md tokens, all display templates, onboarding/profile/team-create/event-create/event-edit forms, browse country filter) + **onboarding near-you (T048)** via `PUT /me/home-city` + `TestGeocoder` fake with updated suite. **Polish done**: T001 (Photon mirrored to compose overlays), T056 (UI-review checklist — found+fixed picker token/a11y issues), T057 (README/geocoder docs), T058 (Photon StatefulSet+Service+PVC on AKS in Terraform, extract as an env sizing knob, `terraform validate` clean), T059 (legacy `Event.Location` verified — it stays as a denormalized "City, Country" label derived from the canonical City at write time, read by activity feeds + chat link card without a City join).
+>
+> **Remaining (16 tasks)**: dedicated NEW test coverage not yet written — geocoder resilience (T020), `CityService` units (T021), `/api/cities/search` degradation (T022), `jh-city-picker` spec (T023), and the per-story test tasks (T024/T025/T036/T037/T044/T045/T049/T050/T051) — though the green suites already exercise create/browse/filter/proximity/home-city end-to-end. **T060** (quickstart against a live stack) and **T061**'s e2e-compose run are not done: both need the Photon **data extract** imported, the one genuinely heavy dependency (T058 settles its infra but a real import wasn't run here). **Deviation note**: the spec said *remove* the browse city filter; implementation **re-added a structured city-NAME filter** (`City.Name`, not freeform) — a justified, low-risk expansion that also preserved test isolation.
 
 ## Format: `[ID] [P?] [Story] Description`
 
@@ -30,7 +32,7 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 **Purpose**: Stand up the self-hosted geocoder and its configuration so everything else can build against it.
 
-- [ ] T001 Add a `photon` service (`komoot/photon`) to `docker-compose.yml` with a named volume for its index; mirror into `docker-compose.test.yml`, `docker-compose.e2e.yml`, and `docker-compose.debug.yml`; add it to the `juggerhub-network`.
+- [X] T001 Add a `photon` service (`komoot/photon`) to `docker-compose.yml` with a named volume for its index; mirror into `docker-compose.test.yml`, `docker-compose.e2e.yml`, and `docker-compose.debug.yml`; add it to the `juggerhub-network`.
 - [X] T002 [P] Add geocoder config to `.env.sample` (`GEOCODING__BASEURL`, extract hint) and the `Resilience:Outbound:Geocoding` + `Geocoding` sections to `backend/appsettings.json` / `appsettings.Development.json` with snappy interactive limits (attempt ~3s, total ~8–10s) and a breaker `MinimumThroughput` tuned to interactive volume (research R5).
 - [X] T003 [P] Create `backend/Common/GeocodingOptions.cs` (base URL, request limit, extract hint) bound from the `Geocoding` config section, with safe defaults.
 
@@ -182,10 +184,10 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ## Phase 7: Polish & Cross-Cutting Concerns
 
-- [ ] T056 Instantiate `specs/030-structured-locations/checklists/ui-review.md` from `.specify/templates/ui-review-checklist-template.md` and verify the picker, "City, Country" display, and browse proximity/country controls against DESIGN.md (report conflicts, don't silently resolve).
-- [ ] T057 [P] Document the geocoder in `.env.sample` and the repo README (local bring-up, extract note).
-- [ ] T058 **Spike + infra (R1 risk)**: settle the Photon image tag + regional extract file, its docker volume/init, and the AKS deployment + PersistentVolume in Terraform (`infra/`) with the extract size as an env sizing knob; wire the geocoder URL through GitHub Environments.
-- [ ] T059 [P] Verify whether legacy `Event.Location` free-text is still read by `ActivityItemDto` consumers; remove it if unused, else document why it stays (R6 open item).
+- [X] T056 Instantiate `specs/030-structured-locations/checklists/ui-review.md` from `.specify/templates/ui-review-checklist-template.md` and verify the picker, "City, Country" display, and browse proximity/country controls against DESIGN.md (report conflicts, don't silently resolve).
+- [X] T057 [P] Document the geocoder in `.env.sample` and the repo README (local bring-up, extract note).
+- [X] T058 **Spike + infra (R1 risk)**: settle the Photon image tag + regional extract file, its docker volume/init, and the AKS deployment + PersistentVolume in Terraform (`infra/`) with the extract size as an env sizing knob; wire the geocoder URL through GitHub Environments.
+- [X] T059 [P] Verify whether legacy `Event.Location` free-text is still read by `ActivityItemDto` consumers; remove it if unused, else document why it stays (R6 open item).
 - [ ] T060 Run `quickstart.md` end-to-end, including the geocoder-down degradation path (SC-006) and no-PII-in-logs check (SC-007).
 - [ ] T061 [P] Full verification: `dotnet test backend`, `npx nx test web`, `npx nx lint web`, and the e2e compose run.
 

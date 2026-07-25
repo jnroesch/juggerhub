@@ -20,6 +20,13 @@ enable_backend_hpa = false
 postgres_storage_gb    = 8
 postgres_storage_class = "managed-csi"
 
+# Geocoder (feature 030) — DACH extract on a small disk. Same image + API as Prod; only the
+# imported extract + disk size differ (Principle V sizing knob).
+geocoder_image         = "rtuszik/photon-docker:latest"
+geocoder_region        = "de"
+geocoder_storage_gb    = 16
+geocoder_storage_class = "managed-csi"
+
 # App / domain — HTTPS via Let's Encrypt STAGING first (swap to prod once verified).
 aspnetcore_environment = "Development"
 app_hostname           = "dev.juggerhub.com"

@@ -94,6 +94,12 @@ module "app" {
   postgres_db            = var.postgres_db
   postgres_password      = var.postgres_password
 
+  # geocoder (feature 030)
+  geocoder_image         = var.geocoder_image
+  geocoder_region        = var.geocoder_region
+  geocoder_storage_gb    = var.geocoder_storage_gb
+  geocoder_storage_class = var.geocoder_storage_class
+
   # app config
   aspnetcore_environment  = var.aspnetcore_environment
   connection_string       = local.connection_string

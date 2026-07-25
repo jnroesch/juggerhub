@@ -22,6 +22,13 @@ backend_hpa_cpu_target   = 70
 postgres_storage_gb    = 32
 postgres_storage_class = "managed-csi-premium"
 
+# Geocoder (feature 030) — broader extract + larger premium disk. Same image + API as Dev;
+# only the imported extract + disk size differ (Principle V sizing knob).
+geocoder_image         = "rtuszik/photon-docker:latest"
+geocoder_region        = "europe"
+geocoder_storage_gb    = 96
+geocoder_storage_class = "managed-csi-premium"
+
 # App / domain — apex + www redirect, real Let's Encrypt certificates.
 aspnetcore_environment = "Production"
 app_hostname           = "juggerhub.com"

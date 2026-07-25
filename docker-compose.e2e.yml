@@ -28,3 +28,9 @@ services:
   mailpit:
     container_name: !reset null
     ports: !reset []
+
+  # Inherited from the base file (feature 030). Reset its pinned name + published port so a
+  # throwaway e2e stack doesn't collide with a running dev stack's geocoder.
+  photon:
+    container_name: !reset null
+    ports: !reset []

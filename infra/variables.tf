@@ -115,6 +115,27 @@ variable "postgres_storage_class" {
   default = "managed-csi"
 }
 
+# --- Geocoder (feature 030) — same image everywhere; extract + disk sized per env ---
+variable "geocoder_image" {
+  type    = string
+  default = "rtuszik/photon-docker:latest"
+}
+
+variable "geocoder_region" {
+  type    = string
+  default = "de"
+}
+
+variable "geocoder_storage_gb" {
+  type    = number
+  default = 16
+}
+
+variable "geocoder_storage_class" {
+  type    = string
+  default = "managed-csi"
+}
+
 variable "postgres_user" {
   type    = string
   default = "juggerhub"
