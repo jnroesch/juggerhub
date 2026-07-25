@@ -85,7 +85,7 @@ public sealed class DatabaseResilienceTests(JuggerHubApiFactory factory) : IClas
             {
                 Name = "Execution strategy probe",
                 Slug = $"exec-strategy-probe-{Guid.CreateVersion7():N}",
-                City = "Berlin",
+                Type = JuggerHub.Entities.TeamType.Mixteam,
             });
             await db.SaveChangesAsync();
             await tx.CommitAsync();
