@@ -51,6 +51,13 @@ public sealed class TeamSearchService : ITeamSearchService
             q = q.Where(t => t.BeginnersWelcome);
         }
 
+        if (!string.IsNullOrWhiteSpace(query.City))
+        {
+            var city = query.City.Trim();
+            q = q.Where(t => t.City != null
+                && EF.Functions.ILike(AppDbContext.Unaccent(t.City.Name), AppDbContext.Unaccent(city)));
+        }
+
         if (!string.IsNullOrWhiteSpace(query.Country))
         {
             var country = query.Country.Trim();

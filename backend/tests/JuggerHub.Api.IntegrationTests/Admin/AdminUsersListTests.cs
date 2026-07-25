@@ -44,7 +44,7 @@ public sealed class AdminUsersListTests
         var teamName = $"Team {handle[..8]}";
         var teamSlug = $"t{Guid.NewGuid():N}"[..18];
         var teamResp = await playerClient.PostAsJsonAsync("/api/v1/teams",
-            new { name = teamName, slug = teamSlug, type = "CityTeam", city = "Berlin" });
+            new { name = teamName, slug = teamSlug, type = "CityTeam", location = new { cityExternalId = "TEST:berlin" } });
         teamResp.EnsureSuccessStatusCode();
 
         // By @handle (leading @ tolerated).

@@ -31,6 +31,9 @@ public sealed record TeamBrowseQuery
     /// <summary>When true, only teams flagged beginners-welcome.</summary>
     public bool BeginnersWelcome { get; init; }
 
+    /// <summary>Feature 030 — filter to a single canonical city by NAME (accent/case-insensitive). Null ⇒ any city.</summary>
+    public string? City { get; init; }
+
     /// <summary>Feature 030 — filter to a single country (ISO code or name). Null ⇒ any country.</summary>
     public string? Country { get; init; }
 
@@ -68,6 +71,9 @@ public sealed record EventBrowseQuery
 
     public EventType? Type { get; init; }
 
+    /// <summary>Feature 030 — filter to a single canonical city by NAME (accent/case-insensitive). Null ⇒ any city.</summary>
+    public string? City { get; init; }
+
     /// <summary>Feature 030 — filter to a single country (ISO code or name). Null ⇒ any country.</summary>
     public string? Country { get; init; }
 
@@ -93,6 +99,9 @@ public sealed record PlayerBrowseQuery
 
     /// <summary>Match players whose declared pompfen include ANY of these. Empty ⇒ any position.</summary>
     public List<Pompfe>? Positions { get; init; }
+
+    /// <summary>Feature 030 — filter to a single canonical city by NAME (accent/case-insensitive). Null ⇒ any city.</summary>
+    public string? City { get; init; }
 
     /// <summary>Feature 030 — filter to a single country (ISO code or name). Null ⇒ any country.</summary>
     public string? Country { get; init; }

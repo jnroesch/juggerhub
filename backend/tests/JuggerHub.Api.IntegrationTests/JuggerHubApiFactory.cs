@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using JuggerHub.Api.IntegrationTests.Chat;
 using JuggerHub.Services.Email;
+using JuggerHub.Services.Geocoding;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -34,6 +35,9 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
     /// is <em>not</em> in the audience — without a live socket (feature 019).
     /// </summary>
     public FakeChatRealtime ChatRealtime { get; } = new();
+
+    /// <summary>In-memory geocoder (feature 030): resolves known cities without a live Photon.</summary>
+    public TestGeocoder Geocoder { get; } = new();
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -69,6 +73,11 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
             // Same trick for chat's realtime seam: no socket, and the pushes become assertable.
             services.RemoveAll<JuggerHub.Services.Chat.Realtime.IChatRealtime>();
             services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime>(ChatRealtime);
+
+            // Feature 030 — replace the Photon HTTP client with an in-memory geocoder so create/
+            // search flows resolve known cities without a live geocoder container.
+            services.RemoveAll<IGeocodingClient>();
+            services.AddSingleton<IGeocodingClient>(Geocoder);
         });
 
         builder.ConfigureLogging(logging => logging.AddProvider(new CaptureLoggerProvider(ErrorLogs)));

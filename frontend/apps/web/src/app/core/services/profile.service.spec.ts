@@ -10,7 +10,7 @@ import { ProfileService } from './profile.service';
 const OWNER: OwnerProfile = {
   handle: 'nik-berlin',
   displayName: 'Nik',
-  hometown: 'Berlin',
+  location: { externalId: 'TEST:berlin', name: 'Berlin', region: null, countryName: 'Germany', countryCode: 'DE', label: 'Berlin, Germany' },
   description: null,
   hasAvatar: false,
   pompfen: ['Stab', 'Schild'],
@@ -21,7 +21,7 @@ const OWNER: OwnerProfile = {
 const PUBLIC: PublicProfile = {
   handle: 'nik-berlin',
   displayName: 'Nik',
-  hometown: 'Berlin',
+  location: { externalId: 'TEST:berlin', name: 'Berlin', region: null, countryName: 'Germany', countryCode: 'DE', label: 'Berlin, Germany' },
   description: null,
   hasAvatar: false,
   selectedPompfen: ['Stab'],
@@ -50,7 +50,7 @@ describe('ProfileService', () => {
   });
 
   it('updateMine PUTs the update body', () => {
-    const body = { displayName: 'Nik', hometown: null, description: null, pompfen: ['Stab' as const] };
+    const body = { displayName: 'Nik', location: null, description: null, pompfen: ['Stab' as const] };
     service.updateMine(body).subscribe();
     const req = httpMock.expectOne('/api/v1/profiles/me');
     expect(req.request.method).toBe('PUT');

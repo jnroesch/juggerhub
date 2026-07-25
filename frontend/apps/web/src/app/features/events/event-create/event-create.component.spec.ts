@@ -5,6 +5,7 @@ import { provideRouter } from '@angular/router';
 import { Signal, WritableSignal } from '@angular/core';
 import { EventCreateComponent } from './event-create.component';
 import { EventType, LocationKind } from '../../../core/models/event.models';
+import { CityOption } from '../../../core/models/city.models';
 
 /**
  * US1 — the wizard's per-step `canAdvance` gate. Server-side validation is the real
@@ -20,7 +21,19 @@ interface WizardApi {
   isPaid: WritableSignal<boolean>;
   step: WritableSignal<string>;
   canAdvance: Signal<boolean>;
+  onCitySelected(option: CityOption | null): void;
 }
+
+const BERLIN_OPTION: CityOption = {
+  externalId: 'TEST:berlin',
+  name: 'Berlin',
+  region: null,
+  countryName: 'Germany',
+  countryCode: 'DE',
+  label: 'Berlin, Germany',
+  latitude: 52.52,
+  longitude: 13.405,
+};
 
 describe('EventCreateComponent wizard validation', () => {
   let fixture: ComponentFixture<EventCreateComponent>;
@@ -57,14 +70,16 @@ describe('EventCreateComponent wizard validation', () => {
     expect(api.canAdvance()).toBe(true);
   });
 
-  it('where step: in-person needs a full address incl. country', () => {
+  it('where step: in-person needs a street, postal code, and a selected city', () => {
     api.step.set('where');
     api.locationKind.set('InPerson');
 
-    api.form.patchValue({ street: 'Hauptstr 1', postalCode: '10115', city: 'Berlin', country: '' });
+    // Street + postal code present but no city picked yet ⇒ cannot advance.
+    api.form.patchValue({ street: 'Hauptstr 1', postalCode: '10115' });
     expect(api.canAdvance()).toBe(false);
 
-    api.form.patchValue({ country: 'Deutschland' });
+    // Picking a canonical city completes the step.
+    api.onCitySelected(BERLIN_OPTION);
     expect(api.canAdvance()).toBe(true);
   });
 

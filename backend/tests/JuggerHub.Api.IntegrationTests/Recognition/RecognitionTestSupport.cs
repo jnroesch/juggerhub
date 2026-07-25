@@ -70,7 +70,7 @@ internal static class RecognitionTestSupport
     {
         slug ??= $"t{Guid.NewGuid():N}"[..18];
         var resp = await client.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Test Team", slug, type = "CityTeam", city = "Berlin" });
+            new { name = "Test Team", slug, type = "CityTeam", location = new { cityExternalId = "TEST:berlin" } });
         resp.EnsureSuccessStatusCode();
         return slug;
     }

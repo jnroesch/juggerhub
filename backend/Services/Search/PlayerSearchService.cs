@@ -44,6 +44,13 @@ public sealed class PlayerSearchService : IPlayerSearchService
             q = q.Where(p => p.Pompfen.Any(pp => positions.Contains(pp.Pompfe)));
         }
 
+        if (!string.IsNullOrWhiteSpace(query.City))
+        {
+            var city = query.City.Trim();
+            q = q.Where(p => p.HomeCity != null
+                && EF.Functions.ILike(AppDbContext.Unaccent(p.HomeCity.Name), AppDbContext.Unaccent(city)));
+        }
+
         if (!string.IsNullOrWhiteSpace(query.Country))
         {
             var country = query.Country.Trim();

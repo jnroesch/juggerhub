@@ -61,6 +61,13 @@ public sealed class EventSearchService : IEventSearchService
             q = q.Where(e => e.Type == type);
         }
 
+        if (!string.IsNullOrWhiteSpace(query.City))
+        {
+            var city = query.City.Trim();
+            q = q.Where(e => e.City != null
+                && EF.Functions.ILike(AppDbContext.Unaccent(e.City.Name), AppDbContext.Unaccent(city)));
+        }
+
         if (!string.IsNullOrWhiteSpace(query.Country))
         {
             var country = query.Country.Trim();

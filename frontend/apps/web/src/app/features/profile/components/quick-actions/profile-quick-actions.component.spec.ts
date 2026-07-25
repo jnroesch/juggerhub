@@ -16,7 +16,7 @@ function owner(handle: string, teams: ProfileTeam[] = []): OwnerProfile {
   return {
     handle,
     displayName: handle,
-    hometown: null,
+    location: null,
     description: null,
     hasAvatar: false,
     pompfen: [],
@@ -28,7 +28,7 @@ function owner(handle: string, teams: ProfileTeam[] = []): OwnerProfile {
 }
 
 function team(slug: string, role: 'Admin' | 'Member'): ProfileTeam {
-  return { slug, name: slug.toUpperCase(), type: 'CityTeam', city: null, role };
+  return { slug, name: slug.toUpperCase(), type: 'CityTeam', location: null, role };
 }
 
 function person(userId: string, handle: string, existingConversationId: string | null = null): PersonHit {
@@ -40,7 +40,7 @@ function chatResult(people: PersonHit[]): ChatSearchResult {
 }
 
 function invitable(userId: string, handle: string, relation: UserRelation): InvitableUser {
-  return { userId, handle, displayName: handle, city: null, relation };
+  return { userId, handle, displayName: handle, location: null, relation };
 }
 
 function paged(items: InvitableUser[]): PagedResult<InvitableUser> {

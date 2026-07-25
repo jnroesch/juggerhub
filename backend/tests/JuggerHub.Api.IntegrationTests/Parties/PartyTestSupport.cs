@@ -36,7 +36,7 @@ public abstract class PartyTestSupport
     {
         var slug = "t" + Guid.NewGuid().ToString("N")[..12];
         var resp = await adminClient.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Rheinfeuer", slug, type = "Mixteam", city = (string?)null });
+            new { name = "Rheinfeuer", slug, type = "Mixteam", location = (object?)null });
         resp.EnsureSuccessStatusCode();
 
         using var scope = Factory.Services.CreateScope();
@@ -73,8 +73,7 @@ public abstract class PartyTestSupport
             venueName = (string?)null,
             street = (string?)null,
             postalCode = (string?)null,
-            city = (string?)null,
-            country = (string?)null,
+            location = (object?)null,
             virtualLink = "https://jugger.example/slam",
             participantMode = "Teams",
             participationLimit,

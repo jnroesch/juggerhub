@@ -122,7 +122,7 @@ public sealed class TeamBrowseTests
         var (admin, _, _, _) = await SearchTestSupport.NewUserAsync(_factory);
         var slug = "t" + Guid.NewGuid().ToString("N")[..12];
         var create = await admin.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Setters FC", slug, type = "CityTeam", city = "Trier" });
+            new { name = "Setters FC", slug, type = "CityTeam", location = new { cityExternalId = "TEST:trier" } });
         create.EnsureSuccessStatusCode();
 
         var patch = await admin.PatchAsJsonAsync($"/api/v1/teams/{slug}", new { beginnersWelcome = true });
@@ -139,7 +139,7 @@ public sealed class TeamBrowseTests
         var (admin, _, _, _) = await SearchTestSupport.NewUserAsync(_factory);
         var slug = "t" + Guid.NewGuid().ToString("N")[..12];
         (await admin.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Guarded FC", slug, type = "Mixteam", city = (string?)null })).EnsureSuccessStatusCode();
+            new { name = "Guarded FC", slug, type = "Mixteam", location = (object?)null })).EnsureSuccessStatusCode();
 
         var (outsider, _, _, _) = await SearchTestSupport.NewUserAsync(_factory);
         // Non-member → 404 (no membership oracle), matching the rest of the team surface.
