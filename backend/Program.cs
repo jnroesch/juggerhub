@@ -292,6 +292,25 @@ builder.Services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime, Ju
 // would silently multiply every limit by the replica count (specs/019-chat/research.md §11).
 builder.Services.AddJuggerHubRateLimiting(builder.Configuration.GetConnectionString("Redis"));
 
+// --- Structured locations / geocoding (feature 030) ------------------------
+// Photon geocoder, self-hosted in every environment. The typed client inherits the shared
+// resilience pipeline with ONE line — same as Resend — but its calls are idempotent GETs, so
+// retry is safe here (the opposite of the email POST; constitution VII). No API key: the geocoder
+// is self-hosted, so nothing sensitive lives in this config.
+builder.Services.Configure<GeocodingOptions>(builder.Configuration.GetSection(GeocodingOptions.SectionName));
+builder.Services
+    .AddHttpClient<JuggerHub.Services.Geocoding.IGeocodingClient, JuggerHub.Services.Geocoding.PhotonGeocodingClient>(
+        (sp, http) =>
+        {
+            var baseUrl = sp.GetRequiredService<IOptions<GeocodingOptions>>().Value.BaseUrl;
+            if (!string.IsNullOrWhiteSpace(baseUrl))
+            {
+                http.BaseAddress = new Uri(baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/");
+            }
+        })
+    .AddJuggerHubResilience(builder.Configuration, "Geocoding");
+builder.Services.AddScoped<JuggerHub.Services.Geocoding.ICityService, JuggerHub.Services.Geocoding.CityService>();
+
 // --- Search / browse (feature 007) -----------------------------------------
 builder.Services.Configure<SearchOptions>(builder.Configuration.GetSection(SearchOptions.SectionName));
 builder.Services.AddScoped<ITeamSearchService, TeamSearchService>();

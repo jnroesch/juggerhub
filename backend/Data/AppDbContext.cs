@@ -114,6 +114,11 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<UserBlock> UserBlocks => Set<UserBlock>();
 
+    // Feature 030 — canonical cities + precomputed city-to-city distance cache.
+    public DbSet<City> Cities => Set<City>();
+
+    public DbSet<CityDistance> CityDistances => Set<CityDistance>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -929,6 +934,43 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasOne(b => b.Blocked)
                 .WithMany()
                 .HasForeignKey(b => b.BlockedUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---- Feature 030: structured locations ----
+
+        builder.Entity<City>(entity =>
+        {
+            entity.Property(c => c.ExternalId).HasMaxLength(64).IsRequired();
+            entity.Property(c => c.Name).HasMaxLength(120).IsRequired();
+            entity.Property(c => c.CountryName).HasMaxLength(80).IsRequired();
+            entity.Property(c => c.CountryCode).HasMaxLength(2);
+            entity.Property(c => c.Region).HasMaxLength(120);
+
+            // The de-dupe key: a city is upserted on its provider place id. The unique index is the
+            // race-safe backstop behind CityService's check-then-insert.
+            entity.HasIndex(c => c.ExternalId).IsUnique();
+            // Country filter (feature 030, FR-015).
+            entity.HasIndex(c => c.CountryCode);
+        });
+
+        builder.Entity<CityDistance>(entity =>
+        {
+            // One row per ordered pair; the backstop behind the backfill's check-then-insert.
+            entity.HasIndex(d => new { d.FromCityId, d.ToCityId }).IsUnique();
+            // Serves the proximity query: WHERE FromCityId = @home ORDER BY DistanceKm.
+            entity.HasIndex(d => new { d.FromCityId, d.DistanceKm });
+
+            entity.HasOne(d => d.FromCity)
+                .WithMany()
+                .HasForeignKey(d => d.FromCityId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // Restrict on the ToCity side so a single City delete cannot trigger two cascade paths to
+            // the same CityDistance row (SQL Server-style multiple-cascade-path guard; harmless on
+            // Postgres and explicit about intent). Pairs are torn down via the FromCity cascade.
+            entity.HasOne(d => d.ToCity)
+                .WithMany()
+                .HasForeignKey(d => d.ToCityId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

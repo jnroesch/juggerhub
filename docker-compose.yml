@@ -32,6 +32,16 @@ services:
       - Resilience__Outbound__Resend__TotalTimeoutSeconds=${RESILIENCE_RESEND_TOTAL_TIMEOUT_SECONDS:-30}
       - Resilience__Outbound__Resend__MaxRetryAttempts=${RESILIENCE_RESEND_MAX_RETRY_ATTEMPTS:-3}
       - Resilience__Outbound__Resend__BreakerMinimumThroughput=${RESILIENCE_RESEND_BREAKER_MIN_THROUGHPUT:-5}
+      # Feature 030 — self-hosted geocoder (Photon). Same provider in every environment
+      # (constitution V); no API key, no per-request cost, no user location leaves our infra.
+      - Geocoding__BaseUrl=${GEOCODING_BASE_URL:-http://photon:2322}
+      # Feature 030 — geocoder resilience limits (constitution VII). Snappy interactive budget:
+      # the picker degrades to a retryable "can't search right now" fast rather than hanging.
+      # These GETs are idempotent, so retry is safe (opposite of the Resend POST).
+      - Resilience__Outbound__Geocoding__AttemptTimeoutSeconds=${RESILIENCE_GEOCODING_ATTEMPT_TIMEOUT_SECONDS:-3}
+      - Resilience__Outbound__Geocoding__TotalTimeoutSeconds=${RESILIENCE_GEOCODING_TOTAL_TIMEOUT_SECONDS:-10}
+      - Resilience__Outbound__Geocoding__MaxRetryAttempts=${RESILIENCE_GEOCODING_MAX_RETRY_ATTEMPTS:-2}
+      - Resilience__Outbound__Geocoding__BreakerMinimumThroughput=${RESILIENCE_GEOCODING_BREAKER_MIN_THROUGHPUT:-4}
     networks:
       - juggerhub-network
     depends_on:
@@ -40,6 +50,8 @@ services:
       redis:
         condition: service_healthy
       mailpit:
+        condition: service_started
+      photon:
         condition: service_started
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/v1/health"]
@@ -120,9 +132,30 @@ services:
     networks:
       - juggerhub-network
 
+  # Feature 030 — self-hosted OpenStreetMap geocoder (Photon) powering the city picker and
+  # "near you" coordinates. Backend-proxied only; the browser never calls it. Same image in
+  # every environment (constitution V) — only the imported index EXTRACT differs by env
+  # (a storage/sizing knob, not a shape difference; see specs/030-structured-locations/research.md R1).
+  # The index lives on a named volume; the first start imports the configured extract, so allow
+  # cold-start time. No API key, no per-request billing, no user location sent off-box (Principle I).
+  photon:
+    image: rtuszik/photon-docker:latest
+    container_name: juggerhub-photon
+    environment:
+      # Country/region extract for local + CI (DACH-centric where Jugger is concentrated).
+      # Deployed environments override with their own extract via configuration.
+      - REGION=${PHOTON_REGION:-de}
+    ports:
+      - "2322:2322"
+    volumes:
+      - photon-index:/photon/photon_data
+    networks:
+      - juggerhub-network
+
 networks:
   juggerhub-network:
     driver: bridge
 
 volumes:
   db-data:
+  photon-index:
