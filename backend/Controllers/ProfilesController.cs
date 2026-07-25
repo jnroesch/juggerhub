@@ -87,6 +87,39 @@ public sealed class ProfilesController : ControllerBase
         return updated is null ? NotFound() : Ok(updated);
     }
 
+    /// <summary>
+    /// Set or clear ONLY the owner's home city (feature 030). Onboarding calls this the instant a
+    /// city is picked so the team step can order by proximity (FR-013), without persisting the rest
+    /// of the (still-unfinished) onboarding profile. Degrades exactly like the create/update paths:
+    /// an unresolvable city → 422, the geocoder being down → 503.
+    /// </summary>
+    [HttpPut("me/home-city")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<IActionResult> SetHomeCity(
+        [FromBody] JuggerHub.Dtos.Cities.LocationSelectionDto selection, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var updated = await _profiles.SetHomeCityAsync(userId, selection, ct);
+            return updated ? NoContent() : NotFound();
+        }
+        catch (JuggerHub.Services.Geocoding.CityNotResolvableException)
+        {
+            return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, title: "City not found",
+                detail: "That city could not be found. Please pick another.");
+        }
+        catch (JuggerHub.Services.Geocoding.GeocodingUnavailableException)
+        {
+            return Problem(statusCode: StatusCodes.Status503ServiceUnavailable, title: "City service unavailable",
+                detail: "City lookup is unavailable right now. Please try again in a moment.");
+        }
+    }
+
     [HttpPut("me/avatar")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [RequestSizeLimit(8 * 1024 * 1024)]

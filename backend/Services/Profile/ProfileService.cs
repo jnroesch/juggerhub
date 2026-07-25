@@ -248,6 +248,28 @@ public sealed class ProfileService : IProfileService
         return await GetOwnerAsync(userId, ct);
     }
 
+    public async Task<bool> SetHomeCityAsync(Guid userId, LocationSelectionDto selection, CancellationToken ct = default)
+    {
+        // Resolve BEFORE tracking the profile — ResolveAndUpsertAsync owns its own SaveChanges and may
+        // clear the change tracker on a create race, which would detach a profile tracked first.
+        Guid? resolvedCityId = null;
+        if (!string.IsNullOrWhiteSpace(selection.CityExternalId))
+        {
+            var city = await _cities.ResolveAndUpsertAsync(selection.CityExternalId!, selection.Name, ct);
+            resolvedCityId = city.Id;
+        }
+
+        var profile = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId, ct);
+        if (profile is null)
+        {
+            return false;
+        }
+
+        profile.HomeCityId = resolvedCityId;
+        await _db.SaveChangesAsync(ct);
+        return true;
+    }
+
     public async Task<AvatarSetResult> SetAvatarAsync(Guid userId, byte[] content, string? declaredContentType, CancellationToken ct = default)
     {
         if (content.Length == 0)

@@ -76,6 +76,15 @@ public interface IProfileService
     Task<OwnerProfileDto?> UpdateAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct = default);
 
     /// <summary>
+    /// Set (or clear) ONLY the owner's home city (feature 030) without touching any other field.
+    /// Onboarding calls this the moment a city is picked, so the upcoming team step can order by
+    /// proximity (FR-013). Returns false if the user has no profile. Throws
+    /// <see cref="Geocoding.CityNotResolvableException"/> / <see cref="Geocoding.GeocodingUnavailableException"/>
+    /// exactly as the create/update paths do; the caller maps them to 422 / 503.
+    /// </summary>
+    Task<bool> SetHomeCityAsync(Guid userId, Dtos.Cities.LocationSelectionDto selection, CancellationToken ct = default);
+
+    /// <summary>
     /// The public, sensitive-data-free profile for a handle, or null if unknown OR hidden from
     /// this viewer. Visibility gate (feature 026): an anonymous caller (<paramref name="viewerUserId"/>
     /// is null) sees the profile only when it is public; an authenticated caller sees any profile.

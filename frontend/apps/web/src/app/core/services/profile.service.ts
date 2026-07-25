@@ -9,6 +9,7 @@ import {
   PublicProfile,
   UpdateProfileRequest,
 } from '../models/profile.models';
+import { LocationSelection } from '../models/city.models';
 
 /**
  * Profile API client. Owner calls carry the session cookie (via the auth
@@ -41,6 +42,15 @@ export class ProfileService {
 
   updateMine(request: UpdateProfileRequest): Observable<OwnerProfile> {
     return this.http.put<OwnerProfile>(`${this.base}/me`, request);
+  }
+
+  /**
+   * Set (or clear) ONLY the home city (feature 030), without touching the rest of the profile.
+   * Onboarding uses this to persist the city the moment it's picked so the team step can order by
+   * proximity (FR-013). 204 on success; 422 unresolvable city; 503 geocoder unavailable.
+   */
+  setHomeCity(selection: LocationSelection): Observable<void> {
+    return this.http.put<void>(`${this.base}/me/home-city`, selection);
   }
 
   uploadAvatar(file: File): Observable<void> {

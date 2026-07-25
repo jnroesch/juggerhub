@@ -308,6 +308,45 @@ describe('OnboardingComponent', () => {
       expect(comp.teams.items()).toEqual([HAMBURG]);
     });
 
+    it('persists a picked home city on leaving the city step, then orders teams by proximity (FR-013)', () => {
+      const fixture = createComponent();
+      const comp = api(fixture);
+
+      // welcome → name → city; pick a city, then Continue off the city step.
+      comp.next();
+      comp.next();
+      comp.onCitySelected(BERLIN_OPTION);
+      comp.next(); // city → pompfen: persists the home city on its OWN endpoint (not the full profile)
+
+      const save = httpMock.expectOne('/api/v1/profiles/me/home-city');
+      expect(save.request.method).toBe('PUT');
+      expect(save.request.body).toEqual({ cityExternalId: 'TEST:berlin', name: 'Berlin' });
+      save.flush(null);
+
+      // Persisting refreshes the team list, now proximity-ordered (beginners filter dropped).
+      const near = teamSearch();
+      expect(near.request.params.get('sort')).toBe('Proximity');
+      expect(near.request.params.has('beginnersWelcome')).toBe(false);
+      near.flush(page([BERLIN]));
+    });
+
+    it('a failed home-city save leaves the team step on the default ordering (never blocks)', () => {
+      const fixture = createComponent();
+      const comp = api(fixture);
+
+      comp.next();
+      comp.next();
+      comp.onCitySelected(BERLIN_OPTION);
+      comp.next(); // city → pompfen
+
+      // The save fails — no proximity reload is issued, and navigation is unaffected.
+      httpMock.expectOne('/api/v1/profiles/me/home-city').error(new ProgressEvent('network'));
+
+      comp.next(); // pompfen → team
+      fixture.detectChanges();
+      expect(comp.step()).toBe('team');
+    });
+
     it('clearing the query returns to the beginners-welcome opening list', () => {
       const fixture = createComponent();
       const comp = goToTeamStep(fixture);

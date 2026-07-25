@@ -75,6 +75,12 @@ export class OnboardingComponent implements OnInit, OnDestroy {
   protected readonly initialLocation = signal<Location | null>(null);
   protected readonly selectedCity = signal<CityOption | null>(null);
   protected readonly cityTouched = signal(false);
+  /**
+   * True once a home city is persisted server-side (either prefilled from the profile or saved when
+   * the player left the city step). Gates the team step's proximity ordering (FR-013): the browse
+   * derives the home city server-side, so it must exist on the profile before "near you" can work.
+   */
+  protected readonly homeCityPersisted = signal(false);
   protected readonly description = signal('');
   protected readonly selectedPompfen = signal<Pompfe[]>([]);
   protected readonly avatarFile = signal<File | null>(null);
@@ -135,6 +141,12 @@ export class OnboardingComponent implements OnInit, OnDestroy {
         this.initialLocation.set(p.location ?? null);
         this.description.set(p.description ?? '');
         this.selectedPompfen.set([...p.pompfen]);
+        // A returning player who already has a home city gets proximity ordering from the start —
+        // no need to re-pick. Refresh the opening list so it leads with nearby teams.
+        if (p.location) {
+          this.homeCityPersisted.set(true);
+          this.reloadTeams();
+        }
       },
       error: () => {
         /* leave defaults; user can still complete the flow */
@@ -159,10 +171,39 @@ export class OnboardingComponent implements OnInit, OnDestroy {
   }
 
   protected next(): void {
-    const i = FLOW.indexOf(this.step());
+    const current = this.step();
+    const i = FLOW.indexOf(current);
     if (i < FLOW.length - 1) {
       this.step.set(FLOW[i + 1]);
     }
+    // Feature 030 — leaving the city step, persist a freshly-picked city so the team step (two steps
+    // on) can order by proximity. Fire-and-forget: a failure simply leaves proximity off and the team
+    // step keeps the 029 default. Navigation is never blocked (the "never trap a new player" rule).
+    if (current === 'city') {
+      this.persistHomeCityForProximity();
+    }
+  }
+
+  /**
+   * Persist the picked home city on its own (feature 030, FR-013), without writing the rest of the
+   * still-unfinished onboarding profile. Only fires for an actual pick this session; a cleared or
+   * untouched picker leaves proximity off. On success the team list is refreshed to lead with nearby
+   * teams; on failure nothing happens beyond proximity staying off.
+   */
+  private persistHomeCityForProximity(): void {
+    const city = this.selectedCity();
+    if (!this.cityTouched() || !city) {
+      return;
+    }
+    this.profiles.setHomeCity({ cityExternalId: city.externalId, name: city.name }).subscribe({
+      next: () => {
+        this.homeCityPersisted.set(true);
+        this.reloadTeams();
+      },
+      error: () => {
+        /* proximity stays off; the team step falls back to the default ordering (never blocks) */
+      },
+    });
   }
 
   protected back(): void {
@@ -225,17 +266,20 @@ export class OnboardingComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Only the *opening* list is narrowed to teams that welcome beginners. The moment there
-   * is a query, every team is searched — otherwise a player whose team doesn't fly that
-   * flag could never find it here (FR-002, FR-003).
+   * The opening list (no query) is narrowed to beginner-friendly teams (FR-002/FR-003) — UNLESS the
+   * player has a home city, in which case "near you" is the stronger signal for a newcomer: we drop
+   * the beginners filter and order every nearby team by distance (feature 030, FR-013). The moment
+   * there is a query, every team is searched. When a home city exists, results are proximity-ordered
+   * (server-derived); otherwise the 029 default A–Z applies.
    */
   private teamParams(): TeamBrowseParams {
     const q = this.teamQuery();
+    const near = this.homeCityPersisted();
     return {
       q: q || undefined,
       activeOnly: true,
-      beginnersWelcome: q ? undefined : true,
-      sort: 'NameAsc',
+      beginnersWelcome: q || near ? undefined : true,
+      sort: near ? 'Proximity' : 'NameAsc',
     };
   }
 

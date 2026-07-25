@@ -25,22 +25,52 @@ public static class TestCities
     {
         var externalId = "TEST:" + name.ToLowerInvariant();
         var city = await db.Cities.FirstOrDefaultAsync(c => c.ExternalId == externalId);
-        if (city is null)
+        if (city is not null)
         {
-            var (lat, lon) = KnownCoords.TryGetValue(name, out var c) ? c : (52.52, 13.405);
-            city = new City
-            {
-                ExternalId = externalId,
-                Name = name,
-                CountryName = "Germany",
-                CountryCode = "DE",
-                Region = null,
-                Latitude = lat,
-                Longitude = lon,
-            };
-            db.Cities.Add(city);
+            return city;
+        }
+
+        var (lat, lon) = KnownCoords.TryGetValue(name, out var c) ? c : (52.52, 13.405);
+        city = new City
+        {
+            ExternalId = externalId,
+            Name = name,
+            CountryName = "Germany",
+            CountryCode = "DE",
+            Region = null,
+            Latitude = lat,
+            Longitude = lon,
+        };
+        db.Cities.Add(city);
+
+        // Backfill city-to-city distances (self-row + both directions) so proximity ordering works
+        // over test-seeded cities, mirroring CityService. Each city is created once (early return
+        // above), so pair rows are never inserted twice — no unique-index conflict.
+        db.CityDistances.Add(new CityDistance { FromCityId = city.Id, ToCityId = city.Id, DistanceKm = 0 });
+        var others = await db.Cities.AsNoTracking()
+            .Where(o => o.Id != city.Id)
+            .Select(o => new { o.Id, o.Latitude, o.Longitude })
+            .ToListAsync();
+        foreach (var o in others)
+        {
+            var km = HaversineKm(lat, lon, o.Latitude, o.Longitude);
+            db.CityDistances.Add(new CityDistance { FromCityId = city.Id, ToCityId = o.Id, DistanceKm = km });
+            db.CityDistances.Add(new CityDistance { FromCityId = o.Id, ToCityId = city.Id, DistanceKm = km });
         }
 
         return city;
     }
+
+    private const double EarthRadiusKm = 6371.0088;
+
+    private static double HaversineKm(double lat1, double lon1, double lat2, double lon2)
+    {
+        var dLat = ToRadians(lat2 - lat1);
+        var dLon = ToRadians(lon2 - lon1);
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+            + Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        return 2 * EarthRadiusKm * Math.Asin(Math.Min(1.0, Math.Sqrt(a)));
+    }
+
+    private static double ToRadians(double degrees) => degrees * Math.PI / 180.0;
 }
