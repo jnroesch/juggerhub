@@ -29,7 +29,7 @@ public sealed class AdminTeamService : IAdminTeamService
             var pattern = SearchQuery.ContainsPattern(term);
             query = query.Where(t =>
                 EF.Functions.ILike(AppDbContext.Unaccent(t.Name), AppDbContext.Unaccent(pattern))
-                || (t.City != null && EF.Functions.ILike(AppDbContext.Unaccent(t.City), AppDbContext.Unaccent(pattern))));
+                || (t.City != null && EF.Functions.ILike(AppDbContext.Unaccent(t.City.Name), AppDbContext.Unaccent(pattern))));
         }
 
         var total = await query.CountAsync(ct);
@@ -41,7 +41,7 @@ public sealed class AdminTeamService : IAdminTeamService
             .Select(t => new AdminTeamListItemDto(
                 t.Slug,
                 t.Name,
-                t.City,
+                t.City == null ? null : t.City.Name + ", " + t.City.CountryName,
                 t.Type,
                 t.Memberships.Count,
                 _db.BadgeAwards.Count(a => a.TeamId == t.Id && a.Status == AwardStatus.Active)
@@ -57,7 +57,9 @@ public sealed class AdminTeamService : IAdminTeamService
         return await _db.Teams.AsNoTracking()
             .Where(t => t.Slug == normalized)
             .Select(t => new AdminTeamDetailDto(
-                t.Id, t.Slug, t.Name, t.City, t.Type, t.Memberships.Count, t.CreatedDate))
+                t.Id, t.Slug, t.Name,
+                t.City == null ? null : t.City.Name + ", " + t.City.CountryName,
+                t.Type, t.Memberships.Count, t.CreatedDate))
             .FirstOrDefaultAsync(ct);
     }
 }

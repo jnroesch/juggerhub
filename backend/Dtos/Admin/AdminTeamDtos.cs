@@ -9,7 +9,8 @@ namespace JuggerHub.Dtos.Admin;
 public sealed record AdminTeamListItemDto(
     string Slug,
     string Name,
-    string? City,
+    // Feature 030 — "City, Country" display label (null for a Mixteam).
+    string? Location,
     TeamType Type,
     int MemberCount,
     int AwardCount);
@@ -23,7 +24,8 @@ public sealed record AdminTeamDetailDto(
     Guid TeamId,
     string Slug,
     string Name,
-    string? City,
+    // Feature 030 — "City, Country" display label (null for a Mixteam).
+    string? Location,
     TeamType Type,
     int MemberCount,
     DateTime CreatedAt);

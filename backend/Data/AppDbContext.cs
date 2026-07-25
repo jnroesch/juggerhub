@@ -133,7 +133,6 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasQueryFilter(p => p.User.Status != AccountStatus.Banned);
             entity.Property(p => p.Handle).HasMaxLength(30).IsRequired();
             entity.Property(p => p.DisplayName).HasMaxLength(50).IsRequired();
-            entity.Property(p => p.Hometown).HasMaxLength(80);
             entity.Property(p => p.Description).HasMaxLength(280);
             // Feature 026: anonymous visibility is opt-in. Non-null, default private — the
             // migration backfills every existing row to false (FR-017/FR-018).
@@ -153,6 +152,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithOne(a => a.Profile)
                 .HasForeignKey<ProfileAvatar>(a => a.ProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Feature 030 — structured home city. Restrict: a city in use is not deleted out from
+            // under a profile that references it.
+            entity.HasOne(p => p.HomeCity)
+                .WithMany()
+                .HasForeignKey(p => p.HomeCityId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<ProfilePompfe>(entity =>
@@ -190,8 +196,6 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Property(e => e.VenueName).HasMaxLength(120);
             entity.Property(e => e.Street).HasMaxLength(160);
             entity.Property(e => e.PostalCode).HasMaxLength(20);
-            entity.Property(e => e.City).HasMaxLength(120);
-            entity.Property(e => e.Country).HasMaxLength(80);
             entity.Property(e => e.VirtualLink).HasMaxLength(500);
             entity.Property(e => e.FeeAmount).HasPrecision(12, 2);
             entity.Property(e => e.FeeCurrency).HasMaxLength(3);
@@ -200,6 +204,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasIndex(e => e.StartsAt);
             // Browse excludes cancelled events (feature 007).
             entity.HasIndex(e => e.Status);
+
+            // Feature 030 — structured city (in-person events). Restrict: keep the city while
+            // events reference it. Null for virtual events.
+            entity.HasOne(e => e.City)
+                .WithMany()
+                .HasForeignKey(e => e.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<EventSignup>(entity =>
@@ -336,11 +347,17 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         {
             entity.Property(t => t.Slug).HasMaxLength(30).IsRequired();
             entity.Property(t => t.Name).HasMaxLength(50).IsRequired();
-            entity.Property(t => t.City).HasMaxLength(80);
             entity.Property(t => t.BeginnersWelcome).HasDefaultValue(false);
 
             // Slug addresses the team (/t/<slug>) — unique & the true uniqueness guarantee.
             entity.HasIndex(t => t.Slug).IsUnique();
+
+            // Feature 030 — structured home city (null for a Mixteam). Restrict: keep the city while
+            // teams reference it.
+            entity.HasOne(t => t.City)
+                .WithMany()
+                .HasForeignKey(t => t.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<TeamMembership>(entity =>

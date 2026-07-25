@@ -31,7 +31,8 @@ public sealed record AdminUserDetailDto(
     Guid UserId,
     string Handle,
     string DisplayName,
-    string? Hometown,
+    // Feature 030 — "City, Country" display label (null if no home city set).
+    string? Location,
     DateTime JoinedAt,
     AccountStatus Status,
     DateTime? StatusChangedAt,

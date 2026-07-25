@@ -42,9 +42,9 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 - [X] T004 Create `backend/Entities/City.cs` (BaseEntity; `ExternalId`, `Name`, `CountryName`, `CountryCode?`, `Region?`, `Latitude`, `Longitude`) per data-model.md.
 - [X] T005 [P] Create `backend/Entities/CityDistance.cs` (BaseEntity; `FromCityId`, `ToCityId`, `DistanceKm`).
-- [ ] T006 Modify `backend/Entities/PlayerProfile.cs` (`Hometown` → `HomeCityId` + `HomeCity` nav), `backend/Entities/Team.cs` (`City` string → `CityId` + `City` nav), `backend/Entities/Event.cs` (`City`/`Country` strings → `CityId` + `City` nav).
-- [ ] T007 Configure `backend/Data/AppDbContext.cs`: `DbSet<City>`, `DbSet<CityDistance>`; unique index on `City.ExternalId`; unique composite + `(FromCityId, DistanceKm)` index on `CityDistance`; FK relationships with `OnDelete: Restrict` (entity→City) and `Cascade` (City→CityDistance).
-- [ ] T008 Add one EF migration under `backend/Data/Migrations/` that creates `Cities` + `CityDistances`, drops `PlayerProfiles.Hometown` / `Teams.City` / `Events.City` / `Events.Country`, and adds the three nullable FK columns (no data migration — reseed).
+- [X] T006 Modify `backend/Entities/PlayerProfile.cs` (`Hometown` → `HomeCityId` + `HomeCity` nav), `backend/Entities/Team.cs` (`City` string → `CityId` + `City` nav), `backend/Entities/Event.cs` (`City`/`Country` strings → `CityId` + `City` nav).
+- [X] T007 Configure `backend/Data/AppDbContext.cs`: `DbSet<City>`, `DbSet<CityDistance>`; unique index on `City.ExternalId`; unique composite + `(FromCityId, DistanceKm)` index on `CityDistance`; FK relationships with `OnDelete: Restrict` (entity→City) and `Cascade` (City→CityDistance).
+- [X] T008 Add one EF migration under `backend/Data/Migrations/` that creates `Cities` + `CityDistances`, drops `PlayerProfiles.Hometown` / `Teams.City` / `Events.City` / `Events.Country`, and adds the three nullable FK columns (no data migration — reseed).
 
 ### Resilient geocoder integration (Principle VII)
 
@@ -67,7 +67,7 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ### Seed
 
-- [ ] T019 Update `backend/Data/DevDataSeeder.cs` to seed a handful of real cities (with `ExternalId`, country, coords), backfill their `CityDistance` pairs, and link seeded profiles/teams/events.
+- [X] T019 Update `backend/Data/DevDataSeeder.cs` to seed a handful of real cities (with `ExternalId`, country, coords), backfill their `CityDistance` pairs, and link seeded profiles/teams/events.
 
 ### Foundational tests
 
@@ -93,11 +93,11 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ### Implementation for User Story 1
 
-- [ ] T026 [US1] Update `backend/Services/Profile/ProfileService.cs` — accept a city selection, resolve+link via `ICityService`, support clear; drop `Hometown` handling.
-- [ ] T027 [US1] Update `backend/Dtos/Profile/ProfileDtos.cs` — replace `Hometown` with the `location` write fragment + `LocationDto` read shape.
-- [ ] T028 [P] [US1] Update `backend/Dtos/Search/SearchDtos.cs` `PlayerCardDto` + `backend/Services/Search/PlayerSearchService.cs` — `Hometown` → `LocationDto`.
-- [ ] T029 [P] [US1] Update `backend/Dtos/Admin/AdminUserDtos.cs` + `AdminOverviewDtos.cs` — `Hometown` → `LocationDto`.
-- [ ] T030 [P] [US1] Update `backend/Dtos/Marketplace/MarketDtos.cs` + `backend/Dtos/Parties/PartyDtos.cs` — `Hometown` → `LocationDto`.
+- [X] T026 [US1] Update `backend/Services/Profile/ProfileService.cs` — accept a city selection, resolve+link via `ICityService`, support clear; drop `Hometown` handling.
+- [X] T027 [US1] Update `backend/Dtos/Profile/ProfileDtos.cs` — replace `Hometown` with the `location` write fragment + `LocationDto` read shape.
+- [X] T028 [P] [US1] Update `backend/Dtos/Search/SearchDtos.cs` `PlayerCardDto` + `backend/Services/Search/PlayerSearchService.cs` — `Hometown` → `LocationDto`.
+- [X] T029 [P] [US1] Update `backend/Dtos/Admin/AdminUserDtos.cs` + `AdminOverviewDtos.cs` — `Hometown` → `LocationDto`.
+- [X] T030 [P] [US1] Update `backend/Dtos/Marketplace/MarketDtos.cs` + `backend/Dtos/Parties/PartyDtos.cs` — `Hometown` → `LocationDto`.
 - [ ] T031 [US1] Update `frontend/apps/web/src/app/core/models/profile.models.ts` + `profile.service.ts` — `hometown` → `location`; `updateMine` sends `cityExternalId`.
 - [ ] T032 [US1] Wire `jh-city-picker` into the profile edit form (`features/profile/profile-owner/…`), replacing the freeform hometown field.
 - [ ] T033 [US1] Show `locationLabel` ("City, Country") in `profile-owner.component` and `profile-public.component` displays.
@@ -121,10 +121,10 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ### Implementation for User Story 2
 
-- [ ] T038 [US2] Update `backend/Services/Teams/TeamService.cs` — resolve+link city on create/update; enforce `CityTeam` requires a city against the FK.
-- [ ] T039 [US2] Update `backend/Dtos/Teams/TeamDtos.cs` (incl. `TeamCardDto`) — `City` string → `location` write + `LocationDto` read.
-- [ ] T040 [US2] Update `backend/Services/Events/…` event create/update — resolve+link city for `InPerson`; disallow for `Virtual`.
-- [ ] T041 [US2] Update `backend/Dtos/Events/EventDtos.cs` (incl. `EventCardDto`) — `City`/`Country` strings → `location`; remove `Country`.
+- [X] T038 [US2] Update `backend/Services/Teams/TeamService.cs` — resolve+link city on create/update; enforce `CityTeam` requires a city against the FK.
+- [X] T039 [US2] Update `backend/Dtos/Teams/TeamDtos.cs` (incl. `TeamCardDto`) — `City` string → `location` write + `LocationDto` read.
+- [X] T040 [US2] Update `backend/Services/Events/…` event create/update — resolve+link city for `InPerson`; disallow for `Virtual`.
+- [X] T041 [US2] Update `backend/Dtos/Events/EventDtos.cs` (incl. `EventCardDto`) — `City`/`Country` strings → `location`; remove `Country`.
 - [ ] T042 [P] [US2] Wire `jh-city-picker` into the team create/edit forms (`features/teams/…`); team cards/pages show `locationLabel`.
 - [ ] T043 [P] [US2] Wire `jh-city-picker` into the event create/edit forms (`features/events/…`); event cards/pages show `locationLabel`; models in `event.models.ts`.
 
@@ -145,8 +145,8 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ### Implementation for User Story 3
 
-- [ ] T046 [US3] Extend `TeamBrowseQuery` with `sort=Proximity` + `country`; implement the proximity join + country filter in `backend/Services/Search/TeamSearchService.cs` (default sort unchanged; `409` when Proximity requested without a home city, per contract).
-- [ ] T047 [US3] Update the team browse action in `backend/Controllers/TeamsController.cs` to derive the caller's `HomeCityId` server-side (never a client param).
+- [X] T046 [US3] Extend `TeamBrowseQuery` with `sort=Proximity` + `country`; implement the proximity join + country filter in `backend/Services/Search/TeamSearchService.cs` (default sort unchanged; `409` when Proximity requested without a home city, per contract).
+- [X] T047 [US3] Update the team browse action in `backend/Controllers/TeamsController.cs` to derive the caller's `HomeCityId` server-side (never a client param).
 - [ ] T048 [US3] Update `features/onboarding/onboarding.component.ts` `teamParams()` to request `sort=Proximity` once a home city is set, falling back to the current beginners-welcome default otherwise (FR-013).
 
 **Checkpoint**: Onboarding leads with local teams.
@@ -167,8 +167,8 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 
 ### Implementation for User Story 4
 
-- [ ] T052 [US4] Extend `EventBrowseQuery` with `sort=Proximity` + `country`; implement in `backend/Services/Search/EventSearchService.cs` excluding virtual events from the proximity view.
-- [ ] T053 [US4] Update `backend/Dtos/Search/SearchDtos.cs` — replace free-text `City` filter with `country`; add `Proximity` to the team/event sort enums.
+- [X] T052 [US4] Extend `EventBrowseQuery` with `sort=Proximity` + `country`; implement in `backend/Services/Search/EventSearchService.cs` excluding virtual events from the proximity view.
+- [X] T053 [US4] Update `backend/Dtos/Search/SearchDtos.cs` — replace free-text `City` filter with `country`; add `Proximity` to the team/event sort enums.
 - [ ] T054 [US4] Update `features/browse/…` — add the "Near me" sort option + country filter controls (DESIGN.md), and the no-home-city prompt/disabled state (FR-014/US4 scenario 4).
 - [ ] T055 [US4] Update `core/models/search.models.ts` + `core/services/search.service.ts` — proximity sort + country params for team & event browse.
 

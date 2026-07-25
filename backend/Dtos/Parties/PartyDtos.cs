@@ -144,7 +144,8 @@ public sealed record PartyInvitableUserDto(
     Guid UserId,
     string Handle,
     string DisplayName,
-    string? Hometown,
+    // Feature 030 — "City, Country" display label (null if no home city set).
+    string? Location,
     UserRelation Relation);
 
 /// <summary>Co-admin invite preview: party/team/event info + inviter + usability.</summary>

@@ -62,6 +62,10 @@ public interface IProfileService
     /// <summary>The user's immutable handle (their profile slug), or null if they have no profile.</summary>
     Task<string?> GetHandleAsync(Guid userId, CancellationToken ct = default);
 
+    /// <summary>The user's structured home city id (feature 030), or null if unset/no profile.
+    /// Used to anchor "near you" proximity ordering server-side.</summary>
+    Task<Guid?> GetHomeCityIdAsync(Guid userId, CancellationToken ct = default);
+
     /// <summary>
     /// Mark the owner's onboarding complete. Idempotent: sets the timestamp only if
     /// currently unset, so the first completion stands and repeats are no-ops.

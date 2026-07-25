@@ -19,8 +19,20 @@ public static class DevDataSeeder
         ("Stadtmeisterschaft Leipzig", new DateOnly(2025, 4, 5), "Leipzig", "Team B"),
     ];
 
+    // Feature 030 — a handful of real German cities (name → OSM id, coords) so seeded profiles,
+    // teams, and events carry structured locations and "near you" has data.
+    private static readonly (string Name, string ExternalId, string Region, double Lat, double Lon)[] SeedCities =
+    [
+        ("Berlin", "R:62422", "Berlin", 52.5200, 13.4050),
+        ("Hamburg", "R:62782", "Hamburg", 53.5511, 9.9937),
+        ("Köln", "R:62578", "North Rhine-Westphalia", 50.9384, 6.9601),
+        ("Leipzig", "R:62649", "Saxony", 51.3397, 12.3731),
+    ];
+
     public static async Task SeedAsync(AppDbContext db, CancellationToken ct = default)
     {
+        var cities = await EnsureCitiesAsync(db, ct);
+
         // Ensure the sample events exist (idempotent by name).
         var existingNames = await db.Events.Select(e => e.Name).ToListAsync(ct);
         var toAdd = Samples
@@ -35,8 +47,7 @@ public static class DevDataSeeder
                 Type = EventType.Tournament,
                 LocationKind = LocationKind.InPerson,
                 Location = s.Location,
-                City = s.Location,
-                Country = "Deutschland",
+                CityId = cities[s.Location].Id,
                 ParticipantMode = ParticipantMode.Teams,
                 ParticipationLimit = 16,
             })
@@ -78,8 +89,8 @@ public static class DevDataSeeder
             await db.SaveChangesAsync(ct);
         }
 
-        await SeedTeamsAsync(db, ct);
-        await SeedEventsAsync(db, ct);
+        await SeedTeamsAsync(db, cities, ct);
+        await SeedEventsAsync(db, cities, ct);
         await SeedRecognitionsAsync(db, ct);
         await SeedTrainingsAsync(db, ct);
         await SeedChatAsync(db, ct);
@@ -391,7 +402,7 @@ public static class DevDataSeeder
     /// news), a virtual free individuals-only workshop (with a few joined players), and a
     /// cancelled example. The earliest player admins them. Idempotent by a marker name.
     /// </summary>
-    private static async Task SeedEventsAsync(AppDbContext db, CancellationToken ct)
+    private static async Task SeedEventsAsync(AppDbContext db, Dictionary<string, City> cities, CancellationToken ct)
     {
         const string marker = "Berlin Summer Cup 2026";
         if (await db.Events.AnyAsync(e => e.Name == marker, ct))
@@ -432,9 +443,8 @@ public static class DevDataSeeder
             VenueName = "Altes Flugfeld",
             Street = "Hauptstrasse 1",
             PostalCode = "10115",
-            City = "Berlin",
-            Country = "Deutschland",
-            Location = "Berlin, Deutschland",
+            CityId = cities["Berlin"].Id,
+            Location = "Berlin, Germany",
             ParticipantMode = ParticipantMode.Teams,
             ParticipationLimit = 8,
             IsPaid = true,
@@ -496,9 +506,8 @@ public static class DevDataSeeder
             VenueName = "Sporthalle Nord",
             Street = "Turnweg 3",
             PostalCode = "20095",
-            City = "Hamburg",
-            Country = "Deutschland",
-            Location = "Hamburg, Deutschland",
+            CityId = cities["Hamburg"].Id,
+            Location = "Hamburg, Germany",
             ParticipantMode = ParticipantMode.Individuals,
             ParticipationLimit = 20,
             IsPaid = false,
@@ -512,19 +521,75 @@ public static class DevDataSeeder
     }
 
     /// <summary>
+    /// Idempotently seeds the demo <see cref="City"/> rows and their pairwise <see cref="CityDistance"/>
+    /// cache (both directions plus the self-row), returning a name → City map for linking events/teams.
+    /// Distances use the same haversine as <see cref="Services.Geocoding.CityService"/> (feature 030).
+    /// </summary>
+    private static async Task<Dictionary<string, City>> EnsureCitiesAsync(AppDbContext db, CancellationToken ct)
+    {
+        var byName = new Dictionary<string, City>();
+        var existing = await db.Cities.ToListAsync(ct);
+        foreach (var seed in SeedCities)
+        {
+            var city = existing.FirstOrDefault(c => c.ExternalId == seed.ExternalId);
+            if (city is null)
+            {
+                city = new City
+                {
+                    ExternalId = seed.ExternalId,
+                    Name = seed.Name,
+                    CountryName = "Germany",
+                    CountryCode = "DE",
+                    Region = seed.Region,
+                    Latitude = seed.Lat,
+                    Longitude = seed.Lon,
+                };
+                db.Cities.Add(city);
+            }
+
+            byName[seed.Name] = city;
+        }
+
+        await db.SaveChangesAsync(ct);
+
+        // Backfill any missing distance pairs (idempotent). Self-row included so own-city entities
+        // rank nearest under proximity sort.
+        var all = byName.Values.ToList();
+        var havePairs = (await db.CityDistances.Select(d => new { d.FromCityId, d.ToCityId }).ToListAsync(ct))
+            .Select(x => (x.FromCityId, x.ToCityId))
+            .ToHashSet();
+        foreach (var a in all)
+        {
+            foreach (var b in all)
+            {
+                if (havePairs.Contains((a.Id, b.Id)))
+                {
+                    continue;
+                }
+
+                var km = a.Id == b.Id ? 0 : Services.Geocoding.CityService.HaversineKm(a.Latitude, a.Longitude, b.Latitude, b.Longitude);
+                db.CityDistances.Add(new CityDistance { FromCityId = a.Id, ToCityId = b.Id, DistanceKm = km });
+            }
+        }
+
+        await db.SaveChangesAsync(ct);
+        return byName;
+    }
+
+    /// <summary>
     /// Development-only demo teams so the team space (roster, activity, news) is demonstrable:
     /// a city team "Rheinfeuer" and a Mixteam "Chaos Crew". Enrolls the earliest profiles (first
     /// as admin), attributes their participations to Rheinfeuer so Activity renders, and adds a
     /// couple of news posts. Idempotent — only populates a team that has no members yet.
     /// </summary>
-    private static async Task SeedTeamsAsync(AppDbContext db, CancellationToken ct)
+    private static async Task SeedTeamsAsync(AppDbContext db, Dictionary<string, City> cities, CancellationToken ct)
     {
         var rheinfeuer = await db.Teams.FirstOrDefaultAsync(t => t.Slug == "rheinfeuer", ct);
         if (rheinfeuer is null)
         {
             // Beginners-welcome + (below) event participations make Rheinfeuer an "active",
             // beginners-friendly team so browse filters (feature 007) have data to show.
-            rheinfeuer = new Team { Slug = "rheinfeuer", Name = "Rheinfeuer", Type = TeamType.CityTeam, City = "Köln", BeginnersWelcome = true };
+            rheinfeuer = new Team { Slug = "rheinfeuer", Name = "Rheinfeuer", Type = TeamType.CityTeam, CityId = cities["Köln"].Id, BeginnersWelcome = true };
             db.Teams.Add(rheinfeuer);
         }
 

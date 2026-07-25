@@ -35,6 +35,7 @@ public sealed class TeamsController : ControllerBase
     private readonly ITeamSearchService _search;
     private readonly ITeamJoinRequestService _joinRequests;
     private readonly IPartyService _parties;
+    private readonly JuggerHub.Services.Profile.IProfileService _profiles;
 
     public TeamsController(
         ITeamService teams,
@@ -43,7 +44,8 @@ public sealed class TeamsController : ControllerBase
         ITeamInvitationService invitations,
         ITeamSearchService search,
         ITeamJoinRequestService joinRequests,
-        IPartyService parties)
+        IPartyService parties,
+        JuggerHub.Services.Profile.IProfileService profiles)
     {
         _teams = teams;
         _activity = activity;
@@ -52,6 +54,7 @@ public sealed class TeamsController : ControllerBase
         _search = search;
         _joinRequests = joinRequests;
         _parties = parties;
+        _profiles = profiles;
     }
 
     /// <summary>The pinned party-request cards a team member can see (feature 016). Member-gated:
@@ -77,8 +80,29 @@ public sealed class TeamsController : ControllerBase
     /// card fields only; all filtering/sorting/paging server-side.</summary>
     [HttpGet]
     public async Task<ActionResult<PagedResult<TeamCardDto>>> Browse(
-        [FromQuery] TeamBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
-        Ok(await _search.BrowseAsync(query, pagination, ct));
+        [FromQuery] TeamBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        // Proximity sort (feature 030) anchors on the caller's home city, resolved server-side.
+        // Without one there is nothing to measure from, so ask them to set it (409) rather than
+        // silently returning a different order.
+        Guid? homeCityId = null;
+        if (query.Sort == JuggerHub.Services.Search.TeamSort.Proximity)
+        {
+            if (!TryGetUserId(out var userId))
+            {
+                return Unauthorized();
+            }
+
+            homeCityId = await _profiles.GetHomeCityIdAsync(userId, ct);
+            if (homeCityId is null)
+            {
+                return Problem(statusCode: StatusCodes.Status409Conflict, title: "No home city",
+                    detail: "Set your home city to sort teams by distance.");
+            }
+        }
+
+        return Ok(await _search.BrowseAsync(query, pagination, homeCityId, ct));
+    }
 
     // --- Create & identity ----------------------------------------------------
 

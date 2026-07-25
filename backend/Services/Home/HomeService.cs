@@ -321,7 +321,8 @@ public sealed class HomeService : IHomeService
             .Take(window)
             .Select(s => new HomeProjections.UpNextRaw(
                 s.EventId, s.Event.Name, s.Event.Type, s.Event.CustomTypeLabel,
-                s.Event.StartsAt, s.Event.EndsAt, s.Event.City, s.Event.VenueName, s.Event.Location,
+                s.Event.StartsAt, s.Event.EndsAt,
+                s.Event.City == null ? null : s.Event.City.Name, s.Event.VenueName, s.Event.Location,
                 s.Event.ParticipationLimit,
                 s.Event.Signups.Count(x => x.Status == SignupStatus.Joined || x.Status == SignupStatus.AwaitingApproval),
                 ParticipantMode.Individuals, s.Id, s.Status, null, null))
@@ -336,7 +337,8 @@ public sealed class HomeService : IHomeService
                 .Take(window + 50) // headroom before multi-team de-dup
                 .Select(s => new HomeProjections.UpNextRaw(
                     s.EventId, s.Event.Name, s.Event.Type, s.Event.CustomTypeLabel,
-                    s.Event.StartsAt, s.Event.EndsAt, s.Event.City, s.Event.VenueName, s.Event.Location,
+                    s.Event.StartsAt, s.Event.EndsAt,
+                s.Event.City == null ? null : s.Event.City.Name, s.Event.VenueName, s.Event.Location,
                     s.Event.ParticipationLimit,
                     s.Event.Signups.Count(x => x.Status == SignupStatus.Joined || x.Status == SignupStatus.AwaitingApproval),
                     ParticipantMode.Teams, null, null, s.Team!.Slug, s.Team.Name))
@@ -389,7 +391,7 @@ public sealed class HomeService : IHomeService
             .Take(cap)
             .Select(e => new HomeProjections.UpNextRaw(
                 e.Id, e.Name, e.Type, e.CustomTypeLabel, e.StartsAt, e.EndsAt,
-                e.City, e.VenueName, e.Location, e.ParticipationLimit,
+                e.City == null ? null : e.City.Name, e.VenueName, e.Location, e.ParticipationLimit,
                 e.Signups.Count(x => x.Status == SignupStatus.Joined || x.Status == SignupStatus.AwaitingApproval),
                 ParticipantMode.Individuals, null, null, null, null))
             .ToListAsync(ct);

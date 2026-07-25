@@ -254,7 +254,7 @@ public sealed class PartyInvitationService : IPartyInvitationService
                 p.UserId,
                 p.Handle,
                 p.DisplayName,
-                p.Hometown,
+                p.HomeCity == null ? null : p.HomeCity.Name + ", " + p.HomeCity.CountryName,
                 _db.PartyMembers.Any(m => m.PartyId == partyId && m.UserId == p.UserId && m.Role == PartyMemberRole.Admin)
                     ? UserRelation.Member // already a party admin
                     : _db.PartyAdminInvitations.Any(i => i.PartyId == partyId && i.Kind == InvitationKind.Targeted

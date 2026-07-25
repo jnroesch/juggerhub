@@ -529,7 +529,7 @@ public sealed class MarketRequestService : IMarketRequestService
                 p.UserId,
                 p.Handle,
                 p.DisplayName,
-                p.Hometown,
+                p.HomeCity == null ? null : p.HomeCity.Name + ", " + p.HomeCity.CountryName,
                 p.Avatar != null,
                 _db.PartyMembers.Any(m => m.UserId == p.UserId && m.Status == PartyMemberStatus.In && m.Party.EventId == eventId)
                     ? MarketInviteRelation.Ineligible
