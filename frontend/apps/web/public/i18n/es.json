@@ -9,5 +9,27 @@
     "cancel": "Cancelar",
     "close": "Cerrar",
     "loading": "Cargando…"
+  },
+  "nav": {
+    "home": "Inicio de JuggerHub",
+    "signIn": "Iniciar sesión",
+    "register": "Registrarse"
+  },
+  "auth": {
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "signIn": {
+      "title": "Iniciar sesión",
+      "subtitle": "Bienvenido de nuevo a JuggerHub.",
+      "rememberMe": "Mantener sesión iniciada",
+      "verifyNotice": "Verifica tu dirección de correo antes de iniciar sesión.",
+      "resent": "Si esta cuenta lo necesita, ya va en camino un nuevo correo de verificación.",
+      "resend": "Reenviar correo de verificación",
+      "submit": "Iniciar sesión",
+      "submitting": "Iniciando sesión…",
+      "newHere": "¿Nuevo en JuggerHub?",
+      "createAccount": "Crear una cuenta"
+    }
   }
 }

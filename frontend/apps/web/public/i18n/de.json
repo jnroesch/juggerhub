@@ -9,5 +9,27 @@
     "cancel": "Abbrechen",
     "close": "Schließen",
     "loading": "Wird geladen…"
+  },
+  "nav": {
+    "home": "JuggerHub Startseite",
+    "signIn": "Anmelden",
+    "register": "Registrieren"
+  },
+  "auth": {
+    "email": "E-Mail",
+    "password": "Passwort",
+    "forgotPassword": "Passwort vergessen?",
+    "signIn": {
+      "title": "Anmelden",
+      "subtitle": "Willkommen zurück bei JuggerHub.",
+      "rememberMe": "Angemeldet bleiben",
+      "verifyNotice": "Bitte bestätige deine E-Mail-Adresse, bevor du dich anmeldest.",
+      "resent": "Falls für dieses Konto nötig, ist eine neue Bestätigungs-E-Mail unterwegs.",
+      "resend": "Bestätigungs-E-Mail erneut senden",
+      "submit": "Anmelden",
+      "submitting": "Anmeldung läuft…",
+      "newHere": "Neu bei JuggerHub?",
+      "createAccount": "Konto erstellen"
+    }
   }
 }

@@ -4,6 +4,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { safeReturnUrl } from '../../../core/utils/return-url';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/ui';
 import { LanguageSwitcherComponent } from '../../settings/language/language-switcher.component';
 
@@ -14,7 +15,7 @@ import { LanguageSwitcherComponent } from '../../settings/language/language-swit
  */
 @Component({
   selector: 'jh-sign-in',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CardComponent, LanguageSwitcherComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CardComponent, LanguageSwitcherComponent, TranslocoPipe],
   templateUrl: './sign-in.component.html',
   styleUrl: './sign-in.component.css',
 })

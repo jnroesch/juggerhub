@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { TopNavComponent } from '../top-nav/top-nav.component';
 import { BottomNavComponent } from '../bottom-nav/bottom-nav.component';
 import { AuthService } from '../../core/services/auth.service';
@@ -18,7 +19,7 @@ import { LanguageSwitcherComponent } from '../../features/settings/language/lang
  */
 @Component({
   selector: 'jh-shell',
-  imports: [RouterOutlet, RouterLink, TopNavComponent, BottomNavComponent, LanguageSwitcherComponent],
+  imports: [RouterOutlet, RouterLink, TopNavComponent, BottomNavComponent, LanguageSwitcherComponent, TranslocoPipe],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.css',
 })
