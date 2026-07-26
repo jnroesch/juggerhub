@@ -1,4 +1,5 @@
 import { APIRequestContext, Page, expect, test } from '@playwright/test';
+import { resolveCityExternalId } from './support/city';
 
 /**
  * Feature 013 end-to-end: the gated admin area. Covers the lock-marked entry (admins
@@ -199,8 +200,11 @@ test('admin: assign a badge to a team, see it on the public page, then revoke it
   await registerVerify(page, request, email, handle);
   await signIn(page, email);
   const slug = `e2eteam${Date.now().toString(36)}`.slice(0, 18);
+  // Feature 030: teams take a structured city selection, not a freeform string. Resolve a real
+  // reference id via the search endpoint (using the signed-in session's request context).
+  const cityExternalId = await resolveCityExternalId(page.request, 'Berlin');
   const created = await page.request.post('/api/v1/teams', {
-    data: { name: `E2E Team ${slug}`, slug, type: 'CityTeam', city: 'Berlin' },
+    data: { name: `E2E Team ${slug}`, slug, type: 'CityTeam', location: { cityExternalId, name: 'Berlin' } },
   });
   expect(created.ok()).toBeTruthy();
 

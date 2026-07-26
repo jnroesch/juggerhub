@@ -1,4 +1,5 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
+import { pickCity } from './support/city';
 
 /**
  * Feature 004 end-to-end: a freshly-verified user's first sign-in is routed into
@@ -71,7 +72,7 @@ test('first login opens onboarding; completing it lands in the app and it is sho
   await page.getByTestId('onboarding-name').fill('E2E Player');
   await page.getByTestId('onboarding-continue').click(); // → city
 
-  await page.getByTestId('onboarding-city').fill('Berlin');
+  await pickCity(page, 'onboarding-city', 'Berlin');
   await page.getByTestId('onboarding-continue').click(); // → pompfen
 
   await page.getByTestId('pompfe-Stab').click();

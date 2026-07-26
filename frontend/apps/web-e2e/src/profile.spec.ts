@@ -1,4 +1,5 @@
 import { APIRequestContext, expect, test } from '@playwright/test';
+import { pickCity } from './support/city';
 
 /**
  * Feature 003 end-to-end: register with a handle → verify (Mailpit) → sign in →
@@ -64,7 +65,7 @@ test('register with handle → edit profile → public page hides email', async 
   await expect(page.getByTestId('profile-owner')).toBeVisible();
   await page.getByTestId('profile-edit').click();
   await page.getByTestId('profile-displayname').fill('Nik Berlin');
-  await page.getByTestId('profile-hometown').fill('Berlin');
+  await pickCity(page, 'profile-hometown', 'Berlin');
   await page.getByTestId('pompfe-Stab').click();
   await page.getByTestId('pompfe-Laeufer').click();
   // Feature 026: opt the profile into public so a signed-out visitor can see it below
