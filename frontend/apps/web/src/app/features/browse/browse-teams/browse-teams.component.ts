@@ -37,7 +37,6 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
   protected readonly pendingActiveOnly = signal(true);
   protected readonly pendingBeginners = signal(false);
   protected readonly pendingCity = signal('');
-  protected readonly pendingProximity = signal(false);
   protected readonly pendingCount = signal<number | null>(null);
 
   protected readonly list = new BrowseList<TeamCard>((skip, take) =>
@@ -59,9 +58,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     if (this.city().trim()) {
       chips.push({ key: 'city', label: this.city().trim() });
     }
-    if (this.proximity()) {
-      chips.push({ key: 'proximity', label: 'Near me' });
-    }
+    // "Near me" is not a chip — it has its own prominent toolbar toggle (feature 030).
     return chips;
   });
 
@@ -102,7 +99,6 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.pendingActiveOnly.set(this.activeOnly());
     this.pendingBeginners.set(this.beginners());
     this.pendingCity.set(this.city());
-    this.pendingProximity.set(this.proximity());
     this.refreshPendingCount();
     this.filtersOpen.set(true);
   }
@@ -111,7 +107,6 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.activeOnly.set(this.pendingActiveOnly());
     this.beginners.set(this.pendingBeginners());
     this.city.set(this.pendingCity());
-    this.proximity.set(this.hasHomeCity() && this.pendingProximity());
     this.filtersOpen.set(false);
     this.reload();
   }
@@ -120,13 +115,13 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.pendingActiveOnly.set(true);
     this.pendingBeginners.set(false);
     this.pendingCity.set('');
-    this.pendingProximity.set(false);
     this.refreshPendingCount();
   }
 
-  protected setPendingProximity(value: boolean): void {
-    this.pendingProximity.set(value);
-    this.refreshPendingCount();
+  /** The prominent "Near me" toolbar toggle — flips proximity ordering and applies instantly. */
+  protected toggleNearMe(): void {
+    this.proximity.set(this.hasHomeCity() && !this.proximity());
+    this.reload();
   }
 
   protected removeChip(key: string): void {
@@ -136,8 +131,6 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
       this.beginners.set(false);
     } else if (key === 'city') {
       this.city.set('');
-    } else if (key === 'proximity') {
-      this.proximity.set(false);
     }
     this.reload();
   }

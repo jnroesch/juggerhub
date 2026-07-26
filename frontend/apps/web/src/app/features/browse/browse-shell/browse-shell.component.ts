@@ -35,6 +35,10 @@ export class BrowseShellComponent {
   readonly activeFilterCount = input(0);
   /** Sort control label, e.g. "A–Z". */
   readonly sortLabel = input('');
+  /** Feature 030 — show the prominent "Near me" toggle (only when the viewer has a home city). */
+  readonly nearMeAvailable = input(false);
+  /** Whether the "Near me" (proximity) ordering is currently on. */
+  readonly nearMeActive = input(false);
   readonly state = input<BrowseState>('loading');
   readonly loadingMore = input(false);
   readonly hasMore = input(false);
@@ -43,6 +47,7 @@ export class BrowseShellComponent {
 
   /** Debounced search text. */
   readonly query = output<string>();
+  readonly toggleNearMe = output<void>();
   readonly openFilters = output<void>();
   readonly removeChip = output<string>();
   readonly clearAll = output<void>();

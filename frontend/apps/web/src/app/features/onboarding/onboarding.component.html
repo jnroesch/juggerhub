@@ -133,7 +133,12 @@
       <div class="flex-1">
         <h1 class="text-heading-lg font-semibold text-ink">Find your team</h1>
         <p class="mt-xs text-body-md text-subtle">
-          These teams are looking for new players — or search by name to find any other team.
+          @if (homeCityPersisted()) {
+            Teams closest to you first — the ones looking for new players are marked
+            <span class="text-brand">Beginners</span>. Or search by name for any team.
+          } @else {
+            These teams are looking for new players — or search by name to find any other team.
+          }
         </p>
 
         <label

@@ -44,7 +44,6 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
   protected readonly pendingTo = signal('');
   protected readonly pendingType = signal<EventType | ''>('');
   protected readonly pendingCity = signal('');
-  protected readonly pendingProximity = signal(false);
   protected readonly pendingCount = signal<number | null>(null);
 
   protected readonly list = new BrowseList<EventCard>((skip, take) =>
@@ -73,9 +72,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     if (this.city().trim()) {
       chips.push({ key: 'city', label: this.city().trim() });
     }
-    if (this.proximity()) {
-      chips.push({ key: 'proximity', label: 'Near me' });
-    }
+    // "Near me" is not a chip — it has its own prominent toolbar toggle (feature 030).
     return chips;
   });
 
@@ -117,7 +114,6 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.pendingTo.set(this.to());
     this.pendingType.set(this.type());
     this.pendingCity.set(this.city());
-    this.pendingProximity.set(this.proximity());
     this.refreshPendingCount();
     this.filtersOpen.set(true);
   }
@@ -128,7 +124,6 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.to.set(this.pendingTo());
     this.type.set(this.pendingType());
     this.city.set(this.pendingCity());
-    this.proximity.set(this.hasHomeCity() && this.pendingProximity());
     this.filtersOpen.set(false);
     this.reload();
   }
@@ -139,13 +134,13 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.pendingTo.set('');
     this.pendingType.set('');
     this.pendingCity.set('');
-    this.pendingProximity.set(false);
     this.refreshPendingCount();
   }
 
-  protected setPendingProximity(value: boolean): void {
-    this.pendingProximity.set(value);
-    this.refreshPendingCount();
+  /** The prominent "Near me" toolbar toggle — flips proximity ordering and applies instantly. */
+  protected toggleNearMe(): void {
+    this.proximity.set(this.hasHomeCity() && !this.proximity());
+    this.reload();
   }
 
   protected removeChip(key: string): void {
@@ -158,8 +153,6 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
       this.type.set('');
     } else if (key === 'city') {
       this.city.set('');
-    } else if (key === 'proximity') {
-      this.proximity.set(false);
     }
     this.reload();
   }
