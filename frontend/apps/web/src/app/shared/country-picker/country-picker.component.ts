@@ -15,8 +15,9 @@ import { CityService } from '../../core/services/city.service';
 import { Country } from '../../core/models/city.models';
 import { IconComponent } from '../ui';
 
-/** Cap the rendered suggestions; the list scrolls if a match set is larger. */
-const MAX_RESULTS = 60;
+/** Keep the suggestion list short enough to sit under the input without a scroll area — the viewer
+ *  narrows it by typing rather than scrolling a long list. */
+const MAX_RESULTS = 6;
 
 /**
  * Country filter type-ahead (feature 030). A controlled combobox whose displayed text IS the bound
