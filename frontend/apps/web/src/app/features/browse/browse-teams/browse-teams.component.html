@@ -1,7 +1,7 @@
 <jh-browse-shell
   title="Teams"
   searchPlaceholder="Search teams…"
-  [sortLabel]="proximity() ? 'Nearest' : 'A–Z'"
+  [sortLabel]="proximity() ? '' : 'A–Z'"
   [nearMeAvailable]="hasHomeCity()"
   [nearMeActive]="proximity()"
   (toggleNearMe)="toggleNearMe()"

@@ -4,9 +4,10 @@ import { ButtonDirective } from '../../../shared/ui';
 /**
  * On-demand filter panel (feature 007) — a bottom sheet on mobile, a slide-over drawer on
  * desktop (CSS/media-query driven). Presentational chrome shared by all three browse pages:
- * a Reset control, the projected page-specific filter controls, the locked "Near me — coming
- * soon" placeholder (the hook for a future location feature), and a primary "Show N …" action
+ * a Reset control, the projected page-specific filter controls, and a primary "Show N …" action
  * bound to the live pending count. The page owns the pending-vs-applied filter state.
+ * (The "Near me — coming soon" placeholder was removed when feature 030 shipped proximity as a
+ * real "Nearest first" sort in the browse toolbar.)
  *
  * Accessibility: rendered as a modal dialog with a focus trap — focus moves into the panel on
  * open, Tab/Shift+Tab wrap within it, Escape closes it, and focus is restored to the opener.

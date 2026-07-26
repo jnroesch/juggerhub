@@ -49,14 +49,15 @@
 
   <!-- Toolbar -->
   <div class="flex flex-wrap items-center gap-sm">
-    <!-- Feature 030 — "Near me" is the primary discovery affordance: prominent, first, and it
-         applies instantly (no filter-panel round-trip). Only shown once the viewer has a home city. -->
+    <!-- Feature 030 — "Nearest first" is the proximity SORT, surfaced as the primary, prominent
+         toolbar affordance (not a filter). Applies instantly. Only shown once the viewer has a home
+         city to measure from; otherwise the default sort (A–Z / Soonest) stands. -->
     @if (nearMeAvailable()) {
       <button
         type="button"
         (click)="toggleNearMe.emit()"
         [attr.aria-pressed]="nearMeActive()"
-        data-testid="browse-near-me"
+        data-testid="browse-sort-nearest"
         class="inline-flex min-h-9 items-center gap-xs rounded-md border px-md py-xs text-body-sm font-medium transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         [class.border-brand]="nearMeActive()"
         [class.bg-brand]="nearMeActive()"
@@ -69,7 +70,7 @@
         <svg class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
         </svg>
-        Near me
+        Nearest first
       </button>
     }
 
