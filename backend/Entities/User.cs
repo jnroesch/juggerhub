@@ -30,4 +30,13 @@ public class User : IdentityUser<Guid>
 
     /// <summary>UTC of the last <see cref="Status"/> transition; null if never changed.</summary>
     public DateTime? StatusChangedAt { get; set; }
+
+    /// <summary>
+    /// The user's chosen interface language (feature 031). A supported BCP-47 base tag
+    /// (<c>"en"</c>/<c>"de"</c>/<c>"es"</c>), or <c>null</c> when the user has not chosen one —
+    /// in which case the client resolves a language by detection (browser) and the backend
+    /// localizes their emails/notifications in English. Set via <c>PUT /account/language</c> and
+    /// validated against the supported allowlist server-side (never trust the client).
+    /// </summary>
+    public string? PreferredLanguage { get; set; }
 }

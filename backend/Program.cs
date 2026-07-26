@@ -201,6 +201,11 @@ builder.Services.Configure<ResetPasswordTokenProviderOptions>(_ => { }); // ctor
 builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>(); // existing service, now registered
 builder.Services.AddScoped<AuthEmailService>();
 
+// Localization (feature 031): resolves which language backend-generated content renders in and
+// localizes the short code-authored email strings (subjects/titles/footers).
+builder.Services.AddSingleton<JuggerHub.Services.Email.IEmailLocalizer, JuggerHub.Services.Email.EmailLocalizer>();
+builder.Services.AddScoped<JuggerHub.Services.Localization.IRecipientCultureResolver, JuggerHub.Services.Localization.RecipientCultureResolver>();
+
 // Pick the sender by configured provider: Mailpit (SMTP) locally, Resend on Dev/Prod.
 var emailProvider = builder.Configuration.GetValue<string>("Email:Provider") ?? "Smtp";
 if (string.Equals(emailProvider, "Resend", StringComparison.OrdinalIgnoreCase))
@@ -220,6 +225,9 @@ else
 // --- Auth flows + session (refresh token) ----------------------------------
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+
+// --- Account settings (feature 031: language preference) -------------------
+builder.Services.AddScoped<JuggerHub.Services.Account.ILanguagePreferenceService, JuggerHub.Services.Account.LanguagePreferenceService>();
 
 // --- Player profile + activity (feature 003) -------------------------------
 builder.Services.Configure<ProfileOptions>(builder.Configuration.GetSection(ProfileOptions.SectionName));
@@ -414,6 +422,17 @@ if (app.Environment.IsDevelopment())
 // --- Middleware pipeline ----------------------------------------------------
 // Exception handler is registered first so it wraps the whole pipeline.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// Request localization (feature 031): map the caller's Accept-Language — where the frontend stamps
+// the effective, post-override language — onto a supported culture, so CurrentUICulture drives
+// localized emails/notifications for content addressed to the caller. Unknown/region tags collapse
+// to a base language or fall back to English; the header is untrusted input mapped only onto the
+// supported allowlist (never trust the client).
+var supportedCultures = JuggerHub.Common.SupportedLanguages.All.ToArray();
+app.UseRequestLocalization(new RequestLocalizationOptions()
+    .SetDefaultCulture(JuggerHub.Common.SupportedLanguages.Default)
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures));
 
 // Interactive API reference (Scalar over the built-in OpenAPI document),
 // Development-only so the schema/UI is never exposed in Prod.
