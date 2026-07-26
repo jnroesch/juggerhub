@@ -87,14 +87,11 @@
               class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
             <input type="text" formControlName="street" placeholder="Street & number" data-testid="event-street"
               class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-            <div class="grid grid-cols-2 gap-md">
-              <input type="text" formControlName="postalCode" placeholder="Postal code"
-                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-              <input type="text" formControlName="city" placeholder="City"
-                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-            </div>
-            <input type="text" formControlName="country" placeholder="Country" data-testid="event-country"
+            <input type="text" formControlName="postalCode" placeholder="Postal code"
               class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            <div data-testid="event-city">
+              <jh-city-picker placeholder="City" (selectedChange)="onCitySelected($event)" />
+            </div>
           } @else {
             <input type="text" formControlName="virtualLink" placeholder="zoom.us/j/… or https://meet.…" data-testid="event-link"
               class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
@@ -184,7 +181,7 @@
             <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Type</dt><dd class="text-body-sm font-semibold text-body">{{ type() === 'Other' ? form.getRawValue().customLabel : type() }}</dd></div>
             <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Name</dt><dd class="text-body-sm font-semibold text-body">{{ form.getRawValue().name }}</dd></div>
             <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">When</dt><dd class="text-body-sm font-semibold text-body">{{ form.getRawValue().startsAt }} → {{ form.getRawValue().endsAt }}</dd></div>
-            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Where</dt><dd class="text-body-sm font-semibold text-body">{{ locationKind() === 'InPerson' ? form.getRawValue().city + ', ' + form.getRawValue().country : 'Online' }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Where</dt><dd class="text-body-sm font-semibold text-body">{{ locationKind() === 'InPerson' ? (selectedCity()?.label ?? '—') : 'Online' }}</dd></div>
             <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Who</dt><dd class="text-body-sm font-semibold text-body">{{ participantMode() }} · limit {{ form.getRawValue().participationLimit }}</dd></div>
             <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">Fee</dt><dd class="text-body-sm font-semibold text-body">{{ isPaid() ? (form.getRawValue().feeAmount ?? '') + ' ' + form.getRawValue().feeCurrency : 'Free' }}</dd></div>
           </dl>

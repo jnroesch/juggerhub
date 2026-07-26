@@ -49,7 +49,7 @@ function toTeamParams(p: TeamBrowseParams): HttpParams {
   params = put(params, 'q', p.q);
   params = put(params, 'activeOnly', p.activeOnly);
   params = put(params, 'beginnersWelcome', p.beginnersWelcome);
-  params = put(params, 'city', p.city);
+  params = put(params, 'country', p.country);
   params = put(params, 'sort', p.sort);
   params = put(params, 'skip', p.skip);
   params = put(params, 'take', p.take);
@@ -63,7 +63,7 @@ function toEventParams(p: EventBrowseParams): HttpParams {
   params = put(params, 'from', p.from);
   params = put(params, 'to', p.to);
   params = put(params, 'type', p.type);
-  params = put(params, 'city', p.city);
+  params = put(params, 'country', p.country);
   params = put(params, 'sort', p.sort);
   params = put(params, 'skip', p.skip);
   params = put(params, 'take', p.take);
@@ -76,7 +76,7 @@ function toPlayerParams(p: PlayerBrowseParams): HttpParams {
   for (const position of p.positions ?? []) {
     params = params.append('positions', position);
   }
-  params = put(params, 'city', p.city);
+  params = put(params, 'country', p.country);
   params = put(params, 'sort', p.sort);
   params = put(params, 'skip', p.skip);
   params = put(params, 'take', p.take);

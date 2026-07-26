@@ -1,3 +1,4 @@
+using JuggerHub.Dtos.Cities;
 using JuggerHub.Entities;
 using JuggerHub.Services.Search;
 
@@ -13,7 +14,7 @@ namespace JuggerHub.Dtos.Search;
 public sealed record TeamCardDto(
     string Slug,
     string Name,
-    string? City,
+    LocationDto? Location,
     int PlayerCount,
     bool BeginnersWelcome,
     string LogoInitial);
@@ -30,8 +31,11 @@ public sealed record TeamBrowseQuery
     /// <summary>When true, only teams flagged beginners-welcome.</summary>
     public bool BeginnersWelcome { get; init; }
 
-    /// <summary>Exact-ish city match (accent/case-insensitive). Null ⇒ any city.</summary>
+    /// <summary>Feature 030 — filter to a single canonical city by NAME (accent/case-insensitive). Null ⇒ any city.</summary>
     public string? City { get; init; }
+
+    /// <summary>Feature 030 — filter to a single country (ISO code or name). Null ⇒ any country.</summary>
+    public string? Country { get; init; }
 
     public TeamSort Sort { get; init; } = TeamSort.NameAsc;
 }
@@ -47,7 +51,7 @@ public sealed record EventCardDto(
     DateTime StartsAt,
     DateTime EndsAt,
     LocationKind LocationKind,
-    string? City,
+    LocationDto? Location,
     string LocationLabel);
 
 /// <summary>Event browse filters + sort.</summary>
@@ -67,7 +71,11 @@ public sealed record EventBrowseQuery
 
     public EventType? Type { get; init; }
 
+    /// <summary>Feature 030 — filter to a single canonical city by NAME (accent/case-insensitive). Null ⇒ any city.</summary>
     public string? City { get; init; }
+
+    /// <summary>Feature 030 — filter to a single country (ISO code or name). Null ⇒ any country.</summary>
+    public string? Country { get; init; }
 
     public EventSort Sort { get; init; } = EventSort.StartsAtAsc;
 }
@@ -78,7 +86,7 @@ public sealed record EventBrowseQuery
 public sealed record PlayerCardDto(
     string Handle,
     string DisplayName,
-    string? Hometown,
+    LocationDto? Location,
     IReadOnlyList<Pompfe> Positions,
     bool HasAvatar);
 
@@ -92,7 +100,11 @@ public sealed record PlayerBrowseQuery
     /// <summary>Match players whose declared pompfen include ANY of these. Empty ⇒ any position.</summary>
     public List<Pompfe>? Positions { get; init; }
 
+    /// <summary>Feature 030 — filter to a single canonical city by NAME (accent/case-insensitive). Null ⇒ any city.</summary>
     public string? City { get; init; }
+
+    /// <summary>Feature 030 — filter to a single country (ISO code or name). Null ⇒ any country.</summary>
+    public string? Country { get; init; }
 
     public PlayerSort Sort { get; init; } = PlayerSort.DisplayNameAsc;
 }

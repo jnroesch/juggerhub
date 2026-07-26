@@ -8,7 +8,7 @@ import { ProfileOwnerComponent } from './profile-owner.component';
 const OWNER: OwnerProfile = {
   handle: 'nik-berlin',
   displayName: 'Nik',
-  hometown: 'Berlin',
+  location: { externalId: 'TEST:berlin', name: 'Berlin', region: null, countryName: 'Germany', countryCode: 'DE', label: 'Berlin, Germany' },
   description: null,
   hasAvatar: false,
   pompfen: [],

@@ -1,0 +1,176 @@
+using JuggerHub.Data;
+using JuggerHub.Dtos.Cities;
+using JuggerHub.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace JuggerHub.Services.Geocoding;
+
+/// <inheritdoc />
+/// <remarks>
+/// Feature 030 research R8: the search + resolve source is the bundled, seeded <c>CityReference</c>
+/// table (GeoNames cities500) — a local SQL query, not an external geocoder. Only <em>selected</em>
+/// cities are copied into <see cref="City"/> (with the distance-cache backfill), which is what keeps
+/// <see cref="CityDistance"/> small even though the reference table holds ~235k rows.
+/// </remarks>
+public sealed class CityService : ICityService
+{
+    // Mean Earth radius (km) — WGS84 authalic radius, good to well under the city-granularity
+    // precision "near you" needs.
+    private const double EarthRadiusKm = 6371.0088;
+
+    private readonly AppDbContext _db;
+
+    public CityService(AppDbContext db)
+    {
+        _db = db;
+    }
+
+    public async Task<IReadOnlyList<CityOptionDto>> SearchAsync(
+        string query, int limit, CancellationToken ct = default)
+    {
+        var term = query.Trim();
+        if (term.Length == 0)
+        {
+            return Array.Empty<CityOptionDto>();
+        }
+
+        // Accent-insensitive prefix search over the canonical + ascii names, plus a token-prefix match
+        // into the Latin alternate names so English exonyms resolve ("Muni" → München, "Colog" → Köln).
+        // Unaccent is applied INSIDE the query on both column and pattern (it is a DB function, never
+        // callable in C#); the raw patterns carry the literal wildcards.
+        var prefix = term + "%";
+        var altToken = "%," + term + "%";
+
+        var rows = await _db.CityReferences.AsNoTracking()
+            .Where(r =>
+                EF.Functions.ILike(AppDbContext.Unaccent(r.AsciiName), AppDbContext.Unaccent(prefix))
+                || EF.Functions.ILike(AppDbContext.Unaccent(r.Name), AppDbContext.Unaccent(prefix))
+                || EF.Functions.ILike(AppDbContext.Unaccent(r.AlternateNames), AppDbContext.Unaccent(prefix))
+                || EF.Functions.ILike(AppDbContext.Unaccent(r.AlternateNames), AppDbContext.Unaccent(altToken)))
+            // Primary-name prefix hits rank above exonym/alternate hits; then the shortest name
+            // (a proxy for the better-known place, e.g. "Berlin" before "Berlingerode").
+            .OrderByDescending(r => EF.Functions.ILike(AppDbContext.Unaccent(r.AsciiName), AppDbContext.Unaccent(prefix)))
+            .ThenBy(r => r.Name.Length)
+            .ThenBy(r => r.Name)
+            .Take(limit)
+            .Select(r => new
+            {
+                r.ExternalId, r.Name, r.Region, r.CountryName, r.CountryCode, r.Latitude, r.Longitude,
+            })
+            .ToListAsync(ct);
+
+        return rows.Select(r => new CityOptionDto(
+            r.ExternalId,
+            r.Name,
+            string.IsNullOrEmpty(r.Region) ? null : r.Region,
+            r.CountryName,
+            string.IsNullOrEmpty(r.CountryCode) ? null : r.CountryCode,
+            LocationLabels.Option(r.Name, string.IsNullOrEmpty(r.Region) ? null : r.Region, r.CountryName),
+            r.Latitude,
+            r.Longitude)).ToList();
+    }
+
+    public async Task<IReadOnlyList<CountryDto>> ListCountriesAsync(CancellationToken ct = default)
+    {
+        // Distinct over the full reference dataset so EVERY country is offered — a viewer who filters
+        // to a country with no teams/events yet simply gets the results' empty state, which is clearer
+        // than silently omitting the country from the picker. One-off per session (client-cached), so
+        // the distinct scan over the reference table is fine. CountryCode may be absent for a few rows.
+        return await _db.CityReferences.AsNoTracking()
+            .Select(c => new { c.CountryName, c.CountryCode })
+            .Distinct()
+            .OrderBy(c => c.CountryName)
+            .Select(c => new CountryDto(
+                string.IsNullOrEmpty(c.CountryCode) ? null : c.CountryCode,
+                c.CountryName))
+            .ToListAsync(ct);
+    }
+
+    public async Task<City> ResolveAndUpsertAsync(
+        string externalId, string? nameHint, CancellationToken ct = default)
+    {
+        // 1) Reuse a city we already hold — no reference lookup, no re-backfill (FR-022).
+        var existing = await _db.Cities.FirstOrDefaultAsync(c => c.ExternalId == externalId, ct);
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        // 2) First use: resolve authoritatively from the bundled reference — never from client-supplied
+        // fields (Principle I). `nameHint` is ignored; the reference row is the source of truth.
+        var reference = await _db.CityReferences.AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ExternalId == externalId, ct)
+            ?? throw new CityNotResolvableException(externalId);
+
+        var city = new City
+        {
+            ExternalId = reference.ExternalId,
+            Name = reference.Name,
+            CountryName = reference.CountryName,
+            CountryCode = string.IsNullOrEmpty(reference.CountryCode) ? null : reference.CountryCode,
+            Region = string.IsNullOrEmpty(reference.Region) ? null : reference.Region,
+            Latitude = reference.Latitude,
+            Longitude = reference.Longitude,
+        };
+
+        _db.Cities.Add(city);
+        AddDistanceRows(city, await LoadOtherCityPointsAsync(ct));
+
+        // A single SaveChangesAsync is atomic and already runs through the provider's execution
+        // strategy (EnableRetryOnFailure) — no manual transaction is opened, so the multi-step
+        // execution-strategy dance (constitution VII) is not required here. The client-generated
+        // UUIDv7 key makes a commit-time replay collide on the known id rather than duplicate.
+        try
+        {
+            await _db.SaveChangesAsync(ct);
+            return city;
+        }
+        catch (DbUpdateException)
+        {
+            // Lost the create race: another request inserted this ExternalId first (unique index).
+            // Discard our losing insert (city + its distance rows) and return the winner.
+            _db.ChangeTracker.Clear();
+            var winner = await _db.Cities.FirstOrDefaultAsync(c => c.ExternalId == externalId, ct);
+            if (winner is not null)
+            {
+                return winner;
+            }
+
+            throw;
+        }
+    }
+
+    private async Task<List<CityPoint>> LoadOtherCityPointsAsync(CancellationToken ct) =>
+        await _db.Cities
+            .AsNoTracking()
+            .Select(c => new CityPoint(c.Id, c.Latitude, c.Longitude))
+            .ToListAsync(ct);
+
+    private void AddDistanceRows(City city, IReadOnlyList<CityPoint> others)
+    {
+        // Self-row: own-city entities rank nearest (distance 0). Required for the proximity join to
+        // surface them (data-model.md).
+        _db.CityDistances.Add(new CityDistance { FromCityId = city.Id, ToCityId = city.Id, DistanceKm = 0 });
+
+        foreach (var other in others)
+        {
+            var km = HaversineKm(city.Latitude, city.Longitude, other.Latitude, other.Longitude);
+            // Stored both ways so the proximity query is a single-sided join from any home city.
+            _db.CityDistances.Add(new CityDistance { FromCityId = city.Id, ToCityId = other.Id, DistanceKm = km });
+            _db.CityDistances.Add(new CityDistance { FromCityId = other.Id, ToCityId = city.Id, DistanceKm = km });
+        }
+    }
+
+    internal static double HaversineKm(double lat1, double lon1, double lat2, double lon2)
+    {
+        var dLat = ToRadians(lat2 - lat1);
+        var dLon = ToRadians(lon2 - lon1);
+        var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
+            + Math.Cos(ToRadians(lat1)) * Math.Cos(ToRadians(lat2)) * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+        return 2 * EarthRadiusKm * Math.Asin(Math.Min(1.0, Math.Sqrt(a)));
+    }
+
+    private static double ToRadians(double degrees) => degrees * Math.PI / 180.0;
+
+    private readonly record struct CityPoint(Guid Id, double Latitude, double Longitude);
+}

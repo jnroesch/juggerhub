@@ -94,6 +94,7 @@ module "app" {
   postgres_db            = var.postgres_db
   postgres_password      = var.postgres_password
 
+
   # app config
   aspnetcore_environment  = var.aspnetcore_environment
   connection_string       = local.connection_string

@@ -26,14 +26,14 @@ public sealed class TeamTests
         var slug = NewSlug();
 
         var resp = await client.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Rheinfeuer", slug, type = "CityTeam", city = "Berlin" });
+            new { name = "Rheinfeuer", slug, type = "CityTeam", location = new { cityExternalId = "TEST:berlin" } });
 
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
         var dto = await resp.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("Admin", dto.GetProperty("myRole").GetString());
         Assert.Equal(1, dto.GetProperty("memberCount").GetInt32());
         Assert.Equal("CityTeam", dto.GetProperty("type").GetString());
-        Assert.Equal("Berlin", dto.GetProperty("city").GetString());
+        Assert.Equal("Berlin", dto.GetProperty("location").GetProperty("name").GetString());
     }
 
     [Fact]
@@ -43,12 +43,12 @@ public sealed class TeamTests
         var slug = NewSlug();
 
         var resp = await client.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Chaos Crew", slug, type = "Mixteam", city = (string?)null });
+            new { name = "Chaos Crew", slug, type = "Mixteam", location = (object?)null });
 
         Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
         var dto = await resp.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("Mixteam", dto.GetProperty("type").GetString());
-        Assert.Equal(JsonValueKind.Null, dto.GetProperty("city").ValueKind);
+        Assert.Equal(JsonValueKind.Null, dto.GetProperty("location").ValueKind);
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public sealed class TeamTests
 
         var first = await CreateTeamAsync(client, slug);
         var second = await client.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Other", slug, type = "Mixteam", city = (string?)null });
+            new { name = "Other", slug, type = "Mixteam", location = (object?)null });
 
         Assert.Equal(HttpStatusCode.Created, first.StatusCode);
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
@@ -76,7 +76,7 @@ public sealed class TeamTests
         var (client, _, _, _) = await NewUserAsync();
 
         var resp = await client.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Team", slug, type = "Mixteam", city = (string?)null });
+            new { name = "Team", slug, type = "Mixteam", location = (object?)null });
 
         Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
     }
@@ -87,9 +87,9 @@ public sealed class TeamTests
         var (client, _, _, _) = await NewUserAsync();
 
         var noCity = await client.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Team", slug = NewSlug(), type = "CityTeam", city = (string?)null });
+            new { name = "Team", slug = NewSlug(), type = "CityTeam", location = (object?)null });
         var mixWithCity = await client.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Team", slug = NewSlug(), type = "Mixteam", city = "Berlin" });
+            new { name = "Team", slug = NewSlug(), type = "Mixteam", location = new { cityExternalId = "TEST:berlin" } });
 
         Assert.Equal(HttpStatusCode.BadRequest, noCity.StatusCode);
         Assert.Equal(HttpStatusCode.BadRequest, mixWithCity.StatusCode);
@@ -405,7 +405,7 @@ public sealed class TeamTests
     private static string NewSlug() => "t" + Guid.NewGuid().ToString("N")[..12];
 
     private static Task<HttpResponseMessage> CreateTeamAsync(HttpClient client, string slug) =>
-        client.PostAsJsonAsync("/api/v1/teams", new { name = "Rheinfeuer", slug, type = "CityTeam", city = "Berlin" });
+        client.PostAsJsonAsync("/api/v1/teams", new { name = "Rheinfeuer", slug, type = "CityTeam", location = new { cityExternalId = "TEST:berlin" } });
 
     private async Task<(string Token, string Url)> CreateLinkAsync(HttpClient admin, string slug)
     {

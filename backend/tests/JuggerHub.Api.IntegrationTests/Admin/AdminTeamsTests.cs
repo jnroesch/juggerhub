@@ -23,7 +23,7 @@ public sealed class AdminTeamsTests
 
         var slug = $"bison{Guid.NewGuid():N}"[..16];
         var name = $"bison{Guid.NewGuid():N}"[..16];
-        (await player.PostAsJsonAsync("/api/v1/teams", new { name, slug, type = "CityTeam", city = "Berlin" }))
+        (await player.PostAsJsonAsync("/api/v1/teams", new { name, slug, type = "CityTeam", location = new { cityExternalId = "TEST:berlin" } }))
             .EnsureSuccessStatusCode();
 
         // Search by (unique) name finds it with counts — the creator is an auto-member.
@@ -32,7 +32,7 @@ public sealed class AdminTeamsTests
         var page = await search.Content.ReadFromJsonAsync<JsonElement>();
         var found = page.GetProperty("items").EnumerateArray().Single(t => t.GetProperty("slug").GetString() == slug);
         Assert.Equal(name, found.GetProperty("name").GetString());
-        Assert.Equal("Berlin", found.GetProperty("city").GetString());
+        Assert.Contains("Berlin", found.GetProperty("location").GetString());
         Assert.True(found.GetProperty("memberCount").GetInt32() >= 1);
         Assert.Equal(0, found.GetProperty("awardCount").GetInt32());
 

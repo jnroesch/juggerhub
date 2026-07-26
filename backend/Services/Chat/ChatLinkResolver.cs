@@ -81,7 +81,7 @@ public sealed class ChatLinkResolver
                     ChatLinkKind.Player,
                     p.UserId,
                     p.DisplayName,
-                    p.Hometown,
+                    p.HomeCity == null ? null : p.HomeCity.Name + ", " + p.HomeCity.CountryName,
                     $"/u/{p.Handle}",
                     null),
             })
@@ -99,7 +99,7 @@ public sealed class ChatLinkResolver
                     ChatLinkKind.Team,
                     t.Id,
                     t.Name,
-                    t.City,
+                    t.City == null ? null : t.City.Name + ", " + t.City.CountryName,
                     $"/t/{t.Slug}",
                     null),
             })

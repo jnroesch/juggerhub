@@ -1,30 +1,47 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { SearchService } from '../../../core/services/search.service';
-import { FilterChip, TeamBrowseParams, TeamCard } from '../../../core/models/search.models';
+import { ProfileService } from '../../../core/services/profile.service';
+import { FilterChip, SortOption, TeamBrowseParams, TeamCard } from '../../../core/models/search.models';
 import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
 import { FilterToggleComponent } from '../filter-panel/filter-toggle.component';
+import { CountryPickerComponent } from '../../../shared/country-picker/country-picker.component';
 
 /**
  * Teams browse page (feature 007, US1). Composes the shared shell + filter panel with the
- * team filter set (active-only, beginners-welcome, city) and A–Z sort. Rows link to /t/:slug.
+ * team filter set (active-only, beginners-welcome, country) and A–Z / Nearest-first sort.
+ * Rows link to /t/:slug.
  */
 @Component({
   selector: 'jh-browse-teams',
-  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent],
+  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent],
   templateUrl: './browse-teams.component.html',
   styleUrl: './browse-teams.component.css',
 })
 export class BrowseTeamsComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
+  private readonly profiles = inject(ProfileService);
 
   // Applied state (drives results).
   protected readonly query = signal('');
   protected readonly activeOnly = signal(true);
   protected readonly beginners = signal(false);
   protected readonly city = signal('');
+  // Feature 030 — sort selection. "Proximity" (nearest first) is only offered once the player has a
+  // home city (the server derives the anchor from their profile; without one it would 409), so the
+  // option list is computed from hasHomeCity.
+  protected readonly sort = signal<'NameAsc' | 'Proximity'>('NameAsc');
+  protected readonly hasHomeCity = signal(false);
+
+  protected readonly sortOptions = computed<SortOption[]>(() => {
+    const opts: SortOption[] = [{ value: 'NameAsc', label: 'A–Z' }];
+    if (this.hasHomeCity()) {
+      opts.push({ value: 'Proximity', label: 'Nearest first' });
+    }
+    return opts;
+  });
 
   // Pending state (edited in the panel until "Show N").
   protected readonly filtersOpen = signal(false);
@@ -52,6 +69,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     if (this.city().trim()) {
       chips.push({ key: 'city', label: this.city().trim() });
     }
+    // Sort is not a chip — it has its own Sort menu in the toolbar (feature 030).
     return chips;
   });
 
@@ -72,6 +90,11 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reload();
+    // Offer "Near me" only when the player has a home city to measure from.
+    this.profiles.getMineCached().subscribe({
+      next: (p) => this.hasHomeCity.set(p.location != null),
+      error: () => this.hasHomeCity.set(false),
+    });
   }
 
   ngOnDestroy(): void {
@@ -106,6 +129,12 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.refreshPendingCount();
   }
 
+  /** The Sort menu picked a new ordering — applies instantly. */
+  protected onSortChange(value: string): void {
+    this.sort.set(value === 'Proximity' && this.hasHomeCity() ? 'Proximity' : 'NameAsc');
+    this.reload();
+  }
+
   protected removeChip(key: string): void {
     if (key === 'active') {
       this.activeOnly.set(false);
@@ -122,6 +151,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.activeOnly.set(true);
     this.beginners.set(false);
     this.city.set('');
+    this.sort.set('NameAsc');
     this.reload();
   }
 
@@ -145,8 +175,8 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
       q: this.query() || undefined,
       activeOnly: this.activeOnly(),
       beginnersWelcome: this.beginners() || undefined,
-      city: this.city().trim() || undefined,
-      sort: 'NameAsc',
+      country: this.city().trim() || undefined,
+      sort: this.sort(),
     };
   }
 
@@ -162,7 +192,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
         q: this.query() || undefined,
         activeOnly: this.pendingActiveOnly(),
         beginnersWelcome: this.pendingBeginners() || undefined,
-        city: this.pendingCity().trim() || undefined,
+        country: this.pendingCity().trim() || undefined,
         take: 0,
       })
       .subscribe({

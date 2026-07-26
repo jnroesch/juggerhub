@@ -1,8 +1,8 @@
-import { DestroyRef, Component, inject, input, output } from '@angular/core';
+import { DestroyRef, Component, HostListener, computed, inject, input, output, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
-import { BrowseState, FilterChip } from '../../../core/models/search.models';
+import { BrowseState, FilterChip, SortOption } from '../../../core/models/search.models';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 
 /**
@@ -33,8 +33,15 @@ export class BrowseShellComponent {
   readonly chips = input<FilterChip[]>([]);
   /** Number badge on the Filters button (0 = no badge). */
   readonly activeFilterCount = input(0);
-  /** Sort control label, e.g. "A–Z". */
-  readonly sortLabel = input('');
+  /**
+   * Feature 030 — the sort choices for this page. The shell renders a single "Sort" menu button
+   * (a dropdown, mirroring the Filters button) so every ordering, including "Nearest first", is
+   * chosen the same way. The button is hidden when there are fewer than two options — a page with
+   * one fixed order has nothing to choose.
+   */
+  readonly sortOptions = input<SortOption[]>([]);
+  /** The currently applied sort value (matches one of `sortOptions[].value`). */
+  readonly activeSort = input<string>('');
   readonly state = input<BrowseState>('loading');
   readonly loadingMore = input(false);
   readonly hasMore = input(false);
@@ -43,11 +50,23 @@ export class BrowseShellComponent {
 
   /** Debounced search text. */
   readonly query = output<string>();
+  /** Emits the chosen sort value when the viewer picks a different option. */
+  readonly sortChange = output<string>();
   readonly openFilters = output<void>();
   readonly removeChip = output<string>();
   readonly clearAll = output<void>();
   readonly loadMore = output<void>();
   readonly retry = output<void>();
+
+  /** Whether the sort dropdown is open. */
+  protected readonly sortMenuOpen = signal(false);
+  /** Show the Sort button only when there is an actual choice to make. */
+  protected readonly showSort = computed(() => this.sortOptions().length > 1);
+  /** Label of the applied sort, for the button face (falls back to the first option). */
+  protected readonly activeSortLabel = computed(() => {
+    const opts = this.sortOptions();
+    return (opts.find((o) => o.value === this.activeSort()) ?? opts[0])?.label ?? '';
+  });
 
   constructor() {
     this.queryInput
@@ -57,5 +76,21 @@ export class BrowseShellComponent {
 
   protected onSearchInput(event: Event): void {
     this.queryInput.next((event.target as HTMLInputElement).value);
+  }
+
+  protected toggleSortMenu(): void {
+    this.sortMenuOpen.update((open) => !open);
+  }
+
+  protected selectSort(value: string): void {
+    this.sortMenuOpen.set(false);
+    if (value !== this.activeSort()) {
+      this.sortChange.emit(value);
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void {
+    this.sortMenuOpen.set(false);
   }
 }

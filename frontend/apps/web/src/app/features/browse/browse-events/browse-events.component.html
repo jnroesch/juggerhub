@@ -1,7 +1,9 @@
 <jh-browse-shell
   title="Events"
   searchPlaceholder="Search events…"
-  sortLabel="Soonest"
+  [sortOptions]="sortOptions()"
+  [activeSort]="sort()"
+  (sortChange)="onSortChange($event)"
   [countLabel]="countLabel()"
   [chips]="chips()"
   [activeFilterCount]="activeFilterCount()"
@@ -62,7 +64,7 @@
     <div class="flex items-center gap-xs">
       <input
         type="date"
-        class="flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
         aria-label="From date"
         [value]="pendingFrom()"
         (input)="onPendingFrom($any($event.target).value)"
@@ -70,7 +72,7 @@
       <span class="text-subtle">–</span>
       <input
         type="date"
-        class="flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
         aria-label="To date"
         [value]="pendingTo()"
         (input)="onPendingTo($any($event.target).value)"
@@ -92,14 +94,8 @@
     </select>
   </label>
 
-  <label class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">City or region</span>
-    <input
-      type="text"
-      class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none placeholder:text-faint"
-      placeholder="Any city"
-      [value]="pendingCity()"
-      (input)="onPendingCity($any($event.target).value)"
-    />
-  </label>
+  <div class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">Country</span>
+    <jh-country-picker [value]="pendingCity()" (valueChange)="onPendingCity($event)" />
+  </div>
 </jh-filter-panel>

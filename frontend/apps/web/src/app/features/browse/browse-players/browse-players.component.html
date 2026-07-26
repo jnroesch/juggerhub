@@ -1,7 +1,6 @@
 <jh-browse-shell
   title="Players"
   searchPlaceholder="Search players…"
-  sortLabel="A–Z"
   note="Every player on JuggerHub is listed here."
   [countLabel]="countLabel()"
   [chips]="chips()"
@@ -35,8 +34,8 @@
         <span class="flex flex-1 flex-col">
           <span class="text-body-md text-ink">{{ player.displayName }}</span>
           <span class="text-body-sm text-subtle">
-            @if (player.hometown) {
-              {{ player.hometown }}
+            @if (player.location) {
+              {{ player.location.label }}
             }
             @if (player.positions.length) {
               · {{ label(player.positions[0]) }}
@@ -75,14 +74,8 @@
     </div>
   </div>
 
-  <label class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">City or region</span>
-    <input
-      type="text"
-      class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none placeholder:text-faint"
-      placeholder="Any city"
-      [value]="pendingCity()"
-      (input)="onPendingCity($any($event.target).value)"
-    />
-  </label>
+  <div class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">Country</span>
+    <jh-country-picker [value]="pendingCity()" (valueChange)="onPendingCity($event)" />
+  </div>
 </jh-filter-panel>

@@ -57,6 +57,7 @@ internal static class HomeTestSupport
         EventStatus status = EventStatus.Published, int limit = 20, string? city = "Berlin") =>
         WithDbAsync(factory, async db =>
         {
+            var cityEntity = city is null ? null : await TestCities.GetOrCreateAsync(db, city);
             var ev = new Event
             {
                 Name = name,
@@ -65,8 +66,7 @@ internal static class HomeTestSupport
                 StartsAt = startsAt,
                 EndsAt = endsAt,
                 LocationKind = city is null ? LocationKind.Virtual : LocationKind.InPerson,
-                City = city,
-                Country = city is null ? null : "Germany",
+                City = cityEntity,
                 VirtualLink = city is null ? "https://example.com/meet" : null,
                 Location = city ?? "Online",
                 ParticipantMode = mode,

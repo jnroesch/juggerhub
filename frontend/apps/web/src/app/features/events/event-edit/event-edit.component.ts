@@ -90,8 +90,9 @@ export class EventEditComponent implements OnInit {
       venueName: d.venueName,
       street: d.street,
       postalCode: d.postalCode,
-      city: d.city,
-      country: d.country,
+      // Feature 030 — preserve the current city (the edit form doesn't change it): resend its
+      // provider id so the backend re-links the same canonical city. Null for a virtual event.
+      location: d.location ? { cityExternalId: d.location.externalId, name: d.location.name } : null,
       virtualLink: d.virtualLink,
       participationLimit: v.participationLimit,
       isPaid: d.isPaid,

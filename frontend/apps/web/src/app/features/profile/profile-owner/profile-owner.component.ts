@@ -3,10 +3,12 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { Pompfe } from '../../../shared/pompfen.catalog';
 import { OwnerProfile, ProfileView } from '../../../core/models/profile.models';
+import { CityOption, Location, toSelection } from '../../../core/models/city.models';
 import { ProfileService } from '../../../core/services/profile.service';
 import { problemDetail } from '../../../core/utils/problem';
 import { PompfeSelectorComponent } from '../components/pompfe-selector/pompfe-selector.component';
 import { ProfileViewComponent } from '../components/profile-view/profile-view.component';
+import { CityPickerComponent } from '../../../shared/city-picker/city-picker.component';
 
 /**
  * The owner's own profile (feature 026 — hosted by the profile page at /u/:handle for the owner).
@@ -17,7 +19,7 @@ import { ProfileViewComponent } from '../components/profile-view/profile-view.co
  */
 @Component({
   selector: 'jh-profile-owner',
-  imports: [ReactiveFormsModule, PompfeSelectorComponent, ProfileViewComponent, ButtonDirective, LoadingComponent, AlertComponent],
+  imports: [ReactiveFormsModule, PompfeSelectorComponent, ProfileViewComponent, CityPickerComponent, ButtonDirective, LoadingComponent, AlertComponent],
   templateUrl: './profile-owner.component.html',
   styleUrl: './profile-owner.component.css',
 })
@@ -36,9 +38,15 @@ export class ProfileOwnerComponent {
   protected readonly visibilitySaving = signal(false);
   private readonly avatarVersion = signal(0);
 
+  // Feature 030 — structured home city, held outside the reactive form (the picker emits a
+  // CityOption, not a form value). `initialLocation` prefills the picker; `cityTouched` distinguishes
+  // "left unchanged" (omit from payload) from an explicit pick/clear.
+  protected readonly initialLocation = signal<Location | null>(null);
+  protected readonly selectedCity = signal<CityOption | null>(null);
+  protected readonly cityTouched = signal(false);
+
   protected readonly form = this.fb.nonNullable.group({
     displayName: ['', [Validators.required, Validators.maxLength(50)]],
-    hometown: ['', [Validators.maxLength(80)]],
     description: ['', [Validators.maxLength(280)]],
     // Feature 026 — anonymous visibility (default private). UX only; the server enforces it.
     isPublic: [false],
@@ -61,7 +69,7 @@ export class ProfileOwnerComponent {
     return {
       handle: p.handle,
       displayName: p.displayName,
-      hometown: p.hometown,
+      location: p.location,
       description: p.description,
       avatarUrl: this.avatarUrl(),
       pompfen: p.pompfen,
@@ -83,10 +91,12 @@ export class ProfileOwnerComponent {
         this.profile.set(p);
         this.form.setValue({
           displayName: p.displayName,
-          hometown: p.hometown ?? '',
           description: p.description ?? '',
           isPublic: p.isPublic,
         });
+        this.initialLocation.set(p.location);
+        this.selectedCity.set(null);
+        this.cityTouched.set(false);
         this.selectedPompfen.set(p.pompfen);
         this.loading.set(false);
       },
@@ -107,14 +117,22 @@ export class ProfileOwnerComponent {
     if (p) {
       this.form.setValue({
         displayName: p.displayName,
-        hometown: p.hometown ?? '',
         description: p.description ?? '',
         isPublic: p.isPublic,
       });
+      this.initialLocation.set(p.location);
+      this.selectedCity.set(null);
+      this.cityTouched.set(false);
       this.selectedPompfen.set(p.pompfen);
     }
     this.error.set(null);
     this.editing.set(false);
+  }
+
+  /** The city picker's selection changed (a pick or a clear). */
+  protected onCitySelected(option: CityOption | null): void {
+    this.selectedCity.set(option);
+    this.cityTouched.set(true);
   }
 
   protected onPompfenChange(next: Pompfe[]): void {
@@ -146,11 +164,11 @@ export class ProfileOwnerComponent {
     this.saving.set(true);
     this.error.set(null);
     this.saved.set(false);
-    const { displayName, hometown, description, isPublic } = this.form.getRawValue();
+    const { displayName, description, isPublic } = this.form.getRawValue();
     this.profiles
       .updateMine({
         displayName: displayName.trim(),
-        hometown: hometown.trim() || null,
+        location: this.cityTouched() ? toSelection(this.selectedCity()) : null,
         description: description.trim() || null,
         pompfen: this.selectedPompfen(),
         isPublic,
@@ -186,7 +204,8 @@ export class ProfileOwnerComponent {
     this.profiles
       .updateMine({
         displayName: p.displayName,
-        hometown: p.hometown,
+        // Location omitted from this quick toggle — null means "leave the current city unchanged".
+        location: null,
         description: p.description,
         pompfen: p.pompfen,
         isPublic: next,

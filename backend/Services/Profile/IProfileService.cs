@@ -62,6 +62,10 @@ public interface IProfileService
     /// <summary>The user's immutable handle (their profile slug), or null if they have no profile.</summary>
     Task<string?> GetHandleAsync(Guid userId, CancellationToken ct = default);
 
+    /// <summary>The user's structured home city id (feature 030), or null if unset/no profile.
+    /// Used to anchor "near you" proximity ordering server-side.</summary>
+    Task<Guid?> GetHomeCityIdAsync(Guid userId, CancellationToken ct = default);
+
     /// <summary>
     /// Mark the owner's onboarding complete. Idempotent: sets the timestamp only if
     /// currently unset, so the first completion stands and repeats are no-ops.
@@ -70,6 +74,15 @@ public interface IProfileService
 
     /// <summary>Update the owner's editable fields + pompfen selection; null if no profile.</summary>
     Task<OwnerProfileDto?> UpdateAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct = default);
+
+    /// <summary>
+    /// Set (or clear) ONLY the owner's home city (feature 030) without touching any other field.
+    /// Onboarding calls this the moment a city is picked, so the upcoming team step can order by
+    /// proximity (FR-013). Returns false if the user has no profile. Throws
+    /// <see cref="Geocoding.CityNotResolvableException"/> when the selected id isn't in the reference
+    /// dataset, exactly as the create/update paths do; the caller maps it to 422.
+    /// </summary>
+    Task<bool> SetHomeCityAsync(Guid userId, Dtos.Cities.LocationSelectionDto selection, CancellationToken ct = default);
 
     /// <summary>
     /// The public, sensitive-data-free profile for a handle, or null if unknown OR hidden from

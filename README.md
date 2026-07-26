@@ -105,6 +105,7 @@ Each feature is specified before it's built (see [`specs/`](specs/)):
 | Realtime | **SignalR** (chat, live typing, notifications) with a **Redis** backplane + distributed rate limiting |
 | Mapping | Mapster (entity → DTO) |
 | Email | Mailpit (local), Resend (deployed) |
+| City data | Bundled **GeoNames `cities500`** dataset (~235k cities, seeded on startup) — powers the city picker + "near you"; no external geocoder |
 | Containers | Docker (per-service) + Docker Compose (local) |
 | CI/CD | GitHub Actions + Terraform → GHCR → **Azure Kubernetes Service (AKS)** |
 
@@ -129,8 +130,10 @@ docker compose ps              # wait for services to become healthy
 ```
 
 The backend **auto-applies EF Core migrations on startup** against the (initially
-empty) database — there's no manual migration step. Stop with
-`docker compose down` (add `-v` to also drop the database volume).
+empty) database — there's no manual migration step. On first startup it also **seeds the
+bundled GeoNames `cities500` dataset** (~235k cities) that backs the city picker — a one-time
+in-process load, no external service. Stop with `docker compose down` (add `-v` to also drop
+the database volume). To refresh the city snapshot, run `backend/Data/Seed/regenerate-cities500.mjs`.
 
 | Surface | URL |
 |---------|-----|

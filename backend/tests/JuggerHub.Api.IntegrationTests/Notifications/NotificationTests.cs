@@ -196,7 +196,7 @@ public sealed class NotificationTests
     private static string NewSlug() => "t" + Guid.NewGuid().ToString("N")[..12];
 
     private static Task<HttpResponseMessage> CreateTeamAsync(HttpClient client, string slug) =>
-        client.PostAsJsonAsync("/api/v1/teams", new { name = "Rheinfeuer", slug, type = "CityTeam", city = "Berlin" });
+        client.PostAsJsonAsync("/api/v1/teams", new { name = "Rheinfeuer", slug, type = "CityTeam", location = new { cityExternalId = "TEST:berlin" } });
 
     private async Task<(string Token, string Url)> CreateLinkAsync(HttpClient admin, string slug)
     {

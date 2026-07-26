@@ -62,7 +62,7 @@
                 <span class="min-w-0">
                   <span class="block truncate text-body-sm font-medium text-body">{{ player.displayName }}</span>
                   <span class="block truncate text-caption text-subtle">
-                    &#64;{{ player.handle }}@if (player.hometown) { · {{ player.hometown }}}
+                    &#64;{{ player.handle }}@if (player.location) { · {{ player.location }}}
                   </span>
                 </span>
                 <span class="whitespace-nowrap text-caption text-subtle">{{ player.joinedAt | date: 'MMM d' }}</span>

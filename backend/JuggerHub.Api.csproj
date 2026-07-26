@@ -27,6 +27,9 @@
     <Content Remove="EmailTemplates/**/*.html" />
     <None Remove="EmailTemplates/**/*.html" />
     <Content Include="EmailTemplates/**/*.html" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <!-- Feature 030: bundled GeoNames cities500 seed (regenerate with Data/Seed/regenerate-cities500.mjs). -->
+    <Content Include="Data/Seed/cities500.seed.tsv.gz" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Remove="Data/Seed/regenerate-cities500.mjs" />
   </ItemGroup>
 
   <ItemGroup>

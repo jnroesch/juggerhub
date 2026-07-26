@@ -48,7 +48,7 @@
   </label>
 
   <!-- Toolbar -->
-  <div class="flex items-center gap-sm">
+  <div class="flex flex-wrap items-center gap-sm">
     <button
       type="button"
       jhButton variant="secondary" size="sm"
@@ -69,10 +69,66 @@
       }
     </button>
 
-    @if (sortLabel()) {
-      <span class="inline-flex items-center gap-xs rounded-md border border-border px-sm py-xs text-body-sm text-subtle">
-        Sort · <b class="font-medium text-ink">{{ sortLabel() }}</b>
-      </span>
+    <!-- Feature 030 — a single Sort menu (mirrors the Filters button): the viewer opens it and
+         picks any ordering, including "Nearest first" (proximity). Every sort is chosen the same
+         way, so A–Z and Nearest first are no longer handled differently. Hidden when there is only
+         one possible order. -->
+    @if (showSort()) {
+      <div class="relative">
+        <button
+          type="button"
+          jhButton variant="secondary" size="sm"
+          (click)="toggleSortMenu()"
+          [attr.aria-haspopup]="'menu'"
+          [attr.aria-expanded]="sortMenuOpen()"
+          data-testid="browse-sort-button"
+        >
+          <svg class="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <line x1="2" y1="4" x2="14" y2="4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <line x1="2" y1="8" x2="10" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+            <line x1="2" y1="12" x2="6" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
+          </svg>
+          Sort · <b class="font-medium text-ink">{{ activeSortLabel() }}</b>
+        </button>
+
+        @if (sortMenuOpen()) {
+          <!-- Click-away backdrop -->
+          <button
+            type="button"
+            class="fixed inset-0 z-40 cursor-default"
+            aria-hidden="true"
+            tabindex="-1"
+            (click)="sortMenuOpen.set(false)"
+          ></button>
+          <div
+            class="absolute left-0 z-50 mt-xs flex min-w-48 flex-col gap-0 rounded-md border border-border bg-surface-card p-1 shadow-coral"
+            role="menu"
+            aria-label="Sort by"
+            data-testid="browse-sort-menu"
+          >
+            @for (option of sortOptions(); track option.value) {
+              <button
+                type="button"
+                role="menuitemradio"
+                [attr.aria-checked]="option.value === activeSort()"
+                (click)="selectSort(option.value)"
+                class="flex items-center justify-between gap-sm rounded-sm px-sm py-xs text-left text-body-sm transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                [class.text-brand]="option.value === activeSort()"
+                [class.font-medium]="option.value === activeSort()"
+                [class.text-ink]="option.value !== activeSort()"
+                [attr.data-testid]="'browse-sort-option-' + option.value"
+              >
+                {{ option.label }}
+                @if (option.value === activeSort()) {
+                  <svg class="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M3.5 8.5 6.5 11.5 12.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
     }
   </div>
 

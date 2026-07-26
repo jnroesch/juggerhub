@@ -152,6 +152,7 @@ public sealed record MarketInvitableUserDto(
     Guid UserId,
     string Handle,
     string DisplayName,
-    string? Hometown,
+    // Feature 030 — "City, Country" display label (null if no home city set).
+    string? Location,
     bool HasAvatar,
     MarketInviteRelation Relation);

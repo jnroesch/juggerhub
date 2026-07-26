@@ -114,6 +114,14 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<UserBlock> UserBlocks => Set<UserBlock>();
 
+    // Feature 030 — canonical cities + precomputed city-to-city distance cache.
+    public DbSet<City> Cities => Set<City>();
+
+    public DbSet<CityDistance> CityDistances => Set<CityDistance>();
+
+    // Feature 030 (R8) — bundled GeoNames cities500 reference dataset (city-picker search source).
+    public DbSet<CityReference> CityReferences => Set<CityReference>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -128,7 +136,6 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasQueryFilter(p => p.User.Status != AccountStatus.Banned);
             entity.Property(p => p.Handle).HasMaxLength(30).IsRequired();
             entity.Property(p => p.DisplayName).HasMaxLength(50).IsRequired();
-            entity.Property(p => p.Hometown).HasMaxLength(80);
             entity.Property(p => p.Description).HasMaxLength(280);
             // Feature 026: anonymous visibility is opt-in. Non-null, default private — the
             // migration backfills every existing row to false (FR-017/FR-018).
@@ -148,6 +155,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithOne(a => a.Profile)
                 .HasForeignKey<ProfileAvatar>(a => a.ProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Feature 030 — structured home city. Restrict: a city in use is not deleted out from
+            // under a profile that references it.
+            entity.HasOne(p => p.HomeCity)
+                .WithMany()
+                .HasForeignKey(p => p.HomeCityId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<ProfilePompfe>(entity =>
@@ -185,8 +199,6 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.Property(e => e.VenueName).HasMaxLength(120);
             entity.Property(e => e.Street).HasMaxLength(160);
             entity.Property(e => e.PostalCode).HasMaxLength(20);
-            entity.Property(e => e.City).HasMaxLength(120);
-            entity.Property(e => e.Country).HasMaxLength(80);
             entity.Property(e => e.VirtualLink).HasMaxLength(500);
             entity.Property(e => e.FeeAmount).HasPrecision(12, 2);
             entity.Property(e => e.FeeCurrency).HasMaxLength(3);
@@ -195,6 +207,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasIndex(e => e.StartsAt);
             // Browse excludes cancelled events (feature 007).
             entity.HasIndex(e => e.Status);
+
+            // Feature 030 — structured city (in-person events). Restrict: keep the city while
+            // events reference it. Null for virtual events.
+            entity.HasOne(e => e.City)
+                .WithMany()
+                .HasForeignKey(e => e.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<EventSignup>(entity =>
@@ -331,11 +350,17 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         {
             entity.Property(t => t.Slug).HasMaxLength(30).IsRequired();
             entity.Property(t => t.Name).HasMaxLength(50).IsRequired();
-            entity.Property(t => t.City).HasMaxLength(80);
             entity.Property(t => t.BeginnersWelcome).HasDefaultValue(false);
 
             // Slug addresses the team (/t/<slug>) — unique & the true uniqueness guarantee.
             entity.HasIndex(t => t.Slug).IsUnique();
+
+            // Feature 030 — structured home city (null for a Mixteam). Restrict: keep the city while
+            // teams reference it.
+            entity.HasOne(t => t.City)
+                .WithMany()
+                .HasForeignKey(t => t.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<TeamMembership>(entity =>
@@ -930,6 +955,60 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(b => b.BlockedUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---- Feature 030: structured locations ----
+
+        builder.Entity<City>(entity =>
+        {
+            entity.Property(c => c.ExternalId).HasMaxLength(64).IsRequired();
+            entity.Property(c => c.Name).HasMaxLength(120).IsRequired();
+            entity.Property(c => c.CountryName).HasMaxLength(80).IsRequired();
+            entity.Property(c => c.CountryCode).HasMaxLength(2);
+            entity.Property(c => c.Region).HasMaxLength(120);
+
+            // The de-dupe key: a city is upserted on its provider place id. The unique index is the
+            // race-safe backstop behind CityService's check-then-insert.
+            entity.HasIndex(c => c.ExternalId).IsUnique();
+            // Country filter (feature 030, FR-015).
+            entity.HasIndex(c => c.CountryCode);
+        });
+
+        builder.Entity<CityDistance>(entity =>
+        {
+            // One row per ordered pair; the backstop behind the backfill's check-then-insert.
+            entity.HasIndex(d => new { d.FromCityId, d.ToCityId }).IsUnique();
+            // Serves the proximity query: WHERE FromCityId = @home ORDER BY DistanceKm.
+            entity.HasIndex(d => new { d.FromCityId, d.DistanceKm });
+
+            entity.HasOne(d => d.FromCity)
+                .WithMany()
+                .HasForeignKey(d => d.FromCityId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // Restrict on the ToCity side so a single City delete cannot trigger two cascade paths to
+            // the same CityDistance row (SQL Server-style multiple-cascade-path guard; harmless on
+            // Postgres and explicit about intent). Pairs are torn down via the FromCity cascade.
+            entity.HasOne(d => d.ToCity)
+                .WithMany()
+                .HasForeignKey(d => d.ToCityId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<CityReference>(entity =>
+        {
+            entity.HasKey(r => r.ExternalId);
+            entity.Property(r => r.ExternalId).HasMaxLength(32);
+            entity.Property(r => r.Name).HasMaxLength(200).IsRequired();
+            entity.Property(r => r.AsciiName).HasMaxLength(200).IsRequired();
+            entity.Property(r => r.AlternateNames).HasMaxLength(2000);
+            entity.Property(r => r.CountryCode).HasMaxLength(2).IsRequired();
+            entity.Property(r => r.CountryName).HasMaxLength(80).IsRequired();
+            entity.Property(r => r.Region).HasMaxLength(120);
+            // Prefix search runs over the accent-free ascii name (ILIKE 'term%'); a plain btree index
+            // with text_pattern_ops would serve LIKE prefix scans, but at 235k rows a seq scan on an
+            // in-memory-cached table is already fast, so a simple index on AsciiName suffices.
+            entity.HasIndex(r => r.AsciiName);
+            entity.HasIndex(r => r.CountryCode);
         });
     }
 }

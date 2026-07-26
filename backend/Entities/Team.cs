@@ -20,8 +20,13 @@ public sealed class Team : BaseEntity
 
     public TeamType Type { get; set; }
 
-    /// <summary>Home city — required for <see cref="TeamType.CityTeam"/>, null for a Mixteam.</summary>
-    public string? City { get; set; }
+    /// <summary>
+    /// Home city (feature 030) — a structured <see cref="Entities.City"/> reference, required for
+    /// <see cref="TeamType.CityTeam"/> and null for a Mixteam. Replaces the former free-text string.
+    /// </summary>
+    public Guid? CityId { get; set; }
+
+    public City? City { get; set; }
 
     /// <summary>
     /// Self-managed recruitment signal (feature 007). When set, the team is flagged as open

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using JuggerHub.Dtos.Cities;
 using JuggerHub.Dtos.Recognition;
 using JuggerHub.Entities;
 
@@ -14,7 +15,8 @@ namespace JuggerHub.Dtos.Profile;
 /// </summary>
 public sealed record UpdateProfileRequest(
     [Required, MaxLength(50)] string DisplayName,
-    [MaxLength(80)] string? Hometown,
+    // Feature 030 — structured home city selection (null clears it); replaces free-text hometown.
+    LocationSelectionDto? Location,
     [MaxLength(280)] string? Description,
     Pompfe[]? Pompfen,
     // Feature 026 — owner-controlled anonymous visibility (default private).
@@ -24,7 +26,7 @@ public sealed record UpdateProfileRequest(
 public sealed record ActivityItemDto(string EventName, DateOnly Date, string Location, string TeamLabel);
 
 /// <summary>A team the player belongs to, shown on the profile (public + owner). Feature 005.</summary>
-public sealed record ProfileTeamDto(string Slug, string Name, TeamType Type, string? City, TeamRole Role);
+public sealed record ProfileTeamDto(string Slug, string Name, TeamType Type, LocationDto? Location, TeamRole Role);
 
 /// <summary>
 /// The authenticated owner's own profile (editable fields + selections + recent
@@ -33,7 +35,7 @@ public sealed record ProfileTeamDto(string Slug, string Name, TeamType Type, str
 public sealed record OwnerProfileDto(
     string Handle,
     string DisplayName,
-    string? Hometown,
+    LocationDto? Location,
     string? Description,
     bool HasAvatar,
     IReadOnlyList<Pompfe> Pompfen,
@@ -53,7 +55,7 @@ public sealed record OwnerProfileDto(
 public sealed record PublicProfileDto(
     string Handle,
     string DisplayName,
-    string? Hometown,
+    LocationDto? Location,
     string? Description,
     bool HasAvatar,
     IReadOnlyList<Pompfe> SelectedPompfen,

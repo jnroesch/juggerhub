@@ -47,9 +47,6 @@ test('filters open on demand and can be applied', async ({ page }) => {
   const panel = page.getByTestId('filter-panel');
   await expect(panel).toBeVisible();
 
-  // The locked near-me hook is present and non-interactive.
-  await expect(page.getByTestId('filter-near-me')).toBeVisible();
-
   await page.getByTestId('filter-apply').click();
   await expect(panel).toBeHidden();
 });

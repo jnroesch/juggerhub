@@ -169,7 +169,7 @@ public sealed class ProfileTests
         var updated = await client.PutAsJsonAsync("/api/v1/profiles/me", new
         {
             displayName = "Nik Berlin",
-            hometown = "Berlin",
+            location = new { cityExternalId = "TEST:berlin" },
             description = "Läufer at heart.",
             pompfen = new[] { "Stab", "Laeufer" },
         });
@@ -177,7 +177,7 @@ public sealed class ProfileTests
 
         Assert.Equal(HttpStatusCode.OK, updated.StatusCode);
         Assert.Equal("Nik Berlin", dto.GetProperty("displayName").GetString());
-        Assert.Equal("Berlin", dto.GetProperty("hometown").GetString());
+        Assert.Equal("Berlin", dto.GetProperty("location").GetProperty("name").GetString());
         Assert.Equal(2, dto.GetProperty("pompfen").GetArrayLength());
     }
 

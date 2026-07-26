@@ -1,5 +1,6 @@
 using JuggerHub.Common;
 using JuggerHub.Data;
+using JuggerHub.Dtos.Cities;
 using JuggerHub.Dtos.Search;
 using JuggerHub.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -46,8 +47,16 @@ public sealed class PlayerSearchService : IPlayerSearchService
         if (!string.IsNullOrWhiteSpace(query.City))
         {
             var city = query.City.Trim();
-            q = q.Where(p => p.Hometown != null
-                && EF.Functions.ILike(AppDbContext.Unaccent(p.Hometown), AppDbContext.Unaccent(city)));
+            q = q.Where(p => p.HomeCity != null
+                && EF.Functions.ILike(AppDbContext.Unaccent(p.HomeCity.Name), AppDbContext.Unaccent(city)));
+        }
+
+        if (!string.IsNullOrWhiteSpace(query.Country))
+        {
+            var country = query.Country.Trim();
+            q = q.Where(p => p.HomeCity != null
+                && (p.HomeCity.CountryCode == country
+                    || EF.Functions.ILike(AppDbContext.Unaccent(p.HomeCity.CountryName), AppDbContext.Unaccent(country))));
         }
 
         var term = SearchQuery.Normalize(query.Q, _options.MinQueryLength);
@@ -67,7 +76,11 @@ public sealed class PlayerSearchService : IPlayerSearchService
             .Select(p => new PlayerCardDto(
                 p.Handle,
                 p.DisplayName,
-                p.Hometown,
+                p.HomeCity == null
+                    ? null
+                    : new LocationDto(
+                        p.HomeCity.ExternalId, p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
+                        p.HomeCity.Name + ", " + p.HomeCity.CountryName),
                 p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList(),
                 p.Avatar != null))
             .ToListAsync(ct);

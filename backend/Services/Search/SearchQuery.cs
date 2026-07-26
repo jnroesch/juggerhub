@@ -6,12 +6,18 @@ namespace JuggerHub.Services.Search;
 public enum TeamSort
 {
     NameAsc = 0,
+
+    /// <summary>Feature 030 — nearest-first relative to the caller's home city (opt-in). Requires a home city.</summary>
+    Proximity = 1,
 }
 
 /// <summary>Event browse sort. Default is soonest-upcoming first.</summary>
 public enum EventSort
 {
     StartsAtAsc = 0,
+
+    /// <summary>Feature 030 — nearest-first (located events only; virtual excluded). Requires a home city.</summary>
+    Proximity = 1,
 }
 
 /// <summary>Player browse sort. Default is A–Z by display name.</summary>

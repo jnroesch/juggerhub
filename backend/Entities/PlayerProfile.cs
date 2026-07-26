@@ -25,8 +25,14 @@ public sealed class PlayerProfile : BaseEntity
     /// <summary>Shown name; defaults to the handle at creation so the page is never blank.</summary>
     public string DisplayName { get; set; } = string.Empty;
 
-    /// <summary>Optional short free-text hometown.</summary>
-    public string? Hometown { get; set; }
+    /// <summary>
+    /// Optional structured home city (feature 030), replacing the former free-text hometown.
+    /// Null = no location set. Set via server-side resolution of a picked city; drives
+    /// country-qualified display and "near you" proximity.
+    /// </summary>
+    public Guid? HomeCityId { get; set; }
+
+    public City? HomeCity { get; set; }
 
     /// <summary>Optional short bio (≤ 280 chars).</summary>
     public string? Description { get; set; }

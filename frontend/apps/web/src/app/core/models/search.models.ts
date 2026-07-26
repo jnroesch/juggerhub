@@ -4,15 +4,18 @@
  * Enums are serialized as names by the backend.
  */
 import { Pompfe } from '../../shared/pompfen.catalog';
+import { Location } from './city.models';
 import { PagedResult } from './profile.models';
 
 export type { PagedResult };
+export type { Location };
 
 export type EventType = 'Tournament' | 'Workshop' | 'Other';
 export type LocationKind = 'InPerson' | 'Virtual';
 
-export type TeamSort = 'NameAsc';
-export type EventSort = 'StartsAtAsc';
+// Feature 030 — 'Proximity' is the opt-in nearest-first sort (requires a home city).
+export type TeamSort = 'NameAsc' | 'Proximity';
+export type EventSort = 'StartsAtAsc' | 'Proximity';
 export type PlayerSort = 'DisplayNameAsc';
 
 // --- Cards ----------------------------------------------------------------------
@@ -20,7 +23,7 @@ export type PlayerSort = 'DisplayNameAsc';
 export interface TeamCard {
   slug: string;
   name: string;
-  city: string | null;
+  location: Location | null;
   playerCount: number;
   beginnersWelcome: boolean;
   logoInitial: string;
@@ -36,14 +39,14 @@ export interface EventCard {
   /** ISO date-time (UTC). */
   endsAt: string;
   locationKind: LocationKind;
-  city: string | null;
+  location: Location | null;
   locationLabel: string;
 }
 
 export interface PlayerCard {
   handle: string;
   displayName: string;
-  hometown: string | null;
+  location: Location | null;
   positions: Pompfe[];
   hasAvatar: boolean;
 }
@@ -59,7 +62,8 @@ export interface TeamBrowseParams extends PageParams {
   q?: string;
   activeOnly?: boolean;
   beginnersWelcome?: boolean;
-  city?: string | null;
+  /** Feature 030 — filter to a single country (ISO code or name). */
+  country?: string | null;
   sort?: TeamSort;
 }
 
@@ -71,14 +75,16 @@ export interface EventBrowseParams extends PageParams {
   /** ISO date (yyyy-MM-dd). */
   to?: string | null;
   type?: EventType | null;
-  city?: string | null;
+  /** Feature 030 — filter to a single country (ISO code or name). */
+  country?: string | null;
   sort?: EventSort;
 }
 
 export interface PlayerBrowseParams extends PageParams {
   q?: string;
   positions?: Pompfe[];
-  city?: string | null;
+  /** Feature 030 — filter to a single country (ISO code or name). */
+  country?: string | null;
   sort?: PlayerSort;
 }
 
@@ -88,6 +94,14 @@ export interface PlayerBrowseParams extends PageParams {
 export interface FilterChip {
   /** Stable key identifying which filter this chip represents. */
   key: string;
+  label: string;
+}
+
+/** One choice in the browse Sort menu (feature 030 unified the sort control). */
+export interface SortOption {
+  /** The `sort` value sent to the API, e.g. "NameAsc" | "Proximity". */
+  value: string;
+  /** Human label shown in the menu and on the button, e.g. "Nearest first". */
   label: string;
 }
 

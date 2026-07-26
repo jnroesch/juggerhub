@@ -6,6 +6,7 @@ import { POMPFEN_CATALOG, Pompfe, pompfeLabel } from '../../../shared/pompfen.ca
 import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
+import { CountryPickerComponent } from '../../../shared/country-picker/country-picker.component';
 
 /**
  * Players browse page (feature 007, US3). Same shell as Teams/Events; the player filter set is
@@ -14,7 +15,7 @@ import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
  */
 @Component({
   selector: 'jh-browse-players',
-  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent],
+  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, CountryPickerComponent],
   templateUrl: './browse-players.component.html',
   styleUrl: './browse-players.component.css',
 })
@@ -131,7 +132,7 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
     return {
       q: this.query() || undefined,
       positions: this.positions().length ? this.positions() : undefined,
-      city: this.city().trim() || undefined,
+      country: this.city().trim() || undefined,
       sort: 'DisplayNameAsc',
     };
   }
@@ -147,7 +148,7 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
       .browsePlayers({
         q: this.query() || undefined,
         positions: this.pendingPositions().length ? this.pendingPositions() : undefined,
-        city: this.pendingCity().trim() || undefined,
+        country: this.pendingCity().trim() || undefined,
         take: 0,
       })
       .subscribe({

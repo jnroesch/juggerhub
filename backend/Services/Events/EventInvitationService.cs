@@ -255,7 +255,7 @@ public sealed class EventInvitationService : IEventInvitationService
                 p.UserId,
                 p.Handle,
                 p.DisplayName,
-                p.Hometown,
+                p.HomeCity == null ? null : p.HomeCity.Name + ", " + p.HomeCity.CountryName,
                 _db.EventAdmins.Any(a => a.EventId == eventId && a.UserId == p.UserId)
                     ? UserRelation.Member // already an admin
                     : _db.EventAdminInvitations.Any(i => i.EventId == eventId && i.Kind == InvitationKind.Targeted

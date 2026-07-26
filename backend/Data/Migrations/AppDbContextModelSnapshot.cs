@@ -391,6 +391,141 @@ namespace JuggerHub.Data.Migrations
                     b.ToTable("ChatMessages");
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.City", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CountryCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<string>("CountryName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExternalId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Region")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CountryCode");
+
+                    b.HasIndex("ExternalId")
+                        .IsUnique();
+
+                    b.ToTable("Cities");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.CityDistance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("DistanceKm")
+                        .HasColumnType("double precision");
+
+                    b.Property<Guid>("FromCityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("ToCityId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ToCityId");
+
+                    b.HasIndex("FromCityId", "DistanceKm");
+
+                    b.HasIndex("FromCityId", "ToCityId")
+                        .IsUnique();
+
+                    b.ToTable("CityDistances");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.CityReference", b =>
+                {
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("AlternateNames")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("AsciiName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<string>("CountryName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Region")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("ExternalId");
+
+                    b.HasIndex("AsciiName");
+
+                    b.HasIndex("CountryCode");
+
+                    b.ToTable("CityReferences");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.Conversation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -513,13 +648,8 @@ namespace JuggerHub.Data.Migrations
                     b.Property<DateTime?>("CancelledDate")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("City")
-                        .HasMaxLength(120)
-                        .HasColumnType("character varying(120)");
-
-                    b.Property<string>("Country")
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
+                    b.Property<Guid?>("CityId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -609,6 +739,8 @@ namespace JuggerHub.Data.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CityId");
 
                     b.HasIndex("StartsAt");
 
@@ -1244,9 +1376,8 @@ namespace JuggerHub.Data.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<string>("Hometown")
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
+                    b.Property<Guid?>("HomeCityId")
+                        .HasColumnType("uuid");
 
                     b.Property<bool>("IsPublic")
                         .ValueGeneratedOnAdd()
@@ -1266,6 +1397,8 @@ namespace JuggerHub.Data.Migrations
 
                     b.HasIndex("Handle")
                         .IsUnique();
+
+                    b.HasIndex("HomeCityId");
 
                     b.HasIndex("UserId")
                         .IsUnique();
@@ -1397,9 +1530,8 @@ namespace JuggerHub.Data.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("City")
-                        .HasMaxLength(80)
-                        .HasColumnType("character varying(80)");
+                    b.Property<Guid?>("CityId")
+                        .HasColumnType("uuid");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
@@ -1421,6 +1553,8 @@ namespace JuggerHub.Data.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CityId");
 
                     b.HasIndex("Slug")
                         .IsUnique();
@@ -2109,6 +2243,25 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("Sender");
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.CityDistance", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.City", "FromCity")
+                        .WithMany()
+                        .HasForeignKey("FromCityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.City", "ToCity")
+                        .WithMany()
+                        .HasForeignKey("ToCityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("FromCity");
+
+                    b.Navigation("ToCity");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.Conversation", b =>
                 {
                     b.HasOne("JuggerHub.Entities.Event", "Event")
@@ -2157,6 +2310,16 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("Conversation");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.Event", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("City");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.EventAdmin", b =>
@@ -2452,11 +2615,18 @@ namespace JuggerHub.Data.Migrations
 
             modelBuilder.Entity("JuggerHub.Entities.PlayerProfile", b =>
                 {
+                    b.HasOne("JuggerHub.Entities.City", "HomeCity")
+                        .WithMany()
+                        .HasForeignKey("HomeCityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("JuggerHub.Entities.User", "User")
                         .WithOne("Profile")
                         .HasForeignKey("JuggerHub.Entities.PlayerProfile", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("HomeCity");
 
                     b.Navigation("User");
                 });
@@ -2492,6 +2662,16 @@ namespace JuggerHub.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.Team", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.City", "City")
+                        .WithMany()
+                        .HasForeignKey("CityId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("City");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.TeamInvitation", b =>

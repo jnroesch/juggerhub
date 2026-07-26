@@ -289,7 +289,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
                 p.UserId,
                 p.Handle,
                 p.DisplayName,
-                p.Hometown,
+                p.HomeCity == null ? null : p.HomeCity.Name + ", " + p.HomeCity.CountryName,
                 _db.TeamMemberships.Any(m => m.TeamId == teamId && m.UserId == p.UserId)
                     ? UserRelation.Member
                     : _db.TeamInvitations.Any(i => i.TeamId == teamId && i.Kind == InvitationKind.Targeted
@@ -326,7 +326,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
                 i.Team.Name,
                 i.Team.Slug,
                 i.Team.Type,
-                i.Team.City,
+                i.Team.City == null ? null : i.Team.City.Name + ", " + i.Team.City.CountryName,
                 i.Team.Memberships.Count,
                 i.CreatedBy.Profile != null ? i.CreatedBy.Profile.DisplayName : "A teammate",
                 i.CreatedDate,
@@ -350,7 +350,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
                 TeamName = i.Team.Name,
                 TeamSlug = i.Team.Slug,
                 i.Team.Type,
-                i.Team.City,
+                Location = i.Team.City == null ? null : i.Team.City.Name + ", " + i.Team.City.CountryName,
                 MemberCount = i.Team.Memberships.Count,
                 InviterName = i.CreatedBy.Profile != null ? i.CreatedBy.Profile.DisplayName : "A teammate",
             })
@@ -367,7 +367,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
                 ? InviteState.Expired
                 : InviteState.Invalid;
 
-        return new InvitePreviewDto(invite.TeamName, invite.TeamSlug, invite.Type, invite.City, invite.MemberCount, invite.InviterName, state);
+        return new InvitePreviewDto(invite.TeamName, invite.TeamSlug, invite.Type, invite.Location, invite.MemberCount, invite.InviterName, state);
     }
 
     public async Task<AcceptResult> AcceptAsync(string token, Guid userId, CancellationToken ct = default)

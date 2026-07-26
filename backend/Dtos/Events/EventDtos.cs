@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using JuggerHub.Dtos.Cities;
 using JuggerHub.Dtos.Teams; // reuse UserRelation + InviteState (shared invitation concepts)
 using JuggerHub.Entities;
 
@@ -22,8 +23,8 @@ public sealed record CreateEventRequest(
     [MaxLength(120)] string? VenueName,
     [MaxLength(160)] string? Street,
     [MaxLength(20)] string? PostalCode,
-    [MaxLength(120)] string? City,
-    [MaxLength(80)] string? Country,
+    // Feature 030 — structured city selection (in-person only; null/absent for virtual).
+    LocationSelectionDto? Location,
     [MaxLength(500)] string? VirtualLink,
     [Required] ParticipantMode ParticipantMode,
     [Range(1, int.MaxValue)] int ParticipationLimit,
@@ -50,8 +51,8 @@ public sealed record EditEventRequest(
     [MaxLength(120)] string? VenueName,
     [MaxLength(160)] string? Street,
     [MaxLength(20)] string? PostalCode,
-    [MaxLength(120)] string? City,
-    [MaxLength(80)] string? Country,
+    // Feature 030 — structured city selection (in-person only; null/absent for virtual).
+    LocationSelectionDto? Location,
     [MaxLength(500)] string? VirtualLink,
     [Range(1, int.MaxValue)] int ParticipationLimit,
     bool IsPaid,
@@ -104,8 +105,8 @@ public sealed record EventDetailDto(
     string? VenueName,
     string? Street,
     string? PostalCode,
-    string? City,
-    string? Country,
+    // Feature 030 — structured city (null for virtual events); country derived from it.
+    LocationDto? Location,
     string? VirtualLink,
     ParticipantMode ParticipantMode,
     int ParticipationLimit,
@@ -158,7 +159,8 @@ public sealed record EventInvitableUserDto(
     Guid UserId,
     string Handle,
     string DisplayName,
-    string? Hometown,
+    // Feature 030 — "City, Country" display label (null if no home city set).
+    string? Location,
     UserRelation Relation);
 
 /// <summary>Anonymous co-admin invite preview: public event info + inviter + usability.</summary>

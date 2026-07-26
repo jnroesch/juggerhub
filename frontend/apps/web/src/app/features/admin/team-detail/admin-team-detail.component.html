@@ -25,7 +25,7 @@
     </span>
   </div>
   <p class="mt-1 text-body-sm text-muted">
-    @if (team.city) { {{ team.city }} · }<span class="font-mono">{{ team.memberCount }}</span> members · created {{ team.createdAt | date: 'MMM y' }}
+    @if (team.location) { {{ team.location }} · }<span class="font-mono">{{ team.memberCount }}</span> members · created {{ team.createdAt | date: 'MMM y' }}
     · <a [href]="'/t/' + team.slug" target="_blank" rel="noopener" class="font-medium text-link hover:text-link-hover">View public page</a>
   </p>
 

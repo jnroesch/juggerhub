@@ -57,7 +57,7 @@
               <span class="block text-body-sm font-medium text-body">{{ row.name }}</span>
               <span class="block text-caption text-subtle">{{ row.type === 'CityTeam' ? 'City team' : 'Mixteam' }}</span>
             </td>
-            <td class="px-md py-sm text-body-sm text-muted">{{ row.city || '—' }}</td>
+            <td class="px-md py-sm text-body-sm text-muted">{{ row.location || '—' }}</td>
             <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.memberCount }}</td>
             <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.awardCount }}</td>
             <td class="px-md py-sm text-right text-subtle" aria-hidden="true">›</td>
@@ -81,7 +81,7 @@
             <span class="whitespace-nowrap font-mono text-caption text-muted">{{ row.awardCount }} {{ row.awardCount === 1 ? 'award' : 'awards' }}</span>
           </span>
           <span class="mt-1 block text-caption text-subtle">
-            {{ row.type === 'CityTeam' ? 'City team' : 'Mixteam' }}@if (row.city) { · {{ row.city }}} · <span class="font-mono">{{ row.memberCount }}</span> members
+            {{ row.type === 'CityTeam' ? 'City team' : 'Mixteam' }}@if (row.location) { · {{ row.location }}} · <span class="font-mono">{{ row.memberCount }}</span> members
           </span>
         </a>
       </li>

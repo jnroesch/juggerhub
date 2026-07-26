@@ -10,12 +10,33 @@ import { WritableSignal, Signal } from '@angular/core';
 import { OnboardingComponent } from './onboarding.component';
 import { OwnerProfile, UpdateProfileRequest } from '../../core/models/profile.models';
 import { PagedResult, TeamCard } from '../../core/models/search.models';
+import { CityOption, Location } from '../../core/models/city.models';
 import { Pompfe } from '../../shared/pompfen.catalog';
+
+const BERLIN_LOC: Location = {
+  externalId: 'TEST:berlin',
+  name: 'Berlin',
+  region: null,
+  countryName: 'Germany',
+  countryCode: 'DE',
+  label: 'Berlin, Germany',
+};
+
+const BERLIN_OPTION: CityOption = { ...BERLIN_LOC, latitude: 52.52, longitude: 13.405 };
+
+const HAMBURG_LOC: Location = {
+  externalId: 'TEST:hamburg',
+  name: 'Hamburg',
+  region: null,
+  countryName: 'Germany',
+  countryCode: 'DE',
+  label: 'Hamburg, Germany',
+};
 
 const PROFILE: OwnerProfile = {
   handle: 'nik',
   displayName: 'nik',
-  hometown: null,
+  location: null,
   description: null,
   hasAvatar: false,
   pompfen: [],
@@ -25,7 +46,7 @@ const PROFILE: OwnerProfile = {
 const BERLIN: TeamCard = {
   slug: 'berlin-jugger',
   name: 'Berlin Jugger',
-  city: 'Berlin',
+  location: BERLIN_LOC,
   playerCount: 24,
   beginnersWelcome: true,
   logoInitial: 'B',
@@ -35,7 +56,7 @@ const BERLIN: TeamCard = {
 const HAMBURG: TeamCard = {
   slug: 'hamburg-hammers',
   name: 'Hamburg Hammers',
-  city: 'Hamburg',
+  location: HAMBURG_LOC,
   playerCount: 18,
   beginnersWelcome: false,
   logoInitial: 'H',
@@ -49,7 +70,7 @@ function page(items: TeamCard[]): PagedResult<TeamCard> {
 interface OnboardingApi {
   step: Signal<string>;
   displayName: WritableSignal<string>;
-  hometown: WritableSignal<string>;
+  onCitySelected: (option: CityOption | null) => void;
   description: WritableSignal<string>;
   selectedPompfen: WritableSignal<Pompfe[]>;
   nameEmpty: Signal<boolean>;
@@ -165,7 +186,7 @@ describe('OnboardingComponent', () => {
     const comp = api(fixture);
 
     comp.displayName.set('Nik Berlin');
-    comp.hometown.set('Berlin');
+    comp.onCitySelected(BERLIN_OPTION);
     comp.description.set('Läufer at heart.');
     comp.selectedPompfen.set(['Stab', 'Laeufer']);
     comp.finish();
@@ -175,7 +196,7 @@ describe('OnboardingComponent', () => {
     const body = update.request.body as UpdateProfileRequest;
     expect(body).toEqual({
       displayName: 'Nik Berlin',
-      hometown: 'Berlin',
+      location: { cityExternalId: 'TEST:berlin', name: 'Berlin' },
       description: 'Läufer at heart.',
       pompfen: ['Stab', 'Laeufer'],
       isPublic: false,
@@ -200,7 +221,7 @@ describe('OnboardingComponent', () => {
     const update = httpMock.expectOne('/api/v1/profiles/me');
     expect(update.request.body).toEqual({
       displayName: 'Solo',
-      hometown: null,
+      location: null,
       description: null,
       pompfen: [],
       isPublic: false,
@@ -285,6 +306,45 @@ describe('OnboardingComponent', () => {
       fixture.detectChanges();
 
       expect(comp.teams.items()).toEqual([HAMBURG]);
+    });
+
+    it('persists a picked home city on leaving the city step, then orders teams by proximity (FR-013)', () => {
+      const fixture = createComponent();
+      const comp = api(fixture);
+
+      // welcome → name → city; pick a city, then Continue off the city step.
+      comp.next();
+      comp.next();
+      comp.onCitySelected(BERLIN_OPTION);
+      comp.next(); // city → pompfen: persists the home city on its OWN endpoint (not the full profile)
+
+      const save = httpMock.expectOne('/api/v1/profiles/me/home-city');
+      expect(save.request.method).toBe('PUT');
+      expect(save.request.body).toEqual({ cityExternalId: 'TEST:berlin', name: 'Berlin' });
+      save.flush(null);
+
+      // Persisting refreshes the team list, now proximity-ordered (beginners filter dropped).
+      const near = teamSearch();
+      expect(near.request.params.get('sort')).toBe('Proximity');
+      expect(near.request.params.has('beginnersWelcome')).toBe(false);
+      near.flush(page([BERLIN]));
+    });
+
+    it('a failed home-city save leaves the team step on the default ordering (never blocks)', () => {
+      const fixture = createComponent();
+      const comp = api(fixture);
+
+      comp.next();
+      comp.next();
+      comp.onCitySelected(BERLIN_OPTION);
+      comp.next(); // city → pompfen
+
+      // The save fails — no proximity reload is issued, and navigation is unaffected.
+      httpMock.expectOne('/api/v1/profiles/me/home-city').error(new ProgressEvent('network'));
+
+      comp.next(); // pompfen → team
+      fixture.detectChanges();
+      expect(comp.step()).toBe('team');
     });
 
     it('clearing the query returns to the beginners-welcome opening list', () => {
@@ -519,7 +579,7 @@ describe('OnboardingComponent', () => {
       const update = httpMock.expectOne('/api/v1/profiles/me');
       expect(update.request.body).toEqual({
         displayName: 'Solo',
-        hometown: null,
+        location: null,
         description: null,
         pompfen: [],
         isPublic: false,

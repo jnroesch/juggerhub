@@ -102,7 +102,7 @@ public sealed class AdminUserService : IAdminUserService
                 p.UserId,
                 p.Handle,
                 p.DisplayName,
-                p.Hometown,
+                p.HomeCity == null ? null : p.HomeCity.Name + ", " + p.HomeCity.CountryName,
                 p.CreatedDate,
                 p.User.Status,
                 p.User.StatusChangedAt,

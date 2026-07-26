@@ -34,6 +34,7 @@ public sealed class EventsController : ControllerBase
     private readonly IEventInvitationService _invitations;
     private readonly IEventSearchService _search;
     private readonly IPartyService _parties;
+    private readonly JuggerHub.Services.Profile.IProfileService _profiles;
 
     public EventsController(
         IEventService events,
@@ -43,7 +44,8 @@ public sealed class EventsController : ControllerBase
         IEventAdminService admins,
         IEventInvitationService invitations,
         IEventSearchService search,
-        IPartyService parties)
+        IPartyService parties,
+        JuggerHub.Services.Profile.IProfileService profiles)
     {
         _events = events;
         _signups = signups;
@@ -53,6 +55,7 @@ public sealed class EventsController : ControllerBase
         _invitations = invitations;
         _search = search;
         _parties = parties;
+        _profiles = profiles;
     }
 
     /// <summary>The signed-in caller's party affordances for a teams-only event (feature 016):
@@ -76,8 +79,31 @@ public sealed class EventsController : ControllerBase
     /// fields only.</summary>
     [HttpGet]
     public async Task<ActionResult<PagedResult<EventCardDto>>> Browse(
-        [FromQuery] EventBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
-        Ok(await _search.BrowseAsync(query, pagination, ct));
+        [FromQuery] EventBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        // Authenticated-only since feature 026; resolve the caller up front so the auth check never
+        // depends on user-supplied query values (a proximity request must not be the only path that
+        // enforces it).
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        // Proximity sort (feature 030) anchors on the caller's home city (resolved server-side);
+        // without one, ask them to set it rather than silently reordering.
+        Guid? homeCityId = null;
+        if (query.Sort == JuggerHub.Services.Search.EventSort.Proximity)
+        {
+            homeCityId = await _profiles.GetHomeCityIdAsync(userId, ct);
+            if (homeCityId is null)
+            {
+                return Problem(statusCode: StatusCodes.Status409Conflict, title: "No home city",
+                    detail: "Set your home city to sort events by distance.");
+            }
+        }
+
+        return Ok(await _search.BrowseAsync(query, pagination, homeCityId, ct));
+    }
 
     // --- Create ---------------------------------------------------------------
 

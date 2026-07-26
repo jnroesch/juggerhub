@@ -1,7 +1,9 @@
 <jh-browse-shell
   title="Teams"
   searchPlaceholder="Search teams…"
-  sortLabel="A–Z"
+  [sortOptions]="sortOptions()"
+  [activeSort]="sort()"
+  (sortChange)="onSortChange($event)"
   [countLabel]="countLabel()"
   [chips]="chips()"
   [activeFilterCount]="activeFilterCount()"
@@ -29,8 +31,8 @@
         <span class="flex flex-1 flex-col">
           <span class="text-body-md text-ink">{{ team.name }}</span>
           <span class="text-body-sm text-subtle">
-            @if (team.city) {
-              {{ team.city }} ·
+            @if (team.location) {
+              {{ team.location.label }} ·
             }
             <span class="font-mono">{{ team.playerCount }}</span> players
           </span>
@@ -67,14 +69,8 @@
     />
   </div>
 
-  <label class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">City or region</span>
-    <input
-      type="text"
-      class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none placeholder:text-faint"
-      placeholder="Any city"
-      [value]="pendingCity()"
-      (input)="onPendingCity($any($event.target).value)"
-    />
-  </label>
+  <div class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">Country</span>
+    <jh-country-picker [value]="pendingCity()" (valueChange)="onPendingCity($event)" />
+  </div>
 </jh-filter-panel>

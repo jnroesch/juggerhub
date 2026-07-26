@@ -292,6 +292,14 @@ builder.Services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime, Ju
 // would silently multiply every limit by the replica count (specs/019-chat/research.md §11).
 builder.Services.AddJuggerHubRateLimiting(builder.Configuration.GetConnectionString("Redis"));
 
+// --- Structured locations (feature 030, research R8) -----------------------
+// City search + selection resolve against a bundled, seeded GeoNames cities500 reference table —
+// a local SQL query, NOT an external geocoder. No HTTP client, no resilience pipeline, no API key,
+// nothing leaves the box (Principle I). The reference table is loaded once per environment by
+// CityReferenceSeeder below.
+builder.Services.Configure<GeocodingOptions>(builder.Configuration.GetSection(GeocodingOptions.SectionName));
+builder.Services.AddScoped<JuggerHub.Services.Geocoding.ICityService, JuggerHub.Services.Geocoding.CityService>();
+
 // --- Search / browse (feature 007) -----------------------------------------
 builder.Services.Configure<SearchOptions>(builder.Configuration.GetSection(SearchOptions.SectionName));
 builder.Services.AddScoped<ITeamSearchService, TeamSearchService>();
@@ -375,6 +383,17 @@ var app = builder.Build();
 // a failure logs a generic error and exits non-zero rather than serving against
 // a broken/half-migrated schema. See specs/001-project-scaffold/research.md §5.
 await ApplyMigrationsAsync(app);
+
+// Load the bundled GeoNames cities500 reference dataset (feature 030, R8) in EVERY environment —
+// it is the city-picker's search source. Idempotent: a no-op once the table is populated. Gated by
+// config so integration tests can seed a small fixture instead of ~235k rows.
+if (builder.Configuration.GetValue("Seeding:CityReferences", true))
+{
+    using var cityScope = app.Services.CreateScope();
+    var cityDb = cityScope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var cityLog = cityScope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup.CitySeed");
+    await CityReferenceSeeder.SeedAsync(cityDb, AppContext.BaseDirectory, cityLog);
+}
 
 // Mirror the PlatformAdmin role to the configured admin identities (feature 013).
 // Config is the source of truth: additions grant, removals revoke, unknown emails are

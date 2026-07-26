@@ -24,6 +24,8 @@ public sealed class EventService : IEventService
     private readonly Chat.IChatConversationService _chat;
     private readonly ILogger<EventService> _logger;
 
+    private readonly Geocoding.ICityService _cities;
+
     public EventService(
         AppDbContext db,
         IOptions<EventOptions> options,
@@ -31,6 +33,7 @@ public sealed class EventService : IEventService
         EventAdminGuard guard,
         Email.EventEmailService email,
         Chat.IChatConversationService chat,
+        Geocoding.ICityService cities,
         ILogger<EventService> logger)
     {
         _db = db;
@@ -39,6 +42,7 @@ public sealed class EventService : IEventService
         _guard = guard;
         _email = email;
         _chat = chat;
+        _cities = cities;
         _logger = logger;
     }
 
@@ -93,8 +97,15 @@ public sealed class EventService : IEventService
             return CreateEventResult.Fail("A roster cap only applies to teams-only events.");
         }
 
+        // Resolve the structured city first (feature 030) — before any tracking/insert.
+        var cityResult = await ResolveEventCityAsync(request.LocationKind, request.Location, ct);
+        if (cityResult.Reason is not null)
+        {
+            return CreateEventResult.Fail(cityResult.Reason);
+        }
+
         var locationResult = ResolveLocation(request.LocationKind, request.VenueName, request.Street,
-            request.PostalCode, request.City, request.Country, request.VirtualLink);
+            request.PostalCode, request.VirtualLink);
         if (locationResult.Reason is not null)
         {
             return CreateEventResult.Fail(locationResult.Reason);
@@ -118,10 +129,10 @@ public sealed class EventService : IEventService
             VenueName = locationResult.VenueName,
             Street = locationResult.Street,
             PostalCode = locationResult.PostalCode,
-            City = locationResult.City,
-            Country = locationResult.Country,
+            CityId = cityResult.CityId,
+            City = cityResult.City,
             VirtualLink = locationResult.VirtualLink,
-            Location = locationResult.LegacyLocation,
+            Location = LegacyLocationLabel(request.LocationKind, cityResult.City),
             ParticipantMode = request.ParticipantMode,
             ParticipationLimit = request.ParticipationLimit,
             RosterCap = rosterCap,
@@ -146,7 +157,7 @@ public sealed class EventService : IEventService
 
     public async Task<EventDetailDto?> GetDetailAsync(Guid eventId, Guid? userId, CancellationToken ct = default)
     {
-        var ev = await _db.Events.AsNoTracking().FirstOrDefaultAsync(e => e.Id == eventId, ct);
+        var ev = await _db.Events.AsNoTracking().Include(e => e.City).FirstOrDefaultAsync(e => e.Id == eventId, ct);
         if (ev is null)
         {
             return null;
@@ -269,8 +280,14 @@ public sealed class EventService : IEventService
                 $"There are already {occupied} taking part — the limit can't be lower than that.");
         }
 
+        var cityResult = await ResolveEventCityAsync(request.LocationKind, request.Location, ct);
+        if (cityResult.Reason is not null)
+        {
+            return EditEventResult.Fail(EditEventStatus.Invalid, cityResult.Reason);
+        }
+
         var locationResult = ResolveLocation(request.LocationKind, request.VenueName, request.Street,
-            request.PostalCode, request.City, request.Country, request.VirtualLink);
+            request.PostalCode, request.VirtualLink);
         if (locationResult.Reason is not null)
         {
             return EditEventResult.Fail(EditEventStatus.Invalid, locationResult.Reason);
@@ -294,10 +311,10 @@ public sealed class EventService : IEventService
         ev.VenueName = locationResult.VenueName;
         ev.Street = locationResult.Street;
         ev.PostalCode = locationResult.PostalCode;
-        ev.City = locationResult.City;
-        ev.Country = locationResult.Country;
+        ev.CityId = cityResult.CityId;
+        ev.City = cityResult.City;
         ev.VirtualLink = locationResult.VirtualLink;
-        ev.Location = locationResult.LegacyLocation;
+        ev.Location = LegacyLocationLabel(request.LocationKind, cityResult.City);
         ev.ParticipationLimit = request.ParticipationLimit;
         ev.IsPaid = feeResult.IsPaid;
         ev.FeeAmount = feeResult.Amount;
@@ -389,29 +406,53 @@ public sealed class EventService : IEventService
     // --- Helpers --------------------------------------------------------------
 
     private readonly record struct LocationResult(
-        string? VenueName, string? Street, string? PostalCode, string? City, string? Country,
-        string? VirtualLink, string LegacyLocation, string? Reason);
+        string? VenueName, string? Street, string? PostalCode,
+        string? VirtualLink, string? Reason);
+
+    /// <summary>
+    /// Resolves the structured city for an event (feature 030). In-person events need a picked city;
+    /// virtual events have none. Returns the resolved <see cref="City"/> (so callers can set the FK
+    /// nav and build the legacy label) or a user-facing reason.
+    /// </summary>
+    private async Task<(Guid? CityId, City? City, string? Reason)> ResolveEventCityAsync(
+        LocationKind kind, JuggerHub.Dtos.Cities.LocationSelectionDto? location, CancellationToken ct)
+    {
+        if (kind != LocationKind.InPerson)
+        {
+            return (null, null, null);
+        }
+
+        if (string.IsNullOrWhiteSpace(location?.CityExternalId))
+        {
+            return (null, null, "An in-person event needs a city.");
+        }
+
+        try
+        {
+            var city = await _cities.ResolveAndUpsertAsync(location.CityExternalId!, location.Name, ct);
+            return (city.Id, city, null);
+        }
+        catch (Geocoding.CityNotResolvableException)
+        {
+            return (null, null, "That city could not be found.");
+        }
+    }
 
     private static LocationResult ResolveLocation(
-        LocationKind kind, string? venueName, string? street, string? postalCode,
-        string? city, string? country, string? virtualLink)
+        LocationKind kind, string? venueName, string? street, string? postalCode, string? virtualLink)
     {
         if (kind == LocationKind.InPerson)
         {
             var venue = Trimmed(venueName);
             var streetValue = Trimmed(street);
             var postalValue = Trimmed(postalCode);
-            var cityValue = Trimmed(city);
-            var countryValue = Trimmed(country);
-            if (streetValue is null || postalValue is null || cityValue is null || countryValue is null)
+            if (streetValue is null || postalValue is null)
             {
-                return new LocationResult(null, null, null, null, null, null, string.Empty,
-                    "An in-person event needs a full address, including country.");
+                return new LocationResult(null, null, null, null,
+                    "An in-person event needs a street and postal code.");
             }
 
-            // Legacy free-text location (still read by activity): "City, Country".
-            var legacy = $"{cityValue}, {countryValue}";
-            return new LocationResult(venue, streetValue, postalValue, cityValue, countryValue, null, legacy, null);
+            return new LocationResult(venue, streetValue, postalValue, null, null);
         }
 
         var link = Trimmed(virtualLink);
@@ -426,12 +467,18 @@ public sealed class EventService : IEventService
             || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
             || string.IsNullOrEmpty(uri.Host))
         {
-            return new LocationResult(null, null, null, null, null, null, string.Empty,
+            return new LocationResult(null, null, null, null,
                 "Add a link like zoom.us/… or https://meet.… so people can join.");
         }
 
-        return new LocationResult(null, null, null, null, null, link, "Online", null);
+        return new LocationResult(null, null, null, link, null);
     }
+
+    /// <summary>Legacy free-text location (still read by activity display): "City, Country" or "Online".</summary>
+    private static string LegacyLocationLabel(LocationKind kind, City? city) =>
+        kind == LocationKind.InPerson
+            ? (city is null ? string.Empty : $"{city.Name}, {city.CountryName}")
+            : "Online";
 
     private readonly record struct FeeResult(
         bool IsPaid, decimal? Amount, string? Currency, string? RecipientName, string? Iban, string? Reason);
@@ -472,8 +519,7 @@ public sealed class EventService : IEventService
         e.VenueName,
         e.Street,
         e.PostalCode,
-        e.City,
-        e.Country,
+        Geocoding.LocationLabels.ToLocation(e.City),
         e.VirtualLink,
         e.ParticipantMode,
         e.ParticipationLimit,

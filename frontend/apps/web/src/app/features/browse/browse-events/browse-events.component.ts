@@ -2,11 +2,13 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SearchService } from '../../../core/services/search.service';
-import { EventBrowseParams, EventCard, EventType, FilterChip } from '../../../core/models/search.models';
+import { ProfileService } from '../../../core/services/profile.service';
+import { EventBrowseParams, EventCard, EventType, FilterChip, SortOption } from '../../../core/models/search.models';
 import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
 import { FilterToggleComponent } from '../filter-panel/filter-toggle.component';
+import { CountryPickerComponent } from '../../../shared/country-picker/country-picker.component';
 
 const EVENT_TYPES: readonly EventType[] = ['Tournament', 'Workshop', 'Other'];
 
@@ -17,12 +19,13 @@ const EVENT_TYPES: readonly EventType[] = ['Tournament', 'Workshop', 'Other'];
  */
 @Component({
   selector: 'jh-browse-events',
-  imports: [RouterLink, DatePipe, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent],
+  imports: [RouterLink, DatePipe, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent],
   templateUrl: './browse-events.component.html',
   styleUrl: './browse-events.component.css',
 })
 export class BrowseEventsComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
+  private readonly profiles = inject(ProfileService);
   protected readonly eventTypes = EVENT_TYPES;
 
   protected readonly query = signal('');
@@ -31,6 +34,18 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
   protected readonly to = signal('');
   protected readonly type = signal<EventType | ''>('');
   protected readonly city = signal('');
+  // Feature 030 — sort selection. "Proximity" (nearest first) is only offered with a home city
+  // (server-derived anchor); virtual events drop out of that view (FR-016).
+  protected readonly sort = signal<'StartsAtAsc' | 'Proximity'>('StartsAtAsc');
+  protected readonly hasHomeCity = signal(false);
+
+  protected readonly sortOptions = computed<SortOption[]>(() => {
+    const opts: SortOption[] = [{ value: 'StartsAtAsc', label: 'Soonest' }];
+    if (this.hasHomeCity()) {
+      opts.push({ value: 'Proximity', label: 'Nearest first' });
+    }
+    return opts;
+  });
 
   protected readonly filtersOpen = signal(false);
   protected readonly pendingHidePast = signal(true);
@@ -66,6 +81,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     if (this.city().trim()) {
       chips.push({ key: 'city', label: this.city().trim() });
     }
+    // Sort is not a chip — it has its own Sort menu in the toolbar (feature 030).
     return chips;
   });
 
@@ -86,6 +102,10 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reload();
+    this.profiles.getMineCached().subscribe({
+      next: (p) => this.hasHomeCity.set(p.location != null),
+      error: () => this.hasHomeCity.set(false),
+    });
   }
 
   ngOnDestroy(): void {
@@ -126,6 +146,12 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.refreshPendingCount();
   }
 
+  /** The Sort menu picked a new ordering — applies instantly. */
+  protected onSortChange(value: string): void {
+    this.sort.set(value === 'Proximity' && this.hasHomeCity() ? 'Proximity' : 'StartsAtAsc');
+    this.reload();
+  }
+
   protected removeChip(key: string): void {
     if (key === 'hidePast') {
       this.hidePast.set(false);
@@ -147,6 +173,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.to.set('');
     this.type.set('');
     this.city.set('');
+    this.sort.set('StartsAtAsc');
     this.reload();
   }
 
@@ -189,8 +216,8 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
       from: this.from() || undefined,
       to: this.to() || undefined,
       type: this.type() || undefined,
-      city: this.city().trim() || undefined,
-      sort: 'StartsAtAsc',
+      country: this.city().trim() || undefined,
+      sort: this.sort(),
     };
   }
 
@@ -210,7 +237,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
         from: this.pendingFrom() || undefined,
         to: this.pendingTo() || undefined,
         type: this.pendingType() || undefined,
-        city: this.pendingCity().trim() || undefined,
+        country: this.pendingCity().trim() || undefined,
         take: 0,
       })
       .subscribe({

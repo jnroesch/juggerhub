@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using JuggerHub.Dtos.Cities;
 using JuggerHub.Entities;
 
 namespace JuggerHub.Dtos.Teams;
@@ -30,7 +31,8 @@ public sealed record CreateTeamRequest(
     [Required, MinLength(2), MaxLength(50)] string Name,
     [Required, MaxLength(30), RegularExpression("^[a-z0-9]+(?:-[a-z0-9]+)*$", ErrorMessage = "Use lowercase letters, numbers, and single hyphens.")] string Slug,
     [Required] TeamType Type,
-    [MaxLength(80)] string? City);
+    // Feature 030 — structured home city selection (required for a CityTeam, null for a Mixteam).
+    LocationSelectionDto? Location);
 
 /// <summary>Set a member's role (promote/demote). Subject to the last-admin guard.</summary>
 public sealed record SetMemberRoleRequest([Required] TeamRole Role);
@@ -53,7 +55,7 @@ public sealed record TeamDetailDto(
     string Slug,
     string Name,
     TeamType Type,
-    string? City,
+    LocationDto? Location,
     int MemberCount,
     TeamRole MyRole,
     // Feature 007 — self-managed recruitment flag, editable in team settings.
@@ -64,7 +66,7 @@ public sealed record TeamPublicDto(
     string Slug,
     string Name,
     TeamType Type,
-    string? City,
+    LocationDto? Location,
     int MemberCount);
 
 /// <summary>How the viewer relates to a team (feature 009) — drives which sections and which
@@ -86,7 +88,7 @@ public sealed record TeamPublicDetailDto(
     string Slug,
     string Name,
     TeamType Type,
-    string? City,
+    LocationDto? Location,
     int MemberCount,
     bool BeginnersWelcome,
     bool IsActive,
@@ -147,7 +149,8 @@ public sealed record InvitableUserDto(
     Guid UserId,
     string Handle,
     string DisplayName,
-    string? City,
+    // Feature 030 — "City, Country" display label (null if the user set no home city).
+    string? Location,
     UserRelation Relation);
 
 /// <summary>Anonymous invite preview: public team info + inviter + usability state.</summary>
@@ -155,7 +158,8 @@ public sealed record InvitePreviewDto(
     string TeamName,
     string TeamSlug,
     TeamType Type,
-    string? City,
+    // Feature 030 — "City, Country" display label (null for a Mixteam).
+    string? Location,
     int MemberCount,
     string InviterDisplayName,
     InviteState State);
@@ -169,7 +173,8 @@ public sealed record MyInvitationDto(
     string TeamName,
     string TeamSlug,
     TeamType TeamType,
-    string? City,
+    // Feature 030 — "City, Country" display label (null for a Mixteam).
+    string? Location,
     int MemberCount,
     string InviterDisplayName,
     DateTime CreatedDate,

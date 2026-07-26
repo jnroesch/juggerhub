@@ -39,7 +39,10 @@ public sealed class AdminOverviewService : IAdminOverviewService
             .Where(p => p.CreatedDate >= weekAgo)
             .OrderByDescending(p => p.CreatedDate)
             .Take(ListCap)
-            .Select(p => new AdminNewPlayerDto(p.Handle, p.DisplayName, p.Hometown, p.CreatedDate))
+            .Select(p => new AdminNewPlayerDto(
+                p.Handle, p.DisplayName,
+                p.HomeCity == null ? null : p.HomeCity.Name + ", " + p.HomeCity.CountryName,
+                p.CreatedDate))
             .ToListAsync(ct);
 
         // Newest grants across both families; merged in memory (two capped queries).

@@ -7,9 +7,9 @@ namespace JuggerHub.Entities;
 /// </summary>
 /// <remarks>
 /// <see cref="Location"/> is the legacy free-text field still read by profile/team
-/// <c>ActivityItemDto</c>; the structured address (<see cref="Street"/>…<see cref="Country"/>)
-/// is separate and used only by the event page. Live sign-ups live in <see cref="EventSignup"/>
-/// (distinct from the historical <see cref="EventParticipation"/>).
+/// <c>ActivityItemDto</c>; the structured address (<see cref="Street"/>, <see cref="PostalCode"/>,
+/// and the canonical <see cref="City"/>) is separate and used only by the event page. Live sign-ups
+/// live in <see cref="EventSignup"/> (distinct from the historical <see cref="EventParticipation"/>).
 /// </remarks>
 public sealed class Event : BaseEntity
 {
@@ -34,8 +34,15 @@ public sealed class Event : BaseEntity
     public string? VenueName { get; set; }
     public string? Street { get; set; }
     public string? PostalCode { get; set; }
-    public string? City { get; set; }
-    public string? Country { get; set; }
+
+    /// <summary>
+    /// Structured city (feature 030), replacing the former free-text City/Country strings. Set only
+    /// for <see cref="LocationKind.InPerson"/>; null for a virtual event. The country is derived from
+    /// the referenced <see cref="Entities.City"/>. Coexists with the street/postal address above.
+    /// </summary>
+    public Guid? CityId { get; set; }
+
+    public City? City { get; set; }
 
     /// <summary>Join link for a virtual event (LocationKind == Virtual).</summary>
     public string? VirtualLink { get; set; }

@@ -85,7 +85,7 @@ public sealed class AnonymousAccessTests
     {
         var slug = "t" + Guid.NewGuid().ToString("N")[..12];
         (await owner.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Access Crew", slug, type = "Mixteam", city = (string?)null })).EnsureSuccessStatusCode();
+            new { name = "Access Crew", slug, type = "Mixteam", location = (object?)null })).EnsureSuccessStatusCode();
 
         var create = await owner.PostAsJsonAsync("/api/v1/events", new
         {

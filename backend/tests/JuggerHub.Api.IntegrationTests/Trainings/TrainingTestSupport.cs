@@ -37,7 +37,7 @@ public abstract class TrainingTestSupport
     {
         var slug = "t" + Guid.NewGuid().ToString("N")[..12];
         var resp = await adminClient.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Rheinfeuer", slug, type = "CityTeam", city = "Köln" });
+            new { name = "Rheinfeuer", slug, type = "CityTeam", location = new { cityExternalId = "TEST:köln" } });
         Assert.True(resp.IsSuccessStatusCode, $"create team failed: {(int)resp.StatusCode} {await resp.Content.ReadAsStringAsync()}");
 
         using var scope = Factory.Services.CreateScope();

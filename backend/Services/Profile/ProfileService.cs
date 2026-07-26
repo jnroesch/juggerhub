@@ -1,8 +1,10 @@
 using JuggerHub.Common;
 using JuggerHub.Data;
+using JuggerHub.Dtos.Cities;
 using JuggerHub.Dtos.Profile;
 using JuggerHub.Entities;
 using JuggerHub.Services.Events;
+using JuggerHub.Services.Geocoding;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -17,17 +19,20 @@ public sealed class ProfileService : IProfileService
     private readonly AppDbContext _db;
     private readonly IEventActivityService _activity;
     private readonly Recognition.IRecognitionDisplayService _recognitions;
+    private readonly ICityService _cities;
     private readonly ProfileOptions _options;
 
     public ProfileService(
         AppDbContext db,
         IEventActivityService activity,
         Recognition.IRecognitionDisplayService recognitions,
+        ICityService cities,
         IOptions<ProfileOptions> options)
     {
         _db = db;
         _activity = activity;
         _recognitions = recognitions;
+        _cities = cities;
         _options = options.Value;
     }
 
@@ -63,7 +68,13 @@ public sealed class ProfileService : IProfileService
             .AsNoTracking()
             .Where(p => p.UserId == userId)
             .Select(p => new ProfileProjection(
-                p.Id, p.UserId, p.Handle, p.DisplayName, p.Hometown, p.Description,
+                p.Id, p.UserId, p.Handle, p.DisplayName,
+                p.HomeCity == null
+                    ? null
+                    : new LocationDto(
+                        p.HomeCity.ExternalId, p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
+                        p.HomeCity.Name + ", " + p.HomeCity.CountryName),
+                p.Description,
                 p.Avatar != null, p.IsPublic,
                 p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList()))
             .FirstOrDefaultAsync(ct);
@@ -76,7 +87,7 @@ public sealed class ProfileService : IProfileService
         var activity = await _activity.GetRecentCappedAsync(projection.Id, EmbedActivityCap, ct);
         var teams = await GetTeamsAsync(projection.UserId, ct);
         var recognitions = await _recognitions.ForPlayerAsync(projection.Id, ct);
-        return new OwnerProfileDto(projection.Handle, projection.DisplayName, projection.Hometown,
+        return new OwnerProfileDto(projection.Handle, projection.DisplayName, projection.Location,
             projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams,
             recognitions.Badges, recognitions.Achievements, projection.IsPublic);
     }
@@ -97,6 +108,13 @@ public sealed class ProfileService : IProfileService
             .AsNoTracking()
             .Where(p => p.UserId == userId)
             .Select(p => p.Handle)
+            .FirstOrDefaultAsync(ct);
+
+    public async Task<Guid?> GetHomeCityIdAsync(Guid userId, CancellationToken ct = default) =>
+        await _db.PlayerProfiles
+            .AsNoTracking()
+            .Where(p => p.UserId == userId)
+            .Select(p => p.HomeCityId)
             .FirstOrDefaultAsync(ct);
 
     public async Task<CompleteOnboardingStatus> CompleteOnboardingAsync(Guid userId, CancellationToken ct = default)
@@ -128,7 +146,13 @@ public sealed class ProfileService : IProfileService
             .AsNoTracking()
             .Where(p => p.Handle == normalized)
             .Select(p => new ProfileProjection(
-                p.Id, p.UserId, p.Handle, p.DisplayName, p.Hometown, p.Description,
+                p.Id, p.UserId, p.Handle, p.DisplayName,
+                p.HomeCity == null
+                    ? null
+                    : new LocationDto(
+                        p.HomeCity.ExternalId, p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
+                        p.HomeCity.Name + ", " + p.HomeCity.CountryName),
+                p.Description,
                 p.Avatar != null, p.IsPublic,
                 p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList()))
             .FirstOrDefaultAsync(ct);
@@ -143,7 +167,7 @@ public sealed class ProfileService : IProfileService
         var activity = await _activity.GetRecentCappedAsync(projection.Id, EmbedActivityCap, ct);
         var teams = await GetTeamsAsync(projection.UserId, ct);
         var recognitions = await _recognitions.ForPlayerAsync(projection.Id, ct);
-        return new PublicProfileDto(projection.Handle, projection.DisplayName, projection.Hometown,
+        return new PublicProfileDto(projection.Handle, projection.DisplayName, projection.Location,
             projection.Description, projection.HasAvatar, projection.Pompfen, activity, teams,
             recognitions.Badges, recognitions.Achievements);
     }
@@ -164,6 +188,18 @@ public sealed class ProfileService : IProfileService
 
     public async Task<OwnerProfileDto?> UpdateAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct = default)
     {
+        // Resolve the selected city BEFORE loading (and tracking) the profile: ResolveAndUpsertAsync
+        // owns its own SaveChanges and may clear the change tracker on a create race, which would
+        // detach a profile tracked first. When Location is omitted (null) the city is left unchanged;
+        // an explicit null CityExternalId clears it (feature 030 contract).
+        var changeCity = request.Location is not null;
+        Guid? resolvedCityId = null;
+        if (changeCity && !string.IsNullOrWhiteSpace(request.Location!.CityExternalId))
+        {
+            var city = await _cities.ResolveAndUpsertAsync(request.Location.CityExternalId!, request.Location.Name, ct);
+            resolvedCityId = city.Id;
+        }
+
         var profile = await _db.PlayerProfiles
             .Include(p => p.Pompfen)
             .FirstOrDefaultAsync(p => p.UserId == userId, ct);
@@ -174,7 +210,11 @@ public sealed class ProfileService : IProfileService
         }
 
         profile.DisplayName = request.DisplayName.Trim();
-        profile.Hometown = BlankToNull(request.Hometown);
+        if (changeCity)
+        {
+            profile.HomeCityId = resolvedCityId;
+        }
+
         profile.Description = BlankToNull(request.Description);
         // Owner-controlled anonymous visibility (feature 026). Acts only on the caller's own
         // profile (resolved by userId), so a player can never change another's visibility.
@@ -206,6 +246,28 @@ public sealed class ProfileService : IProfileService
 
         await _db.SaveChangesAsync(ct);
         return await GetOwnerAsync(userId, ct);
+    }
+
+    public async Task<bool> SetHomeCityAsync(Guid userId, LocationSelectionDto selection, CancellationToken ct = default)
+    {
+        // Resolve BEFORE tracking the profile — ResolveAndUpsertAsync owns its own SaveChanges and may
+        // clear the change tracker on a create race, which would detach a profile tracked first.
+        Guid? resolvedCityId = null;
+        if (!string.IsNullOrWhiteSpace(selection.CityExternalId))
+        {
+            var city = await _cities.ResolveAndUpsertAsync(selection.CityExternalId!, selection.Name, ct);
+            resolvedCityId = city.Id;
+        }
+
+        var profile = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.UserId == userId, ct);
+        if (profile is null)
+        {
+            return false;
+        }
+
+        profile.HomeCityId = resolvedCityId;
+        await _db.SaveChangesAsync(ct);
+        return true;
     }
 
     public async Task<AvatarSetResult> SetAvatarAsync(Guid userId, byte[] content, string? declaredContentType, CancellationToken ct = default)
@@ -288,7 +350,14 @@ public sealed class ProfileService : IProfileService
             .AsNoTracking()
             .Where(m => m.UserId == userId)
             .OrderBy(m => m.Team.Name)
-            .Select(m => new ProfileTeamDto(m.Team.Slug, m.Team.Name, m.Team.Type, m.Team.City, m.Role))
+            .Select(m => new ProfileTeamDto(
+                m.Team.Slug, m.Team.Name, m.Team.Type,
+                m.Team.City == null
+                    ? null
+                    : new LocationDto(
+                        m.Team.City.ExternalId, m.Team.City.Name, m.Team.City.Region, m.Team.City.CountryName, m.Team.City.CountryCode,
+                        m.Team.City.Name + ", " + m.Team.City.CountryName),
+                m.Role))
             .ToListAsync(ct);
     }
 
@@ -329,7 +398,7 @@ public sealed class ProfileService : IProfileService
         Guid UserId,
         string Handle,
         string DisplayName,
-        string? Hometown,
+        LocationDto? Location,
         string? Description,
         bool HasAvatar,
         bool IsPublic,

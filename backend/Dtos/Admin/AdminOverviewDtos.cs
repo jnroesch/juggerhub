@@ -16,7 +16,8 @@ public sealed record AdminOverviewDto(
 public sealed record AdminNewPlayerDto(
     string Handle,
     string DisplayName,
-    string? Hometown,
+    // Feature 030 — "City, Country" display label (null if no home city set).
+    string? Location,
     DateTime JoinedAt);
 
 /// <summary>

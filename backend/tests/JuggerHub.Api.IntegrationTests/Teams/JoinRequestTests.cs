@@ -131,7 +131,7 @@ public sealed class JoinRequestTests
     {
         var slug = "t" + Guid.NewGuid().ToString("N")[..12];
         var resp = await admin.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Public FC", slug, type = "CityTeam", city = "Berlin" });
+            new { name = "Public FC", slug, type = "CityTeam", location = new { cityExternalId = "TEST:berlin" } });
         resp.EnsureSuccessStatusCode();
         return slug;
     }

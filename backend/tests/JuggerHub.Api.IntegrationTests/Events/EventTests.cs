@@ -33,7 +33,7 @@ public sealed class EventTests
         Assert.Equal("Tournament", dto.GetProperty("type").GetString());
         Assert.Equal("Teams", dto.GetProperty("participantMode").GetString());
         Assert.Equal("InPerson", dto.GetProperty("locationKind").GetString());
-        Assert.Equal("Deutschland", dto.GetProperty("country").GetString());
+        Assert.Equal("Germany", dto.GetProperty("location").GetProperty("countryName").GetString());
         Assert.True(dto.GetProperty("isPaid").GetBoolean());
         Assert.Equal(0, dto.GetProperty("occupiedSpots").GetInt32());
         Assert.False(dto.GetProperty("isFull").GetBoolean());
@@ -68,10 +68,10 @@ public sealed class EventTests
     }
 
     [Fact]
-    public async Task In_person_without_country_is_rejected()
+    public async Task In_person_without_city_is_rejected()
     {
         var (client, _, _, _) = await NewUserAsync();
-        var body = Merge(ValidInPersonPaidTeams(), new { country = (string?)null });
+        var body = Merge(ValidInPersonPaidTeams(), new { location = (object?)null });
 
         var resp = await client.PostAsJsonAsync("/api/v1/events", body);
 
@@ -150,7 +150,7 @@ public sealed class EventTests
 
         var dto = await resp.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("Berlin Cup", dto.GetProperty("name").GetString());
-        Assert.Equal("Deutschland", dto.GetProperty("country").GetString());
+        Assert.Equal("Germany", dto.GetProperty("location").GetProperty("countryName").GetString());
         Assert.Equal("DE89370400440532013000", dto.GetProperty("feeIban").GetString());
         var v = dto.GetProperty("viewer");
         Assert.True(v.GetProperty("isAuthenticated").GetBoolean());
@@ -638,7 +638,7 @@ public sealed class EventTests
     {
         var slug = "t" + Guid.NewGuid().ToString("N")[..12];
         var resp = await client.PostAsJsonAsync("/api/v1/teams",
-            new { name = "Crew", slug, type = "Mixteam", city = (string?)null });
+            new { name = "Crew", slug, type = "Mixteam", location = (object?)null });
         resp.EnsureSuccessStatusCode();
 
         using var scope = _factory.Services.CreateScope();
@@ -684,8 +684,7 @@ public sealed class EventTests
         venueName = "Altes Flugfeld",
         street = "Hauptstrasse 1",
         postalCode = "10115",
-        city = "Berlin",
-        country = "Deutschland",
+        location = new { cityExternalId = "TEST:berlin" },
         virtualLink = (string?)null,
         participantMode = "Teams",
         participationLimit = 16,
@@ -711,8 +710,7 @@ public sealed class EventTests
         venueName = (string?)null,
         street = (string?)null,
         postalCode = (string?)null,
-        city = (string?)null,
-        country = (string?)null,
+        location = (object?)null,
         virtualLink = "https://zoom.us/j/1234567890",
         participantMode = "Individuals",
         participationLimit = 30,

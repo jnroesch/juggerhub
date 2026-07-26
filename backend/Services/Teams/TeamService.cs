@@ -4,6 +4,7 @@ using JuggerHub.Dtos.Notifications;
 using JuggerHub.Dtos.Profile;
 using JuggerHub.Dtos.Teams;
 using JuggerHub.Entities;
+using JuggerHub.Services.Geocoding;
 using JuggerHub.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -25,6 +26,7 @@ public sealed class TeamService : ITeamService
     private readonly INotificationPreferenceService _preferences;
     private readonly Email.TeamEmailService _email;
     private readonly Recognition.IRecognitionDisplayService _recognitions;
+    private readonly ICityService _cities;
     private readonly ILogger<TeamService> _logger;
     private readonly TeamOptions _options;
 
@@ -38,6 +40,7 @@ public sealed class TeamService : ITeamService
         INotificationPreferenceService preferences,
         Email.TeamEmailService email,
         Recognition.IRecognitionDisplayService recognitions,
+        ICityService cities,
         ILogger<TeamService> logger,
         IOptions<TeamOptions> options,
         Chat.IChatConversationService chat)
@@ -46,6 +49,7 @@ public sealed class TeamService : ITeamService
         _guard = guard;
         _chat = chat;
         _recognitions = recognitions;
+        _cities = cities;
         _notifications = notifications;
         _preferences = preferences;
         _email = email;
@@ -84,21 +88,27 @@ public sealed class TeamService : ITeamService
                 TeamSlugPolicy.Describe(rejection, _options.SlugMinLength, _options.SlugMaxLength) ?? "Invalid team address.");
         }
 
-        string? city = null;
+        // Resolve the structured city (feature 030) BEFORE any tracking/insert: a CityTeam requires
+        // one, a Mixteam must not carry one. ResolveAndUpsertAsync owns its own save.
+        var selectedCityId = request.Location?.CityExternalId;
+        City? resolvedCity = null;
         if (request.Type == TeamType.CityTeam)
         {
-            city = (request.City ?? string.Empty).Trim();
-            if (city.Length == 0)
+            if (string.IsNullOrWhiteSpace(selectedCityId))
             {
                 return CreateTeamResult.Fail(CreateTeamStatus.InvalidCity, "A city team needs a city.");
             }
 
-            if (city.Length > 80)
+            try
             {
-                return CreateTeamResult.Fail(CreateTeamStatus.InvalidCity, "Use a city of at most 80 characters.");
+                resolvedCity = await _cities.ResolveAndUpsertAsync(selectedCityId, request.Location!.Name, ct);
+            }
+            catch (CityNotResolvableException)
+            {
+                return CreateTeamResult.Fail(CreateTeamStatus.InvalidCity, "That city could not be found.");
             }
         }
-        else if (!string.IsNullOrWhiteSpace(request.City))
+        else if (!string.IsNullOrWhiteSpace(selectedCityId))
         {
             return CreateTeamResult.Fail(CreateTeamStatus.InvalidCity, "A Mixteam doesn't have a city.");
         }
@@ -110,7 +120,7 @@ public sealed class TeamService : ITeamService
 
         // Explicit DbSet.Add for both rows (client-set UUIDv7 nav-insert gotcha); one
         // SaveChanges wraps them in a single transaction.
-        var team = new Team { Slug = slug, Name = name, Type = request.Type, City = city };
+        var team = new Team { Slug = slug, Name = name, Type = request.Type, CityId = resolvedCity?.Id };
         _db.Teams.Add(team);
         _db.TeamMemberships.Add(new TeamMembership
         {
@@ -130,7 +140,8 @@ public sealed class TeamService : ITeamService
             return CreateTeamResult.Fail(CreateTeamStatus.SlugTaken, "That team address is already taken.");
         }
 
-        return CreateTeamResult.Ok(new TeamDetailDto(team.Slug, team.Name, team.Type, team.City, 1, TeamRole.Admin));
+        return CreateTeamResult.Ok(new TeamDetailDto(
+            team.Slug, team.Name, team.Type, LocationLabels.ToLocation(resolvedCity), 1, TeamRole.Admin));
     }
 
     public async Task<TeamDetailDto?> GetDetailAsync(string slug, Guid userId, CancellationToken ct = default)
@@ -146,17 +157,21 @@ public sealed class TeamService : ITeamService
             .Select(t => new { t.Slug, t.Name, t.Type, t.City, MemberCount = t.Memberships.Count, t.BeginnersWelcome })
             .FirstAsync(ct);
 
-        return new TeamDetailDto(header.Slug, header.Name, header.Type, header.City, header.MemberCount,
-            a.Role!.Value, header.BeginnersWelcome);
+        return new TeamDetailDto(header.Slug, header.Name, header.Type, LocationLabels.ToLocation(header.City),
+            header.MemberCount, a.Role!.Value, header.BeginnersWelcome);
     }
 
     public async Task<TeamPublicDto?> GetPublicAsync(string slug, CancellationToken ct = default)
     {
         var normalized = TeamSlugPolicy.Normalize(slug);
-        return await _db.Teams.AsNoTracking()
+        var row = await _db.Teams.AsNoTracking()
             .Where(t => t.Slug == normalized)
-            .Select(t => new TeamPublicDto(t.Slug, t.Name, t.Type, t.City, t.Memberships.Count))
+            .Select(t => new { t.Slug, t.Name, t.Type, t.City, MemberCount = t.Memberships.Count })
             .FirstOrDefaultAsync(ct);
+
+        return row is null
+            ? null
+            : new TeamPublicDto(row.Slug, row.Name, row.Type, LocationLabels.ToLocation(row.City), row.MemberCount);
     }
 
     public async Task<TeamPublicDetailDto?> GetPublicDetailAsync(string slug, Guid? viewerUserId, CancellationToken ct = default)
@@ -236,7 +251,8 @@ public sealed class TeamService : ITeamService
             .ToList();
 
         var recognitions = await _recognitions.ForTeamAsync(team.Id, ct);
-        return new TeamPublicDetailDto(team.Id, team.Slug, team.Name, team.Type, team.City, team.MemberCount,
+        return new TeamPublicDetailDto(team.Id, team.Slug, team.Name, team.Type,
+            LocationLabels.ToLocation(team.City), team.MemberCount,
             team.BeginnersWelcome, team.IsActive, relation, roster, activity,
             recognitions.Badges, recognitions.Achievements);
     }

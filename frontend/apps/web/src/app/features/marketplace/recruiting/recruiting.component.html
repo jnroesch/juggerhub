@@ -115,7 +115,7 @@
             <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
               <div>
                 <span class="text-body-sm font-semibold text-body">{{ u.displayName }}</span>
-                <p class="text-body-sm text-subtle">@{{ u.handle }}@if (u.hometown) { <span> · {{ u.hometown }}</span> }</p>
+                <p class="text-body-sm text-subtle">@{{ u.handle }}@if (u.location) { <span> · {{ u.location }}</span> }</p>
               </div>
               @switch (u.relation) {
                 @case ('Invitable') { <button type="button" (click)="invite(u)" [disabled]="acting()" jhButton size="sm">Invite</button> }

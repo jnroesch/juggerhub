@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { registerVerifySignIn } from './support/auth';
+import { pickCity } from './support/city';
 
 /**
  * Browser-hop resilience (feature 028, US1) end to end.
@@ -143,7 +144,7 @@ test.describe('mutations are never retried (FR-004)', () => {
     await page.getByTestId('team-name').fill(`Resilience E2E ${suffix}`);
     await page.getByTestId('team-slug').fill(`resilience-e2e-${suffix}`);
     await page.getByTestId('type-city').click();
-    await page.getByTestId('team-city').fill('Berlin');
+    await pickCity(page, 'team-city', 'Berlin');
     await page.getByTestId('team-create-submit').click();
 
     // Give any (incorrect) retry ample time to fire — the assertion is that none does.

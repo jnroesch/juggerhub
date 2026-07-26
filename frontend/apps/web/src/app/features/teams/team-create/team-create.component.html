@@ -49,10 +49,11 @@
     </div>
 
     @if (type() === 'CityTeam') {
-      <div>
-        <label for="team-city" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">City</label>
-        <input id="team-city" type="text" formControlName="city" placeholder="e.g. Berlin" data-testid="team-city"
-          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
+      <div data-testid="team-city">
+        <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">City</span>
+        <div class="mt-xs">
+          <jh-city-picker placeholder="e.g. Berlin" (selectedChange)="onCitySelected($event)" />
+        </div>
         <p class="mt-xs text-body-sm text-faint">City teams show up when players search their area.</p>
       </div>
     } @else {

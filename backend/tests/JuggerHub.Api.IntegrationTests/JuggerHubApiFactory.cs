@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using JuggerHub.Api.IntegrationTests.Chat;
+using JuggerHub.Data;
 using JuggerHub.Services.Email;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -57,6 +58,9 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
                 // with this email and re-run the role sync (see RecognitionTestSupport)
                 // to exercise admin-only routes.
                 ["Admin:Emails"] = "admin@test.de",
+                // Feature 030 (R8) — skip loading the full ~235k cities500 dataset; tests seed a
+                // small CityReference fixture (TestReferenceCities) in InitializeAsync instead.
+                ["Seeding:CityReferences"] = "false",
             });
         });
 
@@ -74,7 +78,15 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
         builder.ConfigureLogging(logging => logging.AddProvider(new CaptureLoggerProvider(ErrorLogs)));
     }
 
-    public Task InitializeAsync() => _database.StartAsync();
+    public async Task InitializeAsync()
+    {
+        await _database.StartAsync();
+        // Accessing Services builds the host, which runs Program's startup migrations against the
+        // now-started container. Then seed the small CityReference fixture the tests select from.
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await TestReferenceCities.SeedAsync(db);
+    }
 
     public new Task DisposeAsync() => _database.DisposeAsync().AsTask();
 }

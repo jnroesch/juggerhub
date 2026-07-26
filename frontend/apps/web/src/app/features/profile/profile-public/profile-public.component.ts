@@ -41,7 +41,7 @@ export class ProfilePublicComponent {
     return {
       handle: p.handle,
       displayName: p.displayName,
-      hometown: p.hometown,
+      location: p.location,
       description: p.description,
       avatarUrl: p.hasAvatar ? this.profiles.avatarUrl(p.handle) : null,
       pompfen: p.selectedPompfen,
