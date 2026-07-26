@@ -6,7 +6,13 @@ All decisions below resolve the Technical Context unknowns. Format per decision:
 
 ---
 
-## R1 — Geocoding provider (self-hosted, all environments)
+## R1 — Geocoding provider (self-hosted, all environments) — ⛔ SUPERSEDED BY R8 (2026-07-26)
+
+> **Superseded.** After measuring the community's real city list (`turniere.jugger.org`) against
+> GeoNames tiers, we pivoted from a self-hosted Photon geocoder to a **bundled `cities500` dataset**
+> — see **R8** below. R1 is retained for the decision trail. R2/R3/R7 and the whole `City` /
+> `CityDistance` proximity model are **unchanged** by the pivot; only the *search + resolve source*
+> changes (a local reference table instead of an HTTP geocoder).
 
 **Decision**: Use **Photon** (`komoot/photon`) as the self-hosted geocoder, run as a single container in docker-compose (local) and in-cluster (Dev/Prod), fronted by our backend. Photon is queried only server-side.
 
@@ -104,8 +110,61 @@ A single EF migration adds `City` + `CityDistance`, drops the freeform columns, 
 
 ---
 
+## R8 — Bundled `cities500` reference table instead of a geocoder (supersedes R1) — 2026-07-26
+
+**Decision**: Drop the self-hosted Photon geocoder entirely. Ship a **bundled GeoNames `cities500`
+dataset** (~185k cities worldwide, population > 500) seeded into a **`CityReference`** table in every
+environment. City type-ahead search becomes a **local SQL query** against that table; selecting a
+city copies the chosen reference row into the existing **`City`** table and backfills `CityDistance`
+exactly as before. There is **no external service, no HTTP client, no resilience/503 path, no Photon
+container, and no AKS geocoder deployment**.
+
+**Why the pivot** — measured coverage of the real Jugger community city list
+(`turniere.jugger.org/list.city.php`, 383 entries) against the GeoNames dumps, after removing 8
+combined "A / B" and 3 mixteam-marker entries and 38 fiction/region/joke entries (Wakanda, Deutschland,
+"Mixteam" …), leaving **334 real cities**:
+
+| Dataset | Real Jugger cities covered | Size (uncompressed) |
+|---|---|---|
+| `cities15000` | 74.3 % | ~14 MB |
+| `cities5000` | 85.3 % | ~26 MB |
+| `cities1000` | 92.2 % | ~30 MB |
+| **`cities500`** (chosen) | **94.6 %** (~95 % counting a couple of match artifacts) | **~40 MB (~10 MB gz)** |
+| `allCountries` (populated places) | 98.8 % | ~1.8 GB |
+
+The 18 cities `cities500` misses are all sub-500-population *Ortsteile*/districts where the **nearest
+larger town is a few km away** and still listed; `allCountries` recovers 14 of them but at ~40× the
+size — a bad trade. Against Photon's **75–120 GB planet index** for the same global reach, `cities500`
+is ~2000× smaller for the same job, needs no separate service, and works fully offline.
+
+**Rationale**:
+- **Global coverage the community actually needs** (US, AU, JP, AR, NZ… confirmed in the list) at
+  ~10 MB gzipped, versus a regional Photon extract that would leave non-European players unable to
+  pick their city (the R1 risk, now fatal given a global community).
+- **Simpler and more robust**: search is a `WHERE ILIKE` over a seeded table — always available, no
+  timeouts, retries, breaker, or cold-import. FR-018/FR-020 (resilience/parity for the outbound call)
+  become moot; FR-019's degradation path is gone (a DB query doesn't 503); FR-021 (no PII to a third
+  party) is satisfied trivially because nothing leaves the box.
+- **The proximity model is untouched.** Because only *selected* cities are copied into `City`, the
+  `CityDistance` cache stays small (tens–hundreds of pairs) — the 185k reference rows never get
+  distance rows. R2's design and the whole browse/onboarding proximity flow are unchanged.
+
+**Data prep**: `cities500.txt` is joined with `countryInfo.txt` (cc → country name) and
+`admin1CodesASCII.txt` (region name) offline into a compact, gzipped seed file bundled with the
+backend; a `CityReferenceSeeder` bulk-loads it on startup in every environment if the table is empty
+(idempotent). A committed regeneration script documents how to refresh the snapshot. `ExternalId`
+becomes `"geonames:<geonameId>"`.
+
+**Alternatives rejected**: `cities1000` (smaller but 92 % vs 95 % — the extra ~40 real cities are worth
+the 10 MB); `allCountries` (98.8 % at 1.8 GB — village-level precision not worth 40×); keeping Photon
+(global planet index too heavy for a small, rarely-queried app).
+
+---
+
 ## Open items intentionally deferred to implementation
 
-- Exact Photon image tag + regional extract file and its AKS volume/init strategy (spike — R1 risk).
-- Whether legacy `Event.Location` free-text can be fully removed or must remain for historical activity rows (verify against `ActivityItemDto` readers during implementation).
-- Confirmation of the `CityDistance` backfill cost at the seeded data volume (trivially small; measured in quickstart).
+- Region-name coverage: a few GeoNames rows lack an admin1 mapping → region shown as null (label
+  degrades to "City, Country", which is fine).
+- Static snapshot refresh cadence for the bundled dataset (manual; documented regeneration script).
+- Whether legacy `Event.Location` free-text can be fully removed (verified in T059: it stays as a
+  denormalized label).

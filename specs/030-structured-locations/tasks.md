@@ -10,11 +10,33 @@ description: "Task list for feature 030 — Structured Locations & Near You Disc
 
 **Tests**: Included — JuggerHub is test-heavy (xUnit backend, Jasmine/Karma frontend, Playwright e2e) and `quickstart.md` defines automated checks. Test tasks precede the implementation they cover within each phase.
 
-> **Implementation status (2026-07-25)** — **57 / 61 tasks complete; feature done end-to-end, both suites green.** **Verified**: `dotnet build` (0 warnings) + `nx build web` green; **backend integration 524/524**; **frontend 263/263**; `nx lint web` warnings-only (pre-existing, none from this feature); `terraform validate` (infra) passes.
+> **⭑ ARCHITECTURE PIVOT (2026-07-26, research R8): geocoder → bundled `cities500` dataset.** After
+> measuring the real community city list against GeoNames tiers, the self-hosted **Photon geocoder was
+> removed entirely** and replaced with a **bundled GeoNames `cities500` reference table** (~235k cities,
+> 7.3 MB gzipped, seeded on startup). City search + selection are now local SQL queries. This **deletes
+> the whole Photon-on-AKS burden**: T058 (Photon Terraform) is reverted; T060/T061's blocking "import a
+> multi-GB extract" dependency is **gone**; and the outbound-resilience requirements (FR-018/019) are
+> **N/A** (no external call). The `City` / `CityDistance` proximity model and the entire frontend are
+> **unchanged**. See [research.md R8](./research.md) and [spec.md FR-018–022](./spec.md).
 >
-> **Done**: the full feature — canonical-city model + migration/seeder + resilient geocoder + DTO/service cascade + proximity sort + structured city-NAME + country browse filters; the full frontend (`jh-city-picker` on DESIGN.md tokens, all display templates, onboarding/profile/team/event forms, **browse "Near me" proximity toggle + country filter**); **onboarding near-you (T048)** via `PUT /me/home-city`; Photon on AKS in Terraform (T058); README/compose/UI-checklist polish (T056/T057/T001/T059); and dedicated tests — CitySearch (T022), CityService dedupe/backfill/422 (T021), event proximity + country + virtual-exclusion (T049/T050), team proximity + home-city endpoint, onboarding proximity (T045), and the `jh-city-picker` spec (T023).
+> **Implementation status** — **feature done end-to-end, both suites green.** **Verified**: `dotnet
+> build` (0 warnings) + `nx build web` green; **backend integration 523/523** (post-pivot); **frontend
+> 263/263** (unchanged by the pivot); `terraform validate` passes (Photon resources removed).
 >
-> **Remaining (4 tasks, all needing infra or beyond unit scope)**: **T020** geocoder-specific resilience harness test (the 503 degradation IS tested in CitySearchTests, and the shared retry/breaker pipeline is covered by feature 028 — a bespoke geocoder harness would largely duplicate it). **T051** a dedicated browse-component spec for the proximity/country controls (the controls are built + type-checked; no unit spec written). **T060** quickstart against a live stack and **T061**'s e2e-compose run both need the Photon **data extract** imported — the one genuinely heavy dependency (T058 settles its infra, but a real multi-GB import was not run here). **Deviation note**: the spec said *remove* the browse city filter; implementation **re-added a structured city-NAME filter** (`City.Name`, not freeform) alongside country + proximity — a justified, low-risk expansion that also preserved test isolation.
+> **Done**: canonical-city model + migration/seeder + DTO/service cascade + proximity sort + city-NAME
+> + country browse filters; full frontend (`jh-city-picker` on DESIGN.md tokens, all display templates,
+> onboarding/profile/team/event forms, **browse "Near me" proximity toggle + country filter**);
+> **onboarding near-you (T048)**; the **bundled `cities500` reference table + seeder** (replacing the
+> geocoder); README/compose/UI-checklist polish (T056/T057/T001/T059); dedicated tests — CitySearch
+> (T022), CityService dedupe/backfill/422 (T021), event/team proximity + country + virtual-exclusion
+> (T049/T050), onboarding proximity (T045), `jh-city-picker` spec (T023).
+>
+> **Remaining**: **T020** (a bespoke resilience-harness test) is now **obsolete** — there is no
+> outbound geocoder call to test. **T051** a dedicated browse-component unit spec (controls built +
+> type-checked; no isolated spec). **T060/T061** live-stack quickstart + e2e-compose run — now
+> **unblocked** (no heavy geocoder import), just not executed here. **Deviations**: (1) re-added a
+> structured city-NAME browse filter alongside country + proximity; (2) **pivoted to a bundled dataset**
+> (research R8) — the biggest, and the one that removed the most operational risk.
 
 ## Format: `[ID] [P?] [Story] Description`
 

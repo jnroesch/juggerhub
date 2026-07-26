@@ -56,9 +56,6 @@ resource "kubernetes_config_map_v1" "app" {
     "Email__Provider"        = "Resend"
     "Email__FromAddress"     = var.email_from_address
     "Email__FrontendBaseUrl" = var.email_frontend_base_url
-    # Feature 030 — self-hosted geocoder reached in-cluster by service DNS. Not a secret (no key).
-    # Resilience limits (Resilience:Outbound:Geocoding) fall back to the appsettings.json defaults.
-    "Geocoding__BaseUrl" = "http://photon:2322"
   }
 }
 
@@ -182,89 +179,6 @@ resource "kubernetes_stateful_set_v1" "postgres" {
         resources {
           requests = {
             storage = "${var.postgres_storage_gb}Gi"
-          }
-        }
-      }
-    }
-  }
-}
-
-# --- Photon geocoder (feature 030; in-cluster, never exposed beyond ClusterIP) ----
-# Backend-proxied only — the browser never reaches it. Stateful like Postgres: the imported
-# OSM index lives on a PersistentVolume. The IMAGE and API are identical across environments;
-# only the imported EXTRACT (var.geocoder_region) and its disk size differ — a Principle V
-# sizing knob, not an architecture difference (see specs/030-structured-locations/research.md R1).
-resource "kubernetes_service_v1" "photon" {
-  metadata {
-    name      = "photon" # MUST be "photon": the backend's Geocoding__BaseUrl is http://photon:2322
-    namespace = kubernetes_namespace_v1.app.metadata[0].name
-  }
-  spec {
-    cluster_ip = "None" # headless: stable DNS for the StatefulSet pod
-    selector   = { app = "photon" }
-    port {
-      port        = 2322
-      target_port = 2322
-    }
-  }
-}
-
-resource "kubernetes_stateful_set_v1" "photon" {
-  metadata {
-    name      = "photon"
-    namespace = kubernetes_namespace_v1.app.metadata[0].name
-    labels    = { app = "photon" }
-  }
-  spec {
-    service_name = kubernetes_service_v1.photon.metadata[0].name
-    replicas     = 1
-    selector {
-      match_labels = { app = "photon" }
-    }
-    template {
-      metadata {
-        labels = { app = "photon" }
-      }
-      spec {
-        container {
-          name  = "photon"
-          image = var.geocoder_image
-          port {
-            container_port = 2322
-          }
-          # Which OSM extract to import on first start (e.g. "de", "europe"). Sized per env.
-          env {
-            name  = "REGION"
-            value = var.geocoder_region
-          }
-          volume_mount {
-            name       = "index"
-            mount_path = "/photon/photon_data"
-          }
-          # The first start imports/loads the extract — allow generous warm-up before the
-          # readiness gate. Once ready the search endpoint answers a trivial query.
-          readiness_probe {
-            http_get {
-              path = "/api/?q=berlin&limit=1"
-              port = 2322
-            }
-            initial_delay_seconds = 30
-            period_seconds        = 15
-            failure_threshold     = 40 # tolerate a long cold-import on first boot
-          }
-        }
-      }
-    }
-    volume_claim_template {
-      metadata {
-        name = "index"
-      }
-      spec {
-        access_modes       = ["ReadWriteOnce"]
-        storage_class_name = var.geocoder_storage_class
-        resources {
-          requests = {
-            storage = "${var.geocoder_storage_gb}Gi"
           }
         }
       }

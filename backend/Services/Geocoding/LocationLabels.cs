@@ -21,10 +21,6 @@ public static class LocationLabels
             ? $"{name}, {countryName}"
             : $"{name}, {region}, {countryName}";
 
-    public static CityOptionDto ToOption(GeocodedCity c) => new(
-        c.ExternalId, c.Name, c.Region, c.CountryName, c.CountryCode,
-        Option(c.Name, c.Region, c.CountryName), c.Latitude, c.Longitude);
-
     /// <summary>Maps a persisted city to the read DTO; null in ⇒ null out (no location set).</summary>
     public static LocationDto? ToLocation(City? c) => c is null
         ? null

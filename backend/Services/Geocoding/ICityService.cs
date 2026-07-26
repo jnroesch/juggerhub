@@ -22,8 +22,7 @@ public interface ICityService
     /// MUST be called before the caller tracks its own entity for the same save: on the rare
     /// create race it clears the change tracker to discard a losing insert.
     /// </remarks>
-    /// <exception cref="CityNotResolvableException">The id cannot be resolved to a real city.</exception>
-    /// <exception cref="GeocodingUnavailableException">The geocoder is unreachable.</exception>
+    /// <exception cref="CityNotResolvableException">The id is not present in the reference dataset.</exception>
     Task<City> ResolveAndUpsertAsync(string externalId, string? nameHint, CancellationToken ct = default);
 }
 

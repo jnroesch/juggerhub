@@ -119,6 +119,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<CityDistance> CityDistances => Set<CityDistance>();
 
+    // Feature 030 (R8) — bundled GeoNames cities500 reference dataset (city-picker search source).
+    public DbSet<CityReference> CityReferences => Set<CityReference>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
@@ -989,6 +992,23 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany()
                 .HasForeignKey(d => d.ToCityId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<CityReference>(entity =>
+        {
+            entity.HasKey(r => r.ExternalId);
+            entity.Property(r => r.ExternalId).HasMaxLength(32);
+            entity.Property(r => r.Name).HasMaxLength(200).IsRequired();
+            entity.Property(r => r.AsciiName).HasMaxLength(200).IsRequired();
+            entity.Property(r => r.AlternateNames).HasMaxLength(2000);
+            entity.Property(r => r.CountryCode).HasMaxLength(2).IsRequired();
+            entity.Property(r => r.CountryName).HasMaxLength(80).IsRequired();
+            entity.Property(r => r.Region).HasMaxLength(120);
+            // Prefix search runs over the accent-free ascii name (ILIKE 'term%'); a plain btree index
+            // with text_pattern_ops would serve LIKE prefix scans, but at 235k rows a seq scan on an
+            // in-memory-cached table is already fast, so a simple index on AsciiName suffices.
+            entity.HasIndex(r => r.AsciiName);
+            entity.HasIndex(r => r.CountryCode);
         });
     }
 }

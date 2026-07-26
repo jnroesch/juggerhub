@@ -33,7 +33,7 @@ public sealed class EventTests
         Assert.Equal("Tournament", dto.GetProperty("type").GetString());
         Assert.Equal("Teams", dto.GetProperty("participantMode").GetString());
         Assert.Equal("InPerson", dto.GetProperty("locationKind").GetString());
-        Assert.Equal("Deutschland", dto.GetProperty("location").GetProperty("countryName").GetString());
+        Assert.Equal("Germany", dto.GetProperty("location").GetProperty("countryName").GetString());
         Assert.True(dto.GetProperty("isPaid").GetBoolean());
         Assert.Equal(0, dto.GetProperty("occupiedSpots").GetInt32());
         Assert.False(dto.GetProperty("isFull").GetBoolean());
@@ -150,7 +150,7 @@ public sealed class EventTests
 
         var dto = await resp.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal("Berlin Cup", dto.GetProperty("name").GetString());
-        Assert.Equal("Deutschland", dto.GetProperty("location").GetProperty("countryName").GetString());
+        Assert.Equal("Germany", dto.GetProperty("location").GetProperty("countryName").GetString());
         Assert.Equal("DE89370400440532013000", dto.GetProperty("feeIban").GetString());
         var v = dto.GetProperty("viewer");
         Assert.True(v.GetProperty("isAuthenticated").GetBoolean());

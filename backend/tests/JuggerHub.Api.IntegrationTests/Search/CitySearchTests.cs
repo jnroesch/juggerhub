@@ -5,10 +5,9 @@ using System.Text.Json;
 namespace JuggerHub.Api.IntegrationTests.Search;
 
 /// <summary>
-/// City type-ahead endpoint (feature 030): <c>GET /api/v1/cities/search</c>. Backend-proxied to the
-/// geocoder (stubbed by <see cref="TestGeocoder"/>). Verifies the too-short "keep typing" state, a
-/// real result shape, the graceful 503 degradation (FR-019), and the auth gate (feature 026).
-/// Shares the sequential "Search" collection so toggling the shared geocoder stub is race-free.
+/// City type-ahead endpoint (feature 030, R8): <c>GET /api/v1/cities/search</c>. Queries the bundled
+/// <c>CityReference</c> table (a small fixture in tests). Verifies the too-short "keep typing" state,
+/// a real result shape, and the auth gate (feature 026).
 /// </summary>
 [Collection("Search")]
 public sealed class CitySearchTests
@@ -40,24 +39,8 @@ public sealed class CitySearchTests
         var items = await resp.Content.ReadFromJsonAsync<JsonElement>();
         var berlin = items.EnumerateArray().Single(c => c.GetProperty("name").GetString() == "Berlin");
         Assert.Equal("TEST:berlin", berlin.GetProperty("externalId").GetString());
-        Assert.Equal("Deutschland", berlin.GetProperty("countryName").GetString());
+        Assert.Equal("Germany", berlin.GetProperty("countryName").GetString());
         Assert.False(string.IsNullOrWhiteSpace(berlin.GetProperty("label").GetString()));
-    }
-
-    [Fact]
-    public async Task Geocoder_unavailable_degrades_to_503()
-    {
-        var (client, _, _, _) = await SearchTestSupport.NewUserAsync(_factory);
-        _factory.Geocoder.Unavailable = true;
-        try
-        {
-            var resp = await client.GetAsync("/api/v1/cities/search?q=berlin");
-            Assert.Equal(HttpStatusCode.ServiceUnavailable, resp.StatusCode);
-        }
-        finally
-        {
-            _factory.Geocoder.Unavailable = false;
-        }
     }
 
     [Fact]

@@ -6,6 +6,12 @@ using Microsoft.EntityFrameworkCore;
 namespace JuggerHub.Services.Geocoding;
 
 /// <inheritdoc />
+/// <remarks>
+/// Feature 030 research R8: the search + resolve source is the bundled, seeded <c>CityReference</c>
+/// table (GeoNames cities500) — a local SQL query, not an external geocoder. Only <em>selected</em>
+/// cities are copied into <see cref="City"/> (with the distance-cache backfill), which is what keeps
+/// <see cref="CityDistance"/> small even though the reference table holds ~235k rows.
+/// </remarks>
 public sealed class CityService : ICityService
 {
     // Mean Earth radius (km) — WGS84 authalic radius, good to well under the city-granularity
@@ -13,44 +19,82 @@ public sealed class CityService : ICityService
     private const double EarthRadiusKm = 6371.0088;
 
     private readonly AppDbContext _db;
-    private readonly IGeocodingClient _geocoder;
 
-    public CityService(AppDbContext db, IGeocodingClient geocoder)
+    public CityService(AppDbContext db)
     {
         _db = db;
-        _geocoder = geocoder;
     }
 
     public async Task<IReadOnlyList<CityOptionDto>> SearchAsync(
         string query, int limit, CancellationToken ct = default)
     {
-        var results = await _geocoder.SearchAsync(query, limit, ct);
-        return results.Select(LocationLabels.ToOption).ToList();
+        var term = query.Trim();
+        if (term.Length == 0)
+        {
+            return Array.Empty<CityOptionDto>();
+        }
+
+        // Accent-insensitive prefix search over the canonical + ascii names, plus a token-prefix match
+        // into the Latin alternate names so English exonyms resolve ("Muni" → München, "Colog" → Köln).
+        // Unaccent is applied INSIDE the query on both column and pattern (it is a DB function, never
+        // callable in C#); the raw patterns carry the literal wildcards.
+        var prefix = term + "%";
+        var altToken = "%," + term + "%";
+
+        var rows = await _db.CityReferences.AsNoTracking()
+            .Where(r =>
+                EF.Functions.ILike(AppDbContext.Unaccent(r.AsciiName), AppDbContext.Unaccent(prefix))
+                || EF.Functions.ILike(AppDbContext.Unaccent(r.Name), AppDbContext.Unaccent(prefix))
+                || EF.Functions.ILike(AppDbContext.Unaccent(r.AlternateNames), AppDbContext.Unaccent(prefix))
+                || EF.Functions.ILike(AppDbContext.Unaccent(r.AlternateNames), AppDbContext.Unaccent(altToken)))
+            // Primary-name prefix hits rank above exonym/alternate hits; then the shortest name
+            // (a proxy for the better-known place, e.g. "Berlin" before "Berlingerode").
+            .OrderByDescending(r => EF.Functions.ILike(AppDbContext.Unaccent(r.AsciiName), AppDbContext.Unaccent(prefix)))
+            .ThenBy(r => r.Name.Length)
+            .ThenBy(r => r.Name)
+            .Take(limit)
+            .Select(r => new
+            {
+                r.ExternalId, r.Name, r.Region, r.CountryName, r.CountryCode, r.Latitude, r.Longitude,
+            })
+            .ToListAsync(ct);
+
+        return rows.Select(r => new CityOptionDto(
+            r.ExternalId,
+            r.Name,
+            string.IsNullOrEmpty(r.Region) ? null : r.Region,
+            r.CountryName,
+            string.IsNullOrEmpty(r.CountryCode) ? null : r.CountryCode,
+            LocationLabels.Option(r.Name, string.IsNullOrEmpty(r.Region) ? null : r.Region, r.CountryName),
+            r.Latitude,
+            r.Longitude)).ToList();
     }
 
     public async Task<City> ResolveAndUpsertAsync(
         string externalId, string? nameHint, CancellationToken ct = default)
     {
-        // 1) Reuse a city we already hold — no geocoder call, no re-import (FR-022).
+        // 1) Reuse a city we already hold — no reference lookup, no re-backfill (FR-022).
         var existing = await _db.Cities.FirstOrDefaultAsync(c => c.ExternalId == externalId, ct);
         if (existing is not null)
         {
             return existing;
         }
 
-        // 2) First use: re-resolve server-side so the stored record is authoritative (Principle I).
-        var geocoded = await _geocoder.ResolveAsync(externalId, nameHint ?? string.Empty, ct)
+        // 2) First use: resolve authoritatively from the bundled reference — never from client-supplied
+        // fields (Principle I). `nameHint` is ignored; the reference row is the source of truth.
+        var reference = await _db.CityReferences.AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ExternalId == externalId, ct)
             ?? throw new CityNotResolvableException(externalId);
 
         var city = new City
         {
-            ExternalId = geocoded.ExternalId,
-            Name = geocoded.Name,
-            CountryName = geocoded.CountryName,
-            CountryCode = geocoded.CountryCode,
-            Region = geocoded.Region,
-            Latitude = geocoded.Latitude,
-            Longitude = geocoded.Longitude,
+            ExternalId = reference.ExternalId,
+            Name = reference.Name,
+            CountryName = reference.CountryName,
+            CountryCode = string.IsNullOrEmpty(reference.CountryCode) ? null : reference.CountryCode,
+            Region = string.IsNullOrEmpty(reference.Region) ? null : reference.Region,
+            Latitude = reference.Latitude,
+            Longitude = reference.Longitude,
         };
 
         _db.Cities.Add(city);

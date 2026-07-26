@@ -105,7 +105,7 @@ Each feature is specified before it's built (see [`specs/`](specs/)):
 | Realtime | **SignalR** (chat, live typing, notifications) with a **Redis** backplane + distributed rate limiting |
 | Mapping | Mapster (entity → DTO) |
 | Email | Mailpit (local), Resend (deployed) |
-| Geocoding | Self-hosted **Photon** (OpenStreetMap) — same image everywhere, backend-proxied; powers the city picker + "near you" |
+| City data | Bundled **GeoNames `cities500`** dataset (~235k cities, seeded on startup) — powers the city picker + "near you"; no external geocoder |
 | Containers | Docker (per-service) + Docker Compose (local) |
 | CI/CD | GitHub Actions + Terraform → GHCR → **Azure Kubernetes Service (AKS)** |
 
@@ -125,19 +125,15 @@ git clone https://github.com/jnroesch/juggerhub.git
 cd juggerhub
 
 cp .env.sample .env            # PowerShell: Copy-Item .env.sample .env
-docker compose up -d --build   # database, Redis, backend, frontend, Mailpit, Photon
+docker compose up -d --build   # database, Redis, backend, frontend, Mailpit
 docker compose ps              # wait for services to become healthy
 ```
 
 The backend **auto-applies EF Core migrations on startup** against the (initially
-empty) database — there's no manual migration step. Stop with
-`docker compose down` (add `-v` to also drop the database volume).
-
-> **Geocoder (city picker):** the `photon` service imports its OSM extract on **first
-> start** (`PHOTON_REGION`, default `de`), so its container can take a while to become
-> ready and city search returns a retryable "unavailable" state until it is. The extract
-> region + disk size are the only per-environment differences (a Principle V sizing knob);
-> deployed environments set a broader extract via Terraform (`infra/envs/*.tfvars`).
+empty) database — there's no manual migration step. On first startup it also **seeds the
+bundled GeoNames `cities500` dataset** (~235k cities) that backs the city picker — a one-time
+in-process load, no external service. Stop with `docker compose down` (add `-v` to also drop
+the database volume). To refresh the city snapshot, run `backend/Data/Seed/regenerate-cities500.mjs`.
 
 | Surface | URL |
 |---------|-----|

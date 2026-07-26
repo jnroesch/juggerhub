@@ -292,23 +292,12 @@ builder.Services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime, Ju
 // would silently multiply every limit by the replica count (specs/019-chat/research.md §11).
 builder.Services.AddJuggerHubRateLimiting(builder.Configuration.GetConnectionString("Redis"));
 
-// --- Structured locations / geocoding (feature 030) ------------------------
-// Photon geocoder, self-hosted in every environment. The typed client inherits the shared
-// resilience pipeline with ONE line — same as Resend — but its calls are idempotent GETs, so
-// retry is safe here (the opposite of the email POST; constitution VII). No API key: the geocoder
-// is self-hosted, so nothing sensitive lives in this config.
+// --- Structured locations (feature 030, research R8) -----------------------
+// City search + selection resolve against a bundled, seeded GeoNames cities500 reference table —
+// a local SQL query, NOT an external geocoder. No HTTP client, no resilience pipeline, no API key,
+// nothing leaves the box (Principle I). The reference table is loaded once per environment by
+// CityReferenceSeeder below.
 builder.Services.Configure<GeocodingOptions>(builder.Configuration.GetSection(GeocodingOptions.SectionName));
-builder.Services
-    .AddHttpClient<JuggerHub.Services.Geocoding.IGeocodingClient, JuggerHub.Services.Geocoding.PhotonGeocodingClient>(
-        (sp, http) =>
-        {
-            var baseUrl = sp.GetRequiredService<IOptions<GeocodingOptions>>().Value.BaseUrl;
-            if (!string.IsNullOrWhiteSpace(baseUrl))
-            {
-                http.BaseAddress = new Uri(baseUrl.EndsWith('/') ? baseUrl : baseUrl + "/");
-            }
-        })
-    .AddJuggerHubResilience(builder.Configuration, "Geocoding");
 builder.Services.AddScoped<JuggerHub.Services.Geocoding.ICityService, JuggerHub.Services.Geocoding.CityService>();
 
 // --- Search / browse (feature 007) -----------------------------------------
@@ -394,6 +383,17 @@ var app = builder.Build();
 // a failure logs a generic error and exits non-zero rather than serving against
 // a broken/half-migrated schema. See specs/001-project-scaffold/research.md §5.
 await ApplyMigrationsAsync(app);
+
+// Load the bundled GeoNames cities500 reference dataset (feature 030, R8) in EVERY environment —
+// it is the city-picker's search source. Idempotent: a no-op once the table is populated. Gated by
+// config so integration tests can seed a small fixture instead of ~235k rows.
+if (builder.Configuration.GetValue("Seeding:CityReferences", true))
+{
+    using var cityScope = app.Services.CreateScope();
+    var cityDb = cityScope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var cityLog = cityScope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup.CitySeed");
+    await CityReferenceSeeder.SeedAsync(cityDb, AppContext.BaseDirectory, cityLog);
+}
 
 // Mirror the PlatformAdmin role to the configured admin identities (feature 013).
 // Config is the source of truth: additions grant, removals revoke, unknown emails are

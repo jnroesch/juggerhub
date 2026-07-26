@@ -475,6 +475,57 @@ namespace JuggerHub.Data.Migrations
                     b.ToTable("CityDistances");
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.CityReference", b =>
+                {
+                    b.Property<string>("ExternalId")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("AlternateNames")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("AsciiName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("character varying(2)");
+
+                    b.Property<string>("CountryName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<double>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Region")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("ExternalId");
+
+                    b.HasIndex("AsciiName");
+
+                    b.HasIndex("CountryCode");
+
+                    b.ToTable("CityReferences");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.Conversation", b =>
                 {
                     b.Property<Guid>("Id")

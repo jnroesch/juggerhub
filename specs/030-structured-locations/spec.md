@@ -128,13 +128,26 @@ A signed-in player browsing teams or events can **sort by proximity** to their h
 - **FR-016**: Entities with no city (mixteams, virtual events, players with no city) MUST be **excluded from the proximity-sorted view** rather than treated as distance zero or appended, and MUST still be reachable via the default (non-proximity) ordering.
 - **FR-017**: Proximity-ordered and country-filtered lists MUST remain paginated and MUST NOT return unbounded result sets.
 
-**Resilience, privacy & parity** *(constitution Principles I, V, VII)*
+**Data source, privacy & parity** *(constitution Principles I, V)*
 
-- **FR-018**: Calls to the external location service MUST have bounded time limits, retry only transient faults with jittered backoff (honouring any provider `Retry-After`), and have a stop-condition — never amplifying a provider slowdown or throttle into an outage.
-- **FR-019**: A location-service outage MUST degrade gracefully: city search shows a retryable transient error; proximity ordering falls back to default ordering; no unrelated flow (onboarding completion, profile/team/event save of non-city fields, browse) is blocked.
-- **FR-020**: The location integration MUST use the **same self-hosted OpenStreetMap-based geocoder in every environment** (a container in docker-compose locally and in-cluster on Dev/Prod) — identical in shape and provider across local/Dev/Prod, with no dependency on a paid or internet-only third-party service and no per-request billing.
-- **FR-021**: Any credentials for the location service MUST be sourced from environment configuration (never committed), and no secrets, credentials, or personal data (including a user's exact location query tied to their identity) MUST appear in resilience/telemetry logs.
-- **FR-022**: The system SHOULD avoid re-querying the external service for city data it already holds (canonical cities are cached/persisted on first use), to reduce cost, latency, and data sent to the third party.
+> **Note (research R8, 2026-07-26):** the feature pivoted from an external/self-hosted **geocoder** to
+> a **bundled GeoNames `cities500` dataset** seeded into a local `CityReference` table. City search is
+> now a local SQL query, so FR-018 (outbound resilience) and FR-019 (outage degradation) are **N/A**
+> — there is no external call to time-limit, retry, or degrade — and FR-020/021 are satisfied
+> trivially. The requirements below are restated for the bundled model.
+
+- **FR-018 (was: outbound resilience) — N/A**: there is no external location service; search is a
+  local database query and cannot time out, throttle, or 503.
+- **FR-019 (was: outage degradation) — N/A**: no external dependency to degrade. A malformed query
+  still yields an empty result, and no unrelated flow is blocked.
+- **FR-020**: City data MUST come from a dataset **bundled with the application and seeded identically
+  in every environment** (local/Dev/Prod) — no external service, no paid/internet-only dependency, no
+  per-request billing, and offline-capable.
+- **FR-021**: No secrets/credentials exist for city data (the dataset is bundled), and **no user
+  location query tied to their identity leaves the application** — search never crosses the process
+  boundary (Principle I, satisfied by construction).
+- **FR-022**: A selected city MUST be resolved to a persisted `City` once and reused thereafter; the
+  reference dataset is queried only for search and first-selection, never per proximity computation.
 
 ### Key Entities *(include if feature involves data)*
 

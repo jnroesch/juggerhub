@@ -31,9 +31,9 @@ public sealed class CitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Type-ahead city search. Returns <c>[]</c> for a query shorter than the minimum (a normal
-    /// "keep typing" state, not an error). Returns <c>503</c> when the geocoder is unavailable so
-    /// the picker shows a retryable transient state rather than a broken control (FR-019).
+    /// Type-ahead city search over the bundled cities500 reference table (feature 030, R8). Returns
+    /// <c>[]</c> for a query shorter than the minimum (a normal "keep typing" state, not an error).
+    /// It's a local query, so there is no external-service failure mode to degrade for.
     /// </summary>
     [HttpGet("search")]
     public async Task<ActionResult<IReadOnlyList<CityOptionDto>>> Search(
@@ -45,21 +45,6 @@ public sealed class CitiesController : ControllerBase
             return Ok(Array.Empty<CityOptionDto>());
         }
 
-        try
-        {
-            var results = await _cities.SearchAsync(term, _options.MaxResults, ct);
-            return Ok(results);
-        }
-        catch (GeocodingUnavailableException)
-        {
-            // Generic body only — no provider detail, no query echoed (Principle I).
-            await ProblemResponse.WriteAsync(
-                HttpContext,
-                StatusCodes.Status503ServiceUnavailable,
-                "https://tools.ietf.org/html/rfc7231#section-6.6.4",
-                "City search unavailable",
-                "City search is unavailable right now. Please try again in a moment.");
-            return new EmptyResult();
-        }
+        return Ok(await _cities.SearchAsync(term, _options.MaxResults, ct));
     }
 }

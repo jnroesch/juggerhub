@@ -91,7 +91,7 @@ public sealed class ProfilesController : ControllerBase
     /// Set or clear ONLY the owner's home city (feature 030). Onboarding calls this the instant a
     /// city is picked so the team step can order by proximity (FR-013), without persisting the rest
     /// of the (still-unfinished) onboarding profile. Degrades exactly like the create/update paths:
-    /// an unresolvable city → 422, the geocoder being down → 503.
+    /// an unresolvable city id → 422.
     /// </summary>
     [HttpPut("me/home-city")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
@@ -112,11 +112,6 @@ public sealed class ProfilesController : ControllerBase
         {
             return Problem(statusCode: StatusCodes.Status422UnprocessableEntity, title: "City not found",
                 detail: "That city could not be found. Please pick another.");
-        }
-        catch (JuggerHub.Services.Geocoding.GeocodingUnavailableException)
-        {
-            return Problem(statusCode: StatusCodes.Status503ServiceUnavailable, title: "City service unavailable",
-                detail: "City lookup is unavailable right now. Please try again in a moment.");
         }
     }
 

@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using JuggerHub.Api.IntegrationTests.Chat;
+using JuggerHub.Data;
 using JuggerHub.Services.Email;
-using JuggerHub.Services.Geocoding;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -36,9 +36,6 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
     /// </summary>
     public FakeChatRealtime ChatRealtime { get; } = new();
 
-    /// <summary>In-memory geocoder (feature 030): resolves known cities without a live Photon.</summary>
-    public TestGeocoder Geocoder { get; } = new();
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
@@ -61,6 +58,9 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
                 // with this email and re-run the role sync (see RecognitionTestSupport)
                 // to exercise admin-only routes.
                 ["Admin:Emails"] = "admin@test.de",
+                // Feature 030 (R8) — skip loading the full ~235k cities500 dataset; tests seed a
+                // small CityReference fixture (TestReferenceCities) in InitializeAsync instead.
+                ["Seeding:CityReferences"] = "false",
             });
         });
 
@@ -73,17 +73,20 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
             // Same trick for chat's realtime seam: no socket, and the pushes become assertable.
             services.RemoveAll<JuggerHub.Services.Chat.Realtime.IChatRealtime>();
             services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime>(ChatRealtime);
-
-            // Feature 030 — replace the Photon HTTP client with an in-memory geocoder so create/
-            // search flows resolve known cities without a live geocoder container.
-            services.RemoveAll<IGeocodingClient>();
-            services.AddSingleton<IGeocodingClient>(Geocoder);
         });
 
         builder.ConfigureLogging(logging => logging.AddProvider(new CaptureLoggerProvider(ErrorLogs)));
     }
 
-    public Task InitializeAsync() => _database.StartAsync();
+    public async Task InitializeAsync()
+    {
+        await _database.StartAsync();
+        // Accessing Services builds the host, which runs Program's startup migrations against the
+        // now-started container. Then seed the small CityReference fixture the tests select from.
+        using var scope = Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await TestReferenceCities.SeedAsync(db);
+    }
 
     public new Task DisposeAsync() => _database.DisposeAsync().AsTask();
 }

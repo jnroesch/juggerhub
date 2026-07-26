@@ -79,26 +79,6 @@ variable "postgres_password" {
   sensitive = true
 }
 
-# --- Geocoder (feature 030) — same image + API everywhere; extract/size differ per env ---
-variable "geocoder_image" {
-  type        = string
-  description = "Self-hosted Photon geocoder image (pin the tag; same across environments)."
-}
-
-variable "geocoder_region" {
-  type        = string
-  description = "OSM extract Photon imports on first start (e.g. \"de\", \"europe\"). The env sizing knob."
-}
-
-variable "geocoder_storage_gb" {
-  type        = number
-  description = "PersistentVolume size for the Photon index; scales with the extract."
-}
-
-variable "geocoder_storage_class" {
-  type = string
-}
-
 # --- app config -------------------------------------------------------------
 variable "aspnetcore_environment" {
   type = string
