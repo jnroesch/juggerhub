@@ -1,0 +1,52 @@
+<div class="relative flex flex-col gap-xs" (focusout)="onFocusOut($event)">
+  <div class="relative flex items-center">
+    <input
+      type="text"
+      [value]="value()"
+      (input)="onInput($any($event.target).value)"
+      (focus)="open.set(true)"
+      [placeholder]="placeholder()"
+      autocomplete="off"
+      role="combobox"
+      aria-label="Country"
+      [attr.aria-expanded]="open() && matches().length > 0"
+      data-testid="country-picker-input"
+      class="w-full rounded-md border border-border-strong bg-surface-card px-sm py-xs pr-8 text-body-md text-ink outline-none transition-shadow duration-fast placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-focus"
+    />
+    @if (value()) {
+      <button
+        type="button"
+        (click)="clear()"
+        aria-label="Clear country"
+        class="absolute right-1 grid h-8 w-8 place-items-center rounded-md text-subtle transition-colors duration-fast hover:bg-surface-sunken hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      >
+        <jh-icon name="x" [size]="16" />
+      </button>
+    }
+  </div>
+
+  @if (open() && matches().length > 0) {
+    <ul
+      class="absolute inset-x-0 top-full z-50 mt-xs flex max-h-64 flex-col overflow-y-auto rounded-md border border-border-strong bg-surface-card p-1 shadow-coral"
+      role="listbox"
+      data-testid="country-picker-menu"
+    >
+      @for (country of matches(); track country.name) {
+        <li>
+          <button
+            type="button"
+            (click)="pick(country)"
+            role="option"
+            [attr.aria-selected]="country.name === value()"
+            class="flex w-full items-center justify-between gap-sm rounded-sm px-sm py-xs text-left text-body-md text-ink transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          >
+            <span>{{ country.name }}</span>
+            @if (country.code) {
+              <span class="font-mono text-caption text-faint">{{ country.code }}</span>
+            }
+          </button>
+        </li>
+      }
+    </ul>
+  }
+</div>

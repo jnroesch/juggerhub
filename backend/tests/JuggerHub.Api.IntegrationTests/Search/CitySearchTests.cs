@@ -49,4 +49,26 @@ public sealed class CitySearchTests
         var resp = await _factory.CreateClient().GetAsync("/api/v1/cities/search?q=berlin");
         Assert.Equal(HttpStatusCode.Unauthorized, resp.StatusCode);
     }
+
+    [Fact]
+    public async Task Countries_lists_only_countries_with_a_located_entity()
+    {
+        var (client, userId, _, _) = await SearchTestSupport.NewUserAsync(_factory);
+        // Resolving a home city creates the canonical City the country filter matches against.
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, userId, hometown: "Berlin");
+
+        var resp = await client.GetAsync("/api/v1/cities/countries");
+
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        var items = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        var germany = items.EnumerateArray().Single(c => c.GetProperty("name").GetString() == "Germany");
+        Assert.Equal("DE", germany.GetProperty("code").GetString());
+    }
+
+    [Fact]
+    public async Task Anonymous_countries_is_rejected()
+    {
+        var resp = await _factory.CreateClient().GetAsync("/api/v1/cities/countries");
+        Assert.Equal(HttpStatusCode.Unauthorized, resp.StatusCode);
+    }
 }

@@ -6,6 +6,7 @@ import { POMPFEN_CATALOG, Pompfe, pompfeLabel } from '../../../shared/pompfen.ca
 import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
+import { CountryPickerComponent } from '../../../shared/country-picker/country-picker.component';
 
 /**
  * Players browse page (feature 007, US3). Same shell as Teams/Events; the player filter set is
@@ -14,7 +15,7 @@ import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
  */
 @Component({
   selector: 'jh-browse-players',
-  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent],
+  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, CountryPickerComponent],
   templateUrl: './browse-players.component.html',
   styleUrl: './browse-players.component.css',
 })

@@ -30,6 +30,13 @@ public sealed record LocationDto(
     string Label);
 
 /// <summary>
+/// A country offered by the browse country filter's type-ahead (feature 030). Sourced from the
+/// canonical <see cref="Entities.City"/> table so only countries that actually have a located
+/// team/event/player are suggested. <see cref="Code"/> is the ISO country code (may be null).
+/// </summary>
+public sealed record CountryDto(string? Code, string Name);
+
+/// <summary>
 /// The write fragment embedded in profile/team/event update DTOs to set or clear a location.
 /// <see cref="CityExternalId"/> null clears the location; a value selects that city. <see cref="Name"/>
 /// is only a re-resolution hint for the geocoder — never persisted verbatim.

@@ -4,6 +4,17 @@
  * geocoder directly.
  */
 
+/**
+ * A country offered by the browse country filter's type-ahead (feature 030). Sourced from the
+ * canonical cities, so only countries with a located team/event/player are suggested.
+ */
+export interface Country {
+  /** ISO country code (may be null for a few reference rows). */
+  code: string | null;
+  /** Display name, e.g. "Germany". */
+  name: string;
+}
+
 /** A transient city search result offered by the picker. Latitude/longitude are display hints. */
 export interface CityOption {
   externalId: string;

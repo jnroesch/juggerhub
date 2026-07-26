@@ -7,14 +7,16 @@ import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
 import { FilterToggleComponent } from '../filter-panel/filter-toggle.component';
+import { CountryPickerComponent } from '../../../shared/country-picker/country-picker.component';
 
 /**
  * Teams browse page (feature 007, US1). Composes the shared shell + filter panel with the
- * team filter set (active-only, beginners-welcome, city) and A–Z sort. Rows link to /t/:slug.
+ * team filter set (active-only, beginners-welcome, country) and A–Z / Nearest-first sort.
+ * Rows link to /t/:slug.
  */
 @Component({
   selector: 'jh-browse-teams',
-  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent],
+  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent],
   templateUrl: './browse-teams.component.html',
   styleUrl: './browse-teams.component.css',
 })

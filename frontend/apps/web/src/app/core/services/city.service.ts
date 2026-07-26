@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
-import { CityOption } from '../models/city.models';
+import { Observable, shareReplay } from 'rxjs';
+import { CityOption, Country } from '../models/city.models';
 
 /**
  * City type-ahead client (feature 030). Backend-proxied to the self-hosted geocoder; the browser
@@ -17,5 +17,18 @@ export class CityService {
   search(query: string): Observable<CityOption[]> {
     const params = new HttpParams().set('q', query);
     return this.http.get<CityOption[]>('/api/v1/cities/search', { params });
+  }
+
+  private countries$?: Observable<Country[]>;
+
+  /**
+   * The countries with at least one located team/event/player, for the browse country filter's
+   * type-ahead. Small and slow-changing, so it is fetched once and shared for the session.
+   */
+  countries(): Observable<Country[]> {
+    this.countries$ ??= this.http
+      .get<Country[]>('/api/v1/cities/countries')
+      .pipe(shareReplay({ bufferSize: 1, refCount: false }));
+    return this.countries$;
   }
 }

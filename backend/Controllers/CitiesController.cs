@@ -47,4 +47,13 @@ public sealed class CitiesController : ControllerBase
 
         return Ok(await _cities.SearchAsync(term, _options.MaxResults, ct));
     }
+
+    /// <summary>
+    /// The distinct countries that have at least one located team/event/player (feature 030),
+    /// backing the browse country filter's type-ahead. Derived from the canonical city table so it
+    /// only lists countries a filter can actually match.
+    /// </summary>
+    [HttpGet("countries")]
+    public async Task<ActionResult<IReadOnlyList<CountryDto>>> Countries(CancellationToken ct)
+        => Ok(await _cities.ListCountriesAsync(ct));
 }

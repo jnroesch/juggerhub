@@ -14,6 +14,13 @@ public interface ICityService
     Task<IReadOnlyList<CityOptionDto>> SearchAsync(string query, int limit, CancellationToken ct = default);
 
     /// <summary>
+    /// The distinct countries that have at least one located team/event/player, for the browse
+    /// country filter's type-ahead. Ordered by name. Derived from the canonical
+    /// <see cref="City"/> table, so it only offers countries a filter can actually match.
+    /// </summary>
+    Task<IReadOnlyList<CountryDto>> ListCountriesAsync(CancellationToken ct = default);
+
+    /// <summary>
     /// Resolves a selected city to a persisted <see cref="City"/>, creating it (and its distance
     /// rows) on first use and reusing the cached row thereafter (FR-004, FR-022). The stored record
     /// comes from the geocoder, never from client-supplied fields (Principle I).

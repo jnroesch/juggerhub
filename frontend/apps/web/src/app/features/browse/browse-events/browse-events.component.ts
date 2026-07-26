@@ -8,6 +8,7 @@ import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
 import { FilterToggleComponent } from '../filter-panel/filter-toggle.component';
+import { CountryPickerComponent } from '../../../shared/country-picker/country-picker.component';
 
 const EVENT_TYPES: readonly EventType[] = ['Tournament', 'Workshop', 'Other'];
 
@@ -18,7 +19,7 @@ const EVENT_TYPES: readonly EventType[] = ['Tournament', 'Workshop', 'Other'];
  */
 @Component({
   selector: 'jh-browse-events',
-  imports: [RouterLink, DatePipe, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent],
+  imports: [RouterLink, DatePipe, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent],
   templateUrl: './browse-events.component.html',
   styleUrl: './browse-events.component.css',
 })

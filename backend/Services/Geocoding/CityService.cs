@@ -70,6 +70,21 @@ public sealed class CityService : ICityService
             r.Longitude)).ToList();
     }
 
+    public async Task<IReadOnlyList<CountryDto>> ListCountriesAsync(CancellationToken ct = default)
+    {
+        // Distinct over the canonical Cities table (small — only user-selected places), so the filter
+        // only offers countries that can actually return results. CountryName is required; CountryCode
+        // may be absent for a few reference rows.
+        return await _db.Cities.AsNoTracking()
+            .Select(c => new { c.CountryName, c.CountryCode })
+            .Distinct()
+            .OrderBy(c => c.CountryName)
+            .Select(c => new CountryDto(
+                string.IsNullOrEmpty(c.CountryCode) ? null : c.CountryCode,
+                c.CountryName))
+            .ToListAsync(ct);
+    }
+
     public async Task<City> ResolveAndUpsertAsync(
         string externalId, string? nameHint, CancellationToken ct = default)
     {
