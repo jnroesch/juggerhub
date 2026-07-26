@@ -1,10 +1,9 @@
 <jh-browse-shell
   title="Events"
   searchPlaceholder="Search events…"
-  [sortLabel]="proximity() ? '' : 'Soonest'"
-  [nearMeAvailable]="hasHomeCity()"
-  [nearMeActive]="proximity()"
-  (toggleNearMe)="toggleNearMe()"
+  [sortOptions]="sortOptions()"
+  [activeSort]="sort()"
+  (sortChange)="onSortChange($event)"
   [countLabel]="countLabel()"
   [chips]="chips()"
   [activeFilterCount]="activeFilterCount()"

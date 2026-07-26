@@ -97,5 +97,13 @@ export interface FilterChip {
   label: string;
 }
 
+/** One choice in the browse Sort menu (feature 030 unified the sort control). */
+export interface SortOption {
+  /** The `sort` value sent to the API, e.g. "NameAsc" | "Proximity". */
+  value: string;
+  /** Human label shown in the menu and on the button, e.g. "Nearest first". */
+  label: string;
+}
+
 /** The four list states (+ ready) the shared shell renders. */
 export type BrowseState = 'loading' | 'ready' | 'empty' | 'no-results' | 'error';

@@ -2,7 +2,7 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { RouterLink } from '@angular/router';
 import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
-import { FilterChip, TeamBrowseParams, TeamCard } from '../../../core/models/search.models';
+import { FilterChip, SortOption, TeamBrowseParams, TeamCard } from '../../../core/models/search.models';
 import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
@@ -27,10 +27,19 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
   protected readonly activeOnly = signal(true);
   protected readonly beginners = signal(false);
   protected readonly city = signal('');
-  // Feature 030 — opt-in nearest-first ordering, only offered once the player has a home city
-  // (the server derives the anchor from their profile; without one it would 409).
-  protected readonly proximity = signal(false);
+  // Feature 030 — sort selection. "Proximity" (nearest first) is only offered once the player has a
+  // home city (the server derives the anchor from their profile; without one it would 409), so the
+  // option list is computed from hasHomeCity.
+  protected readonly sort = signal<'NameAsc' | 'Proximity'>('NameAsc');
   protected readonly hasHomeCity = signal(false);
+
+  protected readonly sortOptions = computed<SortOption[]>(() => {
+    const opts: SortOption[] = [{ value: 'NameAsc', label: 'A–Z' }];
+    if (this.hasHomeCity()) {
+      opts.push({ value: 'Proximity', label: 'Nearest first' });
+    }
+    return opts;
+  });
 
   // Pending state (edited in the panel until "Show N").
   protected readonly filtersOpen = signal(false);
@@ -58,7 +67,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     if (this.city().trim()) {
       chips.push({ key: 'city', label: this.city().trim() });
     }
-    // "Near me" is not a chip — it has its own prominent toolbar toggle (feature 030).
+    // Sort is not a chip — it has its own Sort menu in the toolbar (feature 030).
     return chips;
   });
 
@@ -118,9 +127,9 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.refreshPendingCount();
   }
 
-  /** The prominent "Near me" toolbar toggle — flips proximity ordering and applies instantly. */
-  protected toggleNearMe(): void {
-    this.proximity.set(this.hasHomeCity() && !this.proximity());
+  /** The Sort menu picked a new ordering — applies instantly. */
+  protected onSortChange(value: string): void {
+    this.sort.set(value === 'Proximity' && this.hasHomeCity() ? 'Proximity' : 'NameAsc');
     this.reload();
   }
 
@@ -140,7 +149,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.activeOnly.set(true);
     this.beginners.set(false);
     this.city.set('');
-    this.proximity.set(false);
+    this.sort.set('NameAsc');
     this.reload();
   }
 
@@ -165,7 +174,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
       activeOnly: this.activeOnly(),
       beginnersWelcome: this.beginners() || undefined,
       country: this.city().trim() || undefined,
-      sort: this.proximity() ? 'Proximity' : 'NameAsc',
+      sort: this.sort(),
     };
   }
 

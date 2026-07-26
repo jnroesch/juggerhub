@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
-import { EventBrowseParams, EventCard, EventType, FilterChip } from '../../../core/models/search.models';
+import { EventBrowseParams, EventCard, EventType, FilterChip, SortOption } from '../../../core/models/search.models';
 import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
@@ -33,10 +33,18 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
   protected readonly to = signal('');
   protected readonly type = signal<EventType | ''>('');
   protected readonly city = signal('');
-  // Feature 030 — opt-in nearest-first ordering; only offered with a home city (server-derived
-  // anchor). Virtual events drop out of this view (FR-016).
-  protected readonly proximity = signal(false);
+  // Feature 030 — sort selection. "Proximity" (nearest first) is only offered with a home city
+  // (server-derived anchor); virtual events drop out of that view (FR-016).
+  protected readonly sort = signal<'StartsAtAsc' | 'Proximity'>('StartsAtAsc');
   protected readonly hasHomeCity = signal(false);
+
+  protected readonly sortOptions = computed<SortOption[]>(() => {
+    const opts: SortOption[] = [{ value: 'StartsAtAsc', label: 'Soonest' }];
+    if (this.hasHomeCity()) {
+      opts.push({ value: 'Proximity', label: 'Nearest first' });
+    }
+    return opts;
+  });
 
   protected readonly filtersOpen = signal(false);
   protected readonly pendingHidePast = signal(true);
@@ -72,7 +80,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     if (this.city().trim()) {
       chips.push({ key: 'city', label: this.city().trim() });
     }
-    // "Near me" is not a chip — it has its own prominent toolbar toggle (feature 030).
+    // Sort is not a chip — it has its own Sort menu in the toolbar (feature 030).
     return chips;
   });
 
@@ -137,9 +145,9 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.refreshPendingCount();
   }
 
-  /** The prominent "Near me" toolbar toggle — flips proximity ordering and applies instantly. */
-  protected toggleNearMe(): void {
-    this.proximity.set(this.hasHomeCity() && !this.proximity());
+  /** The Sort menu picked a new ordering — applies instantly. */
+  protected onSortChange(value: string): void {
+    this.sort.set(value === 'Proximity' && this.hasHomeCity() ? 'Proximity' : 'StartsAtAsc');
     this.reload();
   }
 
@@ -164,7 +172,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     this.to.set('');
     this.type.set('');
     this.city.set('');
-    this.proximity.set(false);
+    this.sort.set('StartsAtAsc');
     this.reload();
   }
 
@@ -208,7 +216,7 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
       to: this.to() || undefined,
       type: this.type() || undefined,
       country: this.city().trim() || undefined,
-      sort: this.proximity() ? 'Proximity' : 'StartsAtAsc',
+      sort: this.sort(),
     };
   }
 
