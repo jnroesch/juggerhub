@@ -8,6 +8,7 @@
       [placeholder]="placeholder()"
       autocomplete="off"
       role="combobox"
+      aria-controls="country-picker-listbox"
       aria-label="Country"
       [attr.aria-expanded]="open() && matches().length > 0"
       data-testid="country-picker-input"
@@ -27,6 +28,7 @@
 
   @if (open() && matches().length > 0) {
     <ul
+      id="country-picker-listbox"
       class="mt-xs flex flex-col rounded-md border border-border-strong bg-surface-card p-1 shadow-sm"
       role="listbox"
       data-testid="country-picker-menu"

@@ -81,16 +81,19 @@ public sealed class EventsController : ControllerBase
     public async Task<ActionResult<PagedResult<EventCardDto>>> Browse(
         [FromQuery] EventBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct)
     {
+        // Authenticated-only since feature 026; resolve the caller up front so the auth check never
+        // depends on user-supplied query values (a proximity request must not be the only path that
+        // enforces it).
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
         // Proximity sort (feature 030) anchors on the caller's home city (resolved server-side);
         // without one, ask them to set it rather than silently reordering.
         Guid? homeCityId = null;
         if (query.Sort == JuggerHub.Services.Search.EventSort.Proximity)
         {
-            if (!TryGetUserId(out var userId))
-            {
-                return Unauthorized();
-            }
-
             homeCityId = await _profiles.GetHomeCityIdAsync(userId, ct);
             if (homeCityId is null)
             {
