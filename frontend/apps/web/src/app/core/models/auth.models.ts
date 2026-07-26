@@ -17,6 +17,12 @@ export interface AuthUser {
    * link to their own profile (`/u/<handle>`) and owner detection on the profile page.
    */
   handle: string;
+  /**
+   * The user's chosen interface language (feature 031): `"en" | "de" | "es"`, or `null` when they
+   * haven't chosen one (the client then resolves a language by local/browser detection). Top of the
+   * language precedence when set.
+   */
+  preferredLanguage: string | null;
 }
 
 export interface RegisterRequest {

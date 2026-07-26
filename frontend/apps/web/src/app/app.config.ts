@@ -15,6 +15,7 @@ import { provideTranslocoLocale } from '@jsverse/transloco-locale';
 import { appRoutes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { retryInterceptor } from './core/interceptors/retry.interceptor';
+import { languageInterceptor } from './core/interceptors/language.interceptor';
 import { ChunkLoadErrorHandler } from './core/chunk-load-error.handler';
 import { TranslocoHttpLoader } from './core/i18n/transloco-http.loader';
 import { DEFAULT_LANGUAGE, LANG_TO_LOCALE, SUPPORTED_LANGUAGES } from './core/i18n/supported-languages';
@@ -40,7 +41,9 @@ export const appConfig: ApplicationConfig = {
     //   - a transient fault is absorbed by retry and never reaches the auth interceptor.
     // Reversing them puts retry OUTSIDE the refresh, letting one expired session drive several
     // refresh cycles. Do not swap these.
-    provideHttpClient(withFetch(), withInterceptors([authInterceptor, retryInterceptor])),
+    // languageInterceptor is appended last (feature 031): it only adds an Accept-Language header and
+    // never short-circuits, so the auth→retry ordering contract (feature 028) is preserved.
+    provideHttpClient(withFetch(), withInterceptors([authInterceptor, retryInterceptor, languageInterceptor])),
     // Runtime i18n (feature 031). Transloco switches the active catalog in place — no per-language
     // build, no reload (FR-004). English is the source AND the fallback: `fallbackLang` +
     // `useFallbackTranslation` means any key missing from de/es resolves to the English text rather

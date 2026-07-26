@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { safeReturnUrl } from '../../../core/utils/return-url';
 import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/ui';
+import { LanguageSwitcherComponent } from '../../settings/language/language-switcher.component';
 
 /**
  * US2 — sign in. Generic failure for bad credentials; a 403 (correct password but
@@ -13,7 +14,7 @@ import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/
  */
 @Component({
   selector: 'jh-sign-in',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CardComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CardComponent, LanguageSwitcherComponent],
   templateUrl: './sign-in.component.html',
   styleUrl: './sign-in.component.css',
 })

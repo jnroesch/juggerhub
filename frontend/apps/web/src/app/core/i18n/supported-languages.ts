@@ -32,6 +32,24 @@ export function isSupportedLanguage(value: string | null | undefined): value is 
 }
 
 /**
+ * Resolve the effective language from the fixed precedence (FR-007): explicit account preference,
+ * then locally stored choice, then browser language, then English. Each candidate is base-matched
+ * (FR-003) and unsupported values are skipped, so the result is always a supported language.
+ */
+export function resolveLanguage(
+  accountPreference: string | null | undefined,
+  storedChoice: string | null | undefined,
+  browserLanguage: string | null | undefined,
+): SupportedLanguage {
+  return (
+    matchSupportedLanguage(accountPreference) ??
+    matchSupportedLanguage(storedChoice) ??
+    matchSupportedLanguage(browserLanguage) ??
+    DEFAULT_LANGUAGE
+  );
+}
+
+/**
  * Collapse a BCP-47 tag to a supported base language, or null when unsupported (FR-003).
  * e.g. "de-AT" -> "de", "es-MX" -> "es", "fr" -> null.
  */
