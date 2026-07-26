@@ -1,0 +1,13 @@
+{
+  "_meta": {
+    "status": "draft",
+    "review": "Machine/AI draft — native-speaker review pending (see #77)"
+  },
+  "common": {
+    "language": "Sprache",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "close": "Schließen",
+    "loading": "Wird geladen…"
+  }
+}
