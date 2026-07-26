@@ -117,6 +117,23 @@ services:
     ports:
       - "8025:8025"
       - "1025:1025"
+    environment:
+      # Points the Mailpit "Spam Analysis" panel at the local SpamAssassin daemon.
+      # Mailpit connects lazily (only when a message is scored), so this address can
+      # stay set even when spamd isn't running — sa-check simply reports an error
+      # instead of a score. spamd itself is opt-in via the `spam` compose profile.
+      - MP_ENABLE_SPAMASSASSIN=spamd:783
+    networks:
+      - juggerhub-network
+
+  # SpamAssassin spamd, consumed only by Mailpit for local spam scoring. Opt-in:
+  # it costs a few hundred MB of RAM, so it only starts under the `spam` profile
+  # (`docker compose --profile spam up`), not on a plain `docker compose up`.
+  spamd:
+    image: instantlinux/spamassassin:latest
+    container_name: juggerhub-spamd
+    profiles:
+      - spam
     networks:
       - juggerhub-network
 

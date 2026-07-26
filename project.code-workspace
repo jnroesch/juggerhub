@@ -23,9 +23,15 @@
         "icon": "debug-alt",
         "color": "terminal.ansiYellow"
       },
+      "Docker Compose + Spam Scoring": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "docker compose --profile spam up --build -d; docker compose --profile spam logs -f"],
+        "icon": "mail",
+        "color": "terminal.ansiMagenta"
+      },
       "Docker Compose Down": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "docker compose down"],
+        "args": ["-NoExit", "-Command", "docker compose --profile spam down"],
         "icon": "debug-stop",
         "color": "terminal.ansiRed"
       },
@@ -112,9 +118,21 @@
         }
       },
       {
+        "label": "Docker Compose + Spam Scoring",
+        "detail": "Start the stack with the opt-in SpamAssassin daemon so Mailpit's Spam Analysis panel works",
+        "type": "shell",
+        "command": "docker compose --profile spam up --build -d",
+        "group": "build",
+        "problemMatcher": [],
+        "presentation": {
+          "reveal": "always",
+          "panel": "new"
+        }
+      },
+      {
         "label": "Docker Compose Down",
         "type": "shell",
-        "command": "docker compose down",
+        "command": "docker compose --profile spam down",
         "group": "build",
         "presentation": {
           "reveal": "always",
