@@ -1,5 +1,5 @@
+# Security reporting is intentionally omitted here: with Private vulnerability
+# reporting enabled, GitHub adds its own "Report a security vulnerability" link
+# to the chooser (→ /security/advisories/new). Duplicating it as a contact_link
+# produced two identical security buttons. See SECURITY.md for the policy.
 blank_issues_enabled: false
-contact_links:
-  - name: 🔒 Report a security vulnerability
-    url: https://github.com/jnroesch/juggerhub/security/advisories/new
-    about: Please report security issues privately — do not open a public issue. See SECURITY.md.
