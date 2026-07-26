@@ -64,7 +64,7 @@
     <div class="flex items-center gap-xs">
       <input
         type="date"
-        class="flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
         aria-label="From date"
         [value]="pendingFrom()"
         (input)="onPendingFrom($any($event.target).value)"
@@ -72,7 +72,7 @@
       <span class="text-subtle">–</span>
       <input
         type="date"
-        class="flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
         aria-label="To date"
         [value]="pendingTo()"
         (input)="onPendingTo($any($event.target).value)"
