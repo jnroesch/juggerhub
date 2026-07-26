@@ -51,11 +51,11 @@ public sealed class CitySearchTests
     }
 
     [Fact]
-    public async Task Countries_lists_only_countries_with_a_located_entity()
+    public async Task Countries_lists_from_the_reference_dataset_not_just_located_records()
     {
-        var (client, userId, _, _) = await SearchTestSupport.NewUserAsync(_factory);
-        // Resolving a home city creates the canonical City the country filter matches against.
-        await SearchTestSupport.ConfigurePlayerAsync(_factory, userId, hometown: "Berlin");
+        // No home city / team is set up here on purpose: countries come from the reference dataset,
+        // so a country is offered even with zero located records (the results' empty state handles it).
+        var (client, _, _, _) = await SearchTestSupport.NewUserAsync(_factory);
 
         var resp = await client.GetAsync("/api/v1/cities/countries");
 

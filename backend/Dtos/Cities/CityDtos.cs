@@ -30,9 +30,9 @@ public sealed record LocationDto(
     string Label);
 
 /// <summary>
-/// A country offered by the browse country filter's type-ahead (feature 030). Sourced from the
-/// canonical <see cref="Entities.City"/> table so only countries that actually have a located
-/// team/event/player are suggested. <see cref="Code"/> is the ISO country code (may be null).
+/// A country offered by the browse country filter's type-ahead (feature 030). Sourced from the full
+/// reference dataset so every country is selectable (an empty country just yields the results' empty
+/// state). <see cref="Code"/> is the ISO country code (may be null).
 /// </summary>
 public sealed record CountryDto(string? Code, string Name);
 

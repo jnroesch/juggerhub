@@ -5,8 +5,8 @@
  */
 
 /**
- * A country offered by the browse country filter's type-ahead (feature 030). Sourced from the
- * canonical cities, so only countries with a located team/event/player are suggested.
+ * A country offered by the browse country filter's type-ahead (feature 030). Every country in the
+ * reference dataset is selectable; filtering to an empty one just shows the results' empty state.
  */
 export interface Country {
   /** ISO country code (may be null for a few reference rows). */

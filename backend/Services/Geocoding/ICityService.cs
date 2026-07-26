@@ -14,9 +14,10 @@ public interface ICityService
     Task<IReadOnlyList<CityOptionDto>> SearchAsync(string query, int limit, CancellationToken ct = default);
 
     /// <summary>
-    /// The distinct countries that have at least one located team/event/player, for the browse
-    /// country filter's type-ahead. Ordered by name. Derived from the canonical
-    /// <see cref="City"/> table, so it only offers countries a filter can actually match.
+    /// Every distinct country in the reference dataset, for the browse country filter's type-ahead,
+    /// ordered by name. Deliberately not limited to countries that currently have records — filtering
+    /// to an as-yet-empty country falls through to the results' empty state instead of the country
+    /// being mysteriously missing from the picker.
     /// </summary>
     Task<IReadOnlyList<CountryDto>> ListCountriesAsync(CancellationToken ct = default);
 

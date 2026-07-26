@@ -72,10 +72,11 @@ public sealed class CityService : ICityService
 
     public async Task<IReadOnlyList<CountryDto>> ListCountriesAsync(CancellationToken ct = default)
     {
-        // Distinct over the canonical Cities table (small — only user-selected places), so the filter
-        // only offers countries that can actually return results. CountryName is required; CountryCode
-        // may be absent for a few reference rows.
-        return await _db.Cities.AsNoTracking()
+        // Distinct over the full reference dataset so EVERY country is offered — a viewer who filters
+        // to a country with no teams/events yet simply gets the results' empty state, which is clearer
+        // than silently omitting the country from the picker. One-off per session (client-cached), so
+        // the distinct scan over the reference table is fine. CountryCode may be absent for a few rows.
+        return await _db.CityReferences.AsNoTracking()
             .Select(c => new { c.CountryName, c.CountryCode })
             .Distinct()
             .OrderBy(c => c.CountryName)

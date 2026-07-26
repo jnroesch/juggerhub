@@ -22,8 +22,9 @@ export class CityService {
   private countries$?: Observable<Country[]>;
 
   /**
-   * The countries with at least one located team/event/player, for the browse country filter's
-   * type-ahead. Small and slow-changing, so it is fetched once and shared for the session.
+   * Every country in the reference dataset, for the browse country filter's type-ahead (filtering to
+   * an empty country just shows the results' empty state). Slow-changing, so it is fetched once and
+   * shared for the session.
    */
   countries(): Observable<Country[]> {
     this.countries$ ??= this.http
