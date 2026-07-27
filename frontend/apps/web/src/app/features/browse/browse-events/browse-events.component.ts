@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { EventBrowseParams, EventCard, EventType, FilterChip, SortOption } from '../../../core/models/search.models';
@@ -19,13 +21,15 @@ const EVENT_TYPES: readonly EventType[] = ['Tournament', 'Workshop', 'Other'];
  */
 @Component({
   selector: 'jh-browse-events',
-  imports: [RouterLink, DatePipe, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent],
+  imports: [RouterLink, DatePipe, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent, TranslocoPipe],
   templateUrl: './browse-events.component.html',
   styleUrl: './browse-events.component.css',
 })
 export class BrowseEventsComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
   private readonly profiles = inject(ProfileService);
+  private readonly t = inject(TranslocoService);
+  private readonly lang = toSignal(this.t.langChanges$, { initialValue: this.t.getActiveLang() });
   protected readonly eventTypes = EVENT_TYPES;
 
   protected readonly query = signal('');
@@ -40,9 +44,10 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
   protected readonly hasHomeCity = signal(false);
 
   protected readonly sortOptions = computed<SortOption[]>(() => {
-    const opts: SortOption[] = [{ value: 'StartsAtAsc', label: 'Soonest' }];
+    this.lang();
+    const opts: SortOption[] = [{ value: 'StartsAtAsc', label: this.t.translate('browse.events.sortSoonest') }];
     if (this.hasHomeCity()) {
-      opts.push({ value: 'Proximity', label: 'Nearest first' });
+      opts.push({ value: 'Proximity', label: this.t.translate('browse.sortNearest') });
     }
     return opts;
   });
@@ -68,9 +73,10 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
   );
 
   protected readonly chips = computed<FilterChip[]>(() => {
+    this.lang();
     const chips: FilterChip[] = [];
     if (this.hidePast()) {
-      chips.push({ key: 'hidePast', label: 'Upcoming' });
+      chips.push({ key: 'hidePast', label: this.t.translate('browse.events.chipUpcoming') });
     }
     if (this.from() || this.to()) {
       chips.push({ key: 'dates', label: this.dateRangeLabel() });
@@ -86,10 +92,13 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
   });
 
   protected readonly countLabel = computed(() => {
+    this.lang();
     const n = this.list.total();
-    const parts = [`${n} ${n === 1 ? 'event' : 'events'}`];
+    const parts = [
+      this.t.translate(n === 1 ? 'browse.events.countOne' : 'browse.events.countMany', { count: n }),
+    ];
     if (this.hidePast()) {
-      parts.push('upcoming');
+      parts.push(this.t.translate('browse.events.chipUpcoming'));
     }
     if (this.type()) {
       parts.push(this.type().toLowerCase());

@@ -90,6 +90,29 @@
       "beginnersHint": "Open to new players",
       "players": "players",
       "beginnersPill": "Beginners"
+    },
+    "players": {
+      "searchPlaceholder": "Search players…",
+      "note": "Every player on JuggerHub is listed here.",
+      "noun": "players",
+      "position": "Position",
+      "countOne": "{{count}} player",
+      "countMany": "{{count}} players"
+    },
+    "events": {
+      "searchPlaceholder": "Search events…",
+      "noun": "events",
+      "hidePastLabel": "Hide past events",
+      "hidePastHint": "Only upcoming",
+      "dateRange": "Date range",
+      "fromDate": "From date",
+      "toDate": "To date",
+      "type": "Type",
+      "anyType": "Any type",
+      "sortSoonest": "Soonest",
+      "chipUpcoming": "Upcoming",
+      "countOne": "{{count}} event",
+      "countMany": "{{count}} events"
     }
   },
   "home": {

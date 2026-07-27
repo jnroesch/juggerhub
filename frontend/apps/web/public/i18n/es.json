@@ -94,6 +94,29 @@
       "beginnersHint": "Abierto a jugadores nuevos",
       "players": "jugadores",
       "beginnersPill": "Principiantes"
+    },
+    "players": {
+      "searchPlaceholder": "Buscar jugadores…",
+      "note": "Todos los jugadores de JuggerHub aparecen aquí.",
+      "noun": "jugadores",
+      "position": "Posición",
+      "countOne": "{{count}} jugador",
+      "countMany": "{{count}} jugadores"
+    },
+    "events": {
+      "searchPlaceholder": "Buscar eventos…",
+      "noun": "eventos",
+      "hidePastLabel": "Ocultar eventos pasados",
+      "hidePastHint": "Solo próximos",
+      "dateRange": "Rango de fechas",
+      "fromDate": "Desde",
+      "toDate": "Hasta",
+      "type": "Tipo",
+      "anyType": "Cualquier tipo",
+      "sortSoonest": "Más próximos",
+      "chipUpcoming": "Próximos",
+      "countOne": "{{count}} evento",
+      "countMany": "{{count}} eventos"
     }
   },
   "home": {
