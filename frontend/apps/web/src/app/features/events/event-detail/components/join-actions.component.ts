@@ -1,4 +1,6 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ButtonDirective, AlertComponent } from '../../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -12,11 +14,14 @@ import { PartyContext, PartyContextTeam } from '../../../../core/models/party.mo
  */
 @Component({
   selector: 'jh-event-join-actions',
-  imports: [FormsModule, RouterLink, ButtonDirective, AlertComponent],
+  imports: [FormsModule, RouterLink, ButtonDirective, AlertComponent, TranslocoPipe],
   templateUrl: './join-actions.component.html',
   styleUrl: './join-actions.component.css',
 })
 export class EventJoinActionsComponent {
+  private readonly t = inject(TranslocoService);
+  private readonly lang = toSignal(this.t.langChanges$, { initialValue: this.t.getActiveLang() });
+
   readonly detail = input.required<EventDetail>();
   /** Feature 016: the caller's party affordances for a teams-only event. */
   readonly partyContext = input<PartyContext | null>(null);
@@ -45,13 +50,14 @@ export class EventJoinActionsComponent {
   });
 
   protected readonly statusLabel = computed(() => {
+    this.lang();
     switch (this.detail().viewer.mySignupStatus) {
       case 'Joined':
-        return "You're in";
+        return this.t.translate('events.join.statusJoined');
       case 'AwaitingApproval':
-        return 'Awaiting approval — pay to confirm your spot';
+        return this.t.translate('events.join.statusAwaiting');
       case 'Waitlisted':
-        return "On the waiting list — you're not charged unless a spot opens";
+        return this.t.translate('events.join.statusWaitlisted');
       default:
         return '';
     }

@@ -152,6 +152,73 @@
       "settings": "Ajustes"
     }
   },
+  "events": {
+    "detail": {
+      "notFoundTitle": "Evento no encontrado",
+      "notFoundBody": "Este evento no existe o el enlace es incorrecto.",
+      "goHome": "Ir al inicio",
+      "backHome": "‹ Inicio",
+      "cancelled": "Cancelado por el organizador. No se aceptan nuevas inscripciones.",
+      "online": "En línea",
+      "teamsOnly": "Solo equipos",
+      "individualsOnly": "Solo individuales",
+      "perTeam": "por equipo",
+      "perPerson": "por persona",
+      "teamsIn": "Equipos dentro",
+      "peopleIn": "Personas dentro",
+      "confirmed": "confirmados",
+      "pendingPayment": "{{count}} pago pendiente",
+      "about": "Acerca de",
+      "where": "Dónde",
+      "manageParticipants": "Gestionar participantes y lista de espera",
+      "editDetails": "Editar detalles",
+      "manageContacts": "Gestionar contactos",
+      "inviteCoAdmins": "Invitar coadministradores",
+      "cancelEvent": "Cancelar evento",
+      "manageEvent": "Gestionar evento",
+      "entranceFee": "Cuota de inscripción",
+      "payBy": "Paga antes del {{date}}",
+      "payTo": "Pagar a",
+      "iban": "IBAN",
+      "bankTransferNote": "Solo transferencia bancaria — sin pago en la app. Un administrador confirma tu pago para admitirte."
+    },
+    "join": {
+      "fullWaitlistNote": "Este evento está completo. Aún puedes apuntarte a la lista de espera — un administrador va admitiendo gente manualmente según se liberan plazas. No se te cobra a menos que se libere una plaza.",
+      "withdraw": "Retirarse",
+      "yourParty": "Tu party",
+      "inCount": "{{in}} / {{cap}} dentro",
+      "entered": "Inscrito — tu equipo está en el evento",
+      "beingFilled": "Completándose — todavía no está en el evento",
+      "viewParty": "Ver party",
+      "enterParty": "+ Inscribir una party",
+      "enterPartyHint": "Los equipos participan como party — reúne a tu grupo para este evento.",
+      "adminsCanEnter": "Los administradores de tu equipo pueden inscribir una party para este evento.",
+      "join": "Unirse",
+      "joinWaitlist": "Unirse a la lista de espera",
+      "statusJoined": "Estás dentro",
+      "statusAwaiting": "Pendiente de aprobación — paga para confirmar tu plaza",
+      "statusWaitlisted": "En la lista de espera — no se te cobra a menos que se libere una plaza"
+    },
+    "participants": {
+      "heading": "Quién participa",
+      "groupIn": "Dentro",
+      "groupAwaiting": "Pendiente de aprobación",
+      "groupWaitlist": "Lista de espera",
+      "noneWaiting": "Nadie en espera todavía.",
+      "noneYet": "Nadie todavía.",
+      "pending": "Pendiente"
+    },
+    "news": {
+      "heading": "Últimas novedades",
+      "placeholder": "Publica una novedad…",
+      "post": "Publicar",
+      "none": "Aún no hay novedades."
+    },
+    "contacts": {
+      "heading": "Contactos",
+      "none": "No hay contactos indicados."
+    }
+  },
   "account": {
     "title": "Cuenta",
     "subtitle": "Página de ejemplo protegida — solo la ves cuando has iniciado sesión.",

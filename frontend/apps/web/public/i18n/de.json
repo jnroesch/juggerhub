@@ -152,6 +152,73 @@
       "settings": "Einstellungen"
     }
   },
+  "events": {
+    "detail": {
+      "notFoundTitle": "Event nicht gefunden",
+      "notFoundBody": "Dieses Event existiert nicht oder der Link ist falsch.",
+      "goHome": "Zur Startseite",
+      "backHome": "‹ Startseite",
+      "cancelled": "Vom Veranstalter abgesagt. Es werden keine neuen Anmeldungen angenommen.",
+      "online": "Online",
+      "teamsOnly": "Nur Teams",
+      "individualsOnly": "Nur Einzelpersonen",
+      "perTeam": "pro Team",
+      "perPerson": "pro Person",
+      "teamsIn": "Teams dabei",
+      "peopleIn": "Personen dabei",
+      "confirmed": "bestätigt",
+      "pendingPayment": "{{count}} Zahlung ausstehend",
+      "about": "Über",
+      "where": "Wo",
+      "manageParticipants": "Teilnehmer & Warteliste verwalten",
+      "editDetails": "Details bearbeiten",
+      "manageContacts": "Kontakte verwalten",
+      "inviteCoAdmins": "Co-Admins einladen",
+      "cancelEvent": "Event absagen",
+      "manageEvent": "Event verwalten",
+      "entranceFee": "Teilnahmegebühr",
+      "payBy": "Zahlen bis {{date}}",
+      "payTo": "Zahlen an",
+      "iban": "IBAN",
+      "bankTransferNote": "Nur per Überweisung — keine In-App-Zahlung. Ein Admin bestätigt deine Zahlung, um dich zuzulassen."
+    },
+    "join": {
+      "fullWaitlistNote": "Dieses Event ist voll. Du kannst dich trotzdem auf die Warteliste setzen — ein Admin rückt Leute manuell nach, wenn Plätze frei werden. Kosten entstehen erst, wenn ein Platz frei wird.",
+      "withdraw": "Zurückziehen",
+      "yourParty": "Deine Party",
+      "inCount": "{{in}} / {{cap}} dabei",
+      "entered": "Eingetragen — dein Team ist beim Event dabei",
+      "beingFilled": "Wird gefüllt — noch nicht beim Event",
+      "viewParty": "Party ansehen",
+      "enterParty": "+ Party eintragen",
+      "enterPartyHint": "Teams treten als Party an — stell eine Crew für dieses Event zusammen.",
+      "adminsCanEnter": "Die Admins deines Teams können eine Party für dieses Event eintragen.",
+      "join": "Beitreten",
+      "joinWaitlist": "Auf die Warteliste",
+      "statusJoined": "Du bist dabei",
+      "statusAwaiting": "Wartet auf Bestätigung — zahle, um deinen Platz zu sichern",
+      "statusWaitlisted": "Auf der Warteliste — Kosten entstehen erst, wenn ein Platz frei wird"
+    },
+    "participants": {
+      "heading": "Wer dabei ist",
+      "groupIn": "Dabei",
+      "groupAwaiting": "Wartet auf Bestätigung",
+      "groupWaitlist": "Warteliste",
+      "noneWaiting": "Noch niemand auf der Warteliste.",
+      "noneYet": "Noch niemand.",
+      "pending": "Ausstehend"
+    },
+    "news": {
+      "heading": "Neueste News",
+      "placeholder": "Ein Update posten…",
+      "post": "Posten",
+      "none": "Noch keine Updates."
+    },
+    "contacts": {
+      "heading": "Kontakte",
+      "none": "Keine Kontakte angegeben."
+    }
+  },
   "account": {
     "title": "Konto",
     "subtitle": "Geschützte Beispielseite — du siehst sie nur im angemeldeten Zustand.",

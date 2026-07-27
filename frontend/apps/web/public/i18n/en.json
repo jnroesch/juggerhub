@@ -148,6 +148,73 @@
       "settings": "Settings"
     }
   },
+  "events": {
+    "detail": {
+      "notFoundTitle": "Event not found",
+      "notFoundBody": "This event doesn't exist or the link is wrong.",
+      "goHome": "Go home",
+      "backHome": "‹ Home",
+      "cancelled": "Cancelled by the organiser. No new sign-ups are being accepted.",
+      "online": "Online",
+      "teamsOnly": "Teams only",
+      "individualsOnly": "Individuals only",
+      "perTeam": "per team",
+      "perPerson": "per person",
+      "teamsIn": "Teams in",
+      "peopleIn": "People in",
+      "confirmed": "confirmed",
+      "pendingPayment": "{{count}} pending payment",
+      "about": "About",
+      "where": "Where",
+      "manageParticipants": "Manage participants & waitlist",
+      "editDetails": "Edit details",
+      "manageContacts": "Manage contacts",
+      "inviteCoAdmins": "Invite co-admins",
+      "cancelEvent": "Cancel event",
+      "manageEvent": "Manage event",
+      "entranceFee": "Entrance fee",
+      "payBy": "Pay by {{date}}",
+      "payTo": "Pay to",
+      "iban": "IBAN",
+      "bankTransferNote": "Bank transfer only — no in-app payment. An admin confirms your payment to admit you."
+    },
+    "join": {
+      "fullWaitlistNote": "This event is full. You can still join the waiting list — an admin promotes people manually as spots open. You're not charged unless a spot opens.",
+      "withdraw": "Withdraw",
+      "yourParty": "Your party",
+      "inCount": "{{in}} / {{cap}} in",
+      "entered": "Entered — your team is on the event",
+      "beingFilled": "Being filled — not on the event yet",
+      "viewParty": "View party",
+      "enterParty": "+ Enter a party",
+      "enterPartyHint": "Teams enter as a party — pull a crew together for this event.",
+      "adminsCanEnter": "Your team's admins can enter a party for this event.",
+      "join": "Join",
+      "joinWaitlist": "Join the waiting list",
+      "statusJoined": "You're in",
+      "statusAwaiting": "Awaiting approval — pay to confirm your spot",
+      "statusWaitlisted": "On the waiting list — you're not charged unless a spot opens"
+    },
+    "participants": {
+      "heading": "Who's taking part",
+      "groupIn": "In",
+      "groupAwaiting": "Awaiting approval",
+      "groupWaitlist": "Waiting list",
+      "noneWaiting": "None waiting yet.",
+      "noneYet": "None yet.",
+      "pending": "Pending"
+    },
+    "news": {
+      "heading": "Latest news",
+      "placeholder": "Post an update…",
+      "post": "Post",
+      "none": "No updates yet."
+    },
+    "contacts": {
+      "heading": "Contacts",
+      "none": "No contacts listed."
+    }
+  },
   "account": {
     "title": "Account",
     "subtitle": "Protected sample page — you only see this when signed in.",

@@ -3,12 +3,12 @@
     <jh-loading />
   } @else if (loadError()) {
     <div class="rounded-lg border border-border bg-surface-card px-md py-lg text-center">
-      <p class="text-heading-sm font-bold text-ink">Event not found</p>
-      <p class="mt-xs text-body-sm text-subtle">This event doesn't exist or the link is wrong.</p>
-      <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand">Go home</a>
+      <p class="text-heading-sm font-bold text-ink">{{ 'events.detail.notFoundTitle' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ 'events.detail.notFoundBody' | transloco }}</p>
+      <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand">{{ 'events.detail.goHome' | transloco }}</a>
     </div>
   } @else if (detail(); as d) {
-    <a routerLink="/" class="text-body-sm text-subtle hover:text-text">‹ Home</a>
+    <a routerLink="/" class="text-body-sm text-subtle hover:text-text">{{ 'events.detail.backHome' | transloco }}</a>
 
     <!-- Hero: cover, title, meta, occupancy -->
     <div class="relative mt-sm flex h-28 items-end overflow-hidden rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
@@ -17,7 +17,7 @@
 
     @if (cancelled()) {
       <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm font-semibold text-danger-fg" data-testid="event-cancelled">
-        Cancelled by the organiser. No new sign-ups are being accepted.
+        {{ 'events.detail.cancelled' | transloco }}
       </div>
     }
 
@@ -29,30 +29,30 @@
       </li>
       <li class="flex items-center gap-sm">
         <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.3-7-11a7 7 0 0114 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
-        @if (d.locationKind === 'InPerson') { {{ d.venueName || d.location?.name }}{{ d.venueName && d.location ? ', ' + d.location.name : '' }} } @else { Online }
+        @if (d.locationKind === 'InPerson') { {{ d.venueName || d.location?.name }}{{ d.venueName && d.location ? ', ' + d.location.name : '' }} } @else { {{ 'events.detail.online' | transloco }} }
       </li>
       <li class="flex items-center gap-sm">
         <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0114 0M17 4.5a3.5 3.5 0 010 7M15 21a7 7 0 017 0"/></svg>
-        {{ d.participantMode === 'Teams' ? 'Teams only' : 'Individuals only' }}
+        {{ (d.participantMode === 'Teams' ? 'events.detail.teamsOnly' : 'events.detail.individualsOnly') | transloco }}
       </li>
       @if (d.isPaid) {
         <li class="flex items-center gap-sm">
           <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4z"/></svg>
-          {{ d.feeAmount }} {{ d.feeCurrency }} {{ d.participantMode === 'Teams' ? 'per team' : 'per person' }}
+          {{ d.feeAmount }} {{ d.feeCurrency }} {{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}
         </li>
       }
     </ul>
 
     <div class="mt-md">
       <div class="flex items-center justify-between text-body-sm">
-        <span class="font-semibold text-body">{{ d.participantMode === 'Teams' ? 'Teams in' : 'People in' }}</span>
+        <span class="font-semibold text-body">{{ (d.participantMode === 'Teams' ? 'events.detail.teamsIn' : 'events.detail.peopleIn') | transloco }}</span>
         <span class="text-subtle" data-testid="spots-label">{{ d.occupiedSpots }}/{{ d.participationLimit }}</span>
       </div>
       <div class="mt-xs h-2 overflow-hidden rounded-full bg-surface-sunken">
         <div class="h-full rounded-full bg-brand transition-all duration-fast" [style.width.%]="occupancyPct()"></div>
       </div>
       <p class="mt-xs text-body-sm text-subtle">
-        <span class="font-semibold text-body">{{ joined().length }}</span> confirmed@if (awaiting().length > 0) { <span> · {{ awaiting().length }} pending payment</span> }
+        <span class="font-semibold text-body">{{ joined().length }}</span> {{ 'events.detail.confirmed' | transloco }}@if (awaiting().length > 0) { <span> · {{ 'events.detail.pendingPayment' | transloco:{ count: awaiting().length } }}</span> }
       </p>
     </div>
 
@@ -62,12 +62,12 @@
       <div class="space-y-md lg:col-span-2">
         <!-- Details -->
         <div class="rounded-lg border border-border bg-surface-card p-md">
-          <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">About</h2>
+          <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.about' | transloco }}</h2>
           <p class="mt-xs whitespace-pre-line text-body-md text-body">{{ d.description }}</p>
 
           <hr class="my-md border-t border-border" />
 
-          <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Where</h2>
+          <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.where' | transloco }}</h2>
           @if (d.locationKind === 'InPerson') {
             <p class="mt-xs text-body-md text-body">
               @if (d.venueName) { <span class="font-semibold">{{ d.venueName }}</span><br /> }
@@ -112,15 +112,15 @@
             @if (d.viewer.isAdmin) {
               @if (menuOpen()) {
                 <div class="mb-xs overflow-hidden rounded-md border border-border bg-surface-card" data-testid="manage-menu-panel">
-                  <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Manage participants &amp; waitlist</a>
-                  <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Edit details</a>
-                  <a [routerLink]="['/events', d.id, 'contacts']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Manage contacts</a>
-                  <a [routerLink]="['/events', d.id, 'admins']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">Invite co-admins</a>
-                  <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-danger hover:bg-surface-sunken">Cancel event</a>
+                  <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.manageParticipants' | transloco }}</a>
+                  <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.editDetails' | transloco }}</a>
+                  <a [routerLink]="['/events', d.id, 'contacts']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.manageContacts' | transloco }}</a>
+                  <a [routerLink]="['/events', d.id, 'admins']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.inviteCoAdmins' | transloco }}</a>
+                  <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-danger hover:bg-surface-sunken">{{ 'events.detail.cancelEvent' | transloco }}</a>
                 </div>
               }
               <button type="button" (click)="menuOpen.set(!menuOpen())" data-testid="manage-menu"
-                class="block w-full rounded-md bg-surface-sunken px-lg py-md text-center text-body-md font-semibold text-body hover:bg-surface-hover">Manage event</button>
+                class="block w-full rounded-md bg-surface-sunken px-lg py-md text-center text-body-md font-semibold text-body hover:bg-surface-hover">{{ 'events.detail.manageEvent' | transloco }}</button>
             } @else {
               <jh-event-join-actions
                 [detail]="d"
@@ -133,7 +133,7 @@
 
             @if (canContactAdmins()) {
               <button type="button" (click)="contactAdmins()" data-testid="contact-admins"
-                class="mt-sm block w-full rounded-md border border-border-strong px-lg py-md text-center text-body-md font-semibold text-body hover:bg-surface-sunken">Contact admins</button>
+                class="mt-sm block w-full rounded-md border border-border-strong px-lg py-md text-center text-body-md font-semibold text-body hover:bg-surface-sunken">{{ 'teams.detail.contactAdmins' | transloco }}</button>
             }
           </div>
 
@@ -141,15 +141,15 @@
           @if (d.isPaid) {
             <div class="rounded-lg border border-border bg-surface-card p-md" data-testid="fee-block">
               <div class="flex items-center justify-between">
-                <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Entrance fee</h2>
-                @if (d.feePaymentDeadline) { <span class="rounded-full bg-surface-sunken px-sm py-0.5 text-body-sm text-subtle">Pay by {{ d.feePaymentDeadline | date: 'd MMM' }}</span> }
+                <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.entranceFee' | transloco }}</h2>
+                @if (d.feePaymentDeadline) { <span class="rounded-full bg-surface-sunken px-sm py-0.5 text-body-sm text-subtle">{{ 'events.detail.payBy' | transloco:{ date: (d.feePaymentDeadline | date: 'd MMM') } }}</span> }
               </div>
-              <p class="mt-xs text-heading-sm font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-subtle">{{ d.participantMode === 'Teams' ? 'per team' : 'per person' }}</span></p>
+              <p class="mt-xs text-heading-sm font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-subtle">{{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}</span></p>
               <dl class="mt-sm space-y-0.5 text-body-sm">
-                <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">Pay to</dt><dd class="font-semibold text-body">{{ d.feeRecipientName }}</dd></div>
-                <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">IBAN</dt><dd class="break-all font-mono text-subtle">{{ d.feeIban }}</dd></div>
+                <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">{{ 'events.detail.payTo' | transloco }}</dt><dd class="font-semibold text-body">{{ d.feeRecipientName }}</dd></div>
+                <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">{{ 'events.detail.iban' | transloco }}</dt><dd class="break-all font-mono text-subtle">{{ d.feeIban }}</dd></div>
               </dl>
-              <p class="mt-sm text-body-sm text-faint">Bank transfer only — no in-app payment. An admin confirms your payment to admit you.</p>
+              <p class="mt-sm text-body-sm text-faint">{{ 'events.detail.bankTransferNote' | transloco }}</p>
             </div>
           }
 
