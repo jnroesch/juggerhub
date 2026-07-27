@@ -1,3 +1,5 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Dtos.Cities;
@@ -45,7 +47,16 @@ public sealed class CitiesController : ControllerBase
             return Ok(Array.Empty<CityOptionDto>());
         }
 
-        return Ok(await _cities.SearchAsync(term, _options.MaxResults, ct));
+        // Pass the current user so the service can bias ranking toward their stored home city
+        // (feature 032). Resolved server-side; the client never supplies a location (Principle I).
+        var userId = TryGetUserId(out var id) ? id : (Guid?)null;
+        return Ok(await _cities.SearchAsync(term, _options.MaxResults, userId, ct));
+    }
+
+    private bool TryGetUserId(out Guid userId)
+    {
+        var subject = User.FindFirstValue(JwtRegisteredClaimNames.Sub) ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(subject, out userId);
     }
 
     /// <summary>

@@ -512,6 +512,9 @@ namespace JuggerHub.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int>("Population")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Region")
                         .IsRequired()
                         .HasMaxLength(120)

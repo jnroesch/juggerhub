@@ -17,7 +17,7 @@ public static class CityReferenceSeeder
 {
     private const string CopyCommand =
         "COPY \"CityReferences\" (\"ExternalId\",\"Name\",\"AsciiName\",\"AlternateNames\"," +
-        "\"CountryCode\",\"CountryName\",\"Region\",\"Latitude\",\"Longitude\") FROM STDIN (FORMAT BINARY)";
+        "\"CountryCode\",\"CountryName\",\"Region\",\"Latitude\",\"Longitude\",\"Population\") FROM STDIN (FORMAT BINARY)";
 
     public static async Task SeedAsync(AppDbContext db, string baseDirectory, ILogger logger, CancellationToken ct = default)
     {
@@ -73,6 +73,10 @@ public static class CityReferenceSeeder
                 await importer.WriteAsync(c[6], NpgsqlDbType.Varchar, ct);
                 await importer.WriteAsync(double.Parse(c[7], CultureInfo.InvariantCulture), NpgsqlDbType.Double, ct);
                 await importer.WriteAsync(double.Parse(c[8], CultureInfo.InvariantCulture), NpgsqlDbType.Double, ct);
+                // Population is the 10th column (feature 032). Tolerate the pre-032 9-column bundle by
+                // defaulting to 0 (unknown → sorts last) so an older seed still imports cleanly.
+                var population = c.Length > 9 && int.TryParse(c[9], NumberStyles.Integer, CultureInfo.InvariantCulture, out var p) ? p : 0;
+                await importer.WriteAsync(population, NpgsqlDbType.Integer, ct);
                 count++;
             }
 

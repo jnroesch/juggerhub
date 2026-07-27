@@ -26,12 +26,28 @@ public sealed class CityService : ICityService
     }
 
     public async Task<IReadOnlyList<CityOptionDto>> SearchAsync(
-        string query, int limit, CancellationToken ct = default)
+        string query, int limit, Guid? userId, CancellationToken ct = default)
     {
         var term = query.Trim();
         if (term.Length == 0)
         {
             return Array.Empty<CityOptionDto>();
+        }
+
+        // Proximity origin (feature 032): the signed-in user's stored home city, resolved server-side.
+        // Absent (no user, or no home city yet — e.g. onboarding) ⇒ distance ordering is skipped and
+        // ranking falls back to population then name. Coordinates are never taken from the client.
+        (double Lat, double Lon)? home = null;
+        if (userId is Guid uid)
+        {
+            var coords = await _db.PlayerProfiles.AsNoTracking()
+                .Where(p => p.UserId == uid && p.HomeCity != null)
+                .Select(p => new { p.HomeCity!.Latitude, p.HomeCity.Longitude })
+                .FirstOrDefaultAsync(ct);
+            if (coords is not null)
+            {
+                home = (coords.Latitude, coords.Longitude);
+            }
         }
 
         // Accent-insensitive prefix search over the canonical + ascii names, plus a token-prefix match
@@ -41,15 +57,34 @@ public sealed class CityService : ICityService
         var prefix = term + "%";
         var altToken = "%," + term + "%";
 
-        var rows = await _db.CityReferences.AsNoTracking()
+        // Relevance order (feature 032): primary-name prefix hits rank above exonym/alternate hits (the
+        // match tier), then — if a home city is known — nearer cities, then the more populous city of a
+        // shared name, then the existing shortest-name/name tiebreakers for stability. Ordering runs
+        // over the full prefix-filtered set here, before Take(limit), so the cap never drops a more
+        // relevant city.
+        IOrderedQueryable<Entities.CityReference> ordered = _db.CityReferences.AsNoTracking()
             .Where(r =>
                 EF.Functions.ILike(AppDbContext.Unaccent(r.AsciiName), AppDbContext.Unaccent(prefix))
                 || EF.Functions.ILike(AppDbContext.Unaccent(r.Name), AppDbContext.Unaccent(prefix))
                 || EF.Functions.ILike(AppDbContext.Unaccent(r.AlternateNames), AppDbContext.Unaccent(prefix))
                 || EF.Functions.ILike(AppDbContext.Unaccent(r.AlternateNames), AppDbContext.Unaccent(altToken)))
-            // Primary-name prefix hits rank above exonym/alternate hits; then the shortest name
-            // (a proxy for the better-known place, e.g. "Berlin" before "Berlingerode").
-            .OrderByDescending(r => EF.Functions.ILike(AppDbContext.Unaccent(r.AsciiName), AppDbContext.Unaccent(prefix)))
+            .OrderByDescending(r => EF.Functions.ILike(AppDbContext.Unaccent(r.AsciiName), AppDbContext.Unaccent(prefix)));
+
+        if (home is (double lat0, double lon0))
+        {
+            // Equirectangular squared distance: (Δlat)² + (cos(lat0)·Δlon)². Pure arithmetic on the
+            // lat/lon columns, so EF translates it to SQL (no PostGIS, no trig, no C# haversine over the
+            // candidate set). Squared, unscaled degrees are monotonic with true distance for the
+            // city-granularity ranking this needs; cos(lat0) corrects longitude convergence.
+            var lonScaleSq = Math.Cos(lat0 * Math.PI / 180.0);
+            lonScaleSq *= lonScaleSq;
+            ordered = ordered.ThenBy(r =>
+                ((r.Latitude - lat0) * (r.Latitude - lat0))
+                + (lonScaleSq * (r.Longitude - lon0) * (r.Longitude - lon0)));
+        }
+
+        var rows = await ordered
+            .ThenByDescending(r => r.Population)
             .ThenBy(r => r.Name.Length)
             .ThenBy(r => r.Name)
             .Take(limit)
