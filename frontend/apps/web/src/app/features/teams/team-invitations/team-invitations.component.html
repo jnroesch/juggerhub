@@ -1,11 +1,11 @@
 <section class="mx-auto max-w-container-sm px-md py-lg lg:max-w-container-lg" data-testid="team-invitations">
-  <a [routerLink]="['/t', slug()]" class="text-body-sm text-subtle hover:text-text">‹ Members</a>
-  <h1 class="mt-md text-heading-lg font-bold text-ink">Invite people</h1>
+  <a [routerLink]="['/t', slug()]" class="text-body-sm text-subtle hover:text-text">{{ 'teams.invitations.backMembers' | transloco }}</a>
+  <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'teams.invitations.title' | transloco }}</h1>
 
   @if (loading()) {
     <jh-loading />
   } @else if (denied()) {
-    <jh-alert class="mt-md" data-testid="invitations-denied">Only admins can manage invites.</jh-alert>
+    <jh-alert class="mt-md" data-testid="invitations-denied">{{ 'teams.invitations.denied' | transloco }}</jh-alert>
   } @else {
     @if (error()) {
       <jh-alert class="mt-md">{{ error() }}</jh-alert>
@@ -17,7 +17,7 @@
       <div class="lg:sticky lg:top-[4.5rem]">
     <!-- Shareable link -->
     <div class="mt-lg">
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Share your invite link</p>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.invitations.shareLink' | transloco }}</p>
       @if (link(); as l) {
         <div class="mt-xs flex items-center gap-xs rounded-md border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
           <span class="min-w-0 flex-1 truncate font-mono text-body-sm text-body" data-testid="invite-link">{{ l.url }}</span>
@@ -25,17 +25,17 @@
         <div class="mt-xs flex gap-xs">
           <button type="button" (click)="copyLink()" data-testid="copy-link"
             class="flex-1 rounded-md bg-ink px-md py-sm text-body-sm font-semibold text-on-inverse transition-colors hover:bg-sand-8">
-            {{ copied() ? 'Copied!' : 'Copy link' }}
+            {{ (copied() ? 'teams.invitations.copied' : 'teams.invitations.copy') | transloco }}
           </button>
           <button type="button" (click)="rotate()" data-testid="rotate-link"
-            jhButton variant="secondary" size="sm">New link</button>
+            jhButton variant="secondary" size="sm">{{ 'teams.invitations.newLink' | transloco }}</button>
         </div>
         <p class="mt-xs rounded-md border border-dashed border-warning-border bg-warning-bg px-md py-xs text-body-sm text-warning-fg">
-          {{ expiresIn(l.expiresDate) }} · anyone with it can accept and join as a player.
+          {{ expiresIn(l.expiresDate) }} · {{ 'teams.invitations.anyoneCanJoin' | transloco }}
         </p>
       } @else {
         <button type="button" (click)="rotate()" data-testid="create-link"
-          class="mt-xs w-full rounded-md bg-ink px-md py-sm text-body-sm font-semibold text-on-inverse hover:bg-sand-8">Create an invite link</button>
+          class="mt-xs w-full rounded-md bg-ink px-md py-sm text-body-sm font-semibold text-on-inverse hover:bg-sand-8">{{ 'teams.invitations.createLink' | transloco }}</button>
       }
     </div>
       </div>
@@ -45,12 +45,12 @@
     <div class="lg:col-span-2">
     <!-- Add someone directly -->
     <div class="mt-lg">
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Or add someone directly</p>
-      <input type="text" [formControl]="searchControl" placeholder="Search players by name…" data-testid="user-search"
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.invitations.addDirectly' | transloco }}</p>
+      <input type="text" [formControl]="searchControl" [placeholder]="'teams.invitations.searchPlaceholder' | transloco" data-testid="user-search"
         autocomplete="off"
         class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
       @if (searching()) {
-        <p class="mt-xs text-body-sm text-subtle">Searching…</p>
+        <p class="mt-xs text-body-sm text-subtle">{{ 'teams.invitations.searching' | transloco }}</p>
       }
       <ul class="mt-sm divide-y divide-border">
         @for (u of results(); track u.userId) {
@@ -62,14 +62,14 @@
             </div>
             @switch (u.relation) {
               @case ('Member') {
-                <span class="text-body-sm text-faint">Member</span>
+                <span class="text-body-sm text-faint">{{ 'teams.invitations.relationMember' | transloco }}</span>
               }
               @case ('Invited') {
-                <span class="rounded-md border border-dashed border-border-strong px-md py-xs text-body-sm text-subtle">Invited ✓</span>
+                <span class="rounded-md border border-dashed border-border-strong px-md py-xs text-body-sm text-subtle">{{ 'teams.invitations.relationInvited' | transloco }}</span>
               }
               @default {
                 <button type="button" (click)="invite(u)" [attr.data-testid]="'invite-' + u.handle"
-                  class="rounded-md border border-brand px-md py-xs text-body-sm font-semibold text-brand transition-colors hover:bg-surface-accent-soft">Invite</button>
+                  class="rounded-md border border-brand px-md py-xs text-body-sm font-semibold text-brand transition-colors hover:bg-surface-accent-soft">{{ 'teams.invitations.invite' | transloco }}</button>
               }
             }
           </li>
@@ -79,23 +79,23 @@
 
     <!-- Pending -->
     <div class="mt-lg">
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Sent to people · {{ pending().length }}</p>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.invitations.sentTo' | transloco:{ count: pending().length } }}</p>
       @if (pending().length === 0) {
-        <p class="mt-xs text-body-sm text-faint">No pending invites yet.</p>
+        <p class="mt-xs text-body-sm text-faint">{{ 'teams.invitations.noPending' | transloco }}</p>
       } @else {
         <ul class="mt-sm divide-y divide-border" data-testid="pending-invites">
           @for (i of pending(); track i.id) {
             <li class="flex items-center gap-sm py-sm">
               <div class="min-w-0 flex-1">
-                <p class="truncate text-body-md text-ink">{{ i.kind === 'Link' ? 'Invite link' : i.targetDisplayName }}</p>
+                <p class="truncate text-body-md text-ink">{{ i.kind === 'Link' ? ('teams.invitations.inviteLink' | transloco) : i.targetDisplayName }}</p>
                 <p class="text-body-sm text-subtle">{{ expiresIn(i.expiresDate) }}</p>
               </div>
               <button type="button" (click)="revoke(i.id)" [attr.data-testid]="'revoke-' + i.id"
-                jhButton variant="danger" size="sm">Revoke</button>
+                jhButton variant="danger" size="sm">{{ 'teams.invitations.revoke' | transloco }}</button>
             </li>
           }
         </ul>
-        <p class="mt-xs text-body-sm text-faint">Revoke cancels an invite before it's accepted.</p>
+        <p class="mt-xs text-body-sm text-faint">{{ 'teams.invitations.revokeHint' | transloco }}</p>
       }
     </div>
     </div>

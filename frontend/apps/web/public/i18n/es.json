@@ -84,6 +84,31 @@
       "acceptJoin": "Aceptar y unirse",
       "joining": "Uniéndose…",
       "expiresIn": "Esta invitación caduca en 7 días."
+    },
+    "invitations": {
+      "backMembers": "‹ Miembros",
+      "title": "Invitar a personas",
+      "denied": "Solo los administradores pueden gestionar invitaciones.",
+      "shareLink": "Comparte tu enlace de invitación",
+      "copy": "Copiar enlace",
+      "copied": "¡Copiado!",
+      "newLink": "Enlace nuevo",
+      "anyoneCanJoin": "cualquiera con el enlace puede aceptar y unirse como jugador.",
+      "createLink": "Crear un enlace de invitación",
+      "addDirectly": "O añade a alguien directamente",
+      "searchPlaceholder": "Buscar jugadores por nombre…",
+      "searching": "Buscando…",
+      "relationMember": "Miembro",
+      "relationInvited": "Invitado ✓",
+      "invite": "Invitar",
+      "sentTo": "Enviadas a personas · {{count}}",
+      "noPending": "Aún no hay invitaciones pendientes.",
+      "inviteLink": "Enlace de invitación",
+      "revoke": "Revocar",
+      "revokeHint": "Revocar cancela una invitación antes de que se acepte.",
+      "expiresToday": "caduca hoy",
+      "expiresTomorrow": "caduca mañana",
+      "expiresInDays": "caduca en {{count}} días"
     }
   },
   "account": {

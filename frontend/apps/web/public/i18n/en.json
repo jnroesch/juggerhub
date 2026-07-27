@@ -80,6 +80,31 @@
       "acceptJoin": "Accept & join",
       "joining": "Joining…",
       "expiresIn": "This invite expires in 7 days."
+    },
+    "invitations": {
+      "backMembers": "‹ Members",
+      "title": "Invite people",
+      "denied": "Only admins can manage invites.",
+      "shareLink": "Share your invite link",
+      "copy": "Copy link",
+      "copied": "Copied!",
+      "newLink": "New link",
+      "anyoneCanJoin": "anyone with it can accept and join as a player.",
+      "createLink": "Create an invite link",
+      "addDirectly": "Or add someone directly",
+      "searchPlaceholder": "Search players by name…",
+      "searching": "Searching…",
+      "relationMember": "Member",
+      "relationInvited": "Invited ✓",
+      "invite": "Invite",
+      "sentTo": "Sent to people · {{count}}",
+      "noPending": "No pending invites yet.",
+      "inviteLink": "Invite link",
+      "revoke": "Revoke",
+      "revokeHint": "Revoke cancels an invite before it's accepted.",
+      "expiresToday": "expires today",
+      "expiresTomorrow": "expires tomorrow",
+      "expiresInDays": "expires in {{count}} days"
     }
   },
   "account": {

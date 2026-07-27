@@ -84,6 +84,31 @@
       "acceptJoin": "Annehmen & beitreten",
       "joining": "Beitritt läuft…",
       "expiresIn": "Diese Einladung läuft in 7 Tagen ab."
+    },
+    "invitations": {
+      "backMembers": "‹ Mitglieder",
+      "title": "Leute einladen",
+      "denied": "Nur Admins können Einladungen verwalten.",
+      "shareLink": "Teile deinen Einladungslink",
+      "copy": "Link kopieren",
+      "copied": "Kopiert!",
+      "newLink": "Neuer Link",
+      "anyoneCanJoin": "jeder mit dem Link kann annehmen und als Spieler beitreten.",
+      "createLink": "Einladungslink erstellen",
+      "addDirectly": "Oder jemanden direkt hinzufügen",
+      "searchPlaceholder": "Spieler nach Namen suchen…",
+      "searching": "Wird gesucht…",
+      "relationMember": "Mitglied",
+      "relationInvited": "Eingeladen ✓",
+      "invite": "Einladen",
+      "sentTo": "An Leute gesendet · {{count}}",
+      "noPending": "Noch keine ausstehenden Einladungen.",
+      "inviteLink": "Einladungslink",
+      "revoke": "Zurückziehen",
+      "revokeHint": "Zurückziehen storniert eine Einladung, bevor sie angenommen wird.",
+      "expiresToday": "läuft heute ab",
+      "expiresTomorrow": "läuft morgen ab",
+      "expiresInDays": "läuft in {{count}} Tagen ab"
     }
   },
   "account": {
