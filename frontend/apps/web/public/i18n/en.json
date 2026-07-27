@@ -7,9 +7,14 @@
     "loading": "Loading…"
   },
   "nav": {
-    "home": "JuggerHub home",
+    "brandHome": "JuggerHub home",
     "signIn": "Sign in",
-    "register": "Register"
+    "register": "Register",
+    "home": "Home",
+    "browse": "Browse",
+    "myTeam": "My team",
+    "chat": "Chat",
+    "alerts": "Alerts"
   },
   "auth": {
     "email": "Email",

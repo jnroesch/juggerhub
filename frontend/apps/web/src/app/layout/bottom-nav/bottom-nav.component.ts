@@ -5,6 +5,7 @@ import { filter, map } from 'rxjs';
 import { MembershipService } from '../../core/services/membership.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ChatService } from '../../core/services/chat.service';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { NavId, badgeText, isActiveDestination } from '../nav-model';
 
 /**
@@ -13,7 +14,7 @@ import { NavId, badgeText, isActiveDestination } from '../nav-model';
  */
 @Component({
   selector: 'jh-bottom-nav',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslocoPipe],
   templateUrl: './bottom-nav.component.html',
   styleUrl: './bottom-nav.component.css',
 })

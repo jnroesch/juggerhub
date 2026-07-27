@@ -2,7 +2,7 @@
   @if (anonymous()) {
     <!-- Public bar: shown to signed-out visitors (only the /u/:handle profile is reachable). -->
     <header class="sticky top-0 z-30 flex h-14 items-center justify-between gap-sm border-b border-border bg-surface px-md" data-testid="public-top-bar">
-      <a routerLink="/" class="flex items-center gap-xs" [attr.aria-label]="'nav.home' | transloco">
+      <a routerLink="/" class="flex items-center gap-xs" [attr.aria-label]="'nav.brandHome' | transloco">
         <span class="grid h-7 w-7 place-items-center rounded-md bg-brand-gradient shadow-sm" aria-hidden="true">
           <span class="h-1.5 w-1.5 rounded-full bg-highlight"></span>
         </span>

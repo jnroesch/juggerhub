@@ -11,9 +11,14 @@
     "loading": "Wird geladen…"
   },
   "nav": {
-    "home": "JuggerHub Startseite",
+    "brandHome": "JuggerHub Startseite",
     "signIn": "Anmelden",
-    "register": "Registrieren"
+    "register": "Registrieren",
+    "home": "Start",
+    "browse": "Entdecken",
+    "myTeam": "Mein Team",
+    "chat": "Chat",
+    "alerts": "Benachrichtigungen"
   },
   "auth": {
     "email": "E-Mail",
