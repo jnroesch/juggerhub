@@ -103,7 +103,7 @@ public class EmailTemplateService : IEmailTemplateService
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
             {"COMPANY_NAME", companyName},
-            {"CREATED_DATE", createdDate.ToString("MMMM dd, yyyy", System.Globalization.CultureInfo.GetCultureInfo(SupportedLanguages.ResolveOrDefault(culture)))},
+            {"CREATED_DATE", createdDate.ToString("MMMM dd, yyyy")},
             {"FOOTER_REASON", _localizer.Get("footer.welcome", culture)}
         };
 
@@ -113,14 +113,13 @@ public class EmailTemplateService : IEmailTemplateService
     /// <inheritdoc />
     public async Task<string> GeneratePasswordChangeNotificationEmailAsync(string recipientName, string recipientEmail, DateTime changeDate, string ipAddress, string culture = SupportedLanguages.Default)
     {
-        var dateCulture = System.Globalization.CultureInfo.GetCultureInfo(SupportedLanguages.ResolveOrDefault(culture));
         var variables = new Dictionary<string, object>
         {
             ["EMAIL_TITLE"] = _localizer.Get("title.passwordChanged", culture),
             ["RECIPIENT_NAME"] = recipientName,
             ["RECIPIENT_EMAIL"] = recipientEmail,
-            ["CHANGE_DATE"] = changeDate.ToString("MMMM dd, yyyy", dateCulture),
-            ["CHANGE_TIME"] = changeDate.ToString("HH:mm:ss UTC", dateCulture),
+            ["CHANGE_DATE"] = changeDate.ToString("MMMM dd, yyyy"),
+            ["CHANGE_TIME"] = changeDate.ToString("HH:mm:ss UTC"),
             ["IP_ADDRESS"] = ipAddress,
             ["FOOTER_REASON"] = _localizer.Get("footer.passwordChanged", culture)
         };

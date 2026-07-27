@@ -228,6 +228,8 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
 // --- Account settings (feature 031: language preference) -------------------
 builder.Services.AddScoped<JuggerHub.Services.Account.ILanguagePreferenceService, JuggerHub.Services.Account.LanguagePreferenceService>();
+// Lets RecipientCultureResolver read the caller's Accept-Language for pre-account email language.
+builder.Services.AddHttpContextAccessor();
 
 // --- Player profile + activity (feature 003) -------------------------------
 builder.Services.Configure<ProfileOptions>(builder.Configuration.GetSection(ProfileOptions.SectionName));
@@ -423,16 +425,12 @@ if (app.Environment.IsDevelopment())
 // Exception handler is registered first so it wraps the whole pipeline.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-// Request localization (feature 031): map the caller's Accept-Language — where the frontend stamps
-// the effective, post-override language — onto a supported culture, so CurrentUICulture drives
-// localized emails/notifications for content addressed to the caller. Unknown/region tags collapse
-// to a base language or fall back to English; the header is untrusted input mapped only onto the
-// supported allowlist (never trust the client).
-var supportedCultures = JuggerHub.Common.SupportedLanguages.All.ToArray();
-app.UseRequestLocalization(new RequestLocalizationOptions()
-    .SetDefaultCulture(JuggerHub.Common.SupportedLanguages.Default)
-    .AddSupportedCultures(supportedCultures)
-    .AddSupportedUICultures(supportedCultures));
+// NOTE (feature 031): the app runs in globalization-invariant mode
+// (<InvariantGlobalization>true</InvariantGlobalization>), where constructing real CultureInfo
+// objects throws. So request-language handling deliberately does NOT use RequestLocalization /
+// CultureInfo — the caller's effective language rides in on the Accept-Language header (stamped by
+// the frontend) and is read as a plain string by RecipientCultureResolver, mapped onto the
+// supported allowlist. Keeping invariant mode avoids pulling ICU into the Alpine image.
 
 // Interactive API reference (Scalar over the built-in OpenAPI document),
 // Development-only so the schema/UI is never exposed in Prod.
