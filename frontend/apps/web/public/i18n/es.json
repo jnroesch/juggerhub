@@ -54,6 +54,22 @@
       "alwaysOnDesc": "Estas mantienen tu cuenta segura, por eso no se pueden desactivar."
     }
   },
+  "browse": {
+    "eyebrow": "Explorar",
+    "tabTeams": "Equipos",
+    "tabEvents": "Eventos",
+    "tabPlayers": "Jugadores",
+    "filters": "Filtros",
+    "sort": "Ordenar",
+    "sortBy": "Ordenar por",
+    "removeFilter": "Quitar filtro {{label}}",
+    "clearAll": "Borrar todo",
+    "loadError": "Algo salió mal al cargar los resultados.",
+    "empty": "Aún no hay nada aquí — vuelve pronto.",
+    "noResults": "No hay coincidencias para tu búsqueda y filtros.",
+    "clearSearchFilters": "Borrar búsqueda y filtros",
+    "loadMore": "Cargar más"
+  },
   "home": {
     "errorTitle": "No pudimos cargar tu inicio",
     "errorBody": "Algo salió mal al conectar con el servidor.",

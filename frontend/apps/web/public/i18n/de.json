@@ -54,6 +54,22 @@
       "alwaysOnDesc": "Diese schützen dein Konto und können daher nicht ausgeschaltet werden."
     }
   },
+  "browse": {
+    "eyebrow": "Entdecken",
+    "tabTeams": "Teams",
+    "tabEvents": "Events",
+    "tabPlayers": "Spieler",
+    "filters": "Filter",
+    "sort": "Sortieren",
+    "sortBy": "Sortieren nach",
+    "removeFilter": "Filter {{label}} entfernen",
+    "clearAll": "Alle löschen",
+    "loadError": "Beim Laden der Ergebnisse ist etwas schiefgelaufen.",
+    "empty": "Hier ist noch nichts — schau bald wieder vorbei.",
+    "noResults": "Keine Treffer für deine Suche und Filter.",
+    "clearSearchFilters": "Suche & Filter zurücksetzen",
+    "loadMore": "Mehr laden"
+  },
   "home": {
     "errorTitle": "Wir konnten deine Startseite nicht laden",
     "errorBody": "Beim Erreichen des Servers ist etwas schiefgelaufen.",

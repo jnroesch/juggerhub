@@ -50,6 +50,22 @@
       "alwaysOnDesc": "These keep your account safe, so they can't be turned off."
     }
   },
+  "browse": {
+    "eyebrow": "Browse",
+    "tabTeams": "Teams",
+    "tabEvents": "Events",
+    "tabPlayers": "Players",
+    "filters": "Filters",
+    "sort": "Sort",
+    "sortBy": "Sort by",
+    "removeFilter": "Remove filter {{label}}",
+    "clearAll": "Clear all",
+    "loadError": "Something went wrong loading results.",
+    "empty": "Nothing here yet — check back soon.",
+    "noResults": "No matches for your search and filters.",
+    "clearSearchFilters": "Clear search & filters",
+    "loadMore": "Load more"
+  },
   "home": {
     "errorTitle": "We couldn't load your home",
     "errorBody": "Something went wrong reaching the server.",

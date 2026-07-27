@@ -2,6 +2,7 @@ import { DestroyRef, Component, HostListener, computed, inject, input, output, s
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { BrowseState, FilterChip, SortOption } from '../../../core/models/search.models';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 
@@ -15,7 +16,7 @@ import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shar
  */
 @Component({
   selector: 'jh-browse-shell',
-  imports: [RouterLink, RouterLinkActive, ButtonDirective, LoadingComponent, AlertComponent],
+  imports: [RouterLink, RouterLinkActive, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './browse-shell.component.html',
   styleUrl: './browse-shell.component.css',
 })
