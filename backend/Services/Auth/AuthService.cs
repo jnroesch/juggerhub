@@ -4,7 +4,6 @@ using JuggerHub.Security.PlatformAdmin;
 using JuggerHub.Services.Email;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Security;
-using Mapster;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -327,17 +326,19 @@ public sealed class AuthService : IAuthService
     }
 
     /// <summary>
-    /// Map a user to <see cref="AuthUserDto"/> and fill the onboarding flag from the
-    /// profile. The UserManager lookups don't eager-load the Profile nav, so the flag
-    /// is resolved by a lightweight projection rather than via Mapster (research §3).
+    /// Map a user to <see cref="AuthUserDto"/> and fill the onboarding flag and handle
+    /// from the profile. The UserManager lookups don't eager-load the Profile nav, so
+    /// those two fields are resolved by lightweight profile lookups (research §3).
     /// </summary>
     private async Task<AuthUserDto> ToAuthUserDtoAsync(User user, CancellationToken ct) =>
-        user.Adapt<AuthUserDto>() with
-        {
-            OnboardingCompleted = await _profiles.HasCompletedOnboardingAsync(user.Id, ct),
+        new(
+            user.Id,
+            user.Email ?? string.Empty,
+            user.EmailConfirmed,
+            await _profiles.HasCompletedOnboardingAsync(user.Id, ct),
             // The handle (profile slug) powers the frontend's own-profile link + owner detection (feature 026).
-            Handle = await _profiles.GetHandleAsync(user.Id, ct) ?? string.Empty,
-        };
+            await _profiles.GetHandleAsync(user.Id, ct) ?? string.Empty,
+            user.PreferredLanguage);
 
     private async Task<IssuedTokens> IssueTokensAsync(User user, bool rememberMe, string? ip, Guid? familyId, CancellationToken ct)
     {
