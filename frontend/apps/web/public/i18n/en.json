@@ -340,6 +340,58 @@
       "publishing": "Publishing…"
     }
   },
+  "profile": {
+    "view": {
+      "photo": "Photo",
+      "teamsClubs": "Teams · clubs",
+      "noTeams": "No teams yet.",
+      "admin": "admin",
+      "plays": "Plays",
+      "noFavorites": "No favorites selected yet.",
+      "noRecentEvents": "No recent events.",
+      "withTeam": "with {{team}}"
+    },
+    "public": {
+      "notFoundTitle": "Profile not found",
+      "notFoundBody": "This link doesn't point to a player profile.",
+      "goToHub": "Go to JuggerHub"
+    },
+    "quickActions": {
+      "opening": "Opening…",
+      "message": "Message",
+      "inviteToTeam": "Invite to a team",
+      "alreadyOnTeamOne": "Already on your team",
+      "alreadyOnTeamMany": "Already on your teams",
+      "inviting": "Inviting…",
+      "inviteTo": "Invite to",
+      "invitedTo": "Invited to {{name}}."
+    },
+    "recognition": {
+      "badges": "Badges",
+      "achievements": "Achievements",
+      "none": "No badges or achievements yet."
+    },
+    "pompfeSelector": {
+      "aria": "Favorite pompfen",
+      "pos": "pos"
+    },
+    "owner": {
+      "loading": "Loading your profile…",
+      "edit": "Edit",
+      "visibility": "Profile visibility",
+      "makePublic": "Make my profile public",
+      "publicOn": "On — anyone with your link can view your profile, teams, and activity.",
+      "publicOff": "Off — only signed-in members can find you. Teams and events always stay inside the app.",
+      "changePhoto": "Change photo",
+      "yourPicture": "Your profile picture",
+      "displayNamePlaceholder": "Display name",
+      "cityPlaceholder": "Your home city",
+      "bioPlaceholder": "Short bio",
+      "pickFavorites": "Pick favorites · filled = selected · dotted = available",
+      "makePublicHint": "When on, anyone with your profile link can see your profile, teams, and activity — even without an account. When off, only signed-in members can find you.",
+      "couldNotLoad": "Could not load your profile."
+    }
+  },
   "account": {
     "title": "Account",
     "subtitle": "Protected sample page — you only see this when signed in.",

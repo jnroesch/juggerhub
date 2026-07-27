@@ -12,7 +12,7 @@
         data-testid="qa-message"
         jhButton
       >
-        {{ messaging() ? 'Opening…' : 'Message' }}
+        {{ (messaging() ? 'profile.quickActions.opening' : 'profile.quickActions.message') | transloco }}
       </button>
 
       <!-- Invite to a team (secondary), admins only -->
@@ -25,10 +25,10 @@
               data-testid="qa-invite"
               jhButton variant="secondary"
             >
-              Invite to a team
+              {{ 'profile.quickActions.inviteToTeam' | transloco }}
             </button>
             <span class="text-caption text-subtle" data-testid="qa-invite-reason">
-              Already on your team{{ adminTeamCount() > 1 ? 's' : '' }}
+              {{ (adminTeamCount() > 1 ? 'profile.quickActions.alreadyOnTeamMany' : 'profile.quickActions.alreadyOnTeamOne') | transloco }}
             </span>
           </span>
         } @else {
@@ -42,7 +42,7 @@
               data-testid="qa-invite"
               jhButton variant="secondary"
             >
-              {{ inviting() ? 'Inviting…' : 'Invite to a team' }}
+              {{ (inviting() ? 'profile.quickActions.inviting' : 'profile.quickActions.inviteToTeam') | transloco }}
             </button>
 
             @if (pickerOpen()) {
@@ -52,7 +52,7 @@
                 data-testid="qa-invite-picker"
               >
                 <p class="px-md py-xs text-caption font-semibold uppercase tracking-[0.06em] text-muted">
-                  Invite to
+                  {{ 'profile.quickActions.inviteTo' | transloco }}
                 </p>
                 @for (t of eligibleTeams(); track t.slug) {
                   <button
@@ -76,7 +76,7 @@
       <jh-alert data-testid="qa-message-error">{{ messageError() }}</jh-alert>
     }
     @if (invitedTo()) {
-      <p class="text-body-sm text-success" data-testid="qa-invited">Invited to {{ invitedTo() }}.</p>
+      <p class="text-body-sm text-success" data-testid="qa-invited">{{ 'profile.quickActions.invitedTo' | transloco:{ name: invitedTo() } }}</p>
     }
     @if (inviteError()) {
       <jh-alert data-testid="qa-invite-error">{{ inviteError() }}</jh-alert>

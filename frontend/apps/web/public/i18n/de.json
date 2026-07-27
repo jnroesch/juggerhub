@@ -344,6 +344,58 @@
       "publishing": "Wird veröffentlicht…"
     }
   },
+  "profile": {
+    "view": {
+      "photo": "Foto",
+      "teamsClubs": "Teams · Vereine",
+      "noTeams": "Noch keine Teams.",
+      "admin": "Admin",
+      "plays": "Spielt",
+      "noFavorites": "Noch keine Favoriten ausgewählt.",
+      "noRecentEvents": "Keine kürzlichen Events.",
+      "withTeam": "mit {{team}}"
+    },
+    "public": {
+      "notFoundTitle": "Profil nicht gefunden",
+      "notFoundBody": "Dieser Link führt nicht zu einem Spielerprofil.",
+      "goToHub": "Zu JuggerHub"
+    },
+    "quickActions": {
+      "opening": "Wird geöffnet…",
+      "message": "Nachricht",
+      "inviteToTeam": "In ein Team einladen",
+      "alreadyOnTeamOne": "Schon in deinem Team",
+      "alreadyOnTeamMany": "Schon in deinen Teams",
+      "inviting": "Wird eingeladen…",
+      "inviteTo": "Einladen in",
+      "invitedTo": "In {{name}} eingeladen."
+    },
+    "recognition": {
+      "badges": "Abzeichen",
+      "achievements": "Erfolge",
+      "none": "Noch keine Abzeichen oder Erfolge."
+    },
+    "pompfeSelector": {
+      "aria": "Lieblings-Pompfen",
+      "pos": "Pos"
+    },
+    "owner": {
+      "loading": "Dein Profil wird geladen…",
+      "edit": "Bearbeiten",
+      "visibility": "Profil-Sichtbarkeit",
+      "makePublic": "Mein Profil öffentlich machen",
+      "publicOn": "An — jeder mit deinem Link kann dein Profil, deine Teams und deine Aktivität sehen.",
+      "publicOff": "Aus — nur angemeldete Mitglieder können dich finden. Teams und Events bleiben immer in der App.",
+      "changePhoto": "Foto ändern",
+      "yourPicture": "Dein Profilbild",
+      "displayNamePlaceholder": "Anzeigename",
+      "cityPlaceholder": "Deine Heimatstadt",
+      "bioPlaceholder": "Kurze Bio",
+      "pickFavorites": "Favoriten wählen · gefüllt = ausgewählt · gepunktet = verfügbar",
+      "makePublicHint": "Wenn aktiviert, kann jeder mit deinem Profil-Link dein Profil, deine Teams und deine Aktivität sehen — auch ohne Konto. Wenn deaktiviert, können dich nur angemeldete Mitglieder finden.",
+      "couldNotLoad": "Dein Profil konnte nicht geladen werden."
+    }
+  },
   "account": {
     "title": "Konto",
     "subtitle": "Geschützte Beispielseite — du siehst sie nur im angemeldeten Zustand.",

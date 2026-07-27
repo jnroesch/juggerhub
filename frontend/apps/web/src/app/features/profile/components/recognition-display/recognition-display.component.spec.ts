@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EarnedRecognition } from '../../../../core/models/recognition.models';
 import { RecognitionDisplayComponent } from './recognition-display.component';
+import { translocoTestingModule } from '../../../../../testing/transloco-testing';
 
 function badge(partial: Partial<EarnedRecognition> = {}): EarnedRecognition {
   return {
@@ -25,7 +26,7 @@ describe('RecognitionDisplayComponent', () => {
   }
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({ imports: [translocoTestingModule()] });
   });
 
   it('shows an empty state when there are no awards', () => {

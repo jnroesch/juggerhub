@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { LoadingComponent, CardComponent } from '../../../shared/ui';
 import { ProfileView, PublicProfile } from '../../../core/models/profile.models';
 import { AuthService } from '../../../core/services/auth.service';
@@ -18,7 +19,7 @@ import { ProfileQuickActionsComponent } from '../components/quick-actions/profil
  */
 @Component({
   selector: 'jh-profile-public',
-  imports: [RouterLink, ProfileViewComponent, ProfileQuickActionsComponent, LoadingComponent, CardComponent],
+  imports: [RouterLink, ProfileViewComponent, ProfileQuickActionsComponent, LoadingComponent, CardComponent, TranslocoPipe],
   templateUrl: './profile-public.component.html',
   styleUrl: './profile-public.component.css',
 })

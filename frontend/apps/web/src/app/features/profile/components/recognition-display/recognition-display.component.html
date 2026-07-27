@@ -2,7 +2,7 @@
   <div class="flex flex-col gap-lg">
     @if (badges().length > 0) {
       <section>
-        <p class="text-eyebrow uppercase text-muted">Badges</p>
+        <p class="text-eyebrow uppercase text-muted">{{ 'profile.recognition.badges' | transloco }}</p>
         <ul class="mt-sm flex flex-wrap gap-sm">
           @for (b of badges(); track b.definitionId) {
             <li
@@ -33,7 +33,7 @@
 
     @if (achievements().length > 0) {
       <section>
-        <p class="text-eyebrow uppercase text-muted">Achievements</p>
+        <p class="text-eyebrow uppercase text-muted">{{ 'profile.recognition.achievements' | transloco }}</p>
         <ul class="mt-sm flex flex-wrap gap-sm">
           @for (a of achievements(); track a.definitionId) {
             <li
@@ -68,7 +68,7 @@
   </div>
 } @else {
   <section>
-    <p class="text-eyebrow uppercase text-muted">Badges &amp; achievements</p>
-    <p class="mt-sm text-body-sm text-faint">No badges or achievements yet.</p>
+    <p class="text-eyebrow uppercase text-muted">{{ 'teams.detail.badges' | transloco }}</p>
+    <p class="mt-sm text-body-sm text-faint">{{ 'profile.recognition.none' | transloco }}</p>
   </section>
 }

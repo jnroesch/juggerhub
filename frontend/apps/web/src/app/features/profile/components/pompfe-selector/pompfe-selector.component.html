@@ -1,4 +1,4 @@
-<div class="flex flex-wrap gap-xs" role="group" aria-label="Favorite pompfen">
+<div class="flex flex-wrap gap-xs" role="group" [attr.aria-label]="'profile.pompfeSelector.aria' | transloco">
   @for (entry of catalog; track entry.value) {
     <button
       type="button"
@@ -16,7 +16,7 @@
       [class.bg-surface-card]="!isSelected(entry.value)"
     >
       {{ entry.de }}<span class="opacity-60"> / {{ entry.en }}</span>
-      @if (entry.isPosition) { <span class="ml-xs text-[10px] uppercase opacity-70">pos</span> }
+      @if (entry.isPosition) { <span class="ml-xs text-[10px] uppercase opacity-70">{{ 'profile.pompfeSelector.pos' | transloco }}</span> }
     </button>
   }
 </div>

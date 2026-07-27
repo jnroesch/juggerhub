@@ -1,4 +1,5 @@
 import { Component, input, output } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { POMPFEN_CATALOG, Pompfe } from '../../../../shared/pompfen.catalog';
 
 /**
@@ -8,7 +9,7 @@ import { POMPFEN_CATALOG, Pompfe } from '../../../../shared/pompfen.catalog';
  */
 @Component({
   selector: 'jh-pompfe-selector',
-  imports: [],
+  imports: [TranslocoPipe],
   templateUrl: './pompfe-selector.component.html',
   styleUrl: './pompfe-selector.component.css',
 })

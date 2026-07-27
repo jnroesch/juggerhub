@@ -344,6 +344,58 @@
       "publishing": "Publicando…"
     }
   },
+  "profile": {
+    "view": {
+      "photo": "Foto",
+      "teamsClubs": "Equipos · clubes",
+      "noTeams": "Aún no hay equipos.",
+      "admin": "administrador",
+      "plays": "Juega",
+      "noFavorites": "Aún no has elegido favoritos.",
+      "noRecentEvents": "No hay eventos recientes.",
+      "withTeam": "con {{team}}"
+    },
+    "public": {
+      "notFoundTitle": "Perfil no encontrado",
+      "notFoundBody": "Este enlace no lleva a un perfil de jugador.",
+      "goToHub": "Ir a JuggerHub"
+    },
+    "quickActions": {
+      "opening": "Abriendo…",
+      "message": "Mensaje",
+      "inviteToTeam": "Invitar a un equipo",
+      "alreadyOnTeamOne": "Ya está en tu equipo",
+      "alreadyOnTeamMany": "Ya está en tus equipos",
+      "inviting": "Invitando…",
+      "inviteTo": "Invitar a",
+      "invitedTo": "Invitado a {{name}}."
+    },
+    "recognition": {
+      "badges": "Insignias",
+      "achievements": "Logros",
+      "none": "Aún no hay insignias ni logros."
+    },
+    "pompfeSelector": {
+      "aria": "Pompfen favoritas",
+      "pos": "pos"
+    },
+    "owner": {
+      "loading": "Cargando tu perfil…",
+      "edit": "Editar",
+      "visibility": "Visibilidad del perfil",
+      "makePublic": "Hacer mi perfil público",
+      "publicOn": "Activado — cualquiera con tu enlace puede ver tu perfil, equipos y actividad.",
+      "publicOff": "Desactivado — solo los miembros con sesión pueden encontrarte. Los equipos y eventos siempre quedan dentro de la app.",
+      "changePhoto": "Cambiar foto",
+      "yourPicture": "Tu foto de perfil",
+      "displayNamePlaceholder": "Nombre visible",
+      "cityPlaceholder": "Tu ciudad",
+      "bioPlaceholder": "Biografía breve",
+      "pickFavorites": "Elige favoritas · relleno = seleccionada · punteado = disponible",
+      "makePublicHint": "Cuando está activado, cualquiera con el enlace de tu perfil puede ver tu perfil, equipos y actividad — incluso sin cuenta. Cuando está desactivado, solo los miembros con sesión pueden encontrarte.",
+      "couldNotLoad": "No se pudo cargar tu perfil."
+    }
+  },
   "account": {
     "title": "Cuenta",
     "subtitle": "Página de ejemplo protegida — solo la ves cuando has iniciado sesión.",
