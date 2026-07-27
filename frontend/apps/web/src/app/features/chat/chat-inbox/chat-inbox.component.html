@@ -1,12 +1,12 @@
 <section class="mx-auto max-w-container-md px-md py-2xl" data-testid="chat-inbox">
   <div class="flex items-center justify-between gap-md">
-    <h1 class="text-h3 text-heading">Messages</h1>
+    <h1 class="text-h3 text-heading">{{ 'chat.inbox.title' | transloco }}</h1>
 
     <a
       routerLink="/chat/new"
       jhButton
       data-testid="new-chat"
-      aria-label="Start a chat"
+      [attr.aria-label]="'chat.inbox.startChat' | transloco"
     >
       <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M12 5v14M5 12h14" />
@@ -16,7 +16,7 @@
 
   <!-- Search: finds messages in your chats, and people to start new ones -->
   <label class="mt-lg block">
-    <span class="sr-only">Search messages and people</span>
+    <span class="sr-only">{{ 'chat.inbox.searchSr' | transloco }}</span>
     <span class="relative block">
       <svg class="pointer-events-none absolute left-sm top-1/2 size-5 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" />
@@ -26,7 +26,7 @@
         [ngModel]="term()"
         (ngModelChange)="onTermChange($event)"
         name="chat-search"
-        placeholder="Search messages"
+        [placeholder]="'chat.inbox.searchPlaceholder' | transloco"
         class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card py-xs pl-11 pr-md text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
         data-testid="chat-search"
       />
@@ -44,7 +44,7 @@
 
   @if (failed()) {
     <p class="mt-lg rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
-      We couldn't load your messages. Try again in a moment.
+      {{ 'chat.inbox.loadError' | transloco }}
     </p>
   }
 
@@ -52,16 +52,16 @@
   @if (isSearching()) {
     <div class="mt-lg" data-testid="chat-search-results">
       @if (searching()) {
-        <p class="text-body-sm text-muted">Searching…</p>
+        <p class="text-body-sm text-muted">{{ 'teams.invitations.searching' | transloco }}</p>
       } @else if (results(); as r) {
         @if (r.messages.items.length === 0 && r.people.items.length === 0) {
           <p class="py-xl text-center text-body-sm text-muted" data-testid="search-empty">
-            Nothing matched “{{ term() }}”.
+            {{ 'chat.inbox.nothingMatched' | transloco:{ term: term() } }}
           </p>
         }
 
         @if (r.messages.items.length > 0) {
-          <h2 class="text-eyebrow uppercase tracking-eyebrow text-muted">In your messages</h2>
+          <h2 class="text-eyebrow uppercase tracking-eyebrow text-muted">{{ 'chat.inbox.inYourMessages' | transloco }}</h2>
           <ul class="mt-sm divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card">
             @for (hit of r.messages.items; track hit.messageId) {
               <li>
@@ -80,7 +80,7 @@
         }
 
         @if (r.people.items.length > 0) {
-          <h2 class="mt-lg text-eyebrow uppercase tracking-eyebrow text-muted">People</h2>
+          <h2 class="mt-lg text-eyebrow uppercase tracking-eyebrow text-muted">{{ 'chat.inbox.people' | transloco }}</h2>
           <ul class="mt-sm divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card">
             @for (person of r.people.items; track person.userId) {
               <li class="flex items-center justify-between gap-md px-md py-sm">
@@ -93,7 +93,7 @@
                   (click)="chatWith(person.userId, person.existingConversationId)"
                   class="min-h-11 rounded-md px-sm text-body-sm font-medium text-link transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 >
-                  Chat
+                  {{ 'chat.inbox.chat' | transloco }}
                 </button>
               </li>
             }
@@ -135,7 +135,7 @@
 
                   @if (c.state === 'Archived') {
                     <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-subtle">
-                      Archived
+                      {{ 'chat.inbox.archived' | transloco }}
                     </span>
                   }
                 </span>
@@ -146,14 +146,14 @@
                 } @else if (c.lastMessage; as last) {
                   <span class="block truncate text-body-sm text-muted">
                     @if (last.isSystem) {
-                      <em>Someone joined the chat</em>
+                      <em>{{ 'chat.inbox.systemJoined' | transloco }}</em>
                     } @else {
-                      @if (last.isOwn) {<span>You: </span>} @else if (last.senderName && c.kind !== 'Direct') {<span>{{ last.senderName }}: </span>}
-                      @if (last.preview) {{{ last.preview }}} @else {<em class="text-subtle">Message deleted</em>}
+                      @if (last.isOwn) {<span>{{ 'chat.inbox.youPrefix' | transloco }} </span>} @else if (last.senderName && c.kind !== 'Direct') {<span>{{ last.senderName }}: </span>}
+                      @if (last.preview) {{{ last.preview }}} @else {<em class="text-subtle">{{ 'chat.inbox.messageDeleted' | transloco }}</em>}
                     }
                   </span>
                 } @else {
-                  <span class="block text-body-sm text-subtle">No messages yet</span>
+                  <span class="block text-body-sm text-subtle">{{ 'chat.inbox.noMessagesYet' | transloco }}</span>
                 }
               </span>
 
@@ -166,14 +166,14 @@
                 @if (c.unreadCount > 0) {
                   <span
                     class="inline-flex min-w-5 items-center justify-center rounded-pill bg-brand px-xs font-mono text-caption font-semibold text-on-accent"
-                    [attr.aria-label]="c.unreadCount + ' unread messages'"
+                    [attr.aria-label]="'chat.inbox.unreadAria' | transloco:{ count: c.unreadCount }"
                   >
                     {{ badge(c.unreadCount) }}
                   </span>
                 }
 
                 @if (c.isMuted) {
-                  <svg class="size-4 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="Muted">
+                  <svg class="size-4 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [attr.aria-label]="'chat.inbox.mutedAria' | transloco">
                     <path d="M8.7 3A6 6 0 0 1 18 8c0 2.5.5 4 1 5M6 8a6 6 0 0 0-.4 2c0 4-2 5-2 5h13M9 18a3 3 0 0 0 6 0M2 2l20 20" />
                   </svg>
                 }
@@ -187,18 +187,18 @@
     <!-- Empty: warm, with a next step (wireframe 9a) -->
     @if (hasNothing()) {
       <div class="mt-lg rounded-lg border border-border-muted bg-surface-card px-md py-2xl text-center" data-testid="chat-empty">
-        <h2 class="text-h4 text-heading">No messages yet</h2>
+        <h2 class="text-h4 text-heading">{{ 'chat.inbox.noMessagesYet' | transloco }}</h2>
         <p class="mx-auto mt-xs max-w-sm text-body-md text-muted">
-          Say hi to a teammate, or start a group to sort out carpools and gear.
+          {{ 'chat.inbox.emptySubtitle' | transloco }}
         </p>
         <a
           routerLink="/chat/new"
           jhButton class="mt-lg"
         >
-          Start a chat
+          {{ 'chat.inbox.startChat' | transloco }}
         </a>
         <p class="mt-md text-body-sm text-subtle">
-          Your team chat shows up here the moment you join a team.
+          {{ 'chat.inbox.teamChatNote' | transloco }}
         </p>
       </div>
     }

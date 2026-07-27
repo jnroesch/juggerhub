@@ -392,6 +392,47 @@
       "couldNotLoad": "Could not load your profile."
     }
   },
+  "chat": {
+    "shell": {
+      "pickTitle": "Pick a conversation",
+      "pickSubtitle": "Choose a chat on the left, or start a new one."
+    },
+    "new": {
+      "title": "New chat",
+      "start": "Start",
+      "groupName": "Group name",
+      "groupNamePlaceholder": "Weekend crew",
+      "addPeople": "Add people",
+      "removePerson": "Remove {{name}}",
+      "noMatch": "Nobody matched “{{term}}”.",
+      "hint": "Search for anyone on JuggerHub. Pick one person for a direct message, or two or more to start a named group."
+    },
+    "inbox": {
+      "title": "Messages",
+      "startChat": "Start a chat",
+      "searchSr": "Search messages and people",
+      "searchPlaceholder": "Search messages",
+      "loadError": "We couldn't load your messages. Try again in a moment.",
+      "nothingMatched": "Nothing matched “{{term}}”.",
+      "inYourMessages": "In your messages",
+      "people": "People",
+      "chat": "Chat",
+      "archived": "Archived",
+      "systemJoined": "Someone joined the chat",
+      "youPrefix": "You:",
+      "messageDeleted": "Message deleted",
+      "noMessagesYet": "No messages yet",
+      "emptySubtitle": "Say hi to a teammate, or start a group to sort out carpools and gear.",
+      "teamChatNote": "Your team chat shows up here the moment you join a team.",
+      "unreadAria": "{{count}} unread messages",
+      "mutedAria": "Muted",
+      "typingOne": "{{name}} is typing…",
+      "typingSeveral": "Several people are typing…",
+      "tagTeam": "Team",
+      "tagParty": "Party",
+      "tagAdmins": "Admins"
+    }
+  },
   "account": {
     "title": "Account",
     "subtitle": "Protected sample page — you only see this when signed in.",

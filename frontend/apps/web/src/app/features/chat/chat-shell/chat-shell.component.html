@@ -23,9 +23,9 @@
     } @else {
       <!-- Desktop only: nothing picked yet -->
       <div class="hidden h-full flex-col items-center justify-center px-md text-center lg:flex">
-        <h2 class="text-h4 text-heading">Pick a conversation</h2>
+        <h2 class="text-h4 text-heading">{{ 'chat.shell.pickTitle' | transloco }}</h2>
         <p class="mt-xs max-w-sm text-body-md text-muted">
-          Choose a chat on the left, or start a new one.
+          {{ 'chat.shell.pickSubtitle' | transloco }}
         </p>
       </div>
     }

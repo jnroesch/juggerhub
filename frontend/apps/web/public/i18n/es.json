@@ -396,6 +396,47 @@
       "couldNotLoad": "No se pudo cargar tu perfil."
     }
   },
+  "chat": {
+    "shell": {
+      "pickTitle": "Elige una conversación",
+      "pickSubtitle": "Elige un chat a la izquierda o empieza uno nuevo."
+    },
+    "new": {
+      "title": "Nuevo chat",
+      "start": "Empezar",
+      "groupName": "Nombre del grupo",
+      "groupNamePlaceholder": "Grupo del finde",
+      "addPeople": "Añadir personas",
+      "removePerson": "Quitar a {{name}}",
+      "noMatch": "Nadie coincide con «{{term}}».",
+      "hint": "Busca a cualquiera en JuggerHub. Elige una persona para un mensaje directo, o dos o más para crear un grupo con nombre."
+    },
+    "inbox": {
+      "title": "Mensajes",
+      "startChat": "Empezar un chat",
+      "searchSr": "Buscar mensajes y personas",
+      "searchPlaceholder": "Buscar mensajes",
+      "loadError": "No pudimos cargar tus mensajes. Inténtalo de nuevo en un momento.",
+      "nothingMatched": "Nada coincide con «{{term}}».",
+      "inYourMessages": "En tus mensajes",
+      "people": "Personas",
+      "chat": "Chat",
+      "archived": "Archivado",
+      "systemJoined": "Alguien se unió al chat",
+      "youPrefix": "Tú:",
+      "messageDeleted": "Mensaje eliminado",
+      "noMessagesYet": "Aún no hay mensajes",
+      "emptySubtitle": "Saluda a un compañero o crea un grupo para organizar transporte y equipamiento.",
+      "teamChatNote": "El chat de tu equipo aparece aquí en cuanto te unes a un equipo.",
+      "unreadAria": "{{count}} mensajes sin leer",
+      "mutedAria": "Silenciado",
+      "typingOne": "{{name}} está escribiendo…",
+      "typingSeveral": "Varias personas están escribiendo…",
+      "tagTeam": "Equipo",
+      "tagParty": "Party",
+      "tagAdmins": "Administradores"
+    }
+  },
   "account": {
     "title": "Cuenta",
     "subtitle": "Página de ejemplo protegida — solo la ves cuando has iniciado sesión.",

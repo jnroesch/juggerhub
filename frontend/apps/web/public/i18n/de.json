@@ -396,6 +396,47 @@
       "couldNotLoad": "Dein Profil konnte nicht geladen werden."
     }
   },
+  "chat": {
+    "shell": {
+      "pickTitle": "Wähle eine Unterhaltung",
+      "pickSubtitle": "Wähle links einen Chat oder starte einen neuen."
+    },
+    "new": {
+      "title": "Neuer Chat",
+      "start": "Starten",
+      "groupName": "Gruppenname",
+      "groupNamePlaceholder": "Wochenend-Crew",
+      "addPeople": "Personen hinzufügen",
+      "removePerson": "{{name}} entfernen",
+      "noMatch": "Niemand passt zu „{{term}}“.",
+      "hint": "Suche nach jedem auf JuggerHub. Wähle eine Person für eine Direktnachricht oder zwei oder mehr für eine benannte Gruppe."
+    },
+    "inbox": {
+      "title": "Nachrichten",
+      "startChat": "Chat starten",
+      "searchSr": "Nachrichten und Personen suchen",
+      "searchPlaceholder": "Nachrichten suchen",
+      "loadError": "Wir konnten deine Nachrichten nicht laden. Versuch es gleich noch einmal.",
+      "nothingMatched": "Nichts passt zu „{{term}}“.",
+      "inYourMessages": "In deinen Nachrichten",
+      "people": "Personen",
+      "chat": "Chat",
+      "archived": "Archiviert",
+      "systemJoined": "Jemand ist dem Chat beigetreten",
+      "youPrefix": "Du:",
+      "messageDeleted": "Nachricht gelöscht",
+      "noMessagesYet": "Noch keine Nachrichten",
+      "emptySubtitle": "Sag einem Teammitglied Hallo oder starte eine Gruppe, um Fahrgemeinschaften und Ausrüstung zu organisieren.",
+      "teamChatNote": "Dein Team-Chat erscheint hier, sobald du einem Team beitrittst.",
+      "unreadAria": "{{count}} ungelesene Nachrichten",
+      "mutedAria": "Stumm",
+      "typingOne": "{{name}} schreibt…",
+      "typingSeveral": "Mehrere Personen schreiben…",
+      "tagTeam": "Team",
+      "tagParty": "Party",
+      "tagAdmins": "Admins"
+    }
+  },
   "account": {
     "title": "Konto",
     "subtitle": "Geschützte Beispielseite — du siehst sie nur im angemeldeten Zustand.",

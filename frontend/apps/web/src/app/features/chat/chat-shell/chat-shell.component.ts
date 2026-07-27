@@ -2,6 +2,7 @@ import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ChatInboxComponent } from '../chat-inbox/chat-inbox.component';
 
 /**
@@ -18,7 +19,7 @@ import { ChatInboxComponent } from '../chat-inbox/chat-inbox.component';
  */
 @Component({
   selector: 'jh-chat-shell',
-  imports: [RouterOutlet, ChatInboxComponent],
+  imports: [RouterOutlet, ChatInboxComponent, TranslocoPipe],
   templateUrl: './chat-shell.component.html',
   styleUrl: './chat-shell.component.css',
 })

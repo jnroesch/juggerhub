@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { ChatService } from '../../../core/services/chat.service';
 import { Conversation, ConversationKind } from '../../../core/models/chat.models';
 import { ChatInboxComponent } from './chat-inbox.component';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 /** A minimal ChatService double — the inbox reads two signals and calls loadInbox() on init. */
 const chat = {
@@ -17,6 +18,7 @@ const chat = {
 
 function create() {
   TestBed.configureTestingModule({
+    imports: [translocoTestingModule()],
     providers: [{ provide: ChatService, useValue: chat }, provideRouter([])],
   });
   const fixture = TestBed.createComponent(ChatInboxComponent);

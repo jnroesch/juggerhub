@@ -1,7 +1,9 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ButtonDirective } from '../../../shared/ui';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ChatService } from '../../../core/services/chat.service';
 import { ChatSearchResult, Conversation } from '../../../core/models/chat.models';
 
@@ -15,13 +17,15 @@ import { ChatSearchResult, Conversation } from '../../../core/models/chat.models
  */
 @Component({
   selector: 'jh-chat-inbox',
-  imports: [RouterLink, FormsModule, ButtonDirective],
+  imports: [RouterLink, FormsModule, ButtonDirective, TranslocoPipe],
   templateUrl: './chat-inbox.component.html',
   styleUrl: './chat-inbox.component.css',
 })
 export class ChatInboxComponent implements OnInit {
   private readonly chat = inject(ChatService);
   private readonly router = inject(Router);
+  private readonly t = inject(TranslocoService);
+  private readonly lang = toSignal(this.t.langChanges$, { initialValue: this.t.getActiveLang() });
 
   protected readonly conversations = this.chat.conversations;
   protected readonly loading = signal(true);
@@ -97,20 +101,24 @@ export class ChatInboxComponent implements OnInit {
       return null;
     }
 
-    return who.length === 1 ? `${who[0].displayName} is typing…` : 'Several people are typing…';
+    this.lang();
+    return who.length === 1
+      ? this.t.translate('chat.inbox.typingOne', { name: who[0].displayName })
+      : this.t.translate('chat.inbox.typingSeveral');
   }
 
   /** The TEAM / PARTY / ADMINS eyebrow tag, or null for a DM/group. */
   protected tagFor(c: Conversation): string | null {
+    this.lang();
     switch (c.kind) {
       case 'Team':
-        return 'Team';
+        return this.t.translate('chat.inbox.tagTeam');
       case 'Party':
-        return 'Party';
+        return this.t.translate('chat.inbox.tagParty');
       // Both inquiry kinds (feature 027) wear the same tag — a player's line to the admins.
       case 'TeamInquiry':
       case 'EventInquiry':
-        return 'Admins';
+        return this.t.translate('chat.inbox.tagAdmins');
       default:
         return null;
     }
