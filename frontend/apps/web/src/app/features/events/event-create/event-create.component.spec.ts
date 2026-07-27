@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Signal, WritableSignal } from '@angular/core';
 import { EventCreateComponent } from './event-create.component';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 import { EventType, LocationKind } from '../../../core/models/event.models';
 import { CityOption } from '../../../core/models/city.models';
 
@@ -41,6 +42,7 @@ describe('EventCreateComponent wizard validation', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     fixture = TestBed.createComponent(EventCreateComponent);
