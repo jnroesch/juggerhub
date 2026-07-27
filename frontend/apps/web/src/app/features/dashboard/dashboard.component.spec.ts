@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { Home } from '../../core/models/home.models';
 import { DashboardComponent } from './dashboard.component';
+import { translocoTestingModule } from '../../../testing/transloco-testing';
 
 const EMPTY: Omit<Home, 'viewer' | 'teams'> = {
   needsYou: [],
@@ -27,6 +28,7 @@ describe('DashboardComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     httpMock = TestBed.inject(HttpTestingController);

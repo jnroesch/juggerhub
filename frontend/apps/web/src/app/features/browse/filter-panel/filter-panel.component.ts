@@ -1,4 +1,5 @@
 import { Component, ElementRef, HostListener, effect, input, output, viewChild } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective } from '../../../shared/ui';
 
 /**
@@ -14,7 +15,7 @@ import { ButtonDirective } from '../../../shared/ui';
  */
 @Component({
   selector: 'jh-filter-panel',
-  imports: [ButtonDirective],
+  imports: [ButtonDirective, TranslocoPipe],
   templateUrl: './filter-panel.component.html',
   styleUrl: './filter-panel.component.css',
 })

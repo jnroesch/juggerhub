@@ -5,6 +5,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Party, PartyMember, PartyNews, PartyRosterGroup } from '../../../core/models/party.models';
 import { PartyService } from '../../../core/services/party.service';
 import { Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
@@ -17,7 +18,7 @@ import { Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
  */
 @Component({
   selector: 'jh-party-manage',
-  imports: [RouterLink, DatePipe, FormsModule, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent],
+  imports: [RouterLink, DatePipe, FormsModule, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './party-manage.component.html',
   styleUrl: './party-manage.component.css',
 })
@@ -25,6 +26,7 @@ export class PartyManageComponent implements OnInit {
   private readonly parties = inject(PartyService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly party = signal<Party | null>(null);
   protected readonly members = signal<PartyMember[]>([]);
@@ -136,7 +138,7 @@ export class PartyManageComponent implements OnInit {
   }
 
   protected disband(): void {
-    if (!confirm('Disband this party? This cannot be undone.')) {
+    if (!confirm(this.transloco.translate('parties.manage.confirmDisband'))) {
       return;
     }
     this.acting.set(true);
@@ -166,6 +168,6 @@ export class PartyManageComponent implements OnInit {
 
   private fail(err: unknown): void {
     this.acting.set(false);
-    this.error.set(err instanceof HttpErrorResponse ? err.error?.detail ?? 'Something went wrong.' : 'Something went wrong.');
+    this.error.set(err instanceof HttpErrorResponse ? err.error?.detail ?? this.transloco.translate('parties.manage.error') : this.transloco.translate('parties.manage.error'));
   }
 }

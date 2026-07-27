@@ -1,4 +1,5 @@
 import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -21,7 +22,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-event-admins',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './event-admins.component.html',
   styleUrl: './event-admins.component.css',
 })

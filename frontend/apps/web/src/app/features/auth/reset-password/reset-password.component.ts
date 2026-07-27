@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { passwordsMatch } from '../../../core/utils/passwords-match.validator';
 import { problemDetail } from '../../../core/utils/problem';
 import { PasswordRulesComponent } from '../password-policy/password-rules.component';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/ui';
 
 /**
@@ -15,7 +16,7 @@ import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/
  */
 @Component({
   selector: 'jh-reset-password',
-  imports: [ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent, CardComponent],
+  imports: [ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent, CardComponent, TranslocoPipe],
   templateUrl: './reset-password.component.html',
   styleUrl: './reset-password.component.css',
 })

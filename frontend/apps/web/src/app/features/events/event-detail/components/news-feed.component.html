@@ -1,15 +1,15 @@
 <section data-testid="news-feed">
-  <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Latest news</h2>
+  <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.news.heading' | transloco }}</h2>
   @if (canCompose()) {
     <div class="mt-xs flex gap-xs">
-      <input type="text" [ngModel]="body()" (ngModelChange)="body.set($event)" placeholder="Post an update…" data-testid="news-input"
+      <input type="text" [ngModel]="body()" (ngModelChange)="body.set($event)" [placeholder]="'events.news.placeholder' | transloco" data-testid="news-input"
         class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
       <button type="button" (click)="submit()" [disabled]="posting() || !body().trim()" data-testid="news-post"
-        jhButton size="sm">Post</button>
+        jhButton size="sm">{{ 'events.news.post' | transloco }}</button>
     </div>
   }
   @if (news().length === 0) {
-    <p class="mt-sm text-body-sm text-faint">No updates yet.</p>
+    <p class="mt-sm text-body-sm text-faint">{{ 'events.news.none' | transloco }}</p>
   } @else {
     <ul class="mt-sm divide-y divide-border">
       @for (n of news(); track n.id) {

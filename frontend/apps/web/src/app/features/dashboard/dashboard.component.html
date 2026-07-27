@@ -7,27 +7,27 @@
     </div>
   } @else if (failed()) {
     <div class="rounded-lg border border-border-muted bg-surface-card px-md py-2xl text-center shadow-sm" data-testid="home-error">
-      <p class="text-body-lg font-semibold text-heading">We couldn't load your home</p>
-      <p class="mt-xs text-body-sm text-muted">Something went wrong reaching the server.</p>
-      <button type="button" class="mt-md rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="load()">Try again</button>
+      <p class="text-body-lg font-semibold text-heading">{{ 'home.errorTitle' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-muted">{{ 'home.errorBody' | transloco }}</p>
+      <button type="button" class="mt-md rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
     </div>
   } @else if (data(); as home) {
     <!-- Greeting -->
     <header data-testid="home-greeting">
       @if (hasTeam()) {
-        <h1 class="text-h3 text-heading">Hi {{ home.viewer.displayName }}</h1>
+        <h1 class="text-h3 text-heading">{{ 'home.greetingHi' | transloco:{ name: home.viewer.displayName } }}</h1>
         <p class="mt-xs text-body-sm text-muted">
           @if (home.needsYou.length > 0) {
-            You've got <span class="font-mono">{{ home.needsYou.length }}</span> thing{{ home.needsYou.length === 1 ? '' : 's' }} waiting on you.
+            {{ (home.needsYou.length === 1 ? 'home.needsYouOne' : 'home.needsYouMany') | transloco:{ count: home.needsYou.length } }}
           } @else if (home.upNext.length > 0) {
-            You've got <span class="font-mono">{{ home.upNext.length }}</span> coming up.
+            {{ 'home.upNextCount' | transloco:{ count: home.upNext.length } }}
           } @else {
-            Nothing on your calendar yet — go find a game.
+            {{ 'home.nothingCalendar' | transloco }}
           }
         </p>
       } @else {
-        <h1 class="text-h3 text-heading">Welcome, {{ home.viewer.displayName }}</h1>
-        <p class="mt-xs text-body-sm text-muted">Let's find you a crew.</p>
+        <h1 class="text-h3 text-heading">{{ 'home.greetingWelcome' | transloco:{ name: home.viewer.displayName } }}</h1>
+        <p class="mt-xs text-body-sm text-muted">{{ 'home.findCrew' | transloco }}</p>
       }
     </header>
 
@@ -45,9 +45,9 @@
           <!-- 2. Up next — unified participation agenda (events + trainings) -->
           <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="up-next">
             <div class="mb-sm flex items-center justify-between">
-              <h2 class="text-body-lg font-semibold text-heading">Up next</h2>
+              <h2 class="text-body-lg font-semibold text-heading">{{ 'home.upNext' | transloco }}</h2>
               @if (home.upNext.length > 0) {
-                <a routerLink="/up-next" class="text-caption font-medium text-link hover:text-link-hover">See all</a>
+                <a routerLink="/up-next" class="text-caption font-medium text-link hover:text-link-hover">{{ 'common.seeAll' | transloco }}</a>
               }
             </div>
             @if (home.upNext.length > 0) {
@@ -58,25 +58,25 @@
               </div>
             } @else {
               <p class="rounded-md bg-surface-sunken px-md py-lg text-center text-body-sm text-muted">
-                Nothing coming up. <a routerLink="/browse/events" class="font-medium text-link hover:text-link-hover">Browse open events</a>.
+                {{ 'home.nothingComingUp' | transloco }} <a routerLink="/browse/events" class="font-medium text-link hover:text-link-hover">{{ 'home.browseOpenEvents' | transloco }}</a>.
               </p>
             }
           </section>
         } @else {
           <!-- New player: find a team -->
           <section class="rounded-lg border border-dashed border-border-strong bg-surface-sunken p-lg" data-testid="find-a-team">
-            <h2 class="text-body-lg font-semibold text-heading">You're not on a team yet</h2>
-            <p class="mt-xs max-w-md text-body-sm text-muted">Discover teams near you — many lend gear and welcome newcomers. No pressure; come try a training first.</p>
+            <h2 class="text-body-lg font-semibold text-heading">{{ 'home.notOnTeamTitle' | transloco }}</h2>
+            <p class="mt-xs max-w-md text-body-sm text-muted">{{ 'home.notOnTeamBody' | transloco }}</p>
             <div class="mt-md flex flex-wrap gap-sm">
-              <a routerLink="/browse/teams" jhButton>Find a team near you</a>
-              <a routerLink="/browse/events" class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken">Browse open trainings</a>
+              <a routerLink="/browse/teams" jhButton>{{ 'home.findTeamNearYou' | transloco }}</a>
+              <a routerLink="/browse/events" class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken">{{ 'home.browseOpenTrainings' | transloco }}</a>
             </div>
           </section>
 
           <!-- Open to everyone -->
           @if (home.openToEveryone.length > 0) {
             <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="open-to-everyone">
-              <h2 class="mb-sm text-body-lg font-semibold text-heading">Open to everyone</h2>
+              <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'home.openToEveryone' | transloco }}</h2>
               <div class="flex flex-col gap-xs">
                 @for (item of home.openToEveryone; track item.id) {
                   <jh-up-next-card [item]="item" />
@@ -92,15 +92,15 @@
         <!-- 3. News — authored broadcast (team + event + party) -->
         <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="news">
           <div class="mb-sm flex items-center justify-between">
-            <h2 class="text-body-lg font-semibold text-heading">News</h2>
+            <h2 class="text-body-lg font-semibold text-heading">{{ 'home.news' | transloco }}</h2>
             @if (home.news.length > 0) {
-              <a routerLink="/news" class="text-caption font-medium text-link hover:text-link-hover">See all</a>
+              <a routerLink="/news" class="text-caption font-medium text-link hover:text-link-hover">{{ 'common.seeAll' | transloco }}</a>
             }
           </div>
           @if (home.news.length > 0) {
             <jh-news-list [news]="home.news" />
           } @else {
-            <jh-empty-state inline>No news yet.</jh-empty-state>
+            <jh-empty-state inline>{{ 'home.noNews' | transloco }}</jh-empty-state>
           }
         </section>
 

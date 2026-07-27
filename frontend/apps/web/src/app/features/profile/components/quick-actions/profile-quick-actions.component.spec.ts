@@ -9,6 +9,7 @@ import { OwnerProfile, ProfileTeam } from '../../../../core/models/profile.model
 import { ChatSearchResult, PersonHit } from '../../../../core/models/chat.models';
 import { InvitableUser, PagedResult, UserRelation } from '../../../../core/models/team.models';
 import { ProfileQuickActionsComponent } from './profile-quick-actions.component';
+import { translocoTestingModule } from '../../../../../testing/transloco-testing';
 
 // --- factories -------------------------------------------------------------
 
@@ -60,6 +61,7 @@ const router = { navigate: jest.fn() };
 
 function create(targetHandle: string) {
   TestBed.configureTestingModule({
+    imports: [translocoTestingModule()],
     providers: [
       { provide: AuthService, useValue: auth },
       { provide: ProfileService, useValue: profiles },

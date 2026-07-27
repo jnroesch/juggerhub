@@ -54,7 +54,7 @@
           jhButton size="sm"
           data-testid="notif-accept"
         >
-          Accept
+          {{ 'common.accept' | transloco }}
         </button>
         <button
           type="button"
@@ -62,7 +62,7 @@
           class="rounded-pill border border-border px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           data-testid="notif-decline"
         >
-          Decline
+          {{ 'common.decline' | transloco }}
         </button>
       </div>
     }
@@ -70,6 +70,6 @@
 
   <!-- Unread marker -->
   @if (!notification().isRead) {
-    <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-pill bg-brand" aria-label="Unread"></span>
+    <span class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-pill bg-brand" [attr.aria-label]="'alerts.row.unread' | transloco"></span>
   }
 </jh-card>

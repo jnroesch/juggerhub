@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, CardComponent } from '../../../shared/ui';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
@@ -13,12 +14,13 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-training-create',
-  imports: [FormsModule, ButtonDirective, CardComponent],
+  imports: [FormsModule, ButtonDirective, CardComponent, TranslocoPipe],
   templateUrl: './training-create.component.html',
   styleUrl: './training-create.component.css',
 })
 export class TrainingCreateComponent {
   private readonly trainings = inject(TrainingsService);
+  private readonly transloco = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -97,7 +99,7 @@ export class TrainingCreateComponent {
       },
       error: (err) => {
         this.busy.set(false);
-        this.error.set(problemDetail(err));
+        this.error.set(problemDetail(err, this.transloco.translate('trainings.genericError')));
         this.step.set(2); // schedule errors surface here
       },
     });

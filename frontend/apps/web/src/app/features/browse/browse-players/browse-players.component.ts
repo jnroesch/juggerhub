@@ -1,5 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchService } from '../../../core/services/search.service';
 import { FilterChip, PlayerBrowseParams, PlayerCard } from '../../../core/models/search.models';
 import { POMPFEN_CATALOG, Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
@@ -15,12 +17,14 @@ import { CountryPickerComponent } from '../../../shared/country-picker/country-p
  */
 @Component({
   selector: 'jh-browse-players',
-  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, CountryPickerComponent],
+  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, CountryPickerComponent, TranslocoPipe],
   templateUrl: './browse-players.component.html',
   styleUrl: './browse-players.component.css',
 })
 export class BrowsePlayersComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
+  private readonly t = inject(TranslocoService);
+  private readonly lang = toSignal(this.t.langChanges$, { initialValue: this.t.getActiveLang() });
   protected readonly catalog = POMPFEN_CATALOG;
 
   protected readonly query = signal('');
@@ -47,8 +51,11 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
   });
 
   protected readonly countLabel = computed(() => {
+    this.lang();
     const n = this.list.total();
-    const parts = [`${n} ${n === 1 ? 'player' : 'players'}`];
+    const parts = [
+      this.t.translate(n === 1 ? 'browse.players.countOne' : 'browse.players.countMany', { count: n }),
+    ];
     for (const p of this.positions()) {
       parts.push(this.label(p).toLowerCase());
     }

@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Party, PartyNews } from '../../../core/models/party.models';
 import { PartyService } from '../../../core/services/party.service';
 
@@ -13,13 +14,14 @@ import { PartyService } from '../../../core/services/party.service';
  */
 @Component({
   selector: 'jh-party-news',
-  imports: [RouterLink, DatePipe, FormsModule, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent],
+  imports: [RouterLink, DatePipe, FormsModule, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './party-news.component.html',
   styleUrl: './party-news.component.css',
 })
 export class PartyNewsComponent implements OnInit {
   private readonly parties = inject(PartyService);
   private readonly route = inject(ActivatedRoute);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly party = signal<Party | null>(null);
   protected readonly posts = signal<PartyNews[]>([]);
@@ -62,7 +64,7 @@ export class PartyNewsComponent implements OnInit {
       },
       error: (err) => {
         this.posting.set(false);
-        this.error.set(err instanceof HttpErrorResponse ? err.error?.detail ?? 'Could not post.' : 'Could not post.');
+        this.error.set(err instanceof HttpErrorResponse ? err.error?.detail ?? this.transloco.translate('parties.news.error') : this.transloco.translate('parties.news.error'));
       },
     });
   }

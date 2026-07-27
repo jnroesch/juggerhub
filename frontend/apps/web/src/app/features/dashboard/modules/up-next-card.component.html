@@ -15,9 +15,9 @@
     <p class="truncate text-caption text-muted">
       {{ item().locationLabel }} · <span class="font-mono">{{ time() }}</span>
       @if (isTraining()) {
-        @if (item().isPublicGuest) { · public training }
+        @if (item().isPublicGuest) { · {{ 'home.publicTraining' | transloco }} }
       } @else if (!isTeamMode() && (item().spotsRemaining ?? 0) > 0) {
-        · <span class="font-mono">{{ item().spotsRemaining }}</span> left
+        · <span class="font-mono">{{ item().spotsRemaining }}</span> {{ 'home.spotsLeft' | transloco }}
       }
     </p>
     @if (error(); as e) {
@@ -28,26 +28,26 @@
   <!-- Action -->
   <div class="shrink-0">
     @if (isTraining()) {
-      <div class="flex gap-xs" role="group" aria-label="Respond to training">
+      <div class="flex gap-xs" role="group" [attr.aria-label]="'home.respondToTraining' | transloco">
         <button type="button" (click)="respond('Going')" [disabled]="busy()" data-testid="training-going"
           class="rounded-md border px-sm py-1 text-caption font-medium transition-colors duration-fast disabled:opacity-50"
-          [class.border-success-border]="answer() === 'Going'" [class.bg-success-bg]="answer() === 'Going'" [class.text-success-fg]="answer() === 'Going'" [class.border-border-strong]="answer() !== 'Going'">Going</button>
+          [class.border-success-border]="answer() === 'Going'" [class.bg-success-bg]="answer() === 'Going'" [class.text-success-fg]="answer() === 'Going'" [class.border-border-strong]="answer() !== 'Going'">{{ 'home.rsvpGoing' | transloco }}</button>
         <button type="button" (click)="respond('Maybe')" [disabled]="busy()" data-testid="training-maybe"
           class="rounded-md border px-sm py-1 text-caption font-medium transition-colors duration-fast disabled:opacity-50"
-          [class.border-warning-border]="answer() === 'Maybe'" [class.bg-warning-bg]="answer() === 'Maybe'" [class.border-border-strong]="answer() !== 'Maybe'">Maybe</button>
+          [class.border-warning-border]="answer() === 'Maybe'" [class.bg-warning-bg]="answer() === 'Maybe'" [class.border-border-strong]="answer() !== 'Maybe'">{{ 'home.rsvpMaybe' | transloco }}</button>
         <button type="button" (click)="respond('Cant')" [disabled]="busy()" data-testid="training-cant"
           class="rounded-md border px-sm py-1 text-caption font-medium transition-colors duration-fast disabled:opacity-50"
-          [class.border-danger-border]="answer() === 'Cant'" [class.bg-danger-bg]="answer() === 'Cant'" [class.text-danger-fg]="answer() === 'Cant'" [class.border-border-strong]="answer() !== 'Cant'">Can't</button>
+          [class.border-danger-border]="answer() === 'Cant'" [class.bg-danger-bg]="answer() === 'Cant'" [class.text-danger-fg]="answer() === 'Cant'" [class.border-border-strong]="answer() !== 'Cant'">{{ 'home.rsvpCant' | transloco }}</button>
       </div>
     } @else if (isTeamMode()) {
       <span class="inline-flex items-center gap-1 rounded-pill bg-surface-secondary-soft px-sm py-1 text-caption font-medium text-secondary" data-testid="team-going">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-        Team going
+        {{ 'home.teamGoing' | transloco }}
       </span>
     } @else if (confirming()) {
       <span class="inline-flex items-center gap-xs">
-        <button type="button" class="rounded-md bg-danger-bg px-sm py-1 text-caption font-semibold text-danger-fg" data-testid="confirm-withdraw" (click)="confirmWithdraw()">Leave</button>
-        <button type="button" class="rounded-md px-sm py-1 text-caption font-medium text-subtle hover:bg-surface-sunken" (click)="cancelWithdraw()">Keep</button>
+        <button type="button" class="rounded-md bg-danger-bg px-sm py-1 text-caption font-semibold text-danger-fg" data-testid="confirm-withdraw" (click)="confirmWithdraw()">{{ 'home.leave' | transloco }}</button>
+        <button type="button" class="rounded-md px-sm py-1 text-caption font-medium text-subtle hover:bg-surface-sunken" (click)="cancelWithdraw()">{{ 'home.keep' | transloco }}</button>
       </span>
     } @else if (isGoing()) {
       <button
@@ -58,7 +58,7 @@
         (click)="askWithdraw()"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-        {{ statusLabel() }}
+        {{ statusLabel() | transloco }}
       </button>
     } @else {
       <button
@@ -68,7 +68,7 @@
         data-testid="rsvp"
         (click)="rsvp()"
       >
-        RSVP
+        {{ 'home.rsvp' | transloco }}
       </button>
     }
   </div>

@@ -1,131 +1,131 @@
 <div class="mx-auto max-w-lg px-md py-lg">
   <div class="flex items-center justify-between">
     <button type="button" (click)="step() === 1 ? cancel() : back()" class="text-body-sm font-medium text-link hover:text-link-hover">
-      {{ step() === 1 ? '✕ Cancel' : '‹ Back' }}
+      {{ (step() === 1 ? 'trainings.create.cancelStep' : 'trainings.create.back') | transloco }}
     </button>
-    <span class="font-mono text-caption text-muted">Step {{ step() }} of 5</span>
+    <span class="font-mono text-caption text-muted">{{ 'trainings.create.stepOf' | transloco:{ n: step() } }}</span>
   </div>
 
   <!-- Step 1: series or one-off + name -->
   @if (step() === 1) {
-    <h1 class="mt-md text-heading-lg font-semibold text-heading">What are you setting up?</h1>
+    <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.create.step1Title' | transloco }}</h1>
     <div class="mt-md flex flex-col gap-sm">
       <button type="button" (click)="isRecurring = true"
         class="rounded-lg border p-md text-left" [class.border-brand]="isRecurring" [class.border-border-muted]="!isRecurring">
-        <p class="font-medium text-heading">Recurring series</p>
-        <p class="text-body-sm text-muted">Repeats on a schedule — e.g. every Tuesday.</p>
+        <p class="font-medium text-heading">{{ 'trainings.create.recurringSeries' | transloco }}</p>
+        <p class="text-body-sm text-muted">{{ 'trainings.create.recurringDesc' | transloco }}</p>
       </button>
       <button type="button" (click)="isRecurring = false"
         class="rounded-lg border p-md text-left" [class.border-brand]="!isRecurring" [class.border-border-muted]="isRecurring">
-        <p class="font-medium text-heading">One-off session</p>
-        <p class="text-body-sm text-muted">A single training on one date.</p>
+        <p class="font-medium text-heading">{{ 'trainings.create.oneOffSession' | transloco }}</p>
+        <p class="text-body-sm text-muted">{{ 'trainings.create.oneOffDesc' | transloco }}</p>
       </button>
     </div>
-    <label class="mt-md block text-body-sm font-medium text-heading">Name
-      <input [(ngModel)]="name" type="text" maxlength="120" placeholder="Tuesday Training"
+    <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.name' | transloco }}
+      <input [(ngModel)]="name" type="text" maxlength="120" [placeholder]="'trainings.create.namePlaceholder' | transloco"
         class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
     </label>
     <button type="button" (click)="next()" [disabled]="!name.trim()"
-      jhButton class="mt-lg w-full">Continue</button>
+      jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
   }
 
   <!-- Step 2: schedule -->
   @if (step() === 2) {
-    <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ isRecurring ? 'When does it repeat?' : 'When is it?' }}</h1>
+    <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ (isRecurring ? 'trainings.create.step2RecurTitle' : 'trainings.create.step2OneTitle') | transloco }}</h1>
     @if (isRecurring) {
-      <label class="mt-md block text-body-sm font-medium text-heading">Day of the week
+      <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.dayOfWeek' | transloco }}
         <select [(ngModel)]="weekday" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body">
-          @for (d of weekdays; track d) { <option [value]="d">{{ d }}</option> }
+          @for (d of weekdays; track d) { <option [value]="d">{{ 'trainings.weekday.' + d | transloco }}</option> }
         </select>
       </label>
     }
-    <label class="mt-md block text-body-sm font-medium text-heading">{{ isRecurring ? 'First date' : 'Date' }}
+    <label class="mt-md block text-body-sm font-medium text-heading">{{ (isRecurring ? 'trainings.create.firstDate' : 'trainings.form.date') | transloco }}
       <input [(ngModel)]="startDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
     </label>
     <div class="mt-md grid grid-cols-2 gap-sm">
-      <label class="block text-body-sm font-medium text-heading">Start
+      <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.start' | transloco }}
         <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
-      <label class="block text-body-sm font-medium text-heading">End
+      <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.end' | transloco }}
         <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
     </div>
     @if (isRecurring) {
       <div class="mt-md">
-        <span class="text-body-sm font-medium text-heading">Repeats</span>
+        <span class="text-body-sm font-medium text-heading">{{ 'trainings.form.repeats' | transloco }}</span>
         <div class="mt-2xs grid grid-cols-3 gap-xs">
-          @for (opt of [{ v: 'Weekly', l: 'Weekly' }, { v: 'BiWeekly', l: 'Every 2 wks' }, { v: 'Monthly', l: 'Monthly' }]; track opt.v) {
+          @for (opt of [{ v: 'Weekly', l: 'trainings.form.weekly' }, { v: 'BiWeekly', l: 'trainings.form.biweekly' }, { v: 'Monthly', l: 'trainings.form.monthly' }]; track opt.v) {
             <button type="button" (click)="interval = $any(opt.v)"
-              class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="interval === opt.v" [class.border-border-strong]="interval !== opt.v">{{ opt.l }}</button>
+              class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="interval === opt.v" [class.border-border-strong]="interval !== opt.v">{{ opt.l | transloco }}</button>
           }
         </div>
       </div>
-      <label class="mt-md block text-body-sm font-medium text-heading">Until
+      <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.until' | transloco }}
         <input [(ngModel)]="endDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
       @if (summaryCount() !== null) {
-        <p class="mt-2xs text-caption text-muted">Ends on this date · about <span class="font-mono">{{ summaryCount() }}</span> sessions.</p>
+        <p class="mt-2xs text-caption text-muted">{{ 'trainings.create.endsPre' | transloco }} <span class="font-mono">{{ summaryCount() }}</span> {{ 'trainings.create.sessionsWord' | transloco }}</p>
       }
     }
     <button type="button" (click)="next()" [disabled]="!startDate || (isRecurring && !endDate)"
-      jhButton class="mt-lg w-full">Continue</button>
+      jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
   }
 
   <!-- Step 3: location + description -->
   @if (step() === 3) {
-    <h1 class="mt-md text-heading-lg font-semibold text-heading">Where &amp; what?</h1>
+    <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.create.step3Title' | transloco }}</h1>
     <div class="mt-md grid grid-cols-2 gap-xs">
-      <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">In person</button>
-      <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">Virtual</button>
+      <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">{{ 'trainings.form.inPerson' | transloco }}</button>
+      <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
     </div>
     @if (locationKind === 'InPerson') {
-      <label class="mt-md block text-body-sm font-medium text-heading">Location
-        <input [(ngModel)]="location" type="text" maxlength="300" placeholder="Sportpark Müngersdorf, Köln" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+      <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.location' | transloco }}
+        <input [(ngModel)]="location" type="text" maxlength="300" [placeholder]="'trainings.create.locationPlaceholder' | transloco" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
     } @else {
-      <label class="mt-md block text-body-sm font-medium text-heading">Join link
+      <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
         <input [(ngModel)]="virtualLink" type="url" maxlength="500" placeholder="https://…" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
     }
-    <label class="mt-md block text-body-sm font-medium text-heading">Description — optional
+    <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.create.descriptionOptional' | transloco }}
       <textarea [(ngModel)]="description" rows="3" maxlength="2000" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body"></textarea>
     </label>
     <button type="button" (click)="next()" [disabled]="(locationKind === 'InPerson' && !location.trim()) || (locationKind === 'Virtual' && !virtualLink.trim())"
-      jhButton class="mt-lg w-full">Continue</button>
+      jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
   }
 
   <!-- Step 4: visibility -->
   @if (step() === 4) {
-    <h1 class="mt-md text-heading-lg font-semibold text-heading">Who can see it?</h1>
-    <p class="mt-2xs text-body-sm text-muted">You can change this any time — even per session.</p>
+    <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.create.step4Title' | transloco }}</h1>
+    <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.create.changeAnytime' | transloco }}</p>
     <div class="mt-md flex flex-col gap-sm">
       <button type="button" (click)="visibility = 'TeamOnly'" class="rounded-lg border p-md text-left" [class.border-brand]="visibility === 'TeamOnly'" [class.border-border-muted]="visibility !== 'TeamOnly'">
-        <p class="font-medium text-heading">Team only</p>
-        <p class="text-body-sm text-muted">Just your team sees &amp; RSVPs.</p>
+        <p class="font-medium text-heading">{{ 'trainings.create.teamOnly' | transloco }}</p>
+        <p class="text-body-sm text-muted">{{ 'trainings.create.teamOnlyDesc' | transloco }}</p>
       </button>
       <button type="button" (click)="visibility = 'Public'" class="rounded-lg border p-md text-left" [class.border-brand]="visibility === 'Public'" [class.border-border-muted]="visibility !== 'Public'">
-        <p class="font-medium text-heading">Public</p>
-        <p class="text-body-sm text-muted">Anyone with the link can view &amp; join — good for open mats. Outsiders show as guests.</p>
+        <p class="font-medium text-heading">{{ 'trainings.public' | transloco }}</p>
+        <p class="text-body-sm text-muted">{{ 'trainings.create.publicDesc' | transloco }}</p>
       </button>
     </div>
-    <button type="button" (click)="next()" jhButton class="mt-lg w-full">Continue</button>
+    <button type="button" (click)="next()" jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
   }
 
   <!-- Step 5: review -->
   @if (step() === 5) {
-    <h1 class="mt-md text-heading-lg font-semibold text-heading">Review &amp; create</h1>
+    <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.create.step5Title' | transloco }}</h1>
     @if (isRecurring && summaryCount() !== null) {
-      <p class="mt-2xs text-body-sm text-muted">This makes about <span class="font-mono">{{ summaryCount() }}</span> sessions players can respond to.</p>
+      <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.create.reviewPre' | transloco }} <span class="font-mono">{{ summaryCount() }}</span> {{ 'trainings.create.reviewPost' | transloco }}</p>
     }
     <jh-card class="mt-md p-md text-body-sm">
       <p class="font-medium text-heading">{{ name }}</p>
-      <p class="mt-2xs text-muted">{{ isRecurring ? weekday + ' · ' + interval : 'One-off' }} · {{ startTime }}–{{ endTime }}</p>
-      <p class="text-muted">{{ locationKind === 'InPerson' ? location : 'Online' }}</p>
-      <p class="text-muted">{{ visibility === 'Public' ? 'Public' : 'Team only' }}@if (isRecurring) { · until {{ endDate }} }</p>
+      <p class="mt-2xs text-muted">{{ isRecurring ? (('trainings.weekday.' + weekday | transloco) + ' · ' + interval) : ('trainings.oneOff' | transloco) }} · {{ startTime }}–{{ endTime }}</p>
+      <p class="text-muted">{{ locationKind === 'InPerson' ? location : ('trainings.online' | transloco) }}</p>
+      <p class="text-muted">{{ (visibility === 'Public' ? 'trainings.public' : 'trainings.create.teamOnly') | transloco }}@if (isRecurring) { · {{ 'trainings.create.reviewUntil' | transloco }} {{ endDate }} }</p>
     </jh-card>
     @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
     <button type="button" (click)="create()" [disabled]="busy()" jhButton class="mt-lg w-full">
-      {{ busy() ? 'Creating…' : 'Create training' }}
+      {{ (busy() ? 'trainings.create.creating' : 'trainings.create.createTraining') | transloco }}
     </button>
   }
 </div>

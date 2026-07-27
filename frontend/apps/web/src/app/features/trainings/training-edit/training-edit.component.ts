@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
@@ -24,12 +25,13 @@ type EditMode = 'fork' | 'single' | 'series';
  */
 @Component({
   selector: 'jh-training-edit',
-  imports: [FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent],
+  imports: [FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './training-edit.component.html',
   styleUrl: './training-edit.component.css',
 })
 export class TrainingEditComponent {
   private readonly trainings = inject(TrainingsService);
+  private readonly transloco = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -142,7 +144,7 @@ export class TrainingEditComponent {
       next: () => this.router.navigate(['/trainings/sessions', this.sessionId]),
       error: (err) => {
         this.busy.set(false);
-        this.error.set(problemDetail(err));
+        this.error.set(problemDetail(err, this.transloco.translate('trainings.genericError')));
       },
     });
   }
@@ -173,7 +175,7 @@ export class TrainingEditComponent {
       next: () => this.router.navigate(['/trainings/sessions', this.sessionId]),
       error: (err) => {
         this.busy.set(false);
-        this.error.set(problemDetail(err));
+        this.error.set(problemDetail(err, this.transloco.translate('trainings.genericError')));
       },
     });
   }

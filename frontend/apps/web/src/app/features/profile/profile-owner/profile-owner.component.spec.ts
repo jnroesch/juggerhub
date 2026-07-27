@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { OwnerProfile } from '../../../core/models/profile.models';
 import { ProfileService } from '../../../core/services/profile.service';
 import { ProfileOwnerComponent } from './profile-owner.component';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 const OWNER: OwnerProfile = {
   handle: 'nik-berlin',
@@ -38,7 +39,7 @@ describe('ProfileOwnerComponent — visibility toggle (feature 026)', () => {
     };
 
     TestBed.configureTestingModule({
-      imports: [ProfileOwnerComponent],
+      imports: [ProfileOwnerComponent, translocoTestingModule()],
       providers: [provideRouter([]), { provide: ProfileService, useValue: profiles }],
     });
   });

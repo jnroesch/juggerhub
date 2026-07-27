@@ -1,25 +1,27 @@
 <main class="grid min-h-screen place-items-center p-md">
+  <div class="fixed right-4 top-4 z-10">
+    <jh-language-switcher />
+  </div>
   <jh-card accent class="w-full max-w-md p-xl" data-testid="register">
     @if (sent()) {
-      <h1 class="text-heading-md font-semibold text-ink">Check your email</h1>
+      <h1 class="text-heading-md font-semibold text-ink">{{ 'auth.register.checkEmailTitle' | transloco }}</h1>
       <p class="mt-sm text-body-md text-text-muted">
-        If that email can be registered, we've sent a link to verify your address.
-        Open it to activate your account, then sign in.
+        {{ 'auth.register.checkEmailBody' | transloco }}
       </p>
       <a
         routerLink="/sign-in"
         [queryParams]="signInParams"
         jhButton class="mt-lg"
       >
-        Back to sign in
+        {{ 'auth.register.backToSignIn' | transloco }}
       </a>
     } @else {
-      <h1 class="text-heading-md font-semibold text-ink">Create your account</h1>
-      <p class="mt-xs text-body-sm text-subtle">Join JuggerHub with your email and a password.</p>
+      <h1 class="text-heading-md font-semibold text-ink">{{ 'auth.register.title' | transloco }}</h1>
+      <p class="mt-xs text-body-sm text-subtle">{{ 'auth.register.subtitle' | transloco }}</p>
 
       <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="submit()">
         <div>
-          <label for="email" class="block text-body-sm font-medium text-text">Email</label>
+          <label for="email" class="block text-body-sm font-medium text-text">{{ 'auth.email' | transloco }}</label>
           <input
             id="email"
             type="email"
@@ -31,7 +33,7 @@
         </div>
 
         <div>
-          <label for="handle" class="block text-body-sm font-medium text-text">Handle</label>
+          <label for="handle" class="block text-body-sm font-medium text-text">{{ 'auth.handle' | transloco }}</label>
           <div class="mt-xs flex items-center rounded-md border border-border-strong bg-surface-card transition-shadow duration-fast focus-within:border-brand focus-within:ring-2 focus-within:ring-focus">
             <span class="pl-md text-body-md text-subtle">@</span>
             <input
@@ -52,7 +54,7 @@
             }
           </div>
           <p class="mt-xs text-body-sm text-subtle">
-            Your permanent profile link: <span class="font-medium text-text">jugger.app/u/{{ form.controls.handle.value || 'your-handle' }}</span> — this can't be changed later.
+            {{ 'auth.register.permalinkLabel' | transloco }} <span class="font-medium text-text">jugger.app/u/{{ form.controls.handle.value || 'your-handle' }}</span> {{ 'auth.register.permalinkNote' | transloco }}
           </p>
           @if (handleState() === 'unavailable' && handleReason()) {
             <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ handleReason() }}</p>
@@ -60,7 +62,7 @@
         </div>
 
         <div>
-          <label for="password" class="block text-body-sm font-medium text-text">Password</label>
+          <label for="password" class="block text-body-sm font-medium text-text">{{ 'auth.password' | transloco }}</label>
           <input
             id="password"
             type="password"
@@ -73,7 +75,7 @@
         </div>
 
         <div>
-          <label for="confirmPassword" class="block text-body-sm font-medium text-text">Confirm password</label>
+          <label for="confirmPassword" class="block text-body-sm font-medium text-text">{{ 'auth.confirmPassword' | transloco }}</label>
           <input
             id="confirmPassword"
             type="password"
@@ -83,7 +85,7 @@
             class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
           />
           @if (form.hasError('passwordMismatch') && form.controls.confirmPassword.value && form.controls.confirmPassword.touched) {
-            <p class="mt-xs text-body-sm text-danger-fg" data-testid="register-mismatch" role="alert">Passwords don't match.</p>
+            <p class="mt-xs text-body-sm text-danger-fg" data-testid="register-mismatch" role="alert">{{ 'auth.register.mismatch' | transloco }}</p>
           }
         </div>
 
@@ -97,13 +99,13 @@
           [disabled]="!canSubmit"
           jhButton class="w-full"
         >
-          {{ submitting() ? 'Creating account…' : 'Create account' }}
+          {{ (submitting() ? 'auth.register.submitting' : 'auth.register.submit') | transloco }}
         </button>
       </form>
 
       <p class="mt-lg text-center text-body-sm text-subtle">
-        Already have an account?
-        <a routerLink="/sign-in" [queryParams]="signInParams" class="font-medium text-link hover:text-link-hover">Sign in</a>
+        {{ 'auth.register.haveAccount' | transloco }}
+        <a routerLink="/sign-in" [queryParams]="signInParams" class="font-medium text-link hover:text-link-hover">{{ 'nav.signIn' | transloco }}</a>
       </p>
     }
   </jh-card>

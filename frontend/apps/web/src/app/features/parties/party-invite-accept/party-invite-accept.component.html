@@ -1,27 +1,27 @@
 <main class="mx-auto flex min-h-screen max-w-container-sm flex-col justify-center gap-lg p-md">
   @if (loading()) {
-    <jh-loading label="Loading invite…" align="center" />
+    <jh-loading [label]="'parties.inviteAccept.loading' | transloco" align="center" />
   } @else if (notFound()) {
-    <jh-empty-state heading="Invite not found">This invite link isn't valid.</jh-empty-state>
+    <jh-empty-state [heading]="'parties.inviteAccept.notFoundHeading' | transloco">{{ 'parties.inviteAccept.notFoundBody' | transloco }}</jh-empty-state>
   } @else if (preview(); as p) {
     <jh-card class="p-lg">
-      <p class="text-eyebrow uppercase text-brand">Party co-admin invite</p>
+      <p class="text-eyebrow uppercase text-brand">{{ 'parties.inviteAccept.coadminInvite' | transloco }}</p>
       <h1 class="mt-xs text-h3 text-heading">{{ p.teamName }} @ {{ p.eventName }}</h1>
-      <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | date: 'mediumDate' }} · invited by {{ p.inviterDisplayName }}</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | date: 'mediumDate' }} · {{ 'parties.inviteAccept.invitedBy' | transloco:{ name: p.inviterDisplayName } }}</p>
 
       @if (p.state === 'Usable') {
-        <p class="mt-md text-body-sm text-body">Accept to help run this party — manage the roster, post news, and apply to the event.</p>
+        <p class="mt-md text-body-sm text-body">{{ 'parties.inviteAccept.acceptHelp' | transloco }}</p>
         @if (error()) {
           <jh-alert class="mt-sm">{{ error() }}</jh-alert>
         }
         <div class="mt-lg flex gap-sm">
           <button type="button" (click)="accept()" [disabled]="acting()"
-            jhButton class="flex-1">I'm in</button>
+            jhButton class="flex-1">{{ 'parties.inviteAccept.imIn' | transloco }}</button>
           <button type="button" (click)="decline()" [disabled]="acting()"
-            jhButton variant="secondary" class="flex-1">Decline</button>
+            jhButton variant="secondary" class="flex-1">{{ 'common.decline' | transloco }}</button>
         </div>
       } @else {
-        <jh-alert class="mt-md">This invite has expired or is no longer valid.</jh-alert>
+        <jh-alert class="mt-md">{{ 'parties.inviteAccept.expired' | transloco }}</jh-alert>
       }
     </jh-card>
   }

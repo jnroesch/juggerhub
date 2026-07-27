@@ -1,6 +1,7 @@
 import { Component, HostListener, computed, inject, input, output, signal } from '@angular/core';
 import { ButtonDirective } from '../../../shared/ui';
 import { FormsModule } from '@angular/forms';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   AdminSubjectAwards,
   AdminSubjectType,
@@ -20,12 +21,13 @@ type Tab = 'badge' | 'achievement';
  */
 @Component({
   selector: 'jh-assign-picker',
-  imports: [FormsModule, ButtonDirective],
+  imports: [FormsModule, ButtonDirective, TranslocoPipe],
   templateUrl: './assign-picker.component.html',
   styleUrl: './assign-picker.component.css',
 })
 export class AssignPickerComponent {
   private readonly recognition = inject(RecognitionAdminService);
+  private readonly transloco = inject(TranslocoService);
 
   readonly subjectType = input.required<AdminSubjectType>();
   readonly subjectRef = input.required<string>();
@@ -120,7 +122,7 @@ export class AssignPickerComponent {
       },
       error: (e) => {
         this.granting.set(false);
-        this.grantError.set(problemDetail(e, 'Could not grant that.'));
+        this.grantError.set(problemDetail(e, this.transloco.translate('admin.assign.grantError')));
       },
     });
   }

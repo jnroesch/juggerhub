@@ -1,11 +1,11 @@
 <section class="mx-auto max-w-container-sm px-md py-lg" data-testid="team-settings">
-  <a [routerLink]="['/t', slug()]" class="text-body-sm text-subtle hover:text-text">‹ Back</a>
-  <h1 class="mt-md text-heading-lg font-bold text-ink">Team settings</h1>
+  <a [routerLink]="['/t', slug()]" class="text-body-sm text-subtle hover:text-text">{{ 'common.back' | transloco }}</a>
+  <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'teams.settings.title' | transloco }}</h1>
 
   @if (loading()) {
     <jh-loading />
   } @else if (notFound()) {
-    <jh-alert class="mt-md">This team doesn't exist, or you're not a member.</jh-alert>
+    <jh-alert class="mt-md">{{ 'teams.settings.notFound' | transloco }}</jh-alert>
   } @else if (detail(); as t) {
     @if (error()) {
       <jh-alert class="mt-md" data-testid="settings-error">{{ error() }}</jh-alert>
@@ -13,17 +13,17 @@
 
     @if (isAdmin()) {
       <div class="mt-lg">
-        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Recruitment</p>
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.settings.recruitment' | transloco }}</p>
         <div class="mt-xs flex items-center justify-between gap-sm rounded-md border border-border-strong bg-surface-card px-md py-sm">
           <span class="flex flex-col">
-            <span class="text-body-md text-ink">Beginners welcome</span>
-            <span class="text-body-sm text-subtle">Show a “Beginners” badge and appear in the beginners filter.</span>
+            <span class="text-body-md text-ink">{{ 'teams.settings.beginnersWelcome' | transloco }}</span>
+            <span class="text-body-sm text-subtle">{{ 'teams.settings.beginnersWelcomeHint' | transloco }}</span>
           </span>
           <button
             type="button"
             role="switch"
             [attr.aria-checked]="beginnersWelcome()"
-            aria-label="Beginners welcome"
+            [attr.aria-label]="'teams.settings.beginnersWelcome' | transloco"
             [disabled]="savingBeginners()"
             class="relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border transition-colors duration-fast disabled:opacity-60"
             [class.bg-brand]="beginnersWelcome()"
@@ -45,15 +45,15 @@
       <hr class="my-lg border-border" />
 
       <div class="mt-lg">
-        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Your role</p>
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.settings.yourRole' | transloco }}</p>
         <button type="button" (click)="stepDown()" [disabled]="soleAdmin() || working()" data-testid="step-down"
           class="mt-xs flex w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-60">
-          <span>Step down to member</span>
+          <span>{{ 'teams.settings.stepDown' | transloco }}</span>
           <span class="text-subtle">›</span>
         </button>
         @if (soleAdmin()) {
           <p class="mt-xs rounded-md border border-dashed border-warning-border bg-warning-bg px-md py-sm text-body-sm text-warning-fg" data-testid="sole-admin-warning">
-            You're the only admin. Make someone else an admin before you step down or leave.
+            {{ 'teams.settings.soleAdminWarning' | transloco }}
           </p>
         }
       </div>
@@ -61,29 +61,29 @@
       <hr class="my-lg border-border" />
 
       <div>
-        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-danger">Danger zone</p>
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-danger">{{ 'teams.settings.dangerZone' | transloco }}</p>
         @if (!confirmingDelete()) {
           <button type="button" (click)="confirmingDelete.set(true)" data-testid="delete-team"
             jhButton variant="danger" class="mt-xs w-full">
-            Delete team
+            {{ 'teams.settings.deleteTeam' | transloco }}
           </button>
         } @else {
           <div class="mt-xs rounded-md border border-danger-border bg-danger-bg p-md">
-            <p class="text-body-sm text-danger">Delete <strong>{{ t.name }}</strong> for everyone? This removes the team, its news and roster. It can't be undone.</p>
+            <p class="text-body-sm text-danger">{{ 'teams.settings.deleteConfirm' | transloco:{ name: t.name } }}</p>
             <div class="mt-sm flex gap-xs">
               <button type="button" (click)="deleteTeam()" [disabled]="working()" data-testid="delete-confirm"
                 class="flex-1 rounded-md bg-danger-fg px-md py-sm text-body-sm font-semibold text-white disabled:opacity-60">
-                {{ working() ? 'Deleting…' : 'Yes, delete team' }}
+                {{ (working() ? 'teams.settings.deleting' : 'teams.settings.deleteConfirmYes') | transloco }}
               </button>
               <button type="button" (click)="confirmingDelete.set(false)" [disabled]="working()"
-                jhButton variant="secondary" size="sm">Cancel</button>
+                jhButton variant="secondary" size="sm">{{ 'common.cancel' | transloco }}</button>
             </div>
           </div>
         }
-        <p class="mt-xs text-body-sm text-faint">Admins only · removes the team, its news and roster for everyone. Can't be undone.</p>
+        <p class="mt-xs text-body-sm text-faint">{{ 'teams.settings.deleteHint' | transloco }}</p>
       </div>
     } @else {
-      <p class="mt-lg text-body-md text-subtle">Only admins can change team settings.</p>
+      <p class="mt-lg text-body-md text-subtle">{{ 'teams.settings.adminsOnly' | transloco }}</p>
     }
   }
 </section>

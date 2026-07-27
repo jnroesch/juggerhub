@@ -6,6 +6,7 @@ import {
 import { TestBed } from '@angular/core/testing';
 import { PasswordPolicy } from '../../../core/models/auth.models';
 import { PasswordRulesComponent } from './password-rules.component';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 const POLICY: PasswordPolicy = {
   minLength: 8,
@@ -21,6 +22,7 @@ describe('PasswordRulesComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     httpMock = TestBed.inject(HttpTestingController);

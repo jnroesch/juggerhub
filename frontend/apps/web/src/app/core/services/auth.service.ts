@@ -112,4 +112,15 @@ export class AuthService {
   clearSession(): void {
     this.user.set(null);
   }
+
+  /**
+   * Reflect a just-saved language choice into the cached session (feature 031) so the language
+   * precedence sees the new account preference immediately and doesn't revert the switch.
+   */
+  setPreferredLanguage(language: string): void {
+    const current = this.user();
+    if (current) {
+      this.user.set({ ...current, preferredLanguage: language });
+    }
+  }
 }

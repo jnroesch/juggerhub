@@ -1,6 +1,6 @@
 <jh-browse-shell
-  title="Events"
-  searchPlaceholder="Search events…"
+  [title]="'browse.tabEvents' | transloco"
+  [searchPlaceholder]="'browse.events.searchPlaceholder' | transloco"
   [sortOptions]="sortOptions()"
   [activeSort]="sort()"
   (sortChange)="onSortChange($event)"
@@ -34,7 +34,7 @@
           </span>
         </span>
         <span class="rounded-pill border border-border px-sm py-0 text-caption text-subtle">
-          {{ event.type === 'Other' && event.customTypeLabel ? event.customTypeLabel : event.type }}
+          {{ event.type === 'Other' && event.customTypeLabel ? event.customTypeLabel : ('events.type.' + event.type.toLowerCase() | transloco) }}
         </span>
       </a>
     }
@@ -44,28 +44,28 @@
 <jh-filter-panel
   [open]="filtersOpen()"
   [pendingCount]="pendingCount()"
-  resultNoun="events"
+  [resultNoun]="'browse.events.noun' | transloco"
   (apply)="applyFilters()"
   (resetFilters)="resetFilters()"
   (closePanel)="filtersOpen.set(false)"
 >
   <div class="flex flex-col gap-sm">
-    <span class="text-eyebrow uppercase text-faint">Show</span>
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.showEyebrow' | transloco }}</span>
     <jh-filter-toggle
-      label="Hide past events"
-      hint="Only upcoming"
+      [label]="'browse.events.hidePastLabel' | transloco"
+      [hint]="'browse.events.hidePastHint' | transloco"
       [checked]="pendingHidePast()"
       (toggled)="setPendingHidePast($event)"
     />
   </div>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">Date range</span>
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.events.dateRange' | transloco }}</span>
     <div class="flex items-center gap-xs">
       <input
         type="date"
         class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
-        aria-label="From date"
+        [attr.aria-label]="'browse.events.fromDate' | transloco"
         [value]="pendingFrom()"
         (input)="onPendingFrom($any($event.target).value)"
       />
@@ -73,7 +73,7 @@
       <input
         type="date"
         class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
-        aria-label="To date"
+        [attr.aria-label]="'browse.events.toDate' | transloco"
         [value]="pendingTo()"
         (input)="onPendingTo($any($event.target).value)"
       />
@@ -81,13 +81,13 @@
   </div>
 
   <label class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">Type</span>
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.events.type' | transloco }}</span>
     <select
       class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none"
       [value]="pendingType()"
       (change)="onPendingType($any($event.target).value)"
     >
-      <option value="">Any type</option>
+      <option value="">{{ 'browse.events.anyType' | transloco }}</option>
       @for (t of eventTypes; track t) {
         <option [value]="t">{{ t }}</option>
       }
@@ -95,7 +95,7 @@
   </label>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">Country</span>
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.country' | transloco }}</span>
     <jh-country-picker [value]="pendingCity()" (valueChange)="onPendingCity($event)" />
   </div>
 </jh-filter-panel>

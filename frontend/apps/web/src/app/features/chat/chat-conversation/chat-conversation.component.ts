@@ -14,6 +14,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LoadingComponent } from '../../../shared/ui';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ChatService } from '../../../core/services/chat.service';
 import { ChatMessage, ConversationDetail } from '../../../core/models/chat.models';
 
@@ -27,7 +28,7 @@ import { ChatMessage, ConversationDetail } from '../../../core/models/chat.model
  */
 @Component({
   selector: 'jh-chat-conversation',
-  imports: [FormsModule, RouterLink, LoadingComponent],
+  imports: [FormsModule, RouterLink, LoadingComponent, TranslocoPipe],
   templateUrl: './chat-conversation.component.html',
   styleUrl: './chat-conversation.component.css',
 })
@@ -36,6 +37,7 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
   readonly conversationId = input.required<string>();
 
   private readonly chat = inject(ChatService);
+  private readonly t = inject(TranslocoService);
 
   @ViewChild('scroller') private scroller?: ElementRef<HTMLElement>;
 
@@ -209,7 +211,9 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
       return '';
     }
 
-    return who.length === 1 ? `${who[0].displayName} is typing…` : 'Several people are typing…';
+    return who.length === 1
+      ? this.t.translate('chat.inbox.typingOne', { name: who[0].displayName })
+      : this.t.translate('chat.inbox.typingSeveral');
   }
 
   protected messageTime(iso: string): string {
@@ -218,16 +222,16 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
 
   /** The wording for a system line. Rendered here so it stays consistent and translatable. */
   protected systemText(m: ChatMessage): string {
-    const who = m.systemSubjectName ?? 'Someone';
+    const name = m.systemSubjectName ?? this.t.translate('chat.conversation.someone');
     switch (m.systemEvent) {
       case 'Joined':
-        return `${who} joined the chat`;
+        return this.t.translate('chat.conversation.systemJoined', { name });
       case 'Left':
-        return `${who} left the chat`;
+        return this.t.translate('chat.conversation.systemLeft', { name });
       case 'Removed':
-        return `${who} was removed`;
+        return this.t.translate('chat.conversation.systemRemoved', { name });
       case 'GroupCreated':
-        return `${who} started this group`;
+        return this.t.translate('chat.conversation.systemGroupCreated', { name });
       default:
         return '';
     }

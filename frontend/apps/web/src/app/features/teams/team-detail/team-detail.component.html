@@ -5,9 +5,9 @@
       <div class="mt-md h-32 rounded-lg bg-surface-muted"></div>
     </div>
   } @else if (notFound()) {
-    <jh-empty-state heading="Team not found">
-      No team exists at that address.
-      <a routerLink="/browse/teams" class="mt-md inline-block text-body-sm font-medium text-link hover:text-link-hover">Browse teams</a>
+    <jh-empty-state [heading]="'teams.detail.notFoundTitle' | transloco">
+      {{ 'teams.detail.notFoundBody' | transloco }}
+      <a routerLink="/browse/teams" class="mt-md inline-block text-body-sm font-medium text-link hover:text-link-hover">{{ 'teams.detail.browseTeams' | transloco }}</a>
     </jh-empty-state>
   } @else if (pub(); as team) {
     <!-- Header -->
@@ -18,14 +18,14 @@
       <div class="min-w-0 flex-1">
         <h1 class="text-h3 text-heading">{{ team.name }}</h1>
         <p class="mt-1 flex flex-wrap items-center gap-xs text-body-sm text-muted">
-          <span>{{ team.type === 'CityTeam' ? (team.location?.label || 'City team') : 'Mixteam' }}</span>
+          <span>{{ team.type === 'CityTeam' ? (team.location?.label || ('teams.create.cityTeam' | transloco)) : ('teams.create.mixteam' | transloco) }}</span>
           <span aria-hidden="true">·</span>
-          <span><span class="font-mono">{{ team.memberCount }}</span> {{ team.memberCount === 1 ? 'member' : 'members' }}</span>
+          <span><span class="font-mono">{{ team.memberCount }}</span> {{ (team.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}</span>
           @if (team.isActive) {
-            <span class="rounded-pill bg-success-bg px-xs py-0.5 text-caption font-medium text-success-fg">Active</span>
+            <span class="rounded-pill bg-success-bg px-xs py-0.5 text-caption font-medium text-success-fg">{{ 'teams.detail.active' | transloco }}</span>
           }
           @if (team.beginnersWelcome) {
-            <span class="rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-caption font-medium text-secondary">Beginners welcome</span>
+            <span class="rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-caption font-medium text-secondary">{{ 'teams.detail.beginnersWelcome' | transloco }}</span>
           }
         </p>
       </div>
@@ -33,16 +33,16 @@
       <!-- Join action (state-aware) -->
       <div class="flex shrink-0 items-center gap-sm">
         @if (canContactAdmins()) {
-          <button type="button" jhButton variant="secondary" data-testid="contact-admins" (click)="contactAdmins()">Contact admins</button>
+          <button type="button" jhButton variant="secondary" data-testid="contact-admins" (click)="contactAdmins()">{{ 'teams.detail.contactAdmins' | transloco }}</button>
         }
         @if (isAnon()) {
-          <a routerLink="/sign-in" jhButton data-testid="signin-to-join">Sign in to join</a>
+          <a routerLink="/sign-in" jhButton data-testid="signin-to-join">{{ 'teams.detail.signInToJoin' | transloco }}</a>
         } @else if (canRequest()) {
-          <button type="button" jhButton [disabled]="requestBusy()" data-testid="request-to-join" (click)="requestToJoin()">Request to join</button>
+          <button type="button" jhButton [disabled]="requestBusy()" data-testid="request-to-join" (click)="requestToJoin()">{{ 'teams.detail.requestToJoin' | transloco }}</button>
         } @else if (requested()) {
           <span class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted" data-testid="requested">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-            Requested
+            {{ 'teams.detail.requested' | transloco }}
           </span>
         }
       </div>
@@ -59,39 +59,39 @@
         @if (isMember() && partyRequests().length > 0) {
           @for (card of partyRequests(); track card.partyId) {
             <section class="rounded-lg border border-border-accent bg-surface-accent-soft p-md" data-testid="party-request">
-              <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand">◆ Party request</p>
+              <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand">{{ 'teams.detail.partyRequest' | transloco }}</p>
               <div class="mt-xs flex items-center justify-between gap-sm">
                 <h2 class="text-body-lg font-semibold text-heading">{{ card.eventName }}</h2>
                 <span class="text-body-sm text-subtle">{{ card.inCount }} / {{ card.rosterCap }}</span>
               </div>
               @if (card.message) { <p class="mt-xs text-body-sm text-body">“{{ card.message }}”</p> }
               @if (card.myState === 'Admin' || card.status === 'Applied') {
-                <a [routerLink]="['/parties', card.partyId]" jhButton size="sm" class="mt-sm">Manage party</a>
+                <a [routerLink]="['/parties', card.partyId]" jhButton size="sm" class="mt-sm">{{ 'teams.detail.manageParty' | transloco }}</a>
               } @else if (card.myState === 'In') {
-                <p class="mt-sm text-body-sm font-semibold text-body">You're in ✓ — <a [routerLink]="['/parties', card.partyId]" class="text-brand">open party</a></p>
+                <p class="mt-sm text-body-sm font-semibold text-body">{{ 'teams.detail.youreInPrefix' | transloco }} <a [routerLink]="['/parties', card.partyId]" class="text-brand">{{ 'teams.detail.openParty' | transloco }}</a></p>
               } @else if (card.isFull) {
-                <p class="mt-sm text-body-sm text-subtle">Full right now — reopens automatically if a spot frees.</p>
+                <p class="mt-sm text-body-sm text-subtle">{{ 'teams.detail.partyFull' | transloco }}</p>
               } @else {
                 <div class="mt-sm flex gap-sm">
                   <button type="button" (click)="answerParty(card, true)" [disabled]="partyBusy()"
-                    jhButton size="sm">I'm in</button>
+                    jhButton size="sm">{{ 'teams.detail.imIn' | transloco }}</button>
                   <button type="button" (click)="answerParty(card, false)" [disabled]="partyBusy()"
-                    jhButton variant="secondary" size="sm">Can't make it</button>
+                    jhButton variant="secondary" size="sm">{{ 'teams.detail.cantMakeIt' | transloco }}</button>
                 </div>
-                @if (card.myState === 'Declined') { <p class="mt-xs text-caption text-subtle">You declined — you can still hop in while there's room.</p> }
+                @if (card.myState === 'Declined') { <p class="mt-xs text-caption text-subtle">{{ 'teams.detail.declinedNote' | transloco }}</p> }
               }
             </section>
           }
         }
         @if (isAdmin() && joinRequests().length > 0) {
           <section class="rounded-lg border border-border-accent bg-surface-accent-soft p-md" data-testid="join-queue">
-            <h2 class="mb-sm text-body-lg font-semibold text-heading">Join requests</h2>
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.joinRequests' | transloco }}</h2>
             <ul class="flex flex-col gap-xs">
               @for (req of joinRequests(); track req.id) {
                 <li class="flex items-center gap-sm rounded-md bg-surface-card px-sm py-xs">
                   <a [routerLink]="['/u', req.handle]" class="min-w-0 flex-1 truncate font-medium text-heading hover:text-link">{{ req.displayName }}</a>
-                  <button type="button" jhButton size="sm" data-testid="approve" (click)="approve(req)">Approve</button>
-                  <button type="button" class="rounded-md px-md py-1 text-caption font-medium text-subtle hover:bg-surface-sunken" (click)="decline(req)">Decline</button>
+                  <button type="button" jhButton size="sm" data-testid="approve" (click)="approve(req)">{{ 'teams.detail.approve' | transloco }}</button>
+                  <button type="button" class="rounded-md px-md py-1 text-caption font-medium text-subtle hover:bg-surface-sunken" (click)="decline(req)">{{ 'common.decline' | transloco }}</button>
                 </li>
               }
             </ul>
@@ -100,7 +100,7 @@
 
         <!-- Roster -->
         <jh-card class="p-md" data-testid="roster">
-          <h2 class="mb-sm text-body-lg font-semibold text-heading">Roster</h2>
+          <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.roster' | transloco }}</h2>
           @if (isMember()) {
             <ul class="flex flex-col">
               @for (m of members(); track m.userId) {
@@ -112,14 +112,14 @@
                     <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName || m.handle }}</a>
                     <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) || '—' }}</span>
                   </span>
-                  @if (m.role === 'Admin') { <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Admin</span> }
+                  @if (m.role === 'Admin') { <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">{{ 'teams.detail.adminBadge' | transloco }}</span> }
                   @if (isAdmin()) {
                     <div class="relative">
-                      <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-subtle hover:bg-surface-sunken" aria-label="Manage member" (click)="toggleMenu(m.userId)">⋯</button>
+                      <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-subtle hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" (click)="toggleMenu(m.userId)">⋯</button>
                       @if (openMenu() === m.userId) {
                         <div class="absolute right-0 z-10 mt-1 w-40 rounded-md border border-border bg-surface py-xs shadow-md" role="menu">
-                          <button type="button" class="block w-full px-md py-xs text-left text-body-sm hover:bg-surface-sunken" (click)="toggleAdmin(m)">{{ m.role === 'Admin' ? 'Make member' : 'Make admin' }}</button>
-                          <button type="button" class="block w-full px-md py-xs text-left text-body-sm text-danger-fg hover:bg-surface-sunken" (click)="remove(m)">Remove</button>
+                          <button type="button" class="block w-full px-md py-xs text-left text-body-sm hover:bg-surface-sunken" (click)="toggleAdmin(m)">{{ (m.role === 'Admin' ? 'teams.detail.makeMember' : 'teams.detail.makeAdmin') | transloco }}</button>
+                          <button type="button" class="block w-full px-md py-xs text-left text-body-sm text-danger-fg hover:bg-surface-sunken" (click)="remove(m)">{{ 'teams.detail.remove' | transloco }}</button>
                         </div>
                       }
                     </div>
@@ -138,7 +138,7 @@
                     <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName || m.handle }}</a>
                     <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) || '—' }}</span>
                   </span>
-                  @if (m.role === 'Admin') { <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">Admin</span> }
+                  @if (m.role === 'Admin') { <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">{{ 'teams.detail.adminBadge' | transloco }}</span> }
                 </li>
               }
             </ul>
@@ -147,7 +147,7 @@
 
         <!-- Recent activity -->
         <jh-card class="p-md" data-testid="activity">
-          <h2 class="mb-sm text-body-lg font-semibold text-heading">Recent activity</h2>
+          <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.recentActivity' | transloco }}</h2>
           @if (team.recentActivity.length > 0) {
             <ul class="flex flex-col gap-xs">
               @for (a of team.recentActivity; track $index) {
@@ -158,20 +158,20 @@
               }
             </ul>
           } @else {
-            <jh-empty-state inline>No activity yet.</jh-empty-state>
+            <jh-empty-state inline>{{ 'teams.detail.noActivity' | transloco }}</jh-empty-state>
           }
         </jh-card>
 
         <!-- Badges & achievements (feature 012) -->
         <jh-card class="p-md" data-testid="recognitions">
-          <h2 class="mb-sm text-body-lg font-semibold text-heading">Badges &amp; achievements</h2>
+          <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.badges' | transloco }}</h2>
           <jh-recognition-display [badges]="team.badges" [achievements]="team.achievements" />
         </jh-card>
 
         <!-- News (members only) -->
         @if (isMember()) {
           <jh-card class="p-md" data-testid="news">
-            <h2 class="mb-sm text-body-lg font-semibold text-heading">News</h2>
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.news' | transloco }}</h2>
 
             <!-- Admin composer (feature 010): posting notifies the whole roster. -->
             @if (isAdmin()) {
@@ -180,7 +180,7 @@
                   #newsBody
                   rows="2"
                   maxlength="1000"
-                  placeholder="Share an update with your team…"
+                  [placeholder]="'teams.detail.newsPlaceholder' | transloco"
                   class="w-full resize-y rounded-md border border-border bg-surface-card px-md py-sm text-body-sm text-body placeholder:text-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 ></textarea>
                 <div class="mt-sm flex justify-end">
@@ -191,7 +191,7 @@
                     jhButton size="sm"
                     data-testid="post-news"
                   >
-                    {{ postingNews() ? 'Posting…' : 'Post news' }}
+                    {{ (postingNews() ? 'teams.detail.postingNews' : 'teams.detail.postNews') | transloco }}
                   </button>
                 </div>
               </div>
@@ -207,7 +207,7 @@
                 }
               </ul>
             } @else {
-              <jh-empty-state inline>No news yet.</jh-empty-state>
+              <jh-empty-state inline>{{ 'teams.detail.noNews' | transloco }}</jh-empty-state>
             }
           </jh-card>
         }
@@ -218,18 +218,18 @@
         @if (isMember()) {
           <!-- Trainings (feature 018): the team's recurring training tab. -->
           <jh-card class="p-md" data-testid="trainings">
-            <h2 class="mb-sm text-body-lg font-semibold text-heading">Trainings</h2>
-            <p class="text-body-sm text-muted">Recurring sessions your team can respond to.</p>
-            <a [routerLink]="['/t', slug(), 'trainings']" jhButton variant="secondary" size="sm" class="mt-sm">View trainings</a>
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.trainings' | transloco }}</h2>
+            <p class="text-body-sm text-muted">{{ 'teams.detail.trainingsDesc' | transloco }}</p>
+            <a [routerLink]="['/t', slug(), 'trainings']" jhButton variant="secondary" size="sm" class="mt-sm">{{ 'teams.detail.viewTrainings' | transloco }}</a>
           </jh-card>
         }
 
         @if (isAdmin()) {
           <jh-card class="p-md">
-            <h2 class="mb-sm text-body-lg font-semibold text-heading">Team tools</h2>
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.teamTools' | transloco }}</h2>
             <div class="flex flex-col gap-xs">
-              <a [routerLink]="['/t', slug(), 'invitations']" jhButton variant="secondary" size="sm">Invites</a>
-              <a [routerLink]="['/t', slug(), 'settings']" jhButton variant="secondary" size="sm">Settings</a>
+              <a [routerLink]="['/t', slug(), 'invitations']" jhButton variant="secondary" size="sm">{{ 'teams.detail.invites' | transloco }}</a>
+              <a [routerLink]="['/t', slug(), 'settings']" jhButton variant="secondary" size="sm">{{ 'teams.detail.settings' | transloco }}</a>
             </div>
           </jh-card>
         }

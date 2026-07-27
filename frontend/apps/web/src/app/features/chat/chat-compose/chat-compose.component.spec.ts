@@ -4,6 +4,7 @@ import { of, throwError } from 'rxjs';
 import { ChatService } from '../../../core/services/chat.service';
 import { ChatSearchResult, PersonHit } from '../../../core/models/chat.models';
 import { ChatComposeComponent } from './chat-compose.component';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 function person(userId: string, handle: string, existingConversationId: string | null = null): PersonHit {
   return { userId, displayName: handle.toUpperCase(), handle, avatarUrl: null, existingConversationId };
@@ -26,6 +27,7 @@ let navigate: jest.SpyInstance;
 function create(handle: string, state?: { userId?: string; displayName?: string }) {
   window.history.replaceState(state ?? {}, '');
   TestBed.configureTestingModule({
+    imports: [translocoTestingModule()],
     providers: [{ provide: ChatService, useValue: chat }, provideRouter([])],
   });
   navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
@@ -39,6 +41,7 @@ function create(handle: string, state?: { userId?: string; displayName?: string 
 function createInquiry(kind: 'team' | 'event', targetId: string, state?: { name?: string }) {
   window.history.replaceState(state ?? {}, '');
   TestBed.configureTestingModule({
+    imports: [translocoTestingModule()],
     providers: [{ provide: ChatService, useValue: chat }, provideRouter([])],
   });
   navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);

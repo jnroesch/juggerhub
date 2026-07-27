@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-container-md px-md py-lg" data-testid="profile-owner">
   @if (loading()) {
-    <jh-loading label="Loading your profile…" />
+    <jh-loading [label]="'profile.owner.loading' | transloco" />
   } @else if (profile(); as p) {
     <!-- Owner action bar: Edit / Cancel. No back button (consistent with team/event pages). -->
     <div class="flex justify-end">
@@ -8,12 +8,12 @@
         <button type="button" (click)="startEdit()" data-testid="profile-edit"
           jhButton variant="secondary" size="sm">
           <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
-          Edit
+          {{ 'profile.owner.edit' | transloco }}
         </button>
       } @else {
         <button type="button" (click)="cancelEdit()" data-testid="profile-cancel"
           jhButton variant="secondary" size="sm">
-          Cancel
+          {{ 'common.cancel' | transloco }}
         </button>
       }
     </div>
@@ -28,15 +28,15 @@
 
       <!-- Profile visibility (feature 026) — owner-only instant toggle, no edit round trip. -->
       <section data-testid="profile-visibility">
-        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Profile visibility</p>
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'profile.owner.visibility' | transloco }}</p>
         <label class="mt-sm flex cursor-pointer items-center justify-between gap-md rounded-md border border-border-strong bg-surface-card p-md">
           <span class="text-body-sm">
-            <span class="font-medium text-ink">Make my profile public</span>
+            <span class="font-medium text-ink">{{ 'profile.owner.makePublic' | transloco }}</span>
             <span class="mt-2xs block text-subtle" data-testid="profile-visibility-state">
               @if (p.isPublic) {
-                On — anyone with your link can view your profile, teams, and activity.
+                {{ 'profile.owner.publicOn' | transloco }}
               } @else {
-                Off — only signed-in members can find you. Teams and events always stay inside the app.
+                {{ 'profile.owner.publicOff' | transloco }}
               }
             </span>
           </span>
@@ -46,12 +46,12 @@
             class="h-6 w-6 shrink-0 rounded-sm border-border-strong text-brand focus:ring-2 focus:ring-focus disabled:opacity-50" />
         </label>
         @if (visibilitySaving()) {
-          <p class="mt-xs text-body-sm text-subtle" role="status">Saving…</p>
+          <p class="mt-xs text-body-sm text-subtle" role="status">{{ 'events.edit.saving' | transloco }}</p>
         }
       </section>
 
       @if (saved()) {
-        <p class="mt-lg text-body-sm text-success" role="status" data-testid="profile-saved">Saved.</p>
+        <p class="mt-lg text-body-sm text-success" role="status" data-testid="profile-saved">{{ 'events.edit.saved' | transloco }}</p>
       }
     } @else {
       <!-- Edit mode: inline form for the editable fields. -->
@@ -59,42 +59,42 @@
         <div class="flex items-start gap-md">
           <div class="relative shrink-0">
             @if (avatarUrl(); as url) {
-              <img [src]="url" alt="Your profile picture" class="h-20 w-20 rounded-full border border-border object-cover" />
+              <img [src]="url" [alt]="'profile.owner.yourPicture' | transloco" class="h-20 w-20 rounded-full border border-border object-cover" />
             } @else {
-              <div class="grid h-20 w-20 place-items-center rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle">Photo</div>
+              <div class="grid h-20 w-20 place-items-center rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle">{{ 'profile.view.photo' | transloco }}</div>
             }
-            <label class="absolute -bottom-1 -right-1 grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-brand text-on-accent shadow-coral transition-colors duration-fast hover:bg-brand-hover" aria-label="Change photo">
+            <label class="absolute -bottom-1 -right-1 grid h-8 w-8 cursor-pointer place-items-center rounded-full bg-brand text-on-accent shadow-coral transition-colors duration-fast hover:bg-brand-hover" [attr.aria-label]="'profile.owner.changePhoto' | transloco">
               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
               <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" data-testid="avatar-input" (change)="onAvatarSelected($event)" />
             </label>
           </div>
           <div class="min-w-0 flex-1 space-y-sm">
-            <input type="text" formControlName="displayName" placeholder="Display name" data-testid="profile-displayname"
+            <input type="text" formControlName="displayName" [placeholder]="'profile.owner.displayNamePlaceholder' | transloco" data-testid="profile-displayname"
               class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus" />
             <p class="text-body-sm text-subtle">&#64;{{ p.handle }}</p>
             <div data-testid="profile-hometown">
-              <jh-city-picker [initial]="initialLocation()" placeholder="Your home city" (selectedChange)="onCitySelected($event)" />
+              <jh-city-picker [initial]="initialLocation()" [placeholder]="'profile.owner.cityPlaceholder' | transloco" (selectedChange)="onCitySelected($event)" />
             </div>
           </div>
         </div>
 
-        <textarea rows="2" formControlName="description" maxlength="280" placeholder="Short bio" data-testid="profile-description"
+        <textarea rows="2" formControlName="description" maxlength="280" [placeholder]="'profile.owner.bioPlaceholder' | transloco" data-testid="profile-description"
           class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
 
         <div>
-          <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Plays</p>
-          <p class="mb-sm mt-xs text-body-sm text-subtle">Pick favorites · filled = selected · dotted = available</p>
+          <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'profile.view.plays' | transloco }}</p>
+          <p class="mb-sm mt-xs text-body-sm text-subtle">{{ 'profile.owner.pickFavorites' | transloco }}</p>
           <jh-pompfe-selector [selected]="selectedPompfen()" (selectionChange)="onPompfenChange($event)" />
         </div>
 
         <div>
-          <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Profile visibility</p>
+          <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'profile.owner.visibility' | transloco }}</p>
           <label class="mt-sm flex cursor-pointer items-start gap-sm rounded-md border border-border-strong bg-surface-card p-md">
             <input type="checkbox" formControlName="isPublic" data-testid="profile-ispublic"
               class="mt-0.5 h-5 w-5 shrink-0 rounded-sm border-border-strong text-brand focus:ring-2 focus:ring-focus" />
             <span class="text-body-sm">
-              <span class="font-medium text-ink">Make my profile public</span>
-              <span class="mt-2xs block text-subtle">When on, anyone with your profile link can see your profile, teams, and activity — even without an account. When off, only signed-in members can find you.</span>
+              <span class="font-medium text-ink">{{ 'profile.owner.makePublic' | transloco }}</span>
+              <span class="mt-2xs block text-subtle">{{ 'profile.owner.makePublicHint' | transloco }}</span>
             </span>
           </label>
         </div>
@@ -103,7 +103,7 @@
       <div class="sticky bottom-0 mt-lg flex justify-end gap-sm bg-background/80 py-md backdrop-blur">
         <button type="button" (click)="save()" [disabled]="form.invalid || saving()" data-testid="profile-save"
           jhButton>
-          {{ saving() ? 'Saving…' : 'Save changes' }}
+          {{ (saving() ? 'events.edit.saving' : 'events.contactsManage.saveChanges') | transloco }}
         </button>
       </div>
     }
@@ -112,6 +112,6 @@
       <jh-alert class="mt-lg" data-testid="profile-error">{{ error() }}</jh-alert>
     }
   } @else {
-    <jh-alert>{{ error() ?? 'Could not load your profile.' }}</jh-alert>
+    <jh-alert>{{ error() ?? ('profile.owner.couldNotLoad' | transloco) }}</jh-alert>
   }
 </section>

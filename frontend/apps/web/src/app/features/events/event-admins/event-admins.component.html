@@ -3,13 +3,13 @@
     <jh-loading />
   } @else if (forbidden()) {
     <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
-      <p class="text-heading-sm font-bold text-ink">Not allowed</p>
-      <p class="mt-xs text-body-sm text-subtle">Only an event admin can manage co-admins.</p>
+      <p class="text-heading-sm font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ 'events.admins.notAllowedBody' | transloco }}</p>
     </div>
   } @else if (detail(); as d) {
-    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">‹ Back to event</a>
-    <h1 class="mt-md text-heading-lg font-bold text-ink">Co-admins</h1>
-    <p class="text-body-sm text-subtle">Co-admins can edit, post news, and manage participants.</p>
+    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">{{ 'events.manage.back' | transloco }}</a>
+    <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'events.admins.title' | transloco }}</h1>
+    <p class="text-body-sm text-subtle">{{ 'events.admins.subtitle' | transloco }}</p>
 
     @if (error()) { <jh-alert class="mt-sm">{{ error() }}</jh-alert> }
 
@@ -19,31 +19,31 @@
         <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
           <span class="text-body-sm"><span class="font-semibold text-body">{{ a.displayName }}</span> <span class="text-subtle">@{{ a.handle }}</span></span>
           <button type="button" (click)="removeAdmin(a.userId)" data-testid="admin-remove"
-            class="text-body-sm font-semibold text-danger hover:underline">Remove</button>
+            class="text-body-sm font-semibold text-danger hover:underline">{{ 'teams.detail.remove' | transloco }}</button>
         </li>
       }
     </ul>
 
     <!-- Invite link -->
     <section class="mt-lg rounded-md border border-border bg-surface-card px-md py-md">
-      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Invite link</h2>
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.admins.inviteLink' | transloco }}</h2>
       @if (link(); as l) {
         <div class="mt-xs flex gap-xs">
           <input type="text" [value]="l.url" readonly data-testid="invite-link"
             class="w-full rounded-md border border-border-strong bg-surface-sunken px-md py-sm font-mono text-body-sm text-subtle outline-none" />
-          <button type="button" (click)="copyLink()" class="rounded-md bg-surface-sunken px-md py-sm text-body-sm font-semibold text-body hover:bg-surface-hover">{{ copied() ? 'Copied' : 'Copy' }}</button>
+          <button type="button" (click)="copyLink()" class="rounded-md bg-surface-sunken px-md py-sm text-body-sm font-semibold text-body hover:bg-surface-hover">{{ (copied() ? 'events.admins.copied' : 'events.admins.copy') | transloco }}</button>
         </div>
-        <button type="button" (click)="rotateLink()" class="mt-xs text-body-sm font-semibold text-subtle hover:text-text">Regenerate link</button>
+        <button type="button" (click)="rotateLink()" class="mt-xs text-body-sm font-semibold text-subtle hover:text-text">{{ 'events.admins.regenerate' | transloco }}</button>
       } @else {
         <button type="button" (click)="rotateLink()" data-testid="create-link"
-          jhButton size="sm" class="mt-xs">Create an invite link</button>
+          jhButton size="sm" class="mt-xs">{{ 'teams.invitations.createLink' | transloco }}</button>
       }
     </section>
 
     <!-- Invite by search -->
     <section class="mt-lg">
-      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Invite a player</h2>
-      <input type="text" [formControl]="search" placeholder="Search players by name…" data-testid="admin-search"
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.admins.invitePlayer' | transloco }}</h2>
+      <input type="text" [formControl]="search" [placeholder]="'teams.invitations.searchPlaceholder' | transloco" data-testid="admin-search"
         class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
       @if (results().length > 0) {
         <ul class="mt-xs space-y-xs">
@@ -51,11 +51,11 @@
             <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
               <span class="text-body-sm"><span class="font-semibold text-body">{{ u.displayName }}</span> <span class="text-subtle">@{{ u.handle }}</span></span>
               @switch (u.relation) {
-                @case ('Member') { <span class="text-body-sm text-faint">Admin</span> }
-                @case ('Invited') { <span class="text-body-sm text-faint">Invited</span> }
+                @case ('Member') { <span class="text-body-sm text-faint">{{ 'events.admins.relAdmin' | transloco }}</span> }
+                @case ('Invited') { <span class="text-body-sm text-faint">{{ 'events.admins.relInvited' | transloco }}</span> }
                 @default {
                   <button type="button" (click)="invite(u)" data-testid="admin-invite"
-                    jhButton size="sm">Invite</button>
+                    jhButton size="sm">{{ 'teams.invitations.invite' | transloco }}</button>
                 }
               }
             </li>
@@ -67,12 +67,12 @@
     <!-- Pending invitations -->
     @if (invitations().length > 0) {
       <section class="mt-lg">
-        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Pending invites</h2>
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.admins.pendingInvites' | transloco }}</h2>
         <ul class="mt-xs space-y-xs">
           @for (i of invitations(); track i.id) {
             <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
-              <span class="text-body-sm text-body">{{ i.kind === 'Link' ? 'Shared link' : i.targetDisplayName }}</span>
-              <button type="button" (click)="revoke(i.id)" class="text-body-sm font-semibold text-danger hover:underline">Revoke</button>
+              <span class="text-body-sm text-body">{{ i.kind === 'Link' ? ('events.admins.sharedLink' | transloco) : i.targetDisplayName }}</span>
+              <button type="button" (click)="revoke(i.id)" class="text-body-sm font-semibold text-danger hover:underline">{{ 'teams.invitations.revoke' | transloco }}</button>
             </li>
           }
         </ul>

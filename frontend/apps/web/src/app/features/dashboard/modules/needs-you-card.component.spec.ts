@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { NeedsYouItem, NeedsYouKind } from '../../../core/models/home.models';
 import { NeedsYouCardComponent } from './needs-you-card.component';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 function item(kind: NeedsYouKind, partial: Partial<NeedsYouItem> = {}): NeedsYouItem {
   return {
@@ -34,6 +35,7 @@ describe('NeedsYouCardComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     httpMock = TestBed.inject(HttpTestingController);

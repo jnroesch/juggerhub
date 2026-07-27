@@ -296,7 +296,7 @@ Always choose the smallest responsible process.
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
-`specs/030-structured-locations/plan.md` (Structured locations & "near you" — replace freeform `Hometown`/`City` with a persisted Canonical City resolved from a self-hosted Photon geocoder; adds `Cities` + `CityDistances` (haversine cache, no PostGIS), FK swaps on profile/team/event, a backend-proxied `GET /api/cities/search`, a shared `jh-city-picker`, and opt-in proximity sort + country filter on browse; geocoder is a resilient GET integration (Principle VII); no data migration — reseed test data).
+`specs/031-i18n-localization/plan.md` (Localization — German & Spanish i18n — make the whole UI, admin area included, available in `en`/`de`/`es` with **runtime** switching via `@jsverse/transloco` (+ `transloco-locale` for date/number formatting); a `LanguageService` resolves effective language by precedence [account pref → localStorage → browser → en] and a `languageInterceptor` stamps `Accept-Language` so pre-account emails localize without DTO changes; backend uses `RequestLocalization` + `IStringLocalizer`/`.resx` for email subjects and per-locale `EmailTemplates/{culture}/*.html` bodies; emails/notifications to a specific recipient use that recipient's stored `User.PreferredLanguage`, not the caller's; one nullable `User.PreferredLanguage` column + `PUT /account/language`; English is universal fallback; draft de/es catalogs flagged for native review).
 <!-- SPECKIT END -->
 
 ## GitHub Issues Workflow

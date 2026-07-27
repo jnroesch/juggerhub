@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { problemDetail } from '../../../core/utils/problem';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/ui';
 
 /**
@@ -11,7 +12,7 @@ import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/
  */
 @Component({
   selector: 'jh-forgot-password',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CardComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CardComponent, TranslocoPipe],
   templateUrl: './forgot-password.component.html',
   styleUrl: './forgot-password.component.css',
 })

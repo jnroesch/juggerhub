@@ -1,9 +1,11 @@
 import { Component, OnInit, computed, inject } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { TopNavComponent } from '../top-nav/top-nav.component';
 import { BottomNavComponent } from '../bottom-nav/bottom-nav.component';
 import { AuthService } from '../../core/services/auth.service';
 import { MembershipService } from '../../core/services/membership.service';
+import { LanguageSwitcherComponent } from '../../features/settings/language/language-switcher.component';
 
 /**
  * Application shell (feature 008) — one top bar on desktop, a bottom tab bar on mobile, around
@@ -17,7 +19,7 @@ import { MembershipService } from '../../core/services/membership.service';
  */
 @Component({
   selector: 'jh-shell',
-  imports: [RouterOutlet, RouterLink, TopNavComponent, BottomNavComponent],
+  imports: [RouterOutlet, RouterLink, TopNavComponent, BottomNavComponent, LanguageSwitcherComponent, TranslocoPipe],
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.css',
 })

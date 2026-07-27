@@ -3,6 +3,7 @@ import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../..
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { map } from 'rxjs';
 import { AdminTeamDetail } from '../../../core/models/admin.models';
 import { AdminAward, AdminSubjectAwards } from '../../../core/models/recognition.models';
@@ -20,7 +21,7 @@ type AwardKind = 'badge' | 'achievement';
  */
 @Component({
   selector: 'jh-admin-team-detail',
-  imports: [DatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent],
+  imports: [DatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-team-detail.component.html',
   styleUrl: './admin-team-detail.component.css',
 })
@@ -28,6 +29,7 @@ export class AdminTeamDetailComponent {
   private readonly api = inject(AdminService);
   private readonly recognition = inject(RecognitionAdminService);
   private readonly route = inject(ActivatedRoute);
+  private readonly transloco = inject(TranslocoService);
 
   private readonly slug = toSignal(this.route.paramMap.pipe(map((p) => p.get('slug') ?? '')), {
     initialValue: this.route.snapshot.paramMap.get('slug') ?? '',
@@ -64,7 +66,7 @@ export class AdminTeamDetailComponent {
         if (e?.status === 404) {
           this.notFound.set(true);
         } else {
-          this.error.set(problemDetail(e, 'Could not load that team.'));
+          this.error.set(problemDetail(e, this.transloco.translate('admin.teamDetail.loadError')));
         }
       },
     });
@@ -91,7 +93,14 @@ export class AdminTeamDetailComponent {
   }
 
   protected revoke(award: AdminAward, kind: AwardKind): void {
-    if (!confirm(`Revoke “${award.name}” from ${this.detail()?.name}? It can be re-granted later.`)) {
+    if (
+      !confirm(
+        this.transloco.translate('admin.teamDetail.confirmRevoke', {
+          name: award.name,
+          team: this.detail()?.name,
+        }),
+      )
+    ) {
       return;
     }
     const call =

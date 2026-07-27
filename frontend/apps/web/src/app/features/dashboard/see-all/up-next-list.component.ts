@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { HomeService } from '../../../core/services/home.service';
 import { AgendaItem } from '../../../core/models/home.models';
@@ -11,7 +12,7 @@ import { UpNextCardComponent } from '../modules/up-next-card.component';
  */
 @Component({
   selector: 'jh-up-next-list',
-  imports: [UpNextCardComponent, LoadingComponent, EmptyStateComponent],
+  imports: [UpNextCardComponent, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './up-next-list.component.html',
   styleUrl: './up-next-list.component.css',
 })

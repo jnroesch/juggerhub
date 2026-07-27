@@ -3,7 +3,7 @@
   <button
     type="button"
     class="fixed inset-0 z-40 bg-ink/40"
-    aria-label="Close filters"
+    [attr.aria-label]="'browse.filterPanel.close' | transloco"
     (click)="closePanel.emit()"
     data-testid="filter-backdrop"
   ></button>
@@ -14,19 +14,19 @@
     class="fixed inset-x-0 bottom-0 z-50 flex max-h-[85vh] flex-col gap-md rounded-t-lg border-t border-border bg-surface-card p-md shadow-coral md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-80 md:rounded-none md:border-l md:border-t-0"
     role="dialog"
     aria-modal="true"
-    aria-label="Filters"
+    [attr.aria-label]="'browse.filters' | transloco"
     data-testid="filter-panel"
     (keydown.tab)="onTab($any($event))"
     (keydown.shift.tab)="onTab($any($event))"
   >
     <div class="flex items-center justify-between">
-      <h2 class="text-body-md font-semibold text-ink">Filters</h2>
+      <h2 class="text-body-md font-semibold text-ink">{{ 'browse.filters' | transloco }}</h2>
       <button
         type="button"
         class="text-body-sm text-link underline hover:text-link-hover"
         (click)="resetFilters.emit()"
         data-testid="filter-reset"
-      >Reset</button>
+      >{{ 'browse.filterPanel.reset' | transloco }}</button>
     </div>
 
     <!-- Page-specific filter controls -->
@@ -41,9 +41,9 @@
       data-testid="filter-apply"
     >
       @if (pendingCount() === null) {
-        Show {{ resultNoun() }}
+        {{ 'browse.filterPanel.show' | transloco:{ noun: resultNoun() } }}
       } @else {
-        Show {{ pendingCount() }} {{ resultNoun() }}
+        {{ 'browse.filterPanel.showCount' | transloco:{ count: pendingCount(), noun: resultNoun() } }}
       }
     </button>
   </div>

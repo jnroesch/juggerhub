@@ -1,5 +1,6 @@
 using System.Text;
 using JuggerHub.Common;
+using JuggerHub.Services.Email;
 using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Services;
@@ -9,34 +10,38 @@ public class EmailTemplateService : IEmailTemplateService
     private readonly IWebHostEnvironment _environment;
     private readonly ILogger<EmailTemplateService> _logger;
     private readonly EmailOptions _emailOptions;
+    private readonly IEmailLocalizer _localizer;
 
-    // Cache templates to avoid reading files repeatedly
+    // Cache templates to avoid reading files repeatedly. Keyed by "{culture}/{name}" so each
+    // language's file is cached independently (feature 031).
     private static readonly Dictionary<string, string> _templateCache = new();
     private static readonly object _cacheLock = new();
 
     public EmailTemplateService(
         IWebHostEnvironment environment,
         ILogger<EmailTemplateService> logger,
-        IOptions<EmailOptions> emailOptions)
+        IOptions<EmailOptions> emailOptions,
+        IEmailLocalizer localizer)
     {
         _environment = environment;
         _logger = logger;
         _emailOptions = emailOptions.Value;
+        _localizer = localizer;
     }
 
     /// <inheritdoc />
-    public async Task<string> GeneratePasswordResetEmailAsync(string resetUrl, string resetToken, string userEmail)
+    public async Task<string> GeneratePasswordResetEmailAsync(string resetUrl, string resetToken, string userEmail, string culture = SupportedLanguages.Default)
     {
         var variables = new Dictionary<string, object>
         {
-            ["EMAIL_TITLE"] = "Reset your JuggerHub password",
+            ["EMAIL_TITLE"] = _localizer.Get("title.passwordReset", culture),
             ["RESET_URL"] = resetUrl,
             ["RESET_TOKEN"] = resetToken,
             ["USER_EMAIL"] = userEmail,
-            ["FOOTER_REASON"] = "You're getting this because a password reset was requested for your account."
+            ["FOOTER_REASON"] = _localizer.Get("footer.passwordReset", culture)
         };
 
-        return await GenerateEmailAsync("password-reset", variables);
+        return await GenerateEmailAsync("password-reset", variables, culture);
     }
 
     /// <inheritdoc />
@@ -75,51 +80,51 @@ public class EmailTemplateService : IEmailTemplateService
     }
 
     /// <inheritdoc />
-    public async Task<string> GenerateEmailVerificationEmailAsync(string recipientName, string recipientEmail, string verificationUrl)
+    public async Task<string> GenerateEmailVerificationEmailAsync(string recipientName, string recipientEmail, string verificationUrl, string culture = SupportedLanguages.Default)
     {
         var variables = new Dictionary<string, object>
         {
-            {"EMAIL_TITLE", "Confirm your email to finish signing up"},
+            {"EMAIL_TITLE", _localizer.Get("title.verification", culture)},
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
             {"VERIFICATION_URL", verificationUrl},
-            {"FOOTER_REASON", "You're getting this because someone signed up for JuggerHub with this email address."}
+            {"FOOTER_REASON", _localizer.Get("footer.verification", culture)}
         };
 
-        return await GenerateEmailAsync("email-verification", variables);
+        return await GenerateEmailAsync("email-verification", variables, culture);
     }
 
     /// <inheritdoc />
-    public async Task<string> GenerateWelcomeEmailAsync(string recipientName, string recipientEmail, string companyName, DateTime createdDate)
+    public async Task<string> GenerateWelcomeEmailAsync(string recipientName, string recipientEmail, string companyName, DateTime createdDate, string culture = SupportedLanguages.Default)
     {
         var variables = new Dictionary<string, object>
         {
-            {"EMAIL_TITLE", "Welcome to JuggerHub"},
+            {"EMAIL_TITLE", _localizer.Get("title.welcome", culture)},
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
             {"COMPANY_NAME", companyName},
             {"CREATED_DATE", createdDate.ToString("MMMM dd, yyyy")},
-            {"FOOTER_REASON", "You're getting this because you created a JuggerHub account."}
+            {"FOOTER_REASON", _localizer.Get("footer.welcome", culture)}
         };
 
-        return await GenerateEmailAsync("welcome-email", variables);
+        return await GenerateEmailAsync("welcome-email", variables, culture);
     }
 
     /// <inheritdoc />
-    public async Task<string> GeneratePasswordChangeNotificationEmailAsync(string recipientName, string recipientEmail, DateTime changeDate, string ipAddress)
+    public async Task<string> GeneratePasswordChangeNotificationEmailAsync(string recipientName, string recipientEmail, DateTime changeDate, string ipAddress, string culture = SupportedLanguages.Default)
     {
         var variables = new Dictionary<string, object>
         {
-            ["EMAIL_TITLE"] = "Your JuggerHub password was changed",
+            ["EMAIL_TITLE"] = _localizer.Get("title.passwordChanged", culture),
             ["RECIPIENT_NAME"] = recipientName,
             ["RECIPIENT_EMAIL"] = recipientEmail,
             ["CHANGE_DATE"] = changeDate.ToString("MMMM dd, yyyy"),
             ["CHANGE_TIME"] = changeDate.ToString("HH:mm:ss UTC"),
             ["IP_ADDRESS"] = ipAddress,
-            ["FOOTER_REASON"] = "You're getting this because your JuggerHub password was changed."
+            ["FOOTER_REASON"] = _localizer.Get("footer.passwordChanged", culture)
         };
 
-        return await GenerateEmailAsync("password-change-notification", variables);
+        return await GenerateEmailAsync("password-change-notification", variables, culture);
     }
 
     /// <inheritdoc />
@@ -219,17 +224,17 @@ public class EmailTemplateService : IEmailTemplateService
         variables.TryAdd("SETTINGS_URL", $"{baseUrl}/settings/notifications");
     }
 
-    private async Task<string> GenerateEmailAsync(string templateName, Dictionary<string, object> variables)
+    private async Task<string> GenerateEmailAsync(string templateName, Dictionary<string, object> variables, string culture = SupportedLanguages.Default)
     {
         try
         {
             AddSharedUrls(variables);
 
-            // Load templates
-            var baseTemplate = await LoadTemplateAsync("base-styles.html");
-            var headerTemplate = await LoadTemplateAsync("header.html");
-            var contentTemplate = await LoadTemplateAsync($"{templateName}.html");
-            var footerTemplate = await LoadTemplateAsync("footer.html");
+            // Load templates for the requested culture; each falls back to English (FR-008).
+            var baseTemplate = await LoadTemplateAsync("base-styles.html", culture);
+            var headerTemplate = await LoadTemplateAsync("header.html", culture);
+            var contentTemplate = await LoadTemplateAsync($"{templateName}.html", culture);
+            var footerTemplate = await LoadTemplateAsync("footer.html", culture);
 
             // Combine templates
             var fullContent = headerTemplate + contentTemplate + footerTemplate;
@@ -247,28 +252,37 @@ public class EmailTemplateService : IEmailTemplateService
         }
     }
 
-    private async Task<string> LoadTemplateAsync(string templateName)
+    /// <summary>
+    /// Load a template for a culture (feature 031). Looks in <c>EmailTemplates/{culture}/</c> and
+    /// falls back to <c>EmailTemplates/en/</c> when that language has no localized file yet, so a
+    /// partially-translated set still renders (in English) rather than failing (FR-008).
+    /// </summary>
+    private async Task<string> LoadTemplateAsync(string templateName, string culture = SupportedLanguages.Default)
     {
+        var resolvedCulture = SupportedLanguages.ResolveOrDefault(culture);
+        var cacheKey = $"{resolvedCulture}/{templateName}";
+
         lock (_cacheLock)
         {
-            if (_templateCache.TryGetValue(templateName, out var cachedTemplate))
+            if (_templateCache.TryGetValue(cacheKey, out var cachedTemplate))
             {
                 return cachedTemplate;
             }
         }
 
-        var templatePath = Path.Combine(_environment.ContentRootPath, "EmailTemplates", templateName);
-        
-        if (!File.Exists(templatePath))
-        {
-            throw new FileNotFoundException($"Email template not found: {templatePath}");
-        }
+        var root = Path.Combine(_environment.ContentRootPath, "EmailTemplates");
+        var localizedPath = Path.Combine(root, resolvedCulture, templateName);
+        var fallbackPath = Path.Combine(root, SupportedLanguages.Default, templateName);
+
+        var templatePath = File.Exists(localizedPath) ? localizedPath
+            : File.Exists(fallbackPath) ? fallbackPath
+            : throw new FileNotFoundException($"Email template not found: {localizedPath}");
 
         var template = await File.ReadAllTextAsync(templatePath);
 
         lock (_cacheLock)
         {
-            _templateCache[templateName] = template;
+            _templateCache[cacheKey] = template;
         }
 
         return template;

@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ChatService } from '../../../core/services/chat.service';
 import { PersonHit } from '../../../core/models/chat.models';
 
@@ -15,7 +16,7 @@ import { PersonHit } from '../../../core/models/chat.models';
  */
 @Component({
   selector: 'jh-chat-new',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, TranslocoPipe],
   templateUrl: './chat-new.component.html',
   styleUrl: './chat-new.component.css',
 })

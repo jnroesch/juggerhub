@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -13,7 +14,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-event-manage',
-  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './event-manage.component.html',
   styleUrl: './event-manage.component.css',
 })

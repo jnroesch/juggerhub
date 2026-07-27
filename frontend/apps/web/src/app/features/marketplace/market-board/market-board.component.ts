@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MarketService } from '../../../core/services/market.service';
 import {
   MarketListingCard,
@@ -26,12 +27,13 @@ type BoardAction =
  */
 @Component({
   selector: 'jh-market-board',
-  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './market-board.component.html',
   styleUrl: './market-board.component.css',
 })
 export class MarketBoardComponent {
   private readonly market = inject(MarketService);
+  private readonly transloco = inject(TranslocoService);
 
   readonly eventId = input.required<string>();
   /** Whether the signed-in viewer can act (drives the post/apply/invite affordances). */
@@ -174,7 +176,7 @@ export class MarketBoardComponent {
     this.acting.set(true);
     this.actionError.set(null);
     const done = () => { this.acting.set(false); this.action.set(null); this.reloadBoardOnly(); };
-    const fail = (err: unknown) => { this.acting.set(false); this.actionError.set(problemDetail(err)); };
+    const fail = (err: unknown) => { this.acting.set(false); this.actionError.set(problemDetail(err, this.transloco.translate('marketplace.genericError'))); };
 
     if (a.kind === 'apply') {
       this.market.apply(a.party.partyId, { positions: this.selected() }).subscribe({ next: done, error: fail });
@@ -194,7 +196,7 @@ export class MarketBoardComponent {
     this.acting.set(true);
     this.market.takeDownListing(this.eventId()).subscribe({
       next: () => { this.acting.set(false); this.reloadBoardOnly(); },
-      error: (err) => { this.acting.set(false); this.actionError.set(problemDetail(err)); },
+      error: (err) => { this.acting.set(false); this.actionError.set(problemDetail(err, this.transloco.translate('marketplace.genericError'))); },
     });
   }
 

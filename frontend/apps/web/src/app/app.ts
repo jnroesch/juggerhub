@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { LanguageService } from './core/i18n/language.service';
 
 @Component({
   imports: [RouterOutlet],
@@ -7,4 +8,9 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {}
+export class App {
+  // Instantiated at bootstrap so its effect resolves + applies the interface language
+  // (browser/local detection now, account preference once the session loads) from the very first
+  // render (feature 031).
+  private readonly language = inject(LanguageService);
+}

@@ -1,4 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -13,7 +14,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-event-edit',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './event-edit.component.html',
   styleUrl: './event-edit.component.css',
 })

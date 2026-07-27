@@ -1,4 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective } from '../../shared/ui';
 import { NotificationService } from '../../core/services/notification.service';
 import { TeamService } from '../../core/services/team.service';
@@ -15,7 +16,7 @@ import { NotificationRowComponent } from './notification-row/notification-row.co
  */
 @Component({
   selector: 'jh-alerts',
-  imports: [NotificationRowComponent, ButtonDirective],
+  imports: [NotificationRowComponent, ButtonDirective, TranslocoPipe],
   templateUrl: './alerts.component.html',
   styleUrl: './alerts.component.css',
 })

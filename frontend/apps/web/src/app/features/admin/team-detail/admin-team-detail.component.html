@@ -1,39 +1,39 @@
-<nav class="text-body-sm text-muted" aria-label="Breadcrumb">
-  <a routerLink="/admin/teams" class="font-medium text-link hover:text-link-hover">Teams</a>
+<nav class="text-body-sm text-muted" [attr.aria-label]="'admin.common.breadcrumb' | transloco">
+  <a routerLink="/admin/teams" class="font-medium text-link hover:text-link-hover">{{ 'admin.teamDetail.breadcrumb' | transloco }}</a>
   <span aria-hidden="true"> › </span>
   <span>{{ detail()?.name ?? '…' }}</span>
 </nav>
 
 @if (loading()) {
-  <jh-loading label="Loading team…" />
+  <jh-loading [label]="'admin.teamDetail.loading' | transloco" />
 } @else if (notFound()) {
   <jh-empty-state class="mt-lg" data-testid="admin-team-not-found">
-    <p class="text-body-md text-body">No team matches that slug.</p>
-    <a routerLink="/admin/teams" class="mt-xs inline-block text-body-sm font-medium text-link hover:text-link-hover">Back to teams</a>
+    <p class="text-body-md text-body">{{ 'admin.teamDetail.notFound' | transloco }}</p>
+    <a routerLink="/admin/teams" class="mt-xs inline-block text-body-sm font-medium text-link hover:text-link-hover">{{ 'admin.teamDetail.notFoundBack' | transloco }}</a>
   </jh-empty-state>
 } @else if (error(); as message) {
   <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
     {{ message }}
-    <button type="button" class="ml-sm font-semibold underline" (click)="load()">Try again</button>
+    <button type="button" class="ml-sm font-semibold underline" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
   </div>
 } @else if (detail(); as team) {
   <!-- Header -->
   <div class="mt-sm flex flex-wrap items-center gap-sm">
     <h1 class="text-h3 font-bold text-heading">{{ team.name }}</h1>
     <span class="rounded-pill bg-surface-secondary-soft px-sm py-0.5 text-caption font-medium text-body">
-      {{ team.type === 'CityTeam' ? 'City team' : 'Mixteam' }}
+      {{ (team.type === 'CityTeam' ? 'admin.teams.cityTeam' : 'admin.teams.mixteam') | transloco }}
     </span>
   </div>
   <p class="mt-1 text-body-sm text-muted">
-    @if (team.location) { {{ team.location }} · }<span class="font-mono">{{ team.memberCount }}</span> members · created {{ team.createdAt | date: 'MMM y' }}
-    · <a [href]="'/t/' + team.slug" target="_blank" rel="noopener" class="font-medium text-link hover:text-link-hover">View public page</a>
+    @if (team.location) { {{ team.location }} · }<span class="font-mono">{{ team.memberCount }}</span> {{ 'admin.teamDetail.members' | transloco }} · {{ 'admin.teamDetail.created' | transloco }} {{ team.createdAt | date: 'MMM y' }}
+    · <a [href]="'/t/' + team.slug" target="_blank" rel="noopener" class="font-medium text-link hover:text-link-hover">{{ 'admin.teamDetail.viewPublicPage' | transloco }}</a>
   </p>
 
   <!-- Badges & achievements with Assign -->
   <section class="mt-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="team-awards">
     <div class="flex items-center justify-between gap-sm">
       <h2 class="text-h4 font-bold text-heading">
-        Badges &amp; achievements
+        {{ 'admin.teamDetail.badgesTitle' | transloco }}
         <span class="ml-1 font-mono text-body-sm font-normal text-muted">{{ awardCount() }}</span>
       </h2>
       <button
@@ -43,27 +43,27 @@
         jhButton
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-        Assign
+        {{ 'admin.teamDetail.assign' | transloco }}
       </button>
     </div>
 
     @if (awards(); as held) {
       <div class="mt-md grid gap-lg sm:grid-cols-2">
         <section>
-          <p class="text-eyebrow uppercase text-muted">Badges</p>
+          <p class="text-eyebrow uppercase text-muted">{{ 'admin.teamDetail.badges' | transloco }}</p>
           @if (held.badges.length === 0) {
-            <p class="mt-xs text-body-sm text-faint">None yet.</p>
+            <p class="mt-xs text-body-sm text-faint">{{ 'admin.teamDetail.noneYet' | transloco }}</p>
           } @else {
             <ul class="mt-sm flex flex-col gap-xs">
               @for (a of held.badges; track a.awardId) {
                 <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
                   <span class="min-w-0">
                     <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
-                    <span class="block text-caption text-muted">by {{ a.grantedByName }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
+                    <span class="block text-caption text-muted">{{ 'admin.teamDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
                     @if (a.note) { <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span> }
                   </span>
                   <button type="button" (click)="revoke(a, 'badge')"
-                    jhButton variant="danger" size="sm" class="shrink-0">Revoke</button>
+                    jhButton variant="danger" size="sm" class="shrink-0">{{ 'admin.common.revoke' | transloco }}</button>
                 </li>
               }
             </ul>
@@ -71,16 +71,16 @@
         </section>
 
         <section>
-          <p class="text-eyebrow uppercase text-muted">Achievements</p>
+          <p class="text-eyebrow uppercase text-muted">{{ 'admin.teamDetail.achievements' | transloco }}</p>
           @if (held.achievements.length === 0) {
-            <p class="mt-xs text-body-sm text-faint">None yet.</p>
+            <p class="mt-xs text-body-sm text-faint">{{ 'admin.teamDetail.noneYet' | transloco }}</p>
           } @else {
             <ul class="mt-sm flex flex-col gap-xs">
               @for (a of held.achievements; track a.awardId) {
                 <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
                   <span class="min-w-0">
                     <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
-                    <span class="block text-caption text-muted">by {{ a.grantedByName }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
+                    <span class="block text-caption text-muted">{{ 'admin.teamDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
                     @if (a.contextLabel || a.contextYear) {
                       <span class="block truncate text-caption text-subtle">{{ a.contextLabel }} {{ a.contextYear }}</span>
                     } @else if (a.note) {
@@ -88,7 +88,7 @@
                     }
                   </span>
                   <button type="button" (click)="revoke(a, 'achievement')"
-                    jhButton variant="danger" size="sm" class="shrink-0">Revoke</button>
+                    jhButton variant="danger" size="sm" class="shrink-0">{{ 'admin.common.revoke' | transloco }}</button>
                 </li>
               }
             </ul>
@@ -96,7 +96,7 @@
         </section>
       </div>
     } @else {
-      <p class="mt-sm text-body-sm text-muted">Couldn't load this team's awards right now.</p>
+      <p class="mt-sm text-body-sm text-muted">{{ 'admin.teamDetail.awardsLoadError' | transloco }}</p>
     }
   </section>
 

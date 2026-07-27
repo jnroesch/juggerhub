@@ -1,11 +1,14 @@
 <main class="grid min-h-screen place-items-center p-md">
+  <div class="fixed right-4 top-4 z-10">
+    <jh-language-switcher />
+  </div>
   <jh-card accent class="w-full max-w-md p-xl" data-testid="sign-in">
-    <h1 class="text-heading-md text-ink">Sign in</h1>
-    <p class="mt-xs text-body-sm text-subtle">Welcome back to JuggerHub.</p>
+    <h1 class="text-heading-md text-ink">{{ 'auth.signIn.title' | transloco }}</h1>
+    <p class="mt-xs text-body-sm text-subtle">{{ 'auth.signIn.subtitle' | transloco }}</p>
 
     <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="submit()">
       <div>
-        <label for="email" class="block text-body-sm font-medium text-text">Email</label>
+        <label for="email" class="block text-body-sm font-medium text-text">{{ 'auth.email' | transloco }}</label>
         <input
           id="email"
           type="email"
@@ -18,9 +21,9 @@
 
       <div>
         <div class="flex items-center justify-between">
-          <label for="password" class="block text-body-sm font-medium text-text">Password</label>
+          <label for="password" class="block text-body-sm font-medium text-text">{{ 'auth.password' | transloco }}</label>
           <a routerLink="/forgot-password" class="text-body-sm font-medium text-link hover:text-link-hover">
-            Forgot password?
+            {{ 'auth.forgotPassword' | transloco }}
           </a>
         </div>
         <input
@@ -35,7 +38,7 @@
 
       <label class="flex items-center gap-xs text-body-sm text-text">
         <input type="checkbox" formControlName="rememberMe" data-testid="sign-in-remember" class="h-4 w-4 rounded border-border-strong" />
-        Remember me
+        {{ 'auth.signIn.rememberMe' | transloco }}
       </label>
 
       @if (error()) {
@@ -44,12 +47,12 @@
 
       @if (needsVerification()) {
         <div class="rounded-md border border-warning-border bg-warning-bg p-md text-body-sm text-warning-fg" data-testid="sign-in-verify">
-          <p>Please verify your email address before signing in.</p>
+          <p>{{ 'auth.signIn.verifyNotice' | transloco }}</p>
           @if (resent()) {
-            <p class="mt-xs text-success">If that account needs it, a new verification email is on its way.</p>
+            <p class="mt-xs text-success">{{ 'auth.signIn.resent' | transloco }}</p>
           } @else {
             <button type="button" class="mt-xs font-medium text-link hover:text-link-hover" (click)="resendVerification()">
-              Resend verification email
+              {{ 'auth.signIn.resend' | transloco }}
             </button>
           }
         </div>
@@ -61,13 +64,13 @@
         [disabled]="form.invalid || submitting()"
         jhButton class="w-full"
       >
-        {{ submitting() ? 'Signing in…' : 'Sign in' }}
+        {{ (submitting() ? 'auth.signIn.submitting' : 'auth.signIn.submit') | transloco }}
       </button>
     </form>
 
     <p class="mt-lg text-center text-body-sm text-subtle">
-      New to JuggerHub?
-      <a routerLink="/register" [queryParams]="returnUrl() ? { returnUrl: returnUrl() } : {}" class="font-medium text-link hover:text-link-hover">Create an account</a>
+      {{ 'auth.signIn.newHere' | transloco }}
+      <a routerLink="/register" [queryParams]="returnUrl() ? { returnUrl: returnUrl() } : {}" class="font-medium text-link hover:text-link-hover">{{ 'auth.signIn.createAccount' | transloco }}</a>
     </p>
   </jh-card>
 </main>

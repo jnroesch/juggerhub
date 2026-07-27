@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
@@ -14,12 +15,13 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-training-session',
-  imports: [RouterLink, ButtonDirective, LoadingComponent, EmptyStateComponent, CardComponent],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './training-session.component.html',
   styleUrl: './training-session.component.css',
 })
 export class TrainingSessionComponent {
   private readonly trainings = inject(TrainingsService);
+  private readonly transloco = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -72,7 +74,7 @@ export class TrainingSessionComponent {
       },
       error: (err) => {
         this.busy.set(false);
-        this.error.set(problemDetail(err));
+        this.error.set(problemDetail(err, this.transloco.translate('trainings.genericError')));
       },
     });
   }
@@ -92,7 +94,7 @@ export class TrainingSessionComponent {
       },
       error: (err) => {
         this.busy.set(false);
-        this.error.set(problemDetail(err));
+        this.error.set(problemDetail(err, this.transloco.translate('trainings.genericError')));
       },
     });
   }
@@ -110,7 +112,7 @@ export class TrainingSessionComponent {
       },
       error: (err) => {
         this.busy.set(false);
-        this.error.set(problemDetail(err));
+        this.error.set(problemDetail(err, this.transloco.translate('trainings.genericError')));
       },
     });
   }
@@ -128,7 +130,7 @@ export class TrainingSessionComponent {
       },
       error: (err) => {
         this.busy.set(false);
-        this.error.set(problemDetail(err));
+        this.error.set(problemDetail(err, this.transloco.translate('trainings.genericError')));
       },
     });
   }

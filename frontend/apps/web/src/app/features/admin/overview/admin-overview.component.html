@@ -1,21 +1,21 @@
-<h1 class="text-h3 font-bold text-heading">Overview</h1>
+<h1 class="text-h3 font-bold text-heading">{{ 'admin.overview.title' | transloco }}</h1>
 
 @if (loading()) {
-  <jh-loading label="Loading the overview…" data-testid="admin-overview-loading" />
+  <jh-loading [label]="'admin.overview.loading' | transloco" data-testid="admin-overview-loading" />
 } @else if (error(); as message) {
   <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
     {{ message }}
-    <button type="button" class="ml-sm font-semibold underline" (click)="load()">Try again</button>
+    <button type="button" class="ml-sm font-semibold underline" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
   </div>
 } @else if (overview(); as data) {
   <!-- Find a player → user management (wireframe: search leads) -->
   <form class="mt-md" (submit)="$event.preventDefault(); goSearch()">
     <label class="relative block max-w-md">
-      <span class="sr-only">Find a player</span>
+      <span class="sr-only">{{ 'admin.overview.findPlayer' | transloco }}</span>
       <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
       <input
         type="search"
-        placeholder="Find a player…"
+        [placeholder]="'admin.overview.findPlayerPlaceholder' | transloco"
         class="h-11 w-full rounded-md border border-border-strong bg-surface-card pl-9 pr-md text-body-md text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         [ngModel]="search()"
         (ngModelChange)="search.set($event)"
@@ -29,28 +29,28 @@
   <dl class="mt-md grid grid-cols-2 gap-sm lg:grid-cols-4" data-testid="admin-overview-stats">
     <jh-card class="p-md">
       <dd class="font-mono text-h3 font-bold text-heading">{{ data.players }}</dd>
-      <dt class="mt-1 text-body-sm text-muted">Players</dt>
+      <dt class="mt-1 text-body-sm text-muted">{{ 'admin.overview.statPlayers' | transloco }}</dt>
     </jh-card>
     <jh-card class="p-md">
       <dd class="font-mono text-h3 font-bold text-heading">{{ data.teams }}</dd>
-      <dt class="mt-1 text-body-sm text-muted">Teams</dt>
+      <dt class="mt-1 text-body-sm text-muted">{{ 'admin.overview.statTeams' | transloco }}</dt>
     </jh-card>
     <jh-card class="p-md">
       <dd class="font-mono text-h3 font-bold text-heading">{{ data.eventsLast30Days }}</dd>
-      <dt class="mt-1 text-body-sm text-muted">Events · 30 days</dt>
+      <dt class="mt-1 text-body-sm text-muted">{{ 'admin.overview.statEvents' | transloco }}</dt>
     </jh-card>
     <jh-card class="p-md">
       <dd class="font-mono text-h3 font-bold" [class]="data.suspended > 0 ? 'text-danger-fg' : 'text-heading'">{{ data.suspended }}</dd>
-      <dt class="mt-1 text-body-sm text-muted">Suspended</dt>
+      <dt class="mt-1 text-body-sm text-muted">{{ 'admin.overview.statSuspended' | transloco }}</dt>
     </jh-card>
   </dl>
 
   <div class="mt-lg grid gap-md lg:grid-cols-2">
     <!-- New players this week → their admin detail -->
     <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
-      <h2 class="text-h4 font-bold text-heading">New players this week</h2>
+      <h2 class="text-h4 font-bold text-heading">{{ 'admin.overview.newPlayersTitle' | transloco }}</h2>
       @if (data.newPlayers.length === 0) {
-        <p class="mt-sm text-body-sm text-muted">No new players this week — quiet on the pitch.</p>
+        <p class="mt-sm text-body-sm text-muted">{{ 'admin.overview.newPlayersEmpty' | transloco }}</p>
       } @else {
         <ul class="mt-sm divide-y divide-border-muted" data-testid="admin-overview-new-players">
           @for (player of data.newPlayers; track player.handle) {
@@ -70,15 +70,15 @@
             </li>
           }
         </ul>
-        <a routerLink="/admin/users" class="mt-xs inline-block text-body-sm font-medium text-link hover:text-link-hover">See all players ›</a>
+        <a routerLink="/admin/users" class="mt-xs inline-block text-body-sm font-medium text-link hover:text-link-hover">{{ 'admin.overview.seeAllPlayers' | transloco }}</a>
       }
     </section>
 
     <!-- Recently granted badges & achievements -->
     <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
-      <h2 class="text-h4 font-bold text-heading">Recently granted</h2>
+      <h2 class="text-h4 font-bold text-heading">{{ 'admin.overview.recentlyGrantedTitle' | transloco }}</h2>
       @if (data.recentGrants.length === 0) {
-        <p class="mt-sm text-body-sm text-muted">Nothing granted yet — badges land here as they're given.</p>
+        <p class="mt-sm text-body-sm text-muted">{{ 'admin.overview.recentlyGrantedEmpty' | transloco }}</p>
       } @else {
         <ul class="mt-sm divide-y divide-border-muted" data-testid="admin-overview-recent-grants">
           @for (grant of data.recentGrants; track grant.grantedAt + grant.name) {
@@ -86,11 +86,11 @@
               @if (grant.subjectHandle) {
                 <a [routerLink]="['/admin/users', grant.subjectHandle]" class="block transition-colors duration-fast hover:bg-surface-sunken">
                   <span class="block text-body-sm font-medium text-body">{{ grant.name }} → &#64;{{ grant.subjectHandle }}</span>
-                  <span class="block text-caption text-subtle">{{ grant.kind }} · by {{ grant.grantedByDisplayName }} · {{ grant.grantedAt | date: 'MMM d' }}</span>
+                  <span class="block text-caption text-subtle">{{ grant.kind }} · {{ 'admin.overview.by' | transloco }} {{ grant.grantedByDisplayName }} · {{ grant.grantedAt | date: 'MMM d' }}</span>
                 </a>
               } @else {
                 <span class="block text-body-sm font-medium text-body">{{ grant.name }} → {{ grant.subjectDisplayName }}</span>
-                <span class="block text-caption text-subtle">{{ grant.kind }} · by {{ grant.grantedByDisplayName }} · {{ grant.grantedAt | date: 'MMM d' }}</span>
+                <span class="block text-caption text-subtle">{{ grant.kind }} · {{ 'admin.overview.by' | transloco }} {{ grant.grantedByDisplayName }} · {{ grant.grantedAt | date: 'MMM d' }}</span>
               }
             </li>
           }

@@ -6,7 +6,7 @@
       @if (p.avatarUrl; as url) {
         <img [src]="url" alt="{{ p.displayName }}" class="h-20 w-20 rounded-full border border-border object-cover" />
       } @else {
-        <div class="grid h-20 w-20 place-items-center rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle">Photo</div>
+        <div class="grid h-20 w-20 place-items-center rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle">{{ 'profile.view.photo' | transloco }}</div>
       }
       <div>
         <h1 class="text-heading-lg font-bold text-ink">{{ p.displayName }}</h1>
@@ -27,9 +27,9 @@
 
     <!-- Teams -->
     <section>
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Teams · clubs</p>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'profile.view.teamsClubs' | transloco }}</p>
       @if (p.teams.length === 0) {
-        <p class="mt-xs text-body-sm text-faint">No teams yet.</p>
+        <p class="mt-xs text-body-sm text-faint">{{ 'profile.view.noTeams' | transloco }}</p>
       } @else {
         <ul class="mt-sm flex flex-wrap gap-xs">
           @for (t of p.teams; track t.slug) {
@@ -38,7 +38,7 @@
                 class="inline-flex items-center gap-xs rounded-pill border border-border-strong bg-surface px-md py-xs text-body-sm transition-colors duration-fast hover:bg-surface-sunken">
                 <span class="font-medium text-ink">{{ t.name }}</span>
                 @if (t.location) { <span class="text-subtle">· {{ t.location.label }}</span> }
-                @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand">admin</span> }
+                @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand">{{ 'profile.view.admin' | transloco }}</span> }
               </a>
             </li>
           }
@@ -50,9 +50,9 @@
 
     <!-- Plays -->
     <section>
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Plays</p>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'profile.view.plays' | transloco }}</p>
       @if (p.pompfen.length === 0) {
-        <p class="mt-xs text-body-sm text-faint">No favorites selected yet.</p>
+        <p class="mt-xs text-body-sm text-faint">{{ 'profile.view.noFavorites' | transloco }}</p>
       } @else {
         <div class="mt-sm flex flex-wrap gap-xs">
           @for (pompfe of p.pompfen; track pompfe) {
@@ -72,9 +72,9 @@
 
   <!-- Right column: recent activity -->
   <section class="md:border-l md:border-border md:pl-xl">
-    <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Recent activity</p>
+    <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.detail.recentActivity' | transloco }}</p>
     @if (p.recentActivity.length === 0) {
-      <p class="mt-sm text-body-sm text-faint" data-testid="profile-activity-empty">No recent events.</p>
+      <p class="mt-sm text-body-sm text-faint" data-testid="profile-activity-empty">{{ 'profile.view.noRecentEvents' | transloco }}</p>
     } @else {
       <ul class="mt-sm divide-y divide-border">
         @for (item of p.recentActivity; track $index) {
@@ -82,7 +82,7 @@
             <span class="w-14 shrink-0 pt-0.5 font-mono text-body-sm text-faint">{{ item.date }}</span>
             <div>
               <p class="text-body-md text-ink">{{ item.eventName }}</p>
-              <p class="text-body-sm text-subtle">{{ item.location }} · with {{ item.teamLabel }}</p>
+              <p class="text-body-sm text-subtle">{{ item.location }} · {{ 'profile.view.withTeam' | transloco:{ team: item.teamLabel } }}</p>
             </div>
           </li>
         }

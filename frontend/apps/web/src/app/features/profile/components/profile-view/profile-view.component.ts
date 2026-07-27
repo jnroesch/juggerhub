@@ -1,5 +1,6 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { pompfeLabel } from '../../../../shared/pompfen.catalog';
 import { ProfileView } from '../../../../core/models/profile.models';
 import { RecognitionDisplayComponent } from '../recognition-display/recognition-display.component';
@@ -12,7 +13,7 @@ import { RecognitionDisplayComponent } from '../recognition-display/recognition-
  */
 @Component({
   selector: 'jh-profile-view',
-  imports: [RouterLink, RecognitionDisplayComponent],
+  imports: [RouterLink, RecognitionDisplayComponent, TranslocoPipe],
   templateUrl: './profile-view.component.html',
   styleUrl: './profile-view.component.css',
 })

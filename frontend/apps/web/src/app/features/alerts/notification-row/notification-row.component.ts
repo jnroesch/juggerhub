@@ -1,6 +1,8 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ButtonDirective, CardComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   AppNotification,
   isMarketInvite,
@@ -22,11 +24,17 @@ import { relativeTime } from '../../../core/utils/format';
  */
 @Component({
   selector: 'jh-notification-row',
-  imports: [RouterLink, ButtonDirective, CardComponent],
+  imports: [RouterLink, ButtonDirective, CardComponent, TranslocoPipe],
   templateUrl: './notification-row.component.html',
   styleUrl: './notification-row.component.css',
 })
 export class NotificationRowComponent {
+  private readonly transloco = inject(TranslocoService);
+  /** Re-evaluates the title/supporting computeds when the active language changes. */
+  private readonly lang = toSignal(this.transloco.langChanges$, {
+    initialValue: this.transloco.getActiveLang(),
+  });
+
   readonly notification = input.required<AppNotification>();
 
   /** Inline invite actions (only fired for an actionable TeamInvite). */
@@ -64,57 +72,72 @@ export class NotificationRowComponent {
   });
 
   protected readonly title = computed(() => {
+    this.lang(); // re-translate on language switch
+    const t = (key: string, params?: Record<string, unknown>) => this.transloco.translate(key, params);
     const n = this.notification();
     if (isTeamInvite(n)) {
-      return `Invitation to join ${n.payload.teamName}`;
+      return t('alerts.row.teamInviteTitle', { team: n.payload.teamName });
     }
     if (isTeamRoleChanged(n)) {
-      const role = n.payload.newRole === 'Admin' ? 'an admin' : 'a member';
-      return `You're now ${role} of ${n.payload.teamName}`;
+      return n.payload.newRole === 'Admin'
+        ? t('alerts.row.roleChangedTitleAdmin', { team: n.payload.teamName })
+        : t('alerts.row.roleChangedTitleMember', { team: n.payload.teamName });
     }
     if (isTeamNews(n)) {
-      return `News from ${n.payload.teamName}`;
+      return t('alerts.row.teamNewsTitle', { team: n.payload.teamName });
     }
     if (isPartyRequest(n)) {
-      return `${n.payload.teamName} is forming a party`;
+      return t('alerts.row.partyRequestTitle', { team: n.payload.teamName });
     }
     if (isPartyNews(n)) {
-      return `Party update — ${n.payload.teamName} @ ${n.payload.eventName}`;
+      return t('alerts.row.partyNewsTitle', { team: n.payload.teamName, event: n.payload.eventName });
     }
     if (isMarketInvite(n)) {
-      return `${n.payload.teamName} invited you to their crew`;
+      return t('alerts.row.marketInviteTitle', { team: n.payload.teamName });
     }
     if (isTrainingScheduled(n)) {
-      return `New training: ${n.payload.trainingName}`;
+      return t('alerts.row.trainingScheduledTitle', { name: n.payload.trainingName });
     }
     if (isTrainingUpdated(n)) {
-      return n.payload.kind === 'cancelled' ? `Training cancelled: ${n.payload.trainingName}` : `Training changed: ${n.payload.trainingName}`;
+      return n.payload.kind === 'cancelled'
+        ? t('alerts.row.trainingCancelledTitle', { name: n.payload.trainingName })
+        : t('alerts.row.trainingChangedTitle', { name: n.payload.trainingName });
     }
-    return 'Notification';
+    return t('alerts.row.fallbackTitle');
   });
 
   protected readonly supporting = computed(() => {
+    this.lang(); // re-translate on language switch
+    const t = (key: string, params?: Record<string, unknown>) => this.transloco.translate(key, params);
     const n = this.notification();
     if (isTeamInvite(n)) {
-      return n.resolved ? 'Invitation handled' : `${n.payload.inviterName} invited you to the team`;
+      return n.resolved
+        ? t('alerts.row.teamInviteHandled')
+        : t('alerts.row.teamInviteSupporting', { inviter: n.payload.inviterName });
     }
     if (isTeamRoleChanged(n)) {
-      return n.actorDisplayName ? `${n.actorDisplayName} updated your role` : 'Your role was updated';
+      return n.actorDisplayName
+        ? t('alerts.row.roleChangedSupportingActor', { actor: n.actorDisplayName })
+        : t('alerts.row.roleChangedSupporting');
     }
     if (isTeamNews(n)) {
       return n.payload.excerpt;
     }
     if (isPartyRequest(n)) {
-      return `Tap to answer — are you in for ${n.payload.eventName}?`;
+      return t('alerts.row.partyRequestSupporting', { event: n.payload.eventName });
     }
     if (isPartyNews(n)) {
-      return `New update for the ${n.payload.eventName} party`;
+      return t('alerts.row.partyNewsSupporting', { event: n.payload.eventName });
     }
     if (isTrainingScheduled(n)) {
-      return n.payload.isRecurring ? 'A new series was added — say if you can make it' : 'A one-off was added — say if you can make it';
+      return n.payload.isRecurring
+        ? t('alerts.row.trainingScheduledSeries')
+        : t('alerts.row.trainingScheduledOneoff');
     }
     if (isTrainingUpdated(n)) {
-      return n.payload.kind === 'cancelled' ? 'A session you responded to was cancelled' : 'An upcoming session changed';
+      return n.payload.kind === 'cancelled'
+        ? t('alerts.row.trainingUpdatedCancelled')
+        : t('alerts.row.trainingUpdatedChanged');
     }
     return '';
   });

@@ -1,6 +1,7 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
 import { ButtonDirective } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EventService } from '../../../core/services/event.service';
 import { Signup, SignupStatus } from '../../../core/models/event.models';
 import { AgendaItem } from '../../../core/models/home.models';
@@ -16,13 +17,14 @@ import { dayOfMonth, shortWeekday, timeHm } from '../../../core/utils/format';
  */
 @Component({
   selector: 'jh-up-next-card',
-  imports: [RouterLink, ButtonDirective],
+  imports: [RouterLink, ButtonDirective, TranslocoPipe],
   templateUrl: './up-next-card.component.html',
   styleUrl: './up-next-card.component.css',
 })
 export class UpNextCardComponent {
   private readonly events = inject(EventService);
   private readonly trainings = inject(TrainingsService);
+  private readonly transloco = inject(TranslocoService);
 
   readonly item = input.required<AgendaItem>();
 
@@ -42,11 +44,11 @@ export class UpNextCardComponent {
   protected readonly statusLabel = computed(() => {
     switch (this.viewer().status) {
       case 'Waitlisted':
-        return 'Waitlisted';
+        return 'home.statusWaitlisted';
       case 'AwaitingApproval':
-        return 'Pending';
+        return 'home.statusPending';
       default:
-        return 'Going';
+        return 'home.statusGoing';
     }
   });
 
@@ -78,7 +80,7 @@ export class UpNextCardComponent {
         this.busy.set(false);
       },
       error: () => {
-        this.error.set("Couldn't RSVP — try again.");
+        this.error.set(this.transloco.translate('home.rsvpError'));
         this.busy.set(false);
       },
     });
@@ -106,7 +108,7 @@ export class UpNextCardComponent {
         this.busy.set(false);
       },
       error: () => {
-        this.error.set("Couldn't update — try again.");
+        this.error.set(this.transloco.translate('home.updateError'));
         this.busy.set(false);
       },
     });
@@ -124,7 +126,7 @@ export class UpNextCardComponent {
         this.busy.set(false);
       },
       error: () => {
-        this.error.set("Couldn't update — try again.");
+        this.error.set(this.transloco.translate('home.updateError'));
         this.busy.set(false);
       },
     });

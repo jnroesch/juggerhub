@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AccountStatus, AdminUserListItem } from '../../../core/models/admin.models';
 import { AdminService } from '../../../core/services/admin.service';
 import { problemDetail } from '../../../core/utils/problem';
@@ -20,7 +21,7 @@ const PAGE_SIZE = 20;
  */
 @Component({
   selector: 'jh-admin-users',
-  imports: [RouterLink, FormsModule, LoadingComponent, EmptyStateComponent],
+  imports: [RouterLink, FormsModule, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.css',
 })
@@ -28,6 +29,7 @@ export class AdminUsersComponent {
   private readonly api = inject(AdminService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly q = signal(this.route.snapshot.queryParamMap.get('q') ?? '');
   protected readonly status = signal<StatusFilter>(null);
@@ -81,7 +83,7 @@ export class AdminUsersComponent {
         this.loading.set(false);
       },
       error: (e) => {
-        this.error.set(problemDetail(e, 'Could not load players.'));
+        this.error.set(problemDetail(e, this.transloco.translate('admin.users.loadError')));
         this.loading.set(false);
       },
     });

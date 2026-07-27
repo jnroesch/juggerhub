@@ -1,9 +1,12 @@
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { PasswordPolicy } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth.service';
 
 interface Rule {
-  label: string;
+  /** Translation key + params, resolved in the template so labels follow the active language. */
+  key: string;
+  params?: Record<string, unknown>;
   met: boolean;
 }
 
@@ -14,7 +17,7 @@ interface Rule {
  */
 @Component({
   selector: 'jh-password-rules',
-  imports: [],
+  imports: [TranslocoPipe],
   templateUrl: './password-rules.component.html',
   styleUrl: './password-rules.component.css',
 })
@@ -34,23 +37,24 @@ export class PasswordRulesComponent {
     }
 
     const rules: Rule[] = [
-      { label: `At least ${policy.minLength} characters`, met: value.length >= policy.minLength },
+      { key: 'auth.passwordRules.minLength', params: { count: policy.minLength }, met: value.length >= policy.minLength },
     ];
     if (policy.requireUppercase) {
-      rules.push({ label: 'An uppercase letter', met: /[A-Z]/.test(value) });
+      rules.push({ key: 'auth.passwordRules.uppercase', met: /[A-Z]/.test(value) });
     }
     if (policy.requireLowercase) {
-      rules.push({ label: 'A lowercase letter', met: /[a-z]/.test(value) });
+      rules.push({ key: 'auth.passwordRules.lowercase', met: /[a-z]/.test(value) });
     }
     if (policy.requireDigit) {
-      rules.push({ label: 'A number', met: /[0-9]/.test(value) });
+      rules.push({ key: 'auth.passwordRules.digit', met: /[0-9]/.test(value) });
     }
     if (policy.requireNonAlphanumeric) {
-      rules.push({ label: 'A symbol', met: /[^a-zA-Z0-9]/.test(value) });
+      rules.push({ key: 'auth.passwordRules.symbol', met: /[^a-zA-Z0-9]/.test(value) });
     }
     if (policy.requiredUniqueChars > 1) {
       rules.push({
-        label: `At least ${policy.requiredUniqueChars} unique characters`,
+        key: 'auth.passwordRules.uniqueChars',
+        params: { count: policy.requiredUniqueChars },
         met: new Set(value).size >= policy.requiredUniqueChars,
       });
     }

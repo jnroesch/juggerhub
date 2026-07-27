@@ -1,6 +1,6 @@
 <jh-browse-shell
-  title="Teams"
-  searchPlaceholder="Search teams…"
+  [title]="'browse.tabTeams' | transloco"
+  [searchPlaceholder]="'browse.teams.searchPlaceholder' | transloco"
   [sortOptions]="sortOptions()"
   [activeSort]="sort()"
   (sortChange)="onSortChange($event)"
@@ -34,11 +34,11 @@
             @if (team.location) {
               {{ team.location.label }} ·
             }
-            <span class="font-mono">{{ team.playerCount }}</span> players
+            <span class="font-mono">{{ team.playerCount }}</span> {{ 'browse.teams.players' | transloco }}
           </span>
         </span>
         @if (team.beginnersWelcome) {
-          <span class="rounded-pill border border-brand px-sm py-0 text-caption text-brand">Beginners</span>
+          <span class="rounded-pill border border-brand px-sm py-0 text-caption text-brand">{{ 'browse.teams.beginnersPill' | transloco }}</span>
         }
       </a>
     }
@@ -48,29 +48,29 @@
 <jh-filter-panel
   [open]="filtersOpen()"
   [pendingCount]="pendingCount()"
-  resultNoun="teams"
+  [resultNoun]="'browse.teams.noun' | transloco"
   (apply)="applyFilters()"
   (resetFilters)="resetFilters()"
   (closePanel)="filtersOpen.set(false)"
 >
   <div class="flex flex-col gap-sm">
-    <span class="text-eyebrow uppercase text-faint">Show</span>
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.showEyebrow' | transloco }}</span>
     <jh-filter-toggle
-      label="Active teams only"
-      hint="Hide dormant teams"
+      [label]="'browse.teams.activeLabel' | transloco"
+      [hint]="'browse.teams.activeHint' | transloco"
       [checked]="pendingActiveOnly()"
       (toggled)="setPendingActive($event)"
     />
     <jh-filter-toggle
-      label="Beginners welcome"
-      hint="Open to new players"
+      [label]="'browse.teams.beginnersLabel' | transloco"
+      [hint]="'browse.teams.beginnersHint' | transloco"
       [checked]="pendingBeginners()"
       (toggled)="setPendingBeginners($event)"
     />
   </div>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">Country</span>
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.country' | transloco }}</span>
     <jh-country-picker [value]="pendingCity()" (valueChange)="onPendingCity($event)" />
   </div>
 </jh-filter-panel>

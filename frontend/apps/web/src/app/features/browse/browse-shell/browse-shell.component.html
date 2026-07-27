@@ -2,7 +2,7 @@
   <!-- Header -->
   <div class="flex items-baseline justify-between">
     <h1 class="text-heading-lg font-semibold text-ink">{{ title() }}</h1>
-    <span class="text-eyebrow uppercase text-faint">Browse</span>
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.eyebrow' | transloco }}</span>
   </div>
 
   <!-- Switch between the three discovery areas (feature 008 folds these under Browse). -->
@@ -12,19 +12,19 @@
       routerLinkActive="bg-surface-card text-ink shadow-sm"
       class="flex-1 rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
       data-testid="browse-tab-teams"
-    >Teams</a>
+    >{{ 'browse.tabTeams' | transloco }}</a>
     <a
       routerLink="/browse/events"
       routerLinkActive="bg-surface-card text-ink shadow-sm"
       class="flex-1 rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
       data-testid="browse-tab-events"
-    >Events</a>
+    >{{ 'browse.tabEvents' | transloco }}</a>
     <a
       routerLink="/browse/players"
       routerLinkActive="bg-surface-card text-ink shadow-sm"
       class="flex-1 rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
       data-testid="browse-tab-players"
-    >Players</a>
+    >{{ 'browse.tabPlayers' | transloco }}</a>
   </nav>
 
   @if (note()) {
@@ -60,7 +60,7 @@
         <line x1="4" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
         <line x1="6" y1="11.5" x2="10" y2="11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
       </svg>
-      Filters
+      {{ 'browse.filters' | transloco }}
       @if (activeFilterCount() > 0) {
         <span
           class="inline-flex min-w-5 items-center justify-center rounded-full bg-brand px-1 text-caption font-mono text-on-accent"
@@ -88,7 +88,7 @@
             <line x1="2" y1="8" x2="10" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
             <line x1="2" y1="12" x2="6" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
           </svg>
-          Sort · <b class="font-medium text-ink">{{ activeSortLabel() }}</b>
+          {{ 'browse.sort' | transloco }} · <b class="font-medium text-ink">{{ activeSortLabel() }}</b>
         </button>
 
         @if (sortMenuOpen()) {
@@ -103,7 +103,7 @@
           <div
             class="absolute left-0 z-50 mt-xs flex min-w-48 flex-col gap-0 rounded-md border border-border bg-surface-card p-1 shadow-coral"
             role="menu"
-            aria-label="Sort by"
+            [attr.aria-label]="'browse.sortBy' | transloco"
             data-testid="browse-sort-menu"
           >
             @for (option of sortOptions(); track option.value) {
@@ -143,14 +143,14 @@
         >
           {{ chip.label }}
           <span aria-hidden="true">✕</span>
-          <span class="sr-only">Remove filter {{ chip.label }}</span>
+          <span class="sr-only">{{ 'browse.removeFilter' | transloco:{ label: chip.label } }}</span>
         </button>
       }
       <button
         type="button"
         class="text-body-sm text-link underline hover:text-link-hover"
         (click)="clearAll.emit()"
-      >Clear all</button>
+      >{{ 'browse.clearAll' | transloco }}</button>
     </div>
   }
 
@@ -166,25 +166,25 @@
     }
     @case ('error') {
       <div class="flex flex-col items-center gap-sm py-lg text-center" data-testid="browse-error">
-        <jh-alert>Something went wrong loading results.</jh-alert>
+        <jh-alert>{{ 'browse.loadError' | transloco }}</jh-alert>
         <button
           type="button"
           jhButton variant="secondary" size="sm"
           (click)="retry.emit()"
-        >Try again</button>
+        >{{ 'common.tryAgain' | transloco }}</button>
       </div>
     }
     @case ('empty') {
-      <p class="py-lg text-center text-body-md text-subtle" data-testid="browse-empty">Nothing here yet — check back soon.</p>
+      <p class="py-lg text-center text-body-md text-subtle" data-testid="browse-empty">{{ 'browse.empty' | transloco }}</p>
     }
     @case ('no-results') {
       <div class="flex flex-col items-center gap-sm py-lg text-center" data-testid="browse-no-results">
-        <p class="text-body-md text-subtle">No matches for your search and filters.</p>
+        <p class="text-body-md text-subtle">{{ 'browse.noResults' | transloco }}</p>
         <button
           type="button"
           class="text-body-sm text-link underline hover:text-link-hover"
           (click)="clearAll.emit()"
-        >Clear search &amp; filters</button>
+        >{{ 'browse.clearSearchFilters' | transloco }}</button>
       </div>
     }
     @default {
@@ -198,7 +198,7 @@
           [disabled]="loadingMore()"
           (click)="loadMore.emit()"
           data-testid="browse-load-more"
-        >{{ loadingMore() ? 'Loading…' : 'Load more' }}</button>
+        >{{ (loadingMore() ? 'common.loading' : 'browse.loadMore') | transloco }}</button>
       }
     }
   }

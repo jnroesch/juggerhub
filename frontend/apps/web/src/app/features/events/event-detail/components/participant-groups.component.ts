@@ -1,9 +1,11 @@
 import { Component, computed, input, output } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Signup } from '../../../../core/models/event.models';
 
 /** The public "who's taking part" section — joined / awaiting / waiting-list groups as avatar rows. */
 @Component({
   selector: 'jh-event-participant-groups',
+  imports: [TranslocoPipe],
   templateUrl: './participant-groups.component.html',
   styleUrl: './participant-groups.component.css',
 })
@@ -13,10 +15,12 @@ export class EventParticipantGroupsComponent {
   readonly waitlist = input.required<Signup[]>();
   readonly openProfile = output<string>();
 
+  // Stable keys drive both the translated title and the empty-state message (never compare on
+  // display text — that breaks under translation).
   protected readonly groups = computed(() => [
-    { title: 'In', items: this.joined(), pending: false },
-    { title: 'Awaiting approval', items: this.awaiting(), pending: true },
-    { title: 'Waiting list', items: this.waitlist(), pending: false },
+    { key: 'in', titleKey: 'events.participants.groupIn', items: this.joined(), pending: false },
+    { key: 'awaiting', titleKey: 'events.participants.groupAwaiting', items: this.awaiting(), pending: true },
+    { key: 'waitlist', titleKey: 'events.participants.groupWaitlist', items: this.waitlist(), pending: false },
   ]);
 
   protected label(s: Signup): string {

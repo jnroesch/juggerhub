@@ -2,17 +2,17 @@
   @if (!cancelled()) {
     @if (canJoin() && detail().isFull) {
       <div class="rounded-md border border-dashed border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg">
-        This event is full. You can still join the waiting list — an admin promotes people manually as spots open. You're not charged unless a spot opens.
+        {{ 'events.join.fullWaitlistNote' | transloco }}
       </div>
     }
 
     @if (!detail().viewer.isAuthenticated) {
-      <a routerLink="/sign-in" jhButton full>Sign in to join</a>
+      <a routerLink="/sign-in" jhButton full>{{ 'teams.detail.signInToJoin' | transloco }}</a>
     } @else if (detail().viewer.mySignupStatus) {
       <div class="rounded-md bg-surface-sunken px-md py-sm text-center" data-testid="my-status">
         <p class="text-body-sm font-semibold text-body">{{ statusLabel() }}</p>
         <button type="button" (click)="withdraw.emit()" [disabled]="acting()" data-testid="withdraw"
-          class="mt-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Withdraw</button>
+          class="mt-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">{{ 'events.join.withdraw' | transloco }}</button>
       </div>
     } @else if (canJoin()) {
       @if (detail().participantMode === 'Teams') {
@@ -20,19 +20,19 @@
              and a form button for a team they administer that has no party yet. -->
         @for (card of partyCards(); track card.teamId) {
           <div class="rounded-lg border border-border-accent bg-surface-accent-soft p-md" data-testid="party-card">
-            <p class="text-eyebrow uppercase text-brand">Your party</p>
+            <p class="text-eyebrow uppercase text-brand">{{ 'events.join.yourParty' | transloco }}</p>
             <div class="mt-xs flex items-center justify-between gap-sm">
               <span class="text-body-md font-semibold text-heading">{{ card.teamName }}</span>
-              <span class="font-mono text-body-sm text-muted">{{ card.inCount }} / {{ card.rosterCap }} in</span>
+              <span class="font-mono text-body-sm text-muted">{{ 'events.join.inCount' | transloco:{ in: card.inCount, cap: card.rosterCap } }}</span>
             </div>
             @if (card.partyStatus === 'Applied') {
-              <p class="mt-xs text-body-sm font-medium text-success">Entered — your team is on the event</p>
+              <p class="mt-xs text-body-sm font-medium text-success">{{ 'events.join.entered' | transloco }}</p>
             } @else {
-              <p class="mt-xs text-body-sm text-muted">Being filled — not on the event yet</p>
+              <p class="mt-xs text-body-sm text-muted">{{ 'events.join.beingFilled' | transloco }}</p>
             }
             <a [routerLink]="['/parties', card.partyId]" data-testid="view-party"
               jhButton full class="mt-sm">
-              View party
+              {{ 'events.join.viewParty' | transloco }}
             </a>
           </div>
         }
@@ -40,18 +40,18 @@
           <a [routerLink]="['/events', detail().id, 'enter-party']" data-testid="enter-party"
             class="block w-full rounded-md px-lg py-md text-center text-body-md font-semibold transition-all duration-fast"
             [class]="partyCards().length ? 'border border-border-strong text-body hover:bg-surface-sunken' : 'bg-brand text-on-accent hover:bg-brand-hover hover:shadow-coral'">
-            + Enter a party
+            {{ 'events.join.enterParty' | transloco }}
           </a>
           @if (!partyCards().length) {
-            <p class="mt-xs text-center text-body-sm text-subtle">Teams enter as a party — pull a crew together for this event.</p>
+            <p class="mt-xs text-center text-body-sm text-subtle">{{ 'events.join.enterPartyHint' | transloco }}</p>
           }
         } @else if (!partyCards().length) {
-          <p class="rounded-md bg-surface-sunken px-md py-sm text-center text-body-sm text-subtle">Your team's admins can enter a party for this event.</p>
+          <p class="rounded-md bg-surface-sunken px-md py-sm text-center text-body-sm text-subtle">{{ 'events.join.adminsCanEnter' | transloco }}</p>
         }
       } @else {
         <button type="button" (click)="emitJoin()" [disabled]="acting()" data-testid="join"
           jhButton full>
-          {{ detail().isFull ? 'Join the waiting list' : 'Join' }}
+          {{ (detail().isFull ? 'events.join.joinWaitlist' : 'events.join.join') | transloco }}
         </button>
       }
     }

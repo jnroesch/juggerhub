@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -33,6 +34,7 @@ import { MarketBoardComponent } from '../../marketplace/market-board/market-boar
     EventJoinActionsComponent,
     MarketBoardComponent,
     LoadingComponent,
+    TranslocoPipe,
   ],
   templateUrl: './event-detail.component.html',
   styleUrl: './event-detail.component.css',

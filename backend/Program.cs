@@ -201,6 +201,11 @@ builder.Services.Configure<ResetPasswordTokenProviderOptions>(_ => { }); // ctor
 builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>(); // existing service, now registered
 builder.Services.AddScoped<AuthEmailService>();
 
+// Localization (feature 031): resolves which language backend-generated content renders in and
+// localizes the short code-authored email strings (subjects/titles/footers).
+builder.Services.AddSingleton<JuggerHub.Services.Email.IEmailLocalizer, JuggerHub.Services.Email.EmailLocalizer>();
+builder.Services.AddScoped<JuggerHub.Services.Localization.IRecipientCultureResolver, JuggerHub.Services.Localization.RecipientCultureResolver>();
+
 // Pick the sender by configured provider: Mailpit (SMTP) locally, Resend on Dev/Prod.
 var emailProvider = builder.Configuration.GetValue<string>("Email:Provider") ?? "Smtp";
 if (string.Equals(emailProvider, "Resend", StringComparison.OrdinalIgnoreCase))
@@ -220,6 +225,11 @@ else
 // --- Auth flows + session (refresh token) ----------------------------------
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
+
+// --- Account settings (feature 031: language preference) -------------------
+builder.Services.AddScoped<JuggerHub.Services.Account.ILanguagePreferenceService, JuggerHub.Services.Account.LanguagePreferenceService>();
+// Lets RecipientCultureResolver read the caller's Accept-Language for pre-account email language.
+builder.Services.AddHttpContextAccessor();
 
 // --- Player profile + activity (feature 003) -------------------------------
 builder.Services.Configure<ProfileOptions>(builder.Configuration.GetSection(ProfileOptions.SectionName));
@@ -414,6 +424,13 @@ if (app.Environment.IsDevelopment())
 // --- Middleware pipeline ----------------------------------------------------
 // Exception handler is registered first so it wraps the whole pipeline.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
+
+// NOTE (feature 031): the app runs in globalization-invariant mode
+// (<InvariantGlobalization>true</InvariantGlobalization>), where constructing real CultureInfo
+// objects throws. So request-language handling deliberately does NOT use RequestLocalization /
+// CultureInfo — the caller's effective language rides in on the Accept-Language header (stamped by
+// the frontend) and is read as a plain string by RecipientCultureResolver, mapped onto the
+// supported allowlist. Keeping invariant mode avoids pulling ICU into the Alpine image.
 
 // Interactive API reference (Scalar over the built-in OpenAPI document),
 // Development-only so the schema/UI is never exposed in Prod.

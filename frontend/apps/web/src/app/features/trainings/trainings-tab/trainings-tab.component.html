@@ -1,22 +1,22 @@
 <div class="mx-auto max-w-2xl px-md py-lg">
-  <a [routerLink]="['/t', slug()]" class="text-body-sm font-medium text-link hover:text-link-hover">‹ Team</a>
+  <a [routerLink]="['/t', slug()]" class="text-body-sm font-medium text-link hover:text-link-hover">{{ 'trainings.backTeam' | transloco }}</a>
   <div class="mt-sm flex items-center justify-between">
-    <h1 class="text-heading-lg font-semibold text-heading">Trainings</h1>
+    <h1 class="text-heading-lg font-semibold text-heading">{{ 'trainings.tab.title' | transloco }}</h1>
     @if (isAdmin()) {
-      <a [routerLink]="['/t', slug(), 'trainings', 'new']" jhButton size="sm"><jh-icon name="plus" />New training</a>
+      <a [routerLink]="['/t', slug(), 'trainings', 'new']" jhButton size="sm"><jh-icon name="plus" />{{ 'trainings.tab.newTraining' | transloco }}</a>
     }
   </div>
 
   @if (loading()) {
     <jh-loading />
   } @else if (notFound()) {
-    <jh-empty-state class="mt-lg" heading="Not available">Trainings are visible to team members.</jh-empty-state>
+    <jh-empty-state class="mt-lg" [heading]="'trainings.tab.notAvailable' | transloco">{{ 'trainings.tab.notAvailableBody' | transloco }}</jh-empty-state>
   } @else if (!hasSessions()) {
-    <jh-empty-state class="mt-lg" [heading]="isAdmin() ? 'No trainings yet' : 'Nothing scheduled'">
+    <jh-empty-state class="mt-lg" [heading]="(isAdmin() ? 'trainings.tab.noTrainingsAdmin' : 'trainings.tab.nothingScheduled') | transloco">
       @if (isAdmin()) {
-        Set a weekly session or a one-off — players get a spot to say if they're in.
+        {{ 'trainings.tab.emptyAdmin' | transloco }}
       } @else {
-        When your team schedules a training, it'll show up here.
+        {{ 'trainings.tab.emptyMember' | transloco }}
       }
     </jh-empty-state>
   } @else {
@@ -32,19 +32,19 @@
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-xs">
                 <span class="truncate font-medium text-heading">{{ s.name }}</span>
-                <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ s.isOneOff ? 'One-off' : 'Series' }}</span>
+                <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ (s.isOneOff ? 'trainings.oneOff' : 'trainings.series') | transloco }}</span>
                 @if (s.status === 'Cancelled') {
-                  <span class="rounded-pill border border-danger-border bg-danger-bg px-xs py-3xs text-caption text-danger-fg">Cancelled</span>
+                  <span class="rounded-pill border border-danger-border bg-danger-bg px-xs py-3xs text-caption text-danger-fg">{{ 'trainings.tab.cancelled' | transloco }}</span>
                 }
               </div>
               <p class="text-body-sm text-muted">
                 <span class="font-mono">{{ time(s.startTime) }}–{{ time(s.endTime) }}</span>@if (s.location) { · {{ s.location }} }
               </p>
-              <p class="text-caption text-muted"><span class="font-mono">{{ s.goingCount }}</span> going</p>
+              <p class="text-caption text-muted"><span class="font-mono">{{ s.goingCount }}</span> {{ 'trainings.tab.going' | transloco }}</p>
             </div>
             <span class="shrink-0 text-body-sm font-medium"
               [class.text-success-fg]="s.myAnswer === 'Going'"
-              [class.text-link]="s.myAnswer !== 'Going'">{{ answerLabel(s.myAnswer) }}</span>
+              [class.text-link]="s.myAnswer !== 'Going'">{{ answerLabel(s.myAnswer) | transloco }}</span>
           </a>
         </li>
       }
@@ -52,13 +52,13 @@
 
     @if (isAdmin() && series().length > 0) {
       <section class="mt-lg">
-        <h2 class="text-body-sm font-semibold text-heading">Active series</h2>
+        <h2 class="text-body-sm font-semibold text-heading">{{ 'trainings.tab.activeSeries' | transloco }}</h2>
         <ul class="mt-sm flex flex-col gap-xs">
           @for (ser of series(); track ser.trainingId) {
             <li class="rounded-md border border-border-muted bg-surface-card px-md py-sm">
               <p class="font-medium text-heading">{{ ser.name }}</p>
               <p class="text-caption text-muted">
-                {{ ser.weekday }} <span class="font-mono">{{ time(ser.startTime) }}</span> · <span class="font-mono">{{ ser.upcomingCount }}</span> upcoming@if (ser.endDate) { · until {{ shortDate(ser.endDate) }} }
+                {{ 'trainings.weekday.' + ser.weekday | transloco }} <span class="font-mono">{{ time(ser.startTime) }}</span> · <span class="font-mono">{{ ser.upcomingCount }}</span> {{ 'trainings.tab.upcoming' | transloco }}@if (ser.endDate) { · {{ 'trainings.tab.until' | transloco }} {{ shortDate(ser.endDate) }} }
               </p>
             </li>
           }

@@ -1,7 +1,7 @@
 <jh-browse-shell
-  title="Players"
-  searchPlaceholder="Search players…"
-  note="Every player on JuggerHub is listed here."
+  [title]="'browse.tabPlayers' | transloco"
+  [searchPlaceholder]="'browse.players.searchPlaceholder' | transloco"
+  [note]="'browse.players.note' | transloco"
   [countLabel]="countLabel()"
   [chips]="chips()"
   [activeFilterCount]="activeFilterCount()"
@@ -50,13 +50,13 @@
 <jh-filter-panel
   [open]="filtersOpen()"
   [pendingCount]="pendingCount()"
-  resultNoun="players"
+  [resultNoun]="'browse.players.noun' | transloco"
   (apply)="applyFilters()"
   (resetFilters)="resetFilters()"
   (closePanel)="filtersOpen.set(false)"
 >
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">Position</span>
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.players.position' | transloco }}</span>
     <div class="flex flex-wrap gap-xs">
       @for (entry of catalog; track entry.value) {
         <button
@@ -75,7 +75,7 @@
   </div>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">Country</span>
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.country' | transloco }}</span>
     <jh-country-picker [value]="pendingCity()" (valueChange)="onPendingCity($event)" />
   </div>
 </jh-filter-panel>

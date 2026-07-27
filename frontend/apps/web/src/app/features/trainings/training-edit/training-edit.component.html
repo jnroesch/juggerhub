@@ -1,29 +1,29 @@
 <div class="mx-auto max-w-lg px-md py-lg">
-  <button type="button" (click)="cancel()" class="text-body-sm font-medium text-link hover:text-link-hover">‹ Cancel</button>
+  <button type="button" (click)="cancel()" class="text-body-sm font-medium text-link hover:text-link-hover">{{ 'trainings.edit.cancel' | transloco }}</button>
 
   @if (loading()) {
     <jh-loading />
   } @else if (notFound()) {
-    <jh-empty-state class="mt-lg" heading="Session not found"></jh-empty-state>
+    <jh-empty-state class="mt-lg" [heading]="'trainings.edit.notFound' | transloco"></jh-empty-state>
   } @else if (session(); as s) {
     @if (!canEdit()) {
       <div class="mt-lg rounded-md border border-warning-border bg-warning-bg p-sm text-body-sm text-warning-fg">
-        This session is in the past or no longer scheduled — it can't be edited.
+        {{ 'trainings.edit.cantEdit' | transloco }}
       </div>
     }
 
     <!-- Fork: this one, or all of them? -->
     @if (mode() === 'fork') {
-      <h1 class="mt-md text-heading-lg font-semibold text-heading">This one, or all of them?</h1>
-      <p class="mt-2xs text-body-sm text-muted">This is a repeating session — what should change? Past sessions stay as they were.</p>
+      <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.edit.forkTitle' | transloco }}</h1>
+      <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.edit.forkDesc' | transloco }}</p>
       <div class="mt-md flex flex-col gap-sm">
         <button type="button" (click)="choose('single')" class="rounded-lg border border-border-muted p-md text-left hover:border-border-strong">
-          <p class="font-medium text-heading">This session only</p>
-          <p class="text-body-sm text-muted">{{ shortDate(s.sessionDate) }} — leaves the rest alone. It detaches from the series.</p>
+          <p class="font-medium text-heading">{{ 'trainings.edit.thisSessionOnly' | transloco }}</p>
+          <p class="text-body-sm text-muted">{{ 'trainings.edit.thisSessionOnlyDesc' | transloco:{ date: shortDate(s.sessionDate) } }}</p>
         </button>
         <button type="button" (click)="choose('series')" class="rounded-lg border border-border-muted p-md text-left hover:border-border-strong">
-          <p class="font-medium text-heading">The whole series</p>
-          <p class="text-body-sm text-muted">Every upcoming session. Sessions you edited on their own keep their changes.</p>
+          <p class="font-medium text-heading">{{ 'trainings.edit.wholeSeries' | transloco }}</p>
+          <p class="text-body-sm text-muted">{{ 'trainings.edit.wholeSeriesDesc' | transloco }}</p>
         </button>
       </div>
     }
@@ -31,92 +31,92 @@
     <!-- Edit this session (detaches) -->
     @if (mode() === 'single') {
       <div class="mt-md flex items-center gap-xs">
-        <h1 class="text-heading-lg font-semibold text-heading">Edit this session</h1>
+        <h1 class="text-heading-lg font-semibold text-heading">{{ 'trainings.edit.editThisSession' | transloco }}</h1>
         @if (!s.isOneOff) {
-          <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">Detaches from series</span>
+          <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ 'trainings.edit.detachesFromSeries' | transloco }}</span>
         }
       </div>
-      <label class="mt-md block text-body-sm font-medium text-heading">Date
+      <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.date' | transloco }}
         <input [(ngModel)]="sessionDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
       <div class="mt-md grid grid-cols-2 gap-sm">
-        <label class="block text-body-sm font-medium text-heading">Start
+        <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.start' | transloco }}
           <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
         </label>
-        <label class="block text-body-sm font-medium text-heading">End
+        <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.end' | transloco }}
           <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
         </label>
       </div>
       <div class="mt-md grid grid-cols-2 gap-xs">
-        <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">In person</button>
-        <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">Virtual</button>
+        <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">{{ 'trainings.form.inPerson' | transloco }}</button>
+        <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
       </div>
       @if (locationKind === 'InPerson') {
-        <label class="mt-md block text-body-sm font-medium text-heading">Location — just this week
+        <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.edit.locationJustThisWeek' | transloco }}
           <input [(ngModel)]="location" type="text" maxlength="300" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
         </label>
       } @else {
-        <label class="mt-md block text-body-sm font-medium text-heading">Join link
+        <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
           <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
         </label>
       }
       @if (!s.isOneOff) {
-        <p class="mt-sm rounded-md bg-surface-sunken p-sm text-caption text-muted">Only this date changes. It won't follow future edits to the series.</p>
+        <p class="mt-sm rounded-md bg-surface-sunken p-sm text-caption text-muted">{{ 'trainings.edit.onlyThisDateNote' | transloco }}</p>
       }
       @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
       <button type="button" (click)="saveSingle()" [disabled]="busy() || !canEdit()" jhButton class="mt-lg w-full">
-        {{ busy() ? 'Saving…' : 'Save this session' }}
+        {{ (busy() ? 'trainings.saving' : 'trainings.edit.saveThisSession') | transloco }}
       </button>
     }
 
     <!-- Edit the whole series -->
     @if (mode() === 'series') {
-      <h1 class="mt-md text-heading-lg font-semibold text-heading">Edit series</h1>
-      <p class="mt-2xs text-body-sm text-muted">Applies to every upcoming session. Sessions you edited on their own keep their changes.</p>
-      <label class="mt-md block text-body-sm font-medium text-heading">Name
+      <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.edit.editSeries' | transloco }}</h1>
+      <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.edit.editSeriesDesc' | transloco }}</p>
+      <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.name' | transloco }}
         <input [(ngModel)]="name" type="text" maxlength="120" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
-      <label class="mt-md block text-body-sm font-medium text-heading">Day of the week
+      <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.dayOfWeek' | transloco }}
         <select [(ngModel)]="weekday" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body">
-          @for (d of weekdays; track d) { <option [value]="d">{{ d }}</option> }
+          @for (d of weekdays; track d) { <option [value]="d">{{ 'trainings.weekday.' + d | transloco }}</option> }
         </select>
       </label>
       <div class="mt-md grid grid-cols-2 gap-sm">
-        <label class="block text-body-sm font-medium text-heading">Start
+        <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.start' | transloco }}
           <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
         </label>
-        <label class="block text-body-sm font-medium text-heading">End
+        <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.end' | transloco }}
           <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
         </label>
       </div>
       <div class="mt-md">
-        <span class="text-body-sm font-medium text-heading">Repeats</span>
+        <span class="text-body-sm font-medium text-heading">{{ 'trainings.form.repeats' | transloco }}</span>
         <div class="mt-2xs grid grid-cols-3 gap-xs">
-          @for (opt of [{ v: 'Weekly', l: 'Weekly' }, { v: 'BiWeekly', l: 'Every 2 wks' }, { v: 'Monthly', l: 'Monthly' }]; track opt.v) {
-            <button type="button" (click)="interval = $any(opt.v)" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="interval === opt.v" [class.border-border-strong]="interval !== opt.v">{{ opt.l }}</button>
+          @for (opt of [{ v: 'Weekly', l: 'trainings.form.weekly' }, { v: 'BiWeekly', l: 'trainings.form.biweekly' }, { v: 'Monthly', l: 'trainings.form.monthly' }]; track opt.v) {
+            <button type="button" (click)="interval = $any(opt.v)" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="interval === opt.v" [class.border-border-strong]="interval !== opt.v">{{ opt.l | transloco }}</button>
           }
         </div>
       </div>
       <div class="mt-md grid grid-cols-2 gap-xs">
-        <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">In person</button>
-        <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">Virtual</button>
+        <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">{{ 'trainings.form.inPerson' | transloco }}</button>
+        <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
       </div>
       @if (locationKind === 'InPerson') {
-        <label class="mt-md block text-body-sm font-medium text-heading">Location
+        <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.location' | transloco }}
           <input [(ngModel)]="location" type="text" maxlength="300" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
         </label>
       } @else {
-        <label class="mt-md block text-body-sm font-medium text-heading">Join link
+        <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
           <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
         </label>
       }
-      <label class="mt-md block text-body-sm font-medium text-heading">Until
+      <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.until' | transloco }}
         <input [(ngModel)]="endDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
-      <p class="mt-sm rounded-md bg-surface-sunken p-sm text-caption text-muted">Responders are notified of the change. Changing the day, interval or end date regenerates upcoming dates.</p>
+      <p class="mt-sm rounded-md bg-surface-sunken p-sm text-caption text-muted">{{ 'trainings.edit.seriesNotifyNote' | transloco }}</p>
       @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
       <button type="button" (click)="saveSeries()" [disabled]="busy()" jhButton class="mt-lg w-full">
-        {{ busy() ? 'Saving…' : 'Save to all upcoming' }}
+        {{ (busy() ? 'trainings.saving' : 'trainings.edit.saveToAll') | transloco }}
       </button>
     }
   }

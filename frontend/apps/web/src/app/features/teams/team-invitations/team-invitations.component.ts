@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { EMPTY, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { InvitableUser, InviteLink, TeamInvitation } from '../../../core/models/team.models';
@@ -15,13 +16,14 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-team-invitations',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './team-invitations.component.html',
   styleUrl: './team-invitations.component.css',
 })
 export class TeamInvitationsComponent {
   private readonly teams = inject(TeamService);
   private readonly route = inject(ActivatedRoute);
+  private readonly t = inject(TranslocoService);
 
   protected readonly slug = signal('');
   protected readonly link = signal<InviteLink | null>(null);
@@ -132,11 +134,11 @@ export class TeamInvitationsComponent {
   protected expiresIn(iso: string): string {
     const days = Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
     if (days <= 0) {
-      return 'expires today';
+      return this.t.translate('teams.invitations.expiresToday');
     }
     if (days === 1) {
-      return 'expires tomorrow';
+      return this.t.translate('teams.invitations.expiresTomorrow');
     }
-    return `expires in ${days} days`;
+    return this.t.translate('teams.invitations.expiresInDays', { count: days });
   }
 }

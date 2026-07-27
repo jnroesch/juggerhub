@@ -3,16 +3,16 @@
     <jh-loading />
   } @else if (forbidden()) {
     <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
-      <p class="text-heading-sm font-bold text-ink">Not allowed</p>
-      <p class="mt-xs text-body-sm text-subtle">Only an event admin can manage contacts.</p>
+      <p class="text-heading-sm font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ 'events.contactsManage.notAllowedBody' | transloco }}</p>
     </div>
   } @else if (detail(); as d) {
-    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">‹ Back to event</a>
-    <h1 class="mt-md text-heading-lg font-bold text-ink">Contacts</h1>
-    <p class="text-body-sm text-subtle">Who participants can reach. Shown on the event page.</p>
+    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">{{ 'events.manage.back' | transloco }}</a>
+    <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'events.contacts.heading' | transloco }}</h1>
+    <p class="text-body-sm text-subtle">{{ 'events.contactsManage.subtitle' | transloco }}</p>
 
     @if (contacts().length === 0) {
-      <p class="mt-md text-body-sm text-faint">No contacts yet.</p>
+      <p class="mt-md text-body-sm text-faint">{{ 'events.contactsManage.none' | transloco }}</p>
     } @else {
       <ul class="mt-md space-y-xs">
         @for (c of contacts(); track c.id) {
@@ -23,18 +23,18 @@
               <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ c.role }}</p>
               <dl class="mt-xs space-y-0.5">
                 @if (c.email) {
-                  <div class="flex gap-xs"><dt class="w-12 shrink-0 text-faint">Email</dt><dd class="truncate text-subtle">{{ c.email }}</dd></div>
+                  <div class="flex gap-xs"><dt class="w-12 shrink-0 text-faint">{{ 'events.contactsManage.emailLabel' | transloco }}</dt><dd class="truncate text-subtle">{{ c.email }}</dd></div>
                 }
                 @if (c.phone) {
-                  <div class="flex gap-xs"><dt class="w-12 shrink-0 text-faint">Phone</dt><dd class="text-subtle">{{ c.phone }}</dd></div>
+                  <div class="flex gap-xs"><dt class="w-12 shrink-0 text-faint">{{ 'events.contactsManage.phoneLabel' | transloco }}</dt><dd class="text-subtle">{{ c.phone }}</dd></div>
                 }
               </dl>
             </div>
             <span class="flex shrink-0 gap-sm">
               <button type="button" (click)="startEdit(c)" data-testid="contact-edit"
-                class="text-body-sm font-semibold text-subtle hover:text-text">Edit</button>
+                class="text-body-sm font-semibold text-subtle hover:text-text">{{ 'events.contactsManage.edit' | transloco }}</button>
               <button type="button" (click)="remove(c.id)" data-testid="contact-remove"
-                class="text-body-sm font-semibold text-danger hover:underline">Remove</button>
+                class="text-body-sm font-semibold text-danger hover:underline">{{ 'teams.detail.remove' | transloco }}</button>
             </span>
           </li>
         }
@@ -42,25 +42,25 @@
     }
 
     <form class="mt-lg space-y-md rounded-md border border-border bg-surface-card px-md py-md" [formGroup]="form" (ngSubmit)="save()">
-      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ editingId() ? 'Edit contact' : 'Add a contact' }}</h2>
-      <input type="text" formControlName="name" placeholder="Name" data-testid="contact-name"
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ (editingId() ? 'events.contactsManage.editContact' : 'events.contactsManage.addContact') | transloco }}</h2>
+      <input type="text" formControlName="name" [placeholder]="'events.contactsManage.namePlaceholder' | transloco" data-testid="contact-name"
         class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-      <input type="text" formControlName="role" placeholder="Role — e.g. Location host" data-testid="contact-role"
+      <input type="text" formControlName="role" [placeholder]="'events.contactsManage.rolePlaceholder' | transloco" data-testid="contact-role"
         class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
       <div class="grid grid-cols-2 gap-md">
-        <input type="tel" formControlName="phone" placeholder="Phone"
+        <input type="tel" formControlName="phone" [placeholder]="'events.contactsManage.phonePlaceholder' | transloco"
           class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-        <input type="email" formControlName="email" placeholder="Email"
+        <input type="email" formControlName="email" [placeholder]="'events.contactsManage.emailPlaceholder' | transloco"
           class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
       </div>
-      <p class="text-body-sm text-faint">Add a phone, an email, or both.</p>
+      <p class="text-body-sm text-faint">{{ 'events.contactsManage.hint' | transloco }}</p>
       @if (error()) { <jh-alert>{{ error() }}</jh-alert> }
       <div class="flex items-center gap-sm">
         <button type="submit" [disabled]="form.invalid || saving()" data-testid="contact-add"
-          jhButton>{{ saving() ? 'Saving…' : editingId() ? 'Save changes' : 'Add contact' }}</button>
+          jhButton>{{ (saving() ? 'events.contactsManage.saving' : editingId() ? 'events.contactsManage.saveChanges' : 'events.contactsManage.addContactBtn') | transloco }}</button>
         @if (editingId()) {
           <button type="button" (click)="cancelEdit()" data-testid="contact-cancel-edit"
-            class="text-body-sm font-semibold text-subtle hover:text-text">Cancel</button>
+            class="text-body-sm font-semibold text-subtle hover:text-text">{{ 'common.cancel' | transloco }}</button>
         }
       </div>
     </form>

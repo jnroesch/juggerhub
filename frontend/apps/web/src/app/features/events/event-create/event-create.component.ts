@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, AlertComponent } from '../../../shared/ui';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -26,7 +27,7 @@ const STEPS: readonly Step[] = ['type', 'when', 'where', 'who', 'fee', 'review']
  */
 @Component({
   selector: 'jh-event-create',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CityPickerComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CityPickerComponent, TranslocoPipe],
   templateUrl: './event-create.component.html',
   styleUrl: './event-create.component.css',
 })

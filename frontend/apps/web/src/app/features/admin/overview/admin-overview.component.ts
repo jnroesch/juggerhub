@@ -3,6 +3,7 @@ import { LoadingComponent, CardComponent } from '../../../shared/ui';
 import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AdminOverview } from '../../../core/models/admin.models';
 import { AdminService } from '../../../core/services/admin.service';
 import { problemDetail } from '../../../core/utils/problem';
@@ -14,13 +15,14 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-admin-overview',
-  imports: [DatePipe, RouterLink, FormsModule, LoadingComponent, CardComponent],
+  imports: [DatePipe, RouterLink, FormsModule, LoadingComponent, CardComponent, TranslocoPipe],
   templateUrl: './admin-overview.component.html',
   styleUrl: './admin-overview.component.css',
 })
 export class AdminOverviewComponent {
   private readonly api = inject(AdminService);
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -40,7 +42,7 @@ export class AdminOverviewComponent {
         this.loading.set(false);
       },
       error: (e) => {
-        this.error.set(problemDetail(e, 'Could not load the overview.'));
+        this.error.set(problemDetail(e, this.transloco.translate('admin.overview.loadError')));
         this.loading.set(false);
       },
     });

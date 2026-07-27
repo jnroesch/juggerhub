@@ -6,6 +6,7 @@ import { signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { ChatShellComponent } from './chat-shell.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 /**
  * The chat shell (feature 019, US8). What matters here is that the two layouts are **layout only**:
@@ -20,6 +21,7 @@ describe('ChatShellComponent', () => {
 
   beforeEach(async () => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
