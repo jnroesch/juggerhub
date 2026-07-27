@@ -1,6 +1,8 @@
+using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Dtos.Notifications;
 using JuggerHub.Entities;
+using JuggerHub.Services.Localization;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -11,25 +13,63 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
 {
     private readonly AppDbContext _db;
     private readonly ILogger<NotificationPreferenceService> _logger;
+    private readonly IRecipientCultureResolver _culture;
 
-    public NotificationPreferenceService(AppDbContext db, ILogger<NotificationPreferenceService> logger)
+    public NotificationPreferenceService(
+        AppDbContext db,
+        ILogger<NotificationPreferenceService> logger,
+        IRecipientCultureResolver culture)
     {
         _db = db;
         _logger = logger;
+        _culture = culture;
     }
 
-    /// <summary>User-facing metadata for each togglable category — the single source shared by both layouts.</summary>
-    private static readonly IReadOnlyList<(NotificationCategory Category, string Label, string Description)> CategoryMeta =
+    /// <summary>The togglable categories, in display order. Copy is resolved per request language below.</summary>
+    private static readonly IReadOnlyList<NotificationCategory> CategoryOrder =
     [
-        (NotificationCategory.InvitesAndRoster, "Invites & roster changes", "Team invites, people joining or leaving"),
-        (NotificationCategory.TeamNews, "Team news", "News posted to your teams"),
-        (NotificationCategory.Trainings, "Trainings", "New training sessions and schedule changes"),
+        NotificationCategory.InvitesAndRoster,
+        NotificationCategory.TeamNews,
+        NotificationCategory.Trainings,
     ];
 
-    private static readonly IReadOnlyList<AlwaysOnGroupDto> AlwaysOnGroups =
-    [
-        new AlwaysOnGroupDto("Security & sign-in", "Verification, password, and login security"),
-    ];
+    /// <summary>
+    /// User-facing category copy, localized by the caller's request language (feature 031). Labels are
+    /// server-owned so both layouts render identical copy; English is the universal fallback. Backed by
+    /// in-code per-culture dictionaries — the same low-risk approach as <see cref="Email.EmailLocalizer"/>.
+    /// de/es are draft translations pending the native-review pass (#77).
+    /// </summary>
+    private static readonly IReadOnlyDictionary<string, IReadOnlyDictionary<NotificationCategory, (string Label, string Description)>> CategoryCopy =
+        new Dictionary<string, IReadOnlyDictionary<NotificationCategory, (string, string)>>
+        {
+            ["en"] = new Dictionary<NotificationCategory, (string, string)>
+            {
+                [NotificationCategory.InvitesAndRoster] = ("Invites & roster changes", "Team invites, people joining or leaving"),
+                [NotificationCategory.TeamNews] = ("Team news", "News posted to your teams"),
+                [NotificationCategory.Trainings] = ("Trainings", "New training sessions and schedule changes"),
+            },
+            ["de"] = new Dictionary<NotificationCategory, (string, string)>
+            {
+                [NotificationCategory.InvitesAndRoster] = ("Einladungen & Kaderänderungen", "Team-Einladungen, Beitritte und Austritte"),
+                [NotificationCategory.TeamNews] = ("Team-News", "Neuigkeiten, die in deinen Teams gepostet werden"),
+                [NotificationCategory.Trainings] = ("Trainings", "Neue Trainingseinheiten und Terminänderungen"),
+            },
+            ["es"] = new Dictionary<NotificationCategory, (string, string)>
+            {
+                [NotificationCategory.InvitesAndRoster] = ("Invitaciones y cambios de plantilla", "Invitaciones de equipo, altas y bajas"),
+                [NotificationCategory.TeamNews] = ("Noticias del equipo", "Novedades publicadas en tus equipos"),
+                [NotificationCategory.Trainings] = ("Entrenamientos", "Nuevas sesiones de entrenamiento y cambios de horario"),
+            },
+        };
+
+    /// <summary>The always-on groups (no toggles), localized by request language. English is the fallback.</summary>
+    private static readonly IReadOnlyDictionary<string, IReadOnlyList<AlwaysOnGroupDto>> AlwaysOnCopy =
+        new Dictionary<string, IReadOnlyList<AlwaysOnGroupDto>>
+        {
+            ["en"] = [new AlwaysOnGroupDto("Security & sign-in", "Verification, password, and login security")],
+            ["de"] = [new AlwaysOnGroupDto("Sicherheit & Anmeldung", "Verifizierung, Passwort und Anmeldesicherheit")],
+            ["es"] = [new AlwaysOnGroupDto("Seguridad e inicio de sesión", "Verificación, contraseña y seguridad de acceso")],
+        };
 
     public async Task<NotificationPreferenceMatrixDto> GetMatrixAsync(Guid userId, CancellationToken ct = default)
     {
@@ -44,17 +84,26 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
         bool Effective(NotificationCategory c, NotificationChannel ch) =>
             !set.TryGetValue((c, ch), out var value) || value;
 
-        var categories = CategoryMeta
-            .Select(m => new PreferenceCategoryDto(
-                m.Category,
-                m.Label,
-                m.Description,
-                new PreferenceChannelsDto(
-                    Effective(m.Category, NotificationChannel.InApp),
-                    Effective(m.Category, NotificationChannel.Email))))
+        // The caller's effective language (frontend-stamped Accept-Language), English-fallback.
+        var culture = _culture.ResolveFromRequest();
+        var copy = CategoryCopy.GetValueOrDefault(culture, CategoryCopy[SupportedLanguages.Default]);
+        var alwaysOn = AlwaysOnCopy.GetValueOrDefault(culture, AlwaysOnCopy[SupportedLanguages.Default]);
+
+        var categories = CategoryOrder
+            .Select(category =>
+            {
+                var (label, description) = copy[category];
+                return new PreferenceCategoryDto(
+                    category,
+                    label,
+                    description,
+                    new PreferenceChannelsDto(
+                        Effective(category, NotificationChannel.InApp),
+                        Effective(category, NotificationChannel.Email)));
+            })
             .ToList();
 
-        return new NotificationPreferenceMatrixDto(categories, AlwaysOnGroups);
+        return new NotificationPreferenceMatrixDto(categories, alwaysOn);
     }
 
     public async Task SetCellAsync(

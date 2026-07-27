@@ -101,7 +101,7 @@
         <p class="mt-0.5 text-body-sm text-muted">{{ 'settings.notifications.alwaysOnDesc' | transloco }}</p>
         <ul class="mt-sm space-y-sm">
           @for (group of alwaysOn(); track group.label) {
-            <li class="flex items-center justify-between gap-md rounded-lg border border-border-muted bg-surface-sunken p-md">
+            <li class="flex items-center justify-between gap-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
               <div>
                 <p class="text-body-sm font-semibold text-heading">{{ group.label }}</p>
                 <p class="mt-0.5 text-body-sm text-muted">{{ group.description }}</p>
