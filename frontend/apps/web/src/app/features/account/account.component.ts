@@ -1,5 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 
 /**
@@ -9,7 +10,7 @@ import { AuthService } from '../../core/services/auth.service';
  */
 @Component({
   selector: 'jh-account',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslocoPipe],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css',
 })

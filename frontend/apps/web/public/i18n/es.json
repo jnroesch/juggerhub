@@ -15,6 +15,25 @@
     "tryAgain": "Reintentar",
     "seeAll": "Ver todo"
   },
+  "account": {
+    "title": "Cuenta",
+    "subtitle": "Página de ejemplo protegida — solo la ves cuando has iniciado sesión.",
+    "signedInAs": "Sesión iniciada como",
+    "notificationSettings": "Ajustes de notificaciones"
+  },
+  "settings": {
+    "notifications": {
+      "title": "Ajustes de notificaciones",
+      "subtitle": "Elige cómo quieres enterarte de las cosas. Los cambios se guardan automáticamente — no hay botón de guardar.",
+      "saveError": "No pudimos guardar ese cambio. Revisa tu conexión y prueba el interruptor de nuevo.",
+      "loadErrorTitle": "No pudimos cargar tus ajustes",
+      "loadErrorBody": "Algo salió mal por nuestra parte. Inténtalo de nuevo.",
+      "inApp": "En la app",
+      "email": "Correo",
+      "alwaysOn": "Siempre activas",
+      "alwaysOnDesc": "Estas mantienen tu cuenta segura, por eso no se pueden desactivar."
+    }
+  },
   "home": {
     "errorTitle": "No pudimos cargar tu inicio",
     "errorBody": "Algo salió mal al conectar con el servidor.",

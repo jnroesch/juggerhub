@@ -11,6 +11,25 @@
     "tryAgain": "Try again",
     "seeAll": "See all"
   },
+  "account": {
+    "title": "Account",
+    "subtitle": "Protected sample page — you only see this when signed in.",
+    "signedInAs": "Signed in as",
+    "notificationSettings": "Notification settings"
+  },
+  "settings": {
+    "notifications": {
+      "title": "Notification settings",
+      "subtitle": "Choose how you hear about things. Changes save automatically — there's no save button.",
+      "saveError": "We couldn't save that change. Check your connection and try the toggle again.",
+      "loadErrorTitle": "We couldn't load your settings",
+      "loadErrorBody": "Something went wrong on our end. Give it another go.",
+      "inApp": "In-app",
+      "email": "Email",
+      "alwaysOn": "Always on",
+      "alwaysOnDesc": "These keep your account safe, so they can't be turned off."
+    }
+  },
   "home": {
     "errorTitle": "We couldn't load your home",
     "errorBody": "Something went wrong reaching the server.",

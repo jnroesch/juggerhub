@@ -15,6 +15,25 @@
     "tryAgain": "Erneut versuchen",
     "seeAll": "Alle ansehen"
   },
+  "account": {
+    "title": "Konto",
+    "subtitle": "Geschützte Beispielseite — du siehst sie nur im angemeldeten Zustand.",
+    "signedInAs": "Angemeldet als",
+    "notificationSettings": "Benachrichtigungseinstellungen"
+  },
+  "settings": {
+    "notifications": {
+      "title": "Benachrichtigungseinstellungen",
+      "subtitle": "Wähle, wie du von Dingen erfährst. Änderungen werden automatisch gespeichert — es gibt keinen Speichern-Button.",
+      "saveError": "Wir konnten diese Änderung nicht speichern. Prüfe deine Verbindung und versuche den Schalter erneut.",
+      "loadErrorTitle": "Wir konnten deine Einstellungen nicht laden",
+      "loadErrorBody": "Bei uns ist etwas schiefgelaufen. Versuch es noch einmal.",
+      "inApp": "In-App",
+      "email": "E-Mail",
+      "alwaysOn": "Immer an",
+      "alwaysOnDesc": "Diese schützen dein Konto und können daher nicht ausgeschaltet werden."
+    }
+  },
   "home": {
     "errorTitle": "Wir konnten deine Startseite nicht laden",
     "errorBody": "Beim Erreichen des Servers ist etwas schiefgelaufen.",

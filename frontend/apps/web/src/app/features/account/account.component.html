@@ -1,12 +1,12 @@
 <div class="p-md sm:p-xl">
   <div class="mx-auto w-full max-w-3xl" data-testid="account">
-    <h1 class="text-heading-lg font-semibold text-ink">Account</h1>
+    <h1 class="text-heading-lg font-semibold text-ink">{{ 'account.title' | transloco }}</h1>
     <p class="mt-xs text-body-sm text-subtle">
-      Protected sample page — you only see this when signed in.
+      {{ 'account.subtitle' | transloco }}
     </p>
     @if (user(); as currentUser) {
       <p class="mt-md text-body-md text-text" data-testid="account-email">
-        Signed in as <span class="font-medium text-ink">{{ currentUser.email }}</span>.
+        {{ 'account.signedInAs' | transloco }} <span class="font-medium text-ink">{{ currentUser.email }}</span>.
       </p>
     }
 
@@ -15,7 +15,7 @@
       class="mt-lg inline-flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium text-link transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       data-testid="account-notification-settings"
     >
-      Notification settings
+      {{ 'account.notificationSettings' | transloco }}
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
     </a>
   </div>
