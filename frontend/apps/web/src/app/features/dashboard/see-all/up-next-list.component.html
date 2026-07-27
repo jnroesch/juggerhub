@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-container-md px-md py-lg">
-  <h1 class="text-h3 text-heading">Up next</h1>
-  <p class="mt-xs text-body-sm text-muted">Your upcoming trainings, matches, and events.</p>
+  <h1 class="text-h3 text-heading">{{ 'home.upNext' | transloco }}</h1>
+  <p class="mt-xs text-body-sm text-muted">{{ 'home.upNextSubtitle' | transloco }}</p>
 
   @if (items().length > 0) {
     <div class="mt-lg flex flex-col gap-xs">
@@ -9,19 +9,19 @@
       }
     </div>
   } @else if (!loading() && !failed()) {
-    <jh-empty-state class="mt-lg">Nothing coming up right now.</jh-empty-state>
+    <jh-empty-state class="mt-lg">{{ 'home.upNextEmpty' | transloco }}</jh-empty-state>
   }
 
   @if (failed()) {
     <div class="mt-lg text-center">
-      <p class="text-body-sm text-muted">We couldn't load your events.</p>
-      <button type="button" class="mt-sm rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="loadMore()">Try again</button>
+      <p class="text-body-sm text-muted">{{ 'home.loadEventsError' | transloco }}</p>
+      <button type="button" class="mt-sm rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="loadMore()">{{ 'common.tryAgain' | transloco }}</button>
     </div>
   } @else if (loading()) {
     <jh-loading align="center" />
   } @else if (hasMore()) {
     <div class="mt-md text-center">
-      <button type="button" class="rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="loadMore()">Load more</button>
+      <button type="button" class="rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="loadMore()">{{ 'home.loadMore' | transloco }}</button>
     </div>
   }
 </section>

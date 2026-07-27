@@ -1,4 +1,5 @@
 import { Component, computed, input } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { RouterLink } from '@angular/router';
 import { CardComponent } from '../../../shared/ui';
 import { ActivityEntry } from '../../../core/models/home.models';
@@ -12,7 +13,7 @@ import { relativeTime } from '../../../core/utils/format';
  */
 @Component({
   selector: 'jh-activity-list',
-  imports: [RouterLink, CardComponent],
+  imports: [RouterLink, CardComponent, TranslocoPipe],
   templateUrl: './activity-list.component.html',
   styleUrl: './activity-list.component.css',
 })

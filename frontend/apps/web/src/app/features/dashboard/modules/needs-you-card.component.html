@@ -1,7 +1,7 @@
 @if (hasAny()) {
   <jh-card class="p-md" data-testid="needs-you">
     <div class="mb-sm flex items-center justify-between">
-      <h2 class="text-body-lg font-semibold text-heading">Needs you</h2>
+      <h2 class="text-body-lg font-semibold text-heading">{{ 'home.needsYouTitle' | transloco }}</h2>
       <span class="rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-eyebrow font-semibold uppercase text-secondary">
         <span class="font-mono">{{ items().length }}</span>
       </span>
@@ -25,15 +25,15 @@
             <!-- Actions by kind (invites & requests only) -->
             @switch (item.kind) {
               @case ('MarketApplication') {
-                <span class="shrink-0 rounded-pill bg-warning-bg px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-wide text-warning-fg">pending</span>
+                <span class="shrink-0 rounded-pill bg-warning-bg px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-wide text-warning-fg">{{ 'home.statusPendingPill' | transloco }}</span>
               }
               @default {
                 <div class="flex shrink-0 gap-xs">
                   <button type="button" jhButton size="sm" [disabled]="busyId() === item.id" (click)="accept(item)">
-                    {{ item.kind === 'PartyRequest' ? "I'm in" : 'Accept' }}
+                    {{ (item.kind === 'PartyRequest' ? 'home.imIn' : 'common.accept') | transloco }}
                   </button>
                   <button type="button" jhButton variant="secondary" size="sm" [disabled]="busyId() === item.id" (click)="decline(item)">
-                    {{ item.kind === 'PartyRequest' ? "Can't" : 'Decline' }}
+                    {{ (item.kind === 'PartyRequest' ? 'home.cant' : 'common.decline') | transloco }}
                   </button>
                 </div>
               }

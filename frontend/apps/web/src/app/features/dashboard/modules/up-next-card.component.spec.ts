@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AgendaItem } from '../../../core/models/home.models';
 import { UpNextCardComponent } from './up-next-card.component';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 function eventItem(partial: Partial<AgendaItem> = {}): AgendaItem {
   return {
@@ -66,6 +67,7 @@ describe('UpNextCardComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     httpMock = TestBed.inject(HttpTestingController);

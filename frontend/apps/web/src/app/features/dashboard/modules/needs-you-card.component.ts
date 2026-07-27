@@ -1,4 +1,5 @@
 import { Component, computed, inject, input, output, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { CardComponent, ButtonDirective } from '../../../shared/ui';
@@ -17,7 +18,7 @@ import { relativeTime } from '../../../core/utils/format';
  */
 @Component({
   selector: 'jh-needs-you-card',
-  imports: [RouterLink, CardComponent, ButtonDirective],
+  imports: [RouterLink, CardComponent, ButtonDirective, TranslocoPipe],
   templateUrl: './needs-you-card.component.html',
   styleUrl: './needs-you-card.component.css',
 })
