@@ -68,7 +68,33 @@
     "empty": "Aún no hay nada aquí — vuelve pronto.",
     "noResults": "No hay coincidencias para tu búsqueda y filtros.",
     "clearSearchFilters": "Borrar búsqueda y filtros",
-    "loadMore": "Cargar más"
+    "loadMore": "Cargar más",
+    "country": "País",
+    "showEyebrow": "Mostrar",
+    "sortNameAsc": "A–Z",
+    "sortNearest": "Más cercanos primero",
+    "filterPanel": {
+      "close": "Cerrar filtros",
+      "reset": "Restablecer",
+      "show": "Mostrar {{noun}}",
+      "showCount": "Mostrar {{count}} {{noun}}"
+    },
+    "teams": {
+      "searchPlaceholder": "Buscar equipos…",
+      "noun": "equipos",
+      "countOne": "{{count}} equipo",
+      "countMany": "{{count}} equipos",
+      "chipActive": "Activos",
+      "chipBeginners": "Principiantes",
+      "filterActive": "activos",
+      "filterBeginnersWelcome": "principiantes bienvenidos",
+      "activeLabel": "Solo equipos activos",
+      "activeHint": "Ocultar equipos inactivos",
+      "beginnersLabel": "Principiantes bienvenidos",
+      "beginnersHint": "Abierto a jugadores nuevos",
+      "players": "jugadores",
+      "beginnersPill": "Principiantes"
+    }
   },
   "home": {
     "errorTitle": "No pudimos cargar tu inicio",

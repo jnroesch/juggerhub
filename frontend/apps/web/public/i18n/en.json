@@ -64,7 +64,33 @@
     "empty": "Nothing here yet — check back soon.",
     "noResults": "No matches for your search and filters.",
     "clearSearchFilters": "Clear search & filters",
-    "loadMore": "Load more"
+    "loadMore": "Load more",
+    "country": "Country",
+    "showEyebrow": "Show",
+    "sortNameAsc": "A–Z",
+    "sortNearest": "Nearest first",
+    "filterPanel": {
+      "close": "Close filters",
+      "reset": "Reset",
+      "show": "Show {{noun}}",
+      "showCount": "Show {{count}} {{noun}}"
+    },
+    "teams": {
+      "searchPlaceholder": "Search teams…",
+      "noun": "teams",
+      "countOne": "{{count}} team",
+      "countMany": "{{count}} teams",
+      "chipActive": "Active",
+      "chipBeginners": "Beginners",
+      "filterActive": "active",
+      "filterBeginnersWelcome": "beginners welcome",
+      "activeLabel": "Active teams only",
+      "activeHint": "Hide dormant teams",
+      "beginnersLabel": "Beginners welcome",
+      "beginnersHint": "Open to new players",
+      "players": "players",
+      "beginnersPill": "Beginners"
+    }
   },
   "home": {
     "errorTitle": "We couldn't load your home",

@@ -1,5 +1,7 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { FilterChip, SortOption, TeamBrowseParams, TeamCard } from '../../../core/models/search.models';
@@ -16,13 +18,16 @@ import { CountryPickerComponent } from '../../../shared/country-picker/country-p
  */
 @Component({
   selector: 'jh-browse-teams',
-  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent],
+  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent, TranslocoPipe],
   templateUrl: './browse-teams.component.html',
   styleUrl: './browse-teams.component.css',
 })
 export class BrowseTeamsComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
   private readonly profiles = inject(ProfileService);
+  private readonly t = inject(TranslocoService);
+  // Recompute translated labels (sort/chips/count) when the active language changes (feature 031).
+  private readonly lang = toSignal(this.t.langChanges$, { initialValue: this.t.getActiveLang() });
 
   // Applied state (drives results).
   protected readonly query = signal('');
@@ -36,9 +41,10 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
   protected readonly hasHomeCity = signal(false);
 
   protected readonly sortOptions = computed<SortOption[]>(() => {
-    const opts: SortOption[] = [{ value: 'NameAsc', label: 'A–Z' }];
+    this.lang();
+    const opts: SortOption[] = [{ value: 'NameAsc', label: this.t.translate('browse.sortNameAsc') }];
     if (this.hasHomeCity()) {
-      opts.push({ value: 'Proximity', label: 'Nearest first' });
+      opts.push({ value: 'Proximity', label: this.t.translate('browse.sortNearest') });
     }
     return opts;
   });
@@ -59,12 +65,13 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
   );
 
   protected readonly chips = computed<FilterChip[]>(() => {
+    this.lang();
     const chips: FilterChip[] = [];
     if (this.activeOnly()) {
-      chips.push({ key: 'active', label: 'Active' });
+      chips.push({ key: 'active', label: this.t.translate('browse.teams.chipActive') });
     }
     if (this.beginners()) {
-      chips.push({ key: 'beginners', label: 'Beginners' });
+      chips.push({ key: 'beginners', label: this.t.translate('browse.teams.chipBeginners') });
     }
     if (this.city().trim()) {
       chips.push({ key: 'city', label: this.city().trim() });
@@ -74,13 +81,16 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
   });
 
   protected readonly countLabel = computed(() => {
+    this.lang();
     const n = this.list.total();
-    const parts = [`${n} ${n === 1 ? 'team' : 'teams'}`];
+    const parts = [
+      this.t.translate(n === 1 ? 'browse.teams.countOne' : 'browse.teams.countMany', { count: n }),
+    ];
     if (this.activeOnly()) {
-      parts.push('active');
+      parts.push(this.t.translate('browse.teams.filterActive'));
     }
     if (this.beginners()) {
-      parts.push('beginners welcome');
+      parts.push(this.t.translate('browse.teams.filterBeginnersWelcome'));
     }
     if (this.city().trim()) {
       parts.push(this.city().trim());

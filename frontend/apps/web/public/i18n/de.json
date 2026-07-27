@@ -68,7 +68,33 @@
     "empty": "Hier ist noch nichts — schau bald wieder vorbei.",
     "noResults": "Keine Treffer für deine Suche und Filter.",
     "clearSearchFilters": "Suche & Filter zurücksetzen",
-    "loadMore": "Mehr laden"
+    "loadMore": "Mehr laden",
+    "country": "Land",
+    "showEyebrow": "Anzeigen",
+    "sortNameAsc": "A–Z",
+    "sortNearest": "Nächste zuerst",
+    "filterPanel": {
+      "close": "Filter schließen",
+      "reset": "Zurücksetzen",
+      "show": "{{noun}} anzeigen",
+      "showCount": "{{count}} {{noun}} anzeigen"
+    },
+    "teams": {
+      "searchPlaceholder": "Teams suchen…",
+      "noun": "Teams",
+      "countOne": "{{count}} Team",
+      "countMany": "{{count}} Teams",
+      "chipActive": "Aktiv",
+      "chipBeginners": "Anfänger",
+      "filterActive": "aktiv",
+      "filterBeginnersWelcome": "Anfänger willkommen",
+      "activeLabel": "Nur aktive Teams",
+      "activeHint": "Inaktive Teams ausblenden",
+      "beginnersLabel": "Anfänger willkommen",
+      "beginnersHint": "Offen für neue Spieler",
+      "players": "Spieler",
+      "beginnersPill": "Anfänger"
+    }
   },
   "home": {
     "errorTitle": "Wir konnten deine Startseite nicht laden",
