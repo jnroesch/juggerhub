@@ -22,7 +22,7 @@ export interface CityOption {
   region: string | null;
   countryName: string;
   countryCode: string | null;
-  /** "City, Region, Country" — enough to tell same-named cities apart. */
+  /** "City, Country" — or "City, Region, Country" when another result shares the name and country. */
   label: string;
   latitude: number;
   longitude: number;

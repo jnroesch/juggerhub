@@ -44,6 +44,34 @@ public sealed class CitySearchTests
     }
 
     [Fact]
+    public async Task Unique_city_label_omits_the_region()
+    {
+        var (client, _, _, _) = await SearchTestSupport.NewUserAsync(_factory);
+
+        var resp = await client.GetAsync("/api/v1/cities/search?q=berlin");
+
+        var items = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        var berlin = items.EnumerateArray().Single(c => c.GetProperty("name").GetString() == "Berlin");
+        Assert.Equal("Berlin, Germany", berlin.GetProperty("label").GetString());
+    }
+
+    [Fact]
+    public async Task Same_name_same_country_cities_include_the_region_to_disambiguate()
+    {
+        var (client, _, _, _) = await SearchTestSupport.NewUserAsync(_factory);
+
+        var resp = await client.GetAsync("/api/v1/cities/search?q=springfield");
+
+        var labels = (await resp.Content.ReadFromJsonAsync<JsonElement>())
+            .EnumerateArray()
+            .Where(c => c.GetProperty("name").GetString() == "Springfield")
+            .Select(c => c.GetProperty("label").GetString())
+            .ToList();
+        Assert.Contains("Springfield, Illinois, United States", labels);
+        Assert.Contains("Springfield, Missouri, United States", labels);
+    }
+
+    [Fact]
     public async Task Anonymous_search_is_rejected()
     {
         var resp = await _factory.CreateClient().GetAsync("/api/v1/cities/search?q=berlin");

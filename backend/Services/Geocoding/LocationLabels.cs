@@ -13,13 +13,14 @@ public static class LocationLabels
     public static string Display(string name, string countryName) => $"{name}, {countryName}";
 
     /// <summary>
-    /// Disambiguation label for a search option: <c>"City, Region, Country"</c> (region omitted when
-    /// absent) so same-named cities are distinguishable (FR-003).
+    /// Label for a search option. Normally <c>"City, Country"</c>; when <paramref name="disambiguate"/>
+    /// is set (another result shares the same city name and country) and a region is known, the region
+    /// is inserted — <c>"City, Region, Country"</c> — so same-named cities are distinguishable (FR-003).
     /// </summary>
-    public static string Option(string name, string? region, string countryName) =>
-        string.IsNullOrWhiteSpace(region)
-            ? $"{name}, {countryName}"
-            : $"{name}, {region}, {countryName}";
+    public static string Option(string name, string? region, string countryName, bool disambiguate) =>
+        disambiguate && !string.IsNullOrWhiteSpace(region)
+            ? $"{name}, {region}, {countryName}"
+            : Display(name, countryName);
 
     /// <summary>Maps a persisted city to the read DTO; null in ⇒ null out (no location set).</summary>
     public static LocationDto? ToLocation(City? c) => c is null
