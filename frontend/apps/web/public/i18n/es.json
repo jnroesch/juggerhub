@@ -435,6 +435,33 @@
       "tagTeam": "Equipo",
       "tagParty": "Party",
       "tagAdmins": "Administradores"
+    },
+    "compose": {
+      "backToMessages": "Volver a los mensajes",
+      "newMessageDirect": "Nuevo mensaje · @{{handle}}",
+      "newMessageAdmins": "Nuevo mensaje · Administradores",
+      "unavailable": "No puedes enviar un mensaje a este jugador ahora mismo.",
+      "hint": "Este es el comienzo de tu conversación con {{name}}. Saluda — el chat se crea cuando envías tu primer mensaje.",
+      "messageSr": "Mensaje",
+      "them": "esta persona",
+      "placeholder": "Mensaje para {{name}}…",
+      "sendMessage": "Enviar mensaje"
+    },
+    "conversation": {
+      "directMessage": "Mensaje directo",
+      "members": "{{count}} miembros",
+      "chatDetails": "Detalles del chat",
+      "loadError": "No pudimos cargar este chat.",
+      "loadingEarlier": "Cargando mensajes anteriores…",
+      "newMessagesDivider": "Mensajes nuevos",
+      "deleteYourMessage": "Eliminar tu mensaje",
+      "newSuffix": "nuevos",
+      "archivedNotice": "Este chat está cerrado. Todavía puedes leerlo.",
+      "someone": "Alguien",
+      "systemJoined": "{{name}} se unió al chat",
+      "systemLeft": "{{name}} salió del chat",
+      "systemRemoved": "{{name}} fue eliminado",
+      "systemGroupCreated": "{{name}} creó este grupo"
     }
   },
   "account": {

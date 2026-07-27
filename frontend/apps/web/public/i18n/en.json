@@ -431,6 +431,33 @@
       "tagTeam": "Team",
       "tagParty": "Party",
       "tagAdmins": "Admins"
+    },
+    "compose": {
+      "backToMessages": "Back to messages",
+      "newMessageDirect": "New message · @{{handle}}",
+      "newMessageAdmins": "New message · Admins",
+      "unavailable": "You can't message this player right now.",
+      "hint": "This is the start of your conversation with {{name}}. Say hello — the chat is created when you send your first message.",
+      "messageSr": "Message",
+      "them": "them",
+      "placeholder": "Message {{name}}…",
+      "sendMessage": "Send message"
+    },
+    "conversation": {
+      "directMessage": "Direct message",
+      "members": "{{count}} members",
+      "chatDetails": "Chat details",
+      "loadError": "We couldn't load this chat.",
+      "loadingEarlier": "Loading earlier messages…",
+      "newMessagesDivider": "New messages",
+      "deleteYourMessage": "Delete your message",
+      "newSuffix": "new",
+      "archivedNotice": "This chat is closed. You can still read it.",
+      "someone": "Someone",
+      "systemJoined": "{{name}} joined the chat",
+      "systemLeft": "{{name}} left the chat",
+      "systemRemoved": "{{name}} was removed",
+      "systemGroupCreated": "{{name}} started this group"
     }
   },
   "account": {

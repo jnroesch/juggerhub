@@ -435,6 +435,33 @@
       "tagTeam": "Team",
       "tagParty": "Party",
       "tagAdmins": "Admins"
+    },
+    "compose": {
+      "backToMessages": "Zurück zu den Nachrichten",
+      "newMessageDirect": "Neue Nachricht · @{{handle}}",
+      "newMessageAdmins": "Neue Nachricht · Admins",
+      "unavailable": "Du kannst diesem Spieler gerade keine Nachricht senden.",
+      "hint": "Das ist der Beginn deiner Unterhaltung mit {{name}}. Sag Hallo — der Chat wird erstellt, sobald du deine erste Nachricht sendest.",
+      "messageSr": "Nachricht",
+      "them": "ihm/ihr",
+      "placeholder": "Nachricht an {{name}}…",
+      "sendMessage": "Nachricht senden"
+    },
+    "conversation": {
+      "directMessage": "Direktnachricht",
+      "members": "{{count}} Mitglieder",
+      "chatDetails": "Chat-Details",
+      "loadError": "Wir konnten diesen Chat nicht laden.",
+      "loadingEarlier": "Ältere Nachrichten werden geladen…",
+      "newMessagesDivider": "Neue Nachrichten",
+      "deleteYourMessage": "Deine Nachricht löschen",
+      "newSuffix": "neu",
+      "archivedNotice": "Dieser Chat ist geschlossen. Du kannst ihn weiterhin lesen.",
+      "someone": "Jemand",
+      "systemJoined": "{{name}} ist dem Chat beigetreten",
+      "systemLeft": "{{name}} hat den Chat verlassen",
+      "systemRemoved": "{{name}} wurde entfernt",
+      "systemGroupCreated": "{{name}} hat diese Gruppe erstellt"
     }
   },
   "account": {

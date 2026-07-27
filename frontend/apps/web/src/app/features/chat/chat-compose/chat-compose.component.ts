@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, si
 import { LoadingComponent } from '../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ChatService } from '../../../core/services/chat.service';
 
 /** Which kind of thread this compose view is drafting (feature 022 DM, or feature 027 inquiry). */
@@ -18,7 +19,7 @@ type ComposeMode = 'direct' | 'team' | 'event';
  */
 @Component({
   selector: 'jh-chat-compose',
-  imports: [FormsModule, RouterLink, LoadingComponent],
+  imports: [FormsModule, RouterLink, LoadingComponent, TranslocoPipe],
   templateUrl: './chat-compose.component.html',
   styleUrl: './chat-compose.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

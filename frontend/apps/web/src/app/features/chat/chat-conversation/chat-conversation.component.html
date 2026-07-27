@@ -4,7 +4,7 @@
     <a
       routerLink="/chat"
       class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden"
-      aria-label="Back to messages"
+      [attr.aria-label]="'chat.compose.backToMessages' | transloco"
     >
       <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="m15 18-6-6 6-6" />
@@ -17,9 +17,9 @@
       <span class="flex items-center gap-xs">
         <h1 class="truncate text-body-lg font-semibold text-heading">{{ detail()?.name ?? '…' }}</h1>
         @if (detail()?.kind === 'Team') {
-          <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-muted">Team</span>
+          <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-muted">{{ 'chat.inbox.tagTeam' | transloco }}</span>
         } @else if (detail()?.kind === 'Party') {
-          <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-muted">Party</span>
+          <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-muted">{{ 'chat.inbox.tagParty' | transloco }}</span>
         }
       </span>
 
@@ -28,7 +28,7 @@
         <span class="block truncate text-body-sm text-link" data-testid="typing-indicator">{{ typingLabel() }}</span>
       } @else if (detail(); as d) {
         <span class="block text-body-sm text-muted">
-          @if (d.kind === 'Direct') { Direct message } @else { <span class="font-mono">{{ d.memberCount }}</span> members }
+          @if (d.kind === 'Direct') { {{ 'chat.conversation.directMessage' | transloco }} } @else { {{ 'chat.conversation.members' | transloco:{ count: d.memberCount } }} }
         </span>
       }
     </span>
@@ -36,7 +36,7 @@
     <a
       [routerLink]="['/chat', conversationId(), 'details']"
       class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-      aria-label="Chat details"
+      [attr.aria-label]="'chat.conversation.chatDetails' | transloco"
       data-testid="open-details"
     >
       <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -57,12 +57,12 @@
 
     @if (failed()) {
       <p class="rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
-        We couldn't load this chat.
+        {{ 'chat.conversation.loadError' | transloco }}
       </p>
     }
 
     @if (hasMoreHistory() && !loading()) {
-      <jh-loading label="Loading earlier messages…" align="center" />
+      <jh-loading [label]="'chat.conversation.loadingEarlier' | transloco" align="center" />
     }
 
     <ul class="space-y-sm" data-testid="message-list">
@@ -71,7 +71,7 @@
         @if (dividerBeforeId() === m.id) {
           <li class="flex items-center gap-sm py-xs" data-testid="new-messages-divider">
             <span class="h-px flex-1 bg-danger-border"></span>
-            <span class="text-eyebrow uppercase tracking-eyebrow text-danger-fg">New messages</span>
+            <span class="text-eyebrow uppercase tracking-eyebrow text-danger-fg">{{ 'chat.conversation.newMessagesDivider' | transloco }}</span>
             <span class="h-px flex-1 bg-danger-border"></span>
           </li>
         }
@@ -106,7 +106,7 @@
                 [attr.data-testid]="m.isOwn ? 'own-bubble' : 'their-bubble'"
               >
                 @if (m.isDeleted) {
-                  <span class="italic opacity-80">Message deleted</span>
+                  <span class="italic opacity-80">{{ 'chat.inbox.messageDeleted' | transloco }}</span>
                 } @else {
                   <!-- Bound as TEXT, never HTML: user content is never markup (FR-014) -->
                   <span class="whitespace-pre-wrap break-words">{{ m.body }}</span>
@@ -119,7 +119,7 @@
                   type="button"
                   (click)="deleteMessage(m.id)"
                   class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-subtle opacity-0 transition-opacity duration-fast hover:text-danger-fg focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus group-hover:opacity-100"
-                  [attr.aria-label]="'Delete your message'"
+                  [attr.aria-label]="'chat.conversation.deleteYourMessage' | transloco"
                   data-testid="delete-message"
                 >
                   <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -175,7 +175,7 @@
         <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M12 5v14M19 12l-7 7-7-7" />
         </svg>
-        <span class="font-mono">{{ newWhileAway() }}</span> new
+        <span class="font-mono">{{ newWhileAway() }}</span> {{ 'chat.conversation.newSuffix' | transloco }}
       </button>
     </div>
   }
@@ -184,7 +184,7 @@
   <footer class="border-t border-border-muted bg-surface-card px-md py-sm">
     @if (isArchived()) {
       <p class="py-xs text-center text-body-sm text-muted" data-testid="archived-notice">
-        This chat is closed. You can still read it.
+        {{ 'chat.conversation.archivedNotice' | transloco }}
       </p>
     } @else {
       @if (sendError(); as err) {
@@ -195,13 +195,13 @@
 
       <form (ngSubmit)="send()" class="flex items-end gap-sm">
         <label class="min-w-0 flex-1">
-          <span class="sr-only">Message</span>
+          <span class="sr-only">{{ 'chat.compose.messageSr' | transloco }}</span>
           <input
             [ngModel]="draft()"
             (ngModelChange)="onDraftChange($event)"
             name="draft"
             type="text"
-            [placeholder]="'Message ' + (detail()?.name ?? '') + '…'"
+            [placeholder]="'chat.compose.placeholder' | transloco:{ name: detail()?.name ?? '' }"
             maxlength="2000"
             class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
             data-testid="composer"
@@ -213,7 +213,7 @@
           type="submit"
           [disabled]="!canSend()"
           class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-brand text-on-accent shadow-sm transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-          aria-label="Send message"
+          [attr.aria-label]="'chat.compose.sendMessage' | transloco"
           data-testid="send"
         >
           <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
