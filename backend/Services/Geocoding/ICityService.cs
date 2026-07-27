@@ -10,8 +10,13 @@ namespace JuggerHub.Services.Geocoding;
 /// </summary>
 public interface ICityService
 {
-    /// <summary>Type-ahead search for the picker. Never persists anything.</summary>
-    Task<IReadOnlyList<CityOptionDto>> SearchAsync(string query, int limit, CancellationToken ct = default);
+    /// <summary>
+    /// Type-ahead search for the picker. Never persists anything. When <paramref name="userId"/> is
+    /// supplied and that user has a stored home city (feature 030), results are biased toward cities
+    /// near it (feature 032); otherwise ranking falls back to population then name. The proximity
+    /// origin is resolved server-side — the caller never supplies coordinates (Principle I).
+    /// </summary>
+    Task<IReadOnlyList<CityOptionDto>> SearchAsync(string query, int limit, Guid? userId, CancellationToken ct = default);
 
     /// <summary>
     /// Every distinct country in the reference dataset, for the browse country filter's type-ahead,

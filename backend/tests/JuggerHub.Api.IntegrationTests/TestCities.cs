@@ -19,6 +19,9 @@ public static class TestCities
         ["Hamburg"] = (53.5511, 9.9937),
         ["München"] = (48.1351, 11.5820),
         ["Munich"] = (48.1351, 11.5820),
+        // Feature 032 proximity tests: a home city near Springfield, IL (~300km) and far from
+        // Springfield, MO (~700km), so a home-city bias flips the population-only ordering.
+        ["Chicago"] = (41.8781, -87.6298),
     };
 
     public static async Task<City> GetOrCreateAsync(AppDbContext db, string name)

@@ -35,4 +35,11 @@ public sealed class CityReference
     public double Latitude { get; set; }
 
     public double Longitude { get; set; }
+
+    /// <summary>
+    /// Inhabitant count from the GeoNames <c>cities500</c> dataset (feature 032). Drives relevance
+    /// ranking of search options — more populous cities of a shared name lead. Non-negative;
+    /// <c>0</c> means unknown/blank in the source and sorts last within a tier (<c>ORDER BY … DESC</c>).
+    /// </summary>
+    public int Population { get; set; }
 }

@@ -39,10 +39,12 @@ for await (const line of rl) {
   const c = line.split('\t');
   const [id, name, ascii, alts, lat, lon] = [c[0], c[1], c[2], c[3], c[4], c[5]];
   const cc = c[8], adm1 = c[10];
+  // GeoNames cities500 column 14 = population; blank/absent → 0 (ranks last, feature 032).
+  const pop = String(parseInt(c[14], 10) || 0);
   const cname = country.get(cc) || cc;
   const rname = region.get(`${cc}.${adm1}`) || '';
   if (!id || !name || !lat || !lon || !cc) continue;
-  gz.write(`geonames:${id}\t${clean(name)}\t${clean(ascii)}\t${latinAlts(alts)}\t${cc}\t${clean(cname)}\t${clean(rname)}\t${lat}\t${lon}\n`);
+  gz.write(`geonames:${id}\t${clean(name)}\t${clean(ascii)}\t${latinAlts(alts)}\t${cc}\t${clean(cname)}\t${clean(rname)}\t${lat}\t${lon}\t${pop}\n`);
   n++;
 }
 gz.end();
