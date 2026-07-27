@@ -4,6 +4,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { Signal, WritableSignal } from '@angular/core';
 import { AssignPickerComponent } from './assign-picker.component';
 import { RecognitionDefinition } from '../../../core/models/recognition.models';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 function def(over: Partial<RecognitionDefinition>): RecognitionDefinition {
   return {
@@ -32,6 +33,7 @@ describe('AssignPickerComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     httpMock = TestBed.inject(HttpTestingController);

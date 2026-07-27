@@ -4,6 +4,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { Signal, WritableSignal } from '@angular/core';
 import { AdminCatalogueComponent } from './admin-catalogue.component';
 import { RecognitionDefinition, RecognitionKind } from '../../../core/models/recognition.models';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 function def(over: Partial<RecognitionDefinition>): RecognitionDefinition {
   return {
@@ -52,6 +53,7 @@ describe('AdminCatalogueComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting()],
     });
     httpMock = TestBed.inject(HttpTestingController);

@@ -4,6 +4,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AdminTeamsComponent } from './admin-teams.component';
 import { AdminTeamListItem } from '../../../core/models/admin.models';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 const TEAMS: AdminTeamListItem[] = [
   { slug: 'berlin-bison', name: 'Berlin Bison', city: 'Berlin', type: 'CityTeam', memberCount: 18, awardCount: 3 },
@@ -15,6 +16,7 @@ describe('AdminTeamsComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     httpMock = TestBed.inject(HttpTestingController);

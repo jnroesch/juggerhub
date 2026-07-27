@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AdminTeamListItem } from '../../../core/models/admin.models';
 import { AdminService } from '../../../core/services/admin.service';
 import { problemDetail } from '../../../core/utils/problem';
@@ -17,12 +18,13 @@ const PAGE_SIZE = 20;
  */
 @Component({
   selector: 'jh-admin-teams',
-  imports: [RouterLink, FormsModule, LoadingComponent, EmptyStateComponent],
+  imports: [RouterLink, FormsModule, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-teams.component.html',
   styleUrl: './admin-teams.component.css',
 })
 export class AdminTeamsComponent {
   private readonly api = inject(AdminService);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly q = signal('');
   protected readonly skip = signal(0);
@@ -67,7 +69,7 @@ export class AdminTeamsComponent {
         this.loading.set(false);
       },
       error: (e) => {
-        this.error.set(problemDetail(e, 'Could not load teams.'));
+        this.error.set(problemDetail(e, this.transloco.translate('admin.teams.loadError')));
         this.loading.set(false);
       },
     });

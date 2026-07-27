@@ -1,20 +1,20 @@
-<nav class="text-body-sm text-muted" aria-label="Breadcrumb">
-  <a routerLink="/admin/users" class="font-medium text-link hover:text-link-hover">Users</a>
+<nav class="text-body-sm text-muted" [attr.aria-label]="'admin.common.breadcrumb' | transloco">
+  <a routerLink="/admin/users" class="font-medium text-link hover:text-link-hover">{{ 'admin.userDetail.breadcrumb' | transloco }}</a>
   <span aria-hidden="true"> › </span>
   <span>{{ detail()?.displayName ?? '…' }}</span>
 </nav>
 
 @if (loading()) {
-  <jh-loading label="Loading player…" />
+  <jh-loading [label]="'admin.userDetail.loading' | transloco" />
 } @else if (notFound()) {
   <jh-empty-state class="mt-lg" data-testid="admin-user-not-found">
-    <p class="text-body-md text-body">No player matches that handle.</p>
-    <a routerLink="/admin/users" class="mt-xs inline-block text-body-sm font-medium text-link hover:text-link-hover">Back to users</a>
+    <p class="text-body-md text-body">{{ 'admin.userDetail.notFound' | transloco }}</p>
+    <a routerLink="/admin/users" class="mt-xs inline-block text-body-sm font-medium text-link hover:text-link-hover">{{ 'admin.userDetail.notFoundBack' | transloco }}</a>
   </jh-empty-state>
 } @else if (error(); as message) {
   <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
     {{ message }}
-    <button type="button" class="ml-sm font-semibold underline" (click)="load()">Try again</button>
+    <button type="button" class="ml-sm font-semibold underline" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
   </div>
 } @else if (detail(); as player) {
   <!-- Header: who this is + status -->
@@ -24,14 +24,14 @@
       class="rounded-pill px-sm py-0.5 text-caption font-medium"
       [class]="player.status === 'Active' ? 'bg-success-bg text-success-fg' : player.status === 'Suspended' ? 'bg-warning-bg text-warning-fg' : 'bg-danger-bg text-danger-fg'"
       data-testid="admin-user-status"
-    >{{ player.status }}</span>
+    >{{ (player.status === 'Active' ? 'admin.common.statusActive' : player.status === 'Suspended' ? 'admin.common.statusSuspended' : 'admin.common.statusBanned') | transloco }}</span>
     @if (player.isAdmin) {
-      <span class="rounded-pill bg-surface-secondary-soft px-sm py-0.5 text-caption font-medium text-body">Admin</span>
+      <span class="rounded-pill bg-surface-secondary-soft px-sm py-0.5 text-caption font-medium text-body">{{ 'admin.common.adminBadge' | transloco }}</span>
     }
   </div>
   <p class="mt-1 text-body-sm text-muted">
-    &#64;{{ player.handle }}@if (player.location) { · {{ player.location }}} · joined {{ player.joinedAt | date: 'MMM y' }}
-    · <a [href]="'/u/' + player.handle" target="_blank" rel="noopener" class="font-medium text-link hover:text-link-hover">View public profile</a>
+    &#64;{{ player.handle }}@if (player.location) { · {{ player.location }}} · {{ 'admin.userDetail.joined' | transloco }} {{ player.joinedAt | date: 'MMM y' }}
+    · <a [href]="'/u/' + player.handle" target="_blank" rel="noopener" class="font-medium text-link hover:text-link-hover">{{ 'admin.userDetail.viewPublicProfile' | transloco }}</a>
   </p>
 
   @if (actionError(); as message) {
@@ -41,7 +41,7 @@
   }
   @if (resetSent()) {
     <div class="mt-sm rounded-md border border-success-border bg-success-bg px-md py-sm text-body-sm text-success-fg" role="status" data-testid="admin-reset-sent">
-      Reset link sent. They'll get an email with next steps — you never see their password.
+      {{ 'admin.userDetail.resetSent' | transloco }}
     </div>
   }
 
@@ -50,10 +50,10 @@
   <div class="mt-md grid gap-md lg:grid-cols-3">
     <!-- Identity & activity -->
     <section class="order-3 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-1 lg:col-span-2">
-      <h2 class="text-h4 font-bold text-heading">Identity</h2>
+      <h2 class="text-h4 font-bold text-heading">{{ 'admin.userDetail.identityTitle' | transloco }}</h2>
       <dl class="mt-sm grid gap-sm sm:grid-cols-2">
         <div>
-          <dt class="text-caption text-subtle">Teams · clubs</dt>
+          <dt class="text-caption text-subtle">{{ 'admin.userDetail.teamsClubs' | transloco }}</dt>
           <dd class="mt-1 flex flex-wrap gap-xs">
             @if (player.teams.length === 0) {
               <span class="text-body-sm text-muted">—</span>
@@ -64,7 +64,7 @@
           </dd>
         </div>
         <div>
-          <dt class="text-caption text-subtle">Plays</dt>
+          <dt class="text-caption text-subtle">{{ 'admin.userDetail.plays' | transloco }}</dt>
           <dd class="mt-1 flex flex-wrap gap-xs">
             @if (player.pompfen.length === 0) {
               <span class="text-body-sm text-muted">—</span>
@@ -75,18 +75,18 @@
           </dd>
         </div>
         <div>
-          <dt class="text-caption text-subtle">Last active</dt>
+          <dt class="text-caption text-subtle">{{ 'admin.userDetail.lastActive' | transloco }}</dt>
           <dd class="mt-1 text-body-sm text-body">{{ player.lastActiveAt ? (player.lastActiveAt | date: 'MMM d, y') : '—' }}</dd>
         </div>
         <div>
-          <dt class="text-caption text-subtle">Player id</dt>
+          <dt class="text-caption text-subtle">{{ 'admin.userDetail.playerId' | transloco }}</dt>
           <dd class="mt-1 break-all font-mono text-caption text-muted">{{ player.userId }}</dd>
         </div>
       </dl>
 
-      <h3 class="mt-md text-body-md font-semibold text-heading">Recent activity</h3>
+      <h3 class="mt-md text-body-md font-semibold text-heading">{{ 'admin.userDetail.recentActivity' | transloco }}</h3>
       @if (player.recentActivity.length === 0) {
-        <p class="mt-xs text-body-sm text-muted">Nothing yet — activity from events shows up here.</p>
+        <p class="mt-xs text-body-sm text-muted">{{ 'admin.userDetail.recentActivityEmpty' | transloco }}</p>
       } @else {
         <ul class="mt-xs divide-y divide-border-muted">
           @for (item of player.recentActivity; track item.title + item.date) {
@@ -101,61 +101,61 @@
 
     <!-- Account help (wireframe 1d) -->
     <section class="order-2 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-2">
-      <h2 class="text-h4 font-bold text-heading">Account</h2>
+      <h2 class="text-h4 font-bold text-heading">{{ 'admin.userDetail.accountTitle' | transloco }}</h2>
       @if (player.isAdmin) {
         <p class="mt-sm rounded-md bg-surface-sunken px-sm py-xs text-body-sm text-muted" data-testid="admin-shield-note">
-          This is an admin account — it can't be suspended or banned. Remove it from the admin configuration first.
+          {{ 'admin.userDetail.adminShieldNote' | transloco }}
         </p>
       }
 
       <div class="mt-sm flex flex-col gap-md">
         @if (player.status === 'Active' && !player.isAdmin) {
           <div>
-            <p class="text-body-sm font-semibold text-body">Suspend account</p>
-            <p class="text-caption text-muted">Blocks sign-in; everything they've built stays visible. Reversible any time.</p>
+            <p class="text-body-sm font-semibold text-body">{{ 'admin.userDetail.suspendTitle' | transloco }}</p>
+            <p class="text-caption text-muted">{{ 'admin.userDetail.suspendDesc' | transloco }}</p>
             <button type="button" class="mt-xs h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('suspend')" data-testid="admin-action-suspend">
-              Suspend…
+              {{ 'admin.userDetail.suspendAction' | transloco }}
             </button>
           </div>
         }
         @if (player.status === 'Suspended') {
           <div>
-            <p class="text-body-sm font-semibold text-body">Reinstate account</p>
-            <p class="text-caption text-muted">Lifts the suspension — they can sign in again right away.</p>
+            <p class="text-body-sm font-semibold text-body">{{ 'admin.userDetail.reinstateTitle' | transloco }}</p>
+            <p class="text-caption text-muted">{{ 'admin.userDetail.reinstateDesc' | transloco }}</p>
             <button type="button" class="mt-xs h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('reinstate')" data-testid="admin-action-reinstate">
-              Reinstate
+              {{ 'admin.userDetail.reinstateAction' | transloco }}
             </button>
           </div>
         }
         @if (player.status !== 'Banned') {
           <div>
-            <p class="text-body-sm font-semibold text-body">Reset password</p>
-            <p class="text-caption text-muted">Sends a login link to their email. You never see or set it.</p>
+            <p class="text-body-sm font-semibold text-body">{{ 'admin.userDetail.resetTitle' | transloco }}</p>
+            <p class="text-caption text-muted">{{ 'admin.userDetail.resetDesc' | transloco }}</p>
             <button type="button" class="mt-xs h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('reset')" data-testid="admin-action-reset">
-              Send reset link
+              {{ 'admin.userDetail.resetAction' | transloco }}
             </button>
           </div>
         }
         @if (player.status !== 'Banned' && !player.isAdmin) {
           <div>
-            <p class="text-body-sm font-semibold text-danger-fg">Ban account</p>
-            <p class="text-caption text-muted">Removes them from the app entirely and blocks their email from re-registering. An admin can reinstate later.</p>
+            <p class="text-body-sm font-semibold text-danger-fg">{{ 'admin.userDetail.banTitle' | transloco }}</p>
+            <p class="text-caption text-muted">{{ 'admin.userDetail.banDesc' | transloco }}</p>
             <button type="button" jhButton variant="danger" class="mt-xs" [disabled]="acting()" (click)="act('ban')" data-testid="admin-action-ban">
-              Ban…
+              {{ 'admin.userDetail.banAction' | transloco }}
             </button>
           </div>
         }
         @if (player.status === 'Banned') {
           <div>
-            <p class="text-body-sm font-semibold text-body">Lift ban</p>
-            <p class="text-caption text-muted">Their profile, teams, and badges return intact, and they can sign in again.</p>
+            <p class="text-body-sm font-semibold text-body">{{ 'admin.userDetail.unbanTitle' | transloco }}</p>
+            <p class="text-caption text-muted">{{ 'admin.userDetail.unbanDesc' | transloco }}</p>
             <button type="button" class="mt-xs h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40" [disabled]="acting()" (click)="act('unban')" data-testid="admin-action-unban">
-              Lift ban
+              {{ 'admin.userDetail.unbanAction' | transloco }}
             </button>
           </div>
         }
       </div>
-      <p class="mt-md text-caption text-subtle">All reversible · every action is recorded.</p>
+      <p class="mt-md text-caption text-subtle">{{ 'admin.userDetail.allReversible' | transloco }}</p>
     </section>
 
     <!-- Badges & achievements with Assign (wireframe 1d/1e; UI migrated from 012's
@@ -163,7 +163,7 @@
     <section class="order-1 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-3 lg:col-span-3" data-testid="subject-awards">
       <div class="flex items-center justify-between gap-sm">
         <h2 class="text-h4 font-bold text-heading">
-          Badges &amp; achievements
+          {{ 'admin.userDetail.badgesTitle' | transloco }}
           <span class="ml-1 font-mono text-body-sm font-normal text-muted">{{ awardCount() }}</span>
         </h2>
         <button
@@ -173,23 +173,23 @@
           jhButton
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-          Assign
+          {{ 'admin.userDetail.assign' | transloco }}
         </button>
       </div>
 
       @if (awards(); as held) {
         <div class="mt-md grid gap-lg sm:grid-cols-2">
           <section>
-            <p class="text-eyebrow uppercase text-muted">Badges</p>
+            <p class="text-eyebrow uppercase text-muted">{{ 'admin.userDetail.badges' | transloco }}</p>
             @if (held.badges.length === 0) {
-              <p class="mt-xs text-body-sm text-faint">None yet.</p>
+              <p class="mt-xs text-body-sm text-faint">{{ 'admin.userDetail.noneYet' | transloco }}</p>
             } @else {
               <ul class="mt-sm flex flex-col gap-xs">
                 @for (a of held.badges; track a.awardId) {
                   <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
                     <span class="min-w-0">
                       <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
-                      <span class="block text-caption text-muted">by {{ a.grantedByName }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
+                      <span class="block text-caption text-muted">{{ 'admin.userDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
                       @if (a.note) { <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span> }
                     </span>
                     <button
@@ -197,7 +197,7 @@
                       (click)="revoke(a, 'badge')"
                       jhButton variant="danger" size="sm" class="shrink-0"
                     >
-                      Revoke
+                      {{ 'admin.common.revoke' | transloco }}
                     </button>
                   </li>
                 }
@@ -206,16 +206,16 @@
           </section>
 
           <section>
-            <p class="text-eyebrow uppercase text-muted">Achievements</p>
+            <p class="text-eyebrow uppercase text-muted">{{ 'admin.userDetail.achievements' | transloco }}</p>
             @if (held.achievements.length === 0) {
-              <p class="mt-xs text-body-sm text-faint">None yet.</p>
+              <p class="mt-xs text-body-sm text-faint">{{ 'admin.userDetail.noneYet' | transloco }}</p>
             } @else {
               <ul class="mt-sm flex flex-col gap-xs">
                 @for (a of held.achievements; track a.awardId) {
                   <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
                     <span class="min-w-0">
                       <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
-                      <span class="block text-caption text-muted">by {{ a.grantedByName }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
+                      <span class="block text-caption text-muted">{{ 'admin.userDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
                       @if (a.contextLabel || a.contextYear) {
                         <span class="block truncate text-caption text-subtle">{{ a.contextLabel }} {{ a.contextYear }}</span>
                       } @else if (a.note) {
@@ -227,7 +227,7 @@
                       (click)="revoke(a, 'achievement')"
                       jhButton variant="danger" size="sm" class="shrink-0"
                     >
-                      Revoke
+                      {{ 'admin.common.revoke' | transloco }}
                     </button>
                   </li>
                 }
@@ -236,7 +236,7 @@
           </section>
         </div>
       } @else {
-        <p class="mt-sm text-body-sm text-muted">Couldn't load their badges right now.</p>
+        <p class="mt-sm text-body-sm text-muted">{{ 'admin.userDetail.awardsLoadError' | transloco }}</p>
       }
     </section>
   </div>

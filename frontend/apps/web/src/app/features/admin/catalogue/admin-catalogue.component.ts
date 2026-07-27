@@ -3,6 +3,7 @@ import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../..
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { RecognitionDefinition, RecognitionKind } from '../../../core/models/recognition.models';
 import { RecognitionAdminService } from '../../../core/services/recognition-admin.service';
 import { problemDetail } from '../../../core/utils/problem';
@@ -23,13 +24,14 @@ const ICON_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
  */
 @Component({
   selector: 'jh-admin-catalogue',
-  imports: [DatePipe, FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent],
+  imports: [DatePipe, FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-catalogue.component.html',
   styleUrl: './admin-catalogue.component.css',
 })
 export class AdminCatalogueComponent {
   private readonly recognition = inject(RecognitionAdminService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly nameMax = NAME_MAX;
   protected readonly descriptionMax = DESCRIPTION_MAX;
@@ -113,7 +115,7 @@ export class AdminCatalogueComponent {
         this.loading.set(false);
       },
       error: (e) => {
-        this.error.set(problemDetail(e, 'Could not load the catalogue.'));
+        this.error.set(problemDetail(e, this.transloco.translate('admin.catalogue.loadError')));
         this.loading.set(false);
       },
     });
@@ -182,7 +184,7 @@ export class AdminCatalogueComponent {
       },
       error: (e) => {
         this.saving.set(false);
-        this.formError.set(problemDetail(e, 'Could not save that type.'));
+        this.formError.set(problemDetail(e, this.transloco.translate('admin.catalogue.saveError')));
       },
     });
   }
@@ -220,11 +222,11 @@ export class AdminCatalogueComponent {
   private selectIconFile(file: File): void {
     // Client-side hint only — the server sniffs the bytes and enforces the real limit.
     if (!ICON_TYPES.includes(file.type)) {
-      this.iconError.set('Use a PNG, JPEG, or WebP image.');
+      this.iconError.set(this.transloco.translate('admin.catalogue.iconErrorType'));
       return;
     }
     if (file.size > ICON_MAX_BYTES) {
-      this.iconError.set('That image is too large (max 512 KB).');
+      this.iconError.set(this.transloco.translate('admin.catalogue.iconErrorSize'));
       return;
     }
     this.iconError.set(null);
@@ -246,7 +248,7 @@ export class AdminCatalogueComponent {
       next: () => this.afterIconChange(),
       error: (e) => {
         this.iconBusy.set(false);
-        this.iconError.set(problemDetail(e, 'Could not save that image.'));
+        this.iconError.set(problemDetail(e, this.transloco.translate('admin.catalogue.iconSaveError')));
       },
     });
   }
@@ -262,7 +264,7 @@ export class AdminCatalogueComponent {
       next: () => this.afterIconChange(),
       error: (e) => {
         this.iconBusy.set(false);
-        this.iconError.set(problemDetail(e, 'Could not remove that image.'));
+        this.iconError.set(problemDetail(e, this.transloco.translate('admin.catalogue.iconRemoveError')));
       },
     });
   }
@@ -312,7 +314,7 @@ export class AdminCatalogueComponent {
       error: (e) => {
         this.actionBusy.set(false);
         this.retireTarget.set(null);
-        this.error.set(problemDetail(e, 'Could not retire that type.'));
+        this.error.set(problemDetail(e, this.transloco.translate('admin.catalogue.retireError')));
       },
     });
   }
@@ -329,7 +331,7 @@ export class AdminCatalogueComponent {
       },
       error: (e) => {
         this.actionBusy.set(false);
-        this.error.set(problemDetail(e, 'Could not reinstate that type.'));
+        this.error.set(problemDetail(e, this.transloco.translate('admin.catalogue.reinstateError')));
       },
     });
   }

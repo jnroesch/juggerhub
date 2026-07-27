@@ -1,17 +1,17 @@
 <div class="flex flex-wrap items-baseline justify-between gap-sm">
-  <h1 class="text-h3 font-bold text-heading">Teams</h1>
-  <span class="font-mono text-body-sm text-muted" data-testid="admin-teams-total">{{ total() }} teams</span>
+  <h1 class="text-h3 font-bold text-heading">{{ 'admin.teams.title' | transloco }}</h1>
+  <span class="font-mono text-body-sm text-muted" data-testid="admin-teams-total">{{ total() }} {{ 'admin.teams.teamsLower' | transloco }}</span>
 </div>
-<p class="mt-xs text-body-md text-muted">Find a team to assign badges &amp; achievements to it.</p>
+<p class="mt-xs text-body-md text-muted">{{ 'admin.teams.lead' | transloco }}</p>
 
 <!-- Search -->
 <div class="mt-md">
   <label class="relative block">
-    <span class="sr-only">Find by team name or city</span>
+    <span class="sr-only">{{ 'admin.teams.searchLabel' | transloco }}</span>
     <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
     <input
       type="search"
-      placeholder="Find by team name or city…"
+      [placeholder]="'admin.teams.searchPlaceholder' | transloco"
       class="h-11 w-full rounded-md border border-border-strong bg-surface-card pl-9 pr-md text-body-md text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       [ngModel]="q()"
       (ngModelChange)="onType($event)"
@@ -22,16 +22,16 @@
 </div>
 
 @if (loading()) {
-  <jh-loading label="Finding teams…" />
+  <jh-loading [label]="'admin.teams.loading' | transloco" />
 } @else if (error(); as message) {
   <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
     {{ message }}
-    <button type="button" class="ml-sm font-semibold underline" (click)="load()">Try again</button>
+    <button type="button" class="ml-sm font-semibold underline" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
   </div>
 } @else if (items().length === 0) {
   <jh-empty-state class="mt-lg" data-testid="admin-teams-empty">
-    <p class="text-body-md text-body">No teams match that.</p>
-    <p class="mt-1 text-body-sm text-muted">Try a different name or city.</p>
+    <p class="text-body-md text-body">{{ 'admin.teams.empty' | transloco }}</p>
+    <p class="mt-1 text-body-sm text-muted">{{ 'admin.teams.emptyHint' | transloco }}</p>
   </jh-empty-state>
 } @else {
   <!-- Desktop: a calm table -->
@@ -39,11 +39,11 @@
     <table class="w-full text-left" data-testid="admin-teams-table">
       <thead>
         <tr class="border-b border-border-muted text-caption text-subtle">
-          <th class="px-md py-sm font-medium">Team</th>
-          <th class="px-md py-sm font-medium">City</th>
-          <th class="px-md py-sm text-right font-medium">Members</th>
-          <th class="px-md py-sm text-right font-medium">Awards</th>
-          <th class="px-md py-sm"><span class="sr-only">Open</span></th>
+          <th class="px-md py-sm font-medium">{{ 'admin.teams.colTeam' | transloco }}</th>
+          <th class="px-md py-sm font-medium">{{ 'admin.teams.colCity' | transloco }}</th>
+          <th class="px-md py-sm text-right font-medium">{{ 'admin.teams.colMembers' | transloco }}</th>
+          <th class="px-md py-sm text-right font-medium">{{ 'admin.teams.colAwards' | transloco }}</th>
+          <th class="px-md py-sm"><span class="sr-only">{{ 'admin.common.open' | transloco }}</span></th>
         </tr>
       </thead>
       <tbody>
@@ -55,7 +55,7 @@
           >
             <td class="px-md py-sm">
               <span class="block text-body-sm font-medium text-body">{{ row.name }}</span>
-              <span class="block text-caption text-subtle">{{ row.type === 'CityTeam' ? 'City team' : 'Mixteam' }}</span>
+              <span class="block text-caption text-subtle">{{ (row.type === 'CityTeam' ? 'admin.teams.cityTeam' : 'admin.teams.mixteam') | transloco }}</span>
             </td>
             <td class="px-md py-sm text-body-sm text-muted">{{ row.location || '—' }}</td>
             <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.memberCount }}</td>
@@ -78,10 +78,10 @@
         >
           <span class="flex items-center justify-between gap-sm">
             <span class="truncate text-body-sm font-semibold text-body">{{ row.name }}</span>
-            <span class="whitespace-nowrap font-mono text-caption text-muted">{{ row.awardCount }} {{ row.awardCount === 1 ? 'award' : 'awards' }}</span>
+            <span class="whitespace-nowrap font-mono text-caption text-muted">{{ row.awardCount }} {{ (row.awardCount === 1 ? 'admin.teams.awardOne' : 'admin.teams.awardMany') | transloco }}</span>
           </span>
           <span class="mt-1 block text-caption text-subtle">
-            {{ row.type === 'CityTeam' ? 'City team' : 'Mixteam' }}@if (row.location) { · {{ row.location }}} · <span class="font-mono">{{ row.memberCount }}</span> members
+            {{ (row.type === 'CityTeam' ? 'admin.teams.cityTeam' : 'admin.teams.mixteam') | transloco }}@if (row.location) { · {{ row.location }}} · <span class="font-mono">{{ row.memberCount }}</span> {{ 'admin.teams.membersLower' | transloco }}
           </span>
         </a>
       </li>
@@ -91,13 +91,13 @@
   <!-- Pagination -->
   <div class="mt-md flex items-center justify-between gap-sm">
     <span class="font-mono text-caption text-subtle" data-testid="admin-teams-range">
-      Showing {{ rangeStart() }}–{{ rangeEnd() }} of {{ total() }}
+      {{ 'admin.common.showing' | transloco:{ start: rangeStart(), end: rangeEnd(), total: total() } }}
     </span>
     <div class="flex gap-xs">
       <button type="button" class="h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40"
-        [disabled]="!hasPrev()" (click)="page(-1)">‹ Prev</button>
+        [disabled]="!hasPrev()" (click)="page(-1)">{{ 'admin.common.prev' | transloco }}</button>
       <button type="button" class="h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40"
-        [disabled]="!hasNext()" (click)="page(1)" data-testid="admin-teams-next">Next ›</button>
+        [disabled]="!hasNext()" (click)="page(1)" data-testid="admin-teams-next">{{ 'admin.common.next' | transloco }}</button>
     </div>
   </div>
 }

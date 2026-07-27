@@ -3,6 +3,7 @@ import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../..
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { map } from 'rxjs';
 import { AdminUserDetail } from '../../../core/models/admin.models';
 import { AdminAward, AdminSubjectAwards } from '../../../core/models/recognition.models';
@@ -23,7 +24,7 @@ type AccountAction = 'suspend' | 'reinstate' | 'ban' | 'unban' | 'reset';
  */
 @Component({
   selector: 'jh-admin-user-detail',
-  imports: [DatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent],
+  imports: [DatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-user-detail.component.html',
   styleUrl: './admin-user-detail.component.css',
 })
@@ -31,6 +32,7 @@ export class AdminUserDetailComponent {
   private readonly api = inject(AdminService);
   private readonly recognition = inject(RecognitionAdminService);
   private readonly route = inject(ActivatedRoute);
+  private readonly transloco = inject(TranslocoService);
 
   private readonly handle = toSignal(this.route.paramMap.pipe(map((p) => p.get('handle') ?? '')), {
     initialValue: this.route.snapshot.paramMap.get('handle') ?? '',
@@ -79,7 +81,7 @@ export class AdminUserDetailComponent {
         if (e?.status === 404) {
           this.notFound.set(true);
         } else {
-          this.error.set(problemDetail(e, 'Could not load that player.'));
+          this.error.set(problemDetail(e, this.transloco.translate('admin.userDetail.loadError')));
         }
       },
     });
@@ -102,11 +104,11 @@ export class AdminUserDetailComponent {
     }
 
     const prompts: Record<AccountAction, string> = {
-      suspend: `Suspend @${d.handle}? They can't sign in until an admin reinstates them — everything they've built stays visible. Reversible any time.`,
-      reinstate: `Reinstate @${d.handle}? They can sign in again right away.`,
-      ban: `Ban @${d.handle}? They disappear from the app entirely, can't sign in, and their email can't register again. An admin can undo this later.`,
-      unban: `Lift the ban on @${d.handle}? Their profile, teams, and badges return, and they can sign in again.`,
-      reset: `Send @${d.handle} a password reset link? You never see or set their password.`,
+      suspend: this.transloco.translate('admin.userDetail.confirmSuspend', { handle: d.handle }),
+      reinstate: this.transloco.translate('admin.userDetail.confirmReinstate', { handle: d.handle }),
+      ban: this.transloco.translate('admin.userDetail.confirmBan', { handle: d.handle }),
+      unban: this.transloco.translate('admin.userDetail.confirmUnban', { handle: d.handle }),
+      reset: this.transloco.translate('admin.userDetail.confirmReset', { handle: d.handle }),
     };
     if (!confirm(prompts[action])) {
       return;
@@ -134,7 +136,7 @@ export class AdminUserDetailComponent {
       },
       error: (e) => {
         this.acting.set(false);
-        this.actionError.set(problemDetail(e, 'That didn’t work. Try again.'));
+        this.actionError.set(problemDetail(e, this.transloco.translate('admin.userDetail.actionFailed')));
       },
     });
   }
@@ -155,7 +157,14 @@ export class AdminUserDetailComponent {
   }
 
   protected revoke(award: AdminAward, kind: AwardKind): void {
-    if (!confirm(`Revoke “${award.name}” from @${this.detail()?.handle}? It can be re-granted later.`)) {
+    if (
+      !confirm(
+        this.transloco.translate('admin.userDetail.confirmRevoke', {
+          name: award.name,
+          handle: this.detail()?.handle,
+        }),
+      )
+    ) {
       return;
     }
     const call =

@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { filter, map } from 'rxjs';
 
 /**
@@ -11,7 +12,7 @@ import { filter, map } from 'rxjs';
  */
 @Component({
   selector: 'jh-admin-shell',
-  imports: [RouterLink, RouterOutlet],
+  imports: [RouterLink, RouterOutlet, TranslocoPipe],
   templateUrl: './admin-shell.component.html',
   styleUrl: './admin-shell.component.css',
 })

@@ -4,12 +4,12 @@
     class="flex max-h-[90vh] w-full max-w-container-sm flex-col overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
     role="dialog"
     aria-modal="true"
-    aria-label="Grant a badge or achievement"
+    [attr.aria-label]="'admin.assign.dialogLabel' | transloco"
     data-testid="assign-modal"
   >
     <div class="flex items-center justify-between border-b border-border-muted px-md py-sm">
-      <h3 class="text-body-lg font-semibold text-heading">Grant to {{ subjectLabel() }}</h3>
-      <button type="button" (click)="close()" class="text-muted hover:text-body" aria-label="Close">
+      <h3 class="text-body-lg font-semibold text-heading">{{ 'admin.assign.grantTo' | transloco:{ subject: subjectLabel() } }}</h3>
+      <button type="button" (click)="close()" class="text-muted hover:text-body" [attr.aria-label]="'admin.assign.close' | transloco">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M18 6 6 18M6 6l12 12" /></svg>
       </button>
     </div>
@@ -24,7 +24,7 @@
           [class.text-muted]="tab() !== 'badge'"
           (click)="switchTab('badge')"
         >
-          Badges
+          {{ 'admin.assign.badges' | transloco }}
         </button>
         <button
           type="button"
@@ -34,14 +34,14 @@
           [class.text-muted]="tab() !== 'achievement'"
           (click)="switchTab('achievement')"
         >
-          Achievements
+          {{ 'admin.assign.achievements' | transloco }}
         </button>
       </div>
     </div>
 
     <div class="min-h-0 flex-1 overflow-y-auto p-md">
       @if (pickerItems().length === 0) {
-        <p class="text-body-sm text-faint">Nothing in the catalogue applies here yet.</p>
+        <p class="text-body-sm text-faint">{{ 'admin.assign.nothingApplies' | transloco }}</p>
       } @else {
         <ul class="grid grid-cols-2 gap-sm sm:grid-cols-3">
           @for (d of pickerItems(); track d.id) {
@@ -67,7 +67,7 @@
                 </span>
                 <span class="block w-full truncate text-body-sm font-medium text-heading">{{ d.name }}</span>
                 @if (isHeld(d.id)) {
-                  <span class="text-caption font-semibold text-success-fg">Given</span>
+                  <span class="text-caption font-semibold text-success-fg">{{ 'admin.assign.given' | transloco }}</span>
                 }
               </button>
             </li>
@@ -78,25 +78,25 @@
       @if (tab() === 'achievement' && selectedDefId()) {
         <div class="mt-md grid grid-cols-2 gap-sm">
           <label class="block">
-            <span class="text-caption font-medium text-muted">Year (optional)</span>
-            <input type="number" [ngModel]="contextYear()" (ngModelChange)="contextYear.set($event)" placeholder="2026"
+            <span class="text-caption font-medium text-muted">{{ 'admin.assign.yearOptional' | transloco }}</span>
+            <input type="number" [ngModel]="contextYear()" (ngModelChange)="contextYear.set($event)" [placeholder]="'admin.assign.yearPlaceholder' | transloco"
               class="mt-xs h-10 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm" />
           </label>
           <label class="block">
-            <span class="text-caption font-medium text-muted">Label (optional)</span>
-            <input type="text" [ngModel]="contextLabel()" (ngModelChange)="contextLabel.set($event)" placeholder="National championship"
+            <span class="text-caption font-medium text-muted">{{ 'admin.assign.labelOptional' | transloco }}</span>
+            <input type="text" [ngModel]="contextLabel()" (ngModelChange)="contextLabel.set($event)" [placeholder]="'admin.assign.labelPlaceholder' | transloco"
               class="mt-xs h-10 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm" />
           </label>
         </div>
       }
 
       <label class="mt-md block">
-        <span class="text-caption font-medium text-muted">Note (optional) — shows in the admin log</span>
+        <span class="text-caption font-medium text-muted">{{ 'admin.assign.noteOptional' | transloco }}</span>
         <input
           type="text"
           [ngModel]="note()"
           (ngModelChange)="note.set($event)"
-          placeholder="Why are they getting this?"
+          [placeholder]="'admin.assign.notePlaceholder' | transloco"
           data-testid="grant-note"
           class="mt-xs h-10 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm"
         />
@@ -109,7 +109,7 @@
 
     <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
       <button type="button" (click)="close()" jhButton variant="secondary" size="sm">
-        Cancel
+        {{ 'admin.assign.cancel' | transloco }}
       </button>
       <button
         type="button"
@@ -118,7 +118,7 @@
         data-testid="grant-submit"
         jhButton size="sm"
       >
-        {{ granting() ? 'Granting…' : 'Grant' }}
+        {{ (granting() ? 'admin.assign.granting' : 'admin.assign.grant') | transloco }}
       </button>
     </div>
   </div>

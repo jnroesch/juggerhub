@@ -1,16 +1,16 @@
 <div class="flex flex-wrap items-baseline justify-between gap-sm">
-  <h1 class="text-h3 font-bold text-heading">Users</h1>
-  <span class="font-mono text-body-sm text-muted" data-testid="admin-users-total">{{ total() }} players</span>
+  <h1 class="text-h3 font-bold text-heading">{{ 'admin.users.title' | transloco }}</h1>
+  <span class="font-mono text-body-sm text-muted" data-testid="admin-users-total">{{ total() }} {{ 'admin.users.playersLower' | transloco }}</span>
 </div>
 
 <!-- Search first (built for hundreds) + status filter chips -->
 <div class="mt-md flex flex-wrap items-center gap-sm">
   <label class="relative block min-w-0 flex-1 basis-64">
-    <span class="sr-only">Find by name, handle or team</span>
+    <span class="sr-only">{{ 'admin.users.searchLabel' | transloco }}</span>
     <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
     <input
       type="search"
-      placeholder="Find by name, @handle or team…"
+      [placeholder]="'admin.users.searchPlaceholder' | transloco"
       class="h-11 w-full rounded-md border border-border-strong bg-surface-card pl-9 pr-md text-body-md text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       [ngModel]="q()"
       (ngModelChange)="onType($event)"
@@ -18,47 +18,47 @@
       data-testid="admin-users-search"
     />
   </label>
-  <div class="flex gap-1" role="group" aria-label="Filter by status">
+  <div class="flex gap-1" role="group" [attr.aria-label]="'admin.users.filterGroup' | transloco">
     <button
       type="button"
       class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
       [class]="status() === null ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-text'"
       (click)="setStatus(null)"
-    >All</button>
+    >{{ 'admin.users.filterAll' | transloco }}</button>
     <button
       type="button"
       class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
       [class]="status() === 'Active' ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-text'"
       (click)="setStatus('Active')"
-    >Active</button>
+    >{{ 'admin.common.statusActive' | transloco }}</button>
     <button
       type="button"
       class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
       [class]="status() === 'Suspended' ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-text'"
       (click)="setStatus('Suspended')"
       data-testid="admin-users-filter-suspended"
-    >Suspended</button>
+    >{{ 'admin.common.statusSuspended' | transloco }}</button>
     <button
       type="button"
       class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
       [class]="status() === 'Banned' ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-text'"
       (click)="setStatus('Banned')"
       data-testid="admin-users-filter-banned"
-    >Banned</button>
+    >{{ 'admin.common.statusBanned' | transloco }}</button>
   </div>
 </div>
 
 @if (loading()) {
-  <jh-loading label="Finding players…" />
+  <jh-loading [label]="'admin.users.loading' | transloco" />
 } @else if (error(); as message) {
   <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
     {{ message }}
-    <button type="button" class="ml-sm font-semibold underline" (click)="load()">Try again</button>
+    <button type="button" class="ml-sm font-semibold underline" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
   </div>
 } @else if (items().length === 0) {
   <jh-empty-state class="mt-lg" data-testid="admin-users-empty">
-    <p class="text-body-md text-body">No players match that.</p>
-    <p class="mt-1 text-body-sm text-muted">Try a different name, &#64;handle, or team — or clear the filter.</p>
+    <p class="text-body-md text-body">{{ 'admin.users.empty' | transloco }}</p>
+    <p class="mt-1 text-body-sm text-muted">{{ 'admin.users.emptyHint' | transloco }}</p>
   </jh-empty-state>
 } @else {
   <!-- Desktop: a calm table -->
@@ -66,11 +66,11 @@
     <table class="w-full text-left" data-testid="admin-users-table">
       <thead>
         <tr class="border-b border-border-muted text-caption text-subtle">
-          <th class="px-md py-sm font-medium">Player</th>
-          <th class="px-md py-sm font-medium">Teams</th>
-          <th class="px-md py-sm font-medium">Status</th>
-          <th class="px-md py-sm text-right font-medium">Badges</th>
-          <th class="px-md py-sm"><span class="sr-only">Open</span></th>
+          <th class="px-md py-sm font-medium">{{ 'admin.users.colPlayer' | transloco }}</th>
+          <th class="px-md py-sm font-medium">{{ 'admin.users.colTeams' | transloco }}</th>
+          <th class="px-md py-sm font-medium">{{ 'admin.users.colStatus' | transloco }}</th>
+          <th class="px-md py-sm text-right font-medium">{{ 'admin.users.colBadges' | transloco }}</th>
+          <th class="px-md py-sm"><span class="sr-only">{{ 'admin.common.open' | transloco }}</span></th>
         </tr>
       </thead>
       <tbody>
@@ -84,7 +84,7 @@
               <span class="flex items-center gap-xs">
                 <span class="block text-body-sm font-medium text-body">{{ row.displayName }}</span>
                 @if (row.isAdmin) {
-                  <span class="rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-caption font-medium text-body">Admin</span>
+                  <span class="rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-caption font-medium text-body">{{ 'admin.common.adminBadge' | transloco }}</span>
                 }
               </span>
               <span class="block text-caption text-subtle">&#64;{{ row.handle }}</span>
@@ -96,7 +96,7 @@
               <span
                 class="inline-flex items-center gap-1 rounded-pill px-xs py-0.5 text-caption font-medium"
                 [class]="row.status === 'Active' ? 'bg-success-bg text-success-fg' : row.status === 'Suspended' ? 'bg-warning-bg text-warning-fg' : 'bg-danger-bg text-danger-fg'"
-              >{{ row.status === 'Active' ? 'Active' : row.status === 'Suspended' ? 'Suspended' : 'Banned' }}</span>
+              >{{ (row.status === 'Active' ? 'admin.common.statusActive' : row.status === 'Suspended' ? 'admin.common.statusSuspended' : 'admin.common.statusBanned') | transloco }}</span>
             </td>
             <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.badgeCount }}</td>
             <td class="px-md py-sm text-right text-subtle" aria-hidden="true">›</td>
@@ -125,12 +125,12 @@
             <span
               class="whitespace-nowrap rounded-pill px-xs py-0.5 text-caption font-medium"
               [class]="row.status === 'Active' ? 'bg-success-bg text-success-fg' : row.status === 'Suspended' ? 'bg-warning-bg text-warning-fg' : 'bg-danger-bg text-danger-fg'"
-            >{{ row.status }}</span>
+            >{{ (row.status === 'Active' ? 'admin.common.statusActive' : row.status === 'Suspended' ? 'admin.common.statusSuspended' : 'admin.common.statusBanned') | transloco }}</span>
           </span>
           <span class="mt-1 block truncate text-caption text-subtle">
             &#64;{{ row.handle }}@if (row.teams.length) { · {{ row.teams.join(' · ') }}}
           </span>
-          <span class="mt-1 block font-mono text-caption text-muted">{{ row.badgeCount }} {{ row.badgeCount === 1 ? 'badge' : 'badges' }}</span>
+          <span class="mt-1 block font-mono text-caption text-muted">{{ row.badgeCount }} {{ (row.badgeCount === 1 ? 'admin.users.badgeOne' : 'admin.users.badgeMany') | transloco }}</span>
         </a>
       </li>
     }
@@ -139,7 +139,7 @@
   <!-- Pagination -->
   <div class="mt-md flex items-center justify-between gap-sm">
     <span class="font-mono text-caption text-subtle" data-testid="admin-users-range">
-      Showing {{ rangeStart() }}–{{ rangeEnd() }} of {{ total() }}
+      {{ 'admin.common.showing' | transloco:{ start: rangeStart(), end: rangeEnd(), total: total() } }}
     </span>
     <div class="flex gap-xs">
       <button
@@ -147,14 +147,14 @@
         class="h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40"
         [disabled]="!hasPrev()"
         (click)="page(-1)"
-      >‹ Prev</button>
+      >{{ 'admin.common.prev' | transloco }}</button>
       <button
         type="button"
         class="h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40"
         [disabled]="!hasNext()"
         (click)="page(1)"
         data-testid="admin-users-next"
-      >Next ›</button>
+      >{{ 'admin.common.next' | transloco }}</button>
     </div>
   </div>
 }
