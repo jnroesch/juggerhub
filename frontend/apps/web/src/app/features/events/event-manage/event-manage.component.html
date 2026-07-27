@@ -3,31 +3,31 @@
     <jh-loading />
   } @else if (forbidden()) {
     <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
-      <p class="text-heading-sm font-bold text-ink">Not allowed</p>
-      <p class="mt-xs text-body-sm text-subtle">Only an event admin can manage this event.</p>
+      <p class="text-heading-sm font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ 'events.manage.notAllowedBody' | transloco }}</p>
     </div>
   } @else if (detail(); as d) {
-    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">‹ Back to event</a>
-    <h1 class="mt-md text-heading-lg font-bold text-ink">Manage participants</h1>
-    <p class="text-body-sm text-subtle">{{ d.name }} · {{ d.occupiedSpots }}/{{ d.participationLimit }} spots occupied</p>
-    <a [routerLink]="['/events', d.id, 'edit']" class="mt-xs inline-block text-body-sm font-semibold text-brand" data-testid="to-settings">Edit details &amp; cancel ›</a>
+    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">{{ 'events.manage.back' | transloco }}</a>
+    <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'events.manage.title' | transloco }}</h1>
+    <p class="text-body-sm text-subtle">{{ d.name }} · {{ 'events.manage.spotsOccupied' | transloco:{ occupied: d.occupiedSpots, limit: d.participationLimit } }}</p>
+    <a [routerLink]="['/events', d.id, 'edit']" class="mt-xs inline-block text-body-sm font-semibold text-brand" data-testid="to-settings">{{ 'events.manage.editAndCancel' | transloco }}</a>
 
     @if (error()) { <jh-alert class="mt-sm">{{ error() }}</jh-alert> }
 
     <!-- Participants -->
     <div class="mt-lg space-y-md lg:grid lg:grid-cols-2 lg:items-start lg:gap-xl lg:space-y-0">
       <section class="lg:col-span-2">
-        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Awaiting approval ({{ awaiting().length }})</h2>
-        @if (awaiting().length === 0) { <p class="mt-xs text-body-sm text-faint">Nobody awaiting approval.</p> }
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.manage.awaitingApproval' | transloco:{ count: awaiting().length } }}</h2>
+        @if (awaiting().length === 0) { <p class="mt-xs text-body-sm text-faint">{{ 'events.manage.nobodyAwaiting' | transloco }}</p> }
         <ul class="mt-xs space-y-xs">
           @for (p of awaiting(); track p.id) {
             <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
               <span class="text-body-sm text-body">{{ label(p) }}</span>
               <span class="flex gap-xs">
                 <button type="button" (click)="approve(p.id)" [disabled]="acting()" data-testid="approve"
-                  jhButton size="sm">Approve</button>
+                  jhButton size="sm">{{ 'teams.detail.approve' | transloco }}</button>
                 <button type="button" (click)="remove(p.id)" [disabled]="acting()"
-                  class="rounded-md px-md py-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Remove</button>
+                  class="rounded-md px-md py-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">{{ 'teams.detail.remove' | transloco }}</button>
               </span>
             </li>
           }
@@ -35,32 +35,32 @@
       </section>
 
       <section>
-        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Joined ({{ joined().length }})</h2>
-        @if (joined().length === 0) { <p class="mt-xs text-body-sm text-faint">Nobody joined yet.</p> }
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.manage.joined' | transloco:{ count: joined().length } }}</h2>
+        @if (joined().length === 0) { <p class="mt-xs text-body-sm text-faint">{{ 'events.manage.nobodyJoined' | transloco }}</p> }
         <ul class="mt-xs space-y-xs">
           @for (p of joined(); track p.id) {
             <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
               <span class="text-body-sm text-body">{{ label(p) }}</span>
               <button type="button" (click)="remove(p.id)" [disabled]="acting()"
-                class="rounded-md px-md py-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Remove</button>
+                class="rounded-md px-md py-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">{{ 'teams.detail.remove' | transloco }}</button>
             </li>
           }
         </ul>
       </section>
 
       <section>
-        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Waiting list ({{ waitlist().length }})</h2>
-        @if (waitlist().length === 0) { <p class="mt-xs text-body-sm text-faint">The waiting list is empty.</p> }
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.manage.waitingList' | transloco:{ count: waitlist().length } }}</h2>
+        @if (waitlist().length === 0) { <p class="mt-xs text-body-sm text-faint">{{ 'events.manage.waitlistEmpty' | transloco }}</p> }
         <ul class="mt-xs space-y-xs">
           @for (p of waitlist(); track p.id) {
             <li class="flex items-center justify-between rounded-md border border-border bg-surface-card px-md py-sm">
               <span class="text-body-sm text-body">{{ label(p) }}</span>
               <span class="flex gap-xs">
                 <button type="button" (click)="promote(p.id)" [disabled]="acting() || full()" data-testid="promote"
-                  [title]="full() ? 'No open spot' : ''"
-                  class="rounded-md bg-surface-sunken px-md py-xs text-body-sm font-semibold text-body hover:bg-surface-hover disabled:opacity-50">Promote</button>
+                  [title]="full() ? ('events.manage.noOpenSpot' | transloco) : ''"
+                  class="rounded-md bg-surface-sunken px-md py-xs text-body-sm font-semibold text-body hover:bg-surface-hover disabled:opacity-50">{{ 'events.manage.promote' | transloco }}</button>
                 <button type="button" (click)="remove(p.id)" [disabled]="acting()"
-                  class="rounded-md px-md py-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">Remove</button>
+                  class="rounded-md px-md py-xs text-body-sm font-semibold text-danger hover:underline disabled:opacity-50">{{ 'teams.detail.remove' | transloco }}</button>
               </span>
             </li>
           }

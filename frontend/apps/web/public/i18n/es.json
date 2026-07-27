@@ -217,6 +217,52 @@
     "contacts": {
       "heading": "Contactos",
       "none": "No hay contactos indicados."
+    },
+    "inviteAccept": {
+      "notFoundTitle": "Invitación no encontrada",
+      "notFoundBody": "Este enlace de invitación no es válido.",
+      "coAdminInvite": "Invitación de coadministrador",
+      "invitedBy": "{{name}} te ha invitado a ayudar a administrar este evento.",
+      "acceptHelp": "Aceptar y ayudar a organizarlo",
+      "expired": "Esta invitación ha caducado — pide una nueva a un organizador.",
+      "invalid": "Esta invitación ya no es válida."
+    },
+    "manage": {
+      "notAllowedTitle": "No permitido",
+      "notAllowedBody": "Solo un administrador del evento puede gestionarlo.",
+      "back": "‹ Volver al evento",
+      "title": "Gestionar participantes",
+      "spotsOccupied": "{{occupied}}/{{limit}} plazas ocupadas",
+      "editAndCancel": "Editar detalles y cancelar ›",
+      "awaitingApproval": "Pendiente de aprobación ({{count}})",
+      "nobodyAwaiting": "Nadie pendiente de aprobación.",
+      "joined": "Dentro ({{count}})",
+      "nobodyJoined": "Nadie se ha unido todavía.",
+      "waitingList": "Lista de espera ({{count}})",
+      "waitlistEmpty": "La lista de espera está vacía.",
+      "promote": "Promover",
+      "noOpenSpot": "No hay plaza libre"
+    },
+    "edit": {
+      "notAllowedBody": "Solo un administrador del evento puede editarlo.",
+      "title": "Ajustes del evento",
+      "subtitle": "Edita los detalles o cancela el evento.",
+      "details": "Detalles",
+      "name": "Nombre",
+      "namePlaceholder": "Nombre del evento",
+      "description": "Descripción",
+      "starts": "Empieza",
+      "ends": "Termina",
+      "participationLimit": "Límite de participación",
+      "limitHint": "No puede bajar de los {{count}} que ya participan. Equipos frente a individuales no se puede cambiar tras las inscripciones.",
+      "saved": "Guardado.",
+      "save": "Guardar cambios",
+      "saving": "Guardando…",
+      "cancelWarning": "Cancelar no se puede deshacer. La página se mantiene marcada como cancelada, no se aceptan nuevas inscripciones y se notifica a todos los inscritos y en espera.",
+      "cancelThis": "Cancelar este evento",
+      "yesCancel": "Sí, cancelarlo",
+      "keepIt": "Mantenerlo",
+      "alreadyCancelled": "Este evento está cancelado."
     }
   },
   "account": {

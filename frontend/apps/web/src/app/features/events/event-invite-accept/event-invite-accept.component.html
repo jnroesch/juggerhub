@@ -3,28 +3,28 @@
     @if (loading()) {
       <jh-loading />
     } @else if (notFound() || !preview()) {
-      <p class="text-heading-sm font-bold text-ink">Invite not found</p>
-      <p class="mt-xs text-body-sm text-subtle">This invite link isn't valid.</p>
+      <p class="text-heading-sm font-bold text-ink">{{ 'events.inviteAccept.notFoundTitle' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ 'events.inviteAccept.notFoundBody' | transloco }}</p>
     } @else if (preview(); as p) {
-      <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand">Co-admin invite</span>
+      <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand">{{ 'events.inviteAccept.coAdminInvite' | transloco }}</span>
       <h1 class="mt-xs text-heading-md font-bold text-ink">{{ p.eventName }}</h1>
       <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | date: 'EEE d MMM, HH:mm' }}</p>
-      <p class="mt-xs text-body-sm text-subtle">{{ p.inviterDisplayName }} invited you to help administer this event.</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ 'events.inviteAccept.invitedBy' | transloco:{ name: p.inviterDisplayName } }}</p>
 
       @switch (p.state) {
         @case ('Usable') {
           <div class="mt-lg space-y-xs">
             <button type="button" (click)="accept()" [disabled]="acting()" data-testid="invite-accept"
-              jhButton class="w-full">Accept &amp; help run it</button>
+              jhButton class="w-full">{{ 'events.inviteAccept.acceptHelp' | transloco }}</button>
             <button type="button" (click)="decline()" [disabled]="acting()" data-testid="invite-decline"
-              class="w-full rounded-md px-lg py-sm text-body-sm font-semibold text-subtle hover:text-text disabled:opacity-50">Decline</button>
+              class="w-full rounded-md px-lg py-sm text-body-sm font-semibold text-subtle hover:text-text disabled:opacity-50">{{ 'common.decline' | transloco }}</button>
           </div>
         }
         @case ('Expired') {
-          <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-subtle">This invite has expired — ask an organiser for a fresh one.</p>
+          <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-subtle">{{ 'events.inviteAccept.expired' | transloco }}</p>
         }
         @default {
-          <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-subtle">This invite is no longer valid.</p>
+          <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-subtle">{{ 'events.inviteAccept.invalid' | transloco }}</p>
         }
       }
     }

@@ -217,6 +217,52 @@
     "contacts": {
       "heading": "Kontakte",
       "none": "Keine Kontakte angegeben."
+    },
+    "inviteAccept": {
+      "notFoundTitle": "Einladung nicht gefunden",
+      "notFoundBody": "Dieser Einladungslink ist ungültig.",
+      "coAdminInvite": "Co-Admin-Einladung",
+      "invitedBy": "{{name}} hat dich eingeladen, dieses Event mitzuverwalten.",
+      "acceptHelp": "Annehmen & mithelfen",
+      "expired": "Diese Einladung ist abgelaufen — bitte einen Veranstalter um eine neue.",
+      "invalid": "Diese Einladung ist nicht mehr gültig."
+    },
+    "manage": {
+      "notAllowedTitle": "Nicht erlaubt",
+      "notAllowedBody": "Nur ein Event-Admin kann dieses Event verwalten.",
+      "back": "‹ Zurück zum Event",
+      "title": "Teilnehmer verwalten",
+      "spotsOccupied": "{{occupied}}/{{limit}} Plätze belegt",
+      "editAndCancel": "Details bearbeiten & absagen ›",
+      "awaitingApproval": "Wartet auf Bestätigung ({{count}})",
+      "nobodyAwaiting": "Niemand wartet auf Bestätigung.",
+      "joined": "Dabei ({{count}})",
+      "nobodyJoined": "Noch niemand dabei.",
+      "waitingList": "Warteliste ({{count}})",
+      "waitlistEmpty": "Die Warteliste ist leer.",
+      "promote": "Nachrücken",
+      "noOpenSpot": "Kein freier Platz"
+    },
+    "edit": {
+      "notAllowedBody": "Nur ein Event-Admin kann dieses Event bearbeiten.",
+      "title": "Event-Einstellungen",
+      "subtitle": "Bearbeite die Details oder sage das Event ab.",
+      "details": "Details",
+      "name": "Name",
+      "namePlaceholder": "Eventname",
+      "description": "Beschreibung",
+      "starts": "Beginn",
+      "ends": "Ende",
+      "participationLimit": "Teilnahmelimit",
+      "limitHint": "Kann nicht unter die {{count}} bereits Teilnehmenden fallen. Teams vs. Einzelpersonen kann nach Anmeldungen nicht geändert werden.",
+      "saved": "Gespeichert.",
+      "save": "Änderungen speichern",
+      "saving": "Wird gespeichert…",
+      "cancelWarning": "Eine Absage kann nicht rückgängig gemacht werden. Die Seite bleibt als abgesagt markiert bestehen, es werden keine neuen Anmeldungen angenommen, und alle Angemeldeten und Wartenden werden benachrichtigt.",
+      "cancelThis": "Dieses Event absagen",
+      "yesCancel": "Ja, absagen",
+      "keepIt": "Behalten",
+      "alreadyCancelled": "Dieses Event ist abgesagt."
     }
   },
   "account": {

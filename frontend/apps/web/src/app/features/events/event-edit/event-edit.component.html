@@ -3,71 +3,71 @@
     <jh-loading />
   } @else if (forbidden()) {
     <div class="rounded-lg border border-border bg-surface-card px-md py-lg text-center">
-      <p class="text-heading-sm font-bold text-ink">Not allowed</p>
-      <p class="mt-xs text-body-sm text-subtle">Only an event admin can edit this event.</p>
+      <p class="text-heading-sm font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ 'events.edit.notAllowedBody' | transloco }}</p>
     </div>
   } @else if (detail(); as d) {
-    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">‹ Back to event</a>
-    <h1 class="mt-md text-heading-lg font-bold text-ink">Event settings</h1>
-    <p class="text-body-sm text-subtle">Edit the details or cancel the event.</p>
+    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">{{ 'events.manage.back' | transloco }}</a>
+    <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'events.edit.title' | transloco }}</h1>
+    <p class="text-body-sm text-subtle">{{ 'events.edit.subtitle' | transloco }}</p>
 
     <!-- Edit details -->
     <form class="mt-lg space-y-md rounded-lg border border-border bg-surface-card p-md" [formGroup]="form" (ngSubmit)="saveEdit()">
-      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">Details</h2>
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.edit.details' | transloco }}</h2>
       <div>
-        <label for="edit-name" class="text-body-sm text-subtle">Name</label>
-        <input id="edit-name" type="text" formControlName="name" placeholder="Event name" data-testid="edit-name"
+        <label for="edit-name" class="text-body-sm text-subtle">{{ 'events.edit.name' | transloco }}</label>
+        <input id="edit-name" type="text" formControlName="name" [placeholder]="'events.edit.namePlaceholder' | transloco" data-testid="edit-name"
           class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
       </div>
       <div>
-        <label for="edit-desc" class="text-body-sm text-subtle">Description</label>
-        <textarea id="edit-desc" formControlName="description" rows="3" placeholder="Description"
+        <label for="edit-desc" class="text-body-sm text-subtle">{{ 'events.edit.description' | transloco }}</label>
+        <textarea id="edit-desc" formControlName="description" rows="3" [placeholder]="'events.edit.description' | transloco"
           class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
       </div>
       <div class="grid grid-cols-1 gap-md sm:grid-cols-2">
         <div>
-          <label for="edit-start" class="text-body-sm text-subtle">Starts</label>
+          <label for="edit-start" class="text-body-sm text-subtle">{{ 'events.edit.starts' | transloco }}</label>
           <input id="edit-start" type="datetime-local" formControlName="startsAt"
             class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
         </div>
         <div>
-          <label for="edit-end" class="text-body-sm text-subtle">Ends</label>
+          <label for="edit-end" class="text-body-sm text-subtle">{{ 'events.edit.ends' | transloco }}</label>
           <input id="edit-end" type="datetime-local" formControlName="endsAt"
             class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
         </div>
       </div>
       <div>
-        <label for="edit-limit" class="text-body-sm text-subtle">Participation limit</label>
+        <label for="edit-limit" class="text-body-sm text-subtle">{{ 'events.edit.participationLimit' | transloco }}</label>
         <input id="edit-limit" type="number" min="1" formControlName="participationLimit" data-testid="edit-limit"
           class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-        <p class="mt-xs text-body-sm text-faint">Can't drop below the {{ d.occupiedSpots }} already taking part. Teams-vs-individuals can't change after sign-ups.</p>
+        <p class="mt-xs text-body-sm text-faint">{{ 'events.edit.limitHint' | transloco:{ count: d.occupiedSpots } }}</p>
       </div>
       @if (editError()) { <jh-alert>{{ editError() }}</jh-alert> }
-      @if (editSaved()) { <p class="text-body-sm text-success">Saved.</p> }
+      @if (editSaved()) { <p class="text-body-sm text-success">{{ 'events.edit.saved' | transloco }}</p> }
       <button type="submit" [disabled]="form.invalid || savingEdit()" data-testid="edit-save"
-        jhButton>{{ savingEdit() ? 'Saving…' : 'Save changes' }}</button>
+        jhButton>{{ (savingEdit() ? 'events.edit.saving' : 'events.edit.save') | transloco }}</button>
     </form>
 
     <!-- Danger zone -->
     @if (d.status === 'Published') {
       <section class="mt-lg rounded-lg border border-danger-border bg-danger-bg px-md py-md" data-testid="danger-zone">
-        <h2 class="text-body-sm font-bold text-danger-fg">Danger zone</h2>
-        <p class="mt-xs text-body-sm text-danger-fg">Cancelling can't be undone. The page stays up marked cancelled, no new sign-ups are accepted, and everyone joined or waiting is notified.</p>
+        <h2 class="text-body-sm font-bold text-danger-fg">{{ 'teams.settings.dangerZone' | transloco }}</h2>
+        <p class="mt-xs text-body-sm text-danger-fg">{{ 'events.edit.cancelWarning' | transloco }}</p>
         @if (cancelError()) { <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ cancelError() }}</p> }
         @if (!confirmingCancel()) {
           <button type="button" (click)="confirmingCancel.set(true)" data-testid="cancel-open"
-            jhButton variant="danger" size="sm" class="mt-sm">Cancel this event</button>
+            jhButton variant="danger" size="sm" class="mt-sm">{{ 'events.edit.cancelThis' | transloco }}</button>
         } @else {
           <div class="mt-sm flex gap-xs">
             <button type="button" (click)="cancelEvent()" [disabled]="cancelling()" data-testid="cancel-confirm"
-              class="rounded-md bg-danger px-md py-xs text-body-sm font-semibold text-on-accent hover:opacity-90 disabled:opacity-50">Yes, cancel it</button>
+              class="rounded-md bg-danger px-md py-xs text-body-sm font-semibold text-on-accent hover:opacity-90 disabled:opacity-50">{{ 'events.edit.yesCancel' | transloco }}</button>
             <button type="button" (click)="confirmingCancel.set(false)"
-              class="rounded-md px-md py-xs text-body-sm font-semibold text-subtle hover:text-text">Keep it</button>
+              class="rounded-md px-md py-xs text-body-sm font-semibold text-subtle hover:text-text">{{ 'events.edit.keepIt' | transloco }}</button>
           </div>
         }
       </section>
     } @else {
-      <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-subtle">This event is cancelled.</p>
+      <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-subtle">{{ 'events.edit.alreadyCancelled' | transloco }}</p>
     }
   }
 </section>

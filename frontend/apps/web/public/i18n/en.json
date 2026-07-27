@@ -213,6 +213,52 @@
     "contacts": {
       "heading": "Contacts",
       "none": "No contacts listed."
+    },
+    "inviteAccept": {
+      "notFoundTitle": "Invite not found",
+      "notFoundBody": "This invite link isn't valid.",
+      "coAdminInvite": "Co-admin invite",
+      "invitedBy": "{{name}} invited you to help administer this event.",
+      "acceptHelp": "Accept & help run it",
+      "expired": "This invite has expired — ask an organiser for a fresh one.",
+      "invalid": "This invite is no longer valid."
+    },
+    "manage": {
+      "notAllowedTitle": "Not allowed",
+      "notAllowedBody": "Only an event admin can manage this event.",
+      "back": "‹ Back to event",
+      "title": "Manage participants",
+      "spotsOccupied": "{{occupied}}/{{limit}} spots occupied",
+      "editAndCancel": "Edit details & cancel ›",
+      "awaitingApproval": "Awaiting approval ({{count}})",
+      "nobodyAwaiting": "Nobody awaiting approval.",
+      "joined": "Joined ({{count}})",
+      "nobodyJoined": "Nobody joined yet.",
+      "waitingList": "Waiting list ({{count}})",
+      "waitlistEmpty": "The waiting list is empty.",
+      "promote": "Promote",
+      "noOpenSpot": "No open spot"
+    },
+    "edit": {
+      "notAllowedBody": "Only an event admin can edit this event.",
+      "title": "Event settings",
+      "subtitle": "Edit the details or cancel the event.",
+      "details": "Details",
+      "name": "Name",
+      "namePlaceholder": "Event name",
+      "description": "Description",
+      "starts": "Starts",
+      "ends": "Ends",
+      "participationLimit": "Participation limit",
+      "limitHint": "Can't drop below the {{count}} already taking part. Teams-vs-individuals can't change after sign-ups.",
+      "saved": "Saved.",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "cancelWarning": "Cancelling can't be undone. The page stays up marked cancelled, no new sign-ups are accepted, and everyone joined or waiting is notified.",
+      "cancelThis": "Cancel this event",
+      "yesCancel": "Yes, cancel it",
+      "keepIt": "Keep it",
+      "alreadyCancelled": "This event is cancelled."
     }
   },
   "account": {
