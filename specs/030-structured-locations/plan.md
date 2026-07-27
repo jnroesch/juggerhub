@@ -12,7 +12,7 @@ Replace freeform location entry (`PlayerProfile.Hometown`, `Team.City`, `Event.C
 
 **Language/Version**: C# / .NET 10 (backend); TypeScript / Angular (Nx) frontend
 
-**Primary Dependencies**: EF Core 10 + Npgsql; `Microsoft.Extensions.Http.Resilience` (Polly v8, already present); Mapster; Angular + Tailwind. **New**: Photon geocoder container (`komoot/photon`).
+**Primary Dependencies**: EF Core 10 + Npgsql; `Microsoft.Extensions.Http.Resilience` (Polly v8, already present); Angular + Tailwind. **New**: Photon geocoder container (`komoot/photon`).
 
 **Storage**: PostgreSQL 18 (stock `postgres:18.3-alpine`, **no PostGIS**). New tables: `Cities`, `CityDistances`. New FKs on `PlayerProfiles`, `Teams`, `Events`.
 
@@ -34,7 +34,7 @@ Replace freeform location entry (`PlayerProfile.Hometown`, `Team.City`, `Event.C
 
 | # | Gate | Assessment |
 |---|------|-----------|
-| 1 | **Architecture** (thin controllers, DI'd services w/ interfaces, no repository, Mapster DTOs) | PASS — new `IGeocodingClient`, `ICityService`; browse logic stays in the existing `*SearchService`s; controllers thin; `CityOptionDto`/`CityDto` mapped via Mapster. |
+| 1 | **Architecture** (thin controllers, DI'd services w/ interfaces, no repository, DTOs via explicit EF projections) | PASS — new `IGeocodingClient`, `ICityService`; browse logic stays in the existing `*SearchService`s; controllers thin; `CityOptionDto`/`CityDto` built with explicit `.Select` projections. |
 | 2 | **Data access** (paginate, projections, `AsNoTracking`, `BaseEntity`) | PASS — `City`/`CityDistance` derive from `BaseEntity`; proximity browse stays `Skip/Take` paginated with a stable `ThenBy(Id)`; reads projected + `AsNoTracking`. |
 | 3 | **Security-first / never-trust-client** (OWASP, server-side authority, no leaks) | PASS — city persisted by **server-side re-resolution** from provider id; client coords are display hints only; geocoder is internal; generic errors, no stack traces. |
 | 4 | **Auth / sessions** | PASS — all surfaces behind existing auth (026); no auth changes. |

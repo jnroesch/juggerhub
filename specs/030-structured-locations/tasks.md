@@ -83,7 +83,7 @@ Web app: backend at `backend/`, Angular at `frontend/apps/web/src/app/`.
 ### City service, search endpoint, DTOs
 
 - [X] T012 Create `backend/Services/Geocoding/ICityService.cs` + `CityService.cs` — search proxy; upsert `City` by `ExternalId`; server-side **re-resolution** on selection (never trust client coords); `CityDistance` backfill inside the EF execution strategy (all inserts in the delegate, self-row `(X→X)=0` included). Reject selections that can't resolve to country+coords.
-- [X] T013 [P] Create `backend/Dtos/Cities/CityDtos.cs` — `CityOptionDto` (contracts/cities.md) + the shared `LocationDto` read shape (contracts/browse-and-profile.md) + Mapster config (`City` → `LocationDto`, `locationLabel`).
+- [X] T013 [P] Create `backend/Dtos/Cities/CityDtos.cs` — `CityOptionDto` (contracts/cities.md) + the shared `LocationDto` read shape (contracts/browse-and-profile.md), built via an explicit EF `.Select` projection (`City` → `LocationDto`, `locationLabel`).
 - [X] T014 Create `backend/Controllers/CitiesController.cs` — `GET /api/cities/search` (auth-required); returns `[]` for short/no-match `q`; returns `503` generic body on geocoder degradation; no PII/secrets in logs (FR-021).
 
 ### Shared frontend picker
