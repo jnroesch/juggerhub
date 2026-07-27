@@ -48,6 +48,14 @@
     "confirmPassword": "Confirm password",
     "handle": "Handle",
     "forgotPassword": "Forgot password?",
+    "passwordRules": {
+      "minLength": "At least {{count}} characters",
+      "uppercase": "An uppercase letter",
+      "lowercase": "A lowercase letter",
+      "digit": "A number",
+      "symbol": "A symbol",
+      "uniqueChars": "At least {{count}} unique characters"
+    },
     "signIn": {
       "title": "Sign in",
       "subtitle": "Welcome back to JuggerHub.",

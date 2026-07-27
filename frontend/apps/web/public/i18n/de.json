@@ -52,6 +52,14 @@
     "confirmPassword": "Passwort bestätigen",
     "handle": "Benutzername",
     "forgotPassword": "Passwort vergessen?",
+    "passwordRules": {
+      "minLength": "Mindestens {{count}} Zeichen",
+      "uppercase": "Ein Großbuchstabe",
+      "lowercase": "Ein Kleinbuchstabe",
+      "digit": "Eine Zahl",
+      "symbol": "Ein Sonderzeichen",
+      "uniqueChars": "Mindestens {{count}} verschiedene Zeichen"
+    },
     "signIn": {
       "title": "Anmelden",
       "subtitle": "Willkommen zurück bei JuggerHub.",
