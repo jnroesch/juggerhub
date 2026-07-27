@@ -263,6 +263,38 @@
       "yesCancel": "Sí, cancelarlo",
       "keepIt": "Mantenerlo",
       "alreadyCancelled": "Este evento está cancelado."
+    },
+    "admins": {
+      "notAllowedBody": "Solo un administrador del evento puede gestionar coadministradores.",
+      "title": "Coadministradores",
+      "subtitle": "Los coadministradores pueden editar, publicar novedades y gestionar participantes.",
+      "inviteLink": "Enlace de invitación",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "regenerate": "Regenerar enlace",
+      "invitePlayer": "Invitar a un jugador",
+      "relAdmin": "Administrador",
+      "relInvited": "Invitado",
+      "pendingInvites": "Invitaciones pendientes",
+      "sharedLink": "Enlace compartido"
+    },
+    "contactsManage": {
+      "notAllowedBody": "Solo un administrador del evento puede gestionar contactos.",
+      "subtitle": "A quién pueden contactar los participantes. Se muestra en la página del evento.",
+      "none": "Aún no hay contactos.",
+      "emailLabel": "Correo",
+      "phoneLabel": "Teléfono",
+      "edit": "Editar",
+      "editContact": "Editar contacto",
+      "addContact": "Añadir un contacto",
+      "namePlaceholder": "Nombre",
+      "rolePlaceholder": "Rol — p. ej. Anfitrión del lugar",
+      "phonePlaceholder": "Teléfono",
+      "emailPlaceholder": "Correo",
+      "hint": "Añade un teléfono, un correo o ambos.",
+      "saving": "Guardando…",
+      "saveChanges": "Guardar cambios",
+      "addContactBtn": "Añadir contacto"
     }
   },
   "account": {

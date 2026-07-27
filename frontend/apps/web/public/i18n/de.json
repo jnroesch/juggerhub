@@ -263,6 +263,38 @@
       "yesCancel": "Ja, absagen",
       "keepIt": "Behalten",
       "alreadyCancelled": "Dieses Event ist abgesagt."
+    },
+    "admins": {
+      "notAllowedBody": "Nur ein Event-Admin kann Co-Admins verwalten.",
+      "title": "Co-Admins",
+      "subtitle": "Co-Admins können bearbeiten, News posten und Teilnehmer verwalten.",
+      "inviteLink": "Einladungslink",
+      "copy": "Kopieren",
+      "copied": "Kopiert",
+      "regenerate": "Link neu erzeugen",
+      "invitePlayer": "Spieler einladen",
+      "relAdmin": "Admin",
+      "relInvited": "Eingeladen",
+      "pendingInvites": "Ausstehende Einladungen",
+      "sharedLink": "Geteilter Link"
+    },
+    "contactsManage": {
+      "notAllowedBody": "Nur ein Event-Admin kann Kontakte verwalten.",
+      "subtitle": "Wen Teilnehmer erreichen können. Wird auf der Event-Seite angezeigt.",
+      "none": "Noch keine Kontakte.",
+      "emailLabel": "E-Mail",
+      "phoneLabel": "Telefon",
+      "edit": "Bearbeiten",
+      "editContact": "Kontakt bearbeiten",
+      "addContact": "Kontakt hinzufügen",
+      "namePlaceholder": "Name",
+      "rolePlaceholder": "Rolle — z. B. Gastgeber des Veranstaltungsorts",
+      "phonePlaceholder": "Telefon",
+      "emailPlaceholder": "E-Mail",
+      "hint": "Gib eine Telefonnummer, eine E-Mail oder beides an.",
+      "saving": "Wird gespeichert…",
+      "saveChanges": "Änderungen speichern",
+      "addContactBtn": "Kontakt hinzufügen"
     }
   },
   "account": {

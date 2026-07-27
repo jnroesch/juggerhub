@@ -259,6 +259,38 @@
       "yesCancel": "Yes, cancel it",
       "keepIt": "Keep it",
       "alreadyCancelled": "This event is cancelled."
+    },
+    "admins": {
+      "notAllowedBody": "Only an event admin can manage co-admins.",
+      "title": "Co-admins",
+      "subtitle": "Co-admins can edit, post news, and manage participants.",
+      "inviteLink": "Invite link",
+      "copy": "Copy",
+      "copied": "Copied",
+      "regenerate": "Regenerate link",
+      "invitePlayer": "Invite a player",
+      "relAdmin": "Admin",
+      "relInvited": "Invited",
+      "pendingInvites": "Pending invites",
+      "sharedLink": "Shared link"
+    },
+    "contactsManage": {
+      "notAllowedBody": "Only an event admin can manage contacts.",
+      "subtitle": "Who participants can reach. Shown on the event page.",
+      "none": "No contacts yet.",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone",
+      "edit": "Edit",
+      "editContact": "Edit contact",
+      "addContact": "Add a contact",
+      "namePlaceholder": "Name",
+      "rolePlaceholder": "Role — e.g. Location host",
+      "phonePlaceholder": "Phone",
+      "emailPlaceholder": "Email",
+      "hint": "Add a phone, an email, or both.",
+      "saving": "Saving…",
+      "saveChanges": "Save changes",
+      "addContactBtn": "Add contact"
     }
   },
   "account": {
