@@ -34,17 +34,19 @@
 
   <!-- Matrix -->
   @else {
-    <!-- Desktop column headers -->
-    <div class="mt-lg hidden md:grid md:grid-cols-[1fr_5rem_5rem] md:items-end md:gap-md md:pb-sm">
-      <span></span>
-      <span class="text-center text-caption font-semibold uppercase tracking-wide text-subtle">{{ 'settings.notifications.inApp' | transloco }}</span>
-      <span class="text-center text-caption font-semibold uppercase tracking-wide text-subtle">{{ 'settings.notifications.email' | transloco }}</span>
-    </div>
+    <!-- Desktop: the matrix sits inside one card; on mobile each category is its own card. -->
+    <div class="mt-lg md:rounded-lg md:border md:border-border-muted md:bg-surface-card md:px-md md:shadow-sm">
+      <!-- Desktop column headers -->
+      <div class="hidden md:grid md:grid-cols-[1fr_5rem_5rem] md:items-end md:gap-md md:pb-sm md:pt-md">
+        <span></span>
+        <span class="text-center text-caption font-semibold uppercase tracking-wide text-subtle">{{ 'settings.notifications.inApp' | transloco }}</span>
+        <span class="text-center text-caption font-semibold uppercase tracking-wide text-subtle">{{ 'settings.notifications.email' | transloco }}</span>
+      </div>
 
-    <ul class="mt-md space-y-md md:mt-0 md:space-y-0">
-      @for (cat of categories(); track cat.category) {
+      <ul class="space-y-md md:space-y-0">
+        @for (cat of categories(); track cat.category) {
         <li
-          class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm md:grid md:grid-cols-[1fr_5rem_5rem] md:items-center md:gap-md md:rounded-none md:border-0 md:border-b md:border-border-muted md:p-0 md:py-md md:shadow-none"
+          class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm md:grid md:grid-cols-[1fr_5rem_5rem] md:items-center md:gap-md md:rounded-none md:border-0 md:border-t md:border-border-muted md:bg-transparent md:p-0 md:py-md md:shadow-none"
         >
           <div>
             <p class="text-body-sm font-semibold text-heading">{{ cat.label }}</p>
@@ -91,8 +93,9 @@
             </button>
           </div>
         </li>
-      }
-    </ul>
+        }
+      </ul>
+    </div>
 
     <!-- Always-on group -->
     @if (alwaysOn().length > 0) {
