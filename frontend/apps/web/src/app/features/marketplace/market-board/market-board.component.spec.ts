@@ -4,6 +4,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { MarketBoardComponent } from './market-board.component';
 import { MyMarket } from '../../../core/models/market.models';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 describe('MarketBoardComponent', () => {
   let httpMock: HttpTestingController;
@@ -31,6 +32,7 @@ describe('MarketBoardComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     httpMock = TestBed.inject(HttpTestingController);

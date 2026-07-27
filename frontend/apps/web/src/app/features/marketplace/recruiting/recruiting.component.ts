@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MarketService } from '../../../core/services/market.service';
 import {
   MarketInvitableUser,
@@ -19,13 +20,14 @@ import { relativeTime } from '../../../core/utils/format';
  */
 @Component({
   selector: 'jh-recruiting',
-  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './recruiting.component.html',
   styleUrl: './recruiting.component.css',
 })
 export class RecruitingComponent implements OnInit {
   private readonly market = inject(MarketService);
   private readonly route = inject(ActivatedRoute);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly catalog = POMPFEN_CATALOG;
   protected readonly label = pompfeLabel;
@@ -124,7 +126,7 @@ export class RecruitingComponent implements OnInit {
         },
         error: (err) => {
           this.saving.set(false);
-          this.saveError.set(problemDetail(err));
+          this.saveError.set(problemDetail(err, this.transloco.translate('marketplace.genericError')));
         },
       });
   }
