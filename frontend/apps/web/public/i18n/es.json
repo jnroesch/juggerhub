@@ -18,6 +18,8 @@
   "auth": {
     "email": "Correo electrónico",
     "password": "Contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "handle": "Usuario",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "signIn": {
       "title": "Iniciar sesión",
@@ -30,6 +32,51 @@
       "submitting": "Iniciando sesión…",
       "newHere": "¿Nuevo en JuggerHub?",
       "createAccount": "Crear una cuenta"
+    },
+    "register": {
+      "title": "Crea tu cuenta",
+      "subtitle": "Únete a JuggerHub con tu correo y una contraseña.",
+      "checkEmailTitle": "Revisa tu correo",
+      "checkEmailBody": "Si ese correo se puede registrar, te hemos enviado un enlace para verificar tu dirección. Ábrelo para activar tu cuenta y luego inicia sesión.",
+      "backToSignIn": "Volver a iniciar sesión",
+      "permalinkLabel": "Tu enlace de perfil permanente:",
+      "permalinkNote": "— no se puede cambiar más adelante.",
+      "mismatch": "Las contraseñas no coinciden.",
+      "submit": "Crear cuenta",
+      "submitting": "Creando cuenta…",
+      "haveAccount": "¿Ya tienes una cuenta?"
+    },
+    "forgot": {
+      "title": "¿Olvidaste tu contraseña?",
+      "subtitle": "Introduce tu correo y te enviaremos un enlace para restablecerla.",
+      "sentTitle": "Revisa tu correo",
+      "sentBody": "Si existe una cuenta con esa dirección, te hemos enviado un enlace para restablecer tu contraseña. El enlace caduca pronto, así que úsalo cuanto antes.",
+      "submit": "Enviar enlace de restablecimiento",
+      "submitting": "Enviando…",
+      "backToSignIn": "Volver a iniciar sesión"
+    },
+    "reset": {
+      "doneTitle": "Contraseña restablecida",
+      "doneBody": "Tu contraseña se ha actualizado y se han cerrado las demás sesiones. Ya puedes iniciar sesión con tu nueva contraseña.",
+      "invalidTitle": "Enlace no válido",
+      "invalidBody": "A este enlace de restablecimiento le falta información. Solicita uno nuevo para continuar.",
+      "requestNew": "Solicitar un enlace nuevo",
+      "title": "Establece una nueva contraseña",
+      "subtitle": "Elige una contraseña segura que no uses en ningún otro sitio.",
+      "newPassword": "Nueva contraseña",
+      "confirmNewPassword": "Confirmar nueva contraseña",
+      "submit": "Actualizar contraseña",
+      "submitting": "Actualizando…"
+    },
+    "verify": {
+      "verifyingTitle": "Verificando tu correo…",
+      "verifyingBody": "Un momento mientras confirmamos tu dirección.",
+      "successTitle": "Correo verificado",
+      "successBody": "Tu cuenta está activa. Ya puedes iniciar sesión.",
+      "failedTitle": "La verificación falló",
+      "failedBody": "Este enlace de verificación no es válido o ha caducado. Introduce tu correo para obtener uno nuevo.",
+      "resent": "Si esa cuenta necesita verificación, ya va en camino un nuevo enlace.",
+      "resend": "Reenviar correo de verificación"
     }
   }
 }

@@ -9,6 +9,7 @@ import { passwordsMatch } from '../../../core/utils/passwords-match.validator';
 import { problemDetail } from '../../../core/utils/problem';
 import { safeReturnUrl } from '../../../core/utils/return-url';
 import { PasswordRulesComponent } from '../password-policy/password-rules.component';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/ui';
 import { LanguageSwitcherComponent } from '../../settings/language/language-switcher.component';
 
@@ -24,7 +25,7 @@ type HandleState = 'idle' | 'checking' | 'available' | 'unavailable';
  */
 @Component({
   selector: 'jh-register',
-  imports: [ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent, CardComponent, LanguageSwitcherComponent],
+  imports: [ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent, CardComponent, LanguageSwitcherComponent, TranslocoPipe],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
 })

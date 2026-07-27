@@ -14,6 +14,8 @@
   "auth": {
     "email": "Email",
     "password": "Password",
+    "confirmPassword": "Confirm password",
+    "handle": "Handle",
     "forgotPassword": "Forgot password?",
     "signIn": {
       "title": "Sign in",
@@ -26,6 +28,51 @@
       "submitting": "Signing in…",
       "newHere": "New to JuggerHub?",
       "createAccount": "Create an account"
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Join JuggerHub with your email and a password.",
+      "checkEmailTitle": "Check your email",
+      "checkEmailBody": "If that email can be registered, we've sent a link to verify your address. Open it to activate your account, then sign in.",
+      "backToSignIn": "Back to sign in",
+      "permalinkLabel": "Your permanent profile link:",
+      "permalinkNote": "— this can't be changed later.",
+      "mismatch": "Passwords don't match.",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "haveAccount": "Already have an account?"
+    },
+    "forgot": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email and we'll send you a reset link.",
+      "sentTitle": "Check your email",
+      "sentBody": "If an account exists for that address, we've sent a link to reset your password. The link expires shortly, so use it soon.",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "backToSignIn": "Back to sign in"
+    },
+    "reset": {
+      "doneTitle": "Password reset",
+      "doneBody": "Your password has been updated and other sessions were signed out. You can now sign in with your new password.",
+      "invalidTitle": "Invalid reset link",
+      "invalidBody": "This reset link is missing information. Request a new one to continue.",
+      "requestNew": "Request a new link",
+      "title": "Set a new password",
+      "subtitle": "Choose a strong password you don't use elsewhere.",
+      "newPassword": "New password",
+      "confirmNewPassword": "Confirm new password",
+      "submit": "Update password",
+      "submitting": "Updating…"
+    },
+    "verify": {
+      "verifyingTitle": "Verifying your email…",
+      "verifyingBody": "One moment while we confirm your address.",
+      "successTitle": "Email verified",
+      "successBody": "Your account is active. You can now sign in.",
+      "failedTitle": "Verification failed",
+      "failedBody": "This verification link is invalid or has expired. Enter your email to get a new one.",
+      "resent": "If that account needs verifying, a new link is on its way.",
+      "resend": "Resend verification email"
     }
   }
 }

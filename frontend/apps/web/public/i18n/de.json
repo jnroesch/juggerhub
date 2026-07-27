@@ -18,6 +18,8 @@
   "auth": {
     "email": "E-Mail",
     "password": "Passwort",
+    "confirmPassword": "Passwort bestätigen",
+    "handle": "Benutzername",
     "forgotPassword": "Passwort vergessen?",
     "signIn": {
       "title": "Anmelden",
@@ -30,6 +32,51 @@
       "submitting": "Anmeldung läuft…",
       "newHere": "Neu bei JuggerHub?",
       "createAccount": "Konto erstellen"
+    },
+    "register": {
+      "title": "Konto erstellen",
+      "subtitle": "Werde mit deiner E-Mail und einem Passwort Teil von JuggerHub.",
+      "checkEmailTitle": "Sieh in deinem Postfach nach",
+      "checkEmailBody": "Falls diese E-Mail registriert werden kann, haben wir dir einen Link zur Bestätigung deiner Adresse geschickt. Öffne ihn, um dein Konto zu aktivieren, und melde dich dann an.",
+      "backToSignIn": "Zurück zur Anmeldung",
+      "permalinkLabel": "Dein dauerhafter Profil-Link:",
+      "permalinkNote": "— dieser kann später nicht geändert werden.",
+      "mismatch": "Passwörter stimmen nicht überein.",
+      "submit": "Konto erstellen",
+      "submitting": "Konto wird erstellt…",
+      "haveAccount": "Du hast bereits ein Konto?"
+    },
+    "forgot": {
+      "title": "Passwort vergessen?",
+      "subtitle": "Gib deine E-Mail-Adresse ein und wir senden dir einen Link zum Zurücksetzen.",
+      "sentTitle": "Sieh in deinem Postfach nach",
+      "sentBody": "Falls für diese Adresse ein Konto besteht, haben wir dir einen Link zum Zurücksetzen deines Passworts geschickt. Der Link läuft bald ab — nutze ihn also zeitnah.",
+      "submit": "Link zum Zurücksetzen senden",
+      "submitting": "Wird gesendet…",
+      "backToSignIn": "Zurück zur Anmeldung"
+    },
+    "reset": {
+      "doneTitle": "Passwort zurückgesetzt",
+      "doneBody": "Dein Passwort wurde aktualisiert und andere Sitzungen wurden abgemeldet. Du kannst dich jetzt mit deinem neuen Passwort anmelden.",
+      "invalidTitle": "Ungültiger Link",
+      "invalidBody": "Diesem Link zum Zurücksetzen fehlen Informationen. Fordere einen neuen an, um fortzufahren.",
+      "requestNew": "Neuen Link anfordern",
+      "title": "Neues Passwort festlegen",
+      "subtitle": "Wähle ein starkes Passwort, das du nirgendwo sonst verwendest.",
+      "newPassword": "Neues Passwort",
+      "confirmNewPassword": "Neues Passwort bestätigen",
+      "submit": "Passwort aktualisieren",
+      "submitting": "Wird aktualisiert…"
+    },
+    "verify": {
+      "verifyingTitle": "E-Mail wird bestätigt…",
+      "verifyingBody": "Einen Moment, während wir deine Adresse bestätigen.",
+      "successTitle": "E-Mail bestätigt",
+      "successBody": "Dein Konto ist aktiv. Du kannst dich jetzt anmelden.",
+      "failedTitle": "Bestätigung fehlgeschlagen",
+      "failedBody": "Dieser Bestätigungslink ist ungültig oder abgelaufen. Gib deine E-Mail-Adresse ein, um einen neuen zu erhalten.",
+      "resent": "Falls dieses Konto bestätigt werden muss, ist ein neuer Link unterwegs.",
+      "resend": "Bestätigungs-E-Mail erneut senden"
     }
   }
 }
