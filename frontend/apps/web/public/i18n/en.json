@@ -338,6 +338,11 @@
       "next": "Next",
       "publish": "Publish event",
       "publishing": "Publishing…"
+    },
+    "type": {
+      "tournament": "Tournament",
+      "workshop": "Workshop",
+      "other": "Other"
     }
   },
   "profile": {

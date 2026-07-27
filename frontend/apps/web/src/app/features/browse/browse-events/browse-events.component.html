@@ -34,7 +34,7 @@
           </span>
         </span>
         <span class="rounded-pill border border-border px-sm py-0 text-caption text-subtle">
-          {{ event.type === 'Other' && event.customTypeLabel ? event.customTypeLabel : event.type }}
+          {{ event.type === 'Other' && event.customTypeLabel ? event.customTypeLabel : ('events.type.' + event.type.toLowerCase() | transloco) }}
         </span>
       </a>
     }

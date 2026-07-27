@@ -12,7 +12,7 @@
 
     <!-- Hero: cover, title, meta, occupancy -->
     <div class="relative mt-sm flex h-28 items-end overflow-hidden rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
-      <span class="rounded-full bg-surface-card px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-[0.08em] text-muted">{{ d.type === 'Other' ? d.customTypeLabel : d.type }}</span>
+      <span class="rounded-full bg-surface-card px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-[0.08em] text-muted">{{ d.type === 'Other' ? d.customTypeLabel : ('events.type.' + d.type.toLowerCase() | transloco) }}</span>
     </div>
 
     @if (cancelled()) {

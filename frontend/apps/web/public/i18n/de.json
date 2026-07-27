@@ -342,6 +342,11 @@
       "next": "Weiter",
       "publish": "Event veröffentlichen",
       "publishing": "Wird veröffentlicht…"
+    },
+    "type": {
+      "tournament": "Turnier",
+      "workshop": "Workshop",
+      "other": "Sonstiges"
     }
   },
   "profile": {

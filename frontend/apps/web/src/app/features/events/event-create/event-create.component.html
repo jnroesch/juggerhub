@@ -18,11 +18,11 @@
             <h1 class="text-heading-lg font-bold text-ink">{{ 'events.create.typeTitle' | transloco }}</h1>
             <p class="text-body-md text-subtle">{{ 'events.create.typeSubtitle' | transloco }}</p>
           </div>
-          <div class="grid grid-cols-3 gap-xs rounded-md border border-border-strong p-1" role="group" aria-label="Event type">
+          <div class="grid grid-cols-3 gap-xs rounded-md border border-border-strong p-1" role="group" [attr.aria-label]="'events.create.typeTitle' | transloco">
             @for (t of ['Tournament','Workshop','Other']; track t) {
               <button type="button" (click)="type.set($any(t))"
                 class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
-                [class]="type() === t ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ t }}</button>
+                [class]="type() === t ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ 'events.type.' + t.toLowerCase() | transloco }}</button>
             }
           </div>
           @if (type() === 'Other') {
@@ -178,7 +178,7 @@
             <p class="text-body-md text-subtle">{{ 'events.create.reviewSubtitle' | transloco }}</p>
           </div>
           <dl class="divide-y divide-border rounded-md border border-border bg-surface-card px-md">
-            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rType' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ type() === 'Other' ? form.getRawValue().customLabel : type() }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rType' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ type() === 'Other' ? form.getRawValue().customLabel : ('events.type.' + type().toLowerCase() | transloco) }}</dd></div>
             <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rName' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ form.getRawValue().name }}</dd></div>
             <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rWhen' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ form.getRawValue().startsAt }} → {{ form.getRawValue().endsAt }}</dd></div>
             <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rWhere' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ locationKind() === 'InPerson' ? (selectedCity()?.label ?? '—') : ('events.detail.online' | transloco) }}</dd></div>
