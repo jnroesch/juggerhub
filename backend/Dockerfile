@@ -37,8 +37,10 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0.10 AS runtime
 WORKDIR /app
 
 # curl is used by the compose healthcheck to probe /api/v1/health.
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends curl \
+# Acquire::Retries hardens the step against transient Ubuntu mirror failures
+# (e.g. hash-sum mismatches) that otherwise flake the build-backend CI job (#87).
+RUN apt-get update -o Acquire::Retries=3 \
+    && apt-get install -y --no-install-recommends -o Acquire::Retries=3 curl \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /app/publish .
