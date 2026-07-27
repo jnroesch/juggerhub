@@ -12,7 +12,29 @@
     "continue": "Continuar",
     "back": "‹ Atrás",
     "skip": "Omitir",
-    "tryAgain": "Reintentar"
+    "tryAgain": "Reintentar",
+    "seeAll": "Ver todo"
+  },
+  "home": {
+    "errorTitle": "No pudimos cargar tu inicio",
+    "errorBody": "Algo salió mal al conectar con el servidor.",
+    "greetingHi": "Hola {{name}}",
+    "greetingWelcome": "Bienvenido, {{name}}",
+    "needsYouOne": "Tienes {{count}} cosa esperándote.",
+    "needsYouMany": "Tienes {{count}} cosas esperándote.",
+    "upNextCount": "Tienes {{count}} próximamente.",
+    "nothingCalendar": "Aún no hay nada en tu calendario — busca un partido.",
+    "findCrew": "Vamos a buscarte un equipo.",
+    "upNext": "A continuación",
+    "nothingComingUp": "Nada próximamente.",
+    "browseOpenEvents": "Explorar eventos abiertos",
+    "notOnTeamTitle": "Todavía no estás en un equipo",
+    "notOnTeamBody": "Descubre equipos cerca de ti — muchos prestan equipamiento y dan la bienvenida a los novatos. Sin presión; ven primero a un entrenamiento.",
+    "findTeamNearYou": "Encontrar un equipo cerca de ti",
+    "browseOpenTrainings": "Explorar entrenamientos abiertos",
+    "openToEveryone": "Abierto a todos",
+    "news": "Novedades",
+    "noNews": "Aún no hay novedades."
   },
   "nav": {
     "brandHome": "Inicio de JuggerHub",

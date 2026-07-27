@@ -7,6 +7,7 @@ import { NeedsYouCardComponent } from './modules/needs-you-card.component';
 import { UpNextCardComponent } from './modules/up-next-card.component';
 import { NewsListComponent } from './modules/news-list.component';
 import { ActivityListComponent } from './modules/activity-list.component';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /**
  * Home — the logged-in entry point (feature 008, reshaped by feature 025). Loads the composite
@@ -17,7 +18,7 @@ import { ActivityListComponent } from './modules/activity-list.component';
  */
 @Component({
   selector: 'jh-dashboard',
-  imports: [RouterLink, NeedsYouCardComponent, UpNextCardComponent, NewsListComponent, ActivityListComponent, ButtonDirective, EmptyStateComponent],
+  imports: [RouterLink, NeedsYouCardComponent, UpNextCardComponent, NewsListComponent, ActivityListComponent, ButtonDirective, EmptyStateComponent, TranslocoPipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })

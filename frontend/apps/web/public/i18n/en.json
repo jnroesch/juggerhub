@@ -8,7 +8,29 @@
     "continue": "Continue",
     "back": "‹ Back",
     "skip": "Skip",
-    "tryAgain": "Try again"
+    "tryAgain": "Try again",
+    "seeAll": "See all"
+  },
+  "home": {
+    "errorTitle": "We couldn't load your home",
+    "errorBody": "Something went wrong reaching the server.",
+    "greetingHi": "Hi {{name}}",
+    "greetingWelcome": "Welcome, {{name}}",
+    "needsYouOne": "You've got {{count}} thing waiting on you.",
+    "needsYouMany": "You've got {{count}} things waiting on you.",
+    "upNextCount": "You've got {{count}} coming up.",
+    "nothingCalendar": "Nothing on your calendar yet — go find a game.",
+    "findCrew": "Let's find you a crew.",
+    "upNext": "Up next",
+    "nothingComingUp": "Nothing coming up.",
+    "browseOpenEvents": "Browse open events",
+    "notOnTeamTitle": "You're not on a team yet",
+    "notOnTeamBody": "Discover teams near you — many lend gear and welcome newcomers. No pressure; come try a training first.",
+    "findTeamNearYou": "Find a team near you",
+    "browseOpenTrainings": "Browse open trainings",
+    "openToEveryone": "Open to everyone",
+    "news": "News",
+    "noNews": "No news yet."
   },
   "nav": {
     "brandHome": "JuggerHub home",
