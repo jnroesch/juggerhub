@@ -189,9 +189,6 @@ builder.Services.AddAuthorization(options =>
 });
 builder.Services.Configure<RecognitionOptions>(builder.Configuration.GetSection(RecognitionOptions.SectionName));
 
-// --- Mapping (Mapster) -----------------------------------------------------
-builder.Services.AddMappingConfig();
-
 // --- Application services --------------------------------------------------
 builder.Services.AddScoped<IHealthService, HealthService>();
 

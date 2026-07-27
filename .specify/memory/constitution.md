@@ -1,40 +1,42 @@
 <!--
-SYNC IMPACT REPORT — 2026-07-24
+SYNC IMPACT REPORT — 2026-07-27
 ================================
-Version change: 1.2.0 → 1.3.0 (MINOR — new principle + new quality gate, no removals)
+Version change: 1.3.0 → 1.4.0 (MINOR — wording-to-reality reconciliation within a single
+principle; no principle added or removed)
 
 Modified principles:
-  (none renamed, none redefined)
+  ~ Principle II — Thin Controllers, Service-Centric Backend: DTO-mapping clause changed
+    from "services return entities; controller maps with Mapster" to "services return DTOs
+    built with explicit EF .Select projections; no object mapper is used" (issue #15)
+  ~ Principle III — Disciplined Data Access: projection bullet dropped the Mapster-only
+    `.ProjectToType<T>()` API, keeping `.Select(...)`
 
 Added sections:
-  + Principle VII — Resilient by Default, Never Amplifying
-  + Development Workflow & Quality Gates → gate 8 (Resilience)
-  + Technology Stack → Resilience row (Microsoft.Extensions.Http.Resilience / Polly v8;
-    EF Core EnableRetryOnFailure)
+  (none)
 
 Removed sections:
   (none)
 
-Cross-references introduced:
-  - VII cites III (client-generated UUIDv7 keys make commit-failure replay safe)
-  - VII cites V (limits identical in shape across environments)
-  - VII cites I (no secrets or bodies in resilience telemetry)
+Cross-references reinforced:
+  - II now cites I and III as the reason explicit projections are the mandated approach
+    (only required columns read; tokens/hashes/emails never loaded)
+
+Other updated references:
+  - Development Workflow & Quality Gates → gate 1 (no longer says "mapped via Mapster")
+  - Technology Stack → "Mapping" row (explicit EF projections, no object mapper)
 
 Templates requiring updates:
-  ✅ .specify/templates/plan-template.md — no change needed; its Constitution Check
-     section is generic ("[Gates determined based on constitution file]") and derives
-     gates at plan time, so it picks up VII and gate 8 automatically
-  ✅ .specify/templates/spec-template.md — no change needed; contains no constitution
-     references and adds no mandatory sections under this amendment
+  ✅ .specify/templates/plan-template.md — no change needed; Constitution Check is generic
+     and derives gates at plan time
+  ✅ .specify/templates/spec-template.md — no change needed; no constitution references
   ✅ .specify/templates/tasks-template.md — no change needed; task categorisation is
-     driven by the feature's own stories, not by a principle list
-  ✅ .specify/templates/ui-review-checklist-template.md — unaffected (gate 7 unchanged)
-  ✅ CLAUDE.md — no change needed; it defers to the constitution by reference rather
-     than restating principles
+     story-driven, not principle-list-driven
+  ✅ .specify/templates/ui-review-checklist-template.md — unaffected
+  ✅ CLAUDE.md — no change needed; defers to the constitution by reference
 
 Follow-up TODOs:
-  - None deferred. Note that existing code is non-conforming with VII until feature 028
-    lands; see the migration note in the 1.3.0 governance entry.
+  - Mapster removal tracked as a follow-up issue (see the 1.4.0 governance migration note);
+    existing Mapster code stays non-conforming until that lands.
 -->
 
 # JuggerHub Constitution
@@ -104,8 +106,12 @@ private static async Task HandleExceptionAsync(HttpContext context, Exception ex
 - **No repository layer** — services access the database directly via Entity
   Framework Core.
 - **DTOs** are used for all client-facing responses to strip unnecessary data.
-  Services return **entities**; the controller maps entities to the response DTO
-  with **Mapster**.
+  Services return **DTOs** built with explicit EF Core projections
+  (`.Select(e => new Dto(...))`) so only the required columns are read and
+  sensitive fields (tokens, password hashes, emails) never cross the boundary
+  (Principles I and III). Controllers stay thin and return the service's DTO as-is.
+  **No object-to-object mapper (e.g. Mapster) is used** — projections are explicit
+  and the DTO boundary is auditable at each query.
 - **Lean middleware**: register only middleware needed for core mechanics
   (routing, model binding, error handling) and security (authentication,
   authorization, CORS, rate limiting). Cross-cutting concerns belong in services
@@ -150,8 +156,8 @@ public sealed class AuditFieldsInterceptor : SaveChangesInterceptor
 }
 ```
 
-- **Projections**: use `.Select(...)` / `.ProjectToType<T>()` when reading so only
-  required columns are pulled, avoiding N+1 problems and reducing transfer.
+- **Projections**: use `.Select(...)` when reading so only required columns are
+  pulled, avoiding N+1 problems and reducing transfer.
 - **Query tracking**: use `AsNoTracking()` for read-only queries; only track when
   entities will actually be modified and saved.
 - **Batch operations**: prefer `AddRange`/`UpdateRange`/`RemoveRange` and
@@ -453,7 +459,7 @@ await strategy.ExecuteAsync(async () =>
 |-------|--------|
 | Backend runtime | .NET 10 (monorepo), Entity Framework Core |
 | Database | PostgreSQL 18 |
-| Mapping | Mapster (entity → DTO) |
+| Mapping | Explicit EF Core `.Select` projections (entity → DTO); no object mapper |
 | Auth | Microsoft Identity, argon2 (salted), JWT in httpOnly cookies |
 | Frontend | Angular + Nx + Tailwind CSS |
 | Containerization | Docker (per-service) + docker-compose (local) |
@@ -506,7 +512,8 @@ These gates apply to all changes and integrate with the Spec-Kit workflow in
 [CLAUDE.md](../../CLAUDE.md):
 
 1. **Architecture**: controllers stay thin; logic lives in DI'd services behind
-   interfaces; no repository layer; responses go out as DTOs mapped via Mapster.
+   interfaces; no repository layer; services return DTOs built with explicit EF
+   `.Select` projections (no object mapper).
 2. **Data access**: list endpoints paginate; reads use projections + `AsNoTracking`;
    `ExecuteUpdateAsync` paths set `ModifiedDate`; new entities derive from
    `BaseEntity`.
@@ -546,8 +553,25 @@ These gates apply to all changes and integrate with the Spec-Kit workflow in
   removals/redefinitions, **MINOR** for new principles/sections or materially
   expanded guidance, **PATCH** for clarifications and wording.
 
-**Version**: 1.3.0 | **Ratified**: 2026-06-29 | **Last Amended**: 2026-07-24
+**Version**: 1.4.0 | **Ratified**: 2026-06-29 | **Last Amended**: 2026-07-27
 
+> **1.4.0** (2026-07-27, MINOR): reconciled **Principle II**'s DTO-mapping clause with
+> established practice (issue #15). The prior wording — "services return entities; the
+> controller maps entities to the response DTO with Mapster" — never matched the code:
+> Mapster had exactly one runtime call while ~174 explicit EF `.Select` projections
+> across 44 service files were the real convention, and projections are what Principles I
+> and III already reward (only required columns read; secrets never loaded). Principle II
+> now mandates services return DTOs built with explicit projections and states no object
+> mapper is used; Quality Gate 1, the Technology Stack "Mapping" row, and Principle III's
+> projection bullet (dropped the Mapster-only `.ProjectToType<T>()` API) were updated to
+> match. No principle was removed; this is a wording-to-reality reconciliation treated as
+> MINOR consistent with the 1.2.0 precedent (a directive change within a single principle).
+> **Migration note**: the dead Mapster surface — `Common/MappingConfig`,
+> `AuthMappingRegister`, `ProfileMapping`, the `AddMappingConfig` DI wiring, the NuGet
+> package reference, and the single `AuthService` `.Adapt<AuthUserDto>()` call — remains
+> non-conforming until removed under its follow-up issue; convert the one `.Adapt` call to
+> an explicit projection as part of that work, not lazily.
+>
 > **1.3.0** (2026-07-24, MINOR): added **Principle VII — Resilient by Default, Never
 > Amplifying** and **Quality Gate 8 (Resilience)**, derived from feature 028
 > (`specs/028-network-resilience/`). Codifies bounded time limits on both hops,

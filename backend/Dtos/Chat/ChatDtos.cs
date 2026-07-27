@@ -3,7 +3,7 @@ using JuggerHub.Entities;
 namespace JuggerHub.Dtos.Chat;
 
 // Client-facing shapes for chat (feature 019). See specs/019-chat/contracts/chat-api.md.
-// Services return entities; controllers map to these with Mapster (constitution Principle II).
+// Services build these with explicit EF .Select projections (constitution Principle II).
 
 /// <summary>How a conversation is pictured in the inbox: a player's avatar, a team/party crest, or a group cluster.</summary>
 public sealed record ConversationAvatarDto(string Kind, Guid? UserId, Guid? TeamId, string? Url);
