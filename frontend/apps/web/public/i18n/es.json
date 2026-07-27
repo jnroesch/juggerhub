@@ -8,7 +8,11 @@
     "save": "Guardar",
     "cancel": "Cancelar",
     "close": "Cerrar",
-    "loading": "Cargando…"
+    "loading": "Cargando…",
+    "continue": "Continuar",
+    "back": "‹ Atrás",
+    "skip": "Omitir",
+    "tryAgain": "Reintentar"
   },
   "nav": {
     "brandHome": "Inicio de JuggerHub",
@@ -82,6 +86,64 @@
       "failedBody": "Este enlace de verificación no es válido o ha caducado. Introduce tu correo para obtener uno nuevo.",
       "resent": "Si esa cuenta necesita verificación, ya va en camino un nuevo enlace.",
       "resend": "Reenviar correo de verificación"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Te damos la bienvenida a Jugger",
+      "subtitle": "Vamos a configurar tu perfil de jugador — tardarás alrededor de un minuto.",
+      "start": "Empezar",
+      "later": "Lo haré más tarde"
+    },
+    "name": {
+      "title": "¿Cómo quieres que te llamemos?",
+      "subtitle": "Tu nombre visible — puedes cambiarlo cuando quieras.",
+      "placeholder": "Nombre de jugador",
+      "handleNote": "El usuario @{{handle}} no cambia"
+    },
+    "city": {
+      "title": "¿Dónde te encuentras?",
+      "subtitle": "Elige tu ciudad — impulsa los equipos y eventos cerca de ti.",
+      "placeholder": "p. ej. Berlín"
+    },
+    "pompfen": {
+      "title": "¿A qué juegas?",
+      "subtitle": "Elige las que quieras — incluida Läufer."
+    },
+    "team": {
+      "title": "Encuentra tu equipo",
+      "introNear": "Primero los equipos más cercanos a ti — los que buscan jugadores nuevos están marcados como \"Principiantes\". O busca cualquier equipo por su nombre.",
+      "introFar": "Estos equipos buscan jugadores nuevos — o busca por nombre para encontrar cualquier otro equipo.",
+      "searchPlaceholder": "Buscar equipos…",
+      "searchAria": "Buscar equipos por nombre",
+      "loading": "Buscando equipos…",
+      "loadingPatient": "Seguimos buscando…",
+      "loadError": "No pudimos cargar los equipos en este momento.",
+      "noResults": "Ningún equipo coincide — prueba con otro nombre.",
+      "emptyLooking": "Ahora mismo ningún equipo busca jugadores nuevos — busca por nombre para encontrar cualquier equipo.",
+      "players": "jugadores",
+      "asked": "Solicitado",
+      "beginners": "Principiantes",
+      "askedConfirmation": "Le hemos pedido a {{name}} que te admita — un administrador todavía tiene que aceptar.",
+      "ask": "Solicitar unirse a {{name}}",
+      "asking": "Solicitando…",
+      "notOnTeam": "Todavía no estoy en un equipo"
+    },
+    "photo": {
+      "optional": "Opcional",
+      "title": "Hazlo tuyo",
+      "subtitle": "Añade una foto y una breve biografía — o hazlo más tarde.",
+      "addPhoto": "Añadir foto",
+      "previewAlt": "Vista previa de la foto seleccionada",
+      "bioPlaceholder": "Una breve biografía…",
+      "finish": "Finalizar",
+      "saving": "Guardando…",
+      "skipNow": "Omitir por ahora"
+    },
+    "done": {
+      "title": "¡Todo listo!",
+      "subtitle": "Te damos la bienvenida a la comunidad.",
+      "enter": "3… 2… 1… ¡Jugger!"
     }
   }
 }

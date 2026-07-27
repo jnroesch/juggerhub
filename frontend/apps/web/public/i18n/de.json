@@ -8,7 +8,11 @@
     "save": "Speichern",
     "cancel": "Abbrechen",
     "close": "Schließen",
-    "loading": "Wird geladen…"
+    "loading": "Wird geladen…",
+    "continue": "Weiter",
+    "back": "‹ Zurück",
+    "skip": "Überspringen",
+    "tryAgain": "Erneut versuchen"
   },
   "nav": {
     "brandHome": "JuggerHub Startseite",
@@ -82,6 +86,64 @@
       "failedBody": "Dieser Bestätigungslink ist ungültig oder abgelaufen. Gib deine E-Mail-Adresse ein, um einen neuen zu erhalten.",
       "resent": "Falls dieses Konto bestätigt werden muss, ist ein neuer Link unterwegs.",
       "resend": "Bestätigungs-E-Mail erneut senden"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Willkommen bei Jugger",
+      "subtitle": "Lass uns dein Spielerprofil einrichten — dauert etwa eine Minute.",
+      "start": "Los geht's",
+      "later": "Das mache ich später"
+    },
+    "name": {
+      "title": "Wie sollen wir dich nennen?",
+      "subtitle": "Dein Anzeigename — jederzeit änderbar.",
+      "placeholder": "Spielername",
+      "handleNote": "Der Benutzername @{{handle}} bleibt gleich"
+    },
+    "city": {
+      "title": "Wo bist du zu Hause?",
+      "subtitle": "Wähle deine Heimatstadt — sie treibt Teams und Events in deiner Nähe an.",
+      "placeholder": "z. B. Berlin"
+    },
+    "pompfen": {
+      "title": "Was spielst du?",
+      "subtitle": "Wähle beliebig viele — auch Läufer."
+    },
+    "team": {
+      "title": "Finde dein Team",
+      "introNear": "Teams in deiner Nähe zuerst — die, die neue Spieler suchen, sind mit \"Anfänger\" markiert. Oder suche jedes Team nach Namen.",
+      "introFar": "Diese Teams suchen neue Spieler — oder suche nach Namen, um jedes andere Team zu finden.",
+      "searchPlaceholder": "Teams suchen…",
+      "searchAria": "Teams nach Namen suchen",
+      "loading": "Teams werden gesucht…",
+      "loadingPatient": "Wird noch gesucht…",
+      "loadError": "Wir konnten die Teams gerade nicht laden.",
+      "noResults": "Keine Teams passen dazu — versuche einen anderen Namen.",
+      "emptyLooking": "Momentan sucht kein Team neue Spieler — suche nach Namen, um ein beliebiges Team zu finden.",
+      "players": "Spieler",
+      "asked": "Angefragt",
+      "beginners": "Anfänger",
+      "askedConfirmation": "Wir haben {{name}} gebeten, dich aufzunehmen — ein Admin muss noch zustimmen.",
+      "ask": "Beitritt bei {{name}} anfragen",
+      "asking": "Wird angefragt…",
+      "notOnTeam": "Ich bin noch in keinem Team"
+    },
+    "photo": {
+      "optional": "Optional",
+      "title": "Mach es zu deinem",
+      "subtitle": "Füge ein Foto und eine kurze Bio hinzu — oder mach es später.",
+      "addPhoto": "Foto hinzufügen",
+      "previewAlt": "Vorschau des gewählten Fotos",
+      "bioPlaceholder": "Eine kurze Bio…",
+      "finish": "Fertig",
+      "saving": "Wird gespeichert…",
+      "skipNow": "Später"
+    },
+    "done": {
+      "title": "Alles bereit!",
+      "subtitle": "Willkommen in der Community.",
+      "enter": "3… 2… 1… Jugger!"
     }
   }
 }

@@ -4,7 +4,11 @@
     "save": "Save",
     "cancel": "Cancel",
     "close": "Close",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "continue": "Continue",
+    "back": "‹ Back",
+    "skip": "Skip",
+    "tryAgain": "Try again"
   },
   "nav": {
     "brandHome": "JuggerHub home",
@@ -78,6 +82,64 @@
       "failedBody": "This verification link is invalid or has expired. Enter your email to get a new one.",
       "resent": "If that account needs verifying, a new link is on its way.",
       "resend": "Resend verification email"
+    }
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Welcome to Jugger",
+      "subtitle": "Let's set up your player profile — takes about a minute.",
+      "start": "Get started",
+      "later": "I'll do this later"
+    },
+    "name": {
+      "title": "What should we call you?",
+      "subtitle": "Your display name — change it anytime.",
+      "placeholder": "Player name",
+      "handleNote": "Handle @{{handle}} stays the same"
+    },
+    "city": {
+      "title": "Where are you based?",
+      "subtitle": "Pick your home city — it powers teams and events near you.",
+      "placeholder": "e.g. Berlin"
+    },
+    "pompfen": {
+      "title": "Which do you play?",
+      "subtitle": "Pick any — including Läufer."
+    },
+    "team": {
+      "title": "Find your team",
+      "introNear": "Teams closest to you first — the ones looking for new players are marked \"Beginners\". Or search by name for any team.",
+      "introFar": "These teams are looking for new players — or search by name to find any other team.",
+      "searchPlaceholder": "Search teams…",
+      "searchAria": "Search teams by name",
+      "loading": "Finding teams…",
+      "loadingPatient": "Still looking…",
+      "loadError": "We couldn't load teams just now.",
+      "noResults": "No teams match that — try a different name.",
+      "emptyLooking": "No teams are looking for new players right now — search by name to find any team.",
+      "players": "players",
+      "asked": "Asked",
+      "beginners": "Beginners",
+      "askedConfirmation": "We've asked {{name}} to let you in — an admin still has to say yes.",
+      "ask": "Ask to join {{name}}",
+      "asking": "Asking…",
+      "notOnTeam": "I'm not on a team yet"
+    },
+    "photo": {
+      "optional": "Optional",
+      "title": "Make it yours",
+      "subtitle": "Add a photo and a short bio — or do it later.",
+      "addPhoto": "Add photo",
+      "previewAlt": "Selected photo preview",
+      "bioPlaceholder": "A short bio…",
+      "finish": "Finish",
+      "saving": "Saving…",
+      "skipNow": "Skip for now"
+    },
+    "done": {
+      "title": "You're all set!",
+      "subtitle": "Welcome to the community.",
+      "enter": "3… 2… 1… Jugger!"
     }
   }
 }

@@ -12,9 +12,9 @@
         >
           J
         </div>
-        <h1 class="mt-lg text-heading-lg font-semibold text-ink">Welcome to Jugger</h1>
+        <h1 class="mt-lg text-heading-lg font-semibold text-ink">{{ 'onboarding.welcome.title' | transloco }}</h1>
         <p class="mt-xs max-w-xs text-body-md text-subtle">
-          Let's set up your player profile — takes about a minute.
+          {{ 'onboarding.welcome.subtitle' | transloco }}
         </p>
       </div>
       <div class="space-y-sm">
@@ -24,7 +24,7 @@
           (click)="next()"
           jhButton class="w-full"
         >
-          Get started
+          {{ 'onboarding.welcome.start' | transloco }}
         </button>
         <button
           type="button"
@@ -33,7 +33,7 @@
           [disabled]="saving()"
           class="w-full py-xs text-body-sm font-medium text-subtle hover:text-text disabled:opacity-50"
         >
-          I'll do this later
+          {{ 'onboarding.welcome.later' | transloco }}
         </button>
       </div>
     }
@@ -42,17 +42,17 @@
     @case ('name') {
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
-        <h1 class="text-heading-lg font-semibold text-ink">What should we call you?</h1>
-        <p class="mt-xs text-body-md text-subtle">Your display name — change it anytime.</p>
+        <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.name.title' | transloco }}</h1>
+        <p class="mt-xs text-body-md text-subtle">{{ 'onboarding.name.subtitle' | transloco }}</p>
         <input
           type="text"
           data-testid="onboarding-name"
           [ngModel]="displayName()"
           (ngModelChange)="displayName.set($event)"
-          placeholder="Player name"
+          [placeholder]="'onboarding.name.placeholder' | transloco"
           class="mt-lg w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
         />
-        <p class="mt-sm text-body-sm text-subtle">Handle &#64;{{ handle() }} stays the same</p>
+        <p class="mt-sm text-body-sm text-subtle">{{ 'onboarding.name.handleNote' | transloco:{ handle: handle() } }}</p>
       </div>
       <div class="space-y-sm">
         <ng-container [ngTemplateOutlet]="progress" />
@@ -63,7 +63,7 @@
           [disabled]="nameEmpty()"
           jhButton class="w-full"
         >
-          Continue
+          {{ 'common.continue' | transloco }}
         </button>
       </div>
     }
@@ -72,12 +72,12 @@
     @case ('city') {
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
-        <h1 class="text-heading-lg font-semibold text-ink">Where are you based?</h1>
-        <p class="mt-xs text-body-md text-subtle">Pick your home city — it powers teams and events near you.</p>
+        <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.city.title' | transloco }}</h1>
+        <p class="mt-xs text-body-md text-subtle">{{ 'onboarding.city.subtitle' | transloco }}</p>
         <div class="mt-lg" data-testid="onboarding-city">
           <jh-city-picker
             [initial]="initialLocation()"
-            placeholder="e.g. Berlin"
+            [placeholder]="'onboarding.city.placeholder' | transloco"
             (selectedChange)="onCitySelected($event)"
           />
         </div>
@@ -90,7 +90,7 @@
           (click)="next()"
           jhButton class="w-full"
         >
-          Continue
+          {{ 'common.continue' | transloco }}
         </button>
         <ng-container [ngTemplateOutlet]="skipLink" />
       </div>
@@ -100,8 +100,8 @@
     @case ('pompfen') {
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
-        <h1 class="text-heading-lg font-semibold text-ink">Which do you play?</h1>
-        <p class="mt-xs text-body-md text-subtle">Pick any — including Läufer.</p>
+        <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.pompfen.title' | transloco }}</h1>
+        <p class="mt-xs text-body-md text-subtle">{{ 'onboarding.pompfen.subtitle' | transloco }}</p>
         <div class="mt-lg">
           <jh-pompfe-selector
             [selected]="selectedPompfen()"
@@ -117,7 +117,7 @@
           (click)="next()"
           jhButton class="w-full"
         >
-          Continue
+          {{ 'common.continue' | transloco }}
         </button>
         <ng-container [ngTemplateOutlet]="skipLink" />
       </div>
@@ -131,13 +131,12 @@
     @case ('team') {
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
-        <h1 class="text-heading-lg font-semibold text-ink">Find your team</h1>
+        <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.team.title' | transloco }}</h1>
         <p class="mt-xs text-body-md text-subtle">
           @if (homeCityPersisted()) {
-            Teams closest to you first — the ones looking for new players are marked
-            <span class="text-brand">Beginners</span>. Or search by name for any team.
+            {{ 'onboarding.team.introNear' | transloco }}
           } @else {
-            These teams are looking for new players — or search by name to find any other team.
+            {{ 'onboarding.team.introFar' | transloco }}
           }
         </p>
 
@@ -148,8 +147,8 @@
           <input
             type="search"
             data-testid="onboarding-team-search"
-            placeholder="Search teams…"
-            aria-label="Search teams by name"
+            [placeholder]="'onboarding.team.searchPlaceholder' | transloco"
+            [attr.aria-label]="'onboarding.team.searchAria' | transloco"
             (input)="onTeamQuery($any($event.target).value)"
             class="w-full min-h-11 bg-transparent text-body-md text-ink outline-none placeholder:text-faint"
           />
@@ -160,27 +159,27 @@
             <jh-loading
               class="mt-sm block"
               align="center"
-              label="Finding teams…"
-              patientLabel="Still looking…"
+              [label]="'onboarding.team.loading' | transloco"
+              [patientLabel]="'onboarding.team.loadingPatient' | transloco"
               data-testid="onboarding-team-loading"
             />
           }
           @case ('error') {
             <div class="mt-sm flex flex-col items-center gap-sm text-center" data-testid="onboarding-team-error">
-              <jh-alert>We couldn't load teams just now.</jh-alert>
+              <jh-alert>{{ 'onboarding.team.loadError' | transloco }}</jh-alert>
               <button type="button" jhButton variant="secondary" size="sm" (click)="teams.reload()">
-                Try again
+                {{ 'common.tryAgain' | transloco }}
               </button>
             </div>
           }
           @case ('no-results') {
             <p class="mt-sm text-center text-body-sm text-subtle" data-testid="onboarding-team-empty">
-              No teams match that — try a different name.
+              {{ 'onboarding.team.noResults' | transloco }}
             </p>
           }
           @case ('empty') {
             <p class="mt-sm text-center text-body-sm text-subtle" data-testid="onboarding-team-empty">
-              No teams are looking for new players right now — search by name to find any team.
+              {{ 'onboarding.team.emptyLooking' | transloco }}
             </p>
           }
           @default {
@@ -204,13 +203,13 @@
                       @if (team.location) {
                         {{ team.location.label }} ·
                       }
-                      <span class="font-mono">{{ team.playerCount }}</span> players
+                      <span class="font-mono">{{ team.playerCount }}</span> {{ 'onboarding.team.players' | transloco }}
                     </span>
                   </span>
                   @if (requestedSlugs().has(team.slug)) {
-                    <span class="rounded-pill border border-border-strong px-sm py-0 text-caption text-subtle">Asked</span>
+                    <span class="rounded-pill border border-border-strong px-sm py-0 text-caption text-subtle">{{ 'onboarding.team.asked' | transloco }}</span>
                   } @else if (team.beginnersWelcome) {
-                    <span class="rounded-pill border border-brand px-sm py-0 text-caption text-brand">Beginners</span>
+                    <span class="rounded-pill border border-brand px-sm py-0 text-caption text-brand">{{ 'onboarding.team.beginners' | transloco }}</span>
                   }
                 </button>
               }
@@ -221,7 +220,7 @@
         @if (selectedTeam(); as team) {
           @if (selectedRequested()) {
             <p class="mt-sm text-body-sm text-subtle" data-testid="onboarding-team-confirmation">
-              We've asked {{ team.name }} to let you in — an admin still has to say yes.
+              {{ 'onboarding.team.askedConfirmation' | transloco:{ name: team.name } }}
             </p>
           } @else {
             <button
@@ -231,7 +230,7 @@
               [disabled]="askingSlug() !== null"
               jhButton variant="secondary" class="mt-sm w-full"
             >
-              {{ askingSlug() ? 'Asking…' : 'Ask to join ' + team.name }}
+              {{ askingSlug() ? ('onboarding.team.asking' | transloco) : ('onboarding.team.ask' | transloco:{ name: team.name }) }}
             </button>
           }
         }
@@ -248,7 +247,7 @@
           (click)="next()"
           jhButton class="w-full"
         >
-          Continue
+          {{ 'common.continue' | transloco }}
         </button>
         <button
           type="button"
@@ -256,7 +255,7 @@
           (click)="next()"
           class="w-full py-xs text-body-sm font-medium text-subtle underline hover:text-text"
         >
-          I'm not on a team yet
+          {{ 'onboarding.team.notOnTeam' | transloco }}
         </button>
       </div>
     }
@@ -264,12 +263,12 @@
     <!-- 5 · Photo + bio -------------------------------------------------------->
     @case ('photo') {
       <div class="flex items-center justify-between">
-        <button type="button" (click)="back()" class="text-body-sm text-subtle hover:text-text">‹ Back</button>
-        <span class="rounded-full border border-border px-sm py-[2px] text-body-sm text-subtle">Optional</span>
+        <button type="button" (click)="back()" class="text-body-sm text-subtle hover:text-text">{{ 'common.back' | transloco }}</button>
+        <span class="rounded-full border border-border px-sm py-[2px] text-body-sm text-subtle">{{ 'onboarding.photo.optional' | transloco }}</span>
       </div>
       <div class="mt-lg flex-1">
-        <h1 class="text-heading-lg font-semibold text-ink">Make it yours</h1>
-        <p class="mt-xs text-body-md text-subtle">Add a photo and a short bio — or do it later.</p>
+        <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.photo.title' | transloco }}</h1>
+        <p class="mt-xs text-body-md text-subtle">{{ 'onboarding.photo.subtitle' | transloco }}</p>
 
         <div class="mt-lg flex flex-col items-center">
           <label
@@ -277,9 +276,9 @@
             class="grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle"
           >
             @if (avatarPreview()) {
-              <img [src]="avatarPreview()" alt="Selected photo preview" class="h-full w-full object-cover" />
+              <img [src]="avatarPreview()" [alt]="'onboarding.photo.previewAlt' | transloco" class="h-full w-full object-cover" />
             } @else {
-              <span>Add photo</span>
+              <span>{{ 'onboarding.photo.addPhoto' | transloco }}</span>
             }
           </label>
           <input
@@ -298,7 +297,7 @@
           (ngModelChange)="description.set($event)"
           rows="3"
           maxlength="280"
-          placeholder="A short bio…"
+          [placeholder]="'onboarding.photo.bioPlaceholder' | transloco"
           class="mt-lg w-full resize-none rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
         ></textarea>
 
@@ -315,7 +314,7 @@
           [disabled]="saving()"
           jhButton class="w-full"
         >
-          {{ saving() ? 'Saving…' : 'Finish' }}
+          {{ (saving() ? 'onboarding.photo.saving' : 'onboarding.photo.finish') | transloco }}
         </button>
         <button
           type="button"
@@ -324,7 +323,7 @@
           [disabled]="saving()"
           class="w-full py-xs text-body-sm font-medium text-subtle underline hover:text-text disabled:opacity-50"
         >
-          Skip for now
+          {{ 'onboarding.photo.skipNow' | transloco }}
         </button>
       </div>
     }
@@ -337,8 +336,8 @@
             <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
-        <h1 class="mt-lg text-heading-lg font-semibold text-ink">You're all set!</h1>
-        <p class="mt-xs text-body-md text-subtle">Welcome to the community.</p>
+        <h1 class="mt-lg text-heading-lg font-semibold text-ink">{{ 'onboarding.done.title' | transloco }}</h1>
+        <p class="mt-xs text-body-md text-subtle">{{ 'onboarding.done.subtitle' | transloco }}</p>
       </div>
       <button
         type="button"
@@ -346,7 +345,7 @@
         (click)="enterApp()"
         jhButton class="w-full"
       >
-        3… 2… 1… Jugger!
+        {{ 'onboarding.done.enter' | transloco }}
       </button>
     }
   }
@@ -354,7 +353,7 @@
 
 <!-- Shared: back bar, progress knobs, and a plain Skip link ------------------->
 <ng-template #backBar>
-  <button type="button" (click)="back()" class="text-body-sm text-subtle hover:text-text">‹ Back</button>
+  <button type="button" (click)="back()" class="text-body-sm text-subtle hover:text-text">{{ 'common.back' | transloco }}</button>
 </ng-template>
 
 <ng-template #progress>
@@ -379,6 +378,6 @@
     (click)="next()"
     class="w-full py-xs text-body-sm font-medium text-subtle underline hover:text-text"
   >
-    Skip
+    {{ 'common.skip' | transloco }}
   </button>
 </ng-template>

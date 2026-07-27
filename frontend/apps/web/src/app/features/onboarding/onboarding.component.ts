@@ -17,6 +17,7 @@ import { Pompfe } from '../../shared/pompfen.catalog';
 import { ButtonDirective, AlertComponent, IconComponent, LoadingComponent } from '../../shared/ui';
 import { CityPickerComponent } from '../../shared/city-picker/city-picker.component';
 import { CityOption, Location, toSelection } from '../../core/models/city.models';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 type Step = 'welcome' | 'name' | 'city' | 'pompfen' | 'team' | 'photo' | 'done';
 
@@ -49,6 +50,7 @@ const FLOW: readonly Step[] = ['welcome', 'name', 'city', 'pompfen', 'team', 'ph
     AlertComponent,
     IconComponent,
     LoadingComponent,
+    TranslocoPipe,
   ],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.css',

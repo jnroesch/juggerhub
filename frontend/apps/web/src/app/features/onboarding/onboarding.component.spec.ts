@@ -8,6 +8,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { WritableSignal, Signal } from '@angular/core';
 import { OnboardingComponent } from './onboarding.component';
+import { translocoTestingModule } from '../../../testing/transloco-testing';
 import { OwnerProfile, UpdateProfileRequest } from '../../core/models/profile.models';
 import { PagedResult, TeamCard } from '../../core/models/search.models';
 import { CityOption, Location } from '../../core/models/city.models';
@@ -100,6 +101,7 @@ describe('OnboardingComponent', () => {
     jest.useFakeTimers();
     routeStub = { snapshot: { queryParamMap: convertToParamMap({}) } };
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),

@@ -1,5 +1,9 @@
 import { TranslocoTestingModule, TranslocoTestingOptions, Translation } from '@jsverse/transloco';
-import enCatalog from '../../public/i18n/en.json';
+
+// Load the real English root catalog via require: a JSON *default* import resolves to `undefined`
+// at runtime under this Jest/ts-jest config (no esModuleInterop), which would leave the test
+// catalog empty and every key unresolved.
+const enCatalog: Translation = require('../../public/i18n/en.json');
 
 /**
  * Test harness for components/services that use Transloco (feature 031). Provides an in-memory
