@@ -13,7 +13,27 @@
     "back": "‹ Zurück",
     "skip": "Überspringen",
     "tryAgain": "Erneut versuchen",
-    "seeAll": "Alle ansehen"
+    "seeAll": "Alle ansehen",
+    "accept": "Annehmen",
+    "decline": "Ablehnen"
+  },
+  "myTeam": {
+    "yourTeams": "Deine Teams",
+    "yourTeamsSub": "Spring in eines deiner Teams.",
+    "admin": "Admin",
+    "member": "Mitglied",
+    "title": "Mein Team",
+    "emptySub": "Du bist noch in keinem Team — tritt einem in deiner Nähe bei, nimm eine Einladung an oder gründe dein eigenes.",
+    "yourInvites": "Deine Einladungen",
+    "cityTeam": "Stadtteam",
+    "mixteam": "Mixteam",
+    "memberOne": "Mitglied",
+    "memberMany": "Mitglieder",
+    "invitedBy": "Eingeladen von {{name}}",
+    "orFindOwn": "Oder finde dein eigenes Team",
+    "findYourTeam": "Finde dein Team",
+    "findSub": "Entdecke Teams in deiner Nähe — viele leihen Ausrüstung und heißen Neulinge willkommen.",
+    "createOwn": "Gründe dein eigenes Team"
   },
   "account": {
     "title": "Konto",

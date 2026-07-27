@@ -9,7 +9,27 @@
     "back": "‹ Back",
     "skip": "Skip",
     "tryAgain": "Try again",
-    "seeAll": "See all"
+    "seeAll": "See all",
+    "accept": "Accept",
+    "decline": "Decline"
+  },
+  "myTeam": {
+    "yourTeams": "Your teams",
+    "yourTeamsSub": "Jump into any of your teams.",
+    "admin": "Admin",
+    "member": "Member",
+    "title": "My team",
+    "emptySub": "You're not on a team yet — join one near you, accept an invite, or start your own.",
+    "yourInvites": "Your invites",
+    "cityTeam": "City team",
+    "mixteam": "Mixteam",
+    "memberOne": "member",
+    "memberMany": "members",
+    "invitedBy": "Invited by {{name}}",
+    "orFindOwn": "Or find your own team",
+    "findYourTeam": "Find your team",
+    "findSub": "Discover teams near you — many lend gear and welcome newcomers.",
+    "createOwn": "Create your own team"
   },
   "account": {
     "title": "Account",

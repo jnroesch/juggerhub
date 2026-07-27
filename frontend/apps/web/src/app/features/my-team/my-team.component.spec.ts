@@ -8,6 +8,7 @@ import { TeamService } from '../../core/services/team.service';
 import { MyTeam } from '../../core/models/home.models';
 import { MyInvitation, PagedResult } from '../../core/models/team.models';
 import { MyTeamComponent } from './my-team.component';
+import { translocoTestingModule } from '../../../testing/transloco-testing';
 
 // --- factories -------------------------------------------------------------
 
@@ -49,6 +50,7 @@ let navSpy: jest.SpyInstance;
 
 function create() {
   TestBed.configureTestingModule({
+    imports: [translocoTestingModule()],
     providers: [
       provideRouter([]),
       { provide: MembershipService, useValue: membership },
