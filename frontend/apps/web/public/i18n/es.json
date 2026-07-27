@@ -980,5 +980,38 @@
       "retireError": "No se pudo retirar ese tipo.",
       "reinstateError": "No se pudo reactivar ese tipo."
     }
+  },
+  "alerts": {
+    "title": "Avisos",
+    "markAllRead": "Marcar todo como leído",
+    "loadError": "No pudimos cargar tus avisos",
+    "loadErrorHint": "Algo salió mal por nuestra parte. Inténtalo de nuevo.",
+    "emptyTitle": "Estás al día",
+    "emptyHint": "Cuando haya algo que ver — una invitación de equipo, un cambio de rol, una noticia — aparecerá aquí.",
+    "showOlder": "Ver más antiguos",
+    "row": {
+      "unread": "No leído",
+      "fallbackTitle": "Aviso",
+      "teamInviteTitle": "Invitación para unirte a {{team}}",
+      "roleChangedTitleAdmin": "Ahora eres admin de {{team}}",
+      "roleChangedTitleMember": "Ahora eres miembro de {{team}}",
+      "teamNewsTitle": "Noticias de {{team}}",
+      "partyRequestTitle": "{{team}} está formando una party",
+      "partyNewsTitle": "Novedad de party — {{team}} @ {{event}}",
+      "marketInviteTitle": "{{team}} te invitó a su equipo",
+      "trainingScheduledTitle": "Nuevo entrenamiento: {{name}}",
+      "trainingCancelledTitle": "Entrenamiento cancelado: {{name}}",
+      "trainingChangedTitle": "Entrenamiento modificado: {{name}}",
+      "teamInviteHandled": "Invitación gestionada",
+      "teamInviteSupporting": "{{inviter}} te invitó al equipo",
+      "roleChangedSupportingActor": "{{actor}} actualizó tu rol",
+      "roleChangedSupporting": "Tu rol fue actualizado",
+      "partyRequestSupporting": "Toca para responder — ¿te apuntas a {{event}}?",
+      "partyNewsSupporting": "Nueva novedad para la party de {{event}}",
+      "trainingScheduledSeries": "Se añadió una nueva serie — di si puedes asistir",
+      "trainingScheduledOneoff": "Se añadió una sesión única — di si puedes asistir",
+      "trainingUpdatedCancelled": "Una sesión a la que respondiste fue cancelada",
+      "trainingUpdatedChanged": "Una sesión próxima cambió"
+    }
   }
 }

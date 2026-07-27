@@ -980,5 +980,38 @@
       "retireError": "Dieser Typ konnte nicht stillgelegt werden.",
       "reinstateError": "Dieser Typ konnte nicht reaktiviert werden."
     }
+  },
+  "alerts": {
+    "title": "Benachrichtigungen",
+    "markAllRead": "Alle als gelesen markieren",
+    "loadError": "Wir konnten deine Benachrichtigungen nicht laden",
+    "loadErrorHint": "Bei uns ist etwas schiefgelaufen. Versuche es noch einmal.",
+    "emptyTitle": "Du bist auf dem neuesten Stand",
+    "emptyHint": "Sobald es etwas gibt — eine Team-Einladung, eine Rollenänderung, ein Neuigkeiten-Beitrag — erscheint es hier.",
+    "showOlder": "Ältere anzeigen",
+    "row": {
+      "unread": "Ungelesen",
+      "fallbackTitle": "Benachrichtigung",
+      "teamInviteTitle": "Einladung zu {{team}}",
+      "roleChangedTitleAdmin": "Du bist jetzt Admin von {{team}}",
+      "roleChangedTitleMember": "Du bist jetzt Mitglied von {{team}}",
+      "teamNewsTitle": "Neuigkeiten von {{team}}",
+      "partyRequestTitle": "{{team}} stellt eine Party zusammen",
+      "partyNewsTitle": "Party-Update — {{team}} @ {{event}}",
+      "marketInviteTitle": "{{team}} hat dich in ihre Crew eingeladen",
+      "trainingScheduledTitle": "Neues Training: {{name}}",
+      "trainingCancelledTitle": "Training abgesagt: {{name}}",
+      "trainingChangedTitle": "Training geändert: {{name}}",
+      "teamInviteHandled": "Einladung bearbeitet",
+      "teamInviteSupporting": "{{inviter}} hat dich ins Team eingeladen",
+      "roleChangedSupportingActor": "{{actor}} hat deine Rolle geändert",
+      "roleChangedSupporting": "Deine Rolle wurde geändert",
+      "partyRequestSupporting": "Tippe zum Antworten — bist du bei {{event}} dabei?",
+      "partyNewsSupporting": "Neues Update für die {{event}}-Party",
+      "trainingScheduledSeries": "Eine neue Serie wurde hinzugefügt — sag Bescheid, ob du kannst",
+      "trainingScheduledOneoff": "Ein Einzeltermin wurde hinzugefügt — sag Bescheid, ob du kannst",
+      "trainingUpdatedCancelled": "Eine Einheit, auf die du geantwortet hast, wurde abgesagt",
+      "trainingUpdatedChanged": "Eine anstehende Einheit hat sich geändert"
+    }
   }
 }

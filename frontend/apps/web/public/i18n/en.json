@@ -976,5 +976,38 @@
       "retireError": "Could not retire that type.",
       "reinstateError": "Could not reinstate that type."
     }
+  },
+  "alerts": {
+    "title": "Alerts",
+    "markAllRead": "Mark all read",
+    "loadError": "We couldn't load your alerts",
+    "loadErrorHint": "Something went wrong on our end. Give it another go.",
+    "emptyTitle": "You're all caught up",
+    "emptyHint": "When there's something to see — a team invite, a role change, a news post — it'll show up here.",
+    "showOlder": "Show older",
+    "row": {
+      "unread": "Unread",
+      "fallbackTitle": "Notification",
+      "teamInviteTitle": "Invitation to join {{team}}",
+      "roleChangedTitleAdmin": "You're now an admin of {{team}}",
+      "roleChangedTitleMember": "You're now a member of {{team}}",
+      "teamNewsTitle": "News from {{team}}",
+      "partyRequestTitle": "{{team}} is forming a party",
+      "partyNewsTitle": "Party update — {{team}} @ {{event}}",
+      "marketInviteTitle": "{{team}} invited you to their crew",
+      "trainingScheduledTitle": "New training: {{name}}",
+      "trainingCancelledTitle": "Training cancelled: {{name}}",
+      "trainingChangedTitle": "Training changed: {{name}}",
+      "teamInviteHandled": "Invitation handled",
+      "teamInviteSupporting": "{{inviter}} invited you to the team",
+      "roleChangedSupportingActor": "{{actor}} updated your role",
+      "roleChangedSupporting": "Your role was updated",
+      "partyRequestSupporting": "Tap to answer — are you in for {{event}}?",
+      "partyNewsSupporting": "New update for the {{event}} party",
+      "trainingScheduledSeries": "A new series was added — say if you can make it",
+      "trainingScheduledOneoff": "A one-off was added — say if you can make it",
+      "trainingUpdatedCancelled": "A session you responded to was cancelled",
+      "trainingUpdatedChanged": "An upcoming session changed"
+    }
   }
 }
