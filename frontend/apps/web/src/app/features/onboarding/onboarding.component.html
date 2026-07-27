@@ -264,7 +264,6 @@
     @case ('photo') {
       <div class="flex items-center justify-between">
         <button type="button" (click)="back()" class="text-body-sm text-subtle hover:text-text">{{ 'common.back' | transloco }}</button>
-        <span class="rounded-full border border-border px-sm py-[2px] text-body-sm text-subtle">{{ 'onboarding.photo.optional' | transloco }}</span>
       </div>
       <div class="mt-lg flex-1">
         <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.photo.title' | transloco }}</h1>
@@ -273,12 +272,12 @@
         <div class="mt-lg flex flex-col items-center">
           <label
             for="onboarding-photo"
-            class="grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle"
+            class="grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-full border border-dashed border-border-strong bg-surface-subtle text-center text-body-sm text-subtle"
           >
             @if (avatarPreview()) {
               <img [src]="avatarPreview()" [alt]="'onboarding.photo.previewAlt' | transloco" class="h-full w-full object-cover" />
             } @else {
-              <span>{{ 'onboarding.photo.addPhoto' | transloco }}</span>
+              <span class="px-xs text-center">{{ 'onboarding.photo.addPhoto' | transloco }}</span>
             }
           </label>
           <input

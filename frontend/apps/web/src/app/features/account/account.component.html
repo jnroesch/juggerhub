@@ -10,9 +10,17 @@
       </p>
     }
 
+    <div
+      class="mt-lg flex items-center justify-between gap-md rounded-md border border-border-muted bg-surface-card px-md py-sm"
+      data-testid="account-language"
+    >
+      <span class="text-body-sm font-medium text-ink">{{ 'common.language' | transloco }}</span>
+      <jh-language-switcher />
+    </div>
+
     <a
       routerLink="/settings/notifications"
-      class="mt-lg inline-flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium text-link transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      class="mt-sm inline-flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium text-link transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       data-testid="account-notification-settings"
     >
       {{ 'account.notificationSettings' | transloco }}

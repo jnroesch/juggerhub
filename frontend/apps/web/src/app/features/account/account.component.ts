@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
+import { LanguageSwitcherComponent } from '../settings/language/language-switcher.component';
 
 /**
  * Guarded sample page — reachable only when authenticated (see authGuard). It
@@ -10,7 +11,7 @@ import { AuthService } from '../../core/services/auth.service';
  */
 @Component({
   selector: 'jh-account',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe, LanguageSwitcherComponent],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css',
 })

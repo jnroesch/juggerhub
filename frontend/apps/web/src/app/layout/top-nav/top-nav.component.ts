@@ -7,7 +7,6 @@ import { NotificationService } from '../../core/services/notification.service';
 import { ChatService } from '../../core/services/chat.service';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AvatarMenuComponent } from '../avatar-menu/avatar-menu.component';
-import { LanguageSwitcherComponent } from '../../features/settings/language/language-switcher.component';
 import { NavId, badgeText, isActiveDestination } from '../nav-model';
 
 /**
@@ -17,7 +16,7 @@ import { NavId, badgeText, isActiveDestination } from '../nav-model';
  */
 @Component({
   selector: 'jh-top-nav',
-  imports: [RouterLink, AvatarMenuComponent, LanguageSwitcherComponent, TranslocoPipe],
+  imports: [RouterLink, AvatarMenuComponent, TranslocoPipe],
   templateUrl: './top-nav.component.html',
   styleUrl: './top-nav.component.css',
 })
