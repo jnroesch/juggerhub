@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { LoadingComponent } from '../../../shared/ui';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
 import { AttendanceEntry } from '../../../core/models/trainings.models';
@@ -12,12 +13,13 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-training-attendance',
-  imports: [RouterLink, LoadingComponent],
+  imports: [RouterLink, LoadingComponent, TranslocoPipe],
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css',
 })
 export class AttendanceComponent {
   private readonly trainings = inject(TrainingsService);
+  private readonly transloco = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
 
   protected readonly sessionId = this.route.snapshot.paramMap.get('id') ?? '';
@@ -39,7 +41,7 @@ export class AttendanceComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        this.error.set(problemDetail(err));
+        this.error.set(problemDetail(err, this.transloco.translate('trainings.genericError')));
       },
     });
   }
@@ -57,7 +59,7 @@ export class AttendanceComponent {
       },
       error: (err) => {
         this.busy.set(false);
-        this.error.set(problemDetail(err));
+        this.error.set(problemDetail(err, this.transloco.translate('trainings.genericError')));
       },
     });
   }
@@ -67,6 +69,6 @@ export class AttendanceComponent {
   }
 
   protected answerLabel(a: AttendanceEntry['answer']): string {
-    return a === 'Going' ? 'Going' : a === 'Maybe' ? 'Maybe' : "Can't";
+    return a === 'Going' ? 'trainings.attendance.answerGoing' : a === 'Maybe' ? 'trainings.attendance.answerMaybe' : 'trainings.attendance.answerCant';
   }
 }

@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, IconComponent, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { forkJoin, of } from 'rxjs';
@@ -15,7 +16,7 @@ import { TrainingSeriesSummary, TrainingSessionRow } from '../../../core/models/
  */
 @Component({
   selector: 'jh-trainings-tab',
-  imports: [RouterLink, ButtonDirective, IconComponent, LoadingComponent, EmptyStateComponent],
+  imports: [RouterLink, ButtonDirective, IconComponent, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './trainings-tab.component.html',
   styleUrl: './trainings-tab.component.css',
 })
@@ -71,13 +72,13 @@ export class TrainingsTabComponent {
   protected answerLabel(a: TrainingSessionRow['myAnswer']): string {
     switch (a) {
       case 'Going':
-        return "You're going";
+        return 'trainings.tab.answerGoing';
       case 'Maybe':
-        return 'Maybe';
+        return 'trainings.tab.answerMaybe';
       case 'Cant':
-        return "Can't make it";
+        return 'trainings.tab.answerCant';
       default:
-        return 'Respond ›';
+        return 'trainings.tab.answerRespond';
     }
   }
 }
