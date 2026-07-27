@@ -35,6 +35,57 @@
     "findSub": "Entdecke Teams in deiner Nähe — viele leihen Ausrüstung und heißen Neulinge willkommen.",
     "createOwn": "Gründe dein eigenes Team"
   },
+  "teams": {
+    "create": {
+      "title": "Team erstellen",
+      "subtitle": "Du wirst der erste Admin des Teams.",
+      "name": "Teamname",
+      "address": "Team-Adresse",
+      "checking": "Wird geprüft…",
+      "slugAvailable": "✓ /t/{{slug}} ist verfügbar",
+      "slugUnavailable": "Diese Adresse ist nicht verfügbar.",
+      "slugHint": "Dein dauerhafter Link — Kleinbuchstaben, Zahlen, Bindestriche. Später nicht änderbar.",
+      "type": "Teamart",
+      "cityTeam": "Stadtteam",
+      "mixteam": "Mixteam",
+      "city": "Stadt",
+      "cityHint": "Stadtteams erscheinen, wenn Spieler in ihrer Umgebung suchen.",
+      "mixteamNote": "Keine Stadt nötig. Ein Mixteam sind Spieler aus verschiedenen Städten, die gemeinsam an Turnieren teilnehmen.",
+      "submit": "Team erstellen",
+      "submitting": "Wird erstellt…"
+    },
+    "settings": {
+      "title": "Team-Einstellungen",
+      "notFound": "Dieses Team existiert nicht, oder du bist kein Mitglied.",
+      "recruitment": "Rekrutierung",
+      "beginnersWelcome": "Anfänger willkommen",
+      "beginnersWelcomeHint": "Ein „Anfänger“-Abzeichen zeigen und im Anfänger-Filter erscheinen.",
+      "yourRole": "Deine Rolle",
+      "stepDown": "Zum Mitglied zurücktreten",
+      "soleAdminWarning": "Du bist der einzige Admin. Mach jemand anderen zum Admin, bevor du zurücktrittst oder das Team verlässt.",
+      "dangerZone": "Gefahrenzone",
+      "deleteTeam": "Team löschen",
+      "deleteConfirm": "{{name}} für alle löschen? Damit werden das Team, seine News und der Kader entfernt. Das kann nicht rückgängig gemacht werden.",
+      "deleteConfirmYes": "Ja, Team löschen",
+      "deleting": "Wird gelöscht…",
+      "deleteHint": "Nur Admins · entfernt das Team, seine News und den Kader für alle. Nicht rückgängig zu machen.",
+      "adminsOnly": "Nur Admins können die Team-Einstellungen ändern."
+    },
+    "inviteAccept": {
+      "loading": "Einladung wird geladen…",
+      "invalidTitle": "Diese Einladung ist ungültig",
+      "invalidBody": "Bitte einen Team-Admin, dir eine neue zu schicken.",
+      "expiredTitle": "Diese Einladung ist abgelaufen",
+      "expiredBody": "Einladungslinks gelten 7 Tage. Bitte einen Team-Admin, dir eine neue zu schicken.",
+      "backToHub": "Zurück zu JuggerHub",
+      "youreInvited": "Du bist eingeladen",
+      "join": "{{team}} beitreten",
+      "invitedBy": "{{name}} hat dich eingeladen. Neue Mitglieder treten als Spieler bei.",
+      "acceptJoin": "Annehmen & beitreten",
+      "joining": "Beitritt läuft…",
+      "expiresIn": "Diese Einladung läuft in 7 Tagen ab."
+    }
+  },
   "account": {
     "title": "Konto",
     "subtitle": "Geschützte Beispielseite — du siehst sie nur im angemeldeten Zustand.",

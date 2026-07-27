@@ -35,6 +35,57 @@
     "findSub": "Descubre equipos cerca de ti — muchos prestan equipamiento y dan la bienvenida a los novatos.",
     "createOwn": "Crea tu propio equipo"
   },
+  "teams": {
+    "create": {
+      "title": "Crear un equipo",
+      "subtitle": "Serás el primer administrador del equipo.",
+      "name": "Nombre del equipo",
+      "address": "Dirección del equipo",
+      "checking": "Comprobando…",
+      "slugAvailable": "✓ /t/{{slug}} está disponible",
+      "slugUnavailable": "Esa dirección no está disponible.",
+      "slugHint": "Tu enlace permanente — minúsculas, números, guiones. No se puede cambiar más adelante.",
+      "type": "Tipo de equipo",
+      "cityTeam": "Equipo de ciudad",
+      "mixteam": "Mixteam",
+      "city": "Ciudad",
+      "cityHint": "Los equipos de ciudad aparecen cuando los jugadores buscan en su zona.",
+      "mixteamNote": "No hace falta ciudad. Un Mixteam son jugadores de distintas ciudades que compiten juntos en torneos.",
+      "submit": "Crear equipo",
+      "submitting": "Creando…"
+    },
+    "settings": {
+      "title": "Ajustes del equipo",
+      "notFound": "Este equipo no existe, o no eres miembro.",
+      "recruitment": "Reclutamiento",
+      "beginnersWelcome": "Principiantes bienvenidos",
+      "beginnersWelcomeHint": "Muestra una insignia de «Principiantes» y aparece en el filtro de principiantes.",
+      "yourRole": "Tu rol",
+      "stepDown": "Pasar a ser miembro",
+      "soleAdminWarning": "Eres el único administrador. Haz administrador a otra persona antes de dejar el cargo o salir.",
+      "dangerZone": "Zona de peligro",
+      "deleteTeam": "Eliminar equipo",
+      "deleteConfirm": "¿Eliminar {{name}} para todos? Esto elimina el equipo, sus novedades y su plantilla. No se puede deshacer.",
+      "deleteConfirmYes": "Sí, eliminar equipo",
+      "deleting": "Eliminando…",
+      "deleteHint": "Solo administradores · elimina el equipo, sus novedades y su plantilla para todos. No se puede deshacer.",
+      "adminsOnly": "Solo los administradores pueden cambiar los ajustes del equipo."
+    },
+    "inviteAccept": {
+      "loading": "Cargando invitación…",
+      "invalidTitle": "Esta invitación no es válida",
+      "invalidBody": "Pide a un administrador del equipo que te envíe una nueva.",
+      "expiredTitle": "Esta invitación ha caducado",
+      "expiredBody": "Los enlaces de invitación duran 7 días. Pide a un administrador del equipo que te envíe uno nuevo.",
+      "backToHub": "Volver a JuggerHub",
+      "youreInvited": "Estás invitado",
+      "join": "Unirse a {{team}}",
+      "invitedBy": "{{name}} te ha invitado a unirte. Los nuevos miembros se unen como jugadores.",
+      "acceptJoin": "Aceptar y unirse",
+      "joining": "Uniéndose…",
+      "expiresIn": "Esta invitación caduca en 7 días."
+    }
+  },
   "account": {
     "title": "Cuenta",
     "subtitle": "Página de ejemplo protegida — solo la ves cuando has iniciado sesión.",

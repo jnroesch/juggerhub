@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { TeamDetail } from '../../../core/models/team.models';
 import { TeamService } from '../../../core/services/team.service';
@@ -12,7 +13,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-team-settings',
-  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './team-settings.component.html',
   styleUrl: './team-settings.component.css',
 })

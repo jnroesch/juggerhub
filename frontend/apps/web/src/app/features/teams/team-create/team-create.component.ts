@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, AlertComponent } from '../../../shared/ui';
 import { EMPTY, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { SlugAvailability, TeamType } from '../../../core/models/team.models';
@@ -17,7 +18,7 @@ import { CityPickerComponent } from '../../../shared/city-picker/city-picker.com
  */
 @Component({
   selector: 'jh-team-create',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CityPickerComponent],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CityPickerComponent, TranslocoPipe],
   templateUrl: './team-create.component.html',
   styleUrl: './team-create.component.css',
 })

@@ -31,6 +31,57 @@
     "findSub": "Discover teams near you — many lend gear and welcome newcomers.",
     "createOwn": "Create your own team"
   },
+  "teams": {
+    "create": {
+      "title": "Create a team",
+      "subtitle": "You'll be the team's first admin.",
+      "name": "Team name",
+      "address": "Team address",
+      "checking": "Checking…",
+      "slugAvailable": "✓ /t/{{slug}} is available",
+      "slugUnavailable": "That address isn't available.",
+      "slugHint": "Your permanent link — lowercase letters, numbers, hyphens. Can't be changed later.",
+      "type": "Team type",
+      "cityTeam": "City team",
+      "mixteam": "Mixteam",
+      "city": "City",
+      "cityHint": "City teams show up when players search their area.",
+      "mixteamNote": "No city needed. A Mixteam is players from different cities who enter tournaments together.",
+      "submit": "Create team",
+      "submitting": "Creating…"
+    },
+    "settings": {
+      "title": "Team settings",
+      "notFound": "This team doesn't exist, or you're not a member.",
+      "recruitment": "Recruitment",
+      "beginnersWelcome": "Beginners welcome",
+      "beginnersWelcomeHint": "Show a “Beginners” badge and appear in the beginners filter.",
+      "yourRole": "Your role",
+      "stepDown": "Step down to member",
+      "soleAdminWarning": "You're the only admin. Make someone else an admin before you step down or leave.",
+      "dangerZone": "Danger zone",
+      "deleteTeam": "Delete team",
+      "deleteConfirm": "Delete {{name}} for everyone? This removes the team, its news and roster. It can't be undone.",
+      "deleteConfirmYes": "Yes, delete team",
+      "deleting": "Deleting…",
+      "deleteHint": "Admins only · removes the team, its news and roster for everyone. Can't be undone.",
+      "adminsOnly": "Only admins can change team settings."
+    },
+    "inviteAccept": {
+      "loading": "Loading invite…",
+      "invalidTitle": "This invite isn't valid",
+      "invalidBody": "Ask a team admin to send you a fresh one.",
+      "expiredTitle": "This invite has expired",
+      "expiredBody": "Invite links last 7 days. Ask a team admin to send you a fresh one.",
+      "backToHub": "Back to JuggerHub",
+      "youreInvited": "You're invited",
+      "join": "Join {{team}}",
+      "invitedBy": "{{name}} invited you to join. New members join as players.",
+      "acceptJoin": "Accept & join",
+      "joining": "Joining…",
+      "expiresIn": "This invite expires in 7 days."
+    }
+  },
   "account": {
     "title": "Account",
     "subtitle": "Protected sample page — you only see this when signed in.",
