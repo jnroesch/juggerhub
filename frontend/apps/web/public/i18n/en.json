@@ -458,6 +458,27 @@
       "systemLeft": "{{name}} left the chat",
       "systemRemoved": "{{name}} was removed",
       "systemGroupCreated": "{{name}} started this group"
+    },
+    "details": {
+      "backToChat": "Back to the chat",
+      "title": "Details",
+      "loadError": "We couldn't load these details.",
+      "kindGroup": "group",
+      "kindTeam": "team chat",
+      "kindParty": "party chat",
+      "archivedNote": "This chat is closed — you can still read it.",
+      "membersLabel": "Members",
+      "addPeople": "+ Add",
+      "you": "you",
+      "guestViaMarket": "guest · via market",
+      "mute": "Mute this chat",
+      "unmute": "Unmute this chat",
+      "hide": "Hide from my messages",
+      "leaveConfirm": "Leave “{{name}}”? The group carries on without you.",
+      "leaveChat": "Leave chat",
+      "blockConfirm": "Block {{name}}? They won't be able to message you, and this chat leaves your inbox. You'll both still take part in any group you share.",
+      "block": "Block",
+      "blockUser": "Block {{name}}"
     }
   },
   "account": {

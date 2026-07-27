@@ -462,6 +462,27 @@
       "systemLeft": "{{name}} hat den Chat verlassen",
       "systemRemoved": "{{name}} wurde entfernt",
       "systemGroupCreated": "{{name}} hat diese Gruppe erstellt"
+    },
+    "details": {
+      "backToChat": "Zurück zum Chat",
+      "title": "Details",
+      "loadError": "Wir konnten diese Details nicht laden.",
+      "kindGroup": "Gruppe",
+      "kindTeam": "Team-Chat",
+      "kindParty": "Party-Chat",
+      "archivedNote": "Dieser Chat ist geschlossen — du kannst ihn weiterhin lesen.",
+      "membersLabel": "Mitglieder",
+      "addPeople": "+ Hinzufügen",
+      "you": "du",
+      "guestViaMarket": "Gast · über Markt",
+      "mute": "Diesen Chat stummschalten",
+      "unmute": "Stummschaltung aufheben",
+      "hide": "Aus meinen Nachrichten ausblenden",
+      "leaveConfirm": "„{{name}}“ verlassen? Die Gruppe macht ohne dich weiter.",
+      "leaveChat": "Chat verlassen",
+      "blockConfirm": "{{name}} blockieren? Diese Person kann dir dann keine Nachrichten mehr senden, und dieser Chat verlässt deinen Posteingang. Ihr nehmt beide weiterhin an gemeinsamen Gruppen teil.",
+      "block": "Blockieren",
+      "blockUser": "{{name}} blockieren"
     }
   },
   "account": {

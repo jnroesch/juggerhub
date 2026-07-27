@@ -8,14 +8,14 @@
     <a
       [routerLink]="['/chat', conversationId()]"
       class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-      aria-label="Back to the chat"
+      [attr.aria-label]="'chat.details.backToChat' | transloco"
       data-testid="back-to-chat"
     >
       <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="m15 18-6-6 6-6" />
       </svg>
     </a>
-    <h1 class="text-h4 text-heading">Details</h1>
+    <h1 class="text-h4 text-heading">{{ 'chat.details.title' | transloco }}</h1>
   </div>
 
   @if (loading()) {
@@ -28,7 +28,7 @@
 
   @if (failed()) {
     <p class="mt-lg rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm text-danger-fg" role="alert">
-      We couldn't load these details.
+      {{ 'chat.details.loadError' | transloco }}
     </p>
   }
 
@@ -38,19 +38,19 @@
       <h2 class="mt-sm text-h4 text-heading">{{ d.name }}</h2>
       <p class="text-body-sm text-muted">
         <span class="font-mono">{{ d.memberCount }}</span>
-        @if (d.memberCount === 1) { member } @else { members }
-        @if (d.kind === 'Group') { · group } @else if (d.kind === 'Team') { · team chat } @else if (d.kind === 'Party') { · party chat }
+        {{ (d.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}
+        @if (d.kind === 'Group') { · {{ 'chat.details.kindGroup' | transloco }} } @else if (d.kind === 'Team') { · {{ 'chat.details.kindTeam' | transloco }} } @else if (d.kind === 'Party') { · {{ 'chat.details.kindParty' | transloco }} }
       </p>
 
       @if (d.state === 'Archived') {
-        <p class="mt-xs text-body-sm text-subtle">This chat is closed — you can still read it.</p>
+        <p class="mt-xs text-body-sm text-subtle">{{ 'chat.details.archivedNote' | transloco }}</p>
       }
     </div>
 
     <!-- Members -->
     <div class="mt-lg flex items-center justify-between">
       <h3 class="text-eyebrow uppercase tracking-eyebrow text-muted">
-        Members · <span class="font-mono">{{ d.memberCount }}</span>
+        {{ 'chat.details.membersLabel' | transloco }} · <span class="font-mono">{{ d.memberCount }}</span>
       </h3>
 
       @if (d.canAddMembers) {
@@ -59,7 +59,7 @@
           class="min-h-11 rounded-md px-sm text-body-sm font-medium text-link transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           data-testid="add-people"
         >
-          + Add
+          {{ 'chat.details.addPeople' | transloco }}
         </a>
       }
     </div>
@@ -94,10 +94,10 @@
       <span class="min-w-0 flex-1">
         <span class="block truncate text-body-md text-body">
           {{ m.displayName }}
-          @if (m.isYou) {<span class="text-body-sm text-subtle"> · you</span>}
+          @if (m.isYou) {<span class="text-body-sm text-subtle"> · {{ 'chat.details.you' | transloco }}</span>}
         </span>
         @if (m.viaMarket) {
-          <span class="text-body-sm text-subtle">guest · via market</span>
+          <span class="text-body-sm text-subtle">{{ 'chat.details.guestViaMarket' | transloco }}</span>
         }
       </span>
     </ng-template>
@@ -111,7 +111,7 @@
         class="flex min-h-11 w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body transition-colors duration-fast hover:bg-surface-sunken disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         data-testid="toggle-mute"
       >
-        <span>{{ d.isMuted ? 'Unmute this chat' : 'Mute this chat' }}</span>
+        <span>{{ (d.isMuted ? 'chat.details.unmute' : 'chat.details.mute') | transloco }}</span>
         <svg class="size-5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M8.7 3A6 6 0 0 1 18 8c0 2.5.5 4 1 5M6 8a6 6 0 0 0-.4 2c0 4-2 5-2 5h13M9 18a3 3 0 0 0 6 0M2 2l20 20" />
         </svg>
@@ -124,7 +124,7 @@
         class="flex min-h-11 w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body transition-colors duration-fast hover:bg-surface-sunken disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         data-testid="hide-chat"
       >
-        <span>Hide from my messages</span>
+        <span>{{ 'chat.details.hide' | transloco }}</span>
         <svg class="size-5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M9.9 4.2A9 9 0 0 1 12 4c7 0 10 8 10 8a18 18 0 0 1-2.2 3.2M6.6 6.6A18 18 0 0 0 2 12s3 8 10 8a9 9 0 0 0 5.4-1.6M2 2l20 20M9.9 9.9a3 3 0 0 0 4.2 4.2" />
         </svg>
@@ -138,7 +138,7 @@
         @if (confirmingLeave()) {
           <div class="rounded-md border border-danger-border bg-danger-bg p-md">
             <p class="text-body-sm text-danger-fg">
-              Leave “{{ d.name }}”? The group carries on without you.
+              {{ 'chat.details.leaveConfirm' | transloco:{ name: d.name } }}
             </p>
             <div class="mt-sm flex gap-sm">
               <button
@@ -148,14 +148,14 @@
                 jhButton variant="danger" class="flex-1"
                 data-testid="confirm-leave"
               >
-                Leave chat
+                {{ 'chat.details.leaveChat' | transloco }}
               </button>
               <button
                 type="button"
                 (click)="confirmingLeave.set(false)"
                 jhButton variant="secondary" class="flex-1"
               >
-                Keep it
+                {{ 'events.edit.keepIt' | transloco }}
               </button>
             </div>
           </div>
@@ -166,7 +166,7 @@
             jhButton variant="danger" class="w-full"
             data-testid="leave-chat"
           >
-            Leave chat
+            {{ 'chat.details.leaveChat' | transloco }}
           </button>
         }
       }
@@ -176,8 +176,7 @@
         @if (confirmingBlock()) {
           <div class="rounded-md border border-danger-border bg-danger-bg p-md">
             <p class="text-body-sm text-danger-fg">
-              Block {{ other.displayName }}? They won't be able to message you, and this chat leaves your
-              inbox. You'll both still take part in any group you share.
+              {{ 'chat.details.blockConfirm' | transloco:{ name: other.displayName } }}
             </p>
             <div class="mt-sm flex gap-sm">
               <button
@@ -187,14 +186,14 @@
                 jhButton variant="danger" class="flex-1"
                 data-testid="confirm-block"
               >
-                Block
+                {{ 'chat.details.block' | transloco }}
               </button>
               <button
                 type="button"
                 (click)="confirmingBlock.set(false)"
                 jhButton variant="secondary" class="flex-1"
               >
-                Cancel
+                {{ 'common.cancel' | transloco }}
               </button>
             </div>
           </div>
@@ -205,7 +204,7 @@
             jhButton variant="danger" class="w-full"
             data-testid="block-user"
           >
-            Block {{ other.displayName }}
+            {{ 'chat.details.blockUser' | transloco:{ name: other.displayName } }}
           </button>
         }
       }

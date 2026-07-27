@@ -462,6 +462,27 @@
       "systemLeft": "{{name}} salió del chat",
       "systemRemoved": "{{name}} fue eliminado",
       "systemGroupCreated": "{{name}} creó este grupo"
+    },
+    "details": {
+      "backToChat": "Volver al chat",
+      "title": "Detalles",
+      "loadError": "No pudimos cargar estos detalles.",
+      "kindGroup": "grupo",
+      "kindTeam": "chat de equipo",
+      "kindParty": "chat de party",
+      "archivedNote": "Este chat está cerrado — todavía puedes leerlo.",
+      "membersLabel": "Miembros",
+      "addPeople": "+ Añadir",
+      "you": "tú",
+      "guestViaMarket": "invitado · vía mercado",
+      "mute": "Silenciar este chat",
+      "unmute": "Reactivar el sonido",
+      "hide": "Ocultar de mis mensajes",
+      "leaveConfirm": "¿Salir de «{{name}}»? El grupo continúa sin ti.",
+      "leaveChat": "Salir del chat",
+      "blockConfirm": "¿Bloquear a {{name}}? No podrá enviarte mensajes y este chat saldrá de tu bandeja. Ambos seguiréis participando en cualquier grupo que compartáis.",
+      "block": "Bloquear",
+      "blockUser": "Bloquear a {{name}}"
     }
   },
   "account": {

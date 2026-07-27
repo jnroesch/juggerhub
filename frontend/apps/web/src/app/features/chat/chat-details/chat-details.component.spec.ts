@@ -4,6 +4,7 @@ import { of } from 'rxjs';
 import { ChatService } from '../../../core/services/chat.service';
 import { ChatMember, ConversationDetail } from '../../../core/models/chat.models';
 import { ChatDetailsComponent } from './chat-details.component';
+import { translocoTestingModule } from '../../../../testing/transloco-testing';
 
 function member(userId: string, handle: string | null, extra: Partial<ChatMember> = {}): ChatMember {
   return {
@@ -46,6 +47,7 @@ function create(members: ChatMember[]) {
   chat.getMembers.mockReturnValue(of({ items: members, totalCount: members.length, skip: 0, take: 20 }));
 
   TestBed.configureTestingModule({
+    imports: [translocoTestingModule()],
     providers: [{ provide: ChatService, useValue: chat }, provideRouter([])],
   });
   const fixture = TestBed.createComponent(ChatDetailsComponent);
