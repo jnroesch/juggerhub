@@ -1,19 +1,18 @@
 <main class="mx-auto max-w-container-sm px-md py-lg">
-  <button type="button" (click)="cancel()" class="mb-md text-body-sm text-subtle transition-colors hover:text-body">Cancel</button>
-  <h1 class="text-h3 text-heading">Form a party</h1>
-  <p class="mt-xs text-body-sm text-subtle">Your crew for this event — a subset of your team, just for this event.</p>
+  <button type="button" (click)="cancel()" class="mb-md text-body-sm text-subtle transition-colors hover:text-body">{{ 'common.cancel' | transloco }}</button>
+  <h1 class="text-h3 text-heading">{{ 'parties.create.title' | transloco }}</h1>
+  <p class="mt-xs text-body-sm text-subtle">{{ 'parties.create.subtitle' | transloco }}</p>
 
   @if (loading()) {
     <jh-loading />
   } @else if (formableTeams().length === 0) {
     <jh-card class="mt-lg p-md text-body-sm text-muted">
-      You don't have a team to enter here — you can only form a party for a team you administer that
-      isn't already entered.
+      {{ 'parties.create.noTeam' | transloco }}
     </jh-card>
   } @else {
     <form (ngSubmit)="submit()" class="mt-lg space-y-md">
       <div>
-        <p class="text-eyebrow uppercase text-muted">Which of your teams?</p>
+        <p class="text-eyebrow uppercase text-muted">{{ 'parties.create.whichTeam' | transloco }}</p>
         @if (formableTeams().length === 1) {
           <p class="mt-xs rounded-md border border-border-muted bg-surface-card px-md py-sm text-body-sm font-medium text-heading">
             {{ formableTeams()[0].teamName }}
@@ -21,7 +20,7 @@
         } @else {
           <select [(ngModel)]="selectedTeamId" name="team"
             class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus">
-            <option value="" disabled>Pick a team…</option>
+            <option value="" disabled>{{ 'parties.create.pickTeam' | transloco }}</option>
             @for (t of formableTeams(); track t.teamId) {
               <option [value]="t.teamId">{{ t.teamName }}</option>
             }
@@ -30,21 +29,21 @@
       </div>
 
       <div>
-        <p class="text-eyebrow uppercase text-muted">Party size</p>
+        <p class="text-eyebrow uppercase text-muted">{{ 'parties.create.partySize' | transloco }}</p>
         <p class="mt-xs rounded-md border border-border-muted bg-surface-sunken px-md py-sm text-body-sm text-muted">
-          Up to {{ context()?.rosterCap ?? 8 }} players <span class="text-subtle">· set by the event</span>
+          {{ 'parties.create.upTo' | transloco:{ cap: context()?.rosterCap ?? 8 } }} <span class="text-subtle">· {{ 'parties.create.setByEvent' | transloco }}</span>
         </p>
       </div>
 
       <div>
-        <p class="text-eyebrow uppercase text-muted">Message to the team</p>
+        <p class="text-eyebrow uppercase text-muted">{{ 'parties.create.messageToTeam' | transloco }}</p>
         <textarea [(ngModel)]="message" name="message" rows="3" maxlength="500"
-          placeholder="Who's in for this one?"
+          [placeholder]="'parties.create.messagePlaceholder' | transloco"
           class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
       </div>
 
       <div class="rounded-md border border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg">
-        This posts a request to all team members — they get a notification and can accept or decline.
+        {{ 'parties.create.postsRequest' | transloco }}
       </div>
 
       @if (error()) {
@@ -53,7 +52,7 @@
 
       <button type="submit" [disabled]="submitting() || !selectedTeamId"
         jhButton class="w-full">
-        Create party &amp; ask the team
+        {{ 'parties.create.submit' | transloco }}
       </button>
     </form>
   }

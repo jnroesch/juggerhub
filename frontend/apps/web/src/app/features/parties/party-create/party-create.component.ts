@@ -3,6 +3,7 @@ import { ButtonDirective, LoadingComponent, AlertComponent, CardComponent } from
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PartyContext, PartyContextTeam } from '../../../core/models/party.models';
 import { PartyService } from '../../../core/services/party.service';
 
@@ -14,7 +15,7 @@ import { PartyService } from '../../../core/services/party.service';
  */
 @Component({
   selector: 'jh-party-create',
-  imports: [FormsModule, ButtonDirective, LoadingComponent, AlertComponent, CardComponent],
+  imports: [FormsModule, ButtonDirective, LoadingComponent, AlertComponent, CardComponent, TranslocoPipe],
   templateUrl: './party-create.component.html',
   styleUrl: './party-create.component.css',
 })
@@ -22,6 +23,7 @@ export class PartyCreateComponent implements OnInit {
   private readonly parties = inject(PartyService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly context = signal<PartyContext | null>(null);
   protected readonly loading = signal(true);
@@ -63,7 +65,7 @@ export class PartyCreateComponent implements OnInit {
       next: (party) => this.router.navigate(['/parties', party.id]),
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err instanceof HttpErrorResponse ? err.error?.detail ?? 'Could not form the party.' : 'Could not form the party.');
+        this.error.set(err instanceof HttpErrorResponse ? err.error?.detail ?? this.transloco.translate('parties.create.error') : this.transloco.translate('parties.create.error'));
       },
     });
   }

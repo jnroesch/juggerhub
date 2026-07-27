@@ -3,6 +3,7 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PartyInvitePreview } from '../../../core/models/party.models';
 import { PartyService } from '../../../core/services/party.service';
 
@@ -12,7 +13,7 @@ import { PartyService } from '../../../core/services/party.service';
  */
 @Component({
   selector: 'jh-party-invite-accept',
-  imports: [DatePipe, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent],
+  imports: [DatePipe, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './party-invite-accept.component.html',
   styleUrl: './party-invite-accept.component.css',
 })
@@ -20,6 +21,7 @@ export class PartyInviteAcceptComponent implements OnInit {
   private readonly parties = inject(PartyService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly preview = signal<PartyInvitePreview | null>(null);
   protected readonly loading = signal(true);
@@ -73,7 +75,7 @@ export class PartyInviteAcceptComponent implements OnInit {
       return;
     }
     if (err instanceof HttpErrorResponse) {
-      this.error.set(err.error?.detail ?? 'That invitation could not be used.');
+      this.error.set(err.error?.detail ?? this.transloco.translate('parties.inviteAccept.error'));
     }
   }
 }
