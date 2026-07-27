@@ -6,7 +6,7 @@ import { CityOption } from '../../core/models/city.models';
 
 const BERLIN: CityOption = {
   externalId: 'osm:R:1', name: 'Berlin', region: 'Berlin', countryName: 'Germany',
-  countryCode: 'DE', label: 'Berlin, Berlin, Germany', latitude: 52.52, longitude: 13.4,
+  countryCode: 'DE', label: 'Berlin, Germany', latitude: 52.52, longitude: 13.4,
 };
 const BERN: CityOption = {
   externalId: 'osm:R:2', name: 'Bern', region: null, countryName: 'Switzerland',
@@ -60,7 +60,7 @@ describe('CityPickerComponent', () => {
     fixture.detectChanges();
 
     const labels = options().map((b) => b.textContent?.trim());
-    expect(labels).toEqual(['Berlin, Berlin, Germany', 'Bern, Switzerland']);
+    expect(labels).toEqual(['Berlin, Germany', 'Bern, Switzerland']);
   });
 
   it('does not query for a query shorter than two characters', () => {

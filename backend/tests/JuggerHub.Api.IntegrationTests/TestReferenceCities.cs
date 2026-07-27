@@ -20,6 +20,10 @@ public static class TestReferenceCities
         ("TEST:hamburg", "Hamburg", "DE", "Germany", "Hamburg", 53.5511, 9.9937),
         ("TEST:münchen", "München", "DE", "Germany", "Bavaria", 48.1351, 11.5820),
         ("TEST:trier", "Trier", "DE", "Germany", "Rhineland-Palatinate", 49.7490, 6.6380),
+        // Two same-name, same-country cities: their labels must fall back to including the region so
+        // they stay distinguishable (feature 030, FR-003).
+        ("TEST:springfield-il", "Springfield", "US", "United States", "Illinois", 39.7817, -89.6501),
+        ("TEST:springfield-mo", "Springfield", "US", "United States", "Missouri", 37.2090, -93.2923),
     ];
 
     public static async Task SeedAsync(AppDbContext db)

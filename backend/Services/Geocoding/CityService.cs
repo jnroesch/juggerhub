@@ -59,13 +59,26 @@ public sealed class CityService : ICityService
             })
             .ToListAsync(ct);
 
+        // Region is only shown when it actually disambiguates — i.e. more than one result shares the
+        // same city name AND country (e.g. several "Berlin, United States"). Otherwise "City, Country"
+        // is enough and cleaner (FR-003).
+        var ambiguous = rows
+            .GroupBy(r => (r.Name, r.CountryName))
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToHashSet();
+
         return rows.Select(r => new CityOptionDto(
             r.ExternalId,
             r.Name,
             string.IsNullOrEmpty(r.Region) ? null : r.Region,
             r.CountryName,
             string.IsNullOrEmpty(r.CountryCode) ? null : r.CountryCode,
-            LocationLabels.Option(r.Name, string.IsNullOrEmpty(r.Region) ? null : r.Region, r.CountryName),
+            LocationLabels.Option(
+                r.Name,
+                string.IsNullOrEmpty(r.Region) ? null : r.Region,
+                r.CountryName,
+                ambiguous.Contains((r.Name, r.CountryName))),
             r.Latitude,
             r.Longitude)).ToList();
     }
