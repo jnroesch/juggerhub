@@ -19,6 +19,7 @@ The exact content injected into `index.html` before `</head>`, carried in the `J
     s.src = "JH_ANALYTICS_SCRIPT_PATH";
     s.setAttribute("data-website-id", "JH_ANALYTICS_WEBSITE_ID");
     s.setAttribute("data-do-not-track", "true");
+    s.setAttribute("data-exclude-search", "true");
     document.head.appendChild(s);
   })();
 </script>
@@ -52,6 +53,7 @@ Checking before injection — rather than letting the tracker load and decide �
 | Never blocks | Mandatory | FR-011: a failed or slow load must be invisible. `appendChild` of an async script cannot block. |
 | No retry | Mandatory | FR-013 / Principle VII: a dropped beacon is dropped. Retrying per-pageview measurement is amplification. |
 | No `data-host-url` | Deliberate | Umami defaults to sending data where the script is hosted — our own origin. Setting it would duplicate a value that can then drift. |
+| `data-exclude-search="true"` | **Mandatory** | Owner decision. Query strings are **not** recorded. Without it Umami stores `url_query` beside `url_path`, so `/sign-in` was recorded carrying `returnUrl`, which holds deep links such as `/players/<handle>`. FR-008 decided page *paths* are verbatim; query strings were never part of that decision and are not inherited from it. The tracker blanks `URL.search` **before sending**, so the value never leaves the browser — stronger than stripping it server-side. |
 | No `identify()`, no `data-tag` | Mandatory | FR-005: nothing may link an event to a member. |
 | Inline, not bundled | Deliberate | Keeps analytics out of Angular source and guarantees the guard runs before any tracker request. |
 

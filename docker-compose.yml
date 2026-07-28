@@ -75,7 +75,12 @@ services:
       # It checks Global Privacy Control and Do Not Track BEFORE injecting, so a user who has
       # signalled either generates no request at all. Umami's own data-do-not-track covers DNT
       # only; GPC is not implemented by the tracker, which is why this guard exists (FR-007).
-      - JH_ANALYTICS_HEAD=${UMAMI_WEBSITE_ID:+<script>(function(){var n=navigator;if(n.globalPrivacyControl||n.doNotTrack==="1"||window.doNotTrack==="1")return;var s=document.createElement("script");s.async=true;s.defer=true;s.src="/jh-insights.js";s.setAttribute("data-website-id","${UMAMI_WEBSITE_ID}");s.setAttribute("data-do-not-track","true");document.head.appendChild(s);})();</script>}
+      # data-exclude-search drops the query string BEFORE the beacon is sent, so it never leaves
+      # the browser. Without it Umami stores url_query next to url_path, which meant /sign-in was
+      # recorded with returnUrl=%2F — and returnUrl carries deep links such as /players/<handle>.
+      # FR-008 decided page PATHS are recorded verbatim; query strings were never part of that
+      # decision, so they are excluded rather than quietly inherited from it.
+      - JH_ANALYTICS_HEAD=${UMAMI_WEBSITE_ID:+<script>(function(){var n=navigator;if(n.globalPrivacyControl||n.doNotTrack==="1"||window.doNotTrack==="1")return;var s=document.createElement("script");s.async=true;s.defer=true;s.src="/jh-insights.js";s.setAttribute("data-website-id","${UMAMI_WEBSITE_ID}");s.setAttribute("data-do-not-track","true");s.setAttribute("data-exclude-search","true");document.head.appendChild(s);})();</script>}
       - JH_ANALYTICS_UPSTREAM=${JH_ANALYTICS_UPSTREAM:-http://umami:3000}
       # Docker's embedded DNS. nginx proxies the analytics routes through a variable so it
       # resolves them per request instead of at startup — otherwise the frontend could not
