@@ -95,10 +95,25 @@ Umami provides no environment variable for the admin password ([research.md](../
 
 ## Bootstrap ordering
 
-Website IDs do not exist until the website is created in the dashboard, so first deployment to any environment is necessarily two-phase:
+**There is no bootstrap phase. A single apply produces a measuring environment.**
 
-1. Deploy Umami (website ID empty → `JH_ANALYTICS_HEAD` empty → no tracker, app unaffected).
-2. Reach the dashboard, sign in, create the website, copy its ID.
-3. Set `umami_website_id` in that environment's tfvars; apply.
+This contract previously specified a two-phase deployment — apply with analytics off, sign in, create the website, copy its generated ID into tfvars, apply again — on the premise that "website IDs do not exist until the website is created in the dashboard". That premise is wrong: `website.website_id` is a plain `uuid` primary key **with no default**, so the ID is ours to choose. Verified by inserting a row with a chosen UUID and confirming it accepts beacons and appears in the dashboard.
 
-Step 1 being harmless is deliberate — an unconfigured environment serves no tracker rather than a broken one.
+Choosing it turns measurement configuration from *discovered state* into ordinary declarative config:
+
+| | Two-phase (rejected) | Provisioned ID |
+|---|---|---|
+| First apply | measures nothing | measures immediately |
+| Manual steps | log in, create, copy, re-apply | none |
+| Volume lost | ID changes; deployed snippet posts to a dead ID | same ID re-provisioned; snippet keeps working |
+| Failure mode | silently measuring nothing until noticed | none of consequence |
+
+The last row is the reason this matters beyond convenience. A two-phase bootstrap leaves every new environment one forgotten step away from silently recording nothing, and analytics is precisely the kind of system where nobody notices for weeks.
+
+**How it is provisioned**: `scripts/umami-seed-website.sql`, run by the same post-deploy Job that writes the admin password hash (T028). It runs there rather than in the `db-init` initContainer because the `website` and `user` tables do not exist until Prisma has migrated and seeded — the initContainer runs before Umami has ever started. `user_id` cannot be a constant (Umami randomises the admin account's ID at seed time) so it is looked up by username, which also makes the insert self-guarding: if the admin account is not seeded yet it inserts nothing and the next deploy picks it up.
+
+`umami_website_id` therefore has a **real value in `envs/*.tfvars` from the first apply**, and Terraform composes `JH_ANALYTICS_HEAD` from it — so the snippet's quoting is handled by Terraform rather than pasted by hand, which removes the single-quote hazard described in [tracker-snippet.md](./tracker-snippet.md) entirely.
+
+Locally the same SQL runs as a one-shot compose service, so `docker compose --profile analytics up` self-provisions on a fresh clone. Verified from a dropped database and role.
+
+Analytics-off is still available and still harmless: blank `JH_ANALYTICS_HEAD` and no tracker is served, regardless of what is provisioned.

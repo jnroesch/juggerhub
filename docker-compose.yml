@@ -139,6 +139,34 @@ services:
     networks:
       - juggerhub-network
 
+  # Creates the `umami` role and database, and isolates them from appdb, BEFORE Umami starts —
+  # Prisma's migrations fail against a database that does not exist. A one-shot service rather
+  # than /docker-entrypoint-initdb.d/, which only runs when initialising an EMPTY data directory
+  # and so would be a silent no-op on an existing local volume, exactly as it would be on the
+  # already-initialised Dev and Prod volumes. This mirrors the Kubernetes initContainer, so the
+  # same SQL is exercised locally as in Dev/Prod.
+  umami-db-init:
+    image: postgres:18.3-alpine
+    container_name: juggerhub-umami-db-init
+    profiles:
+      - analytics
+    environment:
+      PGPASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - ./scripts:/scripts:ro
+    command: >
+      psql -h database -U ${DB_USER:-postgres} -d postgres
+           -v ON_ERROR_STOP=1
+           -v umami_password=${UMAMI_DB_PASSWORD:-umami}
+           -v app_db=${DB_NAME:-appdb}
+           -f /scripts/umami-db-init.sql
+    networks:
+      - juggerhub-network
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: "no"
+
   # Self-hosted Umami analytics (feature 033). Opt-in via the `analytics` profile
   # (`docker compose --profile analytics up`), mirroring the `spam` profile below: a plain
   # `docker compose up` must stay exactly as light as it was before this feature existed.
@@ -186,12 +214,45 @@ services:
     depends_on:
       database:
         condition: service_healthy
+      umami-db-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/heartbeat"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 40s
+
+  # Creates the tracked website row with the id we CHOSE, rather than making someone create it in
+  # the dashboard and copy the generated id back into configuration. That manual step is what
+  # would otherwise leave a fresh stack — and every fresh environment — silently measuring
+  # nothing until a human noticed. See scripts/umami-seed-website.sql.
+  #
+  # Runs AFTER Umami is healthy because the `website` and `user` tables do not exist until Prisma
+  # has migrated and the admin account has been seeded. That ordering is why this cannot be folded
+  # into umami-db-init above.
+  umami-seed-website:
+    image: postgres:18.3-alpine
+    container_name: juggerhub-umami-seed-website
+    profiles:
+      - analytics
+    environment:
+      PGPASSWORD: ${UMAMI_DB_PASSWORD:-umami}
+    volumes:
+      - ./scripts:/scripts:ro
+    command: >
+      psql -h database -U umami -d umami
+           -v ON_ERROR_STOP=1
+           -v website_id=${UMAMI_WEBSITE_ID:-a1b2c3d4-0000-4000-8000-000000000033}
+           -v website_name=JuggerHub
+           -v website_domain=localhost:3000
+           -f /scripts/umami-seed-website.sql
+    networks:
+      - juggerhub-network
+    depends_on:
+      umami:
+        condition: service_healthy
+    restart: "no"
 
   # SpamAssassin spamd, consumed only by Mailpit for local spam scoring. Opt-in:
   # it costs a few hundred MB of RAM, so it only starts under the `spam` profile
