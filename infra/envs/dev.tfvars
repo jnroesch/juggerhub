@@ -30,3 +30,15 @@ acme_email             = "admin@juggerhub.com"
 
 # Lock the API server to your CI + operator IPs (fill in real CIDRs), or leave [] open.
 api_authorized_ip_ranges = []
+
+# Analytics (feature 033). REQUIRES a DNS A record for analytics_hostname pointing at the static
+# public IP BEFORE the first apply — cert-manager issues automatically, DNS does not.
+#
+# umami_website_id is a UUID we chose, not one generated in the dashboard: the post-deploy Job
+# provisions the matching row, so the first apply measures immediately with no bootstrap step and
+# no second apply. It is NOT a secret — it ships in page source — which is why it lives here
+# rather than in the GitHub Environment. It MUST differ from Prod's, since that separation is what
+# keeps development traffic out of the real figures (FR-018).
+umami_replicas     = 1
+analytics_hostname = "analytics-dev.juggerhub.com"
+umami_website_id   = "b7e4d21c-0a53-4f18-9c62-3d5a81f0e447"

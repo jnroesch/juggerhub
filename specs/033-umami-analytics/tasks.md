@@ -85,21 +85,43 @@ Infrastructure-and-shell feature. Real paths: `infra/`, `frontend/`, `docker-com
 
 ### Terraform workload
 
-- [ ] T020 [US1] Add the Umami Deployment to `infra/modules/app/main.tf` — image and tag from T002, replicas from a variable, `envFrom` the new ConfigMap and Secret, readiness/liveness probes on the T003 path, resource requests/limits (~256Mi/512Mi)
-- [ ] T021 [US1] Add the `db-init` **initContainer** to the Umami Deployment in `infra/modules/app/main.tf`, running the T010 SQL as the superuser from the existing `postgres-secrets` Secret. **Not** `/docker-entrypoint-initdb.d/` — that only runs on an empty data directory and would be a silent no-op on the already-initialised Dev and Prod volumes ([research.md](./research.md) §5)
-- [ ] T022 [US1] Add the `umami` ClusterIP Service (port 3000) to `infra/modules/app/main.tf`
-- [ ] T023 [US1] Add the Umami ConfigMap and Secret to `infra/modules/app/main.tf` per [contracts/configuration.md](./contracts/configuration.md), composing `DATABASE_URL` from the DB password variable
-- [ ] T024 [US1] Add the analytics environment variables to the **frontend** container spec in `infra/modules/app/main.tf` so the deployed image renders its template with the deployed values (FR-020) — `JH_ANALYTICS_HEAD` (**composed by Terraform** from `umami_website_id`, so the snippet is never hand-pasted and its mandatory double-quoting cannot be got wrong), `JH_ANALYTICS_UPSTREAM`, and `JH_ANALYTICS_RESOLVER`. For the resolver, prefer a `data` source reading the `kube-dns` Service ClusterIP in `kube-system` over a hardcoded IP; it has no safe empty default
-- [ ] T025 [US1] Declare the new variables in `infra/modules/app/variables.tf` and pass them through `infra/variables.tf` and `infra/main.tf` per [contracts/configuration.md](./contracts/configuration.md)
-- [ ] T026 [US1] Add `TF_VAR_umami_app_secret`, `TF_VAR_umami_db_password` and `TF_VAR_umami_admin_password_hash` to **both** the dev and prod jobs in `.github/workflows/deploy.yml` — missing one fails that environment at apply with an unset-variable error
-- [ ] T027 [US1] Set the Dev values in `infra/envs/dev.tfvars` (1 replica, `analytics-dev.juggerhub.com`, and a **real, chosen `umami_website_id` from the start** — generate a UUID and commit it; it is not a secret and ships in page source). **No longer "initially empty"**: the website row is provisioned from this value (T028a), so the first apply measures immediately, per [contracts/configuration.md](./contracts/configuration.md)
+> **File placement deviation (T020–T024, T028–T030)**: the analytics resources live in a new
+> **`infra/modules/app/analytics.tf`**, not in `main.tf` as these tasks say. `main.tf` was already
+> 391 lines and this adds a workload, its provisioning Job, and a second Ingress. Terraform composes
+> a module from every `.tf` in the directory, so placement carries no behavioural meaning — this is
+> purely for reviewability. The frontend container's analytics env (T024) *does* stay in `main.tf`,
+> since that container is defined there.
+>
+> **Verified**: `terraform fmt -recursive -check` clean, `terraform validate` reports "Success! The
+> configuration is valid.", both website IDs differ between environments, both deploy jobs carry all
+> three secrets, and no secret value appears in any tracked file. `tflint` was not run — it is not
+> installed locally and runs in `terraform-ci.yml`.
+
+- [X] T020 [US1] Add the Umami Deployment to `infra/modules/app/main.tf` — image and tag from T002, replicas from a variable, `envFrom` the new ConfigMap and Secret, readiness/liveness probes on the T003 path, resource requests/limits (~256Mi/512Mi)
+- [X] T021 [US1] Add the `db-init` **initContainer** to the Umami Deployment in `infra/modules/app/main.tf`, running the T010 SQL as the superuser from the existing `postgres-secrets` Secret. **Not** `/docker-entrypoint-initdb.d/` — that only runs on an empty data directory and would be a silent no-op on the already-initialised Dev and Prod volumes ([research.md](./research.md) §5)
+- [X] T022 [US1] Add the `umami` ClusterIP Service (port 3000) to `infra/modules/app/main.tf`
+- [X] T023 [US1] Add the Umami ConfigMap and Secret to `infra/modules/app/main.tf` per [contracts/configuration.md](./contracts/configuration.md), composing `DATABASE_URL` from the DB password variable
+- [X] T024 [US1] Add the analytics environment variables to the **frontend** container spec in `infra/modules/app/main.tf` so the deployed image renders its template with the deployed values (FR-020) — `JH_ANALYTICS_HEAD` (**composed by Terraform** from `umami_website_id`, so the snippet is never hand-pasted and its mandatory double-quoting cannot be got wrong), `JH_ANALYTICS_UPSTREAM`, and `JH_ANALYTICS_RESOLVER`. For the resolver, prefer a `data` source reading the `kube-dns` Service ClusterIP in `kube-system` over a hardcoded IP; it has no safe empty default
+- [X] T025 [US1] Declare the new variables in `infra/modules/app/variables.tf` and pass them through `infra/variables.tf` and `infra/main.tf` per [contracts/configuration.md](./contracts/configuration.md)
+- [X] T026 [US1] Add `TF_VAR_umami_app_secret`, `TF_VAR_umami_db_password` and `TF_VAR_umami_admin_password_hash` to **both** the dev and prod jobs in `.github/workflows/deploy.yml` — missing one fails that environment at apply with an unset-variable error
+- [X] T027 [US1] Set the Dev values in `infra/envs/dev.tfvars` (1 replica, `analytics-dev.juggerhub.com`, and a **real, chosen `umami_website_id` from the start** — generate a UUID and commit it; it is not a secret and ships in page source). **No longer "initially empty"**: the website row is provisioned from this value (T028a), so the first apply measures immediately, per [contracts/configuration.md](./contracts/configuration.md)
 
 ### Public dashboard, with no default-credential window
 
-- [ ] T028 [US1] Add the post-deploy Job to `infra/modules/app/main.tf` that writes the bcrypt hash from `umami_admin_password_hash` over the seeded `admin` account, using the T004 format. Must run **after** Umami has migrated and seeded the account, and must be idempotent ([research.md](./research.md) §4). **Ships with T030 so the credential is set by the deploy, not by hand**
-- [ ] T028a [US1] Extend that same post-deploy Job to run `scripts/umami-seed-website.sql`, provisioning the tracked website row with the **chosen** `umami_website_id` (T027/T045). Same Job because it needs the same ordering — the `website` and `user` tables do not exist until Prisma has migrated and seeded, so it cannot go in the `db-init` initContainer. This is what removes the two-phase bootstrap; see [contracts/configuration.md](./contracts/configuration.md). Verified locally against a dropped database: provisions on first run, `INSERT 0 0` on re-run, and the resulting ID accepts beacons
-- [ ] T029 [US1] Generate the bcrypt hash once and store it as `UMAMI_ADMIN_PASSWORD_HASH` in both GitHub Environments. The plaintext must never enter the repository, Terraform state, or the cluster
-- [ ] T030 [US1] Add the dashboard Ingress and `analytics_hostname` variable to `infra/modules/app/main.tf`, with the cert-manager `ClusterIssuer` annotation. **Create the DNS A record pointing at the existing static public IP before applying**, or the HTTP-01 challenge fails
+- [X] T028 [US1] Add the post-deploy Job to `infra/modules/app/main.tf` that writes the bcrypt hash from `umami_admin_password_hash` over the seeded `admin` account, using the T004 format. Must run **after** Umami has migrated and seeded the account, and must be idempotent ([research.md](./research.md) §4). **Ships with T030 so the credential is set by the deploy, not by hand**
+- [X] T028a [US1] Extend that same post-deploy Job to run `scripts/umami-seed-website.sql`, provisioning the tracked website row with the **chosen** `umami_website_id` (T027/T045). Same Job because it needs the same ordering — the `website` and `user` tables do not exist until Prisma has migrated and seeded, so it cannot go in the `db-init` initContainer. This is what removes the two-phase bootstrap; see [contracts/configuration.md](./contracts/configuration.md). Verified locally against a dropped database: provisions on first run, `INSERT 0 0` on re-run, and the resulting ID accepts beacons
+- [ ] T029 [US1] **← OWNER ACTION, and it blocks the first apply.** Generate the bcrypt hash once *per environment* and store it as `UMAMI_ADMIN_PASSWORD_HASH` in both GitHub Environments, alongside `UMAMI_DB_PASSWORD` and `UMAMI_APP_SECRET` (≥32 chars). The plaintext must never enter the repository, Terraform state, or the cluster. Terraform has **no defaults** for these three, so a missing one fails that environment at apply rather than deploying a shared default.
+  **How to generate** — the whole mechanism is verified locally, including that the resulting hash actually authenticates:
+
+  ```powershell
+  # pgcrypto ships with the postgres image already in the stack, so no extra tooling.
+  # Runs against the LOCAL database and never touches a deployed one.
+  docker compose exec -T database psql -U postgres -d postgres -Atc `
+    "create extension if not exists pgcrypto; select crypt('<your-password>', gen_salt('bf',10));"
+  ```
+
+  **Correction to T004**: the format is *not* restricted to `$2b$`. pgcrypto emits `$2a$` and Umami authenticates it fine — verified by writing the hash and logging in. The `umami_admin_password_hash` variable therefore validates `$2a$`/`$2b$`/`$2y$` at exactly 60 characters, which also catches pasting the plaintext by mistake — a mistake that would otherwise lock you out of a dashboard that is already publicly reachable
+- [X] T030 [US1] Add the dashboard Ingress and `analytics_hostname` variable to `infra/modules/app/main.tf`, with the cert-manager `ClusterIssuer` annotation. **← OWNER ACTION before the first apply: create the DNS A record for `analytics-dev.juggerhub.com` (and later `analytics.juggerhub.com`) pointing at the existing static public IP**, or the HTTP-01 challenge fails. The certificate is automatic; the DNS record is not, and Terraform cannot create it
 - [ ] T031 [US1] Apply to Dev and verify: pods ready, `kubectl -n juggerhub logs -l app=umami -c db-init` shows provisioning succeeded, `kubectl -n juggerhub get certificate` reports `Ready=True`, and the dashboard is reachable at `analytics-dev.juggerhub.com`
 - [ ] T032 [US1] Verify `admin` / `umami` is **refused** immediately after the first apply (FR-022, SC-010, US5 scenario 1). If it succeeds, T028 did not run or ran before seeding — fix before proceeding, since the host is now public
 - [ ] T033 [US1] Confirm Dev page views appear **after the first apply, with no second apply and no manual dashboard step** — the website row is provisioned by T028a from the ID committed in T027. If this needs a manual step, T028a did not run
@@ -147,7 +169,7 @@ Infrastructure-and-shell feature. Real paths: `infra/`, `frontend/`, `docker-com
 
 **Independent Test**: Generate traffic locally and in Dev, then confirm production figures show none of it.
 
-- [ ] T045 [US4] Set the Prod values in `infra/envs/prod.tfvars` — `analytics.juggerhub.com`, 2 replicas, and a **distinct chosen `umami_website_id`** (a different UUID from Dev is what keeps the environments separate — FR-018, SC-008). Only sizing, hostname and website ID differ from Dev; the resource set is identical (constitution Principle V)
+- [X] T045 [US4] Set the Prod values in `infra/envs/prod.tfvars` — `analytics.juggerhub.com`, 2 replicas, and a **distinct chosen `umami_website_id`** (a different UUID from Dev is what keeps the environments separate — FR-018, SC-008). Only sizing, hostname and website ID differ from Dev; the resource set is identical (constitution Principle V)
 - [ ] T046 [US4] Confirm the **same released frontend image** renders different analytics configuration in Dev and Prod with no rebuild (FR-020, US4 scenario 4)
 - [ ] T047 [US4] Verify a separate website ID per environment and that Dev events land only under the Dev website (FR-018, SC-008, US4 scenario 1)
 

@@ -31,3 +31,14 @@ letsencrypt_issuer     = "letsencrypt-prod"
 acme_email             = "admin@juggerhub.com"
 
 api_authorized_ip_ranges = []
+
+# Analytics (feature 033). REQUIRES a DNS A record for analytics_hostname pointing at the static
+# public IP BEFORE the first apply — cert-manager issues automatically, DNS does not.
+#
+# Only sizing, hostname and website ID differ from Dev; the resource set is identical
+# (constitution V). The website ID is DELIBERATELY different from Dev's — that difference is the
+# whole mechanism keeping development traffic out of the figures decisions are made on (FR-018,
+# SC-008), so these two values must never be made to match.
+umami_replicas     = 2
+analytics_hostname = "analytics.juggerhub.com"
+umami_website_id   = "f3c9a5e8-27b1-4d06-8ea4-91b7c62df530"

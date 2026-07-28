@@ -250,6 +250,73 @@ variable "admin_emails" {
   default     = ""
 }
 
+# --- Analytics (feature 033 — self-hosted Umami) ----------------------------
+variable "umami_image" {
+  type    = string
+  default = "docker.umami.is/umami-software/umami"
+}
+
+variable "umami_image_tag" {
+  type        = string
+  description = "Umami v3 dropped the `postgresql-` prefix and the `v` that every 1.x/2.x tag carried, so this is a bare `3.2.0`. The plausible-looking `postgresql-v3.2.0` does not exist and fails at pull with a bare `not found`."
+  default     = "3.2.0"
+}
+
+variable "umami_replicas" {
+  type    = number
+  default = 1
+}
+
+variable "analytics_hostname" {
+  type        = string
+  description = "Dashboard hostname, e.g. analytics-dev.juggerhub.com. Requires a MANUALLY created DNS A record pointing at the static public IP BEFORE the first apply — the certificate is automatic, the DNS record is not."
+}
+
+variable "umami_website_id" {
+  type        = string
+  description = "UUID of the tracked website. Chosen by us and provisioned by the post-deploy Job rather than generated in the dashboard, which is what makes the first apply measure immediately. NOT a secret — it ships in page source, so it belongs in envs/*.tfvars. Empty ships no tracker at all."
+  default     = ""
+
+  validation {
+    # A malformed ID is the worst failure available here: everything deploys, the tracker loads,
+    # every beacon is rejected, and nothing anywhere reports an error.
+    condition     = var.umami_website_id == "" || can(regex("^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$", var.umami_website_id))
+    error_message = "umami_website_id must be a UUID, or empty to disable the tracker."
+  }
+}
+
+variable "umami_db_password" {
+  type      = string
+  sensitive = true
+  validation {
+    condition     = length(var.umami_db_password) > 0
+    error_message = "umami_db_password must be set (GitHub Environment secret)."
+  }
+}
+
+variable "umami_app_secret" {
+  type        = string
+  sensitive   = true
+  description = "Signs dashboard session tokens. A shared or default value makes sessions forgeable."
+  validation {
+    condition     = length(var.umami_app_secret) >= 32
+    error_message = "umami_app_secret must be >= 32 chars."
+  }
+}
+
+variable "umami_admin_password_hash" {
+  type        = string
+  sensitive   = true
+  description = "bcrypt hash of the dashboard password, written over Umami's seeded admin account by the post-deploy Job. Umami exposes no environment variable for this. Generate it once and store it in the GitHub Environment; the PLAINTEXT must never enter the repository, tfvars, or Terraform state."
+  validation {
+    # Catches the two mistakes that both end the same way - locked out of a dashboard that is
+    # already publicly reachable: pasting the plaintext instead of the hash, and a truncated copy.
+    # bcrypt is always exactly 60 characters.
+    condition     = can(regex("^\\$2[aby]\\$[0-9]{2}\\$.{53}$", var.umami_admin_password_hash))
+    error_message = "umami_admin_password_hash must be a 60-character bcrypt hash ($2a$/$2b$/$2y$), not a plaintext password."
+  }
+}
+
 variable "ghcr_username" {
   type    = string
   default = "jnroesch"
