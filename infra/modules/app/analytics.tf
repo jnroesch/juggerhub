@@ -59,7 +59,14 @@ locals {
 
   # Assembled here rather than passed in, so the password stays a single sensitive variable and
   # never appears in tfvars as part of a longer string. `postgres` is the headless Service.
-  umami_database_url = "postgresql://umami:${var.umami_db_password}@postgres:5432/umami"
+  #
+  # urlencode() is load-bearing, not tidiness. This is a URL, so a password containing @ / : ? # or
+  # % re-partitions it — an `@` makes everything before it the userinfo and everything after the
+  # host, so Umami would try to connect to a host that does not exist. Password generators emit
+  # those characters routinely, and the failure would look like a networking problem rather than a
+  # quoting one. Only the URL needs this: psql receives the password through PGPASSWORD and -v,
+  # both of which take it literally.
+  umami_database_url = "postgresql://umami:${urlencode(var.umami_db_password)}@postgres:5432/umami"
 
   # The post-deploy Job is named after a digest of everything that decides what it DOES. A
   # Kubernetes Job's pod spec is immutable, so a Job that already exists is never re-run and a
