@@ -28,7 +28,7 @@ Consumed by the nginx template at container start.
 | Variable | Value | Secret? |
 |---|---|---|
 | `JH_ANALYTICS_HEAD` | The snippet from [tracker-snippet.md](./tracker-snippet.md), or **empty to disable**. **No `'` may appear in it** — see [tracker-snippet.md](./tracker-snippet.md) | No |
-| `JH_ANALYTICS_UPSTREAM` | `http://umami:3000` | No |
+| `JH_ANALYTICS_UPSTREAM` | `http://umami:3000` locally; **`http://umami.<namespace>.svc.cluster.local:3000` in Kubernetes** — the short name yields NXDOMAIN and a 502 on every tracker request, see [nginx-routes.md](./nginx-routes.md) | No |
 | `JH_ANALYTICS_RESOLVER` | DNS server nginx resolves the upstream with: `127.0.0.11` locally (Docker's embedded DNS), the cluster DNS ClusterIP in Kubernetes | No |
 
 `JH_ANALYTICS_RESOLVER` **has no safe empty default** — an unset value renders `resolver ;`, which is a config error — so every environment must set it. It exists because the analytics routes resolve their upstream per request rather than at startup; see [nginx-routes.md](./nginx-routes.md) for why that is mandatory.

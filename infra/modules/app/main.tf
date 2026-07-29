@@ -315,8 +315,19 @@ resource "kubernetes_deployment_v1" "frontend" {
             value = local.analytics_head
           }
           env {
-            name  = "JH_ANALYTICS_UPSTREAM"
-            value = "http://${kubernetes_service_v1.umami.metadata[0].name}:3000"
+            name = "JH_ANALYTICS_UPSTREAM"
+            # FULLY QUALIFIED, and that is mandatory here even though `umami` resolves fine from a
+            # shell in this very pod. Those are two different resolvers: a shell goes through libc,
+            # which appends the search domains in /etc/resolv.conf (juggerhub.svc.cluster.local,
+            # ...). nginx's `resolver` directive talks to kube-dns directly and applies NO search
+            # domains, so it asks for the literal name `umami` and gets NXDOMAIN —
+            #   [error] umami could not be resolved (3: Host not found)
+            # which surfaces as a 502 on every tracker request.
+            #
+            # Local compose keeps the short name because Docker's embedded DNS resolves bare
+            # service names natively. That difference is why this passed every local test and
+            # failed on the first deploy.
+            value = "http://${kubernetes_service_v1.umami.metadata[0].name}.${kubernetes_service_v1.umami.metadata[0].namespace}.svc.cluster.local:3000"
           }
           env {
             name = "JH_ANALYTICS_RESOLVER"
