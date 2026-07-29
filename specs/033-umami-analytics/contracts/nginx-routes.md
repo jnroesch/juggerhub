@@ -62,6 +62,29 @@ The second is the serious one: it inverts the guarantee the rest of this contrac
 
 Routing through an nginx variable defers resolution to request time, which requires an explicit `resolver`. `JH_ANALYTICS_RESOLVER` is `127.0.0.11` (Docker's embedded DNS) locally and the cluster DNS ClusterIP in Kubernetes. It has no safe empty default — an unset value renders `resolver ;`, which is a config error — so every environment must set it.
 
+### In Kubernetes the upstream MUST be fully qualified
+
+| Environment | `JH_ANALYTICS_UPSTREAM` |
+|---|---|
+| Local compose | `http://umami:3000` |
+| Kubernetes | `http://umami.<namespace>.svc.cluster.local:3000` |
+
+**The short name does not work in-cluster, even though `umami` resolves perfectly from a shell in the very same pod.** Those are two different resolvers:
+
+- a shell resolves through **libc**, which appends the search domains from `/etc/resolv.conf` (`juggerhub.svc.cluster.local`, `svc.cluster.local`, `cluster.local`);
+- nginx's `resolver` directive queries kube-dns **directly and applies no search domains**, so it asks for the literal name `umami`.
+
+Measured against the Dev cluster's kube-dns:
+
+```
+nslookup umami 10.0.0.10                             -> ** server can't find umami: NXDOMAIN
+nslookup umami.juggerhub.svc.cluster.local 10.0.0.10 -> 10.0.146.189
+```
+
+The symptom is a **502 on every tracker request**, with `[error] umami could not be resolved (3: Host not found)` in the frontend's nginx log — and nothing wrong anywhere else: the Umami pod is healthy, the Service has endpoints, and `kubectl exec … nslookup umami` succeeds, which points the investigation away from DNS.
+
+This is the one defect local testing structurally could not catch: Docker's embedded DNS resolves bare service names natively, so the short name is correct locally and wrong in-cluster. Compose parity is not resolver parity.
+
 Verified empirically, not reasoned about: with a literal upstream and no `umami`, `nginx -t` fails; with the variable form it succeeds.
 
 ---
