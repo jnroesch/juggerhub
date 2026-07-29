@@ -32,7 +32,11 @@ ENTRYPOINT ["npx", "nx", "e2e", "web-e2e"]
 
 # --- runtime: nginx serving the SPA + proxying /api -------------------------
 FROM nginx:1.31.3-alpine AS runtime
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Config is a TEMPLATE, not a finished file: the nginx image's own entrypoint
+# (/docker-entrypoint.d/20-envsubst-on-templates.sh) renders /etc/nginx/templates/*.template
+# into /etc/nginx/conf.d/ at container start. That is what lets one built image carry
+# per-environment analytics config (feature 033) with no rebuild and no added shell script.
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 COPY --from=build /app/dist/apps/web/browser /usr/share/nginx/html
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

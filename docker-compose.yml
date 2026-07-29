@@ -55,6 +55,37 @@ services:
     container_name: juggerhub-frontend
     ports:
       - "3000:80"
+    environment:
+      # Feature 033 — analytics config applied at CONTAINER START, not at build time. nginx's own
+      # envsubst entrypoint renders /etc/nginx/templates/*.template, so the same built image serves
+      # every environment (constitution V). Both names are JH_-prefixed on purpose: envsubst
+      # substitutes any variable present in the environment, so an unprefixed placeholder could
+      # collide with an nginx runtime variable ($host, $uri, ...) and silently corrupt the config.
+      #
+      # Setting UMAMI_WEBSITE_ID is the whole local switch: `${VAR:+...}` expands to the snippet
+      # only when the variable is non-empty, and the ID is nested inside it, so the toggle and the
+      # value cannot drift apart. Unset (the default) = empty = nothing injected.
+      #
+      # The snippet lives here rather than in .env so it is version-controlled and reviewable, and
+      # so nobody has to paste 400 characters correctly. EVERY string in it MUST use double
+      # quotes: it ends up inside nginx's SINGLE-quoted sub_filter argument, so one ' terminates
+      # that argument early and nginx refuses to start. JavaScript treats "" and '' alike; nginx
+      # does not.
+      #
+      # It checks Global Privacy Control and Do Not Track BEFORE injecting, so a user who has
+      # signalled either generates no request at all. Umami's own data-do-not-track covers DNT
+      # only; GPC is not implemented by the tracker, which is why this guard exists (FR-007).
+      # data-exclude-search drops the query string BEFORE the beacon is sent, so it never leaves
+      # the browser. Without it Umami stores url_query next to url_path, which meant /sign-in was
+      # recorded with returnUrl=%2F — and returnUrl carries deep links such as /players/<handle>.
+      # FR-008 decided page PATHS are recorded verbatim; query strings were never part of that
+      # decision, so they are excluded rather than quietly inherited from it.
+      - JH_ANALYTICS_HEAD=${UMAMI_WEBSITE_ID:+<script>(function(){var n=navigator;if(n.globalPrivacyControl||n.doNotTrack==="1"||window.doNotTrack==="1")return;var s=document.createElement("script");s.async=true;s.defer=true;s.src="/jh-insights.js";s.setAttribute("data-website-id","${UMAMI_WEBSITE_ID}");s.setAttribute("data-do-not-track","true");s.setAttribute("data-exclude-search","true");document.head.appendChild(s);})();</script>}
+      - JH_ANALYTICS_UPSTREAM=${JH_ANALYTICS_UPSTREAM:-http://umami:3000}
+      # Docker's embedded DNS. nginx proxies the analytics routes through a variable so it
+      # resolves them per request instead of at startup — otherwise the frontend could not
+      # boot at all with the analytics profile off, since `umami` would not exist.
+      - JH_ANALYTICS_RESOLVER=${JH_ANALYTICS_RESOLVER:-127.0.0.11}
     networks:
       - juggerhub-network
     depends_on:
@@ -125,6 +156,121 @@ services:
       - MP_ENABLE_SPAMASSASSIN=spamd:783
     networks:
       - juggerhub-network
+
+  # Creates the `umami` role and database, and isolates them from appdb, BEFORE Umami starts —
+  # Prisma's migrations fail against a database that does not exist. A one-shot service rather
+  # than /docker-entrypoint-initdb.d/, which only runs when initialising an EMPTY data directory
+  # and so would be a silent no-op on an existing local volume, exactly as it would be on the
+  # already-initialised Dev and Prod volumes. This mirrors the Kubernetes initContainer, so the
+  # same SQL is exercised locally as in Dev/Prod.
+  umami-db-init:
+    image: postgres:18.3-alpine
+    container_name: juggerhub-umami-db-init
+    profiles:
+      - analytics
+    environment:
+      PGPASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - ./scripts:/scripts:ro
+    command: >
+      psql -h database -U ${DB_USER:-postgres} -d postgres
+           -v ON_ERROR_STOP=1
+           -v umami_password=${UMAMI_DB_PASSWORD:-umami}
+           -v app_db=${DB_NAME:-appdb}
+           -f /scripts/umami-db-init.sql
+    networks:
+      - juggerhub-network
+    depends_on:
+      database:
+        condition: service_healthy
+    restart: "no"
+
+  # Self-hosted Umami analytics (feature 033). Opt-in via the `analytics` profile
+  # (`docker compose --profile analytics up`), mirroring the `spam` profile below: a plain
+  # `docker compose up` must stay exactly as light as it was before this feature existed.
+  #
+  # It runs LOCALLY as well as in Dev/Prod because constitution V limits environment differences
+  # to configuration and sizing, never the set of resources — and because the local stack runs the
+  # *identical* Postgres image, which is what let the PostgreSQL 18 compatibility question be
+  # settled in ten minutes instead of after the Terraform was written.
+  #
+  # Data lives in its own `umami` database on the SAME Postgres instance, owned by a non-superuser
+  # role that is explicitly revoked from the application database. See scripts/umami-db-init.sql.
+  umami:
+    # NOTE the tag scheme: v3 DROPPED the `postgresql-` prefix and the `v` that every 1.x/2.x tag
+    # carried (PostgreSQL is the only supported database in v3), so the plausible-looking
+    # `postgresql-v3.2.0` does not exist and fails at pull with a bare "not found".
+    image: docker.umami.is/umami-software/umami:3.2.0
+    container_name: juggerhub-umami
+    profiles:
+      - analytics
+    ports:
+      # 3001 because the frontend already owns 3000 on the host.
+      - "3001:3000"
+    environment:
+      - DATABASE_URL=postgresql://umami:${UMAMI_DB_PASSWORD:-umami}@database:5432/umami
+      # A local default rather than the `:?` required-variable guard used for
+      # JWT_SIGNING_KEY: compose interpolates the WHOLE file regardless of profiles, so `:?`
+      # here would abort a plain `docker compose up` for anyone whose .env predates this
+      # feature — even though this service never starts for them (FR-019). Nothing is lost:
+      # deployed environments read APP_SECRET from a Kubernetes Secret, never from compose.
+      - APP_SECRET=${UMAMI_APP_SECRET:-local-dev-only-not-a-real-secret}
+      # Moves the beacon off /api/send. REQUIRED, not cosmetic: the tracker posts to this path on
+      # OUR origin, and /api/ there is already proxied to the .NET backend. This variable rewrites
+      # the URL embedded in script.js at container start.
+      #
+      # NOTE: it does NOT create a server route — Umami still accepts beacons at /api/send only.
+      # The frontend nginx maps /jh-insights/e -> /api/send. Verified empirically; the docs imply
+      # otherwise. TRACKER_SCRIPT_NAME is deliberately NOT set: it has no effect in this image
+      # (standalone Next.js build, rewrites baked at build time), so nginx renames the script too.
+      - COLLECT_API_ENDPOINT=/jh-insights/e
+      # No outbound call-home, no update checks: the version is pinned by us (FR-009).
+      - DISABLE_TELEMETRY=1
+      - DISABLE_UPDATES=1
+    networks:
+      - juggerhub-network
+    depends_on:
+      database:
+        condition: service_healthy
+      umami-db-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:3000/api/heartbeat"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  # Creates the tracked website row with the id we CHOSE, rather than making someone create it in
+  # the dashboard and copy the generated id back into configuration. That manual step is what
+  # would otherwise leave a fresh stack — and every fresh environment — silently measuring
+  # nothing until a human noticed. See scripts/umami-seed-website.sql.
+  #
+  # Runs AFTER Umami is healthy because the `website` and `user` tables do not exist until Prisma
+  # has migrated and the admin account has been seeded. That ordering is why this cannot be folded
+  # into umami-db-init above.
+  umami-seed-website:
+    image: postgres:18.3-alpine
+    container_name: juggerhub-umami-seed-website
+    profiles:
+      - analytics
+    environment:
+      PGPASSWORD: ${UMAMI_DB_PASSWORD:-umami}
+    volumes:
+      - ./scripts:/scripts:ro
+    command: >
+      psql -h database -U umami -d umami
+           -v ON_ERROR_STOP=1
+           -v website_id=${UMAMI_WEBSITE_ID:-a1b2c3d4-0000-4000-8000-000000000033}
+           -v website_name=JuggerHub
+           -v website_domain=localhost:3000
+           -f /scripts/umami-seed-website.sql
+    networks:
+      - juggerhub-network
+    depends_on:
+      umami:
+        condition: service_healthy
+    restart: "no"
 
   # SpamAssassin spamd, consumed only by Mailpit for local spam scoring. Opt-in:
   # it costs a few hundred MB of RAM, so it only starts under the `spam` profile

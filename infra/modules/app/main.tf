@@ -297,6 +297,39 @@ resource "kubernetes_deployment_v1" "frontend" {
           port {
             container_port = 80
           }
+
+          # Analytics config reaches the ALREADY-BUILT image at container start: the nginx image's
+          # own envsubst entrypoint renders /etc/nginx/templates into the live config. So the same
+          # released image serves Dev and Prod with different analytics settings and no rebuild
+          # (FR-020), and no Angular source is involved.
+          env {
+            name = "JH_ANALYTICS_HEAD"
+            # Composed by Terraform rather than pasted anywhere. The snippet is carried into
+            # nginx's SINGLE-quoted sub_filter argument, so one apostrophe in it stops nginx from
+            # starting — every string below therefore uses double quotes, and building it here
+            # means that cannot be got wrong by hand.
+            #
+            # Empty website ID renders an empty value, which makes the substitution a no-op and
+            # ships no tracker at all. That is what lets an environment run with analytics off
+            # without any conditional configuration.
+            value = local.analytics_head
+          }
+          env {
+            name  = "JH_ANALYTICS_UPSTREAM"
+            value = "http://${kubernetes_service_v1.umami.metadata[0].name}:3000"
+          }
+          env {
+            name = "JH_ANALYTICS_RESOLVER"
+            # nginx proxies the analytics routes through a VARIABLE so it resolves them per
+            # request. With a literal upstream it resolves at startup and refuses to start when the
+            # name is missing — which would let an absent Umami take down the entire frontend.
+            # Runtime resolution needs an explicit resolver, and there is no safe empty default.
+            #
+            # Read from the cluster rather than hardcoded: the kube-dns ClusterIP is assigned per
+            # cluster, so a literal would be right in one environment and silently wrong in the next.
+            value = data.kubernetes_service_v1.kube_dns.spec[0].cluster_ip
+          }
+
           readiness_probe {
             http_get {
               path = "/"

@@ -4,6 +4,38 @@
       "path": "."
     }
   ],
+  "extensions": {
+    "recommendations": [
+      // AI assistant
+      "anthropic.claude-code",
+
+      // Backend — .NET 10 / C#
+      "ms-dotnettools.csdevkit",
+      "ms-dotnettools.csharp",
+
+      // Frontend — Angular 21 + Nx + Tailwind
+      "angular.ng-template",
+      "nrwl.angular-console",
+      "bradlc.vscode-tailwindcss",
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "ms-playwright.playwright",
+
+      // Local stack — Docker Compose / Postgres
+      "ms-azuretools.vscode-containers",
+      "ms-ossdata.vscode-pgsql",
+
+      // Infra — Terraform / AKS / Kubernetes
+      "hashicorp.terraform",
+      "ms-kubernetes-tools.vscode-kubernetes-tools",
+      "redhat.vscode-yaml",
+
+      // Tooling — PowerShell scripts, GitHub Actions, PRs/issues
+      "ms-vscode.powershell",
+      "github.vscode-github-actions",
+      "github.vscode-pull-request-github"
+    ]
+  },
   "settings": {
     "terminal.integrated.defaultProfile.windows": "PowerShell",
     "terminal.integrated.profiles.windows": {
@@ -29,11 +61,50 @@
         "icon": "mail",
         "color": "terminal.ansiMagenta"
       },
+      // Self-hosted Umami analytics (feature 033). Dashboard: http://localhost:3001 (admin/umami).
+      //
+      // UMAMI_WEBSITE_ID is set HERE rather than in .env on purpose. It is the whole tracker
+      // switch — set, the frontend injects the tracker; unset, nothing is injected — and compose
+      // cannot scope a variable to a profile, because the frontend service starts either way and
+      // so never learns that `--profile analytics` was passed. Setting it in .env would therefore
+      // also inject the tracker into a plain `docker compose up`, where Umami is not running, and
+      // cost one failed background request per page load. Setting it in this terminal profile
+      // scopes it by construction: analytics is on exactly when you launch it from here.
+      //
+      // The ID is a value we chose, not one Umami generated, and the stack provisions the matching
+      // website row itself — so there is nothing to create in the dashboard and nothing to copy.
+      "Docker Compose + Analytics": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "$env:UMAMI_WEBSITE_ID='a1b2c3d4-0000-4000-8000-000000000033'; docker compose --profile analytics up --build -d; docker compose --profile analytics logs -f"],
+        "icon": "pulse",
+        "color": "terminal.ansiBlue"
+      },
+      // `--profile "*"` rather than naming profiles: `down` only removes containers belonging to
+      // the profiles it is given, so `--profile spam down` left every analytics container running
+      // and the network undeletable ("Resource is still in use"). The wildcard means this keeps
+      // working when the next profile is added, instead of silently orphaning it too.
       "Docker Compose Down": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "docker compose --profile spam down"],
+        "args": ["-NoExit", "-Command", "docker compose --profile \"*\" down"],
         "icon": "debug-stop",
         "color": "terminal.ansiRed"
+      },
+      // Tunnel to the in-cluster Postgres so the PostgreSQL extension (ms-ossdata.vscode-pgsql)
+      // can connect to it at localhost:5433. Dev/Prod Postgres is ClusterIP-only and never
+      // exposed beyond the cluster, so a port-forward is the only route in.
+      //
+      // 5433, not 5432: the local compose database already owns 5432 on the host, and a
+      // collision would silently point you at the wrong database. Prints the current kube
+      // context first — `juggerhub` is the namespace in EVERY environment, so the context is
+      // the only thing telling you whether this tunnel lands in Dev or Prod.
+      //
+      // Requires credentials once per cluster:
+      //   az aks get-credentials --resource-group rg-juggerhub-dev --name aks-juggerhub-dev
+      "Port-forward: Dev Postgres": {
+        "path": "pwsh.exe",
+        "args": ["-NoExit", "-Command", "kubectl config current-context; kubectl -n juggerhub port-forward svc/postgres 5433:5432"],
+        "icon": "plug",
+        "color": "terminal.ansiCyan"
       },
       "Graphify: View Graph": {
         "path": "pwsh.exe",
@@ -47,7 +118,8 @@
         "icon": "sync",
         "color": "terminal.ansiGreen"
       }
-    }
+    },
+    "nxConsole.nxWorkspacePath": "frontend"
   },
   "launch": {
     "version": "0.2.0",

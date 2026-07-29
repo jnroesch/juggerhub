@@ -106,6 +106,16 @@ module "app" {
   email_frontend_base_url = local.email_frontend_base_url
   admin_emails            = var.admin_emails
 
+  # analytics (feature 033)
+  umami_image               = var.umami_image
+  umami_image_tag           = var.umami_image_tag
+  umami_replicas            = var.umami_replicas
+  analytics_hostname        = var.analytics_hostname
+  umami_website_id          = var.umami_website_id
+  umami_db_password         = var.umami_db_password
+  umami_app_secret          = var.umami_app_secret
+  umami_admin_password_hash = var.umami_admin_password_hash
+
   # registry pull
   ghcr_username   = var.ghcr_username
   ghcr_pull_token = var.ghcr_pull_token

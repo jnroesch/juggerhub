@@ -28,3 +28,13 @@ services:
   mailpit:
     container_name: !reset null
     ports: !reset []
+
+  # Added when the SignalR backplane and distributed rate limiter landed (019); the overlay was
+  # not updated with it, so running e2e while a dev stack was up failed at
+  # `Conflict. The container name "/juggerhub-redis" is already in use` before a single test ran.
+  #
+  # Only services that start WITHOUT a profile need resetting here: `spamd` and the analytics
+  # services carry pinned names too, but they never start for an e2e run.
+  redis:
+    container_name: !reset null
+    ports: !reset []

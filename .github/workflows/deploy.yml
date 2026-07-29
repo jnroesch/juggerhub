@@ -50,6 +50,14 @@ jobs:
       TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
       TF_VAR_admin_emails: ${{ secrets.ADMIN_EMAILS }}
       TF_VAR_ghcr_pull_token: ${{ secrets.GHCR_PULL_TOKEN }}
+      # Analytics (feature 033). All three are required — Terraform has no defaults for them, so a
+      # missing one fails THIS environment at apply with an unset-variable error. Deliberate: the
+      # alternative is a shared default signing key or a dashboard left on its seeded credential.
+      # UMAMI_ADMIN_PASSWORD_HASH is the bcrypt hash only; the plaintext never leaves the
+      # Environment. The website ID is not here — it is not a secret and lives in envs/*.tfvars.
+      TF_VAR_umami_db_password: ${{ secrets.UMAMI_DB_PASSWORD }}
+      TF_VAR_umami_app_secret: ${{ secrets.UMAMI_APP_SECRET }}
+      TF_VAR_umami_admin_password_hash: ${{ secrets.UMAMI_ADMIN_PASSWORD_HASH }}
 
     steps:
       - uses: actions/checkout@v7
@@ -132,6 +140,14 @@ jobs:
       TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
       TF_VAR_admin_emails: ${{ secrets.ADMIN_EMAILS }}
       TF_VAR_ghcr_pull_token: ${{ secrets.GHCR_PULL_TOKEN }}
+      # Analytics (feature 033). All three are required — Terraform has no defaults for them, so a
+      # missing one fails THIS environment at apply with an unset-variable error. Deliberate: the
+      # alternative is a shared default signing key or a dashboard left on its seeded credential.
+      # UMAMI_ADMIN_PASSWORD_HASH is the bcrypt hash only; the plaintext never leaves the
+      # Environment. The website ID is not here — it is not a secret and lives in envs/*.tfvars.
+      TF_VAR_umami_db_password: ${{ secrets.UMAMI_DB_PASSWORD }}
+      TF_VAR_umami_app_secret: ${{ secrets.UMAMI_APP_SECRET }}
+      TF_VAR_umami_admin_password_hash: ${{ secrets.UMAMI_ADMIN_PASSWORD_HASH }}
 
     steps:
       - uses: actions/checkout@v7
