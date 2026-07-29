@@ -1,4 +1,4 @@
-<div class="flex items-center gap-sm rounded-md border border-border-muted bg-surface-card px-sm py-sm">
+<div class="flex items-start gap-sm rounded-md border border-border-muted bg-surface-card px-sm py-sm sm:items-center">
   <!-- Date chip -->
   <a
     [routerLink]="route()"
@@ -9,26 +9,28 @@
     <span class="font-mono text-body-md font-bold leading-tight">{{ day() }}</span>
   </a>
 
-  <!-- Title + meta -->
-  <div class="min-w-0 flex-1">
-    <a [routerLink]="route()" class="block truncate font-semibold text-heading hover:text-link">{{ item().title }}</a>
-    <p class="truncate text-caption text-muted">
-      {{ item().locationLabel }} · <span class="font-mono">{{ time() }}</span>
-      @if (isTraining()) {
-        @if (item().isPublicGuest) { · {{ 'home.publicTraining' | transloco }} }
-      } @else if (!isTeamMode() && (item().spotsRemaining ?? 0) > 0) {
-        · <span class="font-mono">{{ item().spotsRemaining }}</span> {{ 'home.spotsLeft' | transloco }}
+  <!-- Title + action: stacked on mobile so the RSVP controls never crush the title -->
+  <div class="flex min-w-0 flex-1 flex-col gap-xs sm:flex-row sm:items-center sm:gap-sm">
+    <!-- Title + meta -->
+    <div class="min-w-0 flex-1">
+      <a [routerLink]="route()" class="block truncate font-semibold text-heading hover:text-link">{{ item().title }}</a>
+      <p class="truncate text-caption text-muted">
+        {{ item().locationLabel }} · <span class="font-mono">{{ time() }}</span>
+        @if (isTraining()) {
+          @if (item().isPublicGuest) { · {{ 'home.publicTraining' | transloco }} }
+        } @else if (!isTeamMode() && (item().spotsRemaining ?? 0) > 0) {
+          · <span class="font-mono">{{ item().spotsRemaining }}</span> {{ 'home.spotsLeft' | transloco }}
+        }
+      </p>
+      @if (error(); as e) {
+        <p class="text-caption text-danger-fg" role="alert">{{ e }}</p>
       }
-    </p>
-    @if (error(); as e) {
-      <p class="text-caption text-danger-fg" role="alert">{{ e }}</p>
-    }
-  </div>
+    </div>
 
-  <!-- Action -->
-  <div class="shrink-0">
+    <!-- Action -->
+    <div class="shrink-0">
     @if (isTraining()) {
-      <div class="flex gap-xs" role="group" [attr.aria-label]="'home.respondToTraining' | transloco">
+      <div class="flex flex-wrap gap-xs" role="group" [attr.aria-label]="'home.respondToTraining' | transloco">
         <button type="button" (click)="respond('Going')" [disabled]="busy()" data-testid="training-going"
           class="rounded-md border px-sm py-1 text-caption font-medium transition-colors duration-fast disabled:opacity-50"
           [class.border-success-border]="answer() === 'Going'" [class.bg-success-bg]="answer() === 'Going'" [class.text-success-fg]="answer() === 'Going'" [class.border-border-strong]="answer() !== 'Going'">{{ 'home.rsvpGoing' | transloco }}</button>
@@ -71,5 +73,6 @@
         {{ 'home.rsvp' | transloco }}
       </button>
     }
+    </div>
   </div>
 </div>
