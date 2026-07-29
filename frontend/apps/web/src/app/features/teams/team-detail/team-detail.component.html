@@ -30,8 +30,8 @@
         </p>
       </div>
 
-      <!-- Join action (state-aware) -->
-      <div class="flex shrink-0 items-center gap-sm">
+      <!-- Join action (state-aware) — full-width own row on mobile so buttons never clip the heading -->
+      <div class="flex w-full shrink-0 flex-wrap items-center gap-sm sm:w-auto">
         @if (canContactAdmins()) {
           <button type="button" jhButton variant="secondary" data-testid="contact-admins" (click)="contactAdmins()">{{ 'teams.detail.contactAdmins' | transloco }}</button>
         }

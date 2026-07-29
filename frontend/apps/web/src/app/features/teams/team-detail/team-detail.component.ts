@@ -60,7 +60,8 @@ export class TeamDetailComponent {
   protected readonly canRequest = computed(() => this.relation() === 'NonMember');
   protected readonly requested = computed(() => this.relation() === 'Requested');
   /** Feature 027: any signed-in non-admin may contact the team's admins (FR-001/FR-002). */
-  protected readonly canContactAdmins = computed(() => !this.isAnon() && !this.isAdmin());
+  // Members already reach admins through the team chat, so only signed-in non-members see this.
+  protected readonly canContactAdmins = computed(() => !this.isAnon() && !this.isMember());
 
   /** Open a "contact the admins" thread (feature 027). Nothing persists until the first message is sent. */
   protected contactAdmins(): void {
