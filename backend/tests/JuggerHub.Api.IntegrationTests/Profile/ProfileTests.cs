@@ -6,6 +6,9 @@ using JuggerHub.Data;
 using JuggerHub.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace JuggerHub.Api.IntegrationTests.Profile;
 
@@ -228,7 +231,53 @@ public sealed class ProfileTests
         // Read as the authenticated owner (feature 026 — a private profile's avatar isn't anonymous).
         var avatar = await client.GetAsync($"/api/v1/profiles/{handle}/avatar");
         Assert.Equal(HttpStatusCode.OK, avatar.StatusCode);
-        Assert.Equal("image/png", avatar.Content.Headers.ContentType?.MediaType);
+        // Feature 034 (#98): uploads are normalized and re-encoded to WebP before storage.
+        Assert.Equal("image/webp", avatar.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task Avatar_upload_normalizes_a_large_image_to_a_small_webp()
+    {
+        var (client, handle, _) = await RegisterVerifyLoginAsync();
+
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(LargePng(out var sourceLength)), "file", "avatar.png");
+        var upload = await client.PutAsync("/api/v1/profiles/me/avatar", content);
+        Assert.Equal(HttpStatusCode.NoContent, upload.StatusCode);
+
+        var avatar = await client.GetAsync($"/api/v1/profiles/{handle}/avatar");
+        Assert.Equal(HttpStatusCode.OK, avatar.StatusCode);
+        Assert.Equal("image/webp", avatar.Content.Headers.ContentType?.MediaType);
+
+        var stored = await avatar.Content.ReadAsByteArrayAsync();
+        Assert.True(stored.Length < sourceLength, "stored WebP should be smaller than the uploaded PNG");
+    }
+
+    [Fact]
+    public async Task Avatar_upload_rejection_leaves_existing_avatar_unchanged()
+    {
+        var (client, handle, _) = await RegisterVerifyLoginAsync();
+
+        // Set a valid avatar first.
+        using (var good = new MultipartFormDataContent())
+        {
+            good.Add(new ByteArrayContent(MinimalPng()), "file", "avatar.png");
+            (await client.PutAsync("/api/v1/profiles/me/avatar", good)).EnsureSuccessStatusCode();
+        }
+
+        var before = await (await client.GetAsync($"/api/v1/profiles/{handle}/avatar")).Content.ReadAsByteArrayAsync();
+
+        // A corrupt/non-image upload must be rejected...
+        using (var bad = new MultipartFormDataContent())
+        {
+            bad.Add(new ByteArrayContent("this is not an image"u8.ToArray()), "file", "avatar.png");
+            var rejected = await client.PutAsync("/api/v1/profiles/me/avatar", bad);
+            Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+        }
+
+        // ...and must leave the previously stored avatar byte-for-byte unchanged (FR-009).
+        var after = await (await client.GetAsync($"/api/v1/profiles/{handle}/avatar")).Content.ReadAsByteArrayAsync();
+        Assert.Equal(before, after);
     }
 
     // --- US4: recent activity -------------------------------------------------
@@ -335,4 +384,23 @@ public sealed class ProfileTests
     /// <summary>A minimal but valid 1x1 PNG (correct magic bytes).</summary>
     private static byte[] MinimalPng() => Convert.FromBase64String(
         "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
+
+    /// <summary>A 1000x800 gradient PNG — large enough that the normalized WebP is smaller.</summary>
+    private static byte[] LargePng(out int length)
+    {
+        using var img = new Image<Rgba32>(1000, 800);
+        for (var y = 0; y < img.Height; y++)
+        {
+            for (var x = 0; x < img.Width; x++)
+            {
+                img[x, y] = new Rgba32((byte)x, (byte)y, (byte)(x ^ y));
+            }
+        }
+
+        using var ms = new MemoryStream();
+        img.Save(ms, new PngEncoder());
+        var bytes = ms.ToArray();
+        length = bytes.Length;
+        return bytes;
+    }
 }

@@ -5,6 +5,7 @@ using JuggerHub.Dtos.Profile;
 using JuggerHub.Entities;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Geocoding;
+using JuggerHub.Services.Media;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
@@ -21,19 +22,25 @@ public sealed class ProfileService : IProfileService
     private readonly Recognition.IRecognitionDisplayService _recognitions;
     private readonly ICityService _cities;
     private readonly ProfileOptions _options;
+    private readonly IImageProcessor _imageProcessor;
+    private readonly ImageProcessingOptions _imageOptions;
 
     public ProfileService(
         AppDbContext db,
         IEventActivityService activity,
         Recognition.IRecognitionDisplayService recognitions,
         ICityService cities,
-        IOptions<ProfileOptions> options)
+        IOptions<ProfileOptions> options,
+        IImageProcessor imageProcessor,
+        IOptions<ImageProcessingOptions> imageOptions)
     {
         _db = db;
         _activity = activity;
         _recognitions = recognitions;
         _cities = cities;
         _options = options.Value;
+        _imageProcessor = imageProcessor;
+        _imageOptions = imageOptions.Value;
     }
 
     public async Task<HandleAvailabilityDto> CheckHandleAsync(string rawHandle, CancellationToken ct = default)
@@ -272,22 +279,13 @@ public sealed class ProfileService : IProfileService
 
     public async Task<AvatarSetResult> SetAvatarAsync(Guid userId, byte[] content, string? declaredContentType, CancellationToken ct = default)
     {
-        if (content.Length == 0)
+        // Normalize server-side (feature 034 / #98): validate + decompression-bomb guard + strip
+        // metadata + resize + re-encode to WebP. The declared content type is never trusted.
+        // On any rejection we return without touching the stored avatar (FR-009).
+        var processed = _imageProcessor.Process(content, _imageOptions.Avatar);
+        if (processed.Status != ImageProcessingStatus.Success)
         {
-            return AvatarSetResult.Fail(AvatarSetStatus.Empty, "No image was provided.");
-        }
-
-        if (content.Length > _options.MaxAvatarBytes)
-        {
-            return AvatarSetResult.Fail(AvatarSetStatus.TooLarge,
-                $"Image is too large (max {_options.MaxAvatarBytes / (1024 * 1024)} MB).");
-        }
-
-        // Never trust the declared content type — sniff the magic bytes.
-        var sniffed = SniffImageContentType(content);
-        if (sniffed is null)
-        {
-            return AvatarSetResult.Fail(AvatarSetStatus.InvalidType, "Use a PNG, JPEG, or WebP image.");
+            return AvatarSetResult.Fail(MapProcessingStatus(processed.Status), processed.Reason!);
         }
 
         var profileId = await _db.PlayerProfiles
@@ -301,26 +299,39 @@ public sealed class ProfileService : IProfileService
         }
 
         // Operate on the DbSet directly (not via the 1:1 navigation) so EF issues a
-        // clean INSERT for a new avatar and an UPDATE for an existing one.
+        // clean INSERT for a new avatar and an UPDATE for an existing one. Only the normalized
+        // WebP bytes are stored; the original upload is discarded (FR-015).
         var avatar = await _db.ProfileAvatars.FirstOrDefaultAsync(a => a.ProfileId == profileId.Value, ct);
         if (avatar is null)
         {
             _db.ProfileAvatars.Add(new ProfileAvatar
             {
                 ProfileId = profileId.Value,
-                Bytes = content,
-                ContentType = sniffed,
+                Bytes = processed.Bytes!,
+                ContentType = processed.ContentType!,
             });
         }
         else
         {
-            avatar.Bytes = content;
-            avatar.ContentType = sniffed;
+            avatar.Bytes = processed.Bytes!;
+            avatar.ContentType = processed.ContentType!;
         }
 
         await _db.SaveChangesAsync(ct);
         return AvatarSetResult.Ok();
     }
+
+    /// <summary>Map a processing failure to the avatar-upload status (distinct rejection reasons, FR-003).</summary>
+    private static AvatarSetStatus MapProcessingStatus(ImageProcessingStatus status) => status switch
+    {
+        ImageProcessingStatus.Empty => AvatarSetStatus.Empty,
+        ImageProcessingStatus.UnsupportedType => AvatarSetStatus.InvalidType,
+        ImageProcessingStatus.InputTooLarge => AvatarSetStatus.TooLarge,
+        ImageProcessingStatus.OutputTooLarge => AvatarSetStatus.TooLarge,
+        ImageProcessingStatus.DimensionsTooLarge => AvatarSetStatus.DimensionsTooLarge,
+        ImageProcessingStatus.Unreadable => AvatarSetStatus.Unreadable,
+        _ => AvatarSetStatus.InvalidType,
+    };
 
     public async Task<AvatarData?> GetAvatarAsync(string handle, Guid? viewerUserId, CancellationToken ct = default)
     {
@@ -363,35 +374,6 @@ public sealed class ProfileService : IProfileService
 
     private static string? BlankToNull(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-
-    /// <summary>
-    /// Identify a supported image by its magic bytes (PNG/JPEG/WebP). Returns the
-    /// canonical content type, or null if unrecognized. Declared types are ignored.
-    /// </summary>
-    private static string? SniffImageContentType(byte[] b)
-    {
-        if (b.Length >= 8 &&
-            b[0] == 0x89 && b[1] == 0x50 && b[2] == 0x4E && b[3] == 0x47 &&
-            b[4] == 0x0D && b[5] == 0x0A && b[6] == 0x1A && b[7] == 0x0A)
-        {
-            return "image/png";
-        }
-
-        if (b.Length >= 3 && b[0] == 0xFF && b[1] == 0xD8 && b[2] == 0xFF)
-        {
-            return "image/jpeg";
-        }
-
-        // RIFF....WEBP
-        if (b.Length >= 12 &&
-            b[0] == 0x52 && b[1] == 0x49 && b[2] == 0x46 && b[3] == 0x46 &&
-            b[8] == 0x57 && b[9] == 0x45 && b[10] == 0x42 && b[11] == 0x50)
-        {
-            return "image/webp";
-        }
-
-        return null;
-    }
 
     private sealed record ProfileProjection(
         Guid Id,

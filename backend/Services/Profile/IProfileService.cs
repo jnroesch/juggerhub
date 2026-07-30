@@ -10,6 +10,12 @@ public enum AvatarSetStatus
     TooLarge,
     Empty,
     ProfileNotFound,
+
+    /// <summary>Image pixel dimensions exceed the decode safety limit (feature 034 / #98).</summary>
+    DimensionsTooLarge,
+
+    /// <summary>Image bytes could not be decoded (corrupt/truncated) (feature 034 / #98).</summary>
+    Unreadable,
 }
 
 /// <summary>Raw avatar bytes for serving.</summary>

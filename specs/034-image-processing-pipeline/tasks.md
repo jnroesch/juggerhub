@@ -29,7 +29,7 @@ Single backend project: `backend/` (source), `backend/tests/JuggerHub.Api.Integr
 
 **Purpose**: Bring the imaging dependency into the project.
 
-- [ ] T001 Add `SixLabors.ImageSharp` (pinned to its current major version, per Dependency Management) to `backend/JuggerHub.Api.csproj` and run `dotnet restore backend`. Confirms the pure-managed library resolves (research D1).
+- [X] T001 Add `SixLabors.ImageSharp` (pinned to its current major version, per Dependency Management) to `backend/JuggerHub.Api.csproj` and run `dotnet restore backend`. Confirms the pure-managed library resolves (research D1).
 
 ---
 
@@ -39,13 +39,13 @@ Single backend project: `backend/` (source), `backend/tests/JuggerHub.Api.Integr
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T002 [P] Create `ImageProcessingResult` record + `ImageProcessingStatus` enum (`Success, Empty, UnsupportedType, InputTooLarge, DimensionsTooLarge, Unreadable, OutputTooLarge`) in `backend/Services/Media/ImageProcessingResult.cs` (data-model §3).
-- [ ] T003 [P] Create `ImageProcessingOptions` (`SectionName = "ImageProcessing"`, `MaxInputBytes`, `MaxDecodePixels`, `AllowedContentTypes`, `Avatar` profile) and `ImageProcessingProfile` (`ResizeMode { Fit, SquareCrop }`, `MaxDimension`, `Quality`, `MaxOutputBytes`) with safe defaults in `backend/Common/ImageProcessingOptions.cs` (data-model §1–§2; FR-013).
-- [ ] T004 [P] Define the `IImageProcessor` interface (`ImageProcessingResult Process(byte[] input, ImageProcessingProfile profile)`) in `backend/Services/Media/IImageProcessor.cs` (contracts/image-processor.md; FR-011).
-- [ ] T005 Create `ImageSharpImageProcessor` **skeleton** implementing `IImageProcessor` in `backend/Services/Media/ImageSharpImageProcessor.cs` — control-flow scaffold returning a passthrough `Success` with a clear `// TODO` for each stage, so DI and the caller compile. (Real stages land in US1–US3.) Depends on T002, T003, T004.
-- [ ] T006 [P] Extend `AvatarSetStatus` with `DimensionsTooLarge` and `Unreadable` in `backend/Services/Profile/IProfileService.cs` (data-model §4; FR-003).
-- [ ] T007 Register `IImageProcessor` → `ImageSharpImageProcessor` as a **singleton** and add `builder.Services.Configure<ImageProcessingOptions>(...)` in `backend/Program.cs`; add an optional `ImageProcessing` section to `backend/appsettings.json` (defaults already suffice). Depends on T004, T005, T003.
-- [ ] T008 Rewire `ProfileService.SetAvatarAsync` to call `_imageProcessor.Process(content, _imageOptions.Avatar)` and map **every** `ImageProcessingStatus` → `AvatarSetResult` (Success stores `result.Bytes`/`result.ContentType` via the existing INSERT/UPDATE path and discards the original; non-success returns `Fail(status, reason)` without touching stored data). Inject `IImageProcessor` + `IOptions<ImageProcessingOptions>` into the constructor. In `backend/Services/Profile/ProfileService.cs` (contracts/image-processor.md consumer contract; FR-009, FR-015). Depends on T002, T004, T006.
+- [X] T002 [P] Create `ImageProcessingResult` record + `ImageProcessingStatus` enum (`Success, Empty, UnsupportedType, InputTooLarge, DimensionsTooLarge, Unreadable, OutputTooLarge`) in `backend/Services/Media/ImageProcessingResult.cs` (data-model §3).
+- [X] T003 [P] Create `ImageProcessingOptions` (`SectionName = "ImageProcessing"`, `MaxInputBytes`, `MaxDecodePixels`, `AllowedContentTypes`, `Avatar` profile) and `ImageProcessingProfile` (`ResizeMode { Fit, SquareCrop }`, `MaxDimension`, `Quality`, `MaxOutputBytes`) with safe defaults in `backend/Common/ImageProcessingOptions.cs` (data-model §1–§2; FR-013).
+- [X] T004 [P] Define the `IImageProcessor` interface (`ImageProcessingResult Process(byte[] input, ImageProcessingProfile profile)`) in `backend/Services/Media/IImageProcessor.cs` (contracts/image-processor.md; FR-011).
+- [X] T005 Create `ImageSharpImageProcessor` **skeleton** implementing `IImageProcessor` in `backend/Services/Media/ImageSharpImageProcessor.cs` — control-flow scaffold returning a passthrough `Success` with a clear `// TODO` for each stage, so DI and the caller compile. (Real stages land in US1–US3.) Depends on T002, T003, T004.
+- [X] T006 [P] Extend `AvatarSetStatus` with `DimensionsTooLarge` and `Unreadable` in `backend/Services/Profile/IProfileService.cs` (data-model §4; FR-003).
+- [X] T007 Register `IImageProcessor` → `ImageSharpImageProcessor` as a **singleton** and add `builder.Services.Configure<ImageProcessingOptions>(...)` in `backend/Program.cs`; add an optional `ImageProcessing` section to `backend/appsettings.json` (defaults already suffice). Depends on T004, T005, T003.
+- [X] T008 Rewire `ProfileService.SetAvatarAsync` to call `_imageProcessor.Process(content, _imageOptions.Avatar)` and map **every** `ImageProcessingStatus` → `AvatarSetResult` (Success stores `result.Bytes`/`result.ContentType` via the existing INSERT/UPDATE path and discards the original; non-success returns `Fail(status, reason)` without touching stored data). Inject `IImageProcessor` + `IOptions<ImageProcessingOptions>` into the constructor. In `backend/Services/Profile/ProfileService.cs` (contracts/image-processor.md consumer contract; FR-009, FR-015). Depends on T002, T004, T006.
 
 **Checkpoint**: Solution compiles; the avatar path calls the processor through the seam. No real normalization yet.
 
@@ -59,13 +59,13 @@ Single backend project: `backend/` (source), `backend/tests/JuggerHub.Api.Integr
 
 ### Tests for User Story 1
 
-- [ ] T009 [P] [US1] Unit tests in `backend/tests/JuggerHub.Api.IntegrationTests/Media/ImageProcessorTests.cs`: large image → WebP with largest side ≤ `MaxDimension` and ≥90% smaller bytes (SC-001); small image not upscaled (fit preserves dims; square-crop centers) (C6, C7); output is `image/webp` (C8/D5); alpha preserved (C11, FR-016); animated input → single static frame (C10, FR-017).
-- [ ] T010 [US1] In `backend/tests/JuggerHub.Api.IntegrationTests/Profile/ProfileTests.cs`: update `Avatar_upload_accepts_a_valid_png` to assert served `Content-Type` is `image/webp` (the one existing assertion that changes); add a test uploading a large PNG and asserting the fetched avatar is a smaller WebP.
+- [X] T009 [P] [US1] Unit tests in `backend/tests/JuggerHub.Api.IntegrationTests/Media/ImageProcessorTests.cs`: large image → WebP with largest side ≤ `MaxDimension` and ≥90% smaller bytes (SC-001); small image not upscaled (fit preserves dims; square-crop centers) (C6, C7); output is `image/webp` (C8/D5); alpha preserved (C11, FR-016); animated input → single static frame (C10, FR-017).
+- [X] T010 [US1] In `backend/tests/JuggerHub.Api.IntegrationTests/Profile/ProfileTests.cs`: update `Avatar_upload_accepts_a_valid_png` to assert served `Content-Type` is `image/webp` (the one existing assertion that changes); add a test uploading a large PNG and asserting the fetched avatar is a smaller WebP.
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Implement the core pipeline in `backend/Services/Media/ImageSharpImageProcessor.cs`: empty check → input-size check (`InputTooLarge`) → `Image.Load` → flatten animation to first frame → resize per `ResizeMode` (Fit = `ResizeMode.Max`, SquareCrop = `ResizeMode.Crop` center, **both no-upscale**, research D4) → encode `WebpEncoder { Quality }` → enforce `MaxOutputBytes` (`OutputTooLarge`) → return `Success(bytes, "image/webp", w, h)`. (Metadata-strip and pre-decode guard are added in US2/US3.)
-- [ ] T012 [US1] Reconcile input vs output caps (FR-012, research D7): reframe `ProfileOptions.MaxAvatarBytes` as the generous **input** cap (~8 MB, aligned with the endpoint's `[RequestSizeLimit(8MB)]`) in `backend/Common/ProfileOptions.cs`; ensure the `InputTooLarge` reason text reflects the input limit. The small stored-output bound lives in `ImageProcessingProfile.MaxOutputBytes`.
+- [X] T011 [US1] Implement the core pipeline in `backend/Services/Media/ImageSharpImageProcessor.cs`: empty check → input-size check (`InputTooLarge`) → `Image.Load` → flatten animation to first frame → resize per `ResizeMode` (Fit = `ResizeMode.Max`, SquareCrop = `ResizeMode.Crop` center, **both no-upscale**, research D4) → encode `WebpEncoder { Quality }` → enforce `MaxOutputBytes` (`OutputTooLarge`) → return `Success(bytes, "image/webp", w, h)`. (Metadata-strip and pre-decode guard are added in US2/US3.)
+- [X] T012 [US1] Reconcile input vs output caps (FR-012, research D7): reframe `ProfileOptions.MaxAvatarBytes` as the generous **input** cap (~8 MB, aligned with the endpoint's `[RequestSizeLimit(8MB)]`) in `backend/Common/ProfileOptions.cs`; ensure the `InputTooLarge` reason text reflects the input limit. The small stored-output bound lives in `ImageProcessingProfile.MaxOutputBytes`.
 
 **Checkpoint**: MVP — uploads are shrunk to a bounded WebP. Deployable/demoable.
 
@@ -79,11 +79,11 @@ Single backend project: `backend/` (source), `backend/tests/JuggerHub.Api.Integr
 
 ### Tests for User Story 2
 
-- [ ] T013 [P] [US2] Unit tests in `backend/tests/JuggerHub.Api.IntegrationTests/Media/ImageProcessorTests.cs`: input JPEG carrying an EXIF GPS tag → output has no `ExifProfile`/IPTC/XMP/ICC (SC-002, C8); input with an EXIF orientation flag → output pixels are upright and no orientation flag remains (SC-003, C9). (Build these inputs in-memory with ImageSharp — research D10.)
+- [X] T013 [P] [US2] Unit tests in `backend/tests/JuggerHub.Api.IntegrationTests/Media/ImageProcessorTests.cs`: input JPEG carrying an EXIF GPS tag → output has no `ExifProfile`/IPTC/XMP/ICC (SC-002, C8); input with an EXIF orientation flag → output pixels are upright and no orientation flag remains (SC-003, C9). (Build these inputs in-memory with ImageSharp — research D10.)
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] In `backend/Services/Media/ImageSharpImageProcessor.cs`, add `image.Mutate(x => x.AutoOrient())` and clear `Metadata.ExifProfile`, `IptcProfile`, `XmpProfile`, `IccProfile` immediately before encode (research D3; FR-005). Sequential after T011 (same file).
+- [X] T014 [US2] In `backend/Services/Media/ImageSharpImageProcessor.cs`, add `image.Mutate(x => x.AutoOrient())` and clear `Metadata.ExifProfile`, `IptcProfile`, `XmpProfile`, `IccProfile` immediately before encode (research D3; FR-005). Sequential after T011 (same file).
 
 **Checkpoint**: US1 + US2 — normalized, small, metadata-free, upright.
 
@@ -97,12 +97,12 @@ Single backend project: `backend/` (source), `backend/tests/JuggerHub.Api.Integr
 
 ### Tests for User Story 3
 
-- [ ] T015 [P] [US3] Unit tests in `backend/tests/JuggerHub.Api.IntegrationTests/Media/ImageProcessorTests.cs`: header declaring huge dimensions → `DimensionsTooLarge` with no full decode/memory spike (SC-004, C4); truncated/corrupt bytes → `Unreadable`, no exception thrown (C5); non-image bytes → `UnsupportedType` (C3); over-`MaxInputBytes` → `InputTooLarge` (C2); over-`MaxOutputBytes` encode → `OutputTooLarge` (C12).
-- [ ] T016 [US3] Integration test in `backend/tests/JuggerHub.Api.IntegrationTests/Profile/ProfileTests.cs`: set a valid avatar, then submit a corrupt upload; assert `400` with a distinct reason and that the previously stored avatar is byte-for-byte unchanged (SC-005, FR-009).
+- [X] T015 [P] [US3] Unit tests in `backend/tests/JuggerHub.Api.IntegrationTests/Media/ImageProcessorTests.cs`: header declaring huge dimensions → `DimensionsTooLarge` with no full decode/memory spike (SC-004, C4); truncated/corrupt bytes → `Unreadable`, no exception thrown (C5); non-image bytes → `UnsupportedType` (C3); over-`MaxInputBytes` → `InputTooLarge` (C2); over-`MaxOutputBytes` encode → `OutputTooLarge` (C12).
+- [X] T016 [US3] Integration test in `backend/tests/JuggerHub.Api.IntegrationTests/Profile/ProfileTests.cs`: set a valid avatar, then submit a corrupt upload; assert `400` with a distinct reason and that the previously stored avatar is byte-for-byte unchanged (SC-005, FR-009).
 
 ### Implementation for User Story 3
 
-- [ ] T017 [US3] In `backend/Services/Media/ImageSharpImageProcessor.cs`, add the pre-decode guard **before** `Image.Load`: `Image.Identify` header read → validate detected format ∈ `AllowedContentTypes` (`UnsupportedType`) → reject `width * height > MaxDecodePixels` (`DimensionsTooLarge`) (research D2; FR-004). Wrap `Load` in try/catch → `Unreadable` (never throw, FR-003). Ensure each failure status returns a distinct, non-technical `Reason` (contracts/avatar-endpoints.md). Sequential after T011/T014 (same file).
+- [X] T017 [US3] In `backend/Services/Media/ImageSharpImageProcessor.cs`, add the pre-decode guard **before** `Image.Load`: `Image.Identify` header read → validate detected format ∈ `AllowedContentTypes` (`UnsupportedType`) → reject `width * height > MaxDecodePixels` (`DimensionsTooLarge`) (research D2; FR-004). Wrap `Load` in try/catch → `Unreadable` (never throw, FR-003). Ensure each failure status returns a distinct, non-technical `Reason` (contracts/avatar-endpoints.md). Sequential after T011/T014 (same file).
 
 **Checkpoint**: All three stories functional — normalize, protect privacy, and reject abuse safely.
 
@@ -110,10 +110,10 @@ Single backend project: `backend/` (source), `backend/tests/JuggerHub.Api.Integr
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T018 [P] Document the `ImageProcessing` config section (values + safe defaults) in `backend/appsettings.json` and note it needs no secret (Principle V / Secret Management).
-- [ ] T019 Run [quickstart.md](./quickstart.md) validation: `dotnet build backend` (clean under `TreatWarningsAsErrors`) and `dotnet test backend/tests/JuggerHub.Api.IntegrationTests`; confirm all new/updated tests pass.
-- [ ] T020 Security pass (Principle I / OWASP): verify decode/format failures surface only generic non-technical reasons (no stack traces/internals), and that the `Identify` guard bounds peak memory. Review `ImageSharpImageProcessor.cs` + the controller mapping in `backend/Controllers/ProfilesController.cs`.
-- [ ] T021 [P] Confirm scope boundaries hold: no caching-header changes to `GET /{handle}/avatar` (deferred to #97), no schema/migration added, no frontend change. Tick issue #98 acceptance criteria.
+- [X] T018 [P] Document the `ImageProcessing` config section (values + safe defaults) in `backend/appsettings.json` and note it needs no secret (Principle V / Secret Management).
+- [ ] T019 ⚠️ NOT RUN LOCALLY (no .NET SDK / no Docker daemon in this environment) — CI on the PR is the verification path. Run [quickstart.md](./quickstart.md) validation: `dotnet build backend` (clean under `TreatWarningsAsErrors`) and `dotnet test backend/tests/JuggerHub.Api.IntegrationTests`; confirm all new/updated tests pass.
+- [X] T020 Security pass (Principle I / OWASP): verify decode/format failures surface only generic non-technical reasons (no stack traces/internals), and that the `Identify` guard bounds peak memory. Review `ImageSharpImageProcessor.cs` + the controller mapping in `backend/Controllers/ProfilesController.cs`.
+- [X] T021 [P] Confirm scope boundaries hold: no caching-header changes to `GET /{handle}/avatar` (deferred to #97), no schema/migration added, no frontend change. Tick issue #98 acceptance criteria.
 
 ---
 

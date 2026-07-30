@@ -12,6 +12,7 @@ using JuggerHub.Services.Email;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Health;
 using JuggerHub.Services.Home;
+using JuggerHub.Services.Media;
 using JuggerHub.Services.Notifications;
 using JuggerHub.Services.Notifications.Realtime;
 using JuggerHub.Services.Profile;
@@ -227,6 +228,12 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddScoped<JuggerHub.Services.Account.ILanguagePreferenceService, JuggerHub.Services.Account.LanguagePreferenceService>();
 // Lets RecipientCultureResolver read the caller's Accept-Language for pre-account email language.
 builder.Services.AddHttpContextAccessor();
+
+// --- Server-side image processing (feature 034 / #98) ----------------------
+// Reusable, owner-agnostic pipeline used by avatar uploads (and galleries #99 later).
+// Stateless → singleton. Options bound with safe defaults (no config required).
+builder.Services.Configure<ImageProcessingOptions>(builder.Configuration.GetSection(ImageProcessingOptions.SectionName));
+builder.Services.AddSingleton<IImageProcessor, ImageSharpImageProcessor>();
 
 // --- Player profile + activity (feature 003) -------------------------------
 builder.Services.Configure<ProfileOptions>(builder.Configuration.GetSection(ProfileOptions.SectionName));

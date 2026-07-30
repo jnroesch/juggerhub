@@ -3,8 +3,8 @@ namespace JuggerHub.Common;
 /// <summary>
 /// Server-side image validation shared by upload paths (badge/achievement icons, feature 012).
 /// Never trusts a client-declared content type — the type is determined by sniffing magic bytes.
-/// Mirrors the approach used for profile avatars (see <c>ProfileService.SniffImageContentType</c>);
-/// the two could be unified later.
+/// Profile avatars moved to the full processing pipeline in feature 034 / #98
+/// (<c>JuggerHub.Services.Media.IImageProcessor</c>); these icon paths could adopt it later.
 /// </summary>
 public static class ImageValidation
 {
