@@ -20,7 +20,7 @@ All spec inputs were resolved during `/speckit-clarify`; there are no open `NEED
 - **Magick.NET** (ImageMagick): most capable, but a large native footprint and heavier than needed for resize/strip/re-encode. Rejected as overkill.
 - **System.Drawing.Common**: not cross-platform supported on non-Windows since .NET 6. Rejected.
 
-**Licensing (owner decision, non-blocking)**: ImageSharp uses the **Six Labors Split License** — free for OSS and for organizations under the annual gross-revenue threshold; commercial license required above it. Because the library sits behind `IImageProcessor`, switching to SkiaSharp later touches only `ImageSharpImageProcessor.cs`. Surfaced to the owner at plan hand-off.
+**Licensing**: ImageSharp uses the **Six Labors Split License** — free for OSS and for organizations under the annual gross-revenue threshold; commercial license required above it. **Owner decision (2026-07-30): confirmed ImageSharp** — JuggerHub is a not-for-profit under the revenue threshold, so the free license applies; no commercial license is required. The SkiaSharp fallback remains available behind the `IImageProcessor` seam should that situation ever change (a switch would touch only `ImageSharpImageProcessor.cs`).
 
 ---
 

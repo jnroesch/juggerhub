@@ -45,7 +45,7 @@ Introduce a reusable, DI'd `IImageProcessor` service that every uploaded image p
 
 **Result**: No violations. Complexity Tracking table intentionally empty.
 
-**Licensing note (owner decision, does not block design)**: ImageSharp ships under the **Six Labors Split License** — free for open-source and for organizations under the annual gross-revenue threshold; a commercial license is required above it. If JuggerHub's situation requires an unencumbered license, **SkiaSharp** (BSD, but a per-arch native binary — a small parity cost) is the drop-in alternative behind the same `IImageProcessor` seam. Captured in [research.md](./research.md).
+**Licensing note (RESOLVED 2026-07-30)**: ImageSharp ships under the **Six Labors Split License** — free for open-source and for organizations under the annual gross-revenue threshold; a commercial license is required above it. **Owner confirmed ImageSharp**: JuggerHub is a not-for-profit under the threshold, so the free license applies. **SkiaSharp** (BSD) remains the drop-in fallback behind the same `IImageProcessor` seam if that ever changes. Captured in [research.md](./research.md).
 
 ## Project Structure
 
