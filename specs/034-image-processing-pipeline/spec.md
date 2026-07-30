@@ -21,7 +21,7 @@ A member picks a photo from their phone or computer to use as their profile pict
 **Acceptance Scenarios**:
 
 1. **Given** a valid high-resolution photo larger than the target dimension, **When** a member uploads it, **Then** the stored image is downscaled so its largest side does not exceed the configured maximum dimension and its stored size is a small fraction of the original.
-2. **Given** a valid image already smaller than the target dimension, **When** a member uploads it, **Then** it is re-encoded to the normalized format but is **not** upscaled (its pixel dimensions are preserved).
+2. **Given** a valid image already smaller than the target dimension, **When** a member uploads it, **Then** it is re-encoded to the normalized format and is **not** upscaled (in fit mode its pixel dimensions are preserved; in square-crop mode it is center-cropped to a square no larger than its shorter side, still without upscaling).
 3. **Given** a member had a previous picture, **When** they upload a new valid image, **Then** the new normalized image replaces the old one and is the version returned on subsequent retrieval.
 
 ---
@@ -58,12 +58,21 @@ Someone submits a file that is not really a usable image — a tiny compressed f
 
 ### Edge Cases
 
-- **Animated source (e.g. animated WebP/GIF-like input)**: only static images are supported; a single representative frame is stored and the result is a still image. (Animation is out of scope.)
-- **Image with an unusual but valid aspect ratio (very wide/tall)**: downscaling preserves aspect ratio; the largest side is bounded, the image is not cropped or distorted. (Any square-cropping is a presentation concern, out of scope here.)
+- **Animated source (e.g. animated WebP/APNG)**: accepted and flattened to a single still (first/representative) frame; the stored result is a static image.
+- **Image with an unusual but valid aspect ratio (very wide/tall)**: in **fit** mode the largest side is bounded and aspect ratio preserved (no distortion); in **square-crop** mode the image is center-cropped to a square. Neither mode distorts the image.
 - **Already-normalized image re-uploaded**: processing is idempotent enough that re-processing an already-small, already-stripped image yields an equivalent result without growth.
 - **Valid image that re-encodes larger than the configured stored-size ceiling** (rare, e.g. noisy photo at high quality): the pipeline still guarantees the stored result respects the configured bounds, or the upload is rejected with a clear reason rather than storing an oversized blob.
 - **Transparency (alpha channel)**: transparency present in the source is preserved in the normalized output.
 - **Zero-byte or empty upload**: rejected as empty, consistent with today's behavior.
+
+## Clarifications
+
+### Session 2026-07-30
+
+- Q: How should the pipeline handle aspect ratio when resizing (crop vs fit)? → A: Configurable per upload context, with two modes — **fit** (downscale preserving aspect ratio so the largest side is bounded) and **square-crop** (center-crop to a square, then downscale). The avatar context uses **square-crop**; the future showcase-gallery context (#99) uses **fit**.
+- Q: Does this feature reprocess already-stored avatars, or apply only to new uploads? → A: New uploads only. **No pre-existing stored avatar data exists in any environment**, so no backfill, data migration, or backward-compatibility handling is required.
+- Q: How should animated images (animated WebP / APNG) be handled? → A: Accept them and store a single still (first/representative) frame; processing then proceeds normally. The stored output is always static.
+- Q: How granular should a rejection reason be? → A: Distinct, non-technical reasons (unsupported type / too large / image dimensions too large / unreadable image), extending the existing status set.
 
 ## Requirements *(mandatory)*
 
@@ -71,10 +80,10 @@ Someone submits a file that is not really a usable image — a tiny compressed f
 
 - **FR-001**: The system MUST process every uploaded image through a single shared processing step before it is stored, replacing the current validate-only path.
 - **FR-002**: The system MUST determine the actual image type by inspecting file content, MUST NOT trust the client-declared content type, and MUST accept only a defined allow-list of input formats (PNG, JPEG, WebP).
-- **FR-003**: The system MUST reject any input that is not a decodable image of an allowed type, with a clear, non-technical reason, and MUST NOT expose internal errors or stack traces.
+- **FR-003**: The system MUST reject any input that is not a decodable image of an allowed type, and MUST NOT expose internal errors or stack traces. Rejection reasons MUST be **distinct and non-technical**, covering at least: unsupported/invalid type, exceeds the accepted input-size limit, image dimensions exceed the decode safety limit, and unreadable/corrupt image — extending the existing status set (which already distinguishes invalid type, too large, and empty).
 - **FR-004**: The system MUST enforce a safety limit on decoded image dimensions and MUST reject over-limit inputs **before** allocating the full decoded image, to prevent decompression/pixel-bomb memory exhaustion.
 - **FR-005**: The system MUST bake in the source orientation and MUST remove all embedded metadata (including EXIF, GPS location, and ICC/color-profile data) from the stored image.
-- **FR-006**: The system MUST downscale images larger than a configured maximum dimension so the largest side does not exceed it, preserving aspect ratio, and MUST NOT upscale images already smaller than that dimension.
+- **FR-006**: The system MUST resize images to a configured maximum dimension using a **per-context resize mode**: (a) **fit** — downscale preserving aspect ratio so the largest side does not exceed the maximum; or (b) **square-crop** — center-crop to a square, then downscale to the maximum. In both modes the system MUST NOT upscale images already smaller than the target. The avatar context uses square-crop; the future gallery context (#99) uses fit.
 - **FR-007**: The system MUST re-encode the processed image to a single normalized output format (WebP) at a configured quality, and MUST report the stored content type accordingly to callers.
 - **FR-008**: The system MUST guarantee the stored output respects configured size/dimension bounds; if a valid image cannot be brought within bounds, the upload MUST be rejected with a clear reason rather than stored oversized.
 - **FR-009**: On any rejected or failed upload, the system MUST leave any previously stored image for that subject unchanged.
@@ -85,11 +94,12 @@ Someone submits a file that is not really a usable image — a tiny compressed f
 - **FR-014**: The public avatar URL, the upload/retrieve endpoints, and frontend behavior MUST remain unchanged for callers; the processing is internal to the existing service seam.
 - **FR-015**: The system MUST NOT retain the original uploaded bytes after producing the normalized image (only the processed result is stored).
 - **FR-016**: Transparency present in a source image MUST be preserved in the normalized output.
+- **FR-017**: The system MUST accept animated image inputs (e.g. animated WebP / APNG) and store a single still frame; the stored output MUST be a static image.
 
 ### Key Entities *(include if feature involves data)*
 
 - **Processed Image**: the normalized result of the pipeline — the encoded image bytes, its normalized content type, and its pixel dimensions. This is what gets stored; the original upload is discarded.
-- **Processing Profile / Constraints**: the configurable limits applied for a given upload context — maximum output dimension, output quality, accepted input-size limit, stored-output size ceiling, and the decode safety (pixel-count) limit. Different contexts (avatar vs future gallery) may use different profiles.
+- **Processing Profile / Constraints**: the configurable settings applied for a given upload context — **resize mode (fit vs square-crop)**, maximum output dimension, output quality, accepted input-size limit, stored-output size ceiling, and the decode safety (pixel-count) limit. Different contexts (avatar vs future gallery) use different profiles: the avatar profile uses square-crop, the gallery profile uses fit.
 
 ## Success Criteria *(mandatory)*
 
@@ -106,10 +116,11 @@ Someone submits a file that is not really a usable image — a tiny compressed f
 ## Assumptions
 
 - **Allowed input formats** are PNG, JPEG, and WebP (matching the current avatar allow-list); other formats are rejected. **Output** is always WebP.
-- **Aspect ratio is preserved**; the pipeline downscales-to-fit within the maximum dimension and does **not** crop or enforce a square. Any square/cropped presentation is a UI concern handled elsewhere (not this feature).
+- **Resize mode is configurable per context** (see Clarifications): the avatar context uses **square-crop** (center-crop to a square, then downscale), and the future showcase-gallery context (#99) uses **fit** (downscale preserving aspect ratio). Neither mode distorts the image.
+- **No pre-existing stored avatar data exists** in any environment, so this feature requires **no backfill, data migration, or backward-compatibility handling** for already-stored images. It only defines the shared processing capability and applies it to the current upload path going forward.
 - **A single default processing profile** targets the avatar use case (a modest maximum dimension suitable for profile pictures); the showcase-gallery context (#99) may configure a larger dimension when it is built. Concrete default values (maximum dimension, quality, caps) are a planning detail chosen to keep stored avatars small while visually clean.
 - The **accepted input-size limit stays generous** (around the current ~8 MB request cap) so large phone photos are accepted; the **stored output** is bounded by resize + re-encode rather than by the input cap.
-- **Only static images** are supported; animated inputs yield a single still frame.
+- **Animated inputs are accepted and flattened** to a single still frame (see Clarifications); the stored output is always a static image.
 - **Processing is synchronous and in-request**, justified by the low, human-paced frequency of avatar/gallery uploads (roughly one per member, rarely changed) — no background job infrastructure is introduced.
 - **Storage is out of scope**: the pipeline produces normalized bytes + content type and hands them to the existing storage path unchanged, whether that path persists to the database (today) or object storage (issue #97, separate).
 - **The gallery feature is out of scope** (issue #99); this feature only makes the shared processing capability exist and applies it to the current avatar upload path.
