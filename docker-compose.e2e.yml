@@ -38,3 +38,11 @@ services:
   redis:
     container_name: !reset null
     ports: !reset []
+
+  # Feature 035 — same reasoning as redis above: azurite carries a pinned container name and
+  # publishes port 10000, both of which are daemon-global and would collide with a running dev
+  # stack. Reset here or an e2e run fails at
+  # `Conflict. The container name "/juggerhub-azurite" is already in use` before any test starts.
+  azurite:
+    container_name: !reset null
+    ports: !reset []

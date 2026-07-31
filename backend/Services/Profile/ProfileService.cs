@@ -24,6 +24,7 @@ public sealed class ProfileService : IProfileService
     private readonly ProfileOptions _options;
     private readonly IImageProcessor _imageProcessor;
     private readonly ImageProcessingOptions _imageOptions;
+    private readonly IMediaStore _mediaStore;
 
     public ProfileService(
         AppDbContext db,
@@ -32,7 +33,8 @@ public sealed class ProfileService : IProfileService
         ICityService cities,
         IOptions<ProfileOptions> options,
         IImageProcessor imageProcessor,
-        IOptions<ImageProcessingOptions> imageOptions)
+        IOptions<ImageProcessingOptions> imageOptions,
+        IMediaStore mediaStore)
     {
         _db = db;
         _activity = activity;
@@ -41,6 +43,7 @@ public sealed class ProfileService : IProfileService
         _options = options.Value;
         _imageProcessor = imageProcessor;
         _imageOptions = imageOptions.Value;
+        _mediaStore = mediaStore;
     }
 
     public async Task<HandleAvailabilityDto> CheckHandleAsync(string rawHandle, CancellationToken ct = default)
@@ -302,22 +305,44 @@ public sealed class ProfileService : IProfileService
         // clean INSERT for a new avatar and an UPDATE for an existing one. Only the normalized
         // WebP bytes are stored; the original upload is discarded (FR-015).
         var avatar = await _db.ProfileAvatars.FirstOrDefaultAsync(a => a.ProfileId == profileId.Value, ct);
+
+        // Ordering matters (feature 035): mint the key, write the object, commit the descriptor,
+        // and only then delete the object this one replaces. A row and a blob cannot share a
+        // transaction, so some failure window is unavoidable — this ordering picks the harmless
+        // one. Failing after the write leaves an unreferenced object the sweep reclaims; the
+        // alternative, deleting first, would leave a member with no picture at all.
+        var objectKey = MediaObjectKey.Create(MediaKind.Avatar);
+        var supersededKey = avatar?.ObjectKey;
+
+        using (var normalized = new MemoryStream(processed.Bytes!))
+        {
+            await _mediaStore.PutAsync(objectKey, normalized, processed.ContentType!, ct);
+        }
+
         if (avatar is null)
         {
             _db.ProfileAvatars.Add(new ProfileAvatar
             {
                 ProfileId = profileId.Value,
-                Bytes = processed.Bytes!,
+                ObjectKey = objectKey,
+                SizeBytes = processed.Bytes!.Length,
                 ContentType = processed.ContentType!,
             });
         }
         else
         {
-            avatar.Bytes = processed.Bytes!;
+            avatar.ObjectKey = objectKey;
+            avatar.SizeBytes = processed.Bytes!.Length;
             avatar.ContentType = processed.ContentType!;
         }
 
         await _db.SaveChangesAsync(ct);
+
+        if (!string.IsNullOrEmpty(supersededKey))
+        {
+            await _mediaStore.DeleteAsync(supersededKey, ct);
+        }
+
         return AvatarSetResult.Ok();
     }
 
@@ -336,16 +361,29 @@ public sealed class ProfileService : IProfileService
     public async Task<AvatarData?> GetAvatarAsync(string handle, Guid? viewerUserId, CancellationToken ct = default)
     {
         var normalized = HandlePolicy.Normalize(handle);
+
+        // Step 1 — read the DESCRIPTOR only. The banned-account query filter on ProfileAvatar
+        // applies here automatically, so a banned owner yields nothing before any decision is made.
         var data = await _db.ProfileAvatars
             .AsNoTracking()
             .Where(a => a.Profile.Handle == normalized)
-            .Select(a => new { a.Bytes, a.ContentType, a.Profile.IsPublic })
+            .Select(a => new { a.ObjectKey, a.ContentType, a.Profile.IsPublic })
             .FirstOrDefaultAsync(ct);
 
-        // Same visibility gate: a private profile's avatar is not served anonymously.
-        return data is null || !IsVisibleTo(data.IsPublic, viewerUserId)
-            ? null
-            : new AvatarData(data.Bytes, data.ContentType);
+        // Step 2 — apply the visibility gate: a private profile's avatar is not served anonymously.
+        if (data is null || !IsVisibleTo(data.IsPublic, viewerUserId))
+        {
+            return null;
+        }
+
+        // Step 3 — and ONLY now touch the media store. This ordering is the security contract
+        // (feature 035): authorization is decided against relational data before any byte is
+        // fetched, so the store never becomes the place where visibility is determined.
+        var content = await _mediaStore.OpenReadAsync(data.ObjectKey, ct);
+
+        // A descriptor whose object is missing degrades to the ordinary "no picture" outcome
+        // rather than an error — the frontend already renders a placeholder for that.
+        return content is null ? null : new AvatarData(content, data.ContentType, data.ObjectKey);
     }
 
     /// <summary>

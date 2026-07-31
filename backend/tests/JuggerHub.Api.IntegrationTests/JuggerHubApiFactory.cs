@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
+using Testcontainers.Azurite;
 using Testcontainers.PostgreSql;
 
 namespace JuggerHub.Api.IntegrationTests;
@@ -23,6 +24,24 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
 {
     private readonly PostgreSqlContainer _database = new PostgreSqlBuilder("postgres:18-alpine")
         .Build();
+
+    /// <summary>
+    /// Real blob storage for media (feature 035 / #97). Azurite speaks the genuine Azure Blob REST
+    /// API, so tests exercise the same client, the same transport, and the same resilience pipeline
+    /// that Dev and Prod use — an in-memory IMediaStore fake would assert our own stub instead.
+    /// </summary>
+    private readonly AzuriteContainer _mediaStore =
+        new AzuriteBuilder("mcr.microsoft.com/azure-storage/azurite:3.35.0").Build();
+
+    /// <summary>Container name the tests' media objects are written to.</summary>
+    public const string MediaContainerName = "media";
+
+    /// <summary>
+    /// The Azurite blob endpoint, so a test can bypass the API and request an object key straight
+    /// from storage — the check that proves the store is not publicly readable (SC-010).
+    /// </summary>
+    public string MediaBlobEndpoint =>
+        $"http://{_mediaStore.Hostname}:{_mediaStore.GetMappedPublicPort(10000)}/devstoreaccount1";
 
     /// <summary>Captures outbound auth emails so tests can read verification/reset links.</summary>
     public TestEmailSender EmailSender { get; } = new();
@@ -61,6 +80,15 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
                 // Feature 030 (R8) — skip loading the full ~235k cities500 dataset; tests seed a
                 // small CityReference fixture (TestReferenceCities) in InitializeAsync instead.
                 ["Seeding:CityReferences"] = "false",
+                // Feature 035 — media object store, backed by the Azurite container above.
+                ["MediaStorage:ConnectionString"] = _mediaStore.GetConnectionString(),
+                ["MediaStorage:ContainerName"] = MediaContainerName,
+                // Keep the store's resilience pipeline fast: a test that exercises an outage should
+                // fail in seconds, not sit through production-sized backoff.
+                ["Resilience:Outbound:MediaStore:AttemptTimeoutSeconds"] = "2",
+                ["Resilience:Outbound:MediaStore:TotalTimeoutSeconds"] = "6",
+                ["Resilience:Outbound:MediaStore:MaxRetryAttempts"] = "1",
+                ["Resilience:Outbound:MediaStore:BaseDelaySeconds"] = "1",
             });
         });
 
@@ -80,7 +108,10 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
 
     public async Task InitializeAsync()
     {
-        await _database.StartAsync();
+        // Both containers must be up before the host is built: the configuration above reads their
+        // connection strings, and the app resolves the blob client during startup.
+        await Task.WhenAll(_database.StartAsync(), _mediaStore.StartAsync());
+
         // Accessing Services builds the host, which runs Program's startup migrations against the
         // now-started container. Then seed the small CityReference fixture the tests select from.
         using var scope = Services.CreateScope();
@@ -88,7 +119,11 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
         await TestReferenceCities.SeedAsync(db);
     }
 
-    public new Task DisposeAsync() => _database.DisposeAsync().AsTask();
+    public new async Task DisposeAsync()
+    {
+        await _database.DisposeAsync();
+        await _mediaStore.DisposeAsync();
+    }
 }
 
 internal sealed class CaptureLoggerProvider : ILoggerProvider

@@ -32,12 +32,23 @@ services:
       - Resilience__Outbound__Resend__TotalTimeoutSeconds=${RESILIENCE_RESEND_TOTAL_TIMEOUT_SECONDS:-30}
       - Resilience__Outbound__Resend__MaxRetryAttempts=${RESILIENCE_RESEND_MAX_RETRY_ATTEMPTS:-3}
       - Resilience__Outbound__Resend__BreakerMinimumThroughput=${RESILIENCE_RESEND_BREAKER_MIN_THROUGHPUT:-5}
+      # Feature 035 — media object store. `UseDevelopmentStorage=true` deliberately NOT used: that
+      # shorthand resolves to 127.0.0.1, which inside a container is the container itself. The
+      # endpoint must name the `azurite` service explicitly.
+      - MediaStorage__ConnectionString=${MEDIA_STORAGE_CONNECTION:-DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;}
+      - MediaStorage__ContainerName=${MEDIA_STORAGE_CONTAINER:-media}
+      - Resilience__Outbound__MediaStore__AttemptTimeoutSeconds=${RESILIENCE_MEDIA_ATTEMPT_TIMEOUT_SECONDS:-5}
+      - Resilience__Outbound__MediaStore__TotalTimeoutSeconds=${RESILIENCE_MEDIA_TOTAL_TIMEOUT_SECONDS:-15}
+      - Resilience__Outbound__MediaStore__MaxRetryAttempts=${RESILIENCE_MEDIA_MAX_RETRY_ATTEMPTS:-2}
+      - Resilience__Outbound__MediaStore__BreakerMinimumThroughput=${RESILIENCE_MEDIA_BREAKER_MIN_THROUGHPUT:-10}
     networks:
       - juggerhub-network
     depends_on:
       database:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      azurite:
         condition: service_healthy
       mailpit:
         condition: service_started
@@ -140,6 +151,41 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 5s
+
+  # Feature 035 (#97) — media object store. Azurite speaks the real Azure Blob REST API, so local,
+  # test, Dev and Prod all run ONE code path against one client library (Principle V) rather than a
+  # hand-written local fake that can drift from the thing it stands in for.
+  #
+  # The `devstoreaccount1` account name and key below are PUBLISHED MICROSOFT CONSTANTS — identical
+  # on every machine that has ever run the emulator, documented openly, and useless against
+  # anything real. Committing them is not a secret leak. Real account keys reach the app only via
+  # GitHub Environments → Kubernetes Secret, and never appear in this repository.
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.35.0
+    container_name: juggerhub-azurite
+    # --location is REQUIRED for the volume below to do anything. Azurite defaults to writing into
+    # its own workdir (/opt/azurite), which lives in the container's writable layer — so without
+    # this flag the mount is inert and every uploaded picture is destroyed by `docker compose down`.
+    #
+    # No --skipApiVersionCheck: the backend pins the blob service API version (see Program.cs), so
+    # the emulator should reject anything it does not genuinely implement. Skipping the check would
+    # let local quietly accept requests it handles differently from real storage — the exact
+    # divergence this emulator exists to prevent.
+    command: ["azurite-blob", "--blobHost", "0.0.0.0", "--location", "/data"]
+    ports:
+      - "10000:10000"
+    volumes:
+      - azurite-data:/data
+    networks:
+      - juggerhub-network
+    healthcheck:
+      # Azurite has no shell utilities beyond node, so probe the blob endpoint with node itself.
+      # A 400 from an unauthenticated request still proves the listener is up and answering.
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:10000/devstoreaccount1?comp=list',r=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
       start_period: 5s
 
   mailpit:
@@ -289,3 +335,4 @@ networks:
 
 volumes:
   db-data:
+  azurite-data:

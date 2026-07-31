@@ -20,6 +20,9 @@ enable_backend_hpa = false
 postgres_storage_gb    = 8
 postgres_storage_class = "managed-csi"
 
+# Media object storage (035) — locally redundant is fine for Dev; the data is reproducible.
+media_storage_replication_type = "LRS"
+
 # App / domain — HTTPS via Let's Encrypt STAGING first (swap to prod once verified).
 aspnetcore_environment = "Development"
 app_hostname           = "dev.juggerhub.com"

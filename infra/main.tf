@@ -51,6 +51,19 @@ resource "azurerm_role_assignment" "aks_ingress_ip" {
   principal_id         = module.aks.cluster_identity_principal_id
 }
 
+# Media object storage (feature 035 / #97). Lives in the environment's own resource group and is
+# reached over the public endpoint by the backend, so it has no dependency on the cluster.
+module "storage" {
+  source = "./modules/storage"
+
+  name_prefix         = local.name_prefix
+  location            = var.location
+  resource_group_name = module.network.resource_group_name
+  replication_type    = var.media_storage_replication_type
+  container_name      = var.media_storage_container_name
+  tags                = local.tags
+}
+
 module "platform" {
   source = "./modules/platform"
 
@@ -105,6 +118,11 @@ module "app" {
   email_from_address      = var.email_from_address
   email_frontend_base_url = local.email_frontend_base_url
   admin_emails            = var.admin_emails
+
+  # media object storage (feature 035) — the connection string is sensitive and flows straight
+  # from the module output into the app Secret; it is never written to tfvars.
+  media_storage_connection_string = module.storage.connection_string
+  media_storage_container_name    = module.storage.container_name
 
   # analytics (feature 033)
   umami_image               = var.umami_image

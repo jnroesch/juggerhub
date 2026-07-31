@@ -250,6 +250,19 @@ variable "admin_emails" {
   default     = ""
 }
 
+# --- media object storage (feature 035 / #97) -------------------------------
+variable "media_storage_replication_type" {
+  type        = string
+  description = "Blob replication tier. The only per-environment difference for media storage — sizing, never shape (Principle V). LRS for Dev, ZRS or better for Prod."
+  default     = "LRS"
+}
+
+variable "media_storage_container_name" {
+  type        = string
+  description = "Container holding every media object. Identical everywhere — environments are isolated by having separate storage ACCOUNTS, not different container names."
+  default     = "media"
+}
+
 # --- Analytics (feature 033 — self-hosted Umami) ----------------------------
 variable "umami_image" {
   type    = string

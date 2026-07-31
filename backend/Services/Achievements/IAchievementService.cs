@@ -1,6 +1,7 @@
 using JuggerHub.Common;
 using JuggerHub.Dtos.Achievements;
 using JuggerHub.Dtos.Recognition;
+using JuggerHub.Services.Media;
 using JuggerHub.Services.Recognition;
 
 namespace JuggerHub.Services.Achievements;
@@ -33,7 +34,11 @@ public interface IAchievementService
     /// <summary>Remove a definition's icon (feature 014); false if no such definition. Idempotent if none.</summary>
     Task<bool> RemoveIconAsync(Guid definitionId, CancellationToken ct = default);
 
-    Task<(byte[] Bytes, string ContentType)?> GetIconAsync(Guid definitionId, CancellationToken ct = default);
+    /// <summary>
+    /// Open the definition's icon for serving, or null when there is none (or its stored object is
+    /// missing). Streams from the media store (feature 035); the caller disposes the stream.
+    /// </summary>
+    Task<MediaContent?> GetIconAsync(Guid definitionId, CancellationToken ct = default);
 
     Task<(GrantOutcome Outcome, AchievementAwardDto? Award)> GrantAsync(
         Guid definitionId, GrantAchievementRequest request, Guid grantedByUserId, CancellationToken ct = default);

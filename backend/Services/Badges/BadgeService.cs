@@ -18,17 +18,20 @@ public sealed class BadgeService : IBadgeService
     private readonly RecognitionOptions _options;
     private readonly IImageProcessor _imageProcessor;
     private readonly ImageProcessingOptions _imageOptions;
+    private readonly IMediaStore _mediaStore;
 
     public BadgeService(
         AppDbContext db,
         IOptions<RecognitionOptions> options,
         IImageProcessor imageProcessor,
-        IOptions<ImageProcessingOptions> imageOptions)
+        IOptions<ImageProcessingOptions> imageOptions,
+        IMediaStore mediaStore)
     {
         _db = db;
         _options = options.Value;
         _imageProcessor = imageProcessor;
         _imageOptions = imageOptions.Value;
+        _mediaStore = mediaStore;
     }
 
     public async Task<PagedResult<BadgeDefinitionDto>> ListDefinitionsAsync(
@@ -122,8 +125,14 @@ public sealed class BadgeService : IBadgeService
         var icon = await _db.BadgeIcons.FirstOrDefaultAsync(i => i.BadgeDefinitionId == definitionId, ct);
         if (icon is not null)
         {
+            var removedKey = icon.ObjectKey;
             _db.BadgeIcons.Remove(icon);
             await _db.SaveChangesAsync(ct);
+
+            // Delete the object AFTER the row commits (feature 035). This is application code, so
+            // it is one of the paths where the object genuinely goes away rather than being left
+            // for the reconciliation sweep.
+            await _mediaStore.DeleteAsync(removedKey, ct);
         }
 
         return true;
@@ -147,34 +156,61 @@ public sealed class BadgeService : IBadgeService
 
         // Only the normalized WebP is stored; the original upload is discarded.
         var icon = await _db.BadgeIcons.FirstOrDefaultAsync(i => i.BadgeDefinitionId == definitionId, ct);
+
+        // Same ordering as avatars (feature 035): key → object → descriptor → delete superseded.
+        var objectKey = MediaObjectKey.Create(MediaKind.BadgeIcon);
+        var supersededKey = icon?.ObjectKey;
+
+        using (var normalized = new MemoryStream(processed.Bytes!))
+        {
+            await _mediaStore.PutAsync(objectKey, normalized, processed.ContentType!, ct);
+        }
+
         if (icon is null)
         {
             _db.BadgeIcons.Add(new BadgeIcon
             {
                 BadgeDefinitionId = definitionId,
-                Bytes = processed.Bytes!,
+                ObjectKey = objectKey,
+                SizeBytes = processed.Bytes!.Length,
                 ContentType = processed.ContentType!,
             });
         }
         else
         {
-            icon.Bytes = processed.Bytes!;
+            icon.ObjectKey = objectKey;
+            icon.SizeBytes = processed.Bytes!.Length;
             icon.ContentType = processed.ContentType!;
         }
 
         await _db.SaveChangesAsync(ct);
+
+        if (!string.IsNullOrEmpty(supersededKey))
+        {
+            await _mediaStore.DeleteAsync(supersededKey, ct);
+        }
+
         return IconSetResult.Stored();
     }
 
-    public async Task<(byte[] Bytes, string ContentType)?> GetIconAsync(Guid definitionId, CancellationToken ct = default)
+    public async Task<MediaContent?> GetIconAsync(Guid definitionId, CancellationToken ct = default)
     {
+        // Catalogue icons carry no subject data and are anonymously readable by intent (feature
+        // 026 allowlist), so there is no visibility gate here — but the bytes still come through
+        // the platform, never from a publicly-readable store.
         var data = await _db.BadgeIcons
             .AsNoTracking()
             .Where(i => i.BadgeDefinitionId == definitionId)
-            .Select(i => new { i.Bytes, i.ContentType })
+            .Select(i => new { i.ObjectKey, i.ContentType })
             .FirstOrDefaultAsync(ct);
 
-        return data is null ? null : (data.Bytes, data.ContentType);
+        if (data is null)
+        {
+            return null;
+        }
+
+        var content = await _mediaStore.OpenReadAsync(data.ObjectKey, ct);
+        return content is null ? null : new MediaContent(content, data.ContentType, data.ObjectKey);
     }
 
     public async Task<(GrantOutcome Outcome, BadgeAwardDto? Award)> GrantAsync(
