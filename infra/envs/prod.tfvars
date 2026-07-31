@@ -22,6 +22,10 @@ backend_hpa_cpu_target   = 70
 postgres_storage_gb    = 32
 postgres_storage_class = "managed-csi-premium"
 
+# Media object storage (035) — zone-redundant: member-uploaded pictures are not reproducible, and
+# there is no backfill path if they are lost. Same resource shape as Dev, larger only in durability.
+media_storage_replication_type = "ZRS"
+
 # App / domain — apex + www redirect, real Let's Encrypt certificates.
 aspnetcore_environment = "Production"
 app_hostname           = "juggerhub.com"

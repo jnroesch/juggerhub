@@ -50,6 +50,19 @@ public static class RateLimitPolicies
     /// <summary>30/min: matches the send limit — the client debounces typing to ~1 per 3s, so a legitimate typist never approaches this.</summary>
     internal const int ChatTypingPerMinute = 30;
 
+    /// <summary>Media reads — avatars and catalogue icons (feature 035 / #97).</summary>
+    public const string MediaRead = "media-read";
+
+    /// <summary>
+    /// 300/min. Media reads are unlike the chat limits in kind: they are reads, they are cheap, and
+    /// a single page legitimately issues one per displayed member — a directory page can be dozens
+    /// at once, and a member browsing quickly multiplies that. The limit exists because every byte
+    /// now flows through the backend (media is proxied, never served from public storage), so an
+    /// unbounded reader could occupy request capacity that other members need. It is set to bound
+    /// that, not to police normal browsing.
+    /// </summary>
+    internal const int MediaReadPerMinute = 300;
+
     public static IServiceCollection AddJuggerHubRateLimiting(
         this IServiceCollection services,
         string? redisConnection)
@@ -69,6 +82,7 @@ public static class RateLimitPolicies
             options.AddPolicy(ChatStart, PartitionByUser(ChatStart, ChatStartPerMinute));
             options.AddPolicy(ChatSend, PartitionByUser(ChatSend, ChatSendPerMinute));
             options.AddPolicy(ChatTyping, PartitionByUser(ChatTyping, ChatTypingPerMinute));
+            options.AddPolicy(MediaRead, PartitionByCaller(MediaRead, MediaReadPerMinute));
         });
 
         return services;
@@ -82,29 +96,58 @@ public static class RateLimitPolicies
 
             // An unauthenticated caller cannot reach these endpoints ([Authorize] runs first), but if
             // one ever did, bucket them together rather than handing out an unlimited partition.
-            var key = $"{policy}:{subject ?? "anonymous"}";
-
-            var redis = httpContext.RequestServices.GetService<IConnectionMultiplexer>();
-
-            if (redis is null)
-            {
-                // Development without Redis only (Program.cs makes this fatal everywhere else). The
-                // in-memory limiter is correct on a single instance and would be silently wrong on
-                // several — which is exactly why it is not allowed to reach a deployed environment.
-                return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
-                {
-                    PermitLimit = limit,
-                    Window = TimeSpan.FromMinutes(1),
-                    QueueLimit = 0,
-                    AutoReplenishment = true,
-                });
-            }
-
-            var logger = httpContext.RequestServices
-                .GetRequiredService<ILoggerFactory>()
-                .CreateLogger<RedisFixedWindowRateLimiter>();
-
-            return RateLimitPartition.Get(key, k => new RedisFixedWindowRateLimiter(
-                redis, k, limit, TimeSpan.FromMinutes(1), logger));
+            return Limiter(httpContext, $"{policy}:{subject ?? "anonymous"}", limit);
         };
+
+    /// <summary>
+    /// Partition by authenticated user when there is one, and by client IP otherwise.
+    /// </summary>
+    /// <remarks>
+    /// <see cref="PartitionByUser"/> does not fit the media endpoints: they serve anonymous callers
+    /// <b>by design</b> — public profiles and catalogue icons — so bucketing every signed-out
+    /// visitor into a single "anonymous" partition would let one of them exhaust the limit for all
+    /// of them, turning a safeguard into a denial of service against legitimate visitors. Falling
+    /// back to the client IP keeps signed-out callers apart. The shared-NAT objection that rules
+    /// IP-keying out for chat bites far less here: it applies to a 300/min read budget rather than
+    /// chat's 10/min write budget.
+    /// </remarks>
+    private static Func<HttpContext, RateLimitPartition<string>> PartitionByCaller(string policy, int limit) =>
+        httpContext =>
+        {
+            var subject = httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+                ?? httpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var caller = subject is not null
+                ? $"u:{subject}"
+                : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
+
+            return Limiter(httpContext, $"{policy}:{caller}", limit);
+        };
+
+    /// <summary>Build the partition's limiter — Redis-backed everywhere it matters.</summary>
+    private static RateLimitPartition<string> Limiter(HttpContext httpContext, string key, int limit)
+    {
+        var redis = httpContext.RequestServices.GetService<IConnectionMultiplexer>();
+
+        if (redis is null)
+        {
+            // Development without Redis only (Program.cs makes this fatal everywhere else). The
+            // in-memory limiter is correct on a single instance and would be silently wrong on
+            // several — which is exactly why it is not allowed to reach a deployed environment.
+            return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = limit,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true,
+            });
+        }
+
+        var logger = httpContext.RequestServices
+            .GetRequiredService<ILoggerFactory>()
+            .CreateLogger<RedisFixedWindowRateLimiter>();
+
+        return RateLimitPartition.Get(key, k => new RedisFixedWindowRateLimiter(
+            redis, k, limit, TimeSpan.FromMinutes(1), logger));
+    }
 }

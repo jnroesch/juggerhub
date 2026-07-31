@@ -18,17 +18,20 @@ public sealed class AchievementService : IAchievementService
     private readonly RecognitionOptions _options;
     private readonly IImageProcessor _imageProcessor;
     private readonly ImageProcessingOptions _imageOptions;
+    private readonly IMediaStore _mediaStore;
 
     public AchievementService(
         AppDbContext db,
         IOptions<RecognitionOptions> options,
         IImageProcessor imageProcessor,
-        IOptions<ImageProcessingOptions> imageOptions)
+        IOptions<ImageProcessingOptions> imageOptions,
+        IMediaStore mediaStore)
     {
         _db = db;
         _options = options.Value;
         _imageProcessor = imageProcessor;
         _imageOptions = imageOptions.Value;
+        _mediaStore = mediaStore;
     }
 
     public async Task<PagedResult<AchievementDefinitionDto>> ListDefinitionsAsync(
@@ -122,8 +125,13 @@ public sealed class AchievementService : IAchievementService
         var icon = await _db.AchievementIcons.FirstOrDefaultAsync(i => i.AchievementDefinitionId == definitionId, ct);
         if (icon is not null)
         {
+            var removedKey = icon.ObjectKey;
             _db.AchievementIcons.Remove(icon);
             await _db.SaveChangesAsync(ct);
+
+            // Object deleted after the row commits (feature 035) — application code, so the object
+            // genuinely goes rather than waiting for the reconciliation sweep.
+            await _mediaStore.DeleteAsync(removedKey, ct);
         }
 
         return true;
@@ -147,34 +155,59 @@ public sealed class AchievementService : IAchievementService
 
         // Only the normalized WebP is stored; the original upload is discarded.
         var icon = await _db.AchievementIcons.FirstOrDefaultAsync(i => i.AchievementDefinitionId == definitionId, ct);
+
+        // Same ordering as avatars (feature 035): key → object → descriptor → delete superseded.
+        var objectKey = MediaObjectKey.Create(MediaKind.AchievementIcon);
+        var supersededKey = icon?.ObjectKey;
+
+        using (var stream = new MemoryStream(processed.Bytes!))
+        {
+            await _mediaStore.PutAsync(objectKey, stream, processed.ContentType!, ct);
+        }
+
         if (icon is null)
         {
             _db.AchievementIcons.Add(new AchievementIcon
             {
                 AchievementDefinitionId = definitionId,
-                Bytes = processed.Bytes!,
+                ObjectKey = objectKey,
+                SizeBytes = processed.Bytes!.Length,
                 ContentType = processed.ContentType!,
             });
         }
         else
         {
-            icon.Bytes = processed.Bytes!;
+            icon.ObjectKey = objectKey;
+            icon.SizeBytes = processed.Bytes!.Length;
             icon.ContentType = processed.ContentType!;
         }
 
         await _db.SaveChangesAsync(ct);
+
+        if (!string.IsNullOrEmpty(supersededKey))
+        {
+            await _mediaStore.DeleteAsync(supersededKey, ct);
+        }
+
         return IconSetResult.Stored();
     }
 
-    public async Task<(byte[] Bytes, string ContentType)?> GetIconAsync(Guid definitionId, CancellationToken ct = default)
+    public async Task<MediaContent?> GetIconAsync(Guid definitionId, CancellationToken ct = default)
     {
+        // Anonymously readable by intent, same as badge icons — see BadgeService.GetIconAsync.
         var data = await _db.AchievementIcons
             .AsNoTracking()
             .Where(i => i.AchievementDefinitionId == definitionId)
-            .Select(i => new { i.Bytes, i.ContentType })
+            .Select(i => new { i.ObjectKey, i.ContentType })
             .FirstOrDefaultAsync(ct);
 
-        return data is null ? null : (data.Bytes, data.ContentType);
+        if (data is null)
+        {
+            return null;
+        }
+
+        var content = await _mediaStore.OpenReadAsync(data.ObjectKey, ct);
+        return content is null ? null : new MediaContent(content, data.ContentType, data.ObjectKey);
     }
 
     public async Task<(GrantOutcome Outcome, AchievementAwardDto? Award)> GrantAsync(

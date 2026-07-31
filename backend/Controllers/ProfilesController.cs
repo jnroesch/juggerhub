@@ -8,12 +8,16 @@ using JuggerHub.Dtos.Search;
 using JuggerHub.Dtos.Teams;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Home;
+using JuggerHub.Services.Media;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Search;
 using JuggerHub.Services.Teams;
+using JuggerHub.Security.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Controllers;
 
@@ -37,16 +41,18 @@ public sealed class ProfilesController : ControllerBase
     private readonly IPlayerSearchService _search;
     private readonly IHomeService _home;
     private readonly ITeamInvitationService _invitations;
+    private readonly IOptions<MediaStorageOptions> _mediaOptions;
 
     public ProfilesController(
         IProfileService profiles, IEventActivityService activity, IPlayerSearchService search, IHomeService home,
-        ITeamInvitationService invitations)
+        ITeamInvitationService invitations, IOptions<MediaStorageOptions> mediaOptions)
     {
         _profiles = profiles;
         _activity = activity;
         _search = search;
         _home = home;
         _invitations = invitations;
+        _mediaOptions = mediaOptions;
     }
 
     // --- Browse (public) ------------------------------------------------------
@@ -205,10 +211,25 @@ public sealed class ProfilesController : ControllerBase
 
     [HttpGet("{handle}/avatar")]
     [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.MediaRead)]
     public async Task<IActionResult> GetAvatar(string handle, CancellationToken ct)
     {
+        // The service applies the visibility gate and the banned-account filter BEFORE it opens the
+        // stored object, so reaching this line already means the caller is entitled to the bytes
+        // (feature 035). Anonymous callers legitimately get here for a public profile — the gate is
+        // "the platform decides per request", never "authenticated only".
         var avatar = await _profiles.GetAvatarAsync(handle, GetOptionalUserId(), ct);
-        return avatar is null ? NotFound() : File(avatar.Value.Bytes, avatar.Value.ContentType);
+        if (avatar is null)
+        {
+            // 404 rather than 403 for every refusal — not found, not permitted, and store-unavailable
+            // are deliberately indistinguishable, so the endpoint never becomes an existence oracle.
+            return NotFound();
+        }
+
+        return MediaResponse.File(
+            this,
+            new MediaContent(avatar.Value.Content, avatar.Value.ContentType, avatar.Value.ObjectKey),
+            _mediaOptions.Value);
     }
 
     [HttpGet("{handle}/activity")]

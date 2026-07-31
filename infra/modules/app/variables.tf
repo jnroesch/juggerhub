@@ -121,6 +121,19 @@ variable "admin_emails" {
   sensitive = true
 }
 
+# --- media object storage (feature 035 / #97) -------------------------------
+variable "media_storage_connection_string" {
+  description = "Blob storage connection string for avatars and catalogue icons. Sensitive: it carries the account key, so it lands in the app Secret and never in a ConfigMap."
+  type        = string
+  sensitive   = true
+}
+
+variable "media_storage_container_name" {
+  description = "Media container name. Not a secret — goes in the ConfigMap alongside the other non-sensitive app settings."
+  type        = string
+  default     = "media"
+}
+
 # --- analytics (feature 033 — self-hosted Umami) ----------------------------
 variable "umami_image" {
   type = string

@@ -1,4 +1,5 @@
 using JuggerHub.Entities;
+using JuggerHub.Services.Media;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -151,6 +152,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .HasForeignKey<PlayerProfile>(p => p.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // Cascade removes the descriptor row, NOT the stored object (feature 035 / #97). This
+            // runs inside PostgreSQL, so no application code executes and no blob is deleted —
+            // anything that deletes a profile this way strands its avatar in the media store. The
+            // orphan is inert (its key lived only in the deleted row and the container is private),
+            // and the reconciliation sweep is what reclaims it. Nothing hard-deletes a profile today
+            // — bans are soft-delete (013) — but a future erasure path must delete the object
+            // explicitly rather than relying on this cascade.
             entity.HasOne(p => p.Avatar)
                 .WithOne(a => a.Profile)
                 .HasForeignKey<ProfileAvatar>(a => a.ProfileId)
@@ -183,10 +191,22 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         {
             // Matches the PlayerProfile ban filter (013): a banned player's avatar is
             // not served either.
+            //
+            // Feature 035 note: this filter is the reason avatars, badge icons and achievement
+            // icons kept three separate descriptor tables instead of being merged into one
+            // polymorphic media table. A polymorphic row has no single owner navigation, so this
+            // expression could not exist and the ban gate would have to be re-checked by hand at
+            // every call site — trading a guarantee that holds by construction for one that holds
+            // by memory. Do not "simplify" these three tables into one.
             entity.HasQueryFilter(a => a.Profile.User.Status != AccountStatus.Banned);
 
             entity.Property(a => a.ContentType).HasMaxLength(64).IsRequired();
+            entity.Property(a => a.ObjectKey).HasMaxLength(MediaObjectKey.MaxLength).IsRequired();
             entity.HasIndex(a => a.ProfileId).IsUnique();
+
+            // Two descriptors must never claim the same object: deleting one would silently break
+            // the other, and the sweep would see a referenced key as unreferenced.
+            entity.HasIndex(a => a.ObjectKey).IsUnique();
         });
 
         builder.Entity<Event>(entity =>
@@ -528,6 +548,11 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         builder.Entity<BadgeIcon>(entity =>
         {
             entity.Property(i => i.ContentType).HasMaxLength(64).IsRequired();
+            // Feature 035: descriptor only — the bytes live in the media store. As with
+            // ProfileAvatar, the cascade above removes this row inside PostgreSQL and strands the
+            // stored object for the reconciliation sweep to reclaim.
+            entity.Property(i => i.ObjectKey).HasMaxLength(MediaObjectKey.MaxLength).IsRequired();
+            entity.HasIndex(i => i.ObjectKey).IsUnique();
         });
 
         builder.Entity<BadgeAward>(entity =>
@@ -588,6 +613,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         builder.Entity<AchievementIcon>(entity =>
         {
             entity.Property(i => i.ContentType).HasMaxLength(64).IsRequired();
+            // Feature 035 — see BadgeIcon above; identical descriptor shape and cascade caveat.
+            entity.Property(i => i.ObjectKey).HasMaxLength(MediaObjectKey.MaxLength).IsRequired();
+            entity.HasIndex(i => i.ObjectKey).IsUnique();
         });
 
         builder.Entity<AchievementAward>(entity =>

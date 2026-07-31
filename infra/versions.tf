@@ -15,5 +15,10 @@ terraform {
       source  = "hashicorp/helm"
       version = "~> 3.2"
     }
+    # Feature 035: generates the uniqueness suffix for the globally unique storage account name.
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
   }
 }

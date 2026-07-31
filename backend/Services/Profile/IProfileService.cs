@@ -18,8 +18,21 @@ public enum AvatarSetStatus
     Unreadable,
 }
 
-/// <summary>Raw avatar bytes for serving.</summary>
-public readonly record struct AvatarData(byte[] Bytes, string ContentType);
+/// <summary>
+/// An authorized avatar, ready to serve (feature 035 / #97).
+/// </summary>
+/// <param name="Content">
+/// Open stream over the stored object. The caller owns it and must dispose it — returning it via
+/// the controller's <c>File(stream, …)</c> does that automatically. A stream rather than a byte
+/// array so bytes are not held per concurrent request.
+/// </param>
+/// <param name="ContentType">Content type from the descriptor, not from the stored object.</param>
+/// <param name="ObjectKey">
+/// Backend-only. Used solely to derive a cache validator; it is <b>hashed</b> before it reaches a
+/// response header and MUST never be written to a DTO, a header, or a link — the location of a
+/// media object is not disclosed to clients.
+/// </param>
+public readonly record struct AvatarData(Stream Content, string ContentType, string ObjectKey);
 
 /// <summary>Registration-time handle outcome (distinguishes malformed from taken).</summary>
 public enum HandleCheckStatus

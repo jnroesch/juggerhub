@@ -56,6 +56,9 @@ resource "kubernetes_config_map_v1" "app" {
     "Email__Provider"        = "Resend"
     "Email__FromAddress"     = var.email_from_address
     "Email__FrontendBaseUrl" = var.email_frontend_base_url
+    # Feature 035 — media object storage. Only the container name is non-sensitive; the
+    # connection string carries the account key and lives in the Secret below.
+    "MediaStorage__ContainerName" = var.media_storage_container_name
   }
 }
 
@@ -69,6 +72,8 @@ resource "kubernetes_secret_v1" "app" {
     "Jwt__SigningKey"                      = var.jwt_signing_key
     "Email__Resend__ApiKey"                = var.resend_api_key
     "Admin__Emails"                        = var.admin_emails
+    # Feature 035 — carries the storage account key, so it belongs here and not in the ConfigMap.
+    "MediaStorage__ConnectionString" = var.media_storage_connection_string
   }
   type = "Opaque"
 }

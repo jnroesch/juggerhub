@@ -1,5 +1,7 @@
 using System.Text;
 using Asp.Versioning;
+using Azure.Core.Pipeline;
+using Azure.Storage.Blobs;
 using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Entities;
@@ -235,6 +237,71 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.Configure<ImageProcessingOptions>(builder.Configuration.GetSection(ImageProcessingOptions.SectionName));
 builder.Services.AddSingleton<IImageProcessor, ImageSharpImageProcessor>();
 
+// --- Media object storage (feature 035 / #97) ------------------------------
+// Media bytes live in blob storage, not in Postgres; only a descriptor row stays behind. Azurite
+// serves the same API locally and in tests, so one implementation covers every environment.
+builder.Services.Configure<MediaStorageOptions>(builder.Configuration.GetSection(MediaStorageOptions.SectionName));
+
+// Resilience for the store, and the one subtlety worth reading before changing anything here.
+//
+// The Azure SDK ships its own retry policy, but it has NO circuit breaker — and Principle VII
+// requires a stop-condition wherever retry is used, so it cannot satisfy the gate on its own.
+// Leaving it enabled alongside our pipeline would also stack two resilience strategies, turning
+// 2 retries into 2x2 attempts exactly when a struggling dependency can least afford it. So the
+// SDK's retry is disabled and the transport is routed through a named HttpClient carrying the
+// shared feature-028 policy — one integration, one resilience section, same as every other.
+builder.Services
+    .AddHttpClient(MediaStorageOptions.ResilienceName)
+    .AddJuggerHubResilience(builder.Configuration, MediaStorageOptions.ResilienceName);
+
+builder.Services.AddSingleton<BlobServiceClient>(sp =>
+{
+    var options = sp.GetRequiredService<IOptions<MediaStorageOptions>>().Value;
+    foreach (var problem in options.Normalize())
+    {
+        sp.GetRequiredService<ILoggerFactory>()
+            .CreateLogger("MediaStorage")
+            .LogWarning("Media storage configuration was invalid and has been corrected: {Problem}", problem);
+    }
+
+    if (string.IsNullOrWhiteSpace(options.ConnectionString))
+    {
+        // Fail loudly rather than fall back. A silent default here would either point at nothing
+        // (every picture 404s while the app looks healthy) or, worse, at another environment.
+        throw new InvalidOperationException(
+            "MediaStorage:ConnectionString is not configured. Local development uses the Azurite "
+            + "defaults in .env.sample; deployed environments receive it from GitHub Environments.");
+    }
+
+    var httpClient = sp.GetRequiredService<IHttpClientFactory>().CreateClient(MediaStorageOptions.ResilienceName);
+
+    // Pin the service API version rather than letting the SDK negotiate its newest.
+    //
+    // This is an environment-parity control, not a style choice. The SDK defaults to the latest
+    // version it knows about, which the local/test emulator does not yet implement — so an
+    // unpinned client works in Dev and Prod and fails everywhere a developer can actually see it.
+    // Pinning means local, CI, Dev and Prod all speak ONE protocol version (Principle V), and a
+    // package bump that would change it fails loudly in tests instead of drifting silently.
+    //
+    // The alternative — running the emulator with --skipApiVersionCheck — was rejected: it makes
+    // the emulator accept headers it does not understand, which is precisely how local behaviour
+    // starts diverging from real storage without anyone noticing. Raise this constant deliberately,
+    // once the emulator supports the newer version.
+    var clientOptions = new BlobClientOptions(BlobClientOptions.ServiceVersion.V2025_11_05)
+    {
+        Transport = new HttpClientTransport(httpClient),
+    };
+    clientOptions.Retry.MaxRetries = 0; // See the note above — ours, not the SDK's.
+
+    return new BlobServiceClient(options.ConnectionString, clientOptions);
+});
+
+builder.Services.AddSingleton<IMediaStore, AzureBlobMediaStore>();
+
+// Orphan reclamation (FR-030). Scoped — it reads the descriptor tables. Operator-triggered via the
+// admin endpoint rather than scheduled; see MediaReconciliationService for why.
+builder.Services.AddScoped<MediaReconciliationService>();
+
 // --- Player profile + activity (feature 003) -------------------------------
 builder.Services.Configure<ProfileOptions>(builder.Configuration.GetSection(ProfileOptions.SectionName));
 builder.Services.AddScoped<IProfileService, ProfileService>();
@@ -397,6 +464,7 @@ var app = builder.Build();
 // a failure logs a generic error and exits non-zero rather than serving against
 // a broken/half-migrated schema. See specs/001-project-scaffold/research.md §5.
 await ApplyMigrationsAsync(app);
+await EnsureMediaContainerAsync(app);
 
 // Load the bundled GeoNames cities500 reference dataset (feature 030, R8) in EVERY environment —
 // it is the city-picker's search source. Idempotent: a no-op once the table is populated. Gated by
@@ -480,6 +548,38 @@ static async Task ApplyMigrationsAsync(WebApplication app)
         // Generic message only — never leak connection strings or internals.
         logger.LogCritical(ex, "Database migration failed on startup; shutting down.");
         Environment.Exit(1);
+    }
+}
+
+// Creates the media container if it is absent (feature 035 / #97), so a fresh environment — or a
+// developer's first `docker compose up` — works without a manual provisioning step.
+//
+// Deliberately creates a PRIVATE container: no public access level is ever passed. Terraform sets
+// allow_nested_items_to_be_public = false at the account level as the backstop, so a mistake here
+// still cannot open a deployed container — but this is the first line of that defence.
+//
+// Unlike the migration above, a failure here is logged rather than fatal. The store being briefly
+// unreachable at startup must not stop the app booting: pages still render, and pictures degrade to
+// their placeholder until it returns (FR-029).
+static async Task EnsureMediaContainerAsync(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    var logger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>()
+        .CreateLogger("Startup.MediaStorage");
+    try
+    {
+        var store = scope.ServiceProvider.GetRequiredService<IMediaStore>();
+        if (store is AzureBlobMediaStore blobStore)
+        {
+            await blobStore.EnsureContainerAsync();
+        }
+
+        logger.LogInformation("Media storage container is ready.");
+    }
+    catch (Exception ex)
+    {
+        // Generic message only — never leak the connection string or the account key.
+        logger.LogError(ex, "Could not prepare the media storage container; media will be unavailable until it is reachable.");
     }
 }
 
