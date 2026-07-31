@@ -79,9 +79,15 @@ public sealed class ImageSharpImageProcessor : IImageProcessor
             // 4c. Resize per profile; never upscale.
             ApplyResize(image, profile);
 
-            // 5. Re-encode to WebP.
+            // 5. Re-encode to WebP. FileFormat must be set explicitly: ImageSharp defaults to
+            //    LOSSLESS, which ignores Quality and can produce output larger than the source
+            //    (FR-005 wants a small stored blob). Lossy WebP keeps the alpha channel.
             using var output = new MemoryStream();
-            image.Save(output, new WebpEncoder { Quality = profile.Quality });
+            image.Save(output, new WebpEncoder
+            {
+                Quality = profile.Quality,
+                FileFormat = WebpFileFormatType.Lossy,
+            });
             var bytes = output.ToArray();
 
             // 6. Stored-output ceiling — reject rather than store an oversized blob.

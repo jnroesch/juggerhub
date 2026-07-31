@@ -211,6 +211,11 @@ public sealed class ImageProcessorTests
 
     private static Image<Rgba32> Solid(int w, int h, Rgba32 color) => new(w, h, color);
 
+    /// <summary>
+    /// A photo-like image: smooth, continuous tone. Deliberately NOT a high-frequency pattern
+    /// (e.g. <c>x ^ y</c>) — PNG compresses such synthetic noise to a few KB that no lossy codec
+    /// can beat, which would make any "re-encode is smaller" assertion meaningless.
+    /// </summary>
     private static Image<Rgba32> Gradient(int w, int h)
     {
         var img = new Image<Rgba32>(w, h);
@@ -218,7 +223,10 @@ public sealed class ImageProcessorTests
         {
             for (var x = 0; x < w; x++)
             {
-                img[x, y] = new Rgba32((byte)x, (byte)y, (byte)(x ^ y));
+                img[x, y] = new Rgba32(
+                    (byte)(128 + (127 * Math.Sin(x * 0.01))),
+                    (byte)(128 + (127 * Math.Sin(y * 0.013))),
+                    (byte)(128 + (127 * Math.Sin((x + y) * 0.007))));
             }
         }
 

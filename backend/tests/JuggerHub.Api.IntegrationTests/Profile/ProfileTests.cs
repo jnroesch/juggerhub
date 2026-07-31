@@ -381,11 +381,26 @@ public sealed class ProfileTests
         await db.SaveChangesAsync();
     }
 
-    /// <summary>A minimal but valid 1x1 PNG (correct magic bytes).</summary>
-    private static byte[] MinimalPng() => Convert.FromBase64String(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
+    /// <summary>
+    /// A small, genuinely decodable PNG. It must be synthesized rather than a hard-coded blob:
+    /// feature 034 (#98) decodes every upload, so a byte-string with the right magic bytes but a
+    /// bad IDAT CRC — which earlier magic-byte-only validation happily accepted — is now
+    /// (correctly) rejected as unreadable.
+    /// </summary>
+    private static byte[] MinimalPng()
+    {
+        using var img = new Image<Rgba32>(8, 8, new Rgba32(10, 120, 200));
+        using var ms = new MemoryStream();
+        img.Save(ms, new PngEncoder());
+        return ms.ToArray();
+    }
 
-    /// <summary>A 1000x800 gradient PNG — large enough that the normalized WebP is smaller.</summary>
+    /// <summary>
+    /// A 1000x800 photo-like PNG — large enough that the normalized WebP is smaller. The content
+    /// is smooth/continuous-tone on purpose: PNG compresses synthetic high-frequency noise into a
+    /// handful of KB that lossy WebP cannot beat, which would break the comparison for reasons
+    /// that have nothing to do with the pipeline.
+    /// </summary>
     private static byte[] LargePng(out int length)
     {
         using var img = new Image<Rgba32>(1000, 800);
@@ -393,7 +408,10 @@ public sealed class ProfileTests
         {
             for (var x = 0; x < img.Width; x++)
             {
-                img[x, y] = new Rgba32((byte)x, (byte)y, (byte)(x ^ y));
+                img[x, y] = new Rgba32(
+                    (byte)(128 + (127 * Math.Sin(x * 0.01))),
+                    (byte)(128 + (127 * Math.Sin(y * 0.013))),
+                    (byte)(128 + (127 * Math.Sin((x + y) * 0.007))));
             }
         }
 
