@@ -991,7 +991,7 @@
       "iconSaving": "Wird gespeichert…",
       "iconUse": "Dieses Bild verwenden",
       "iconErrorType": "Verwende ein PNG-, JPEG- oder WebP-Bild.",
-      "iconErrorSize": "Dieses Bild ist zu groß (max. 512 KB).",
+      "iconErrorSize": "Dieses Bild ist zu groß (max. 8 MB).",
       "iconSaveError": "Dieses Bild konnte nicht gespeichert werden.",
       "iconRemoveError": "Dieses Bild konnte nicht entfernt werden.",
       "retireTitle": "„{{name}}“ stilllegen?",

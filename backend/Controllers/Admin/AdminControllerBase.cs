@@ -19,7 +19,16 @@ public abstract class AdminControllerBase : ControllerBase
         return Guid.TryParse(subject, out userId);
     }
 
-    /// <summary>Read the raw request body into a byte array (icon uploads). Size is capped in the service.</summary>
+    /// <summary>
+    /// Transport cap for icon uploads (#101), matching the avatar endpoint. Generous on input —
+    /// a big source image is accepted and normalized down; the *stored* blob is bounded by the
+    /// processing profile, not by this. Keeps <see cref="ReadBodyBytesAsync"/> from buffering
+    /// an arbitrarily large body.
+    /// </summary>
+    protected const int MaxIconUploadBytes = 8 * 1024 * 1024;
+
+    /// <summary>Read the raw request body into a byte array (icon uploads). Bounded by the
+    /// endpoint's <c>[RequestSizeLimit]</c> and re-checked in the image processor.</summary>
     protected async Task<byte[]> ReadBodyBytesAsync(CancellationToken ct)
     {
         using var ms = new MemoryStream();

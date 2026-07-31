@@ -3,6 +3,9 @@ using System.Text.Json;
 using JuggerHub.Api.IntegrationTests.Auth;
 using JuggerHub.Security.PlatformAdmin;
 using Microsoft.Extensions.DependencyInjection;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace JuggerHub.Api.IntegrationTests.Recognition;
 
@@ -91,7 +94,43 @@ internal static class RecognitionTestSupport
         return dto.GetProperty("id").GetGuid();
     }
 
-    /// <summary>A 1x1 PNG (valid magic bytes) for icon-upload tests.</summary>
-    public static byte[] TinyPng() => Convert.FromBase64String(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==");
+    /// <summary>
+    /// A small, genuinely decodable PNG for icon-upload tests. Synthesized rather than a hard-coded
+    /// blob: since #101 every icon is decoded, so bytes that merely carry the right magic numbers
+    /// — which the old sniff-only validation accepted — are now (correctly) rejected.
+    /// </summary>
+    public static byte[] TinyPng()
+    {
+        using var img = new Image<Rgba32>(8, 8, new Rgba32(10, 120, 200));
+        using var ms = new MemoryStream();
+        img.Save(ms, new PngEncoder());
+        return ms.ToArray();
+    }
+
+    /// <summary>
+    /// A 900x600 photo-like PNG: non-square (so the Fit profile's downscale is observable) and
+    /// continuous-tone on purpose — PNG squeezes synthetic high-frequency noise into a few KB that
+    /// lossy WebP cannot beat, which would break a "smaller after normalization" comparison for
+    /// reasons unrelated to the pipeline.
+    /// </summary>
+    public static byte[] LargePng(out int length)
+    {
+        using var img = new Image<Rgba32>(900, 600);
+        for (var y = 0; y < img.Height; y++)
+        {
+            for (var x = 0; x < img.Width; x++)
+            {
+                img[x, y] = new Rgba32(
+                    (byte)(128 + (127 * Math.Sin(x * 0.01))),
+                    (byte)(128 + (127 * Math.Sin(y * 0.013))),
+                    (byte)(128 + (127 * Math.Sin((x + y) * 0.007))));
+            }
+        }
+
+        using var ms = new MemoryStream();
+        img.Save(ms, new PngEncoder());
+        var bytes = ms.ToArray();
+        length = bytes.Length;
+        return bytes;
+    }
 }

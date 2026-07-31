@@ -987,7 +987,7 @@
       "iconSaving": "Saving…",
       "iconUse": "Use this image",
       "iconErrorType": "Use a PNG, JPEG, or WebP image.",
-      "iconErrorSize": "That image is too large (max 512 KB).",
+      "iconErrorSize": "That image is too large (max 8 MB).",
       "iconSaveError": "Could not save that image.",
       "iconRemoveError": "Could not remove that image.",
       "retireTitle": "Retire “{{name}}”?",

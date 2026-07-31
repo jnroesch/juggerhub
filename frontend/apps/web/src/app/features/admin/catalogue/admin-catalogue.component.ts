@@ -12,7 +12,10 @@ type StatusFilter = 'all' | 'active' | 'retired';
 
 const NAME_MAX = 60;
 const DESCRIPTION_MAX = 280;
-const ICON_MAX_BYTES = 512 * 1024;
+// Matches the server's generous input cap (#101): a big source image is accepted and normalized
+// down to a small WebP server-side, so the old 512 KB client check would now reject uploads the
+// API happily stores.
+const ICON_MAX_BYTES = 8 * 1024 * 1024;
 const ICON_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
 /**

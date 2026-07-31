@@ -9,9 +9,6 @@ public sealed class RecognitionOptions
 {
     public const string SectionName = "Recognition";
 
-    /// <summary>Maximum accepted icon upload size in bytes (default ~512 KB — icons are small).</summary>
-    public int MaxIconBytes { get; set; } = 512 * 1024;
-
     /// <summary>Maximum earned badges/achievements embedded per subject in a page payload.</summary>
     public int MaxDisplayedPerGroup { get; set; } = 50;
 }

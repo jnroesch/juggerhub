@@ -65,13 +65,13 @@ public sealed class BadgeAdminTests
         var upload = await admin.PutAsync($"/api/v1/admin/badges/{id}/icon", png);
         Assert.Equal(HttpStatusCode.NoContent, upload.StatusCode);
 
-        // Public read (anonymous) returns the image.
+        // Public read (anonymous) returns the image — normalized to WebP on upload (#101).
         var anon = _factory.CreateClient();
         var read = await anon.GetAsync($"/api/v1/badges/{id}/icon");
         Assert.Equal(HttpStatusCode.OK, read.StatusCode);
-        Assert.Equal("image/png", read.Content.Headers.ContentType?.MediaType);
+        Assert.Equal("image/webp", read.Content.Headers.ContentType?.MediaType);
 
-        // Non-image bytes are rejected by the magic-byte sniff.
+        // Non-image bytes are rejected by the image processor (they can't be decoded).
         var junk = new ByteArrayContent("not an image"u8.ToArray());
         junk.Headers.ContentType = new MediaTypeHeaderValue("image/png");
         var bad = await admin.PutAsync($"/api/v1/admin/badges/{id}/icon", junk);

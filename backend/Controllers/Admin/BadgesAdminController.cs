@@ -55,16 +55,17 @@ public sealed class BadgesAdminController : AdminControllerBase
         await _badges.ReinstateDefinitionAsync(definitionId, ct) ? NoContent() : DefinitionNotFound();
 
     [HttpPut("{definitionId:guid}/icon")]
+    [RequestSizeLimit(MaxIconUploadBytes)]
     public async Task<IActionResult> SetIcon(Guid definitionId, CancellationToken ct)
     {
         var bytes = await ReadBodyBytesAsync(ct);
-        var outcome = await _badges.SetIconAsync(definitionId, bytes, ct);
-        return outcome switch
+        var result = await _badges.SetIconAsync(definitionId, bytes, ct);
+        return result.Outcome switch
         {
             IconOutcome.Stored => NoContent(),
             IconOutcome.DefinitionNotFound => DefinitionNotFound(),
             _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid icon",
-                detail: "Provide a PNG, JPEG, or WebP image within the size limit."),
+                detail: result.Reason),
         };
     }
 
