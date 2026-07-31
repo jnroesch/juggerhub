@@ -3,6 +3,7 @@ using JuggerHub.Data;
 using JuggerHub.Dtos.Badges;
 using JuggerHub.Dtos.Recognition;
 using JuggerHub.Entities;
+using JuggerHub.Services.Media;
 using JuggerHub.Services.Recognition;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -15,11 +16,19 @@ public sealed class BadgeService : IBadgeService
 {
     private readonly AppDbContext _db;
     private readonly RecognitionOptions _options;
+    private readonly IImageProcessor _imageProcessor;
+    private readonly ImageProcessingOptions _imageOptions;
 
-    public BadgeService(AppDbContext db, IOptions<RecognitionOptions> options)
+    public BadgeService(
+        AppDbContext db,
+        IOptions<RecognitionOptions> options,
+        IImageProcessor imageProcessor,
+        IOptions<ImageProcessingOptions> imageOptions)
     {
         _db = db;
         _options = options.Value;
+        _imageProcessor = imageProcessor;
+        _imageOptions = imageOptions.Value;
     }
 
     public async Task<PagedResult<BadgeDefinitionDto>> ListDefinitionsAsync(
@@ -120,47 +129,41 @@ public sealed class BadgeService : IBadgeService
         return true;
     }
 
-    public async Task<IconOutcome> SetIconAsync(Guid definitionId, byte[] content, CancellationToken ct = default)
+    public async Task<IconSetResult> SetIconAsync(Guid definitionId, byte[] content, CancellationToken ct = default)
     {
-        if (content.Length == 0)
+        // Normalize server-side (#101, same pipeline as avatars in feature 034 / #98): decompression-bomb
+        // guard + strip metadata + resize + re-encode to WebP. The declared content type is never
+        // trusted, and on any rejection we return without touching the stored icon.
+        var processed = _imageProcessor.Process(content, _imageOptions.Icon);
+        if (processed.Status != ImageProcessingStatus.Success)
         {
-            return IconOutcome.Empty;
-        }
-
-        if (content.Length > _options.MaxIconBytes)
-        {
-            return IconOutcome.TooLarge;
-        }
-
-        var sniffed = ImageValidation.SniffImageContentType(content);
-        if (sniffed is null)
-        {
-            return IconOutcome.InvalidType;
+            return IconProcessing.ToFailure(processed);
         }
 
         if (!await _db.BadgeDefinitions.AnyAsync(d => d.Id == definitionId, ct))
         {
-            return IconOutcome.DefinitionNotFound;
+            return IconSetResult.Fail(IconOutcome.DefinitionNotFound, "This badge definition doesn't exist.");
         }
 
+        // Only the normalized WebP is stored; the original upload is discarded.
         var icon = await _db.BadgeIcons.FirstOrDefaultAsync(i => i.BadgeDefinitionId == definitionId, ct);
         if (icon is null)
         {
             _db.BadgeIcons.Add(new BadgeIcon
             {
                 BadgeDefinitionId = definitionId,
-                Bytes = content,
-                ContentType = sniffed,
+                Bytes = processed.Bytes!,
+                ContentType = processed.ContentType!,
             });
         }
         else
         {
-            icon.Bytes = content;
-            icon.ContentType = sniffed;
+            icon.Bytes = processed.Bytes!;
+            icon.ContentType = processed.ContentType!;
         }
 
         await _db.SaveChangesAsync(ct);
-        return IconOutcome.Stored;
+        return IconSetResult.Stored();
     }
 
     public async Task<(byte[] Bytes, string ContentType)?> GetIconAsync(Guid definitionId, CancellationToken ct = default)

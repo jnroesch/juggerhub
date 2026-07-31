@@ -24,7 +24,11 @@ public interface IAchievementService
     /// <summary>Un-retire a definition (feature 014); false if no such definition.</summary>
     Task<bool> ReinstateDefinitionAsync(Guid id, CancellationToken ct = default);
 
-    Task<IconOutcome> SetIconAsync(Guid definitionId, byte[] content, CancellationToken ct = default);
+    /// <summary>
+    /// Normalize an uploaded icon through the image pipeline (#101) and store the resulting WebP.
+    /// A rejected upload leaves any existing icon untouched.
+    /// </summary>
+    Task<IconSetResult> SetIconAsync(Guid definitionId, byte[] content, CancellationToken ct = default);
 
     /// <summary>Remove a definition's icon (feature 014); false if no such definition. Idempotent if none.</summary>
     Task<bool> RemoveIconAsync(Guid definitionId, CancellationToken ct = default);

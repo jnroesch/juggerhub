@@ -53,4 +53,18 @@ public sealed class ImageProcessingOptions
 
     /// <summary>The avatar upload context profile (center square-crop).</summary>
     public ImageProcessingProfile Avatar { get; set; } = new();
+
+    /// <summary>
+    /// The badge/achievement icon context profile (#101). Fit rather than square-crop — an icon
+    /// is artwork, so cropping it would cut off content; a non-square icon simply stays
+    /// non-square. Icons render at ≤56 px, so 256 px is generous for high-DPI displays and keeps
+    /// the stored blob tiny.
+    /// </summary>
+    public ImageProcessingProfile Icon { get; set; } = new()
+    {
+        ResizeMode = ImageResizeMode.Fit,
+        MaxDimension = 256,
+        Quality = 80,
+        MaxOutputBytes = 128 * 1024,
+    };
 }
