@@ -151,7 +151,7 @@ no migration.
 - [X] T044 [P] Open a follow-up GitHub issue for **self-service data export and account deletion**, referencing #92 and this feature's FR-009. The policy currently documents a manual route because no self-service control exists; that is honest but not a good long-term answer.
 - [X] T045 [P] Open a follow-up GitHub issue for **retention policy and automation**. No automated retention or deletion runs anywhere today; the policy states this honestly, which makes the gap visible rather than fixing it.
 - [X] T046 [P] Open a follow-up GitHub issue for a **native-speaker/legal review of the German authoritative text** (and the en/es translations), matching the draft-then-review precedent from 031. Note that the German version is the *binding* one, so this review carries more weight than a normal translation pass.
-- [ ] T047 Report spec/design drift and close issue #92 with a summary of what shipped, what is deferred (T044–T046), and the manual verification result from T036.
+- [X] T047 Report spec/design drift and close issue #92 with a summary of what shipped, what is deferred (T044–T046), and the manual verification result from T036.
 
 ---
 
