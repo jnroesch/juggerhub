@@ -142,10 +142,14 @@ The full reasoning is in [research.md](./research.md); the load-bearing outcomes
    guard, **outside** the shell. Outside because the shell's anonymous public bar pushes sign-in and
    register, which is the wrong framing for a reader who has not decided to register — and because
    it sidesteps the fixed mobile bottom bar.
-2. **Content** (R2): a lazy `legal` Transloco scope at `public/i18n/legal/{lang}.json`. The existing
-   loader already documents scoped paths, so this is the project's own mechanism. Keeps several
+2. **Content** (R2, amended by R2a during implementation): per-language document files at
+   `public/i18n/legal/{lang}.json`, fetched lazily when a legal route activates. Keeps several
    thousand words per language out of the always-loaded catalog and keeps the authoritative German
-   text reviewable as a document.
+   text reviewable as a document. Originally planned as a Transloco *scope*; changed to a direct
+   fetch because Transloco has no error surface — a failed scope load would have rendered the
+   **English** text inside the legally authoritative German document, which is the exact failure
+   this feature exists to prevent, and PC-7 requires a visible error instead. Files, location,
+   laziness, language-switch behaviour and all guard tests are unchanged.
 3. **Reachability** (R3): one `jh-legal-links` component in three placements — a new `jh-app-footer`
    inside the shell (covering signed-out and signed-in, desktop and mobile, in one place because
    `<main>` already reserves `pb-[76px]` for the bottom bar), and inline on the nine screens that

@@ -39,10 +39,16 @@ mobile bottom-nav overlap entirely (see R3).
 
 ---
 
-## R2 — Prose lives in a lazy-loaded Transloco **scope**, not the main catalog
+## R2 — Prose lives in lazily-fetched per-language content files, not the main catalog
 
-**Decision**: A new scope `legal`, loaded from `frontend/apps/web/public/i18n/legal/{en,de,es}.json`,
-declared via `provideTranslocoScope('legal')` on the two lazy routes.
+> **Amended during implementation (2026-07-31).** The original decision was a lazy Transloco
+> *scope*. The files, their location, their laziness, and the language-switch behaviour are all
+> unchanged; only the **loading mechanism** differs — the documents are fetched by a small
+> `LegalContentService` rather than registered as a scope. See R2a below for why. Everything else
+> in this section still holds.
+
+**Decision**: The legal text lives in `frontend/apps/web/public/i18n/legal/{en,de,es}.json`,
+fetched on activation of the two lazy routes.
 
 **Rationale**: The existing loader already documents and supports exactly this
 (`frontend/apps/web/src/app/core/i18n/transloco-http.loader.ts:10-11`: "a scoped path (`auth/en`)
@@ -76,6 +82,39 @@ rest of the app.
 **Shape**: the catalog is structured (`legal.privacy.sections.analytics.body`), and paragraphs are
 arrays of keys rather than one key containing embedded markup, so no HTML is interpolated and no
 `[innerHTML]` binding is introduced.
+
+---
+
+## R2a — Why the scope became a direct fetch (implementation amendment)
+
+**Decision**: a small route-provided `LegalContentService` fetches `/i18n/legal/{lang}.json` through
+the existing `HttpClient`, keyed off Transloco's `langChanges$`. The `legal` Transloco **scope is
+not registered**. Short footer/nav labels (`legal.privacy`, `legal.imprint`, …) stay in the main
+Transloco catalogs, because the footer renders on every screen and cannot wait for a lazy fetch.
+
+**Why the change**: two things surfaced once the page was built, and the first is decisive.
+
+1. **Transloco has no error surface — and its fallback would produce exactly the failure this
+   feature exists to prevent.** A failed scope load does not raise; it leaves the keys unresolved,
+   and `useFallbackTranslation: true` then renders the **English** text in their place. On the
+   German page that means a failed load silently produces an English document presented as the
+   legally authoritative German one. Contract PC-7 requires a *visible error* instead, and there is
+   no way to satisfy it while the load is Transloco's. Fetching the document directly turns a
+   failed load into `failed()` → a rendered error state.
+   The irony is the point: the same fallback that R2 already flagged as the feature's worst hazard
+   is what makes the scope mechanism unusable for its own error path.
+2. **Legal prose is content, not labels.** Transloco flattens catalogs on load and unflattens on
+   `translateObject`; paragraph arrays survive that round trip, but the page needs the document
+   shape intact and typed, and there is no reason to route it through two transformations.
+
+**What did not change**: the files, their location and naming, the fact that they are fetched only
+when a legal route activates, that the prose stays out of the always-loaded main catalogs, that the
+language switcher drives the document, and every guard test in R8 — those check the JSON files, not
+the loading mechanism, so they were unaffected.
+
+**Cost accepted**: one small service instead of a framework feature, and the `legal` files are no
+longer reachable via the `| transloco` pipe. Neither matters — nothing outside the two legal pages
+reads them.
 
 ---
 

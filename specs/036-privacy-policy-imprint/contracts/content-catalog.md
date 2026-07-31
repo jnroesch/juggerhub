@@ -10,10 +10,16 @@ in [../data-model.md](../data-model.md); this file is the enforceable contract.
 | | |
 |---|---|
 | Files | `frontend/apps/web/public/i18n/legal/en.json`, `de.json`, `es.json` |
-| Scope name | `legal` |
-| Loaded by | the existing `TranslocoHttpLoader`, which already maps a scoped path (`legal/de`) onto `public/i18n/legal/de.json` — see its own doc comment |
-| When | on activation of `/privacy` or `/imprint` only, via `provideTranslocoScope('legal')` on the route |
-| Key access | `legal.privacy.sections.analytics.heading` |
+| Loaded by | `LegalContentService` (route-provided), via the shared `HttpClient` |
+| When | on activation of `/privacy` or `/imprint` only, following `TranslocoService.langChanges$` |
+| Key access | typed — `content().privacy.sections.analytics.heading` |
+
+> **Amended during implementation (research R2a).** This was planned as a Transloco *scope*. It is
+> not one: Transloco has no error surface, so a failed scope load would have rendered the **English**
+> text inside the legally authoritative German document — the exact failure §4 below exists to
+> prevent — and PC-7 requires a visible error instead. The files, their location, their laziness,
+> the language-switch behaviour and every guard below are unchanged; they check the JSON, not the
+> loader.
 
 The prose is **not** in the main `public/i18n/{lang}.json` catalogs. Those are fetched on every app
 load; several thousand words × 3 languages does not belong in the critical path of a page almost
@@ -64,10 +70,16 @@ document, with no visible signal. The result looks complete, is the legally bind
 partly in the wrong language.
 
 **Guard**: a Jest test asserting the three catalogs have identical key sets, recursively. A missing
-or extra key fails the build.
+or extra key fails the build. Implemented in
+`frontend/apps/web/src/app/core/i18n/legal-catalog.spec.ts`.
 
 The global fallback is deliberately **not** changed. Disabling it would satisfy this feature and
 break 031's guarantee for the other ~2000 keys in the app. The narrow test is the right-sized fix.
+
+Note that the direct-fetch loader (research R2a) removes the *runtime* half of this hazard — a
+missing German key now renders nothing rather than English — but not the reason for the test. A
+silently absent paragraph in a legal document is still a defect; the test is what catches it before
+anyone reads the document and doesn't notice what isn't there.
 
 ---
 

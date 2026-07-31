@@ -25,6 +25,13 @@
     <router-outlet />
   </main>
 
+  <!--
+    Legal footer (feature 036). Deliberately AFTER <main> and OUTSIDE the anonymous branch:
+    <main> already reserves pb-[76px] for the fixed bottom bar, so the footer clears it instead
+    of vanishing underneath, and a signed-out visitor is exactly who a privacy policy is for.
+  -->
+  <jh-app-footer />
+
   @if (!anonymous()) {
     <jh-bottom-nav />
   }

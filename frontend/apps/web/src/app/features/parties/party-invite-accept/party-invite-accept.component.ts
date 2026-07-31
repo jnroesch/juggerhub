@@ -1,6 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
+import { LegalLinksComponent, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -13,7 +13,7 @@ import { PartyService } from '../../../core/services/party.service';
  */
 @Component({
   selector: 'jh-party-invite-accept',
-  imports: [DatePipe, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
+  imports: [LegalLinksComponent, DatePipe, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './party-invite-accept.component.html',
   styleUrl: './party-invite-accept.component.css',
 })

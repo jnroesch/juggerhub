@@ -1,0 +1,90 @@
+<div *transloco="let t" class="flex min-h-screen flex-col bg-background">
+  <!--
+    A slim bar with the brand and the language switcher only. Deliberately NOT the app shell's
+    public bar: that one pushes sign-in and register, and someone reading a privacy policy may be
+    here precisely because they have not decided to register.
+  -->
+  <header class="flex h-14 items-center justify-between gap-sm border-b border-border bg-surface px-md">
+    <a routerLink="/" class="flex items-center gap-xs" [attr.aria-label]="t('nav.brandHome')">
+      <span class="grid h-7 w-7 place-items-center rounded-md bg-brand-gradient shadow-sm" aria-hidden="true">
+        <span class="h-1.5 w-1.5 rounded-full bg-highlight"></span>
+      </span>
+      <span class="font-display text-heading-md font-bold text-ink">JuggerHub</span>
+    </a>
+    <jh-language-switcher />
+  </header>
+
+  <main class="flex-1 py-lg">
+    <jh-page-container width="sm">
+      @if (failed()) {
+        <!--
+          PC-7: a failed load shows a visible error, never an empty document. A blank privacy
+          policy reads as a policy that says nothing — worse than an honest error.
+        -->
+        <jh-alert tone="danger" data-testid="legal-error">
+          <p class="font-semibold">{{ meta()?.loadErrorTitle ?? "We couldn't load this page" }}</p>
+          <p class="mt-xs">
+            {{ meta()?.loadErrorBody ?? 'Something went wrong fetching the text. Give it another go.' }}
+          </p>
+        </jh-alert>
+        <button type="button" jhButton variant="secondary" class="mt-md" (click)="retry()" data-testid="legal-retry">
+          {{ meta()?.retry ?? t('common.tryAgain') }}
+        </button>
+      } @else if (!document()) {
+        <jh-loading align="center" />
+      } @else {
+        <article [attr.data-testid]="'legal-' + doc()">
+          <h1 class="font-display text-h2 font-bold text-ink">{{ document()!.title }}</h1>
+
+          <!-- Meta line: caption step, subtle — present, never competing with the content. -->
+          <p class="mt-xs text-caption text-subtle" data-testid="legal-meta">{{ lastUpdatedLine() }}</p>
+          @if (showAuthoritativeNotice()) {
+            <p class="mt-xs text-caption text-subtle" data-testid="legal-authoritative-notice">
+              {{ meta()!.authoritativeNotice }}
+            </p>
+          }
+
+          @for (paragraph of document()!.intro; track $index) {
+            <p class="mt-md text-body-md leading-relaxed text-body">{{ paragraph }}</p>
+          }
+
+          @if (showToc() && sections().length) {
+            <nav class="mt-lg" [attr.aria-label]="meta()!.tocLabel" data-testid="legal-toc">
+              <h2 class="text-body-sm font-semibold uppercase tracking-wide text-muted">{{ meta()!.tocLabel }}</h2>
+              <ul class="mt-sm space-y-xs">
+                @for (entry of sections(); track entry.key) {
+                  <li>
+                    <a
+                      [href]="'#' + anchor(entry.key)"
+                      class="text-body-sm text-link underline underline-offset-2 hover:text-link-hover"
+                      >{{ entry.section.heading }}</a
+                    >
+                  </li>
+                }
+              </ul>
+            </nav>
+          }
+
+          @for (entry of sections(); track entry.key) {
+            <section [id]="anchor(entry.key)" class="mt-2xl scroll-mt-lg">
+              <h2 class="font-display text-h4 font-bold text-ink">{{ entry.section.heading }}</h2>
+              @for (paragraph of entry.section.body; track $index) {
+                <p class="mt-sm text-body-md leading-relaxed text-body">{{ paragraph }}</p>
+              }
+            </section>
+          }
+
+          <!-- FR-016: the two documents always link to each other. -->
+          <p class="mt-2xl border-t border-border-muted pt-md text-body-sm">
+            <a
+              [routerLink]="siblingLink()"
+              data-testid="legal-sibling-link"
+              class="text-link underline underline-offset-2 hover:text-link-hover"
+              >{{ crossLink()?.[siblingLabelKey()] }}</a
+            >
+          </p>
+        </article>
+      }
+    </jh-page-container>
+  </main>
+</div>

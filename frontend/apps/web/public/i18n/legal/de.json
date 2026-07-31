@@ -1,0 +1,203 @@
+{
+  "meta": {
+    "lastUpdated": "2026-07-31",
+    "lastUpdatedLabel": "Zuletzt aktualisiert am {{date}}",
+    "authoritativeNotice": "Dies ist die verbindliche Fassung.",
+    "tocLabel": "Auf dieser Seite",
+    "loadErrorTitle": "Diese Seite konnte nicht geladen werden",
+    "loadErrorBody": "Beim Laden des Textes ist etwas schiefgegangen. Versuch es noch einmal — und falls es weiterhin nicht klappt, schreib uns an die Adresse im Impressum, dann schicken wir dir den Text direkt zu.",
+    "retry": "Erneut versuchen"
+  },
+  "crossLink": {
+    "toPrivacy": "Datenschutz",
+    "toImprint": "Impressum",
+    "toPrivacyLong": "Datenschutzerklärung lesen",
+    "toImprintLong": "Wer JuggerHub betreibt"
+  },
+  "privacy": {
+    "title": "Datenschutz",
+    "intro": [
+      "JuggerHub ist eine Community-Seite für Jugger-Spielerinnen und -Spieler. Damit sie funktioniert, speichern wir einige Informationen über dich — deine E-Mail-Adresse, dein Profil, deine Nachrichten und die Teams und Events, an denen du teilnimmst.",
+      "Auf dieser Seite steht, was wir speichern, warum, wer es sonst noch sieht und was du dagegen tun kannst. Wir haben versucht, das in verständlicher Sprache zu schreiben statt in der üblichen Klauselwand. Wo etwas unangenehm ist, sagen wir es, statt es schönzureden."
+    ],
+    "sections": {
+      "controller": {
+        "heading": "Wer verantwortlich ist",
+        "body": [
+          "JuggerHub wird von der im Impressum genannten Person betrieben. Sie ist für alles auf dieser Seite Beschriebene die verantwortliche Stelle im Sinne der DSGVO.",
+          "Wenn du eine Frage zu deinen Daten hast oder eines der weiter unten genannten Rechte ausüben möchtest, schreib an die Kontaktadresse im Impressum. Dort liest ein Mensch mit — es gibt kein Ticketsystem."
+        ]
+      },
+      "account": {
+        "heading": "Dein Konto",
+        "body": [
+          "Bei der Registrierung speichern wir deine E-Mail-Adresse, einen Benutzernamen und dein Passwort. Das Passwort wird nie so gespeichert, wie du es eingegeben hast — sondern nur als argon2-Hash, aus dem sich dein Passwort nicht zurückrechnen lässt.",
+          "Außerdem speichern wir den Status deines Kontos (aktiv, gesperrt oder ausgeschlossen) und wann er zuletzt geändert wurde, damit Moderationsentscheidungen nachvollziehbar bleiben.",
+          "Bei jeder Anmeldung legen wir einen Sitzungseintrag an, und dieser Eintrag enthält die IP-Adresse, von der die Anmeldung kam. Wir speichern sie als Sicherheitsmaßnahme: Nur so lässt sich eine berechtigte Sitzung von einer gestohlenen unterscheiden. Sie wird nicht für Statistiken und für nichts anderes verwendet.",
+          "Das alles brauchen wir, um dir überhaupt ein Konto geben zu können — Rechtsgrundlage ist deshalb der Vertrag zwischen dir und uns (Art. 6 Abs. 1 lit. b DSGVO)."
+        ]
+      },
+      "email": {
+        "heading": "E-Mails, die wir dir schicken",
+        "body": [
+          "Wir verschicken E-Mails für Dinge, ohne die die Seite nicht funktioniert — Bestätigung deiner Adresse, Passwort-Zurücksetzen, Einladungen und Benachrichtigungen, die du eingestellt hast. Welche Benachrichtigungs-E-Mails du bekommst, steuerst du in deinen Benachrichtigungseinstellungen.",
+          "Der Versand läuft über einen Dienstleister in unserem Auftrag; siehe „Wer sonst noch Daten verarbeitet\" weiter unten. Dieser Dienstleister sieht zwangsläufig deine Adresse und den Inhalt der Nachricht.",
+          "Rechtsgrundlage ist der Vertrag für Konto-E-Mails (Art. 6 Abs. 1 lit. b DSGVO) und deine Einwilligung für alles Optionale (Art. 6 Abs. 1 lit. a DSGVO)."
+        ]
+      },
+      "profile": {
+        "heading": "Dein Profil",
+        "body": [
+          "In deinem Profil steht, was du hineinschreibst: Anzeigename, die Pompfen, die du spielst, eine kurze Beschreibung, deine Heimatstadt und ein Foto, falls du eins hochlädst.",
+          "Dein Profil ist standardmäßig privat. Angemeldete Mitglieder können dich finden; wer nicht angemeldet ist, nicht. Wenn du dein Profil auf öffentlich stellst, ist es für alle lesbar, die den direkten Link haben — genau das bedeutet „öffentlich\" hier. Es wird nirgends für Suchmaschinen gelistet, ist aber eben auch nicht mehr geheim, sobald der Link existiert.",
+          "Du kannst jedes dieser Felder jederzeit ändern oder leeren, und das Zurückstellen auf privat wirkt sofort."
+        ]
+      },
+      "location": {
+        "heading": "Wo du zu Hause bist",
+        "body": [
+          "Du kannst eine Heimatstadt angeben, damit andere Teams und Events in deiner Nähe finden. Wir speichern die Stadt, die du auswählst — keinen genauen Standort. Es gibt kein GPS, keine Adresse und keine Erfassung, wo du dich tatsächlich aufhältst.",
+          "Die Städte stammen aus einer Liste, die mit der Seite ausgeliefert wird. Bei der Auswahl wird nichts an einen externen Karten- oder Geocoding-Dienst gesendet."
+        ]
+      },
+      "chat": {
+        "heading": "Nachrichten",
+        "body": [
+          "Direktnachrichten, Gruppen-, Team- und Admin-Chats werden auf unseren Servern gespeichert, damit sie noch da sind, wenn du wiederkommst. Sie sind nicht Ende-zu-Ende-verschlüsselt: Wer Zugriff auf die Datenbank hat, könnte sie grundsätzlich lesen. Wir halten diesen Zugriff eng begrenzt, sagen es dir aber lieber, als dass du vom Gegenteil ausgehst.",
+          "Eine Sache überrascht viele: Wenn ein Team gelöscht oder ein Event abgesagt wird, werden die zugehörigen Unterhaltungen nicht gelöscht. Sie werden als Momentaufnahme archiviert, damit die Beteiligten ihren eigenen Verlauf behalten. Wenn dir das für eine Unterhaltung, in der du bist, nicht recht ist, schreib uns.",
+          "Du kannst andere Mitglieder blockieren; dann können sie dir nicht mehr schreiben."
+        ]
+      },
+      "participation": {
+        "heading": "Teams, Events, Training und Marktplatz",
+        "body": [
+          "Wir speichern, in welchen Teams du bist, für welche Events und Trainings du angemeldet bist, welchen Partys du beigetreten bist und welche Söldner-Anzeigen oder Anfragen du gestellt hast.",
+          "Das ist für andere Mitglieder sichtbar — genau dafür ist es da. Deine Teamkolleginnen und -kollegen sehen, dass du im Kader stehst; Leute auf einem Event sehen, dass du kommst. Betrachte alles, was du hier einträgst, als für die Community sichtbar, nicht als privat.",
+          "Außerdem speichern wir dir verliehene Abzeichen und Erfolge sowie die für dich erzeugten Benachrichtigungen."
+        ]
+      },
+      "eventContacts": {
+        "heading": "Kontaktangaben bei Events",
+        "body": [
+          "Die Organisatorinnen und Organisatoren eines Events können Ansprechpersonen dafür hinterlegen — Name, Funktion und optional Telefonnummer oder E-Mail-Adresse, damit Teilnehmende wissen, an wen sie sich vor Ort wenden können.",
+          "Das ist die einzige Stelle, an der die Plattform Angaben zu einer Person speichern kann, die kein JuggerHub-Konto hat, denn eintragen lässt sich jede und jeder. Wenn du als Ansprechperson eingetragen bist und das nicht möchtest, bitte die Organisation um Entfernung — oder schreib uns, dann erledigen wir es.",
+          "Diese Angaben sind für Mitglieder sichtbar, die das Event sehen können. Rechtsgrundlage ist das berechtigte Interesse der Organisation an der Durchführung des Events (Art. 6 Abs. 1 lit. f DSGVO); handelt es sich um eine dritte Person, setzen wir Löschwünsche ohne Diskussion um."
+        ]
+      },
+      "media": {
+        "heading": "Fotos, die du hochlädst",
+        "body": [
+          "Wenn du ein Profilbild hochlädst, verarbeiten wir es (Größe ändern und neu kodieren) und speichern die entstandene Bilddatei bei unserem Cloud-Speicheranbieter. Die Originaldatei wird nicht aufbewahrt.",
+          "Bilder werden nie direkt aus diesem Speicher ausgeliefert. Jede Anfrage läuft über JuggerHub, das zuerst prüft, ob du das Bild sehen darfst. Einen öffentlichen Link auf die zugrunde liegende Datei gibt es nicht."
+        ]
+      },
+      "language": {
+        "heading": "Deine Sprache",
+        "body": [
+          "Wenn du angemeldet bist und eine Sprache auswählst, speichern wir diese Auswahl in deinem Konto, damit sie dir zwischen Geräten folgt. Wenn du nicht angemeldet bist, wird die Auswahl in deinem eigenen Browser gespeichert und erreicht uns nie."
+        ]
+      },
+      "analytics": {
+        "heading": "Wie wir Besuche messen",
+        "body": [
+          "Wir messen, wie die Seite genutzt wird, um zu wissen, welche Teile die Arbeit wert sind. Das läuft auf unseren eigenen Servern — es gehen keine Daten an Google Analytics oder ein anderes externes Statistikunternehmen.",
+          "Es wird kein Cookie gesetzt und nichts auf deinem Gerät gespeichert. Weder dein Konto noch dein Benutzername, deine E-Mail-Adresse oder deine vollständige IP-Adresse werden erfasst. Nichts in den Statistikdaten sagt aus, wer da gesurft hat.",
+          "Eines wollen wir ausdrücklich klarstellen, weil es der Punkt ist, an dem man berechtigterweise Anstoß nehmen kann. Wir erfassen die Adresse jeder aufgerufenen Seite genau so, wie sie lautet — und manche Seitenadressen enthalten den Benutzernamen eines Mitglieds oder den Namen eines Teams, etwa /u/alex oder /t/wolves. Aus den Statistikdaten geht deshalb hervor, welche Mitgliedsprofile und Teamseiten wann aufgerufen wurden. Nie geht daraus hervor, wer sie aufgerufen hat.",
+          "Wir erfassen ausschließlich den Pfad, nie den Teil der Adresse hinter einem Fragezeichen. Das ist Absicht: Dort stehen Deep Links und Rücksprungadressen, die mehr mitgeführt hätten, als beabsichtigt war.",
+          "Wenn du überhaupt nicht gemessen werden möchtest, siehe „Wie du widersprichst\" am Ende dieser Seite — es genügt eine Browser-Einstellung, und wir halten uns daran."
+        ]
+      },
+      "legalBasis": {
+        "heading": "Worauf wir uns dabei stützen",
+        "body": [
+          "Zwei Fragen werden oft vermischt, deshalb hier nacheinander.",
+          "Erstens: die Cookie-Einwilligung. Die Regel, wegen der Seiten um Erlaubnis fragen, betrifft das Speichern von Informationen auf deinem Gerät (§ 25 TDDDG). Unsere Statistik speichert nichts auf deinem Gerät — kein Cookie, kein Local Storage, nichts — die Regel greift also schlicht nicht. Das einzige Cookie, das wir setzen, hält dich angemeldet; es ist für einen von dir gewünschten Dienst unbedingt erforderlich und damit ausgenommen. Deshalb siehst du hier kein Cookie-Banner. Das ist kein Versehen und kein Formulierungstrick.",
+          "Zweitens: die Rechtsgrundlage für das Messen selbst. Weil Seitenadressen ein Mitglied oder ein Team benennen können, sind diese Daten personenbezogen und brauchen unabhängig von der Cookie-Frage eine Grundlage. Wir stützen uns auf das berechtigte Interesse (Art. 6 Abs. 1 lit. f DSGVO).",
+          "Hier die Abwägung, damit du sie selbst beurteilen kannst, statt uns glauben zu müssen. Unser Interesse ist zu wissen, welche Teile einer ehrenamtlich betriebenen Community-Seite tatsächlich genutzt werden, damit begrenzte Zeit dort landet, wo sie hilft. Der Eingriff bei dir ist eng: Nichts weist dich als Betrachter aus, nichts wird auf deinem Gerät gespeichert, nichts verlässt unsere Server, die Daten werden weder mit deinem Konto verknüpft noch zu einem Profil über dich zusammengeführt und nie für eine Entscheidung über dich verwendet. Es bleibt, dass eine Seite, die dich benennt, in einer Liste aufgerufener Seiten auftauchen kann. Wir halten das für angemessen, um die Seite gut zu betreiben — und weil es berechtigtes Interesse und keine Einwilligung ist, hast du ein uneingeschränktes Widerspruchsrecht, das wir bewusst zu einer einzigen Einstellung statt zu einem Formular gemacht haben.",
+          "Alles Übrige auf dieser Seite stützt sich auf den Vertrag zwischen dir und uns (Konto, Teamzugehörigkeit, Nachrichten — Art. 6 Abs. 1 lit. b DSGVO), auf deine Einwilligung, wo du zugestimmt hast (optionale Benachrichtigungs-E-Mails — Art. 6 Abs. 1 lit. a DSGVO), oder auf gesetzliche Pflichten (Art. 6 Abs. 1 lit. c DSGVO)."
+        ]
+      },
+      "storage": {
+        "heading": "Cookies und was in deinem Browser bleibt",
+        "body": [
+          "Ein Anmelde-Cookie, über das die Seite weiß, dass du du bist. Es ist mit httpOnly gesetzt, JavaScript kann es also nicht auslesen. Ohne dieses Cookie kannst du nicht angemeldet bleiben.",
+          "Wenn du nicht angemeldet bist und eine Sprache auswählst, wird diese Auswahl in deinem Browser gespeichert. Sie bleibt dort und wird nie an uns gesendet.",
+          "Mehr ist es nicht. Die Statistik kommt ohne aus, und Werbe-, Tracking- oder Drittanbieter-Cookies gibt es hier in keiner Form."
+        ]
+      },
+      "processors": {
+        "heading": "Wer sonst noch Daten verarbeitet",
+        "body": [
+          "Microsoft Azure hostet die gesamte Anwendung — Server, Datenbank und den Speicher mit den hochgeladenen Bildern. Alles, was wir speichern, liegt damit auf deren Infrastruktur, in der Region West Europe (Niederlande) und somit innerhalb der EU.",
+          "Resend verschickt unsere E-Mails. Der Dienst sieht die Empfängeradresse und den Inhalt dessen, was wir dir senden. Das betrifft die betriebene Seite; eine lokale Entwicklungskopie verschickt nichts nach außen.",
+          "Das ist die vollständige Liste, und was fehlt, ist ebenso erwähnenswert. Es gibt keinen externen Statistikdienst. Es gibt kein Werbenetzwerk. Es gibt keinen externen Karten- oder Geocoding-Dienst — die Städteliste wird mit der Seite ausgeliefert. Und die Schriften sind mit der Seite gebündelt statt von Google Fonts geladen, sodass beim Aufruf einer Seite keine Anfrage an Google geht.",
+          "Soweit ein Dienstleister Daten außerhalb der EU verarbeitet, ist diese Übermittlung durch die Standardvertragsklauseln in unserem Vertrag mit ihm abgedeckt."
+        ]
+      },
+      "retention": {
+        "heading": "Wie lange wir Daten aufbewahren",
+        "body": [
+          "Wir sagen es geradeheraus, weil eine erfundene Zahl schlimmer wäre als die Wahrheit: Bei JuggerHub läuft derzeit keine automatische Löschung. Nichts verfällt nach Zeitplan. Deine Daten bleiben, bis dein Konto gelöscht wird, und die Kontolöschung erfolgt, wenn du sie verlangst.",
+          "Das schreiben wir lieber offen hin, als eine Aufbewahrungsfrist zu veröffentlichen, die die Seite gar nicht anwendet. Eine ordentliche Löschautomatik steht auf der Liste.",
+          "Die Statistikdaten sind das Einzige, was von sich aus begrenzt ist — sie enthalten von vornherein keine Kennung für dich, es gibt darin also nichts, was für dich zu löschen wäre."
+        ]
+      },
+      "rights": {
+        "heading": "Deine Rechte",
+        "body": [
+          "Nach der DSGVO kannst du Auskunft über die zu dir gespeicherten Daten verlangen (Art. 15), ihre Berichtigung (Art. 16), ihre Löschung (Art. 17), die Einschränkung der Verarbeitung (Art. 18), die Herausgabe in einem übertragbaren Format (Art. 20) und Widerspruch gegen die Verarbeitung auf Grundlage berechtigten Interesses (Art. 21).",
+          "Derzeit gibt es dafür keine Schaltfläche zur Selbstbedienung — keinen Export, keine Konto-löschen-Funktion in den Einstellungen. Wir sagen dir das, statt dich auf eine Funktion zu verweisen, die es nicht gibt. Der Weg führt über die Kontaktadresse im Impressum; wir erledigen es dann von Hand. Diese Funktionen selbst bedienbar zu machen, ist geplant.",
+          "Die Ausnahme ist der Widerspruch gegen die Statistik, den du in Sekunden selbst erklären kannst — siehe den nächsten Abschnitt.",
+          "Du kannst dich außerdem bei einer Datenschutz-Aufsichtsbehörde beschweren. Bei einer aus Deutschland betriebenen Seite ist das die Behörde des Bundeslandes der betreibenden Person; du kannst dich auch an die Behörde deines Wohnorts wenden."
+        ]
+      },
+      "objection": {
+        "heading": "Wie du dem Messen widersprichst",
+        "body": [
+          "Aktiviere „Do Not Track\" (oder Global Privacy Control) in deinem Browser. Das war's — ab dann erfassen wir für dich überhaupt nichts mehr.",
+          "Du findest das üblicherweise unter Einstellungen → Datenschutz. In Firefox heißt es „Websites mitteilen, meine Daten nicht zu verkaufen oder weiterzugeben\". In Safari und Brave ist eine vergleichbare Einstellung standardmäßig aktiv. In Chrome steht sie unter Datenschutz und Sicherheit.",
+          "Viele Seiten ignorieren dieses Signal. Wir nicht: Ist es aktiv, wird nichts gesendet und nichts erfasst. Das gilt sofort, braucht kein Konto, und es gibt nichts wieder einzuschalten.",
+          "Für den Widerspruch gegen alles Weitere auf dieser Seite schreib an die Kontaktadresse im Impressum."
+        ]
+      }
+    }
+  },
+  "imprint": {
+    "title": "Impressum",
+    "intro": [
+      "Angaben gemäß § 5 DDG (vormals § 5 TMG)."
+    ],
+    "sections": {
+      "operator": {
+        "heading": "Wer diese Seite betreibt",
+        "body": [
+          "__TODO__ operator name",
+          "__TODO__ legal form, if applicable",
+          "__TODO__ street and number",
+          "__TODO__ postcode and town",
+          "__TODO__ country"
+        ]
+      },
+      "contact": {
+        "heading": "Kontakt",
+        "body": [
+          "E-Mail: __TODO__ contact email address",
+          "Das ist zugleich die Adresse für Datenschutzfragen und für die Ausübung der in der Datenschutzerklärung beschriebenen Rechte."
+        ]
+      },
+      "responsibility": {
+        "heading": "Inhaltlich verantwortlich",
+        "body": [
+          "__TODO__ responsible person and address, per § 18 (2) MStV",
+          "JuggerHub ist ein nicht-kommerzielles, ehrenamtlich betriebenes Community-Projekt."
+        ]
+      },
+      "disputes": {
+        "heading": "Streitschlichtung",
+        "body": [
+          "Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen."
+        ]
+      }
+    }
+  }
+}
