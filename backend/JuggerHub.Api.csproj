@@ -59,6 +59,11 @@
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.16.15" />
+    <!-- Feature 034 (#98): server-side image processing (decode/guard/resize/strip/re-encode).
+         Pure-managed (no native binary) so behavior is identical across local/Dev/Prod.
+         First imaging dependency — deliberately supersedes the 003-profile "no new NuGet
+         packages" bar (recorded drift). Behind IImageProcessor so it stays swappable. -->
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 
 </Project>

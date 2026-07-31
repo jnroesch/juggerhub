@@ -6,6 +6,9 @@ using JuggerHub.Data;
 using JuggerHub.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace JuggerHub.Api.IntegrationTests.Profile;
 
@@ -228,7 +231,53 @@ public sealed class ProfileTests
         // Read as the authenticated owner (feature 026 — a private profile's avatar isn't anonymous).
         var avatar = await client.GetAsync($"/api/v1/profiles/{handle}/avatar");
         Assert.Equal(HttpStatusCode.OK, avatar.StatusCode);
-        Assert.Equal("image/png", avatar.Content.Headers.ContentType?.MediaType);
+        // Feature 034 (#98): uploads are normalized and re-encoded to WebP before storage.
+        Assert.Equal("image/webp", avatar.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
+    public async Task Avatar_upload_normalizes_a_large_image_to_a_small_webp()
+    {
+        var (client, handle, _) = await RegisterVerifyLoginAsync();
+
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(LargePng(out var sourceLength)), "file", "avatar.png");
+        var upload = await client.PutAsync("/api/v1/profiles/me/avatar", content);
+        Assert.Equal(HttpStatusCode.NoContent, upload.StatusCode);
+
+        var avatar = await client.GetAsync($"/api/v1/profiles/{handle}/avatar");
+        Assert.Equal(HttpStatusCode.OK, avatar.StatusCode);
+        Assert.Equal("image/webp", avatar.Content.Headers.ContentType?.MediaType);
+
+        var stored = await avatar.Content.ReadAsByteArrayAsync();
+        Assert.True(stored.Length < sourceLength, "stored WebP should be smaller than the uploaded PNG");
+    }
+
+    [Fact]
+    public async Task Avatar_upload_rejection_leaves_existing_avatar_unchanged()
+    {
+        var (client, handle, _) = await RegisterVerifyLoginAsync();
+
+        // Set a valid avatar first.
+        using (var good = new MultipartFormDataContent())
+        {
+            good.Add(new ByteArrayContent(MinimalPng()), "file", "avatar.png");
+            (await client.PutAsync("/api/v1/profiles/me/avatar", good)).EnsureSuccessStatusCode();
+        }
+
+        var before = await (await client.GetAsync($"/api/v1/profiles/{handle}/avatar")).Content.ReadAsByteArrayAsync();
+
+        // A corrupt/non-image upload must be rejected...
+        using (var bad = new MultipartFormDataContent())
+        {
+            bad.Add(new ByteArrayContent("this is not an image"u8.ToArray()), "file", "avatar.png");
+            var rejected = await client.PutAsync("/api/v1/profiles/me/avatar", bad);
+            Assert.Equal(HttpStatusCode.BadRequest, rejected.StatusCode);
+        }
+
+        // ...and must leave the previously stored avatar byte-for-byte unchanged (FR-009).
+        var after = await (await client.GetAsync($"/api/v1/profiles/{handle}/avatar")).Content.ReadAsByteArrayAsync();
+        Assert.Equal(before, after);
     }
 
     // --- US4: recent activity -------------------------------------------------
@@ -332,7 +381,44 @@ public sealed class ProfileTests
         await db.SaveChangesAsync();
     }
 
-    /// <summary>A minimal but valid 1x1 PNG (correct magic bytes).</summary>
-    private static byte[] MinimalPng() => Convert.FromBase64String(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==");
+    /// <summary>
+    /// A small, genuinely decodable PNG. It must be synthesized rather than a hard-coded blob:
+    /// feature 034 (#98) decodes every upload, so a byte-string with the right magic bytes but a
+    /// bad IDAT CRC — which earlier magic-byte-only validation happily accepted — is now
+    /// (correctly) rejected as unreadable.
+    /// </summary>
+    private static byte[] MinimalPng()
+    {
+        using var img = new Image<Rgba32>(8, 8, new Rgba32(10, 120, 200));
+        using var ms = new MemoryStream();
+        img.Save(ms, new PngEncoder());
+        return ms.ToArray();
+    }
+
+    /// <summary>
+    /// A 1000x800 photo-like PNG — large enough that the normalized WebP is smaller. The content
+    /// is smooth/continuous-tone on purpose: PNG compresses synthetic high-frequency noise into a
+    /// handful of KB that lossy WebP cannot beat, which would break the comparison for reasons
+    /// that have nothing to do with the pipeline.
+    /// </summary>
+    private static byte[] LargePng(out int length)
+    {
+        using var img = new Image<Rgba32>(1000, 800);
+        for (var y = 0; y < img.Height; y++)
+        {
+            for (var x = 0; x < img.Width; x++)
+            {
+                img[x, y] = new Rgba32(
+                    (byte)(128 + (127 * Math.Sin(x * 0.01))),
+                    (byte)(128 + (127 * Math.Sin(y * 0.013))),
+                    (byte)(128 + (127 * Math.Sin((x + y) * 0.007))));
+            }
+        }
+
+        using var ms = new MemoryStream();
+        img.Save(ms, new PngEncoder());
+        var bytes = ms.ToArray();
+        length = bytes.Length;
+        return bytes;
+    }
 }
