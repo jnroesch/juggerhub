@@ -6,20 +6,19 @@ import { LegalPageComponent } from '../legal-page.component';
  * JSON key order, so the document's structure is explicit and a reordered catalog cannot quietly
  * reshuffle a legal text.
  *
- * The order tells a story: who we are → what we hold, roughly in the order you encounter it →
- * how we measure → what we rely on → who else sees it → how long → what you can do about it.
+ * The sections are deliberately organised by **category of data and purpose**, not by product
+ * feature. An earlier draft had one section per feature (profile, chat, location, trainings,
+ * marketplace…) and would have needed an edit — to a legally binding document, in three languages
+ * — every time a feature shipped. A stale privacy policy is worse than a general one, so the
+ * categories are written to absorb new features rather than enumerate the current ones.
+ *
+ * The order tells a story: who we are → what we hold → why we may → how we measure → why that
+ * needs no banner → what's on your device → who else is involved → how long → what you can do.
  */
 export const PRIVACY_SECTIONS = [
   'controller',
-  'account',
-  'email',
-  'profile',
-  'location',
-  'chat',
-  'participation',
-  'eventContacts',
-  'media',
-  'language',
+  'whatWeHold',
+  'whyAndOnWhatBasis',
   'analytics',
   'legalBasis',
   'storage',

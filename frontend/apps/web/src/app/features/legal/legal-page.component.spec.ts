@@ -94,25 +94,51 @@ describe('Legal pages (feature 036)', () => {
     });
 
     /**
-     * FR-006 / SC-003. The verbatim-path disclosure is the reason this feature exists; a policy
-     * that quietly drops it would look complete and be false. Assert on the substance, not on
-     * the presence of a heading.
+     * FR-006 / SC-003, and the one thing in this document that must stay specific.
+     *
+     * The policy is otherwise written in general categories on purpose, so it survives new
+     * features without an edit. This disclosure is the exception: recording page addresses
+     * verbatim means the analytics store names the profiles and teams that were viewed, and that
+     * is the entire reason issue #92 exists. A generic "we collect usage data" would hide exactly
+     * what the feature was created to reveal. Asserted on substance, not on a heading.
      */
-    it('discloses that page addresses are recorded verbatim, including profile and team paths', () => {
-      const fixture = render(PrivacyComponent);
-      const text: string = fixture.nativeElement.textContent;
-
-      expect(text).toContain('/u/alex');
-      expect(text).toContain('/t/wolves');
-      expect(text.toLowerCase()).toContain('exactly as it is');
-    });
-
-    /** FR-009: the policy must not describe a control that does not exist. */
-    it('states that there is no self-service export or account deletion', () => {
+    it('discloses that page addresses are recorded verbatim, naming the profile or team viewed', () => {
       const fixture = render(PrivacyComponent);
       const text: string = fixture.nativeElement.textContent.toLowerCase();
 
-      expect(text).toContain('no self-service button');
+      expect(text).toContain('exactly as it is');
+      expect(text).toContain("contains that member's or team's name");
+      expect(text).toContain('which profiles and team pages were looked at');
+      // The counterpart matters as much: the viewer is never identified.
+      expect(text).toContain('never shows who was looking');
+    });
+
+    /**
+     * FR-009: the policy must describe a route that is actually honoured. "Write to us and we'll
+     * take care of it" stays true whether or not a self-service control exists later — unlike the
+     * earlier wording, which asserted no such control existed and would have dated the moment one
+     * shipped (#105).
+     */
+    it('gives a working route for exercising rights', () => {
+      const fixture = render(PrivacyComponent);
+      const text: string = fixture.nativeElement.textContent;
+
+      expect(text).toContain('hello@juggerhub.com');
+      expect(text.toLowerCase()).toContain("we'll take care of it");
+    });
+
+    /**
+     * The maintainability decision itself, guarded. An earlier draft enumerated every feature by
+     * name, so shipping a feature silently dated a legally binding document in three languages.
+     * These names are the ones most likely to creep back in.
+     */
+    it('describes categories rather than enumerating product features', () => {
+      const fixture = render(PrivacyComponent);
+      const text: string = fixture.nativeElement.textContent.toLowerCase();
+
+      for (const featureName of ['marketplace', 'mercenary', 'badge', 'achievement', 'pompfen', 'party']) {
+        expect(text).not.toContain(featureName);
+      }
     });
 
     /** PC-3: the heading hierarchy is the screen-reader navigation. It must not skip a level. */

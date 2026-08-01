@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-07-31",
+    "lastUpdated": "2026-08-01",
     "lastUpdatedLabel": "Last updated {{date}}",
     "authoritativeNotice": "This is a translation for your convenience. The German version is the binding one — if the two ever disagree, the German text governs.",
     "tocLabel": "On this page",
@@ -17,8 +17,8 @@
   "privacy": {
     "title": "Privacy",
     "intro": [
-      "JuggerHub is a community site for Jugger players. To make it work we hold some information about you — your email address, your profile, your messages, and which teams and events you're part of.",
-      "This page says what we hold, why we hold it, who else sees it, and what you can do about it. We've tried to write it in plain language rather than the usual wall of clauses. Where something is awkward, we've said so rather than smoothing it over."
+      "JuggerHub is a community site for Jugger players. To make it work we hold some information about you.",
+      "This page says what we hold, why, who else is involved, how long we keep it, and what you can do about it. We've written it in plain language rather than the usual wall of clauses, and we've described things in a way that should stay true as the site grows rather than needing a rewrite every time we add something."
     ],
     "sections": {
       "controller": {
@@ -28,127 +28,76 @@
           "If you have a question about your data, or want to exercise any of the rights further down, write to hello@juggerhub.com. A person reads it — there is no ticketing system."
         ]
       },
-      "account": {
-        "heading": "Your account",
+      "whatWeHold": {
+        "heading": "What we hold",
         "body": [
-          "When you register we store your email address, a username, and your password. The password is never stored as you typed it — only as an argon2 hash, which cannot be turned back into your password.",
-          "We also store your account's state (active, suspended, or banned) and when it last changed, so moderation decisions are auditable.",
-          "Each time you sign in we record a session, and that record includes the IP address the sign-in came from. We keep it as a security measure: it's what lets us tell a legitimate session from a stolen one. It is not used for analytics or for anything else.",
-          "We need this to give you an account at all, so the basis is the contract between you and us."
+          "Your account — the email address and username you register with, your password (only ever as an argon2 hash, which can't be turned back into your password), and technical details of each sign-in, including the network address it came from. We keep that as a security measure: it's what lets a legitimate session be told from a stolen one.",
+          "What you put on the platform — your profile, where you're based, photos you upload, and how you take part in the community: teams, events, training, and whatever else the site grows to offer. This part expands as JuggerHub does; anything new works the same way as what's already here.",
+          "Your messages. They're stored on our servers so they're there when you come back, and they are not end-to-end encrypted — someone with database access could in principle read them. We keep that access tightly limited, but we'd rather tell you than let you assume otherwise. Conversations can also outlive the team or event they belonged to, so the people who were in them keep their own history.",
+          "Your settings, such as the language you read the site in and which notifications you want.",
+          "Some of what members write can include details about other people — an organiser listing a contact person for an event, say. If you've been named somewhere and would rather not be, ask whoever put it there, or write to us and we'll deal with it.",
+          "Treat what you put on the community side of the site as visible to other members — that's what it's for. Your profile is the exception: it's private by default, and if you switch it to public it becomes readable by anyone who has the direct link."
         ]
       },
-      "email": {
-        "heading": "Email we send you",
+      "whyAndOnWhatBasis": {
+        "heading": "Why we hold it, and what allows us to",
         "body": [
-          "We send email for things the site can't work without — confirming your address, resetting your password, invitations, and notifications you've asked for. You control which notification emails you get in your notification settings.",
-          "Email is delivered by a provider on our behalf; see \"Who else processes your data\" below. That provider necessarily sees your address and the content of the message.",
-          "The basis is the contract for account email, and your consent for anything optional."
-        ]
-      },
-      "profile": {
-        "heading": "Your profile",
-        "body": [
-          "Your profile holds what you choose to put in it: display name, the pompfen you play, a short description, your home city, and a photo if you upload one.",
-          "Your profile is private by default. Signed-in members can find you; nobody who isn't signed in can. If you switch your profile to public, it becomes readable by anyone who has the direct link to it — that is what public means here. It does not get listed anywhere for search engines, but it also isn't secret once the link exists.",
-          "You can change or empty any of these fields at any time, and switching back to private takes effect immediately."
-        ]
-      },
-      "location": {
-        "heading": "Where you're based",
-        "body": [
-          "You can set a home city so other players can find teams and events near you. We store the city you pick, not a precise location — there is no GPS, no address, and no tracking of where you actually are.",
-          "Cities come from a list we ship with the site. Choosing one does not send anything to an outside mapping or geocoding service."
-        ]
-      },
-      "chat": {
-        "heading": "Messages",
-        "body": [
-          "Direct messages, group chats, team chats and admin inquiries are stored on our servers so they're there when you come back. They are not end-to-end encrypted: in principle, someone with database access could read them. We keep that access tightly limited, but we would rather tell you than let you assume otherwise.",
-          "One thing that surprises people: when a team is deleted or an event is cancelled, its conversations are not deleted. They're archived as a snapshot, so the people who were in them keep their own history. If you'd rather that didn't happen to a conversation you're in, write to us.",
-          "You can block another member, which stops them messaging you."
-        ]
-      },
-      "participation": {
-        "heading": "Teams, events, training and the marketplace",
-        "body": [
-          "We store which teams you're in, which events and training sessions you've signed up for, which parties you've joined, and any mercenary listings or requests you've made.",
-          "This is visible to other members — that's the point of it. Your teammates can see you're on the roster; people at an event can see you're going. Treat anything you put here as visible to the community, not as private.",
-          "We also store badges and achievements awarded to you, and the notifications generated for you."
-        ]
-      },
-      "eventContacts": {
-        "heading": "Contact details on events",
-        "body": [
-          "An event's organisers can list contact people for it — a name, a role, and optionally a phone number or email address, so attendees know who to reach on the day.",
-          "This is the one place where the platform can hold details about someone who does not have a JuggerHub account, because an organiser can type in anybody. If you have been listed as a contact and would rather not be, ask the event's organisers to remove you, or write to us and we will.",
-          "These details are visible to members who can see the event. The basis is the organiser's legitimate interest in running the event, and where the contact is a third party, we act on removal requests without argument."
-        ]
-      },
-      "media": {
-        "heading": "Photos you upload",
-        "body": [
-          "If you upload a profile photo, we process it (resize and re-encode it) and store the resulting image file with our cloud storage provider. The original file is not kept.",
-          "Images are never served directly from that storage. Every request goes through JuggerHub, which checks whether you're allowed to see the image first. There is no public link to the underlying file."
-        ]
-      },
-      "language": {
-        "heading": "Your language",
-        "body": [
-          "If you're signed in and pick a language, we store that choice on your account so it follows you between devices. If you're not signed in, the choice is stored in your own browser and never reaches us."
+          "To give you an account and run the parts of the site you've chosen to use. That rests on the agreement between you and us.",
+          "To send you email the site can't work without, like confirming your address or resetting your password. Anything optional, such as notifications, goes out only because you asked for it, and you can change that whenever you like in your settings.",
+          "To keep the platform safe and deal with abuse — our legitimate interest, and in places a legal obligation.",
+          "To understand how the site is used. That one gets its own section below, because it deserves one."
         ]
       },
       "analytics": {
         "heading": "How we measure visits",
         "body": [
-          "We measure how the site is used, so we know which parts are worth working on. It runs on our own servers — no data goes to Google Analytics or any other outside analytics company.",
-          "It sets no cookie and stores nothing on your device. It does not record your account, your username, your email address, or your full IP address. Nothing in the analytics data says who was doing the browsing.",
-          "There is one thing we want to be straightforward about, because it's the part people would reasonably object to. We record the address of each page viewed exactly as it is — and some page addresses contain a member's username or a team's name, like /u/alex or /t/wolves. So the analytics data does show which member profiles and team pages were looked at, and when. It never shows who was looking.",
-          "We record the path only, never the part of the address after a question mark. That's deliberate: it's where deep links and return addresses live, and those would have carried more than we intended.",
-          "If you'd rather not be measured at all, see \"How to object\" at the end of this page — it takes one browser setting and we honour it."
+          "We measure how the site is used so we know which parts are worth working on. It runs on our own servers, and the measurement data isn't sent to an outside analytics company.",
+          "It sets no cookie and stores nothing on your device. It doesn't record your account, your username, your email address, or your full network address. Nothing in it says who was doing the browsing.",
+          "One part deserves to be said plainly, because it's the part a reader could reasonably object to. We record the address of each page viewed exactly as it is — and the address of a member's profile page, or a team's page, contains that member's or team's name. So the measurement data does show which profiles and team pages were looked at, and when. It never shows who was looking.",
+          "We record the address only as far as the question mark, never the part after it. That's where deep links and return addresses live, and they would have carried more than we intended.",
+          "If you'd rather not be measured at all, see the last section on this page. It takes one browser setting and we honour it."
         ]
       },
       "legalBasis": {
-        "heading": "What we rely on to do this",
+        "heading": "Why there's no cookie banner",
         "body": [
           "Two questions get muddled together a lot, so we'll take them one at a time.",
-          "First: cookie consent. The rule that makes sites ask permission is about storing things on your device. Our analytics stores nothing on your device — no cookie, no local storage, nothing — so that rule simply isn't engaged. The only cookie we set is the one that keeps you signed in, which is necessary for a service you asked for and is exempt. That's why you don't see a cookie banner here. It isn't an oversight, and it isn't us being clever with the wording.",
-          "Second: the legal basis for the measuring itself. Because page addresses can name a member or a team, that data is personal data, and it needs a basis regardless of the cookie question. We rely on legitimate interest.",
-          "Here is the balancing, so you can judge it rather than take our word for it. Our interest is knowing which parts of a volunteer-run community site are actually used, so limited effort goes where it helps. The impact on you is narrow: nothing identifies you as the viewer, nothing is stored on your device, nothing leaves our servers, the data isn't combined with your account or used to build any profile of you, and it's never used to make a decision about you. What remains is that a page naming you may show up in a list of viewed pages. We think that's proportionate to running the site well — and because it's legitimate interest and not consent, you have an absolute right to object, which we've made a single setting rather than a form.",
-          "Everything else on this page rests on the contract between you and us (having an account, being in a team, receiving messages), on your consent where you opted in (optional notification email), or on our legal obligations."
+          "The rule that makes sites ask permission is about storing things on your device. Our measurement stores nothing on your device — no cookie, no local storage, nothing — so that rule isn't engaged. The only cookie we set is the one that keeps you signed in, which is necessary for a service you asked for and is exempt. That's why you don't see a banner here. It isn't an oversight, and it isn't us being clever with the wording.",
+          "The separate question is what allows the measuring itself. Because a page address can name a member or a team, that data is personal data and needs a basis regardless of the cookie question. We rely on legitimate interest.",
+          "Here is the balancing, so you can judge it rather than take our word for it. Our interest is knowing which parts of a volunteer-run community site are actually used, so that limited effort goes where it helps. The effect on you is narrow: nothing identifies you as the viewer, nothing is stored on your device, the data isn't combined with your account or used to build any profile of you, and it's never used to make a decision about you. What remains is that a page naming you can appear in a list of pages viewed. We think that's proportionate to running the site well — and because it's legitimate interest rather than consent, you have an absolute right to object, which we've made a single setting rather than a form."
         ]
       },
       "storage": {
         "heading": "Cookies and what's kept in your browser",
         "body": [
-          "A sign-in cookie, which is how the site knows you're you. It's set with httpOnly, so JavaScript can't read it. Without it you can't stay signed in.",
-          "If you're not signed in and pick a language, that choice is stored in your browser. It stays there and is never sent to us.",
-          "That's all. Analytics adds nothing, and there are no advertising, tracking, or third-party cookies of any kind."
+          "A sign-in cookie, which is how the site knows you're you. It's set with httpOnly, so JavaScript can't read it, and without it you can't stay signed in.",
+          "If you're not signed in and pick a language, that choice is kept in your browser and never sent to us.",
+          "We don't use cookies for advertising, and we don't use anything to follow you across other sites."
         ]
       },
       "processors": {
-        "heading": "Who else processes your data",
+        "heading": "Who else is involved",
         "body": [
-          "Microsoft Azure hosts the whole application — the servers, the database, and the storage holding uploaded images. Everything we hold is therefore stored on their infrastructure, in their West Europe region (the Netherlands), inside the EU.",
-          "Resend delivers our email. They see the recipient address and the message content of anything we send you. This applies to the live site; a local development copy sends nothing anywhere.",
-          "That's the complete list, and the absences are worth stating too. There is no third-party analytics service. There is no advertising network. There is no outside mapping or geocoding service — the city list ships with the site. And the fonts are bundled with the site rather than fetched from Google Fonts, so loading a page makes no request to Google.",
-          "Where a provider processes data outside the EU, that transfer is covered by the standard contractual clauses in our agreement with them."
+          "We use a small number of service providers to run the site, under contracts that only let them handle data on our instructions: a cloud provider that hosts the application, its database and uploaded files (Microsoft Azure, in their West Europe region, inside the EU), and a provider that delivers our email (Resend), which necessarily sees the recipient's address and the message itself.",
+          "Where a provider handles data outside the EU, that transfer is covered by the standard contractual clauses in our agreement with them.",
+          "We don't sell your data, and we don't pass it to anyone for advertising."
         ]
       },
       "retention": {
-        "heading": "How long we keep things",
+        "heading": "How long we keep it",
         "body": [
-          "We'll be straight with you, because a made-up number would be worse than the truth: JuggerHub has no automatic deletion running today. Nothing expires on a schedule. Your data stays until your account is deleted, and account deletion happens when you ask us for it.",
-          "We'd rather say that plainly than publish a retention period the site doesn't actually apply. Building proper retention is on the list.",
-          "Analytics data is the one thing that is genuinely limited by design — it holds no identifier for you in the first place, so there is nothing in it to delete on your behalf."
+          "As a rule, what we hold stays for as long as you have an account. Ask us to delete your account and we'll delete what we hold about you.",
+          "Some things outlive that of necessity — a message you sent is part of someone else's conversation, and anything we're legally required to keep has to stay for as long as the law says.",
+          "The measurement data is limited by its nature rather than by a schedule: it holds no identifier for you in the first place, so there's nothing in it to delete on your behalf."
         ]
       },
       "rights": {
         "heading": "Your rights",
         "body": [
-          "Under EU data protection law you can ask for a copy of what we hold about you, ask us to correct it, ask us to delete it, ask us to restrict what we do with it, ask for it in a portable form, and object to processing based on legitimate interest.",
-          "Right now there is no self-service button for any of this — no export, no delete-my-account control in the settings. We're telling you that rather than pointing you at a feature that doesn't exist. The route is to write to the contact address in the imprint, and we'll do it by hand. Making these self-service is planned work.",
-          "The exception is objecting to analytics, which you can do yourself in seconds — see the next section.",
-          "You can also complain to a data protection supervisory authority. Ours is the Hamburg Commissioner for Data Protection and Freedom of Information (Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit), Ludwig-Erhard-Str. 22, 20459 Hamburg. You can also go to the authority where you live."
+          "You can ask for a copy of what we hold about you, ask us to correct it, ask us to delete it, ask us to limit what we do with it, ask for it in a portable form, and object to anything we do on the basis of legitimate interest.",
+          "Write to hello@juggerhub.com and we'll take care of it.",
+          "The one exception is objecting to measurement, which you can do yourself in seconds — see the next section.",
+          "You can also complain to a data protection supervisory authority. Ours is Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg. You can go to the authority where you live instead."
         ]
       },
       "objection": {
@@ -157,7 +106,7 @@
           "Turn on \"Do Not Track\" (or Global Privacy Control) in your browser. That's it — from then on we record nothing at all for you.",
           "You'll usually find it under Settings → Privacy. In Firefox it's \"Tell websites not to sell or share my data\". In Safari and Brave a similar setting is on by default. In Chrome it's under Privacy and security.",
           "Plenty of sites ignore that signal. We don't: when it's on, no measurement is sent and nothing is recorded. It applies immediately, needs no account, and there's nothing to switch back on.",
-          "To object to anything else on this page, write to the contact address in the imprint."
+          "To object to anything else on this page, write to hello@juggerhub.com."
         ]
       }
     }

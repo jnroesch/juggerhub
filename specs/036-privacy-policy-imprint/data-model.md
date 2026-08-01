@@ -33,20 +33,14 @@ legal
 │   ├── toc.*                  # section labels, one per `sections` child
 │   └── sections
 │       ├── controller         # FR-007 — who is responsible
-│       ├── account            # FR-004 — email, password hash, status, session IP
-│       ├── email              # FR-004 — transactional email
-│       ├── profile            # FR-004 — incl. the opt-in public-visibility model
-│       ├── location           # FR-004 — home city
-│       ├── chat               # FR-004 — incl. snapshot archival, not deletion
-│       ├── participation      # FR-004 — teams, events, trainings, parties, market
-│       ├── media              # FR-004 — avatars and where the bytes live
-│       ├── language           # FR-004 — interface language preference
+│       ├── whatWeHold         # FR-004 — all data categories, by CATEGORY not feature
+│       ├── whyAndOnWhatBasis  # FR-005 — purposes + lawful bases, other than analytics
 │       ├── analytics          # FR-006 — incl. the verbatim-path disclosure
 │       ├── legalBasis         # FR-010/FR-014 — legitimate interest + balancing test
 │       ├── storage            # FR-011 — cookies and device storage
-│       ├── processors         # FR-008 — Resend, Azure, and the absences
-│       ├── retention          # FR-005 — the honest position (see below)
-│       ├── rights             # FR-009 — routes that are actually honoured
+│       ├── processors         # FR-008 — hosting and email delivery
+│       ├── retention          # FR-005 — how long, framed durably
+│       ├── rights             # FR-009 — a route that is actually honoured
 │       └── objection          # FR-013 — the DNT/GPC opt-out, in plain language
 └── imprint
     ├── title
@@ -59,6 +53,18 @@ Each `sections.*` node is `{ heading, body[] }`, where `body` is an **array of p
 Paragraphs are separate array entries rather than one string containing markup, so no HTML is
 interpolated and no `[innerHTML]` binding is introduced anywhere (plan Constitution Check,
 Principle I).
+
+**Ten sections, organised by category rather than by feature** (spec Clarifications, 2026-08-01).
+An earlier revision had sixteen — one per product area — which meant every shipped feature dated a
+legally binding document in three languages. `whatWeHold` now absorbs what were separate `account`,
+`profile`, `location`, `chat`, `participation`, `eventContacts`, `media` and `language` sections,
+worded so a new way to take part is covered without an edit here. The table further down still
+enumerates the entities, because *the audit* must be exhaustive even though the prose is not.
+
+The section list is duplicated as `PRIVACY_SECTIONS` in `privacy.component.ts` — deliberately, so
+rendering never depends on JSON key order — and a test asserts the two agree, since a section
+present in the catalog but missing from the order would be a disclosure that silently never
+renders.
 
 ### Invariants
 

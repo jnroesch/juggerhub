@@ -107,21 +107,20 @@ A visitor who has read the policy and does not want their page views recorded fi
 
 #### Privacy policy content
 
-- **FR-004**: The privacy policy MUST cover **every category of personal data the platform actually processes**, at minimum:
-  - account and authentication data — email address, password (stored only as a hash), account status, sign-in session records including the originating network address retained for security auditing (features 002, 013)
-  - transactional email sent to the member's address (features 002, 028)
-  - profile data, including the **opt-in public-profile visibility model** — what a private profile does and does not expose, and what changes when a member makes their profile public (features 003, 026)
-  - home city / structured location (feature 030)
-  - chat messages and direct messages, including that message content is stored and that conversations are archived as snapshots rather than vanishing when a team or event ends (features 019, 022, 027)
-  - team, event, training, party and marketplace participation, and the fact that this participation is visible to other members
-  - uploaded images — profile avatars — and where the image bytes are stored (features 034, 035)
-  - interface language preference (feature 031)
-  - analytics as introduced by feature 033
-- **FR-005**: For each category, the policy MUST state **what is collected, why, on what legal basis, how long it is kept, and who it is disclosed to**.
+- **FR-004**: The privacy policy MUST account for **every category of personal data the platform actually processes**, organised by **category of data and purpose rather than by product feature** (Clarifications, 2026-08-01). Nothing the platform processes may fall outside what the policy describes, but the description is written to absorb new features rather than enumerate current ones. The categories are at minimum:
+  - **account and authentication** — email address, password (stored only as a hash), account status, and sign-in session records including the originating network address retained for security auditing (features 002, 013)
+  - **transactional email** sent to the member's address (features 002, 028)
+  - **what a member publishes on the platform** — profile, location, uploaded images, and participation in the community surfaces (features 003, 005–018, 026, 030, 034, 035). This category MUST be worded so a newly added way to take part is covered **without an edit**, and MUST still convey the **opt-in public-profile visibility model** and that community content is visible to other members.
+  - **details a member supplies about other people**, who may have no account (`EventContact` stores a name, phone number and email address)
+  - **messages** — that content is stored, is not end-to-end encrypted, and that conversations can outlive the team or event they belonged to (features 019, 022, 027)
+  - **settings**, such as interface language and notification preferences (features 011, 031)
+  - **analytics** as introduced by feature 033
+- **FR-004a**: The policy MUST NOT name product features where a category would serve, and MUST NOT make **negative claims about the absence of a practice** (e.g. "no advertising network", "we do not load Google Fonts", "there is no self-service export") — except the no-consent-banner reasoning in FR-014, where the absence *is* the disclosure. Such statements are true only at the moment of writing and go silently false; a privacy policy that is quietly wrong is worse than one that is general. Durable **commitments** ("we don't sell your data") are permitted; snapshots of the current implementation are not.
+- **FR-005**: For each category, the policy MUST state **what is collected, why, on what legal basis, how long it is kept, and who it is disclosed to** — at the granularity of the category, not of each feature within it.
 - **FR-006**: The policy MUST disclose the **analytics processing as it actually behaves**, specifically: that it is self-hosted and sends nothing to a third party (033 FR-009); that it sets no cookie and stores nothing on the device (033 FR-006); that no identifier of the *viewer* is stored (033 FR-005); **and that page addresses are recorded verbatim (033 FR-008), so addresses naming a member profile or team page are recorded as such**. The last point MUST NOT be omitted or softened — it is the reason this feature exists.
 - **FR-007**: The policy MUST name the **responsible party (controller)** and a contact for data-protection matters.
 - **FR-008**: The policy MUST list the **third parties that process personal data on the platform's behalf**, at minimum the email delivery provider used in Dev and Prod (Resend) and the cloud hosting and object-storage provider (Microsoft Azure), and MUST state where that processing takes place and — where it leaves the EU — on what transfer basis.
-- **FR-009**: The policy MUST describe the reader's **rights** — access, rectification, erasure, restriction, portability, objection, and complaint to a supervisory authority — and, for each, the **route that is actually honoured today**. Because no self-service export or deletion exists, the described route MUST be the manual contact route; the policy MUST NOT describe a self-service control that does not exist.
+- **FR-009**: The policy MUST describe the reader's **rights** — access, rectification, erasure, restriction, portability, objection, and complaint to a supervisory authority — and give a **route that is actually honoured**. Since no self-service export or deletion exists (#105), that route is a contact address. Per FR-004a the wording MUST be framed as what *does* happen ("write to us and we'll take care of it") rather than as an assertion that no control exists, so it stays true if one later ships. The policy MUST NOT point at a control that does not exist.
 - **FR-010**: The policy MUST state the **legal basis relied on for analytics** and, if that basis is one the reader can object to, MUST describe the objection route concretely (see FR-013).
 - **FR-011**: The policy MUST disclose the **cookies and device storage the application itself uses** — the authentication session cookie and any locally stored preference such as the anonymous language choice — and distinguish them from analytics, which stores nothing.
 - **FR-012**: The policy MUST carry a **"last updated" date** that is visible on the page.
@@ -168,6 +167,12 @@ None. This feature introduces **no new persisted data**. Its content is versione
 - **SC-010**: After this feature ships, the period during which JuggerHub measures EU visitors with no privacy disclosure is **closed** — measurable as: the policy is live in Prod and names the FR-008 processing.
 
 ## Clarifications
+
+### Session 2026-08-01
+
+- **Q: How specific should the policy be about individual features?** → A: **Organise by category of data and purpose, not by feature** (FR-004, FR-004a). The first implementation had one section per feature — profile, location, chat, participation, media, language — which meant every shipped feature silently dated a legally binding document in three languages, one of which is authoritative. Owner's judgement, and correct: the maintenance burden made staleness the likely outcome, and a privacy policy that is quietly wrong is worse than one that is general. The categories are worded to absorb new features ("teams, events, training, and whatever else the site grows to offer") so that adding a feature needs no edit here.
+- **Q: Should the policy state what the platform does *not* do?** → A: **No** (FR-004a). Statements like "no advertising network", "no third-party analytics", "the fonts are not loaded from Google Fonts" and "there is no self-service export" were removed. Each was true when written and each would go false without anyone noticing — the worst failure mode for a legal document. Durable *commitments* stay ("we don't sell your data", "we don't pass it to anyone for advertising"), because those are promises rather than snapshots. The single exception is the no-consent-banner reasoning, where the absence of device storage **is** the disclosure and is what makes the missing banner correct.
+- **The one thing that stays specific**: the verbatim page-path disclosure (FR-006). Genericising it to "we collect usage data" would hide precisely the processing this feature exists to reveal, so it is exempt from the rule above and is guarded by a test.
 
 ### Session 2026-07-31
 

@@ -114,16 +114,28 @@ has a concrete target:
 
 | Claim | Verify against |
 |---|---|
-| The data-category list is complete | `backend/Entities/` — see the table in [../data-model.md](../data-model.md) |
+| Every data category the platform holds falls inside one of the policy's categories | `backend/Entities/` — see the table in [../data-model.md](../data-model.md) |
 | Analytics behaviour: no cookie, no device storage, no viewer identifier, verbatim paths, no query strings | `specs/033-umami-analytics/spec.md` FR-005 to FR-009a |
-| Processors: Resend (email, Dev/Prod), Azure (hosting, storage) — and nothing else | constitution Technology Stack; `infra/` for the configured region |
-| No geocoding processor | no Photon service in compose or `infra/`; `backend/Services/Geocoding/CityService.cs` reads seeded rows |
-| No Google Fonts request | faces ship via `@fontsource` (DESIGN.md Typography) |
+| Processors named: Azure (hosting, storage, `westeurope`), Resend (email) | constitution Technology Stack; `infra/envs/*.tfvars` |
 | Session records retain an originating IP | `backend/Entities/RefreshToken.cs` → `CreatedByIp` |
-| Chat is snapshotted, not deleted, on team delete / event cancel | features 019, 027 |
-| No automated retention or deletion runs | no scheduled purge exists |
-| No self-service export or account deletion exists | `backend/Controllers`, `backend/Services`, frontend — none found |
+| Conversations can outlive the team/event they belonged to | features 019, 027 (snapshot archival) |
+| Messages are not end-to-end encrypted | `backend/Entities/ChatMessage.cs` — content stored in plain columns |
+| Members can enter details about non-members | `backend/Entities/EventContact.cs` — name, phone, email |
 | The DNT/GPC opt-out actually works | **re-verified end to end in this feature**, not cited from 033 (research R5) |
 
-The last row is deliberate: the policy will describe DNT as a working opt-out, so this feature
-proves it rather than trusting it.
+The last row is deliberate: the policy describes DNT as a working opt-out, so this feature proves
+it rather than trusting it.
+
+**The audit is exhaustive; the prose is not.** Since 2026-08-01 the policy is written in categories
+rather than per feature (spec Clarifications), so this review checks *coverage* — that nothing the
+platform holds falls outside a stated category — rather than that each feature is named. A new
+feature normally needs **no policy edit**; it needs a check that it fits an existing category, and
+a new category only if it genuinely does not.
+
+**Claims removed, and why they must not come back** (FR-004a): "no third-party analytics service",
+"no advertising network", "no geocoding processor", "no Google Fonts", "no automated retention runs
+today", "there is no self-service export or deletion". Each was verified and true when written, and
+each would have gone false without anyone noticing — a legal document asserting something that
+quietly stopped being true. Durable commitments ("we don't sell your data") are fine and stayed.
+The single exception is the no-consent-banner reasoning, where the absence of device storage *is*
+the disclosure.
