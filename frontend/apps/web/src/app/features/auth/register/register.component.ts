@@ -10,7 +10,7 @@ import { problemDetail } from '../../../core/utils/problem';
 import { safeReturnUrl } from '../../../core/utils/return-url';
 import { PasswordRulesComponent } from '../password-policy/password-rules.component';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ButtonDirective, AlertComponent, CardComponent } from '../../../shared/ui';
+import { LegalLinksComponent, ButtonDirective, AlertComponent, CardComponent } from '../../../shared/ui';
 import { LanguageSwitcherComponent } from '../../settings/language/language-switcher.component';
 
 /** URL-safe handle: lowercase alphanumeric segments joined by single hyphens. */
@@ -25,7 +25,7 @@ type HandleState = 'idle' | 'checking' | 'available' | 'unavailable';
  */
 @Component({
   selector: 'jh-register',
-  imports: [ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent, CardComponent, LanguageSwitcherComponent, TranslocoPipe],
+  imports: [LegalLinksComponent, ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent, CardComponent, LanguageSwitcherComponent, TranslocoPipe],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
 })

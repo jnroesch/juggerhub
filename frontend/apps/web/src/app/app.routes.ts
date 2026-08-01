@@ -218,6 +218,24 @@ export const appRoutes: Route[] = [
       },
     ],
   },
+  // Legal pages (feature 036) — full-screen, outside the shell, and deliberately UNGUARDED.
+  //
+  // These are the two documented exceptions to the authenticated-only rule from feature 026,
+  // alongside the opt-in public profile. Do NOT add authGuard here by reflex: a policy behind
+  // the sign-in wall fails its own purpose, since the reader who most needs it is the one
+  // deciding whether to hand over an email address in the first place.
+  //
+  // They also make NO backend call — not for content, not to probe the session. A 401-triggered
+  // refresh would redirect a reader away from a page they are legally entitled to see.
+  // See specs/036-privacy-policy-imprint/contracts/routes.md (RC-1, RC-2).
+  {
+    path: 'privacy',
+    loadComponent: () => import('./features/legal/privacy/privacy.component').then((m) => m.PrivacyComponent),
+  },
+  {
+    path: 'imprint',
+    loadComponent: () => import('./features/legal/imprint/imprint.component').then((m) => m.ImprintComponent),
+  },
   // Auth screens are full-screen, outside the shell.
   { path: 'sign-in', component: SignInComponent },
   { path: 'register', component: RegisterComponent },

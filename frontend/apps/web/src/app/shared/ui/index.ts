@@ -15,3 +15,5 @@ export type { AlertTone } from './alert/alert.component';
 export { EmptyStateComponent } from './empty-state/empty-state.component';
 export { PageContainerComponent } from './page/page-container.component';
 export type { PageWidth } from './page/page-container.component';
+export { LegalLinksComponent } from './legal-links/legal-links.component';
+export type { LegalLinksVariant } from './legal-links/legal-links.component';

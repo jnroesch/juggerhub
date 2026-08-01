@@ -627,6 +627,12 @@
     "chat": "Chat",
     "alerts": "Alerts"
   },
+  "legal": {
+    "footerLabel": "Legal and site information",
+    "privacy": "Privacy",
+    "imprint": "Imprint",
+    "copyright": "JuggerHub — a community project"
+  },
   "auth": {
     "email": "Email",
     "password": "Password",

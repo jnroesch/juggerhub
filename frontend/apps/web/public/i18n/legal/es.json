@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "lastUpdated": "2026-08-01",
+    "lastUpdatedLabel": "Última actualización: {{date}}",
+    "authoritativeNotice": "Esta es una traducción de cortesía. La versión alemana es la vinculante: si ambas difieren, prevalece el texto en alemán.",
+    "tocLabel": "En esta página",
+    "loadErrorTitle": "No pudimos cargar esta página",
+    "loadErrorBody": "Algo falló al recuperar el texto. Vuelve a intentarlo — y si sigue sin funcionar, escríbenos a la dirección del aviso legal y te lo enviamos directamente.",
+    "retry": "Reintentar"
+  },
+  "crossLink": {
+    "toPrivacy": "Privacidad",
+    "toImprint": "Aviso legal",
+    "toPrivacyLong": "Leer la política de privacidad",
+    "toImprintLong": "Quién gestiona JuggerHub"
+  },
+  "privacy": {
+    "title": "Privacidad",
+    "intro": [
+      "JuggerHub es un sitio comunitario para jugadoras y jugadores de Jugger. Para que funcione guardamos cierta información sobre ti.",
+      "Esta página explica qué guardamos, por qué, quién más lo ve y qué puedes hacer al respecto. La hemos escrito en lenguaje claro en lugar del muro de cláusulas habitual. Donde algo resulta incómodo, lo decimos en vez de suavizarlo."
+    ],
+    "sections": {
+      "controller": {
+        "heading": "Quién es responsable",
+        "body": [
+          "JuggerHub lo gestiona Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburgo, Alemania, responsable del tratamiento de todo lo descrito en esta página.",
+          "Si tienes una pregunta sobre tus datos o quieres ejercer alguno de los derechos que se detallan más abajo, escribe a hello@juggerhub.com. Lo lee una persona: no hay sistema de tickets."
+        ]
+      },
+      "whatWeHold": {
+        "heading": "Qué guardamos",
+        "body": [
+          "Tu cuenta: la dirección de correo y el nombre de usuario con los que te registras, y tu contraseña — que solo guardamos como un hash argon2, así que no puede revertirse a tu contraseña. Cada inicio de sesión queda registrado junto con la dirección IP desde la que se hizo. Es una medida de seguridad: es lo que permite distinguir una sesión real de una robada.",
+          "Todo lo que pones en el sitio: tu perfil, dónde te ubicas, las fotos que subes y cómo participas — equipos, eventos, entrenamientos y aquello en lo que JuggerHub se vaya convirtiendo. Considéralo todo visible para otros miembros, porque para eso está. La excepción es tu perfil: privado por defecto, y público solo si lo cambias, momento en el que cualquiera con el enlace puede leerlo.",
+          "Tus mensajes. Viven en nuestros servidores para que sigan ahí cuando vuelvas, y no están cifrados de extremo a extremo: alguien con acceso a la base de datos podría leerlos en principio. Mantenemos ese acceso muy restringido, pero preferimos decírtelo a que supongas lo contrario. Algo que sorprende a mucha gente: una conversación puede sobrevivir al equipo o evento al que pertenecía, para que quienes participaron conserven su propio historial.",
+          "Lo que escribes sobre otras personas: por ejemplo, cuando la organización de un evento indica una persona de contacto. Si figuras en algún sitio y prefieres no hacerlo, díselo a quien lo puso, o escríbenos y lo arreglamos.",
+          "Tus ajustes: el idioma en que lees el sitio y qué notificaciones quieres recibir."
+        ]
+      },
+      "whyAndOnWhatBasis": {
+        "heading": "Por qué lo guardamos y qué nos habilita",
+        "body": [
+          "Para darte una cuenta y hacer funcionar las partes del sitio que usas. Ese es el acuerdo entre tú y nosotros (art. 6.1.b RGPD).",
+          "Para enviarte los correos sin los que el sitio no funciona: confirmar tu dirección, restablecer la contraseña. Lo demás, como las notificaciones, solo sale porque lo has pedido (art. 6.1.a RGPD), y puedes cambiar de idea en tus ajustes cuando quieras.",
+          "Para mantener el sitio seguro y lidiar con quienes abusan de él. Ese es nuestro interés legítimo (art. 6.1.f RGPD), y en algunos puntos lo exige la ley (art. 6.1.c RGPD).",
+          "Para entender cómo se usa el sitio. Eso tiene su propia sección, porque se la merece."
+        ]
+      },
+      "analytics": {
+        "heading": "Cómo medimos las visitas",
+        "body": [
+          "Medimos cómo se usa el sitio para saber en qué partes merece la pena el trabajo. Funciona en nuestros propios servidores, y las cifras no van a ninguna empresa externa de analítica.",
+          "No instala ninguna cookie ni guarda nada en tu dispositivo. No registra tu cuenta, tu nombre de usuario, tu correo ni tu dirección IP completa. Nada en ellas dice quién estaba navegando.",
+          "Hay una cosa que queremos decir sin rodeos, porque es la parte a la que razonablemente pondrías objeción. Registramos la dirección de cada página vista tal cual es, y la dirección del perfil de alguien, o la de un equipo, lleva su nombre dentro. Así que las cifras sí muestran qué perfiles y qué páginas de equipo se consultaron, y cuándo. Nunca muestran quién las consultó.",
+          "Registramos la dirección solo hasta el signo de interrogación, nunca lo que viene después. Ahí viven los enlaces profundos y las direcciones de retorno, que habrían arrastrado más de lo que pretendíamos.",
+          "Si prefieres que no se te mida en absoluto, la última sección de esta página te dice cómo. Es un ajuste del navegador, y lo respetamos."
+        ]
+      },
+      "legalBasis": {
+        "heading": "Por qué aquí no hay aviso de cookies",
+        "body": [
+          "Se mezclan a menudo dos preguntas, así que aquí están una a una.",
+          "La norma que hace que los sitios pidan permiso trata sobre almacenar cosas en tu dispositivo. La nuestra no almacena nada ahí — ni cookie, ni almacenamiento local, nada — así que la norma no aplica. La única cookie que instalamos te mantiene con la sesión iniciada, necesaria para algo que has pedido, y eso está exento. Por eso no hay aviso. No es un descuido ni un juego de palabras.",
+          "La pregunta distinta es qué habilita la medición en sí. La dirección de una página puede nombrar a un miembro o a un equipo, así que son datos personales, y necesitan una base digan lo que digan las normas de cookies. Nos basamos en el interés legítimo (art. 6.1.f RGPD).",
+          "Aquí está la ponderación, para que la juzgues tú en lugar de creernos. Queremos saber qué partes de un sitio gestionado por voluntariado se usan de verdad, para que el tiempo limitado vaya donde ayuda. Lo que te cuesta es poco: nada te señala como quien mira, nada aterriza en tu dispositivo, no se vincula a tu cuenta ni se convierte en un perfil sobre ti, y nunca alimenta una decisión que te afecte. Lo que queda es que una página con tu nombre dentro puede aparecer en una lista de páginas vistas. Nos parece un trato justo para gestionar bien el sitio — y como es interés legítimo y no consentimiento, puedes oponerte sin más, y lo hemos hecho un solo ajuste en vez de un formulario."
+        ]
+      },
+      "storage": {
+        "heading": "Cookies y qué queda en tu navegador",
+        "body": [
+          "Una cookie de sesión. Es cómo el sitio sabe que eres tú, se instala con httpOnly así que JavaScript no puede leerla, y sin ella no puedes mantener la sesión iniciada.",
+          "Si tienes la sesión cerrada y eliges un idioma, esa elección se queda en tu navegador y nunca llega hasta nosotros.",
+          "No usamos cookies para mostrarte publicidad ni para seguirte por otros sitios."
+        ]
+      },
+      "processors": {
+        "heading": "Quién más interviene",
+        "body": [
+          "Unos pocos proveedores nos ayudan a hacer funcionar el sitio, cada uno con un contrato que solo les permite tratar datos siguiendo nuestras instrucciones. Microsoft Azure aloja la aplicación, su base de datos y los archivos subidos, en su región West Europe dentro de la UE. Resend entrega nuestro correo, y necesariamente ve a quién va y qué dice.",
+          "Cuando un proveedor trata datos fuera de la UE, lo cubren las cláusulas contractuales tipo de nuestro acuerdo.",
+          "No vendemos tus datos y no se los entregamos a nadie con fines publicitarios."
+        ]
+      },
+      "retention": {
+        "heading": "Cuánto tiempo lo conservamos",
+        "body": [
+          "Por norma, lo que guardamos permanece mientras tengas una cuenta. Pídenos que lo borremos y lo haremos.",
+          "Algo de ello sobrevive a eso porque tiene que ser así. Un mensaje que enviaste forma parte de la conversación de otra persona. Lo que la ley nos obliga a conservar, lo conservamos el tiempo que la ley diga.",
+          "Las cifras de medición están limitadas por lo que son, no por un reloj: no hay ningún identificador tuyo en ellas, así que no hay nada ahí que borrar en tu nombre."
+        ]
+      },
+      "rights": {
+        "heading": "Tus derechos",
+        "body": [
+          "Puedes pedir una copia de lo que guardamos sobre ti (art. 15 RGPD), pedir que lo corrijamos (art. 16), que lo borremos (art. 17), que limitemos su tratamiento (art. 18), obtenerlo en una forma que puedas llevarte a otro sitio (art. 20) y oponerte a todo lo que hagamos sobre la base del interés legítimo (art. 21).",
+          "Escribe a hello@juggerhub.com y lo arreglamos.",
+          "La excepción es oponerte a la medición: lleva segundos y puedes hacerlo tú. Va justo aquí debajo.",
+          "También puedes reclamar ante una autoridad de protección de datos. La nuestra es Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburgo. La de tu lugar de residencia vale igual."
+        ]
+      },
+      "objection": {
+        "heading": "Cómo oponerte a que se te mida",
+        "body": [
+          "Activa «Do Not Track» (o Global Privacy Control) en tu navegador. Ya está: a partir de ahí no registramos absolutamente nada de ti.",
+          "Suele estar en Ajustes → Privacidad. Firefox lo llama «Indicar a los sitios web que no vendan ni compartan mis datos». Safari y Brave tienen algo parecido activado por defecto. En Chrome está en Privacidad y seguridad.",
+          "Muchos sitios ignoran esa señal. Nosotros no: cuando está activada, no se envía nada y no se registra nada. Surte efecto de inmediato, no requiere cuenta y no hay nada que volver a activar.",
+          "Para cualquier otra cosa de esta página, escribe a hello@juggerhub.com."
+        ]
+      }
+    }
+  },
+  "imprint": {
+    "title": "Aviso legal",
+    "intro": [
+      "Información exigida por el § 5 DDG (antes § 5 TMG)."
+    ],
+    "sections": {
+      "operator": {
+        "heading": "Quién gestiona este sitio",
+        "body": [
+          "Jan Niklas Rösch",
+          "Lattenkamp 12",
+          "22299 Hamburgo",
+          "Alemania"
+        ]
+      },
+      "contact": {
+        "heading": "Contacto",
+        "body": [
+          "Correo: hello@juggerhub.com",
+          "Es también la dirección para cuestiones de protección de datos y para ejercer cualquiera de los derechos descritos en la política de privacidad."
+        ]
+      },
+      "responsibility": {
+        "heading": "Responsable de los contenidos",
+        "body": [
+          "Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburgo, Alemania (§ 18 ap. 2 MStV)",
+          "JuggerHub es un proyecto comunitario sin ánimo de lucro gestionado por voluntariado."
+        ]
+      },
+      "disputes": {
+        "heading": "Resolución de conflictos",
+        "body": [
+          "No estamos obligados ni dispuestos a participar en procedimientos de resolución de conflictos ante una junta de arbitraje de consumo."
+        ]
+      }
+    }
+  }
+}

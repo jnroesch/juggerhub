@@ -391,6 +391,47 @@ so they get the same care as the happy path. **Reassure, don't alarm.**
   or replace loaded content with a spinner while refreshing — keep what's there and let
   the quiet line do the talking.
 
+## Long-form content
+
+Most of JuggerHub is cards, lists and forms. A few pages are **documents** —
+sustained prose someone reads top to bottom rather than scans: the privacy
+policy and the imprint today, anything similar later. They get their own
+treatment, built entirely from the tokens above; nothing new is introduced.
+
+- **Measure** — the content column caps at `container-sm` (**640px**), not the
+  `container-lg` used for ordinary pages. That is ≈70–75 characters at
+  `body-md`, the width at which the eye reliably finds the next line. The wider
+  container widths are for scanning layouts; a document is read, not scanned.
+- **Body** — `body-md` (16px, line-height 1.5), `text-body`. Paragraph rhythm
+  comes from the spacing scale (`sm` between paragraphs, `2xl` between
+  sections). **Not `section-gap`** — that token is page-level rhythm between
+  major page regions; applied between the sections of a long document it turns
+  a readable text into a scroll marathon.
+- **Headings** — `h1` for the document title, `h2` per section, `h3` per
+  subsection, in the usual display face. **Levels never skip** — the hierarchy is
+  the navigation for anyone using a screen reader, and a skipped level breaks it
+  silently for exactly the readers who most need it to work.
+- **Meta line** — directly under the `h1`, at the `caption` step in
+  `text-subtle`: the "last updated" date, and for translated legal documents a
+  note on which language version is authoritative. Present, never competing.
+- **Table of contents** — for a document long enough to need one, anchored `h2`
+  links at the top. Section `id`s stay stable so an external deep link keeps
+  working.
+- **Links in prose are underlined.** This is a deliberate departure from
+  navigation links elsewhere in the app, which are colour-only. In a wall of
+  text, colour alone is a weak affordance and no affordance at all for a
+  colour-blind reader — the same reasoning as "never rely on colour alone" for
+  status.
+- **Lists** — `disc` / `decimal`, indented on the spacing scale, at the body
+  step. Lists carry the load in legal text; they are content, not decoration.
+- **Restraint** — no cards, no shadows, no gradient strip, no accent fields. A
+  document page is text on the page background. Nothing on it competes for
+  attention with the words.
+- **Voice** — the warm, sentence-case "you" voice still applies. Legal content
+  is precise, not stiff: *"We keep your messages until you ask us to delete your
+  account,"* not *"Message data shall be retained for the duration of the
+  account lifecycle."* Precision and plain language are not in tension.
+
 ## Iconography
 
 - **Icon set: [Lucide](https://lucide.dev)** — friendly, rounded, 2px-stroke

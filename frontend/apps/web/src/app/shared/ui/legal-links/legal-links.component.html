@@ -1,0 +1,23 @@
+<nav
+  *transloco="let t"
+  data-testid="legal-links"
+  [attr.aria-label]="t('legal.footerLabel')"
+  class="flex flex-wrap items-center gap-x-md gap-y-xs text-body-sm text-muted"
+  [class.justify-center]="variant() === 'inline'"
+>
+  <a
+    routerLink="/privacy"
+    data-testid="legal-link-privacy"
+    class="rounded-sm text-link underline underline-offset-2 transition-colors duration-fast hover:text-link-hover"
+    >{{ t('legal.privacy') }}</a
+  >
+  <a
+    routerLink="/imprint"
+    data-testid="legal-link-imprint"
+    class="rounded-sm text-link underline underline-offset-2 transition-colors duration-fast hover:text-link-hover"
+    >{{ t('legal.imprint') }}</a
+  >
+  @if (variant() === 'footer') {
+    <span class="text-subtle">{{ t('legal.copyright') }}</span>
+  }
+</nav>

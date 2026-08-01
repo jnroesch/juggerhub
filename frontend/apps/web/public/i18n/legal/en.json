@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "lastUpdated": "2026-08-01",
+    "lastUpdatedLabel": "Last updated {{date}}",
+    "authoritativeNotice": "This is a translation for your convenience. The German version is the binding one — if the two ever disagree, the German text governs.",
+    "tocLabel": "On this page",
+    "loadErrorTitle": "We couldn't load this page",
+    "loadErrorBody": "Something went wrong fetching the text. Give it another go — and if it keeps failing, write to us at the address in the imprint and we'll send it to you directly.",
+    "retry": "Try again"
+  },
+  "crossLink": {
+    "toPrivacy": "Privacy",
+    "toImprint": "Imprint",
+    "toPrivacyLong": "Read the privacy policy",
+    "toImprintLong": "See who runs JuggerHub"
+  },
+  "privacy": {
+    "title": "Privacy",
+    "intro": [
+      "JuggerHub is a community site for Jugger players. To make it work we hold some information about you.",
+      "This page says what we hold, why, who else sees it, and what you can do about it. We've written it in plain language rather than the usual wall of clauses. Where something is awkward, we've said so rather than smoothing it over."
+    ],
+    "sections": {
+      "controller": {
+        "heading": "Who is responsible",
+        "body": [
+          "JuggerHub is run by Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburg, Germany — the controller for everything described on this page.",
+          "If you have a question about your data, or want to exercise any of the rights further down, write to hello@juggerhub.com. A person reads it — there is no ticketing system."
+        ]
+      },
+      "whatWeHold": {
+        "heading": "What we hold",
+        "body": [
+          "Your account: the email address and username you sign up with, and your password — which we only ever store as an argon2 hash, so it can't be turned back into your password. Every sign-in is recorded along with the network address it came from. That's a security measure; it's what lets a real session be told apart from a stolen one.",
+          "Whatever you put on the site: your profile, where you're based, photos you upload, and how you join in — teams, events, training, and whatever else JuggerHub grows into. Treat all of it as visible to other members, because that's what it's for. Your profile is the exception. It's private by default, and public only if you switch it, at which point anyone with the link can read it.",
+          "Your messages. They live on our servers so they're there when you come back, and they aren't end-to-end encrypted — someone with database access could in principle read them. We keep that access tightly limited, but we'd rather tell you than let you assume otherwise. One thing that surprises people: a conversation can outlive the team or event it belonged to, so everyone who was in it keeps their own history.",
+          "Things you write about other people — an organiser naming a contact for an event, say. If you've been named somewhere and would rather not be, tell whoever put it there, or write to us and we'll sort it.",
+          "Your settings: the language you read the site in, and which notifications you want."
+        ]
+      },
+      "whyAndOnWhatBasis": {
+        "heading": "Why we hold it, and what allows us to",
+        "body": [
+          "To give you an account and run the parts of the site you use. That's the agreement between you and us.",
+          "To send the email the site can't work without — confirming your address, resetting your password. Anything else, like notifications, only goes out because you asked for it, and you can change your mind in your settings whenever.",
+          "To keep the place safe and deal with people who abuse it. That's our legitimate interest, and in places the law requires it.",
+          "To understand how the site gets used. That one gets its own section, because it deserves one."
+        ]
+      },
+      "analytics": {
+        "heading": "How we measure visits",
+        "body": [
+          "We measure how the site is used, so we know which parts are worth the work. It runs on our own servers, and the numbers don't go to an outside analytics company.",
+          "It sets no cookie and stores nothing on your device. It doesn't record your account, your username, your email, or your full network address. Nothing in it says who was doing the browsing.",
+          "There's one thing we want to be straightforward about, because it's the part you'd reasonably object to. We record the address of every page viewed exactly as it is — and the address of someone's profile, or a team's page, has their name in it. So the numbers do show which profiles and team pages got looked at, and when. They never show who was looking.",
+          "We record the address only up to the question mark, never what comes after. That's where deep links and return addresses live, and they'd have carried more than we meant them to.",
+          "If you'd rather not be measured at all, the last section on this page tells you how. It's one browser setting, and we honour it."
+        ]
+      },
+      "legalBasis": {
+        "heading": "Why there's no cookie banner",
+        "body": [
+          "Two questions get muddled together, so here they are one at a time.",
+          "The rule that makes sites ask permission is about storing things on your device. Ours stores nothing there — no cookie, no local storage, nothing — so the rule doesn't apply. The one cookie we set keeps you signed in, which is necessary for something you asked for, and that's exempt. So there's no banner. It isn't an oversight, and it isn't us being clever with the wording.",
+          "The separate question is what allows the measuring itself. A page address can name a member or a team, so that's personal data, and it needs a basis whatever the cookie rules say. We rely on legitimate interest.",
+          "Here's the balancing, so you can judge it rather than take our word for it. We want to know which parts of a volunteer-run site actually get used, so the limited time goes where it helps. What it costs you is narrow: nothing marks you as the viewer, nothing lands on your device, it isn't tied to your account or built into a profile of you, and it never feeds a decision about you. What's left is that a page with your name in it can show up in a list of pages viewed. We think that's a fair trade for running the site well — and since it's legitimate interest rather than consent, you can object outright, which we've made one setting instead of a form."
+        ]
+      },
+      "storage": {
+        "heading": "Cookies and what's kept in your browser",
+        "body": [
+          "A sign-in cookie. It's how the site knows you're you, it's set httpOnly so JavaScript can't read it, and without it you can't stay signed in.",
+          "If you're signed out and pick a language, that choice stays in your browser and never reaches us.",
+          "We don't use cookies to advertise to you, or to follow you around other sites."
+        ]
+      },
+      "processors": {
+        "heading": "Who else is involved",
+        "body": [
+          "A few providers help us run the site, each under a contract that only lets them handle data on our instructions. Microsoft Azure hosts the application, its database and uploaded files, in their West Europe region inside the EU. Resend delivers our email, and necessarily sees who it's going to and what it says.",
+          "Where a provider handles data outside the EU, the standard contractual clauses in our agreement cover it.",
+          "We don't sell your data, and we don't hand it to anyone for advertising."
+        ]
+      },
+      "retention": {
+        "heading": "How long we keep it",
+        "body": [
+          "As a rule, what we hold stays as long as you have an account. Ask us to delete it and we will.",
+          "Some of it outlives that because it has to. A message you sent is part of someone else's conversation. Anything the law requires us to keep, we keep for as long as the law says.",
+          "The measurement numbers are limited by what they are rather than by a clock: there's no identifier for you in them, so there's nothing there to delete on your behalf."
+        ]
+      },
+      "rights": {
+        "heading": "Your rights",
+        "body": [
+          "You can ask for a copy of what we hold about you, ask us to fix it, ask us to delete it, ask us to limit what we do with it, ask for it in a form you can take elsewhere, and object to anything we do on the basis of legitimate interest.",
+          "Write to hello@juggerhub.com and we'll sort it.",
+          "The exception is objecting to measurement, which takes seconds and you can do yourself. That's next.",
+          "You can also complain to a data protection authority. Ours is Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg. The one where you live works too."
+        ]
+      },
+      "objection": {
+        "heading": "How to object to being measured",
+        "body": [
+          "Turn on \"Do Not Track\" (or Global Privacy Control) in your browser. That's it — from then on we record nothing at all for you.",
+          "It's usually under Settings → Privacy. Firefox calls it \"Tell websites not to sell or share my data\". Safari and Brave have something similar on by default. In Chrome it's under Privacy and security.",
+          "Plenty of sites ignore that signal. We don't: when it's on, nothing is sent and nothing is recorded. It works immediately, needs no account, and there's nothing to switch back on.",
+          "For anything else on this page, write to hello@juggerhub.com."
+        ]
+      }
+    }
+  },
+  "imprint": {
+    "title": "Imprint",
+    "intro": [
+      "Information required under § 5 DDG (formerly § 5 TMG)."
+    ],
+    "sections": {
+      "operator": {
+        "heading": "Who runs this site",
+        "body": [
+          "Jan Niklas Rösch",
+          "Lattenkamp 12",
+          "22299 Hamburg",
+          "Germany"
+        ]
+      },
+      "contact": {
+        "heading": "Contact",
+        "body": [
+          "Email: hello@juggerhub.com",
+          "This is also the address for data protection questions and for exercising any of the rights described in the privacy policy."
+        ]
+      },
+      "responsibility": {
+        "heading": "Responsible for content",
+        "body": [
+          "Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburg, Germany (§ 18 (2) MStV)",
+          "JuggerHub is a non-commercial community project run by volunteers."
+        ]
+      },
+      "disputes": {
+        "heading": "Dispute resolution",
+        "body": [
+          "We are neither obliged nor willing to take part in dispute resolution proceedings before a consumer arbitration board."
+        ]
+      }
+    }
+  }
+}

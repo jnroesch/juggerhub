@@ -1,0 +1,150 @@
+{
+  "meta": {
+    "lastUpdated": "2026-08-01",
+    "lastUpdatedLabel": "Zuletzt aktualisiert am {{date}}",
+    "authoritativeNotice": "Dies ist die verbindliche Fassung.",
+    "tocLabel": "Auf dieser Seite",
+    "loadErrorTitle": "Diese Seite konnte nicht geladen werden",
+    "loadErrorBody": "Beim Laden des Textes ist etwas schiefgegangen. Versuch es noch einmal — und falls es weiterhin nicht klappt, schreib uns an die Adresse im Impressum, dann schicken wir dir den Text direkt zu.",
+    "retry": "Erneut versuchen"
+  },
+  "crossLink": {
+    "toPrivacy": "Datenschutz",
+    "toImprint": "Impressum",
+    "toPrivacyLong": "Datenschutzerklärung lesen",
+    "toImprintLong": "Wer JuggerHub betreibt"
+  },
+  "privacy": {
+    "title": "Datenschutz",
+    "intro": [
+      "JuggerHub ist eine Community-Seite für Jugger-Spielerinnen und -Spieler. Damit sie funktioniert, speichern wir einige Informationen über dich.",
+      "Auf dieser Seite steht, was wir speichern, warum, wer es sonst noch sieht und was du dagegen tun kannst. Wir haben das in verständlicher Sprache geschrieben statt in der üblichen Klauselwand. Wo etwas unangenehm ist, sagen wir es, statt es schönzureden."
+    ],
+    "sections": {
+      "controller": {
+        "heading": "Wer verantwortlich ist",
+        "body": [
+          "JuggerHub wird betrieben von Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburg, Deutschland. Er ist für alles auf dieser Seite Beschriebene die verantwortliche Stelle im Sinne der DSGVO.",
+          "Wenn du eine Frage zu deinen Daten hast oder eines der weiter unten genannten Rechte ausüben möchtest, schreib an hello@juggerhub.com. Dort liest ein Mensch mit — es gibt kein Ticketsystem."
+        ]
+      },
+      "whatWeHold": {
+        "heading": "Was wir speichern",
+        "body": [
+          "Dein Konto: die E-Mail-Adresse und den Benutzernamen, mit denen du dich anmeldest, und dein Passwort — das wir immer nur als argon2-Hash speichern, aus dem sich dein Passwort nicht zurückrechnen lässt. Jede Anmeldung wird zusammen mit der IP-Adresse festgehalten, von der sie kam. Das ist eine Sicherheitsmaßnahme: Nur so lässt sich eine echte Sitzung von einer gestohlenen unterscheiden.",
+          "Alles, was du auf der Seite einträgst: dein Profil, wo du zu Hause bist, Fotos, die du hochlädst, und wie du mitmachst — Teams, Events, Trainings und alles, wozu JuggerHub noch wächst. Betrachte das alles als für andere Mitglieder sichtbar, denn dafür ist es da. Die Ausnahme ist dein Profil: standardmäßig privat, öffentlich nur, wenn du es umstellst — und dann für alle lesbar, die den Link haben.",
+          "Deine Nachrichten. Sie liegen auf unseren Servern, damit sie noch da sind, wenn du wiederkommst, und sie sind nicht Ende-zu-Ende-verschlüsselt — wer Zugriff auf die Datenbank hat, könnte sie grundsätzlich lesen. Wir halten diesen Zugriff eng begrenzt, sagen es dir aber lieber, als dass du vom Gegenteil ausgehst. Eines überrascht viele: Eine Unterhaltung kann das Team oder Event überdauern, zu dem sie gehörte, damit alle Beteiligten ihren eigenen Verlauf behalten.",
+          "Was du über andere Personen einträgst — etwa wenn eine Organisation eine Ansprechperson für ein Event nennt. Wenn du irgendwo genannt bist und das nicht möchtest, wende dich an diejenigen, die es eingetragen haben, oder schreib uns, dann regeln wir das.",
+          "Deine Einstellungen: die Sprache, in der du die Seite liest, und welche Benachrichtigungen du bekommen möchtest."
+        ]
+      },
+      "whyAndOnWhatBasis": {
+        "heading": "Warum wir das speichern und was uns dazu berechtigt",
+        "body": [
+          "Um dir ein Konto zu geben und die Teile der Seite zu betreiben, die du nutzt. Das ist die Vereinbarung zwischen dir und uns (Art. 6 Abs. 1 lit. b DSGVO).",
+          "Um die E-Mails zu schicken, ohne die die Seite nicht funktioniert — Adresse bestätigen, Passwort zurücksetzen. Alles andere, etwa Benachrichtigungen, geht nur raus, weil du darum gebeten hast (Art. 6 Abs. 1 lit. a DSGVO), und du kannst es dir in deinen Einstellungen jederzeit anders überlegen.",
+          "Um die Seite sicher zu halten und mit denen umzugehen, die sie missbrauchen. Das ist unser berechtigtes Interesse (Art. 6 Abs. 1 lit. f DSGVO), und stellenweise verlangt es das Gesetz (Art. 6 Abs. 1 lit. c DSGVO).",
+          "Um zu verstehen, wie die Seite genutzt wird. Das bekommt einen eigenen Abschnitt, weil es einen verdient."
+        ]
+      },
+      "analytics": {
+        "heading": "Wie wir Besuche messen",
+        "body": [
+          "Wir messen, wie die Seite genutzt wird, um zu wissen, welche Teile die Arbeit wert sind. Das läuft auf unseren eigenen Servern, und die Zahlen gehen nicht an ein externes Statistikunternehmen.",
+          "Es wird kein Cookie gesetzt und nichts auf deinem Gerät gespeichert. Weder dein Konto noch dein Benutzername, deine E-Mail-Adresse oder deine vollständige IP-Adresse werden erfasst. Nichts darin sagt aus, wer da gesurft hat.",
+          "Eines wollen wir ausdrücklich klarstellen, weil es der Punkt ist, an dem du berechtigterweise Anstoß nehmen würdest. Wir erfassen die Adresse jeder aufgerufenen Seite genau so, wie sie lautet — und in der Adresse eines Profils oder einer Teamseite steht der jeweilige Name. Aus den Zahlen geht deshalb hervor, welche Profile und Teamseiten wann aufgerufen wurden. Nie geht daraus hervor, wer sie aufgerufen hat.",
+          "Wir erfassen die Adresse nur bis zum Fragezeichen, nie das, was danach kommt. Dort stehen Deep Links und Rücksprungadressen, die mehr mitgeführt hätten, als wir beabsichtigt haben.",
+          "Wenn du überhaupt nicht gemessen werden möchtest: Im letzten Abschnitt dieser Seite steht, wie. Es ist eine Browser-Einstellung, und wir halten uns daran."
+        ]
+      },
+      "legalBasis": {
+        "heading": "Warum es hier kein Cookie-Banner gibt",
+        "body": [
+          "Zwei Fragen werden oft vermischt, deshalb hier nacheinander.",
+          "Die Regel, wegen der Seiten um Erlaubnis fragen, betrifft das Speichern von Informationen auf deinem Gerät (§ 25 TDDDG). Unsere speichert dort nichts — kein Cookie, kein Local Storage, nichts — die Regel greift also nicht. Das eine Cookie, das wir setzen, hält dich angemeldet; das ist für etwas nötig, worum du gebeten hast, und damit ausgenommen. Deshalb gibt es hier kein Banner. Das ist kein Versehen und kein Formulierungstrick.",
+          "Die davon getrennte Frage ist, was das Messen selbst erlaubt. Eine Seitenadresse kann ein Mitglied oder ein Team benennen, also sind das personenbezogene Daten, und die brauchen eine Grundlage, ganz gleich was die Cookie-Regeln sagen. Wir stützen uns auf das berechtigte Interesse (Art. 6 Abs. 1 lit. f DSGVO).",
+          "Hier die Abwägung, damit du sie selbst beurteilen kannst, statt uns glauben zu müssen. Wir wollen wissen, welche Teile einer ehrenamtlich betriebenen Seite tatsächlich genutzt werden, damit die knappe Zeit dort landet, wo sie hilft. Was es dich kostet, ist wenig: Nichts weist dich als Betrachter aus, nichts landet auf deinem Gerät, es wird weder mit deinem Konto verknüpft noch zu einem Profil über dich zusammengeführt und fließt nie in eine Entscheidung über dich ein. Es bleibt, dass eine Seite mit deinem Namen darin in einer Liste aufgerufener Seiten auftauchen kann. Wir halten das für einen fairen Handel, um die Seite gut zu betreiben — und weil es berechtigtes Interesse und keine Einwilligung ist, kannst du rundheraus widersprechen, wozu wir eine einzige Einstellung statt eines Formulars gemacht haben."
+        ]
+      },
+      "storage": {
+        "heading": "Cookies und was in deinem Browser bleibt",
+        "body": [
+          "Ein Anmelde-Cookie. Darüber weiß die Seite, dass du du bist; es ist mit httpOnly gesetzt, JavaScript kann es also nicht auslesen, und ohne dieses Cookie kannst du nicht angemeldet bleiben.",
+          "Wenn du abgemeldet bist und eine Sprache auswählst, bleibt diese Auswahl in deinem Browser und erreicht uns nie.",
+          "Wir setzen keine Cookies, um dir Werbung zu zeigen oder dir über andere Seiten hinweg zu folgen."
+        ]
+      },
+      "processors": {
+        "heading": "Wer sonst noch beteiligt ist",
+        "body": [
+          "Ein paar Dienstleister helfen uns, die Seite zu betreiben, jeweils vertraglich gebunden, Daten nur nach unseren Weisungen zu verarbeiten. Microsoft Azure hostet die Anwendung, ihre Datenbank und hochgeladene Dateien, in der Region West Europe innerhalb der EU. Resend stellt unsere E-Mails zu und sieht dabei zwangsläufig, an wen sie gehen und was darin steht.",
+          "Soweit ein Dienstleister Daten außerhalb der EU verarbeitet, decken die Standardvertragsklauseln in unserem Vertrag das ab.",
+          "Wir verkaufen deine Daten nicht, und wir geben sie niemandem für Werbezwecke."
+        ]
+      },
+      "retention": {
+        "heading": "Wie lange wir Daten aufbewahren",
+        "body": [
+          "In der Regel bleibt das, was wir speichern, so lange, wie du ein Konto hast. Bitte uns, es zu löschen, und wir tun das.",
+          "Manches überdauert das, weil es muss. Eine Nachricht, die du geschrieben hast, ist Teil der Unterhaltung einer anderen Person. Was das Gesetz uns aufzubewahren vorschreibt, bewahren wir so lange auf, wie das Gesetz es sagt.",
+          "Die Messzahlen sind durch das begrenzt, was sie sind, nicht durch eine Frist: Es steckt keine Kennung für dich darin, also gibt es darin nichts, was für dich zu löschen wäre."
+        ]
+      },
+      "rights": {
+        "heading": "Deine Rechte",
+        "body": [
+          "Du kannst Auskunft über die zu dir gespeicherten Daten verlangen (Art. 15 DSGVO), ihre Berichtigung (Art. 16), ihre Löschung (Art. 17), die Einschränkung der Verarbeitung (Art. 18), die Herausgabe in einer Form, die du mitnehmen kannst (Art. 20), und Widerspruch gegen alles, was wir auf Grundlage berechtigten Interesses tun (Art. 21).",
+          "Schreib an hello@juggerhub.com, dann regeln wir das.",
+          "Die Ausnahme ist der Widerspruch gegen die Messung: Der dauert Sekunden und geht von allein. Das steht gleich hier drunter.",
+          "Du kannst dich außerdem bei einer Datenschutzbehörde beschweren. Für uns zuständig ist Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg. Die Behörde an deinem Wohnort geht genauso."
+        ]
+      },
+      "objection": {
+        "heading": "Wie du dem Messen widersprichst",
+        "body": [
+          "Aktiviere „Do Not Track\" (oder Global Privacy Control) in deinem Browser. Das war's — ab dann erfassen wir für dich überhaupt nichts mehr.",
+          "Das steht üblicherweise unter Einstellungen → Datenschutz. Firefox nennt es „Websites mitteilen, meine Daten nicht zu verkaufen oder weiterzugeben\". Safari und Brave haben etwas Vergleichbares standardmäßig an. In Chrome steht es unter Datenschutz und Sicherheit.",
+          "Viele Seiten ignorieren dieses Signal. Wir nicht: Ist es an, wird nichts gesendet und nichts erfasst. Es wirkt sofort, braucht kein Konto, und es gibt nichts wieder einzuschalten.",
+          "Für alles Weitere auf dieser Seite schreib an hello@juggerhub.com."
+        ]
+      }
+    }
+  },
+  "imprint": {
+    "title": "Impressum",
+    "intro": [
+      "Angaben gemäß § 5 DDG (vormals § 5 TMG)."
+    ],
+    "sections": {
+      "operator": {
+        "heading": "Wer diese Seite betreibt",
+        "body": [
+          "Jan Niklas Rösch",
+          "Lattenkamp 12",
+          "22299 Hamburg",
+          "Deutschland"
+        ]
+      },
+      "contact": {
+        "heading": "Kontakt",
+        "body": [
+          "E-Mail: hello@juggerhub.com",
+          "Das ist zugleich die Adresse für Datenschutzfragen und für die Ausübung der in der Datenschutzerklärung beschriebenen Rechte."
+        ]
+      },
+      "responsibility": {
+        "heading": "Inhaltlich verantwortlich",
+        "body": [
+          "Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburg, Deutschland (§ 18 Abs. 2 MStV)",
+          "JuggerHub ist ein nicht-kommerzielles, ehrenamtlich betriebenes Community-Projekt."
+        ]
+      },
+      "disputes": {
+        "heading": "Streitschlichtung",
+        "body": [
+          "Wir sind nicht verpflichtet und nicht bereit, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen."
+        ]
+      }
+    }
+  }
+}

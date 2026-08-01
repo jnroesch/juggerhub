@@ -4,7 +4,7 @@ import {
   isDevMode,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 import {
   provideHttpClient,
   withFetch,
@@ -29,7 +29,15 @@ export const appConfig: ApplicationConfig = {
     // withComponentInputBinding lets route params bind straight to component inputs — chat's
     // /chat/:conversationId feeds ChatConversationComponent's `conversationId` input this way,
     // so the open conversation is driven by the URL rather than a manual subscription.
-    provideRouter(appRoutes, withComponentInputBinding()),
+    // anchorScrolling makes the router actually scroll to the element named by a URL fragment
+    // (feature 036 — the privacy policy's table of contents). It only takes effect on navigations
+    // that carry a fragment, and nothing else in the app uses one, so it changes no existing
+    // behaviour. Without it the fragment lands in the URL and the page stays put.
+    provideRouter(
+      appRoutes,
+      withComponentInputBinding(),
+      withInMemoryScrolling({ anchorScrolling: 'enabled' }),
+    ),
     // All API calls are relative ("/api/v1/...") and same-origin via the nginx
     // proxy, so httpOnly auth cookies stay first-party. The auth interceptor
     // attaches credentials and routes 401s toward sign-in.

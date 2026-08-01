@@ -25,7 +25,16 @@
     <router-outlet />
   </main>
 
-  @if (!anonymous()) {
+  <!--
+    Legal footer (feature 036) — ANONYMOUS VISITORS ONLY (owner decision, 2026-08-01).
+    A signed-out visitor is exactly who a privacy policy is for, and they get it one click from
+    anywhere. A signed-in member has already made that decision, so carrying the links on every
+    screen is clutter; for them the same links live on the account page instead.
+    Placed after <main>, which reserves pb-[76px], so it clears the fixed mobile bottom bar.
+  -->
+  @if (anonymous()) {
+    <jh-app-footer />
+  } @else {
     <jh-bottom-nav />
   }
 </div>
