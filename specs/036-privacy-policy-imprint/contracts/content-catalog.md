@@ -90,19 +90,19 @@ everything else and marks those values with the sentinel `__TODO__`.
 
 **Guard**: the same test asserts no value in any legal catalog contains `__TODO__`.
 
-**This test fails until Q1 is answered, and that is the intended state.** The failure mode it
+**This test failed until Q1 was answered, and that was the intended state.** The failure mode it
 prevents is specific and realistic: the structure is complete, the page renders, review passes on
 everything visible, and a placeholder reaches Prod inside the one document whose content is legally
 prescribed. "We'll fill it in before deploy" is how that happens. A red build is not.
 
-Once the particulars are supplied, the sentinel disappears and the build goes green with no code
-change.
+**Resolved 2026-08-01.** The particulars were supplied, the sentinel disappeared, and the build went
+green **with no code change** — the guard worked as designed, start to finish.
 
-⚠ **Irreversible**: the values entering these files enter **public git history permanently** — this
-repository is public and history cannot be retracted. Research R4 explains why runtime injection was
-rejected as a false solution (the address is legally required to be published and is crawled within
-days anyway). The real decision is *which* address; a `c/o` or business address is the established
-German practice. Make that choice **before** the commit, not after.
+On the git-history warning that stood here: it was moot. The address was **already committed** to
+this public repository, in all three transactional email footers
+(`backend/EmailTemplates/{en,de,es}/footer.html`), so the imprint added no exposure. The rule the
+guard enforces is unchanged and still applies to anything added later: values in these files are
+permanent and public.
 
 ---
 

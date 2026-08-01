@@ -177,8 +177,16 @@ be retracted. The 033 feature established a real runtime-injection mechanism —
 Choose it accordingly, before the first commit that contains it — the plan therefore keeps the
 particulars in a single clearly-marked block so the decision is made once, deliberately.
 
-**Open dependency**: the particulars themselves (spec Open Questions, Q1). The plan proceeds with a
-marked placeholder block; see R8 for how that is prevented from shipping.
+**Resolved 2026-08-01 — and the objection was moot.** The owner supplied Jan Niklas Rösch,
+Lattenkamp 12, 22299 Hamburg, Germany, `hello@juggerhub.com`, and pointed out that the address is
+**already committed to this repository**: verified in `backend/EmailTemplates/{en,de,es}/footer.html`,
+where it is the postal address in every transactional email footer. So the one substantive cost of
+the committed-content decision — a permanent public git-history entry — did not exist; the entry
+was already there.
+
+Worth stating plainly rather than quietly dropping: the reasoning above was sound but the premise
+was unchecked. **Before designing around the cost of publishing a datum, check whether the
+repository already publishes it.** A single grep would have found this at plan time.
 
 ---
 

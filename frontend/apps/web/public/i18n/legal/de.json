@@ -24,8 +24,8 @@
       "controller": {
         "heading": "Wer verantwortlich ist",
         "body": [
-          "JuggerHub wird von der im Impressum genannten Person betrieben. Sie ist für alles auf dieser Seite Beschriebene die verantwortliche Stelle im Sinne der DSGVO.",
-          "Wenn du eine Frage zu deinen Daten hast oder eines der weiter unten genannten Rechte ausüben möchtest, schreib an die Kontaktadresse im Impressum. Dort liest ein Mensch mit — es gibt kein Ticketsystem."
+          "JuggerHub wird betrieben von Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburg, Deutschland. Er ist für alles auf dieser Seite Beschriebene die verantwortliche Stelle im Sinne der DSGVO.",
+          "Wenn du eine Frage zu deinen Daten hast oder eines der weiter unten genannten Rechte ausüben möchtest, schreib an hello@juggerhub.com. Dort liest ein Mensch mit — es gibt kein Ticketsystem."
         ]
       },
       "account": {
@@ -148,7 +148,7 @@
           "Nach der DSGVO kannst du Auskunft über die zu dir gespeicherten Daten verlangen (Art. 15), ihre Berichtigung (Art. 16), ihre Löschung (Art. 17), die Einschränkung der Verarbeitung (Art. 18), die Herausgabe in einem übertragbaren Format (Art. 20) und Widerspruch gegen die Verarbeitung auf Grundlage berechtigten Interesses (Art. 21).",
           "Derzeit gibt es dafür keine Schaltfläche zur Selbstbedienung — keinen Export, keine Konto-löschen-Funktion in den Einstellungen. Wir sagen dir das, statt dich auf eine Funktion zu verweisen, die es nicht gibt. Der Weg führt über die Kontaktadresse im Impressum; wir erledigen es dann von Hand. Diese Funktionen selbst bedienbar zu machen, ist geplant.",
           "Die Ausnahme ist der Widerspruch gegen die Statistik, den du in Sekunden selbst erklären kannst — siehe den nächsten Abschnitt.",
-          "Du kannst dich außerdem bei einer Datenschutz-Aufsichtsbehörde beschweren. Bei einer aus Deutschland betriebenen Seite ist das die Behörde des Bundeslandes der betreibenden Person; du kannst dich auch an die Behörde deines Wohnorts wenden."
+          "Du kannst dich außerdem bei einer Datenschutz-Aufsichtsbehörde beschweren. Für uns zuständig ist Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg. Du kannst dich auch an die Behörde deines Wohnorts wenden."
         ]
       },
       "objection": {
@@ -171,24 +171,23 @@
       "operator": {
         "heading": "Wer diese Seite betreibt",
         "body": [
-          "__TODO__ operator name",
-          "__TODO__ legal form, if applicable",
-          "__TODO__ street and number",
-          "__TODO__ postcode and town",
-          "__TODO__ country"
+          "Jan Niklas Rösch",
+          "Lattenkamp 12",
+          "22299 Hamburg",
+          "Deutschland"
         ]
       },
       "contact": {
         "heading": "Kontakt",
         "body": [
-          "E-Mail: __TODO__ contact email address",
+          "E-Mail: hello@juggerhub.com",
           "Das ist zugleich die Adresse für Datenschutzfragen und für die Ausübung der in der Datenschutzerklärung beschriebenen Rechte."
         ]
       },
       "responsibility": {
         "heading": "Inhaltlich verantwortlich",
         "body": [
-          "__TODO__ responsible person and address, per § 18 (2) MStV",
+          "Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburg, Deutschland (§ 18 Abs. 2 MStV)",
           "JuggerHub ist ein nicht-kommerzielles, ehrenamtlich betriebenes Community-Projekt."
         ]
       },

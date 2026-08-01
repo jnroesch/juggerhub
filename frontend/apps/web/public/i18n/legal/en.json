@@ -24,8 +24,8 @@
       "controller": {
         "heading": "Who is responsible",
         "body": [
-          "JuggerHub is run by the operator named in the imprint, who is the controller for everything described on this page.",
-          "If you have a question about your data, or want to exercise any of the rights further down, write to the contact address in the imprint. A person reads it — there is no ticketing system."
+          "JuggerHub is run by Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburg, Germany — the controller for everything described on this page.",
+          "If you have a question about your data, or want to exercise any of the rights further down, write to hello@juggerhub.com. A person reads it — there is no ticketing system."
         ]
       },
       "account": {
@@ -148,7 +148,7 @@
           "Under EU data protection law you can ask for a copy of what we hold about you, ask us to correct it, ask us to delete it, ask us to restrict what we do with it, ask for it in a portable form, and object to processing based on legitimate interest.",
           "Right now there is no self-service button for any of this — no export, no delete-my-account control in the settings. We're telling you that rather than pointing you at a feature that doesn't exist. The route is to write to the contact address in the imprint, and we'll do it by hand. Making these self-service is planned work.",
           "The exception is objecting to analytics, which you can do yourself in seconds — see the next section.",
-          "You can also complain to a data protection supervisory authority. For a site operated from Germany, that's the authority for the operator's state; you can also go to the authority where you live."
+          "You can also complain to a data protection supervisory authority. Ours is the Hamburg Commissioner for Data Protection and Freedom of Information (Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit), Ludwig-Erhard-Str. 22, 20459 Hamburg. You can also go to the authority where you live."
         ]
       },
       "objection": {
@@ -171,24 +171,23 @@
       "operator": {
         "heading": "Who runs this site",
         "body": [
-          "__TODO__ operator name",
-          "__TODO__ legal form, if applicable",
-          "__TODO__ street and number",
-          "__TODO__ postcode and town",
-          "__TODO__ country"
+          "Jan Niklas Rösch",
+          "Lattenkamp 12",
+          "22299 Hamburg",
+          "Germany"
         ]
       },
       "contact": {
         "heading": "Contact",
         "body": [
-          "Email: __TODO__ contact email address",
+          "Email: hello@juggerhub.com",
           "This is also the address for data protection questions and for exercising any of the rights described in the privacy policy."
         ]
       },
       "responsibility": {
         "heading": "Responsible for content",
         "body": [
-          "__TODO__ responsible person and address, per § 18 (2) MStV",
+          "Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburg, Germany (§ 18 (2) MStV)",
           "JuggerHub is a non-commercial community project run by volunteers."
         ]
       },

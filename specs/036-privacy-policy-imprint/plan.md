@@ -192,13 +192,16 @@ The full reasoning is in [research.md](./research.md); the load-bearing outcomes
 | **Legal prose bloats the always-loaded catalog** | The main catalogs are fetched on every app load; several thousand words × 3 languages is a real regression for a page almost nobody opens | Lazy scope (R2), fetched only on the legal routes |
 | **The scope fetch fails and the page renders blank** | A blank privacy policy is worse than an error — it looks like a policy with nothing in it | The page must show a visible error state (Principle VII); covered in `contracts/routes.md` |
 
-## Open dependency
+## Open dependency — resolved
 
-**Q1 — the operator's imprint particulars** (spec Open Questions). Everything in this plan can be
-built, reviewed, and merged without it: routes, footer, links, design treatment, the privacy policy
-in all three languages, and the imprint's structure and translated labels. Only the imprint's
-particulars block, and the placeholder-sentinel test keeps that block from reaching Prod
-unnoticed.
+**Q1 — the operator's imprint particulars** landed on 2026-08-01 and are committed. The
+placeholder-sentinel test went green with no code change, which is exactly the behaviour it was
+built for.
+
+The public-git-history concern behind research R4 turned out to be moot: the address was already
+in the repository, in all three transactional email footers. The decision it shaped (committed
+content, not runtime injection) still stands — the other three reasons hold — but its sharpest
+argument was answering a question the repo had already answered.
 
 ## Complexity Tracking
 

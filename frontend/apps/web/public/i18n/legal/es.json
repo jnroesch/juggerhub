@@ -24,8 +24,8 @@
       "controller": {
         "heading": "Quién es responsable",
         "body": [
-          "JuggerHub lo gestiona la persona indicada en el aviso legal, que es la responsable del tratamiento de todo lo descrito en esta página.",
-          "Si tienes una pregunta sobre tus datos o quieres ejercer alguno de los derechos que se detallan más abajo, escribe a la dirección de contacto del aviso legal. Lo lee una persona: no hay sistema de tickets."
+          "JuggerHub lo gestiona Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburgo, Alemania, responsable del tratamiento de todo lo descrito en esta página.",
+          "Si tienes una pregunta sobre tus datos o quieres ejercer alguno de los derechos que se detallan más abajo, escribe a hello@juggerhub.com. Lo lee una persona: no hay sistema de tickets."
         ]
       },
       "account": {
@@ -148,7 +148,7 @@
           "Conforme al RGPD puedes pedir una copia de lo que guardamos sobre ti (art. 15), pedir que lo corrijamos (art. 16), que lo borremos (art. 17), que limitemos su tratamiento (art. 18), obtenerlo en un formato portable (art. 20) y oponerte al tratamiento basado en el interés legítimo (art. 21).",
           "Ahora mismo no hay ningún botón de autoservicio para nada de esto: ni exportación, ni opción de eliminar la cuenta en los ajustes. Te lo decimos en lugar de remitirte a una función que no existe. La vía es escribir a la dirección de contacto del aviso legal y lo haremos a mano. Convertirlo en autoservicio es trabajo previsto.",
           "La excepción es oponerte a la analítica, que puedes hacer tú en segundos: ver la sección siguiente.",
-          "También puedes reclamar ante una autoridad de control de protección de datos. En un sitio operado desde Alemania es la autoridad del estado federado de quien lo opera; también puedes acudir a la autoridad de tu lugar de residencia."
+          "También puedes reclamar ante una autoridad de control de protección de datos. La nuestra es Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburgo. También puedes acudir a la autoridad de tu lugar de residencia."
         ]
       },
       "objection": {
@@ -171,24 +171,23 @@
       "operator": {
         "heading": "Quién gestiona este sitio",
         "body": [
-          "__TODO__ operator name",
-          "__TODO__ legal form, if applicable",
-          "__TODO__ street and number",
-          "__TODO__ postcode and town",
-          "__TODO__ country"
+          "Jan Niklas Rösch",
+          "Lattenkamp 12",
+          "22299 Hamburgo",
+          "Alemania"
         ]
       },
       "contact": {
         "heading": "Contacto",
         "body": [
-          "Correo: __TODO__ contact email address",
+          "Correo: hello@juggerhub.com",
           "Es también la dirección para cuestiones de protección de datos y para ejercer cualquiera de los derechos descritos en la política de privacidad."
         ]
       },
       "responsibility": {
         "heading": "Responsable de los contenidos",
         "body": [
-          "__TODO__ responsible person and address, per § 18 (2) MStV",
+          "Jan Niklas Rösch, Lattenkamp 12, 22299 Hamburgo, Alemania (§ 18 ap. 2 MStV)",
           "JuggerHub es un proyecto comunitario sin ánimo de lucro gestionado por voluntariado."
         ]
       },
