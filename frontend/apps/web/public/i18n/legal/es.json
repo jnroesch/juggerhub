@@ -18,7 +18,7 @@
     "title": "Privacidad",
     "intro": [
       "JuggerHub es un sitio comunitario para jugadoras y jugadores de Jugger. Para que funcione guardamos cierta información sobre ti.",
-      "Esta página explica qué guardamos, por qué, quién más interviene, cuánto tiempo lo conservamos y qué puedes hacer al respecto. La hemos escrito en lenguaje claro en lugar del muro de cláusulas habitual, y de forma que siga siendo cierta a medida que el sitio crece, en vez de tener que reescribirla cada vez que añadimos algo."
+      "Esta página explica qué guardamos, por qué, quién más lo ve y qué puedes hacer al respecto. La hemos escrito en lenguaje claro en lugar del muro de cláusulas habitual. Donde algo resulta incómodo, lo decimos en vez de suavizarlo."
     ],
     "sections": {
       "controller": {
@@ -31,82 +31,81 @@
       "whatWeHold": {
         "heading": "Qué guardamos",
         "body": [
-          "Tu cuenta: la dirección de correo y el nombre de usuario con los que te registras, tu contraseña (siempre solo como un hash argon2, que no puede revertirse a tu contraseña) y datos técnicos de cada inicio de sesión, incluida la dirección IP desde la que se hizo. La conservamos como medida de seguridad: es lo que permite distinguir una sesión legítima de una robada.",
-          "Lo que publicas en la plataforma: tu perfil, dónde te ubicas, las fotos que subes y cómo participas en la comunidad: equipos, eventos, entrenamientos y lo que el sitio vaya ofreciendo. Esta parte crece con JuggerHub; lo nuevo funciona igual que lo que ya existe.",
-          "Tus mensajes. Se guardan en nuestros servidores para que sigan ahí cuando vuelvas, y no están cifrados de extremo a extremo: alguien con acceso a la base de datos podría leerlos en principio. Mantenemos ese acceso muy restringido, pero preferimos decírtelo a que supongas lo contrario. Las conversaciones también pueden sobrevivir al equipo o evento al que pertenecían, para que quienes participaron conserven su propio historial.",
-          "Tus ajustes, como el idioma en que lees el sitio y qué notificaciones quieres recibir.",
-          "Parte de lo que escriben los miembros puede incluir datos de otras personas: por ejemplo, cuando la organización de un evento indica una persona de contacto. Si figuras en algún sitio y prefieres no hacerlo, díselo a quien lo puso, o escríbenos y nos ocupamos.",
-          "Considera lo que publiques en la parte comunitaria del sitio como visible para otros miembros: para eso está. La excepción es tu perfil: es privado por defecto, y si lo cambias a público pasa a ser legible por cualquiera que tenga el enlace directo."
+          "Tu cuenta: la dirección de correo y el nombre de usuario con los que te registras, y tu contraseña — que solo guardamos como un hash argon2, así que no puede revertirse a tu contraseña. Cada inicio de sesión queda registrado junto con la dirección IP desde la que se hizo. Es una medida de seguridad: es lo que permite distinguir una sesión real de una robada.",
+          "Todo lo que pones en el sitio: tu perfil, dónde te ubicas, las fotos que subes y cómo participas — equipos, eventos, entrenamientos y aquello en lo que JuggerHub se vaya convirtiendo. Considéralo todo visible para otros miembros, porque para eso está. La excepción es tu perfil: privado por defecto, y público solo si lo cambias, momento en el que cualquiera con el enlace puede leerlo.",
+          "Tus mensajes. Viven en nuestros servidores para que sigan ahí cuando vuelvas, y no están cifrados de extremo a extremo: alguien con acceso a la base de datos podría leerlos en principio. Mantenemos ese acceso muy restringido, pero preferimos decírtelo a que supongas lo contrario. Algo que sorprende a mucha gente: una conversación puede sobrevivir al equipo o evento al que pertenecía, para que quienes participaron conserven su propio historial.",
+          "Lo que escribes sobre otras personas: por ejemplo, cuando la organización de un evento indica una persona de contacto. Si figuras en algún sitio y prefieres no hacerlo, díselo a quien lo puso, o escríbenos y lo arreglamos.",
+          "Tus ajustes: el idioma en que lees el sitio y qué notificaciones quieres recibir."
         ]
       },
       "whyAndOnWhatBasis": {
         "heading": "Por qué lo guardamos y qué nos habilita",
         "body": [
-          "Para darte una cuenta y hacer funcionar las partes del sitio que decidas usar. Se apoya en el contrato entre tú y nosotros (art. 6.1.b RGPD).",
-          "Para enviarte los correos sin los que el sitio no funciona, como confirmar tu dirección o restablecer la contraseña. Lo opcional, como las notificaciones, solo se envía porque tú lo has pedido (art. 6.1.a RGPD), y puedes cambiarlo cuando quieras en tus ajustes.",
-          "Para mantener la plataforma segura y hacer frente a los abusos: nuestro interés legítimo (art. 6.1.f RGPD) y, en algunos puntos, una obligación legal (art. 6.1.c RGPD).",
-          "Para entender cómo se usa el sitio. Eso tiene su propia sección más abajo, porque se la merece."
+          "Para darte una cuenta y hacer funcionar las partes del sitio que usas. Ese es el acuerdo entre tú y nosotros (art. 6.1.b RGPD).",
+          "Para enviarte los correos sin los que el sitio no funciona: confirmar tu dirección, restablecer la contraseña. Lo demás, como las notificaciones, solo sale porque lo has pedido (art. 6.1.a RGPD), y puedes cambiar de idea en tus ajustes cuando quieras.",
+          "Para mantener el sitio seguro y lidiar con quienes abusan de él. Ese es nuestro interés legítimo (art. 6.1.f RGPD), y en algunos puntos lo exige la ley (art. 6.1.c RGPD).",
+          "Para entender cómo se usa el sitio. Eso tiene su propia sección, porque se la merece."
         ]
       },
       "analytics": {
         "heading": "Cómo medimos las visitas",
         "body": [
-          "Medimos cómo se usa el sitio para saber en qué partes merece la pena trabajar. Funciona en nuestros propios servidores, y los datos de medición no se envían a ninguna empresa externa de analítica.",
-          "No instala ninguna cookie ni guarda nada en tu dispositivo. No registra tu cuenta, tu nombre de usuario, tu correo ni tu dirección IP completa. Nada en ellos dice quién estaba navegando.",
-          "Hay una parte que merece decirse con claridad, porque es a la que razonablemente se le puede poner objeción. Registramos la dirección de cada página vista tal cual es, y la dirección del perfil de un miembro, o la de un equipo, contiene su nombre. Así que los datos de medición sí muestran qué perfiles y qué páginas de equipo se consultaron, y cuándo. Nunca muestran quién las consultó.",
-          "Registramos la dirección solo hasta el signo de interrogación, nunca la parte posterior. Ahí viven los enlaces profundos y las direcciones de retorno, que habrían arrastrado más de lo previsto.",
-          "Si prefieres que no se te mida en absoluto, consulta la última sección de esta página: basta un ajuste del navegador y lo respetamos."
+          "Medimos cómo se usa el sitio para saber en qué partes merece la pena el trabajo. Funciona en nuestros propios servidores, y las cifras no van a ninguna empresa externa de analítica.",
+          "No instala ninguna cookie ni guarda nada en tu dispositivo. No registra tu cuenta, tu nombre de usuario, tu correo ni tu dirección IP completa. Nada en ellas dice quién estaba navegando.",
+          "Hay una cosa que queremos decir sin rodeos, porque es la parte a la que razonablemente pondrías objeción. Registramos la dirección de cada página vista tal cual es, y la dirección del perfil de alguien, o la de un equipo, lleva su nombre dentro. Así que las cifras sí muestran qué perfiles y qué páginas de equipo se consultaron, y cuándo. Nunca muestran quién las consultó.",
+          "Registramos la dirección solo hasta el signo de interrogación, nunca lo que viene después. Ahí viven los enlaces profundos y las direcciones de retorno, que habrían arrastrado más de lo que pretendíamos.",
+          "Si prefieres que no se te mida en absoluto, la última sección de esta página te dice cómo. Es un ajuste del navegador, y lo respetamos."
         ]
       },
       "legalBasis": {
         "heading": "Por qué aquí no hay aviso de cookies",
         "body": [
-          "Se mezclan a menudo dos preguntas, así que vamos por partes.",
-          "La norma que hace que los sitios pidan permiso trata sobre almacenar cosas en tu dispositivo. Nuestra medición no almacena nada en tu dispositivo — ni cookie, ni almacenamiento local, nada — así que esa norma no entra en juego. La única cookie que instalamos es la que te mantiene con la sesión iniciada, necesaria para un servicio que has pedido y por tanto exenta. Por eso aquí no ves un aviso. No es un descuido ni un juego de palabras.",
-          "La pregunta distinta es qué habilita la medición en sí. Como la dirección de una página puede nombrar a un miembro o a un equipo, esos datos son personales y necesitan una base al margen de la cuestión de las cookies. Nos basamos en el interés legítimo (art. 6.1.f RGPD).",
-          "Aquí está la ponderación, para que la juzgues tú en lugar de creernos. Nuestro interés es saber qué partes de un sitio comunitario gestionado por voluntariado se usan de verdad, para que el esfuerzo limitado vaya donde ayuda. El efecto sobre ti es estrecho: nada te identifica como quien mira, nada se guarda en tu dispositivo, los datos no se combinan con tu cuenta ni se usan para elaborar ningún perfil sobre ti, y nunca sirven para tomar una decisión que te afecte. Lo que queda es que una página que te nombra puede aparecer en una lista de páginas vistas. Nos parece proporcionado para gestionar bien el sitio — y como es interés legítimo y no consentimiento, tienes un derecho absoluto de oposición, que hemos convertido deliberadamente en un solo ajuste y no en un formulario."
+          "Se mezclan a menudo dos preguntas, así que aquí están una a una.",
+          "La norma que hace que los sitios pidan permiso trata sobre almacenar cosas en tu dispositivo. La nuestra no almacena nada ahí — ni cookie, ni almacenamiento local, nada — así que la norma no aplica. La única cookie que instalamos te mantiene con la sesión iniciada, necesaria para algo que has pedido, y eso está exento. Por eso no hay aviso. No es un descuido ni un juego de palabras.",
+          "La pregunta distinta es qué habilita la medición en sí. La dirección de una página puede nombrar a un miembro o a un equipo, así que son datos personales, y necesitan una base digan lo que digan las normas de cookies. Nos basamos en el interés legítimo (art. 6.1.f RGPD).",
+          "Aquí está la ponderación, para que la juzgues tú en lugar de creernos. Queremos saber qué partes de un sitio gestionado por voluntariado se usan de verdad, para que el tiempo limitado vaya donde ayuda. Lo que te cuesta es poco: nada te señala como quien mira, nada aterriza en tu dispositivo, no se vincula a tu cuenta ni se convierte en un perfil sobre ti, y nunca alimenta una decisión que te afecte. Lo que queda es que una página con tu nombre dentro puede aparecer en una lista de páginas vistas. Nos parece un trato justo para gestionar bien el sitio — y como es interés legítimo y no consentimiento, puedes oponerte sin más, y lo hemos hecho un solo ajuste en vez de un formulario."
         ]
       },
       "storage": {
         "heading": "Cookies y qué queda en tu navegador",
         "body": [
-          "Una cookie de sesión, que es cómo el sitio sabe que eres tú. Se instala con httpOnly, así que JavaScript no puede leerla, y sin ella no puedes mantener la sesión iniciada.",
-          "Si no has iniciado sesión y eliges un idioma, esa elección se queda en tu navegador y nunca se nos envía.",
-          "No usamos cookies para publicidad, ni utilizamos nada para seguirte por otros sitios."
+          "Una cookie de sesión. Es cómo el sitio sabe que eres tú, se instala con httpOnly así que JavaScript no puede leerla, y sin ella no puedes mantener la sesión iniciada.",
+          "Si tienes la sesión cerrada y eliges un idioma, esa elección se queda en tu navegador y nunca llega hasta nosotros.",
+          "No usamos cookies para mostrarte publicidad ni para seguirte por otros sitios."
         ]
       },
       "processors": {
         "heading": "Quién más interviene",
         "body": [
-          "Usamos unos pocos proveedores para hacer funcionar el sitio, con contratos que solo les permiten tratar datos siguiendo nuestras instrucciones: un proveedor de nube que aloja la aplicación, su base de datos y los archivos subidos (Microsoft Azure, en su región West Europe, dentro de la UE), y un proveedor que entrega nuestro correo (Resend), que necesariamente ve la dirección del destinatario y el mensaje.",
-          "Cuando un proveedor trata datos fuera de la UE, esa transferencia está cubierta por las cláusulas contractuales tipo de nuestro acuerdo con él.",
-          "No vendemos tus datos y no se los pasamos a nadie con fines publicitarios."
+          "Unos pocos proveedores nos ayudan a hacer funcionar el sitio, cada uno con un contrato que solo les permite tratar datos siguiendo nuestras instrucciones. Microsoft Azure aloja la aplicación, su base de datos y los archivos subidos, en su región West Europe dentro de la UE. Resend entrega nuestro correo, y necesariamente ve a quién va y qué dice.",
+          "Cuando un proveedor trata datos fuera de la UE, lo cubren las cláusulas contractuales tipo de nuestro acuerdo.",
+          "No vendemos tus datos y no se los entregamos a nadie con fines publicitarios."
         ]
       },
       "retention": {
         "heading": "Cuánto tiempo lo conservamos",
         "body": [
-          "Por norma, lo que guardamos permanece mientras tengas una cuenta. Pídenos que eliminemos tu cuenta y borraremos lo que tengamos sobre ti.",
-          "Algunas cosas sobreviven a eso por necesidad: un mensaje que enviaste forma parte de la conversación de otra persona, y lo que estamos legalmente obligados a conservar permanece el tiempo que la ley exija.",
-          "Los datos de medición están limitados por su propia naturaleza, no por un calendario: no contienen ningún identificador tuyo de partida, así que no hay nada ahí que borrar en tu nombre."
+          "Por norma, lo que guardamos permanece mientras tengas una cuenta. Pídenos que lo borremos y lo haremos.",
+          "Algo de ello sobrevive a eso porque tiene que ser así. Un mensaje que enviaste forma parte de la conversación de otra persona. Lo que la ley nos obliga a conservar, lo conservamos el tiempo que la ley diga.",
+          "Las cifras de medición están limitadas por lo que son, no por un reloj: no hay ningún identificador tuyo en ellas, así que no hay nada ahí que borrar en tu nombre."
         ]
       },
       "rights": {
         "heading": "Tus derechos",
         "body": [
-          "Puedes pedir una copia de lo que guardamos sobre ti (art. 15 RGPD), pedir que lo corrijamos (art. 16), que lo borremos (art. 17), que limitemos su tratamiento (art. 18), obtenerlo en un formato portable (art. 20) y oponerte a todo lo que hagamos sobre la base del interés legítimo (art. 21).",
-          "Escribe a hello@juggerhub.com y nos ocupamos.",
-          "La única excepción es oponerte a la medición, que puedes hacer tú en segundos: ver la sección siguiente.",
-          "También puedes reclamar ante una autoridad de control de protección de datos. La nuestra es Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburgo. Puedes acudir en su lugar a la autoridad de tu lugar de residencia."
+          "Puedes pedir una copia de lo que guardamos sobre ti (art. 15 RGPD), pedir que lo corrijamos (art. 16), que lo borremos (art. 17), que limitemos su tratamiento (art. 18), obtenerlo en una forma que puedas llevarte a otro sitio (art. 20) y oponerte a todo lo que hagamos sobre la base del interés legítimo (art. 21).",
+          "Escribe a hello@juggerhub.com y lo arreglamos.",
+          "La excepción es oponerte a la medición: lleva segundos y puedes hacerlo tú. Va justo aquí debajo.",
+          "También puedes reclamar ante una autoridad de protección de datos. La nuestra es Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburgo. La de tu lugar de residencia vale igual."
         ]
       },
       "objection": {
         "heading": "Cómo oponerte a que se te mida",
         "body": [
           "Activa «Do Not Track» (o Global Privacy Control) en tu navegador. Ya está: a partir de ahí no registramos absolutamente nada de ti.",
-          "Suele estar en Ajustes → Privacidad. En Firefox se llama «Indicar a los sitios web que no vendan ni compartan mis datos». En Safari y Brave hay un ajuste equivalente activado por defecto. En Chrome está en Privacidad y seguridad.",
-          "Muchos sitios ignoran esa señal. Nosotros no: cuando está activada, no se envía ninguna medición y no se registra nada. Surte efecto de inmediato, no requiere cuenta y no hay nada que volver a activar.",
-          "Para oponerte a cualquier otra cosa de esta página, escribe a hello@juggerhub.com."
+          "Suele estar en Ajustes → Privacidad. Firefox lo llama «Indicar a los sitios web que no vendan ni compartan mis datos». Safari y Brave tienen algo parecido activado por defecto. En Chrome está en Privacidad y seguridad.",
+          "Muchos sitios ignoran esa señal. Nosotros no: cuando está activada, no se envía nada y no se registra nada. Surte efecto de inmediato, no requiere cuenta y no hay nada que volver a activar.",
+          "Para cualquier otra cosa de esta página, escribe a hello@juggerhub.com."
         ]
       }
     }

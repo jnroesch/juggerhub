@@ -106,23 +106,43 @@ test.describe('legal pages are reachable without a session (feature 036)', () =>
     await expect(page.getByTestId('legal-link-privacy')).toBeVisible();
   });
 
-  test('the app footer carries both links inside the shell, at every viewport', async ({ page, request }) => {
-    // The shell covers the whole signed-in app in one placement, so this is where FR-002 is
-    // satisfied for a member. It needs a session because every shell route except a *public*
-    // profile is gated — which is the rule this file otherwise exists to prove.
+  test('the table of contents anchors within the page instead of bouncing to sign-in', async ({ page }) => {
+    // Regression. The app sets <base href="/">, so a bare href="#section" resolved against the
+    // BASE url, not the current one — every contents entry navigated to `/`, which is auth-guarded,
+    // and threw a signed-out reader onto the sign-in screen from a public page.
+    await page.context().clearCookies();
+    await page.goto('/privacy');
+
+    const toc = page.getByTestId('legal-toc');
+    await expect(toc).toBeVisible();
+    await toc.getByRole('link').first().click();
+
+    await expect(page).toHaveURL(/\/privacy#privacy-controller$/);
+    await expect(page.getByTestId('legal-privacy')).toBeVisible();
+    // The section it names must actually be scrolled to, not merely present in the URL.
+    await expect(page.locator('#privacy-controller')).toBeInViewport();
+  });
+});
+
+/**
+ * Feature 036, owner decision 2026-08-01: the legal links follow a signed-out visitor everywhere,
+ * because they are the reader a privacy policy exists for. A signed-in member has already made
+ * that call, so the links move to the account page rather than sitting on every screen.
+ */
+test.describe('legal links move to the account page once signed in', () => {
+  test('the shell footer is gone and the account page carries the links', async ({ page, request }) => {
     await registerVerifySignIn(page, request);
-    // Any in-shell route will do; browse is the one the other specs already prove is reachable
-    // straight after sign-in.
     await page.goto('/browse/teams');
 
-    const footer = page.getByTestId('app-footer');
-    await expect(footer.getByTestId('legal-link-privacy')).toBeVisible();
-    await expect(footer.getByTestId('legal-link-imprint')).toBeVisible();
+    await expect(page.getByTestId('app-footer')).toHaveCount(0);
 
-    // The mobile bottom bar is fixed and 76px tall. <main> reserves room for it, so the footer
-    // must sit clear of it rather than underneath — this runs at both configured viewports.
-    await footer.getByTestId('legal-link-privacy').click();
-    await expect(page).toHaveURL(/\/privacy$/);
+    await page.goto('/account');
+    const links = page.getByTestId('account').getByTestId('legal-links');
+    await expect(links.getByTestId('legal-link-privacy')).toBeVisible();
+
+    await links.getByTestId('legal-link-imprint').click();
+    await expect(page).toHaveURL(/\/imprint$/);
+    await expect(page.getByTestId('legal-imprint')).toBeVisible();
   });
 });
 

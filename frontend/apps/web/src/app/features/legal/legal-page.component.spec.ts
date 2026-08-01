@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { TranslocoService } from '@jsverse/transloco';
 import { provideTranslocoLocale } from '@jsverse/transloco-locale';
 import { PRIVACY_SECTIONS, PrivacyComponent } from './privacy/privacy.component';
@@ -30,7 +31,13 @@ describe('Legal pages (feature 036)', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        provideRouter([]),
+        // The real route paths, not a stub. Anchor links resolve relative to the ACTIVE route, so
+        // a component created outside one resolves them against `/` — which is precisely the bug
+        // these pages had. Routing properly is what makes that assertion meaningful.
+        provideRouter([
+          { path: 'privacy', component: PrivacyComponent },
+          { path: 'imprint', component: ImprintComponent },
+        ]),
         provideTranslocoLocale({ langToLocaleMapping: { en: 'en-GB', de: 'de-DE', es: 'es-ES' } }),
       ],
     });
@@ -39,15 +46,14 @@ describe('Legal pages (feature 036)', () => {
 
   afterEach(() => httpMock.verify());
 
-  /** Creates the page and answers its content fetch for the active (English) language. */
-  function render<T>(component: new (...args: never[]) => T): ComponentFixture<T> {
-    const fixture = TestBed.createComponent(component);
-    fixture.detectChanges();
+  /** Navigates to the page for real and answers its content fetch for the active language. */
+  async function render(path: 'privacy' | 'imprint'): Promise<ComponentFixture<unknown>> {
+    const harness = await RouterTestingHarness.create(`/${path}`);
 
     httpMock.expectOne('/i18n/legal/en.json').flush(legalEn);
-    fixture.detectChanges();
+    harness.detectChanges();
 
-    return fixture;
+    return harness.fixture;
   }
 
   /**
@@ -68,8 +74,8 @@ describe('Legal pages (feature 036)', () => {
   }
 
   describe('privacy policy', () => {
-    it('renders every section in the declared reading order', () => {
-      const fixture = render(PrivacyComponent);
+    it('renders every section in the declared reading order', async () => {
+      const fixture = await render('privacy');
       const headings: string[] = Array.from(fixture.nativeElement.querySelectorAll('section h2')).map((h) =>
         (h as HTMLElement).textContent!.trim(),
       );
@@ -102,15 +108,15 @@ describe('Legal pages (feature 036)', () => {
      * is the entire reason issue #92 exists. A generic "we collect usage data" would hide exactly
      * what the feature was created to reveal. Asserted on substance, not on a heading.
      */
-    it('discloses that page addresses are recorded verbatim, naming the profile or team viewed', () => {
-      const fixture = render(PrivacyComponent);
+    it('discloses that page addresses are recorded verbatim, naming the profile or team viewed', async () => {
+      const fixture = await render('privacy');
       const text: string = fixture.nativeElement.textContent.toLowerCase();
 
       expect(text).toContain('exactly as it is');
-      expect(text).toContain("contains that member's or team's name");
-      expect(text).toContain('which profiles and team pages were looked at');
+      expect(text).toContain('has their name in it');
+      expect(text).toContain('which profiles and team pages got looked at');
       // The counterpart matters as much: the viewer is never identified.
-      expect(text).toContain('never shows who was looking');
+      expect(text).toContain('never show who was looking');
     });
 
     /**
@@ -119,12 +125,12 @@ describe('Legal pages (feature 036)', () => {
      * earlier wording, which asserted no such control existed and would have dated the moment one
      * shipped (#105).
      */
-    it('gives a working route for exercising rights', () => {
-      const fixture = render(PrivacyComponent);
+    it('gives a working route for exercising rights', async () => {
+      const fixture = await render('privacy');
       const text: string = fixture.nativeElement.textContent;
 
       expect(text).toContain('hello@juggerhub.com');
-      expect(text.toLowerCase()).toContain("we'll take care of it");
+      expect(text.toLowerCase()).toContain("we'll sort it");
     });
 
     /**
@@ -132,8 +138,8 @@ describe('Legal pages (feature 036)', () => {
      * name, so shipping a feature silently dated a legally binding document in three languages.
      * These names are the ones most likely to creep back in.
      */
-    it('describes categories rather than enumerating product features', () => {
-      const fixture = render(PrivacyComponent);
+    it('describes categories rather than enumerating product features', async () => {
+      const fixture = await render('privacy');
       const text: string = fixture.nativeElement.textContent.toLowerCase();
 
       for (const featureName of ['marketplace', 'mercenary', 'badge', 'achievement', 'pompfen', 'party']) {
@@ -142,8 +148,8 @@ describe('Legal pages (feature 036)', () => {
     });
 
     /** PC-3: the heading hierarchy is the screen-reader navigation. It must not skip a level. */
-    it('has an unbroken heading hierarchy', () => {
-      const fixture = render(PrivacyComponent);
+    it('has an unbroken heading hierarchy', async () => {
+      const fixture = await render('privacy');
       const levels: number[] = Array.from(fixture.nativeElement.querySelectorAll('h1,h2,h3,h4')).map((h) =>
         Number((h as HTMLElement).tagName.slice(1)),
       );
@@ -152,17 +158,42 @@ describe('Legal pages (feature 036)', () => {
       levels.slice(1).forEach((level, i) => expect(level - levels[i]).toBeLessThanOrEqual(1));
     });
 
-    it('offers a table of contents linking to stable section anchors', () => {
-      const fixture = render(PrivacyComponent);
-      const toc = el(fixture, 'legal-toc');
-      const first = toc!.querySelector('a') as HTMLAnchorElement;
+    /**
+     * Regression: the table of contents used a bare `href="#section"`. The app sets
+     * `<base href="/">`, and per the HTML spec a fragment-only URL resolves against the BASE url
+     * rather than the current one — so every entry navigated to `/#section`, i.e. the dashboard,
+     * which is auth-guarded, and the reader was bounced to sign-in from a public page.
+     *
+     * The fix keeps the current route and sets only the fragment, so the rendered href must carry
+     * the page's own path. Asserting on the resolved href is what actually catches a regression
+     * here; asserting the fragment input alone would not.
+     */
+    it('links each table-of-contents entry to a section on this page, not to the app root', async () => {
+      const fixture = await render('privacy');
+      const entries = Array.from(
+        (el(fixture, 'legal-toc') as HTMLElement).querySelectorAll('a'),
+      ) as HTMLAnchorElement[];
 
-      expect(first.getAttribute('href')).toBe('#privacy-controller');
-      expect(fixture.nativeElement.querySelector('#privacy-controller')).not.toBeNull();
+      expect(entries.length).toBe(PRIVACY_SECTIONS.length);
+
+      for (const [i, link] of entries.entries()) {
+        const href = link.getAttribute('href')!;
+        expect(href).toContain(`#privacy-${PRIVACY_SECTIONS[i]}`);
+        // The bug produced exactly "/#privacy-…" — the root route, which authGuard bounces.
+        expect(href.startsWith('/#')).toBe(false);
+      }
     });
 
-    it('links to the imprint (FR-016)', () => {
-      const fixture = render(PrivacyComponent);
+    it('has a target element for every table-of-contents entry', async () => {
+      const fixture = await render('privacy');
+
+      for (const key of PRIVACY_SECTIONS) {
+        expect(fixture.nativeElement.querySelector(`#privacy-${key}`)).not.toBeNull();
+      }
+    });
+
+    it('links to the imprint (FR-016)', async () => {
+      const fixture = await render('privacy');
 
       expect(el(fixture, 'legal-sibling-link')?.getAttribute('href')).toBe('/imprint');
     });
@@ -176,8 +207,8 @@ describe('Legal pages (feature 036)', () => {
   });
 
   describe('imprint', () => {
-    it('renders its sections and links back to the privacy policy', () => {
-      const fixture = render(ImprintComponent);
+    it('renders its sections and links back to the privacy policy', async () => {
+      const fixture = await render('imprint');
 
       expect(el(fixture, 'legal-imprint')).not.toBeNull();
       expect(fixture.nativeElement.querySelectorAll('section h2').length).toBe(IMPRINT_SECTIONS.length);
@@ -188,38 +219,73 @@ describe('Legal pages (feature 036)', () => {
       expect([...IMPRINT_SECTIONS].sort()).toEqual(Object.keys(legalEn.imprint.sections).sort());
     });
 
-    it('has no table of contents — it is short enough not to need one', () => {
-      const fixture = render(ImprintComponent);
+    it('has no table of contents — it is short enough not to need one', async () => {
+      const fixture = await render('imprint');
 
       expect(el(fixture, 'legal-toc')).toBeNull();
     });
   });
 
+  /**
+   * The table of contents is generated from the declared section order, so it cannot legitimately
+   * differ per language — but "cannot" is worth pinning, because the document is legally binding
+   * in German and a reader comparing versions will notice a different number of headings before
+   * they notice anything else.
+   */
+  describe('table of contents is identical across languages', () => {
+    function tocHeadings(fixture: ComponentFixture<unknown>): string[] {
+      const toc = el(fixture, 'legal-toc') as HTMLElement;
+      return Array.from(toc.querySelectorAll('a')).map((a) => (a as HTMLAnchorElement).textContent!.trim());
+    }
+
+    it.each(['de', 'es'] as const)('%s has the same number of entries as en', async (lang) => {
+      const fixture = await render('privacy');
+      const english = tocHeadings(fixture);
+
+      switchTo(fixture, lang);
+      const translated = tocHeadings(fixture);
+
+      expect(translated.length).toBe(english.length);
+      expect(translated.length).toBe(PRIVACY_SECTIONS.length);
+      // Same entries in the same order — and actually translated, not echoing the English.
+      expect(translated).not.toEqual(english);
+    });
+
+    it.each(['de', 'es'] as const)('%s has one entry per rendered section', async (lang) => {
+      const fixture = await render('privacy');
+      switchTo(fixture, lang);
+
+      const renderedSections = fixture.nativeElement.querySelectorAll('section h2').length;
+
+      expect(tocHeadings(fixture).length).toBe(renderedSections);
+    });
+  });
+
   describe('authoritative language (FR-019, DM-3)', () => {
-    it('tells an English reader that the German version governs', () => {
-      const fixture = render(PrivacyComponent);
+    it('tells an English reader that the German version governs', async () => {
+      const fixture = await render('privacy');
 
       expect(el(fixture, 'legal-authoritative-notice')?.textContent).toContain('German version is the binding one');
     });
 
-    it('tells a Spanish reader the same, in Spanish', () => {
-      const fixture = render(PrivacyComponent);
+    it('tells a Spanish reader the same, in Spanish', async () => {
+      const fixture = await render('privacy');
       switchTo(fixture, 'es');
 
       expect(el(fixture, 'legal-authoritative-notice')?.textContent).toContain('versión alemana es la vinculante');
     });
 
     /** A reader of the German text is reading the binding version; the notice would be noise. */
-    it('does not show the notice on the German version', () => {
-      const fixture = render(PrivacyComponent);
+    it('does not show the notice on the German version', async () => {
+      const fixture = await render('privacy');
       switchTo(fixture, 'de');
 
       expect(el(fixture, 'legal-authoritative-notice')).toBeNull();
     });
 
     /** PC-6 / 031 FR-004: the switch swaps the text in place, on the same page. */
-    it('re-renders the document in the new language without navigating away', () => {
-      const fixture = render(PrivacyComponent);
+    it('re-renders the document in the new language without navigating away', async () => {
+      const fixture = await render('privacy');
       expect(el(fixture, 'legal-privacy')?.textContent).toContain(legalEn.privacy.sections.analytics.heading);
 
       switchTo(fixture, 'de');
@@ -236,23 +302,25 @@ describe('Legal pages (feature 036)', () => {
      * This is also why the document is fetched directly rather than as a Transloco scope: a
      * failed scope load would have rendered the ENGLISH text inside the German document.
      */
-    it('shows a visible error instead of an empty document', () => {
-      const fixture = TestBed.createComponent(PrivacyComponent);
-      fixture.detectChanges();
+    /** Navigates to the page and fails its content fetch, so the error path is exercised. */
+    async function renderFailing(): Promise<ComponentFixture<unknown>> {
+      const harness = await RouterTestingHarness.create('/privacy');
 
       httpMock.expectOne('/i18n/legal/en.json').error(new ProgressEvent('network error'));
-      fixture.detectChanges();
+      harness.detectChanges();
+
+      return harness.fixture;
+    }
+
+    it('shows a visible error instead of an empty document', async () => {
+      const fixture = await renderFailing();
 
       expect(el(fixture, 'legal-error')).not.toBeNull();
       expect(el(fixture, 'legal-privacy')).toBeNull();
     });
 
-    it('can retry after a failure', () => {
-      const fixture = TestBed.createComponent(PrivacyComponent);
-      fixture.detectChanges();
-
-      httpMock.expectOne('/i18n/legal/en.json').error(new ProgressEvent('network error'));
-      fixture.detectChanges();
+    it('can retry after a failure', async () => {
+      const fixture = await renderFailing();
 
       (el(fixture, 'legal-retry') as HTMLButtonElement).click();
       fixture.detectChanges();

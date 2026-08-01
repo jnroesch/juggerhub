@@ -54,8 +54,16 @@
               <ul class="mt-sm space-y-xs">
                 @for (entry of sections(); track entry.key) {
                   <li>
+                    <!--
+                      routerLink + fragment, NOT a bare href="#id". The app sets <base href="/">,
+                      and per the HTML spec a fragment-only URL resolves against the BASE url, not
+                      the current one — so `#section` navigated to `/#section`, i.e. the dashboard,
+                      which is auth-guarded and bounced the reader to sign-in. Staying on the
+                      current route and setting only the fragment is what actually anchors.
+                    -->
                     <a
-                      [href]="'#' + anchor(entry.key)"
+                      [routerLink]="[]"
+                      [fragment]="anchor(entry.key)"
                       class="text-body-sm text-link underline underline-offset-2 hover:text-link-hover"
                       >{{ entry.section.heading }}</a
                     >

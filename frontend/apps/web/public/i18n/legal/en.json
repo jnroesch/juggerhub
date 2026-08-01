@@ -18,7 +18,7 @@
     "title": "Privacy",
     "intro": [
       "JuggerHub is a community site for Jugger players. To make it work we hold some information about you.",
-      "This page says what we hold, why, who else is involved, how long we keep it, and what you can do about it. We've written it in plain language rather than the usual wall of clauses, and we've described things in a way that should stay true as the site grows rather than needing a rewrite every time we add something."
+      "This page says what we hold, why, who else sees it, and what you can do about it. We've written it in plain language rather than the usual wall of clauses. Where something is awkward, we've said so rather than smoothing it over."
     ],
     "sections": {
       "controller": {
@@ -31,82 +31,81 @@
       "whatWeHold": {
         "heading": "What we hold",
         "body": [
-          "Your account — the email address and username you register with, your password (only ever as an argon2 hash, which can't be turned back into your password), and technical details of each sign-in, including the network address it came from. We keep that as a security measure: it's what lets a legitimate session be told from a stolen one.",
-          "What you put on the platform — your profile, where you're based, photos you upload, and how you take part in the community: teams, events, training, and whatever else the site grows to offer. This part expands as JuggerHub does; anything new works the same way as what's already here.",
-          "Your messages. They're stored on our servers so they're there when you come back, and they are not end-to-end encrypted — someone with database access could in principle read them. We keep that access tightly limited, but we'd rather tell you than let you assume otherwise. Conversations can also outlive the team or event they belonged to, so the people who were in them keep their own history.",
-          "Your settings, such as the language you read the site in and which notifications you want.",
-          "Some of what members write can include details about other people — an organiser listing a contact person for an event, say. If you've been named somewhere and would rather not be, ask whoever put it there, or write to us and we'll deal with it.",
-          "Treat what you put on the community side of the site as visible to other members — that's what it's for. Your profile is the exception: it's private by default, and if you switch it to public it becomes readable by anyone who has the direct link."
+          "Your account: the email address and username you sign up with, and your password — which we only ever store as an argon2 hash, so it can't be turned back into your password. Every sign-in is recorded along with the network address it came from. That's a security measure; it's what lets a real session be told apart from a stolen one.",
+          "Whatever you put on the site: your profile, where you're based, photos you upload, and how you join in — teams, events, training, and whatever else JuggerHub grows into. Treat all of it as visible to other members, because that's what it's for. Your profile is the exception. It's private by default, and public only if you switch it, at which point anyone with the link can read it.",
+          "Your messages. They live on our servers so they're there when you come back, and they aren't end-to-end encrypted — someone with database access could in principle read them. We keep that access tightly limited, but we'd rather tell you than let you assume otherwise. One thing that surprises people: a conversation can outlive the team or event it belonged to, so everyone who was in it keeps their own history.",
+          "Things you write about other people — an organiser naming a contact for an event, say. If you've been named somewhere and would rather not be, tell whoever put it there, or write to us and we'll sort it.",
+          "Your settings: the language you read the site in, and which notifications you want."
         ]
       },
       "whyAndOnWhatBasis": {
         "heading": "Why we hold it, and what allows us to",
         "body": [
-          "To give you an account and run the parts of the site you've chosen to use. That rests on the agreement between you and us.",
-          "To send you email the site can't work without, like confirming your address or resetting your password. Anything optional, such as notifications, goes out only because you asked for it, and you can change that whenever you like in your settings.",
-          "To keep the platform safe and deal with abuse — our legitimate interest, and in places a legal obligation.",
-          "To understand how the site is used. That one gets its own section below, because it deserves one."
+          "To give you an account and run the parts of the site you use. That's the agreement between you and us.",
+          "To send the email the site can't work without — confirming your address, resetting your password. Anything else, like notifications, only goes out because you asked for it, and you can change your mind in your settings whenever.",
+          "To keep the place safe and deal with people who abuse it. That's our legitimate interest, and in places the law requires it.",
+          "To understand how the site gets used. That one gets its own section, because it deserves one."
         ]
       },
       "analytics": {
         "heading": "How we measure visits",
         "body": [
-          "We measure how the site is used so we know which parts are worth working on. It runs on our own servers, and the measurement data isn't sent to an outside analytics company.",
-          "It sets no cookie and stores nothing on your device. It doesn't record your account, your username, your email address, or your full network address. Nothing in it says who was doing the browsing.",
-          "One part deserves to be said plainly, because it's the part a reader could reasonably object to. We record the address of each page viewed exactly as it is — and the address of a member's profile page, or a team's page, contains that member's or team's name. So the measurement data does show which profiles and team pages were looked at, and when. It never shows who was looking.",
-          "We record the address only as far as the question mark, never the part after it. That's where deep links and return addresses live, and they would have carried more than we intended.",
-          "If you'd rather not be measured at all, see the last section on this page. It takes one browser setting and we honour it."
+          "We measure how the site is used, so we know which parts are worth the work. It runs on our own servers, and the numbers don't go to an outside analytics company.",
+          "It sets no cookie and stores nothing on your device. It doesn't record your account, your username, your email, or your full network address. Nothing in it says who was doing the browsing.",
+          "There's one thing we want to be straightforward about, because it's the part you'd reasonably object to. We record the address of every page viewed exactly as it is — and the address of someone's profile, or a team's page, has their name in it. So the numbers do show which profiles and team pages got looked at, and when. They never show who was looking.",
+          "We record the address only up to the question mark, never what comes after. That's where deep links and return addresses live, and they'd have carried more than we meant them to.",
+          "If you'd rather not be measured at all, the last section on this page tells you how. It's one browser setting, and we honour it."
         ]
       },
       "legalBasis": {
         "heading": "Why there's no cookie banner",
         "body": [
-          "Two questions get muddled together a lot, so we'll take them one at a time.",
-          "The rule that makes sites ask permission is about storing things on your device. Our measurement stores nothing on your device — no cookie, no local storage, nothing — so that rule isn't engaged. The only cookie we set is the one that keeps you signed in, which is necessary for a service you asked for and is exempt. That's why you don't see a banner here. It isn't an oversight, and it isn't us being clever with the wording.",
-          "The separate question is what allows the measuring itself. Because a page address can name a member or a team, that data is personal data and needs a basis regardless of the cookie question. We rely on legitimate interest.",
-          "Here is the balancing, so you can judge it rather than take our word for it. Our interest is knowing which parts of a volunteer-run community site are actually used, so that limited effort goes where it helps. The effect on you is narrow: nothing identifies you as the viewer, nothing is stored on your device, the data isn't combined with your account or used to build any profile of you, and it's never used to make a decision about you. What remains is that a page naming you can appear in a list of pages viewed. We think that's proportionate to running the site well — and because it's legitimate interest rather than consent, you have an absolute right to object, which we've made a single setting rather than a form."
+          "Two questions get muddled together, so here they are one at a time.",
+          "The rule that makes sites ask permission is about storing things on your device. Ours stores nothing there — no cookie, no local storage, nothing — so the rule doesn't apply. The one cookie we set keeps you signed in, which is necessary for something you asked for, and that's exempt. So there's no banner. It isn't an oversight, and it isn't us being clever with the wording.",
+          "The separate question is what allows the measuring itself. A page address can name a member or a team, so that's personal data, and it needs a basis whatever the cookie rules say. We rely on legitimate interest.",
+          "Here's the balancing, so you can judge it rather than take our word for it. We want to know which parts of a volunteer-run site actually get used, so the limited time goes where it helps. What it costs you is narrow: nothing marks you as the viewer, nothing lands on your device, it isn't tied to your account or built into a profile of you, and it never feeds a decision about you. What's left is that a page with your name in it can show up in a list of pages viewed. We think that's a fair trade for running the site well — and since it's legitimate interest rather than consent, you can object outright, which we've made one setting instead of a form."
         ]
       },
       "storage": {
         "heading": "Cookies and what's kept in your browser",
         "body": [
-          "A sign-in cookie, which is how the site knows you're you. It's set with httpOnly, so JavaScript can't read it, and without it you can't stay signed in.",
-          "If you're not signed in and pick a language, that choice is kept in your browser and never sent to us.",
-          "We don't use cookies for advertising, and we don't use anything to follow you across other sites."
+          "A sign-in cookie. It's how the site knows you're you, it's set httpOnly so JavaScript can't read it, and without it you can't stay signed in.",
+          "If you're signed out and pick a language, that choice stays in your browser and never reaches us.",
+          "We don't use cookies to advertise to you, or to follow you around other sites."
         ]
       },
       "processors": {
         "heading": "Who else is involved",
         "body": [
-          "We use a small number of service providers to run the site, under contracts that only let them handle data on our instructions: a cloud provider that hosts the application, its database and uploaded files (Microsoft Azure, in their West Europe region, inside the EU), and a provider that delivers our email (Resend), which necessarily sees the recipient's address and the message itself.",
-          "Where a provider handles data outside the EU, that transfer is covered by the standard contractual clauses in our agreement with them.",
-          "We don't sell your data, and we don't pass it to anyone for advertising."
+          "A few providers help us run the site, each under a contract that only lets them handle data on our instructions. Microsoft Azure hosts the application, its database and uploaded files, in their West Europe region inside the EU. Resend delivers our email, and necessarily sees who it's going to and what it says.",
+          "Where a provider handles data outside the EU, the standard contractual clauses in our agreement cover it.",
+          "We don't sell your data, and we don't hand it to anyone for advertising."
         ]
       },
       "retention": {
         "heading": "How long we keep it",
         "body": [
-          "As a rule, what we hold stays for as long as you have an account. Ask us to delete your account and we'll delete what we hold about you.",
-          "Some things outlive that of necessity — a message you sent is part of someone else's conversation, and anything we're legally required to keep has to stay for as long as the law says.",
-          "The measurement data is limited by its nature rather than by a schedule: it holds no identifier for you in the first place, so there's nothing in it to delete on your behalf."
+          "As a rule, what we hold stays as long as you have an account. Ask us to delete it and we will.",
+          "Some of it outlives that because it has to. A message you sent is part of someone else's conversation. Anything the law requires us to keep, we keep for as long as the law says.",
+          "The measurement numbers are limited by what they are rather than by a clock: there's no identifier for you in them, so there's nothing there to delete on your behalf."
         ]
       },
       "rights": {
         "heading": "Your rights",
         "body": [
-          "You can ask for a copy of what we hold about you, ask us to correct it, ask us to delete it, ask us to limit what we do with it, ask for it in a portable form, and object to anything we do on the basis of legitimate interest.",
-          "Write to hello@juggerhub.com and we'll take care of it.",
-          "The one exception is objecting to measurement, which you can do yourself in seconds — see the next section.",
-          "You can also complain to a data protection supervisory authority. Ours is Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg. You can go to the authority where you live instead."
+          "You can ask for a copy of what we hold about you, ask us to fix it, ask us to delete it, ask us to limit what we do with it, ask for it in a form you can take elsewhere, and object to anything we do on the basis of legitimate interest.",
+          "Write to hello@juggerhub.com and we'll sort it.",
+          "The exception is objecting to measurement, which takes seconds and you can do yourself. That's next.",
+          "You can also complain to a data protection authority. Ours is Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg. The one where you live works too."
         ]
       },
       "objection": {
         "heading": "How to object to being measured",
         "body": [
           "Turn on \"Do Not Track\" (or Global Privacy Control) in your browser. That's it — from then on we record nothing at all for you.",
-          "You'll usually find it under Settings → Privacy. In Firefox it's \"Tell websites not to sell or share my data\". In Safari and Brave a similar setting is on by default. In Chrome it's under Privacy and security.",
-          "Plenty of sites ignore that signal. We don't: when it's on, no measurement is sent and nothing is recorded. It applies immediately, needs no account, and there's nothing to switch back on.",
-          "To object to anything else on this page, write to hello@juggerhub.com."
+          "It's usually under Settings → Privacy. Firefox calls it \"Tell websites not to sell or share my data\". Safari and Brave have something similar on by default. In Chrome it's under Privacy and security.",
+          "Plenty of sites ignore that signal. We don't: when it's on, nothing is sent and nothing is recorded. It works immediately, needs no account, and there's nothing to switch back on.",
+          "For anything else on this page, write to hello@juggerhub.com."
         ]
       }
     }

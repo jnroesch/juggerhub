@@ -172,7 +172,11 @@ services:
     # the emulator should reject anything it does not genuinely implement. Skipping the check would
     # let local quietly accept requests it handles differently from real storage — the exact
     # divergence this emulator exists to prevent.
-    command: ["azurite-blob", "--blobHost", "0.0.0.0", "--location", "/data"]
+    #
+    # --disableTelemetry stops the emulator phoning home to Application Insights. It is opt-OUT,
+    # and on a dev machine it only ever produces `EAI_AGAIN ...applicationinsights.azure.com` noise
+    # in the log that reads like an application fault. Nothing we run needs it.
+    command: ["azurite-blob", "--blobHost", "0.0.0.0", "--location", "/data", "--disableTelemetry"]
     ports:
       - "10000:10000"
     volumes:
@@ -181,7 +185,10 @@ services:
       - juggerhub-network
     healthcheck:
       # Azurite has no shell utilities beyond node, so probe the blob endpoint with node itself.
-      # A 400 from an unauthenticated request still proves the listener is up and answering.
+      # The probe is UNAUTHENTICATED, so Azurite answers it with a 403 — which is a pass, not a
+      # fault: the callback exits 0 on any response and only `.on('error')` (nothing listening)
+      # fails the check. Expect a steady stream of `"GET /devstoreaccount1?comp=list" 403` in the
+      # container log at the interval below; it is this probe, not the backend.
       test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:10000/devstoreaccount1?comp=list',r=>process.exit(0)).on('error',()=>process.exit(1))"]
       interval: 5s
       timeout: 5s

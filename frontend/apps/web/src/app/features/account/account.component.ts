@@ -3,6 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 import { LanguageSwitcherComponent } from '../settings/language/language-switcher.component';
+import { LegalLinksComponent } from '../../shared/ui';
 
 /**
  * Guarded sample page — reachable only when authenticated (see authGuard). It
@@ -11,7 +12,7 @@ import { LanguageSwitcherComponent } from '../settings/language/language-switche
  */
 @Component({
   selector: 'jh-account',
-  imports: [RouterLink, TranslocoPipe, LanguageSwitcherComponent],
+  imports: [RouterLink, TranslocoPipe, LanguageSwitcherComponent, LegalLinksComponent],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css',
 })

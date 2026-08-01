@@ -44,8 +44,20 @@ They carry no identifier, so this is unremarkable — noted only so it is not mi
 
 ## 2. Reachability
 
-`FR-002` — both pages reachable in **≤2 clicks from any screen**, in every state. One shared
-component, three placements:
+`FR-002` — reachability differs by audience (owner decision, 2026-08-01). One shared component,
+three placements:
+
+| State | Placement | Clicks |
+|---|---|---|
+| Signed out, in the shell (`/u/:handle`, landing) | `jh-app-footer` at the end of the shell's flow column | 1 |
+| Auth / onboarding / invite-accept screens (outside the shell) | `jh-legal-links` inline at the bottom of the card column | 1 |
+| **Signed in**, desktop and mobile | **the account page only** — the shell footer does not render for members | 3 (avatar menu → Account → link) |
+
+> **Changed 2026-08-01.** The footer originally rendered in both states. It now sits inside
+> `@if (anonymous())`. A signed-out visitor is the reader a privacy policy exists for and keeps
+> one-click access from anywhere; a member has already made that decision, and a document read
+> once does not earn space on every screen. The `pb-[76px]` reasoning in §2.2 still applies,
+> because the footer must clear the mobile bottom bar on the anonymous in-shell route.
 
 ### 2.1 `jh-legal-links` (shared)
 
@@ -66,17 +78,25 @@ Carries `data-testid="legal-links"`, with `data-testid="legal-link-privacy"` and
 
 ```html
 <main class="min-w-0 flex-1 pb-[76px] md:pb-0"> … </main>
-<jh-app-footer />
-@if (!anonymous()) { <jh-bottom-nav /> }
+@if (anonymous()) { <jh-app-footer /> } @else { <jh-bottom-nav /> }
 ```
 
 Placement is load-bearing. `<main>` already reserves `pb-[76px]` for the fixed mobile bottom bar, so
-a footer that follows it sits above the bar and is never occluded. The footer renders in **both**
-the anonymous and signed-in states — it is outside the `@if (anonymous())` branch that swaps the
-public bar for `jh-top-nav`.
+a footer that follows it sits above the bar and is never occluded.
 
-Scrolling to reach it does not consume the two-click budget: reaching the footer costs zero clicks,
-following the link costs one.
+The footer is **anonymous-only** (2026-08-01). Note `anonymous()` means *probed and null*, not
+*not yet probed* — an undefined session keeps the full nav to avoid a flash on load, and the footer
+follows the same rule rather than flashing in and out. All three states are pinned in
+`shell.component.spec.ts`.
+
+Scrolling to reach it costs no clicks; following the link costs one.
+
+### 2.2a Signed-in placement — the account page
+
+`frontend/apps/web/src/app/features/account/account.component.html`, below the notification-settings
+link. This is the **only** in-app route to the legal pages for a member, so
+`account.component.spec.ts` pins both links: if they were ever dropped from here, a signed-in member
+would have no way to reach the privacy policy without typing the URL.
 
 ### 2.3 Inline placements (outside the shell)
 
@@ -118,10 +138,29 @@ in DESIGN.md (research R7) and renders:
 | PC-2 | No horizontal scroll at 320px | FR-018, SC-007 |
 | PC-3 | Heading hierarchy is unbroken (`h1` → `h2` → `h3`, no skips) so a screen reader can traverse section by section | FR-018, SC-007 |
 | PC-4 | Section `id`s are stable so deep links to a section keep working | Edge case: deep-linked section |
+| PC-4a | Table-of-contents entries use `[routerLink]="[]"` + `[fragment]`, **never a bare `href="#id"`** | See the note below — a bare fragment href sent readers to sign-in |
 | PC-5 | Links inside prose are underlined, unlike navigation links elsewhere in the app | research R7 — colour alone is a weak affordance in a wall of text |
 | PC-6 | Changing language re-renders in place without navigating away | 031 FR-004, inherited |
 | PC-7 | **If the `legal` scope fails to load, a visible error state is shown — never an empty document** | Constitution VII. A blank privacy policy reads as a policy that says nothing, which is worse than an honest error |
 | PC-8 | No `[innerHTML]` binding anywhere in either page | Constitution I |
+
+### PC-4a — why a bare fragment link broke the page
+
+Shipped as a bug and worth recording, because the fix looks like a stylistic preference and is not.
+
+The app sets `<base href="/">`. Per the HTML spec a **fragment-only URL resolves against the
+document's base URL**, not the current one — so `href="#privacy-controller"` on `/privacy` resolved
+to `/#privacy-controller`. That is the root route, which is `authGuard`ed, so every table-of-contents
+click threw the reader onto the sign-in screen **from a page whose whole purpose is being readable
+without an account**. It is also the most-clicked control on the page.
+
+The fix is `[routerLink]="[]" [fragment]="…"`, which stays on the active route and sets only the
+fragment, plus `withInMemoryScrolling({ anchorScrolling: 'enabled' })` in `app.config.ts` so the
+router actually scrolls rather than just putting the fragment in the URL.
+
+The regression test navigates through the **real router** rather than creating the component
+directly. That matters: a directly-created component has no active route, so `routerLink="[]"`
+resolves to `/` there too and the test would pass against the broken code.
 
 ---
 
