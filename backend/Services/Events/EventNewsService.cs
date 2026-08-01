@@ -11,11 +11,13 @@ public sealed class EventNewsService : IEventNewsService
 {
     private readonly AppDbContext _db;
     private readonly EventAdminGuard _guard;
+    private readonly Localization.IRecipientCultureResolver _culture;
 
-    public EventNewsService(AppDbContext db, EventAdminGuard guard)
+    public EventNewsService(AppDbContext db, EventAdminGuard guard, Localization.IRecipientCultureResolver culture)
     {
         _db = db;
         _guard = guard;
+        _culture = culture;
     }
 
     public async Task<PagedResult<EventNewsDto>?> GetFeedAsync(Guid eventId, PaginationRequest pagination, CancellationToken ct = default)
@@ -28,13 +30,19 @@ public sealed class EventNewsService : IEventNewsService
 
         var query = _db.EventNewsPosts.AsNoTracking().Where(n => n.EventId == eventId);
         var total = await query.CountAsync(ct);
+
+        // This path already anticipated a missing author. Feature 037 only changed the fallback text:
+        // it was a hardcoded English "An organiser" on a page that ships in three languages, and it
+        // now shares the one placeholder every other surface uses.
+        var placeholder = Common.MemberPlaceholder.For(_culture.ResolveFromRequest());
+
         var items = await query
             .OrderByDescending(n => n.CreatedDate)
             .Skip(pagination.NormalizedSkip)
             .Take(pagination.NormalizedTake)
             .Select(n => new EventNewsDto(
                 n.Id,
-                n.Author.Profile != null ? n.Author.Profile.DisplayName : "An organiser",
+                n.Author.Profile != null ? n.Author.Profile.DisplayName : placeholder,
                 n.Body,
                 n.CreatedDate))
             .ToListAsync(ct);

@@ -494,7 +494,50 @@
     "title": "Cuenta",
     "subtitle": "Página de ejemplo protegida — solo la ves cuando has iniciado sesión.",
     "signedInAs": "Sesión iniciada como",
-    "notificationSettings": "Ajustes de notificaciones"
+    "notificationSettings": "Ajustes de notificaciones",
+    "delete": {
+      "dangerZone": "Zona de peligro",
+      "hint": "Eliminar tu cuenta borra tu perfil y no se puede deshacer.",
+      "action": "Eliminar cuenta",
+      "checking": "Estamos comprobando tu cuenta…",
+      "previewFailed": "No hemos podido comprobar tu cuenta ahora mismo. Inténtalo de nuevo.",
+      "confirmTitle": "¿Eliminar tu cuenta?",
+      "erasedIntro": "Esto es lo que eliminaremos:",
+      "erased": {
+        "Profile": "Tu perfil: nombre, usuario, biografía y ciudad",
+        "Photo": "Tu foto de perfil",
+        "Email": "Tu dirección de correo y tu contraseña",
+        "Memberships": "Tus equipos, eventos, grupos y respuestas de entrenamiento",
+        "Notifications": "Tus notificaciones y sus ajustes",
+        "Sessions": "Todas las sesiones iniciadas, en todos los dispositivos"
+      },
+      "retainedIntro": "Lo que se queda: esta es la parte que nadie espera:",
+      "retained": {
+        "ChatMessages": "Tus mensajes siguen en los chats de otras personas, mostrados como «Un jugador anterior»",
+        "NewsPosts": "Tus novedades siguen en el equipo o el evento, sin autor",
+        "ModerationRecords": "Registros de acciones de administración, como constancia de lo que hicieron los administradores",
+        "AwardsGrantedToOthers": "Insignias y logros que concediste a otras personas"
+      },
+      "ownWords": "Si escribiste tu nombre, tu teléfono o tu dirección dentro de un mensaje, ese texto también permanece. Solo tú sabes qué escribiste.",
+      "permanent": "Esto es permanente. No hay vuelta atrás ni nada que restaurar.",
+      "passwordLabel": "Tu contraseña",
+      "confirmationLabel": "Escribe {{ word }} para confirmar",
+      "confirmationWord": "ELIMINAR",
+      "confirmAction": "Eliminar mi cuenta",
+      "deleting": "Eliminando…",
+      "failed": "No hemos podido eliminar tu cuenta ahora mismo. No se ha cambiado nada; inténtalo de nuevo.",
+      "blockedTitle": "Primero hay que resolver algunas cosas",
+      "blockedNow": "Algo ha cambiado mientras estabas aquí. No se ha eliminado nada.",
+      "blocker": {
+        "SoleTeamAdmin": "eres la única persona administradora de este equipo.",
+        "SoleEventAdmin": "eres la única persona administradora de este evento.",
+        "SolePartyAdmin": "eres la única persona administradora de este grupo."
+      },
+      "remedy": {
+        "MakeAnotherAdmin": "Haz administradora a otra persona y vuelve luego.",
+        "MakeAnotherAdminOrDisband": "Haz administradora a otra persona o disuélvelo, y vuelve luego."
+      }
+    }
   },
   "settings": {
     "notifications": {

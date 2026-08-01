@@ -134,6 +134,14 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             // participant lists all drop out without per-call-site Where clauses (fails
             // closed). Only the admin services opt out via IgnoreQueryFilters(); the
             // admin users list is the one place banned players remain findable.
+            //
+            // Feature 037 note — this stays "!= Banned" DELIBERATELY, and is safe only
+            // INCIDENTALLY. An erased account (AccountStatus.Deleted) passes this predicate,
+            // but there is nothing left for it to admit: erasure DELETES the PlayerProfile row,
+            // so the filter has no row to evaluate. The three sibling checks that query Users
+            // DIRECTLY had no such backstop and were rewritten as positive tests
+            // (ChatConversationService). Before adding a fifth AccountStatus value, re-check
+            // BOTH groups — this one is safe by consequence, not by construction.
             entity.HasQueryFilter(p => p.User.Status != AccountStatus.Banned);
             entity.Property(p => p.Handle).HasMaxLength(30).IsRequired();
             entity.Property(p => p.DisplayName).HasMaxLength(50).IsRequired();
@@ -176,6 +184,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         {
             // Matches the PlayerProfile ban filter (013) so direct pompfen queries and
             // includes stay consistent with their (possibly hidden) parent profile.
+            // Feature 037: safe unchanged for Deleted — these rows cascade away with the
+            // profile, so there is nothing for the predicate to admit. See PlayerProfile above.
             entity.HasQueryFilter(pp => pp.Profile.User.Status != AccountStatus.Banned);
 
             // A profile selects each pompfe at most once.
@@ -198,6 +208,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             // expression could not exist and the ban gate would have to be re-checked by hand at
             // every call site — trading a guarantee that holds by construction for one that holds
             // by memory. Do not "simplify" these three tables into one.
+            // Feature 037: safe unchanged for Deleted — the avatar cascades away with the
+            // profile, so there is nothing for the predicate to admit. See PlayerProfile above.
             entity.HasQueryFilter(a => a.Profile.User.Status != AccountStatus.Banned);
 
             entity.Property(a => a.ContentType).HasMaxLength(64).IsRequired();
@@ -342,6 +354,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         {
             // Matches the PlayerProfile ban filter (013): banned players drop out of
             // participant lists queried directly off this set.
+            // Feature 037: safe unchanged for Deleted — participations cascade away with the
+            // profile, so there is nothing for the predicate to admit. See PlayerProfile above.
             entity.HasQueryFilter(ep => ep.Profile.User.Status != AccountStatus.Banned);
 
             entity.Property(ep => ep.TeamLabel).HasMaxLength(80).IsRequired();

@@ -1,0 +1,9 @@
+/*
+ * Layout comes entirely from DESIGN.md tokens applied in the template (danger-fg / danger-bg /
+ * danger-border, the 4px space scale, radius-md). Nothing feature-specific is needed here — the
+ * file exists because the constitution (Principle VI) keeps .html / .css / .ts separate per
+ * component, not because the component has styles of its own.
+ */
+:host {
+  display: block;
+}
