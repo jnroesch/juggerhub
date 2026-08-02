@@ -48,6 +48,12 @@ public sealed class AdminUserService : IAdminUserService
     public async Task<PagedResult<AdminUserListItemDto>> SearchAsync(
         string? q, AccountStatus? status, PaginationRequest pagination, CancellationToken ct = default)
     {
+        // Feature 037 — erased accounts are absent here BY CONSTRUCTION, not by a filter:
+        // this query is rooted in PlayerProfiles and erasure deletes that row. Nothing to
+        // null-guard, because there is no row to project. That is the intended outcome — an
+        // erased account identifies nobody and offers an admin nothing to act on. Deliberately
+        // NOT offered as a status filter either (the frontend's AccountStatus union stops at
+        // Banned), since filtering by Deleted could only ever return an empty page.
         var query = _db.PlayerProfiles.IgnoreQueryFilters().AsNoTracking();
 
         if (status is not null)
@@ -143,6 +149,16 @@ public sealed class AdminUserService : IAdminUserService
             return AdminUserActionOutcome.NotFound;
         }
 
+        // Feature 037: never mint a credential for an erased account. This path had no status
+        // check at all, so without this guard an admin could generate a password-reset token
+        // against a neutralised row and record the attempt in the action log. Delivery would
+        // fail anyway (the address is released, not retained), but issuing a reset token for an
+        // account that was erased on request is the wrong thing to attempt in the first place.
+        if (user.Status == AccountStatus.Deleted)
+        {
+            return AdminUserActionOutcome.AccountErased;
+        }
+
         try
         {
             // The platform's standard reset flow, triggered for the target. The admin
@@ -182,6 +198,15 @@ public sealed class AdminUserService : IAdminUserService
         if (user is null)
         {
             return AdminUserActionOutcome.NotFound;
+        }
+
+        // Feature 037: an erased account is terminal. The `from:` sets below would already
+        // reject it, but only as a generic "wrong state" — which reads as "try again after
+        // something changes". Nothing will change: there is no transition out of Deleted and
+        // no person left to act on. Say so explicitly rather than letting it fall through.
+        if (user.Status == AccountStatus.Deleted)
+        {
+            return AdminUserActionOutcome.AccountErased;
         }
 
         // FR-019: suspend/ban never applies to a designated admin — and the caller is

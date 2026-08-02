@@ -4,15 +4,22 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 import { LanguageSwitcherComponent } from '../settings/language/language-switcher.component';
 import { LegalLinksComponent } from '../../shared/ui';
+import { DeleteAccountComponent } from './delete-account.component';
 
 /**
- * Guarded sample page — reachable only when authenticated (see authGuard). It
- * exists to demonstrate the route guard; unauthenticated visitors are redirected
- * toward sign-in instead of seeing this content.
+ * The signed-in member's own account settings. Reachable only when authenticated (see authGuard).
+ * Also the home of the danger zone (feature 037) — deleting your account is an account setting, so
+ * it lives with the others rather than being hidden somewhere it has to be hunted for (FR-001).
  */
 @Component({
   selector: 'jh-account',
-  imports: [RouterLink, TranslocoPipe, LanguageSwitcherComponent, LegalLinksComponent],
+  imports: [
+    RouterLink,
+    TranslocoPipe,
+    LanguageSwitcherComponent,
+    LegalLinksComponent,
+    DeleteAccountComponent,
+  ],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css',
 })

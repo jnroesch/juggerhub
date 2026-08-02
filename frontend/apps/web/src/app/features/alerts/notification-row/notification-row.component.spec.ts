@@ -54,8 +54,7 @@ describe('NotificationRowComponent — EventCancelled', () => {
 
   it('links to the event page, which stays viewable after cancellation', () => {
     const anchor = fixture.nativeElement.querySelector('a[href]') as HTMLAnchorElement | null;
-    expect(anchor).not.toBeNull();
-    expect(anchor!.getAttribute('href')).toBe('/events/0198c4f2-0000-7000-8000-0000000000aa');
+    expect(anchor?.getAttribute('href')).toBe('/events/0198c4f2-0000-7000-8000-0000000000aa');
   });
 
   it('offers no inline actions', () => {

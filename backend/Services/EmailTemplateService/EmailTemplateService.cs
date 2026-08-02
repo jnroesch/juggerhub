@@ -159,6 +159,23 @@ public class EmailTemplateService : IEmailTemplateService
     }
 
     /// <inheritdoc />
+    public async Task<string> GenerateAccountDeletedEmailAsync(
+        string recipientName, string recipientEmail, DateTime deletedAt, string culture = SupportedLanguages.Default)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get("title.accountDeleted", culture),
+            ["RECIPIENT_NAME"] = recipientName,
+            ["RECIPIENT_EMAIL"] = recipientEmail,
+            ["DELETED_DATE"] = deletedAt.ToString("MMMM dd, yyyy"),
+            ["DELETED_TIME"] = deletedAt.ToString("HH:mm:ss UTC"),
+            ["FOOTER_REASON"] = _localizer.Get("footer.accountDeleted", culture),
+        };
+
+        return await GenerateEmailAsync("account-deleted", variables, culture);
+    }
+
+    /// <inheritdoc />
     public async Task<string> GenerateUnusualLoginNotificationEmailAsync(string recipientName, string recipientEmail, DateTime loginTime, string ipAddress, string location, string deviceInfo, bool isSuccessful, string unusualReasons)
     {
         var statusStyle = isSuccessful 

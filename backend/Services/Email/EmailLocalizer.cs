@@ -59,6 +59,14 @@ public sealed class EmailLocalizer : IEmailLocalizer
                 ["de"] = "Willkommen bei JuggerHub",
                 ["es"] = "Te damos la bienvenida a JuggerHub",
             },
+            // Feature 037. Deliberately plain: this is the last thing we send, and it must not read
+            // as marketing or invite a reply that would go nowhere.
+            ["subject.accountDeleted"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your account has been deleted — JuggerHub",
+                ["de"] = "Dein Konto wurde gelöscht — JuggerHub",
+                ["es"] = "Tu cuenta ha sido eliminada — JuggerHub",
+            },
             ["title.verification"] = new Dictionary<string, string>
             {
                 ["en"] = "Confirm your email to finish signing up",
@@ -76,6 +84,12 @@ public sealed class EmailLocalizer : IEmailLocalizer
                 ["en"] = "Your JuggerHub password was changed",
                 ["de"] = "Dein JuggerHub-Passwort wurde geändert",
                 ["es"] = "Tu contraseña de JuggerHub ha cambiado",
+            },
+            ["title.accountDeleted"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your JuggerHub account has been deleted",
+                ["de"] = "Dein JuggerHub-Konto wurde gelöscht",
+                ["es"] = "Tu cuenta de JuggerHub ha sido eliminada",
             },
             ["title.welcome"] = new Dictionary<string, string>
             {
@@ -100,6 +114,14 @@ public sealed class EmailLocalizer : IEmailLocalizer
                 ["en"] = "You're getting this because your JuggerHub password was changed.",
                 ["de"] = "Du erhältst diese E-Mail, weil dein JuggerHub-Passwort geändert wurde.",
                 ["es"] = "Recibes este mensaje porque se cambió tu contraseña de JuggerHub.",
+            },
+            // "was deleted", not "you can manage notifications" — the shared footer's settings link
+            // points at an account that no longer exists, so the reason line must not imply it works.
+            ["footer.accountDeleted"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because your JuggerHub account was deleted.",
+                ["de"] = "Du erhältst diese E-Mail, weil dein JuggerHub-Konto gelöscht wurde.",
+                ["es"] = "Recibes este mensaje porque se eliminó tu cuenta de JuggerHub.",
             },
             ["footer.welcome"] = new Dictionary<string, string>
             {

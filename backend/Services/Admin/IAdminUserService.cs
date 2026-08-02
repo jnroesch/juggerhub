@@ -21,6 +21,18 @@ public enum AdminUserActionOutcome
     /// configuration (spec FR-019).
     /// </summary>
     ProtectedAdmin,
+
+    /// <summary>
+    /// The account was erased by its owner (feature 037, <see cref="AccountStatus.Deleted"/>).
+    /// </summary>
+    /// <remarks>
+    /// Distinct from <see cref="InvalidTransition"/> on purpose. That outcome means "not right
+    /// now" and invites a retry after some other change; this one means <b>never</b> — erasure
+    /// is terminal, there is no state the account can be moved back into, and there is no
+    /// person left to act on. Collapsing the two would tell an admin to try something that
+    /// cannot ever work.
+    /// </remarks>
+    AccountErased,
 }
 
 /// <summary>

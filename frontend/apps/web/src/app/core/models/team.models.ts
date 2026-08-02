@@ -96,7 +96,8 @@ export interface TeamMember {
 
 export interface TeamNews {
   authorDisplayName: string;
-  authorHandle: string;
+  /** Null when the author's profile is gone (banned or deleted) — there's nothing to link to. */
+  authorHandle: string | null;
   authorRole: TeamRole;
   /** ISO date-time. */
   createdDate: string;

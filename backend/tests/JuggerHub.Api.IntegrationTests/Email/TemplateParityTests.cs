@@ -15,13 +15,21 @@ namespace JuggerHub.Api.IntegrationTests.Email;
 /// </summary>
 public sealed class TemplateParityTests
 {
-    /// <summary>The templates feature 039 authored in all three languages.</summary>
+    /// <summary>
+    /// Every template that exists in all three languages. Feature 039 authored the first four;
+    /// <c>account-deleted.html</c> arrived with feature 037 and is included here because the guard
+    /// is about the *property* (three variants, one placeholder set), not about who wrote the file.
+    ///
+    /// Deliberately excludes <c>invitation.html</c> and <c>team-news.html</c>, which are en-only by
+    /// design and fall back — see #84.
+    /// </summary>
     public static TheoryData<string> FullyTranslatedTemplates =>
     [
         "event-cancelled.html",
         "party-request.html",
         "party-news.html",
         "market-invite.html",
+        "account-deleted.html",
     ];
 
     [Theory]

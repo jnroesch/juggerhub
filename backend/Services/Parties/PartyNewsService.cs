@@ -20,17 +20,24 @@ public sealed class PartyNewsService : IPartyNewsService
     private readonly INotificationService _notifications;
     private readonly INotificationPreferenceService _preferences;
     private readonly PartyEmailService _email;
+    private readonly Localization.IRecipientCultureResolver _culture;
     private readonly ILogger<PartyNewsService> _logger;
 
     public PartyNewsService(
-        AppDbContext db, PartyGuard guard, INotificationService notifications,
-        INotificationPreferenceService preferences, PartyEmailService email, ILogger<PartyNewsService> logger)
+        AppDbContext db,
+        PartyGuard guard,
+        INotificationService notifications,
+        INotificationPreferenceService preferences,
+        PartyEmailService email,
+        Localization.IRecipientCultureResolver culture,
+        ILogger<PartyNewsService> logger)
     {
         _db = db;
         _guard = guard;
         _notifications = notifications;
         _preferences = preferences;
         _email = email;
+        _culture = culture;
         _logger = logger;
     }
 
@@ -44,13 +51,17 @@ public sealed class PartyNewsService : IPartyNewsService
 
         var query = _db.PartyNewsPosts.AsNoTracking().Where(n => n.PartyId == partyId);
         var total = await query.CountAsync(ct);
+        var placeholder = Common.MemberPlaceholder.For(_culture.ResolveFromRequest());
+
         var items = await query
             .OrderByDescending(n => n.CreatedDate)
             .Skip(pagination.NormalizedSkip)
             .Take(pagination.NormalizedTake)
             .Select(n => new PartyNewsDto(
                 n.Id,
-                n.Author.Profile!.DisplayName,
+                // Absent once the author is banned (filtered, 013) or erased (deleted, 037), so this
+                // projects to null. The post stays; the author collapses to the placeholder.
+                n.Author.Profile != null ? n.Author.Profile.DisplayName : placeholder,
                 _db.PartyMembers
                     .Where(m => m.PartyId == partyId && m.UserId == n.AuthorUserId)
                     .Select(m => m.Role)

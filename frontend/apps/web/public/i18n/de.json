@@ -494,7 +494,50 @@
     "title": "Konto",
     "subtitle": "Geschützte Beispielseite — du siehst sie nur im angemeldeten Zustand.",
     "signedInAs": "Angemeldet als",
-    "notificationSettings": "Benachrichtigungseinstellungen"
+    "notificationSettings": "Benachrichtigungseinstellungen",
+    "delete": {
+      "dangerZone": "Gefahrenbereich",
+      "hint": "Wenn du dein Konto löschst, verschwindet dein Profil — das lässt sich nicht rückgängig machen.",
+      "action": "Konto löschen",
+      "checking": "Wir prüfen dein Konto …",
+      "previewFailed": "Wir konnten dein Konto gerade nicht prüfen. Versuch es noch einmal.",
+      "confirmTitle": "Dein Konto löschen?",
+      "erasedIntro": "Das löschen wir:",
+      "erased": {
+        "Profile": "Dein Profil — Name, Handle, Kurzbeschreibung und Stadt",
+        "Photo": "Dein Profilfoto",
+        "Email": "Deine E-Mail-Adresse und dein Passwort",
+        "Memberships": "Deine Teams, Events, Partys und Trainingsantworten",
+        "Notifications": "Deine Benachrichtigungen und deren Einstellungen",
+        "Sessions": "Jede angemeldete Sitzung auf allen Geräten"
+      },
+      "retainedIntro": "Was bleibt — damit rechnen die wenigsten:",
+      "retained": {
+        "ChatMessages": "Deine Nachrichten bleiben in den Chats der anderen, angezeigt als „Ein ehemaliger Spieler“",
+        "NewsPosts": "Deine News-Beiträge bleiben beim Team oder Event, ohne Autor",
+        "ModerationRecords": "Aufzeichnungen über Admin-Aktionen, als Nachweis darüber, was Admins getan haben",
+        "AwardsGrantedToOthers": "Abzeichen und Erfolge, die du anderen verliehen hast"
+      },
+      "ownWords": "Wenn du deinen Namen, deine Telefonnummer oder deine Adresse in eine Nachricht geschrieben hast, bleibt dieser Text ebenfalls erhalten. Nur du weißt, was du geschrieben hast.",
+      "permanent": "Das ist endgültig. Es gibt kein Zurück und nichts wiederherzustellen.",
+      "passwordLabel": "Dein Passwort",
+      "confirmationLabel": "Tippe {{ word }}, um zu bestätigen",
+      "confirmationWord": "LÖSCHEN",
+      "confirmAction": "Mein Konto löschen",
+      "deleting": "Wird gelöscht …",
+      "failed": "Wir konnten dein Konto gerade nicht löschen. Es wurde nichts verändert — bitte versuch es noch einmal.",
+      "blockedTitle": "Ein paar Dinge müssen vorher geklärt werden",
+      "blockedNow": "In der Zwischenzeit hat sich etwas geändert. Es wurde nichts gelöscht.",
+      "blocker": {
+        "SoleTeamAdmin": "du bist die einzige Admin-Person dieses Teams.",
+        "SoleEventAdmin": "du bist die einzige Admin-Person dieses Events.",
+        "SolePartyAdmin": "du bist die einzige Admin-Person dieser Party."
+      },
+      "remedy": {
+        "MakeAnotherAdmin": "Mach jemand anderen zum Admin und komm dann zurück.",
+        "MakeAnotherAdminOrDisband": "Mach jemand anderen zum Admin oder löse sie auf, und komm dann zurück."
+      }
+    }
   },
   "settings": {
     "notifications": {

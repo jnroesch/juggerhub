@@ -1,0 +1,129 @@
+<section class="mt-lg border-t border-border-muted pt-md" data-testid="account-danger-zone">
+  <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-danger">
+    {{ 'account.delete.dangerZone' | transloco }}
+  </p>
+
+  @if (!open()) {
+    <p class="mt-xs text-body-sm text-subtle">{{ 'account.delete.hint' | transloco }}</p>
+    <button
+      type="button"
+      (click)="start()"
+      jhButton
+      variant="danger"
+      class="mt-sm"
+      data-testid="delete-account-open"
+    >
+      {{ 'account.delete.action' | transloco }}
+    </button>
+  } @else {
+    <div class="mt-sm rounded-md border border-danger-border bg-danger-bg p-md" data-testid="delete-account-panel">
+      @if (loading()) {
+        <p class="text-body-sm text-danger">{{ 'account.delete.checking' | transloco }}</p>
+      } @else {
+        @if (blockers().length > 0) {
+          <!--
+            Every blocker at once, with its own remedy — so the member can clear them in one sitting
+            rather than discovering them one refusal at a time (FR-011/FR-012).
+          -->
+          <jh-alert tone="danger" data-testid="delete-account-blockers">
+            <p class="font-medium">{{ 'account.delete.blockedTitle' | transloco }}</p>
+            <ul class="mt-xs list-disc space-y-xs pl-md">
+              @for (blocker of blockers(); track blocker.subjectId) {
+                <li>
+                  <span class="font-medium">{{ blocker.subjectName }}</span>
+                  — {{ 'account.delete.blocker.' + blocker.kind | transloco }}
+                  <span class="text-body-sm text-subtle">
+                    {{ 'account.delete.remedy.' + blocker.remedy | transloco }}
+                  </span>
+                </li>
+              }
+            </ul>
+          </jh-alert>
+        } @else {
+          <!--
+            The disclosure. What goes and, more importantly, what STAYS — a member overwhelmingly
+            expects their messages to disappear, and they will not (FR-025/FR-027).
+          -->
+          <h2 class="text-body-md font-semibold text-danger">{{ 'account.delete.confirmTitle' | transloco }}</h2>
+
+          <p class="mt-xs text-body-sm text-text">{{ 'account.delete.erasedIntro' | transloco }}</p>
+          <ul class="mt-xs list-disc space-y-1 pl-md text-body-sm text-text">
+            @for (key of preview()?.erased ?? []; track key) {
+              <li>{{ 'account.delete.erased.' + key | transloco }}</li>
+            }
+          </ul>
+
+          <p class="mt-sm text-body-sm font-medium text-text">{{ 'account.delete.retainedIntro' | transloco }}</p>
+          <ul class="mt-xs list-disc space-y-1 pl-md text-body-sm text-text">
+            @for (key of preview()?.retained ?? []; track key) {
+              <li>{{ 'account.delete.retained.' + key | transloco }}</li>
+            }
+          </ul>
+
+          <p class="mt-sm text-body-sm text-text">{{ 'account.delete.ownWords' | transloco }}</p>
+          <p class="mt-sm text-body-sm font-medium text-danger">{{ 'account.delete.permanent' | transloco }}</p>
+
+          <div class="mt-md space-y-sm">
+            <label class="block">
+              <span class="text-body-sm font-medium text-ink">{{ 'account.delete.passwordLabel' | transloco }}</span>
+              <input
+                type="password"
+                autocomplete="current-password"
+                [ngModel]="password()"
+                (ngModelChange)="password.set($event)"
+                [disabled]="working()"
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-md text-text focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                data-testid="delete-account-password"
+              />
+            </label>
+
+            <label class="block">
+              <span class="text-body-sm font-medium text-ink">
+                {{ 'account.delete.confirmationLabel' | transloco: { word: confirmationWord() } }}
+              </span>
+              <input
+                type="text"
+                autocomplete="off"
+                autocapitalize="characters"
+                [ngModel]="confirmation()"
+                (ngModelChange)="confirmation.set($event)"
+                [disabled]="working()"
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-md text-text focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                data-testid="delete-account-confirmation"
+              />
+            </label>
+          </div>
+        }
+
+        @if (error()) {
+          <jh-alert tone="danger" class="mt-sm" data-testid="delete-account-error">{{ error() }}</jh-alert>
+        }
+
+        <div class="mt-md flex gap-xs">
+          @if (canDelete()) {
+            <button
+              type="button"
+              (click)="submit()"
+              [disabled]="!ready() || working()"
+              class="flex-1 rounded-md bg-danger-fg px-md py-sm text-body-sm font-semibold text-white disabled:opacity-60"
+              data-testid="delete-account-confirm"
+            >
+              {{ (working() ? 'account.delete.deleting' : 'account.delete.confirmAction') | transloco }}
+            </button>
+          }
+          <button
+            type="button"
+            (click)="cancel()"
+            [disabled]="working()"
+            jhButton
+            variant="secondary"
+            size="sm"
+            data-testid="delete-account-cancel"
+          >
+            {{ 'common.cancel' | transloco }}
+          </button>
+        </div>
+      }
+    </div>
+  }
+</section>
