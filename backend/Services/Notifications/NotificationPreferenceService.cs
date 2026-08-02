@@ -31,6 +31,7 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
         NotificationCategory.InvitesAndRoster,
         NotificationCategory.TeamNews,
         NotificationCategory.Trainings,
+        NotificationCategory.Events,
     ];
 
     /// <summary>
@@ -47,18 +48,21 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
                 [NotificationCategory.InvitesAndRoster] = ("Invites & roster changes", "Team invites, people joining or leaving"),
                 [NotificationCategory.TeamNews] = ("Team news", "News posted to your teams"),
                 [NotificationCategory.Trainings] = ("Trainings", "New training sessions and schedule changes"),
+                [NotificationCategory.Events] = ("Events", "Changes to events you signed up for"),
             },
             ["de"] = new Dictionary<NotificationCategory, (string, string)>
             {
                 [NotificationCategory.InvitesAndRoster] = ("Einladungen & Kaderänderungen", "Team-Einladungen, Beitritte und Austritte"),
                 [NotificationCategory.TeamNews] = ("Team-News", "Neuigkeiten, die in deinen Teams gepostet werden"),
                 [NotificationCategory.Trainings] = ("Trainings", "Neue Trainingseinheiten und Terminänderungen"),
+                [NotificationCategory.Events] = ("Veranstaltungen", "Änderungen an Events, für die du angemeldet bist"),
             },
             ["es"] = new Dictionary<NotificationCategory, (string, string)>
             {
                 [NotificationCategory.InvitesAndRoster] = ("Invitaciones y cambios de plantilla", "Invitaciones de equipo, altas y bajas"),
                 [NotificationCategory.TeamNews] = ("Noticias del equipo", "Novedades publicadas en tus equipos"),
                 [NotificationCategory.Trainings] = ("Entrenamientos", "Nuevas sesiones de entrenamiento y cambios de horario"),
+                [NotificationCategory.Events] = ("Eventos", "Cambios en los eventos a los que te apuntaste"),
             },
         };
 
@@ -92,7 +96,14 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
         var categories = CategoryOrder
             .Select(category =>
             {
-                var (label, description) = copy[category];
+                // Per-category English fallback (feature 039). This used to be a bare indexer, which
+                // meant adding a category and forgetting one language's entry threw
+                // KeyNotFoundException and took down the whole settings page for that language —
+                // rather than degrading the way every other translation gap in this codebase does.
+                var (label, description) = copy.TryGetValue(category, out var localized)
+                    ? localized
+                    : CategoryCopy[SupportedLanguages.Default][category];
+
                 return new PreferenceCategoryDto(
                     category,
                     label,

@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
   AppNotification,
+  isEventCancelled,
   isMarketInvite,
   isPartyNews,
   isPartyRequest,
@@ -68,6 +69,10 @@ export class NotificationRowComponent {
     if (isTrainingScheduled(n) || isTrainingUpdated(n)) {
       return n.payload.sessionId ? `/trainings/sessions/${n.payload.sessionId}` : `/t/${n.payload.teamSlug}/trainings`;
     }
+    if (isEventCancelled(n)) {
+      // The event page stays viewable after a cancellation, which is what the email promises too.
+      return `/events/${n.payload.eventId}`;
+    }
     return null;
   });
 
@@ -102,6 +107,9 @@ export class NotificationRowComponent {
       return n.payload.kind === 'cancelled'
         ? t('alerts.row.trainingCancelledTitle', { name: n.payload.trainingName })
         : t('alerts.row.trainingChangedTitle', { name: n.payload.trainingName });
+    }
+    if (isEventCancelled(n)) {
+      return t('alerts.row.eventCancelledTitle', { event: n.payload.eventName });
     }
     return t('alerts.row.fallbackTitle');
   });
@@ -138,6 +146,9 @@ export class NotificationRowComponent {
       return n.payload.kind === 'cancelled'
         ? t('alerts.row.trainingUpdatedCancelled')
         : t('alerts.row.trainingUpdatedChanged');
+    }
+    if (isEventCancelled(n)) {
+      return t('alerts.row.eventCancelledSupporting');
     }
     return '';
   });

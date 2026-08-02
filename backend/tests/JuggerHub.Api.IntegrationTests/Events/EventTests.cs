@@ -607,6 +607,72 @@ public sealed class EventTests
         Assert.Equal("Cancelled", detail.GetProperty("status").GetString());
     }
 
+    /// <summary>
+    /// Cancellation is a first-class notification, not email-only (feature 039, FR-017). Before
+    /// this feature a cancelled event produced no in-app trace at all, which is why offering an
+    /// Email toggle for it would have been unsafe.
+    /// </summary>
+    [Fact]
+    public async Task Cancel_creates_an_in_app_notification_for_each_participant()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+        var (u, _, _, _) = await NewUserAsync();
+        await u.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+
+        (await org.PostAsync($"/api/v1/events/{id}/cancel", null)).EnsureSuccessStatusCode();
+
+        var feed = await u.GetFromJsonAsync<JsonElement>("/api/v1/notifications");
+        var cancellation = feed.GetProperty("items").EnumerateArray()
+            .FirstOrDefault(n => n.GetProperty("type").GetString() == "EventCancelled");
+
+        Assert.NotEqual(JsonValueKind.Undefined, cancellation.ValueKind);
+        Assert.Equal(id, cancellation.GetProperty("payload").GetProperty("eventId").GetGuid());
+        Assert.False(string.IsNullOrWhiteSpace(
+            cancellation.GetProperty("payload").GetProperty("eventName").GetString()));
+    }
+
+    /// <summary>
+    /// The Email toggle for the new Events category suppresses the mail and leaves the in-app
+    /// notice intact (FR-016, FR-027) — the two channels are independent.
+    /// </summary>
+    [Fact]
+    public async Task Cancel_email_respects_the_events_email_preference_but_in_app_still_arrives()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+        var (u, _, _, uEmail) = await NewUserAsync();
+        await u.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+
+        var off = await u.PutAsJsonAsync("/api/v1/notification-preferences/Events/Email", new { enabled = false });
+        Assert.Equal(HttpStatusCode.NoContent, off.StatusCode);
+
+        _factory.EmailSender.Clear();
+        (await org.PostAsync($"/api/v1/events/{id}/cancel", null)).EnsureSuccessStatusCode();
+
+        Assert.Null(_factory.EmailSender.LatestFor(uEmail));
+
+        var feed = await u.GetFromJsonAsync<JsonElement>("/api/v1/notifications");
+        Assert.Contains(
+            feed.GetProperty("items").EnumerateArray(),
+            n => n.GetProperty("type").GetString() == "EventCancelled");
+    }
+
+    /// <summary>A user with no stored preference is treated as opted in (FR-014).</summary>
+    [Fact]
+    public async Task Cancel_email_is_sent_when_the_user_never_touched_preferences()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, IndividualsFree(4));
+        var (u, _, _, uEmail) = await NewUserAsync();
+        await u.PostAsJsonAsync($"/api/v1/events/{id}/signup", new { teamId = (Guid?)null });
+
+        _factory.EmailSender.Clear();
+        (await org.PostAsync($"/api/v1/events/{id}/cancel", null)).EnsureSuccessStatusCode();
+
+        Assert.NotNull(_factory.EmailSender.LatestFor(uEmail));
+    }
+
     // --- Helpers --------------------------------------------------------------
 
     private static string ExtractInviteToken(string html)

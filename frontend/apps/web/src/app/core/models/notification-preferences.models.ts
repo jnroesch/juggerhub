@@ -5,7 +5,7 @@
  * matrix and mobile stack render the same copy.
  */
 
-export type NotificationCategoryId = 'InvitesAndRoster' | 'TeamNews' | 'Trainings';
+export type NotificationCategoryId = 'InvitesAndRoster' | 'TeamNews' | 'Trainings' | 'Events';
 export type NotificationChannelId = 'InApp' | 'Email';
 
 /** The two client-side keys of {@link PreferenceChannels}, matched to their API channel name. */

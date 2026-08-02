@@ -25,8 +25,10 @@ public sealed class PartyService : IPartyService
     private readonly EventCapacity _eventCapacity;
     private readonly TeamMembershipGuard _teamGuard;
     private readonly INotificationService _notifications;
+    private readonly INotificationPreferenceService _preferences;
     private readonly PartyEmailService _email;
     private readonly JuggerHub.Services.Chat.IChatConversationService _chat;
+    private readonly ILogger<PartyService> _logger;
 
     public PartyService(
         AppDbContext db,
@@ -35,8 +37,10 @@ public sealed class PartyService : IPartyService
         EventCapacity eventCapacity,
         TeamMembershipGuard teamGuard,
         INotificationService notifications,
+        INotificationPreferenceService preferences,
         PartyEmailService email,
-        JuggerHub.Services.Chat.IChatConversationService chat)
+        JuggerHub.Services.Chat.IChatConversationService chat,
+        ILogger<PartyService> logger)
     {
         _db = db;
         _guard = guard;
@@ -44,8 +48,10 @@ public sealed class PartyService : IPartyService
         _eventCapacity = eventCapacity;
         _teamGuard = teamGuard;
         _notifications = notifications;
+        _preferences = preferences;
         _email = email;
         _chat = chat;
+        _logger = logger;
     }
 
     // --- Form -----------------------------------------------------------------
@@ -133,9 +139,11 @@ public sealed class PartyService : IPartyService
     private async Task PostRequestAsync(
         Guid partyId, Guid teamId, Guid actorUserId, Guid eventId, string eventName, string teamName, string teamSlug, CancellationToken ct)
     {
+        // PreferredLanguage rides along on the projection that already runs (feature 039) — a
+        // per-recipient culture lookup inside the send loop would be an N+1.
         var recipients = await _db.TeamMemberships.AsNoTracking()
             .Where(tm => tm.TeamId == teamId && tm.UserId != actorUserId)
-            .Select(tm => new { tm.UserId, tm.User.Email, Name = tm.User.Profile!.DisplayName })
+            .Select(tm => new { tm.UserId, tm.User.Email, Name = tm.User.Profile!.DisplayName, tm.User.PreferredLanguage })
             .ToListAsync(ct);
         if (recipients.Count == 0)
         {
@@ -151,9 +159,26 @@ public sealed class PartyService : IPartyService
             dedupeKeyPrefix: $"party-request:{partyId}",
             ct);
 
-        foreach (var r in recipients.Where(r => !string.IsNullOrEmpty(r.Email)))
+        // Email: only members with Invites & roster → Email on (feature 011, wired up in 039).
+        // Best-effort — a preference or delivery failure must not fail forming the party.
+        try
         {
-            await _email.SendPartyRequestEmailAsync(r.Email!, r.Name, teamName, eventName, teamSlug, eventId, ct);
+            var emailRecipients = await _preferences.GetEnabledRecipientsAsync(
+                recipients.Select(r => r.UserId).ToList(),
+                NotificationCategory.InvitesAndRoster,
+                NotificationChannel.Email,
+                ct);
+
+            foreach (var r in recipients.Where(r => !string.IsNullOrEmpty(r.Email) && emailRecipients.Contains(r.UserId)))
+            {
+                await _email.SendPartyRequestEmailAsync(
+                    r.Email!, r.Name, teamName, eventName, teamSlug, eventId,
+                    SupportedLanguages.ResolveOrDefault(r.PreferredLanguage), ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send party-request emails for party {PartyId}.", partyId);
         }
     }
 

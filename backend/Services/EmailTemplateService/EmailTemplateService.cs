@@ -1,9 +1,36 @@
+using System.Net;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Unicode;
 using JuggerHub.Common;
 using JuggerHub.Services.Email;
 using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Services;
+
+/// <summary>
+/// Marks a template value as content the product itself authored, so <see cref="EmailTemplateService"/>
+/// substitutes it verbatim instead of HTML-encoding it (feature 039, FR-007).
+///
+/// Encoding is the default precisely because the opposite default failed: values were substituted
+/// raw, and a member-authored team news post could inject live markup into a JuggerHub-branded
+/// email. Opting out has to be a visible, deliberate act at the call site — never inferred from a
+/// variable name or a template.
+///
+/// <para>
+/// <b>Links are wrapped in this.</b> Every <c>*_URL</c> is built by the server from configured
+/// settings, route ids and <c>Uri.EscapeDataString</c>-encoded tokens — never from user input — so
+/// encoding them buys no safety. It does real damage: the verification and reset links carry
+/// <c>?userId=…&amp;token=…</c>, and escaping that ampersand rewrites the raw source to
+/// <c>&amp;amp;</c>. A browser resolves that back to <c>&amp;</c>, but anything reading the HTML
+/// as text — the e2e suite's link extractor, a plain-text alternate, a naive client — sees a query
+/// parameter called <c>amp;token</c> and loses the token, so the link silently stops working.
+/// </para>
+/// </summary>
+public sealed record RawHtml(string Value)
+{
+    public override string ToString() => Value;
+}
 
 public class EmailTemplateService : IEmailTemplateService
 {
@@ -16,6 +43,18 @@ public class EmailTemplateService : IEmailTemplateService
     // language's file is cached independently (feature 031).
     private static readonly Dictionary<string, string> _templateCache = new();
     private static readonly object _cacheLock = new();
+
+    /// <summary>
+    /// Escapes the HTML-significant characters (<c>&lt; &gt; &amp; " '</c>) and nothing else.
+    ///
+    /// Deliberately not <see cref="WebUtility.HtmlEncode(string?)"/>, which also escapes every
+    /// non-ASCII character: that turned the German and Spanish bodies into walls of numeric entities
+    /// (<c>Du erh&amp;#228;ltst…</c>) for no security benefit, since a mail client renders those
+    /// identically. Neutralizing markup is the requirement; mangling accented letters is not.
+    /// <see cref="UnicodeRanges.All"/> is the framework-supported way to say exactly that.
+    /// </summary>
+    private static readonly HtmlEncoder MarkupEncoder =
+        HtmlEncoder.Create(new TextEncoderSettings(UnicodeRanges.All));
 
     public EmailTemplateService(
         IWebHostEnvironment environment,
@@ -35,7 +74,7 @@ public class EmailTemplateService : IEmailTemplateService
         var variables = new Dictionary<string, object>
         {
             ["EMAIL_TITLE"] = _localizer.Get("title.passwordReset", culture),
-            ["RESET_URL"] = resetUrl,
+            ["RESET_URL"] = new RawHtml(resetUrl),
             ["RESET_TOKEN"] = resetToken,
             ["USER_EMAIL"] = userEmail,
             ["FOOTER_REASON"] = _localizer.Get("footer.passwordReset", culture)
@@ -54,7 +93,7 @@ public class EmailTemplateService : IEmailTemplateService
             {"INVITER_NAME", inviterName},
             {"INVITER_EMAIL", inviterEmail},
             {"ORGANIZATION_NAME", organizationName},
-            {"INVITATION_URL", invitationUrl},
+            {"INVITATION_URL", new RawHtml(invitationUrl)},
             {"USER_ROLE", role},
             {"EXPIRATION_DATE", expirationDate.ToString("MMMM dd, yyyy")},
             {"EXPIRATION_TIME", expirationDate.ToString("HH:mm")},
@@ -72,7 +111,9 @@ public class EmailTemplateService : IEmailTemplateService
             {"EMAIL_TITLE", $"Your JuggerHub {planName} plan is active"},
             {"RECIPIENT_NAME", recipientName},
             {"PLAN_NAME", planName},
-            {"PLAN_FEATURES", string.Join("<br/>", features.Select(f => $"• {f}"))},
+            // Product-authored markup: the list separator is a <br/>, so this is one of the two
+            // values that must opt out of the default encoding (feature 039, FR-007).
+            {"PLAN_FEATURES", new RawHtml(string.Join("<br/>", features.Select(f => $"• {MarkupEncoder.Encode(f)}")))},
             {"FOOTER_REASON", $"You're getting this because you subscribed to JuggerHub {planName}."}
         };
 
@@ -87,7 +128,7 @@ public class EmailTemplateService : IEmailTemplateService
             {"EMAIL_TITLE", _localizer.Get("title.verification", culture)},
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
-            {"VERIFICATION_URL", verificationUrl},
+            {"VERIFICATION_URL", new RawHtml(verificationUrl)},
             {"FOOTER_REASON", _localizer.Get("footer.verification", culture)}
         };
 
@@ -160,7 +201,8 @@ public class EmailTemplateService : IEmailTemplateService
             ["LOCATION"] = location,
             ["DEVICE_INFO"] = deviceInfo,
             ["LOGIN_STATUS"] = isSuccessful ? "Successful" : "Failed",
-            ["STATUS_STYLE"] = statusStyle,
+            // Product-authored markup: a CSS declaration list injected into a style attribute.
+            ["STATUS_STYLE"] = new RawHtml(statusStyle),
             ["UNUSUAL_REASONS"] = unusualReasons
         };
 
@@ -191,7 +233,7 @@ public class EmailTemplateService : IEmailTemplateService
         {
             ["EMAIL_TITLE"] = $"Your role in {teamName} changed",
             ["TEAM_NAME"] = teamName,
-            ["TEAM_URL"] = teamUrl,
+            ["TEAM_URL"] = new RawHtml(teamUrl),
             ["ACTOR_LINE"] = string.IsNullOrWhiteSpace(actorName) ? "Your role was updated." : $"{actorName} updated your role.",
             ["ROLE_LABEL"] = roleLabel,
             ["ROLE_PHRASE"] = rolePhrase,
@@ -208,13 +250,82 @@ public class EmailTemplateService : IEmailTemplateService
         {
             ["EMAIL_TITLE"] = $"News from {teamName}",
             ["TEAM_NAME"] = teamName,
-            ["TEAM_URL"] = teamUrl,
+            ["TEAM_URL"] = new RawHtml(teamUrl),
             ["AUTHOR_LINE"] = string.IsNullOrWhiteSpace(authorName) ? "Someone" : authorName!,
             ["NEWS_EXCERPT"] = excerpt,
             ["FOOTER_REASON"] = "You're getting this because you're a member of this team on JuggerHub."
         };
 
         return await GenerateEmailAsync("team-news", variables);
+    }
+
+    // --- Feature 039 -----------------------------------------------------------------------
+
+    /// <inheritdoc />
+    public async Task<string> GenerateEventCancelledEmailAsync(string eventName, string eventUrl, string culture = SupportedLanguages.Default)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get("title.eventCancelled", culture),
+            ["EVENT_NAME"] = eventName,
+            ["EVENT_URL"] = new RawHtml(eventUrl),
+            ["FOOTER_REASON"] = _localizer.Get("footer.eventCancelled", culture),
+        };
+
+        return await GenerateEmailAsync("event-cancelled", variables, culture);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GeneratePartyRequestEmailAsync(
+        string recipientName, string teamName, string eventName, string partyUrl, string culture = SupportedLanguages.Default)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get("title.partyRequest", culture),
+            ["RECIPIENT_NAME"] = recipientName,
+            ["TEAM_NAME"] = teamName,
+            ["EVENT_NAME"] = eventName,
+            ["PARTY_URL"] = new RawHtml(partyUrl),
+            ["FOOTER_REASON"] = _localizer.Get("footer.partyRequest", culture),
+        };
+
+        return await GenerateEmailAsync("party-request", variables, culture);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GeneratePartyNewsEmailAsync(
+        string recipientName, string teamName, string eventName, string excerpt, string partyUrl, string culture = SupportedLanguages.Default)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get("title.partyNews", culture),
+            ["RECIPIENT_NAME"] = recipientName,
+            ["TEAM_NAME"] = teamName,
+            ["EVENT_NAME"] = eventName,
+            ["NEWS_EXCERPT"] = excerpt,
+            ["PARTY_URL"] = new RawHtml(partyUrl),
+            ["FOOTER_REASON"] = _localizer.Get("footer.partyNews", culture),
+        };
+
+        return await GenerateEmailAsync("party-news", variables, culture);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GenerateMarketInviteEmailAsync(
+        string recipientName, string teamName, string eventName, string inviterName, string eventUrl, string culture = SupportedLanguages.Default)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get("title.marketInvite", culture),
+            ["RECIPIENT_NAME"] = recipientName,
+            ["TEAM_NAME"] = teamName,
+            ["EVENT_NAME"] = eventName,
+            ["INVITER_NAME"] = inviterName,
+            ["EVENT_URL"] = new RawHtml(eventUrl),
+            ["FOOTER_REASON"] = _localizer.Get("footer.marketInvite", culture),
+        };
+
+        return await GenerateEmailAsync("market-invite", variables, culture);
     }
 
     /// <summary>
@@ -237,8 +348,14 @@ public class EmailTemplateService : IEmailTemplateService
                 "Email:FrontendBaseUrl is not configured — links in outgoing email will be empty.");
         }
 
-        variables.TryAdd("DASHBOARD_URL", baseUrl);
-        variables.TryAdd("SETTINGS_URL", $"{baseUrl}/settings/notifications");
+        variables.TryAdd("DASHBOARD_URL", new RawHtml(baseUrl));
+        variables.TryAdd("SETTINGS_URL", new RawHtml($"{baseUrl}/settings/notifications"));
+
+        // Legal reachability from every email (feature 039). Built from the same base URL as every
+        // other link, so a message can never point a reader at a different origin than the one
+        // beside it. The pages themselves shipped with 036 and are anonymously readable.
+        variables.TryAdd("PRIVACY_URL", new RawHtml($"{baseUrl}/privacy"));
+        variables.TryAdd("IMPRINT_URL", new RawHtml($"{baseUrl}/imprint"));
     }
 
     private async Task<string> GenerateEmailAsync(string templateName, Dictionary<string, object> variables, string culture = SupportedLanguages.Default)
@@ -305,6 +422,18 @@ public class EmailTemplateService : IEmailTemplateService
         return template;
     }
 
+    /// <summary>
+    /// Substitutes <c>{{PLACEHOLDER}}</c> values into a template, <b>HTML-encoding every value</b>
+    /// unless it is a <see cref="RawHtml"/> (feature 039, FR-006/FR-007).
+    ///
+    /// Encoding lives here rather than at each call site on purpose: this is the single point every
+    /// templated value passes through, so a new template cannot forget it. The previous
+    /// per-call-site arrangement is what allowed <c>team-news.html</c> to render a member-authored
+    /// news body as live markup.
+    ///
+    /// Subjects never reach this method — they are composed by the calling service and stay
+    /// unencoded (FR-010), because a mail client renders a subject as text, not markup.
+    /// </summary>
     private string ReplaceVariables(string template, Dictionary<string, object> variables)
     {
         var result = template;
@@ -312,8 +441,13 @@ public class EmailTemplateService : IEmailTemplateService
         foreach (var variable in variables)
         {
             var placeholder = $"{{{{{variable.Key}}}}}";
-            var value = variable.Value?.ToString() ?? string.Empty;
-            
+            var value = variable.Value switch
+            {
+                null => string.Empty,
+                RawHtml raw => raw.Value,
+                var v => MarkupEncoder.Encode(v.ToString() ?? string.Empty),
+            };
+
             // Handle conditional blocks like {{#if CONDITION}}...{{/if}}
             if (variable.Value is bool boolValue)
             {

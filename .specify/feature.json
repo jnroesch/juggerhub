@@ -1,1 +1,3 @@
-{"feature_directory":"specs\\037-account-deletion"}
+{
+  "feature_directory": "specs/039-transactional-email-templates"
+}

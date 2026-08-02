@@ -18,21 +18,27 @@ public sealed class PartyNewsService : IPartyNewsService
     private readonly AppDbContext _db;
     private readonly PartyGuard _guard;
     private readonly INotificationService _notifications;
+    private readonly INotificationPreferenceService _preferences;
     private readonly PartyEmailService _email;
     private readonly Localization.IRecipientCultureResolver _culture;
+    private readonly ILogger<PartyNewsService> _logger;
 
     public PartyNewsService(
         AppDbContext db,
         PartyGuard guard,
         INotificationService notifications,
+        INotificationPreferenceService preferences,
         PartyEmailService email,
-        Localization.IRecipientCultureResolver culture)
+        Localization.IRecipientCultureResolver culture,
+        ILogger<PartyNewsService> logger)
     {
         _db = db;
         _guard = guard;
         _notifications = notifications;
+        _preferences = preferences;
         _email = email;
         _culture = culture;
+        _logger = logger;
     }
 
     public async Task<PagedResult<PartyNewsDto>?> ListAsync(Guid partyId, Guid actorUserId, PaginationRequest pagination, CancellationToken ct = default)
@@ -98,6 +104,15 @@ public sealed class PartyNewsService : IPartyNewsService
         return PartyResult<PartyNewsDto>.Ok(dto);
     }
 
+    /// <summary>
+    /// Matches <c>TeamNewsService.Excerpt</c> (feature 039, FR-005): the party-news email used to
+    /// carry the full post body while the team-news email carried a short excerpt. Same rule now.
+    /// </summary>
+    private const int ExcerptLength = 140;
+
+    private static string Excerpt(string body) =>
+        body.Length <= ExcerptLength ? body : body[..ExcerptLength].TrimEnd() + "…";
+
     private async Task NotifyCrewAsync(Guid partyId, Guid actorUserId, Guid postId, CancellationToken ct)
     {
         var info = await _db.Parties.AsNoTracking()
@@ -105,9 +120,10 @@ public sealed class PartyNewsService : IPartyNewsService
             .Select(p => new { p.EventId, EventName = p.Event.Name, TeamName = p.Team.Name, TeamSlug = p.Team.Slug })
             .FirstAsync(ct);
 
+        // PreferredLanguage rides along on the projection that already runs (feature 039).
         var crew = await _db.PartyMembers.AsNoTracking()
             .Where(m => m.PartyId == partyId && m.Status == PartyMemberStatus.In && m.UserId != actorUserId)
-            .Select(m => new { m.UserId, m.User.Email, Name = m.User.Profile!.DisplayName })
+            .Select(m => new { m.UserId, m.User.Email, Name = m.User.Profile!.DisplayName, m.User.PreferredLanguage })
             .ToListAsync(ct);
         if (crew.Count == 0)
         {
@@ -124,9 +140,27 @@ public sealed class PartyNewsService : IPartyNewsService
 
         // Body isn't stored on the post at fan-out time — re-read for the email copy.
         var body = await _db.PartyNewsPosts.AsNoTracking().Where(n => n.Id == postId).Select(n => n.Body).FirstAsync(ct);
-        foreach (var c in crew.Where(c => !string.IsNullOrEmpty(c.Email)))
+        var excerpt = Excerpt(body);
+
+        // Email: only crew with Team news → Email on (feature 011, wired up in 039). Best-effort.
+        try
         {
-            await _email.SendPartyNewsEmailAsync(c.Email!, c.Name, info.TeamName, info.EventName, info.TeamSlug, info.EventId, body, ct);
+            var emailRecipients = await _preferences.GetEnabledRecipientsAsync(
+                crew.Select(c => c.UserId).ToList(),
+                NotificationCategory.TeamNews,
+                NotificationChannel.Email,
+                ct);
+
+            foreach (var c in crew.Where(c => !string.IsNullOrEmpty(c.Email) && emailRecipients.Contains(c.UserId)))
+            {
+                await _email.SendPartyNewsEmailAsync(
+                    c.Email!, c.Name, info.TeamName, info.EventName, info.TeamSlug, info.EventId, excerpt,
+                    SupportedLanguages.ResolveOrDefault(c.PreferredLanguage), ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to send party-news emails for post {PostId}.", postId);
         }
     }
 }

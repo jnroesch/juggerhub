@@ -1,3 +1,4 @@
+using System.Globalization;
 using JuggerHub.Common;
 
 namespace JuggerHub.Services.Email;
@@ -16,6 +17,14 @@ public interface IEmailLocalizer
 {
     /// <summary>Localized value for <paramref name="key"/> in <paramref name="culture"/>, English-fallback.</summary>
     string Get(string key, string culture);
+
+    /// <summary>
+    /// Localized value with positional arguments substituted (feature 039). Placeholders are
+    /// positional (<c>{0}</c>, <c>{1}</c>) rather than concatenated fragments because word order
+    /// differs across en/de/es — a subject naming a team and an event does not put them in the
+    /// same order in every language.
+    /// </summary>
+    string Get(string key, string culture, params object[] args);
 }
 
 public sealed class EmailLocalizer : IEmailLocalizer
@@ -120,6 +129,89 @@ public sealed class EmailLocalizer : IEmailLocalizer
                 ["de"] = "Du erhältst diese E-Mail, weil du ein JuggerHub-Konto erstellt hast.",
                 ["es"] = "Recibes este mensaje porque creaste una cuenta en JuggerHub.",
             },
+
+            // --- Feature 039: the four emails that used to be hand-rolled HTML ----------------
+            // Subjects take positional args because word order differs by language — never build
+            // these by concatenating fragments.
+
+            // {0} = event name
+            ["subject.eventCancelled"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} has been cancelled — JuggerHub",
+                ["de"] = "{0} wurde abgesagt — JuggerHub",
+                ["es"] = "{0} se ha cancelado — JuggerHub",
+            },
+            // {0} = event name, {1} = team name
+            ["subject.partyRequest"] = new Dictionary<string, string>
+            {
+                ["en"] = "Fancy {0}? {1} is putting a party together — JuggerHub",
+                ["de"] = "Lust auf {0}? {1} stellt eine Party auf — JuggerHub",
+                ["es"] = "¿Te apuntas a {0}? {1} está formando una party — JuggerHub",
+            },
+            // {0} = team name, {1} = event name
+            ["subject.partyNews"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} @ {1} — party update — JuggerHub",
+                ["de"] = "{0} @ {1} — Party-Update — JuggerHub",
+                ["es"] = "{0} @ {1} — novedades de la party — JuggerHub",
+            },
+            // {0} = team name, {1} = event name
+            ["subject.marketInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} wants you at {1} — JuggerHub",
+                ["de"] = "{0} will dich bei {1} dabeihaben — JuggerHub",
+                ["es"] = "{0} te quiere en {1} — JuggerHub",
+            },
+
+            ["title.eventCancelled"] = new Dictionary<string, string>
+            {
+                ["en"] = "An event you signed up for was cancelled",
+                ["de"] = "Ein Event, für das du angemeldet warst, wurde abgesagt",
+                ["es"] = "Se ha cancelado un evento al que te habías apuntado",
+            },
+            ["title.partyRequest"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your team is putting a party together",
+                ["de"] = "Dein Team stellt eine Party auf",
+                ["es"] = "Tu equipo está formando una party",
+            },
+            ["title.partyNews"] = new Dictionary<string, string>
+            {
+                ["en"] = "A new update for your party",
+                ["de"] = "Ein neues Update für deine Party",
+                ["es"] = "Una novedad para tu party",
+            },
+            ["title.marketInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "You've been invited to play",
+                ["de"] = "Du wurdest zum Mitspielen eingeladen",
+                ["es"] = "Te han invitado a jugar",
+            },
+
+            ["footer.eventCancelled"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because you signed up for this event on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil du dich auf JuggerHub für dieses Event angemeldet hast.",
+                ["es"] = "Recibes este mensaje porque te apuntaste a este evento en JuggerHub.",
+            },
+            ["footer.partyRequest"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because you're a member of this team on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil du Mitglied dieses Teams auf JuggerHub bist.",
+                ["es"] = "Recibes este mensaje porque eres miembro de este equipo en JuggerHub.",
+            },
+            ["footer.partyNews"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because you're in this party on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil du in dieser Party auf JuggerHub bist.",
+                ["es"] = "Recibes este mensaje porque formas parte de esta party en JuggerHub.",
+            },
+            ["footer.marketInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because a party invited you via the JuggerHub marketplace.",
+                ["de"] = "Du erhältst diese E-Mail, weil dich eine Party über den JuggerHub-Marktplatz eingeladen hat.",
+                ["es"] = "Recibes este mensaje porque una party te ha invitado desde el mercado de JuggerHub.",
+            },
         };
 
     public string Get(string key, string culture)
@@ -133,5 +225,29 @@ public sealed class EmailLocalizer : IEmailLocalizer
         return byCulture.TryGetValue(normalized, out var text)
             ? text
             : byCulture[SupportedLanguages.Default];
+    }
+
+    /// <inheritdoc />
+    public string Get(string key, string culture, params object[] args)
+    {
+        var template = Get(key, culture);
+
+        if (args.Length == 0)
+        {
+            return template;
+        }
+
+        try
+        {
+            // Invariant culture: the app runs globalization-invariant and every argument here is
+            // already a string, so there is no culture-sensitive formatting to get wrong.
+            return string.Format(CultureInfo.InvariantCulture, template, args);
+        }
+        catch (FormatException)
+        {
+            // A malformed placeholder in one language's copy must not break that language's mail.
+            // Fall back to the unformatted template rather than throwing mid-send.
+            return template;
+        }
     }
 }

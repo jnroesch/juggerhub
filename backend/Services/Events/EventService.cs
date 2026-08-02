@@ -22,6 +22,8 @@ public sealed class EventService : IEventService
     private readonly EventAdminGuard _guard;
     private readonly Email.EventEmailService _email;
     private readonly Chat.IChatConversationService _chat;
+    private readonly Notifications.INotificationService _notifications;
+    private readonly Notifications.INotificationPreferenceService _preferences;
     private readonly ILogger<EventService> _logger;
 
     private readonly Geocoding.ICityService _cities;
@@ -34,6 +36,8 @@ public sealed class EventService : IEventService
         Email.EventEmailService email,
         Chat.IChatConversationService chat,
         Geocoding.ICityService cities,
+        Notifications.INotificationService notifications,
+        Notifications.INotificationPreferenceService preferences,
         ILogger<EventService> logger)
     {
         _db = db;
@@ -43,6 +47,8 @@ public sealed class EventService : IEventService
         _email = email;
         _chat = chat;
         _cities = cities;
+        _notifications = notifications;
+        _preferences = preferences;
         _logger = logger;
     }
 
@@ -360,16 +366,23 @@ public sealed class EventService : IEventService
     }
 
     /// <summary>
-    /// Email everyone joined/awaiting/waiting that the event is cancelled: individual sign-ups →
+    /// Tell everyone joined/awaiting/waiting that the event is cancelled: individual sign-ups →
     /// the user; team sign-ups → the team's admins. Best-effort (a mail failure never rolls back
     /// the cancel — FR-032).
+    ///
+    /// Feature 039 added the in-app notification alongside the email. That ordering matters: the
+    /// email is now governed by the <see cref="NotificationCategory.Events"/> Email toggle, and
+    /// offering that toggle is only safe because the in-app notice remains as a backstop — a
+    /// cancellation is not something a participant should be able to miss entirely.
     /// </summary>
     private async Task NotifyCancellationAsync(Guid eventId, string eventName, CancellationToken ct)
     {
-        // Individual participants.
+        // Individual participants. UserId and PreferredLanguage ride along on the projections that
+        // already run (feature 039): the former drives the in-app fan-out and the de-duplication,
+        // the latter the recipient's language.
         var individuals = await _db.EventSignups.AsNoTracking()
             .Where(s => s.EventId == eventId && s.UserId != null)
-            .Select(s => new { Email = s.User!.Email, Name = s.User!.Profile!.DisplayName })
+            .Select(s => new { UserId = s.UserId!.Value, Email = s.User!.Email, s.User!.PreferredLanguage })
             .ToListAsync(ct);
 
         // Team participants → each team's admins.
@@ -382,19 +395,62 @@ public sealed class EventService : IEventService
             ? []
             : await _db.TeamMemberships.AsNoTracking()
                 .Where(m => teamIds.Contains(m.TeamId) && m.Role == Entities.TeamRole.Admin)
-                .Select(m => new { Email = m.User.Email, Name = m.User.Profile!.DisplayName })
+                .Select(m => new { m.UserId, Email = m.User.Email, m.User.PreferredLanguage })
                 .ToListAsync(ct);
 
+        // De-duplicate by user rather than by email address (feature 039): one person who signed up
+        // individually *and* administers a signed-up team is one recipient, and the same set now
+        // drives the in-app fan-out, which is keyed by user id.
         var recipients = individuals.Concat(teamAdmins)
             .Where(r => !string.IsNullOrEmpty(r.Email))
-            .GroupBy(r => r.Email!, StringComparer.OrdinalIgnoreCase)
-            .Select(g => g.First());
+            .GroupBy(r => r.UserId)
+            .Select(g => g.First())
+            .ToList();
 
-        foreach (var r in recipients)
+        if (recipients.Count == 0)
+        {
+            return;
+        }
+
+        // In-app first: the engine drops recipients who turned Events → In-app off (feature 011).
+        try
+        {
+            await _notifications.CreateManyAsync(
+                recipients.Select(r => r.UserId).ToList(),
+                NotificationType.EventCancelled,
+                new { eventId, eventName },
+                actorUserId: null,
+                dedupeKeyPrefix: $"event-cancelled:{eventId}",
+                ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to fan out cancellation notifications for event {EventId}", eventId);
+        }
+
+        // Email: only recipients with Events → Email on (feature 011, wired up in 039).
+        IReadOnlyCollection<Guid> emailRecipients;
+        try
+        {
+            emailRecipients = await _preferences.GetEnabledRecipientsAsync(
+                recipients.Select(r => r.UserId).ToList(),
+                NotificationCategory.Events,
+                NotificationChannel.Email,
+                ct);
+        }
+        catch (Exception ex)
+        {
+            // Fail-safe toward delivery: a preference outage must not silently suppress the notice.
+            _logger.LogWarning(ex, "Failed to resolve email preferences for event {EventId}; sending to all.", eventId);
+            emailRecipients = recipients.Select(r => r.UserId).ToList();
+        }
+
+        foreach (var r in recipients.Where(r => emailRecipients.Contains(r.UserId)))
         {
             try
             {
-                await _email.SendCancellationEmailAsync(r.Email!, r.Name ?? "there", eventName, eventId, ct);
+                await _email.SendCancellationEmailAsync(
+                    r.Email!, eventName, eventId, SupportedLanguages.ResolveOrDefault(r.PreferredLanguage), ct);
             }
             catch (Exception ex)
             {

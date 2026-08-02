@@ -32,6 +32,9 @@ public enum NotificationType
 
     /// <summary>An upcoming training session the recipient responded to was edited (series) or cancelled (feature 018). Link-only.</summary>
     TrainingUpdated = 7,
+
+    /// <summary>An event the recipient signed up for was cancelled by its organiser (feature 039). Link-only.</summary>
+    EventCancelled = 8,
 }
 
 /// <summary>
@@ -50,6 +53,13 @@ public enum NotificationCategory
 
     /// <summary>Training heads-up and change notices (<see cref="NotificationType.TrainingScheduled"/>, <see cref="NotificationType.TrainingUpdated"/>) — feature 018.</summary>
     Trainings = 2,
+
+    /// <summary>
+    /// Changes to events the recipient signed up for (<see cref="NotificationType.EventCancelled"/>)
+    /// — feature 039. Named for the domain rather than the single current producer so later event
+    /// notices can join it without a rename.
+    /// </summary>
+    Events = 3,
 }
 
 /// <summary>The delivery medium a preference governs (feature 011). Push is out of scope. Serialized as its name.</summary>
@@ -72,6 +82,10 @@ public static class NotificationCategories
         NotificationType.PartyNews => NotificationCategory.TeamNews,
         NotificationType.TrainingScheduled => NotificationCategory.Trainings,
         NotificationType.TrainingUpdated => NotificationCategory.Trainings,
+        NotificationType.EventCancelled => NotificationCategory.Events,
+        // NOTE: this default arm makes a missing case silent — an unmapped type is filed under the
+        // recipient's *Team news* preference and compiles without complaint. Every new
+        // NotificationType needs a case above, and a test asserting it (feature 039).
         _ => NotificationCategory.TeamNews,
     };
 }
