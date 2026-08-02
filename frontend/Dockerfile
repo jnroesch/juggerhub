@@ -22,7 +22,7 @@ ENTRYPOINT ["npx", "nx", "test", "web", "--watch=false"]
 
 # --- e2e: Playwright against the running stack (desktop + mobile) ------------
 # Official Playwright image bundles browsers matching the installed version.
-FROM mcr.microsoft.com/playwright:v1.61.1-noble AS playwright
+FROM mcr.microsoft.com/playwright:v1.62.0-noble AS playwright
 WORKDIR /app
 ENV NX_DAEMON=false CI=true
 COPY package.json package-lock.json ./
