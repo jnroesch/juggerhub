@@ -100,6 +100,48 @@ public sealed class RefreshTokenRetentionTests
     }
 
     [Fact]
+    public async Task Retention_ceiling_stays_within_the_thirty_days_the_policy_states()
+    {
+        // The privacy policy promises sign-in records are deleted "no more than thirty days after
+        // you sign in". That claim is arithmetic over two numbers that live apart: the longest token
+        // lifetime (RefreshTokenService.PersistentLifetime, 14 days) and the grace period (16). Raise
+        // either without the other and a published legal sentence becomes false, with nothing in the
+        // application behaving differently. This is the guard against that.
+        //
+        // Measured from a real remember-me login rather than from the constant, so it holds against
+        // whatever the service actually issues.
+        const int PolicyCeilingDays = 30;
+
+        var client = _factory.CreateClient();
+        var (userId, email) = await AuthTestHelpers.RegisterAndVerifyAsync(client, _factory);
+
+        var login = await AuthTestHelpers.LoginAsync(client, email, AuthTestHelpers.ValidPassword, rememberMe: true);
+        login.EnsureSuccessStatusCode();
+
+        // Both timestamps come off the same row, so this compares the record's own lifetime to its
+        // own creation. Taking the sign-in instant from the test's clock instead would fail on the
+        // few milliseconds between it and the service computing ExpiresAt.
+        (DateTime SignedInAt, DateTime ExpiresAt) token;
+        using (var scope = _factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            token = await db.RefreshTokens
+                .Where(t => t.UserId == userId && t.IsPersistent)
+                .OrderByDescending(t => t.ExpiresAt)
+                .Select(t => new ValueTuple<DateTime, DateTime>(t.CreatedDate, t.ExpiresAt))
+                .FirstAsync();
+        }
+
+        var deletedAt = token.ExpiresAt.AddDays(GraceDays());
+
+        Assert.True(
+            deletedAt <= token.SignedInAt.AddDays(PolicyCeilingDays),
+            $"A remember-me sign-in's record survives until {deletedAt:u}, which is more than "
+                + $"{PolicyCeilingDays} days after the {token.SignedInAt:u} sign-in the privacy policy "
+                + "measures from. Either lower Retention:RefreshTokenGraceDays or change the policy.");
+    }
+
+    [Fact]
     public void Retention_sweeps_run_from_a_hosted_service()
     {
         // The factory disables the timer, so nothing else here would notice if the background
