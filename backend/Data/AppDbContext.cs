@@ -538,6 +538,11 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasIndex(t => t.UserId);
             entity.HasIndex(t => t.FamilyId);
 
+            // Serves the daily retention sweep (GH #106), which deletes by absolute expiry. Without
+            // it that DELETE scans the whole table — and this table is exactly the one that grew
+            // without bound before the sweep existed.
+            entity.HasIndex(t => t.ExpiresAt);
+
             entity.HasOne(t => t.User)
                 .WithMany()
                 .HasForeignKey(t => t.UserId)

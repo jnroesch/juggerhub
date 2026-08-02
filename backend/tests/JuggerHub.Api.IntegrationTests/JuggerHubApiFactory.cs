@@ -77,6 +77,10 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
                 // with this email and re-run the role sync (see RecognitionTestSupport)
                 // to exercise admin-only routes.
                 ["Admin:Emails"] = "admin@test.de",
+                // GH #106 — the retention sweep's own timer stays off so it cannot delete rows
+                // underneath a test that is asserting on them. RetentionTests invokes the sweep
+                // directly and asserts separately that the hosted service is wired up.
+                ["Retention:Enabled"] = "false",
                 // Feature 030 (R8) — skip loading the full ~235k cities500 dataset; tests seed a
                 // small CityReference fixture (TestReferenceCities) in InitializeAsync instead.
                 ["Seeding:CityReferences"] = "false",

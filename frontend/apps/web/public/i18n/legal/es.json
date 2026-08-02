@@ -90,8 +90,9 @@
       "retention": {
         "heading": "Cuánto tiempo lo conservamos",
         "body": [
-          "Por norma, lo que guardamos permanece mientras tengas una cuenta. Elimina tu cuenta y desaparece.",
+          "Lo que escribes y subes es tuyo hasta que digas lo contrario. Permanece mientras tengas una cuenta, y aquí nada lo hace caducar en silencio a tus espaldas. Elimina tu cuenta y desaparece.",
           "Algo de ello sobrevive a eso porque tiene que ser así. Un mensaje que enviaste forma parte de la conversación de otra persona. Lo que la ley nos obliga a conservar, lo conservamos el tiempo que la ley diga.",
+          "Una cosa se va antes, porque es una medida de seguridad y no algo que hayas escrito tú. Cada inicio de sesión queda registrado junto con la dirección IP desde la que se hizo; treinta días después de que esa sesión haya caducado, el registro se borra automáticamente. Ese margen es lo que permite distinguir una sesión real de una robada, y una vez pasado no hay motivo para seguir guardando una dirección tuya.",
           "Cuando un administrador ha suspendido, vetado o readmitido a alguien, conservamos un registro de esa acción mientras moderemos este sitio. Tiene menos que ver con la persona afectada — una vez eliminada una cuenta, ese registro ya no señala a nadie — y más con poder responder de lo que hicieron nuestros propios administradores.",
           "Las cifras de medición están limitadas por lo que son, no por un reloj: no hay ningún identificador tuyo en ellas, así que no hay nada ahí que borrar en tu nombre.",
           "Las grabaciones de sesión son otra cosa y por eso tienen un plazo fijo: se borran automáticamente a los 30 días, incluidas las que hubiéramos guardado mientras tanto. Ocurre solo, no porque alguien se acuerde de hacerlo."
