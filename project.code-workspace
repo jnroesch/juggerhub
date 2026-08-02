@@ -119,7 +119,20 @@
         "color": "terminal.ansiGreen"
       }
     },
-    "nxConsole.nxWorkspacePath": "frontend"
+    "nxConsole.nxWorkspacePath": "frontend",
+    // Files copied into every new git worktree (Source Control → ... → Worktrees → Create Worktree).
+    //
+    // Worktrees share the object store, not the working tree, so a new one starts with tracked
+    // files only — anything in .gitignore is simply absent. Both entries below are gitignored and
+    // both fail quietly rather than loudly if missing: without `.env` the compose stack comes up
+    // against the wrong (default) values instead of refusing to start, and without
+    // `settings.local.json` the agent re-prompts for permissions it was already granted.
+    //
+    // `node_modules` is deliberately NOT here. The docs offer it as an example, but copying a
+    // few hundred MB per worktree is slower than the `npm ci` it replaces — run that instead.
+    // Note this setting applies when the worktree is CREATED, so create them from a window with
+    // this workspace open; a bare folder window never reads it.
+    "git.worktreeIncludeFiles": [".env", ".claude/settings.local.json"]
   },
   "launch": {
     "version": "0.2.0",
