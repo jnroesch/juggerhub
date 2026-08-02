@@ -90,8 +90,9 @@
       "retention": {
         "heading": "How long we keep it",
         "body": [
-          "As a rule, what we hold stays as long as you have an account. Delete your account and it goes.",
+          "What you write and upload is yours until you say otherwise. It stays as long as you have an account, and nothing here quietly expires it out from under you. Delete your account and it goes.",
           "Some of it outlives that because it has to. A message you sent is part of someone else's conversation. Anything the law requires us to keep, we keep for as long as the law says.",
+          "One thing goes sooner, because it's a security measure rather than something you wrote. Every sign-in is recorded together with the network address it came from, and that record is deleted automatically no more than thirty days after you signed in. It's what lets a real session be told apart from a stolen one while the session is still worth stealing; past that, there's no reason for us to still be holding an address of yours.",
           "Where an admin has suspended, banned or reinstated someone, we keep a record of that action for as long as we moderate this place at all. It's less about the person it concerned — once an account is deleted that record no longer points at anyone — and more about being able to answer for what our own admins did.",
           "The measurement numbers are limited by what they are rather than by a clock: there's no identifier for you in them, so there's nothing there to delete on your behalf.",
           "Session recordings are a different matter and so they have a fixed limit: they're deleted automatically after 30 days, including any we'd saved in the meantime. That happens on its own, not because someone remembers to do it."

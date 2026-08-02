@@ -90,8 +90,9 @@
       "retention": {
         "heading": "Wie lange wir Daten aufbewahren",
         "body": [
-          "In der Regel bleibt das, was wir speichern, so lange, wie du ein Konto hast. Lösch dein Konto, und es ist weg.",
+          "Was du schreibst und hochlädst, gehört dir, bis du etwas anderes sagst. Es bleibt, so lange du ein Konto hast, und nichts hier lässt es dir still und heimlich verfallen. Lösch dein Konto, und es ist weg.",
           "Manches überdauert das, weil es muss. Eine Nachricht, die du geschrieben hast, ist Teil der Unterhaltung einer anderen Person. Was das Gesetz uns aufzubewahren vorschreibt, bewahren wir so lange auf, wie das Gesetz es sagt.",
+          "Eines geht früher: die Anmeldedaten, die eine Sicherheitsmaßnahme sind und nichts, was du geschrieben hast. Jede Anmeldung wird zusammen mit der IP-Adresse festgehalten, von der sie kam, und dieser Eintrag wird spätestens dreißig Tage nach deiner Anmeldung automatisch gelöscht. Er macht eine echte Sitzung von einer gestohlenen unterscheidbar, solange die Sitzung überhaupt noch lohnt — danach gibt es keinen Grund mehr, eine Adresse von dir aufzubewahren.",
           "Wenn ein Admin jemanden gesperrt, verbannt oder wieder freigeschaltet hat, bewahren wir eine Aufzeichnung dieser Aktion so lange auf, wie wir diesen Ort überhaupt moderieren. Dabei geht es weniger um die betroffene Person — nach der Löschung eines Kontos verweist diese Aufzeichnung auf niemanden mehr — als darum, dass wir für das Handeln unserer eigenen Admins einstehen können.",
           "Die Messzahlen sind durch das begrenzt, was sie sind, nicht durch eine Frist: Es steckt keine Kennung für dich darin, also gibt es darin nichts, was für dich zu löschen wäre.",
           "Sitzungsaufzeichnungen sind etwas anderes und haben deshalb eine feste Frist: Sie werden nach 30 Tagen automatisch gelöscht, auch die, die wir uns zwischenzeitlich gemerkt haben. Das passiert von selbst und nicht, weil jemand daran denkt."

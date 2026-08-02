@@ -227,6 +227,15 @@ else
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
+// --- Automated data retention (GH #106) ------------------------------------
+// The platform's first scheduled deletion of application data. It exists because the privacy
+// policy states how long each category is kept, and an unenforced period in a published legal
+// document is worse than making no promise at all. Sweeps are registered individually and the
+// hosted service runs whatever it finds; expired refresh tokens are the first category.
+builder.Services.Configure<RetentionOptions>(builder.Configuration.GetSection(RetentionOptions.SectionName));
+builder.Services.AddScoped<JuggerHub.Services.Retention.IRetentionSweep, JuggerHub.Services.Retention.ExpiredRefreshTokenSweep>();
+builder.Services.AddHostedService<JuggerHub.Services.Retention.RetentionBackgroundService>();
+
 // --- Account settings (feature 031: language preference) -------------------
 builder.Services.AddScoped<JuggerHub.Services.Account.ILanguagePreferenceService, JuggerHub.Services.Account.LanguagePreferenceService>();
 // Feature 037 — self-service account erasure.
