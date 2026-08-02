@@ -91,7 +91,28 @@ services:
       # recorded with returnUrl=%2F — and returnUrl carries deep links such as /players/<handle>.
       # FR-008 decided page PATHS are recorded verbatim; query strings were never part of that
       # decision, so they are excluded rather than quietly inherited from it.
-      - JH_ANALYTICS_HEAD=${UMAMI_WEBSITE_ID:+<script>(function(){var n=navigator;if(n.globalPrivacyControl||n.doNotTrack==="1"||window.doNotTrack==="1")return;var s=document.createElement("script");s.async=true;s.defer=true;s.src="/jh-insights.js";s.setAttribute("data-website-id","${UMAMI_WEBSITE_ID}");s.setAttribute("data-do-not-track","true");s.setAttribute("data-exclude-search","true");document.head.appendChild(s);})();</script>}
+      #
+      # Feature 038 appends the session RECORDER inside that same guard. There is no separate
+      # switch for it: analytics on means recording on, so the `--profile analytics` stack works
+      # with nothing to remember. The runtime switch is the dashboard toggle, which the recorder
+      # consults before capturing anything.
+      #
+      # Inside the guard is not a stylistic choice: the recorder implements NEITHER Do Not Track
+      # nor Global Privacy Control — neither string appears in the file, and unlike the tracker it
+      # has no data-do-not-track attribute — so this guard is the entire objection mechanism, not
+      # defence in depth. Move it out and the only control the privacy policy offers stops working.
+      #
+      # NO data-host-url, and the path MUST keep its directory. The recorder derives its own
+      # endpoints from the DIRECTORY of its own src — /jh-insights/r.js gives it
+      # /jh-insights/api/record and /jh-insights/api/websites/<id>/recorder, inside the namespace
+      # 033 already owns. A root-level /jh-insights-r.js would derive /api/record, which belongs to
+      # the .NET backend, and would fail SILENTLY: a fire-and-forget POST getting a 404.
+      - JH_ANALYTICS_HEAD=${UMAMI_WEBSITE_ID:+<script>(function(){var n=navigator;if(n.globalPrivacyControl||n.doNotTrack==="1"||window.doNotTrack==="1")return;var s=document.createElement("script");s.async=true;s.defer=true;s.src="/jh-insights.js";s.setAttribute("data-website-id","${UMAMI_WEBSITE_ID}");s.setAttribute("data-do-not-track","true");s.setAttribute("data-exclude-search","true");document.head.appendChild(s);var r=document.createElement("script");r.async=true;r.src="/jh-insights/r.js";r.setAttribute("data-website-id","${UMAMI_WEBSITE_ID}");document.head.appendChild(r);})();</script>}
+      # The website id on its own, because the nginx config location for the recorder's
+      # configuration endpoint is an EXACT match and has to contain it. A prefix location would
+      # have avoided this variable and proxied Umami's entire API — including /api/auth/login — to
+      # the application's origin, undoing 033's decision to keep the dashboard on its own host.
+      - JH_ANALYTICS_WEBSITE_ID=${UMAMI_WEBSITE_ID:-}
       - JH_ANALYTICS_UPSTREAM=${JH_ANALYTICS_UPSTREAM:-http://umami:3000}
       # Docker's embedded DNS. nginx proxies the analytics routes through a variable so it
       # resolves them per request instead of at startup — otherwise the frontend could not
@@ -322,6 +343,42 @@ services:
       - juggerhub-network
     depends_on:
       umami:
+        condition: service_healthy
+    restart: "no"
+
+  # Feature 038 — the recording retention statement, available locally so the mechanism that
+  # enforces the privacy policy's "kept 30 days" is the SAME text in all three environments
+  # (constitution V), not a cluster-only artefact nobody can exercise before deploying it.
+  #
+  # Deployed environments run this on a daily CronJob. Locally it is a ONE-SHOT you invoke, because
+  # a local stack is not up long enough for a schedule to mean anything and a background deleter
+  # would only make local test data vanish mid-investigation:
+  #
+  #     docker compose --profile analytics run --rm umami-replay-retention
+  #
+  # To exercise it properly — including the straddling-session case that a naive row-wise delete
+  # gets wrong — backdate some session_replay.created_at values first. See quickstart scenario 7.
+  umami-replay-retention:
+    image: postgres:18.3-alpine
+    container_name: juggerhub-umami-replay-retention
+    profiles:
+      - analytics
+    # Never starts with the stack: `docker compose up` must not delete anything. It runs only when
+    # invoked explicitly with `run`.
+    scale: 0
+    environment:
+      PGPASSWORD: ${UMAMI_DB_PASSWORD:-umami}
+    volumes:
+      - ./scripts:/scripts:ro
+    command: >
+      psql -h database -U umami -d umami
+           -v ON_ERROR_STOP=1
+           -v retention_days=${UMAMI_REPLAY_RETENTION_DAYS:-30}
+           -f /scripts/umami-replay-retention.sql
+    networks:
+      - juggerhub-network
+    depends_on:
+      database:
         condition: service_healthy
     restart: "no"
 

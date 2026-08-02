@@ -320,6 +320,16 @@ resource "kubernetes_deployment_v1" "frontend" {
             value = local.analytics_head
           }
           env {
+            # Feature 038. The website id on its own, because the nginx location for the
+            # recorder's configuration endpoint is an EXACT match and must contain it. A prefix
+            # location would have avoided this variable at the cost of proxying Umami's entire
+            # API — including /api/auth/login — from the application's own origin.
+            #
+            # Empty when analytics is off, which renders a valid location nothing ever requests.
+            name  = "JH_ANALYTICS_WEBSITE_ID"
+            value = var.umami_website_id
+          }
+          env {
             name = "JH_ANALYTICS_UPSTREAM"
             # FULLY QUALIFIED, and that is mandatory here even though `umami` resolves fine from a
             # shell in this very pod. Those are two different resolvers: a shell goes through libc,

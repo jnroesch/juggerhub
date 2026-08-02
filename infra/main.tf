@@ -134,6 +134,9 @@ module "app" {
   umami_app_secret          = var.umami_app_secret
   umami_admin_password_hash = var.umami_admin_password_hash
 
+  # session recording (feature 038)
+  umami_replay_retention_days = var.umami_replay_retention_days
+
   # registry pull
   ghcr_username   = var.ghcr_username
   ghcr_pull_token = var.ghcr_pull_token

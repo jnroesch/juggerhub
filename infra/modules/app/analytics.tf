@@ -54,7 +54,39 @@ locals {
     # No data-host-url: Umami defaults to sending where the script was served from, which is our
     # own origin. Setting it would duplicate a value that can then drift.
     # No identify() and no data-tag: nothing may link an event to a member (FR-005).
-    "document.head.appendChild(s);})();</script>",
+    "document.head.appendChild(s);",
+
+    # --- Session recording (feature 038) ---
+    # INSIDE the guard above, and that is the whole mechanism rather than a nicety: the recorder
+    # implements NEITHER Do Not Track nor Global Privacy Control. Neither string appears anywhere
+    # in the file, and unlike the tracker it has no data-do-not-track attribute to set. Move this
+    # out of the guard and the only objection route the privacy policy offers stops working, with
+    # nothing failing to indicate it.
+    #
+    # Appended after the tracker because the recorder waits for the session the tracker
+    # establishes (window.umami.getSession().cache), polling ~5s before giving up. That dependency
+    # is also why FR-024's "analytics off also stops recording" holds without extra configuration.
+    #
+    # THE DIRECTORY IN THE PATH IS LOAD-BEARING. The recorder derives its endpoints from the
+    # directory of its own src, so /jh-insights/r.js yields /jh-insights/api/record and
+    # /jh-insights/api/websites/<id>/recorder — inside the namespace 033 owns. A root-level path
+    # would yield /api/record, which belongs to the .NET backend, and would fail silently.
+    # No data-host-url, for the same reason as above AND because setting it would defeat this.
+    #
+    # No `defer`: it has no effect on a dynamically inserted script, and copying the tracker's
+    # `defer` here would imply a guarantee the property does not give.
+    #
+    # Unconditional, like the tracker above: recording is on wherever analytics is on. The runtime
+    # switch is the dashboard, which the recorder consults before capturing anything — with replay
+    # turned off there, this script loads, reads {"enabled":false} and stops. So turning it off in
+    # the UI genuinely stops recording without a deploy.
+    "var r=document.createElement(\"script\");",
+    "r.async=true;",
+    "r.src=\"/jh-insights/r.js\";",
+    "r.setAttribute(\"data-website-id\",\"${var.umami_website_id}\");",
+    "document.head.appendChild(r);",
+
+    "})();</script>",
   ])
 
   # Assembled here rather than passed in, so the password stays a single sensitive variable and
@@ -81,6 +113,9 @@ locals {
     file("${path.module}/../../../scripts/umami-seed-website.sql"),
     var.umami_admin_password_hash,
     var.umami_website_id,
+    # Feature 038 adds nothing here: the recorder's behaviour is dashboard state, not deployment
+    # input, and the seed statements that touch it are covered by the umami-seed-website.sql hash
+    # above.
   ])), 0, 10))
 }
 
@@ -97,6 +132,7 @@ resource "kubernetes_config_map_v1" "umami_sql" {
     "umami-db-init.sql"            = file("${path.module}/../../../scripts/umami-db-init.sql")
     "umami-seed-website.sql"       = file("${path.module}/../../../scripts/umami-seed-website.sql")
     "umami-set-admin-password.sql" = file("${path.module}/../../../scripts/umami-set-admin-password.sql")
+    "umami-replay-retention.sql"   = file("${path.module}/../../../scripts/umami-replay-retention.sql")
   }
 }
 
@@ -394,6 +430,97 @@ resource "kubernetes_job_v1" "umami_post_deploy" {
   }
 
   depends_on = [kubernetes_deployment_v1.umami]
+}
+
+# --- Recording retention (feature 038) --------------------------------------
+# Deletes session recordings older than umami_replay_retention_days.
+#
+# THIS IS NOT HOUSEKEEPING. The privacy policy states recordings are kept 30 days, and Umami has no
+# expiry column, no retention setting and no cleanup job of its own — nor does anything else on
+# this platform (GH #106). Without this CronJob that published sentence is simply untrue, which is
+# why 038 FR-012a makes recording contingent on it running.
+#
+# It is also the ONE part of this feature that must fail LOUDLY. Recording itself is
+# fire-and-forget and drops data silently by design (Principle VII); retention failing silently
+# would instead be a legal statement quietly becoming false. Hence ON_ERROR_STOP in the SQL, a
+# non-zero exit propagating to Job status, and a failed-history deep enough that an overnight
+# failure is still visible the next morning.
+#
+# Runs as the scoped `umami` role — no new credential, and that role is explicitly revoked from the
+# application database, so this cannot reach application data even by mistake.
+resource "kubernetes_cron_job_v1" "umami_replay_retention" {
+  metadata {
+    name      = "umami-replay-retention"
+    namespace = kubernetes_namespace_v1.app.metadata[0].name
+  }
+  spec {
+    # Daily, off-peak. The window does not need to be precise: the job deletes by age, so a missed
+    # run is corrected by the next one rather than compounding.
+    schedule                      = "27 3 * * *"
+    concurrency_policy            = "Forbid"
+    successful_jobs_history_limit = 3
+    # Deliberately deeper than the successful history: a failing retention job is the thing someone
+    # needs to be able to see after the fact.
+    failed_jobs_history_limit = 5
+    # A run that cannot finish in an hour indicates something is wrong; let it fail visibly rather
+    # than hold the lock and block the next one indefinitely (Principle VII, nothing waits forever).
+    starting_deadline_seconds = 3600
+
+    job_template {
+      metadata {
+        labels = { app = "umami-replay-retention" }
+      }
+      spec {
+        backoff_limit           = 2
+        active_deadline_seconds = 3600
+        template {
+          metadata {
+            labels = { app = "umami-replay-retention" }
+          }
+          spec {
+            restart_policy = "OnFailure"
+            container {
+              name  = "retention"
+              image = "postgres:18.3-alpine" # same image as the StatefulSet
+              command = [
+                "sh", "-c",
+                join(" ", [
+                  "PGPASSWORD=\"$UMAMI_DB_PASSWORD\" psql -h postgres -U umami -d umami",
+                  "-v ON_ERROR_STOP=1",
+                  "-v retention_days=\"$UMAMI_REPLAY_RETENTION_DAYS\"",
+                  "-f /sql/umami-replay-retention.sql",
+                ])
+              ]
+              env {
+                name = "UMAMI_DB_PASSWORD"
+                value_from {
+                  secret_key_ref {
+                    name = kubernetes_secret_v1.umami_db.metadata[0].name
+                    key  = "password"
+                  }
+                }
+              }
+              env {
+                name  = "UMAMI_REPLAY_RETENTION_DAYS"
+                value = tostring(var.umami_replay_retention_days)
+              }
+              volume_mount {
+                name       = "sql"
+                mount_path = "/sql"
+                read_only  = true
+              }
+            }
+            volume {
+              name = "sql"
+              config_map {
+                name = kubernetes_config_map_v1.umami_sql.metadata[0].name
+              }
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
 # The bcrypt hash of the dashboard password. Umami offers no environment variable for it
