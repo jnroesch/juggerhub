@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-08-01",
+    "lastUpdated": "2026-08-02",
     "lastUpdatedLabel": "Última actualización: {{date}}",
     "authoritativeNotice": "Esta es una traducción de cortesía. La versión alemana es la vinculante: si ambas difieren, prevalece el texto en alemán.",
     "tocLabel": "En esta página",
@@ -48,12 +48,17 @@
         ]
       },
       "analytics": {
-        "heading": "Cómo medimos las visitas",
+        "heading": "Cómo medimos las visitas y grabamos sesiones",
         "body": [
           "Medimos cómo se usa el sitio para saber en qué partes merece la pena el trabajo. Funciona en nuestros propios servidores, y las cifras no van a ninguna empresa externa de analítica.",
-          "No instala ninguna cookie ni guarda nada en tu dispositivo. No registra tu cuenta, tu nombre de usuario, tu correo ni tu dirección IP completa. Nada en ellas dice quién estaba navegando.",
+          "No instala ninguna cookie ni guarda nada en tu dispositivo. No registra tu cuenta, tu nombre de usuario, tu correo ni tu dirección IP completa como campo de datos. En las cifras en sí no hay nada que diga quién estaba navegando. Para las grabaciones de sesión que se explican más abajo, eso expresamente no es así.",
           "Hay una cosa que queremos decir sin rodeos, porque es la parte a la que razonablemente pondrías objeción. Registramos la dirección de cada página vista tal cual es, y la dirección del perfil de alguien, o la de un equipo, lleva su nombre dentro. Así que las cifras sí muestran qué perfiles y qué páginas de equipo se consultaron, y cuándo. Nunca muestran quién las consultó.",
           "Registramos la dirección solo hasta el signo de interrogación, nunca lo que viene después. Ahí viven los enlaces profundos y las direcciones de retorno, que habrían arrastrado más de lo que pretendíamos.",
+          "Además de las cifras, también grabamos sesiones. Eso va bastante más lejos: se graba la página tal como estaba en tu pantalla, junto con los movimientos del puntero, los clics y el desplazamiento. Así encontramos los puntos donde algo se atasca y donde las cifras por sí solas no dicen nada: un botón que se pulsa dos veces, un campo que se rellena una y otra vez.",
+          "Lo que escribes queda excluido. Cada campo de entrada se enmascara ya en tu navegador antes de que se envíe absolutamente nada: contraseñas, correos electrónicos, mensajes a medio escribir. Ese contenido no sale de tu dispositivo.",
+          "En cambio, lo que ya está en la pantalla sí se graba. En concreto: si estás leyendo una conversación, el historial visible de esa conversación queda en la grabación, incluido lo que escribió la otra persona. Lo decimos sin rodeos porque es lo de mayor alcance de esta página y de otro modo no habría manera de imaginarlo.",
+          "Así que, a diferencia de las cifras, una grabación sí puede vincularse contigo: en esa pantalla aparece tu propio nombre casi siempre. Las grabaciones solo las ve quien gestiona este sitio, en la misma herramienta de analítica donde están las cifras. A los 30 días se borran automáticamente.",
+          "La grabación tampoco guarda nada en tu dispositivo. Y el ajuste del navegador de la última sección de esta página la desactiva por completo: ni siquiera se carga, así que no se llega a hacer ni una sola petición.",
           "Si prefieres que no se te mida en absoluto, la última sección de esta página te dice cómo. Es un ajuste del navegador, y lo respetamos."
         ]
       },
@@ -62,8 +67,8 @@
         "body": [
           "Se mezclan a menudo dos preguntas, así que aquí están una a una.",
           "La norma que hace que los sitios pidan permiso trata sobre almacenar cosas en tu dispositivo. La nuestra no almacena nada ahí — ni cookie, ni almacenamiento local, nada — así que la norma no aplica. La única cookie que instalamos te mantiene con la sesión iniciada, necesaria para algo que has pedido, y eso está exento. Por eso no hay aviso. No es un descuido ni un juego de palabras.",
-          "La pregunta distinta es qué habilita la medición en sí. La dirección de una página puede nombrar a un miembro o a un equipo, así que son datos personales, y necesitan una base digan lo que digan las normas de cookies. Nos basamos en el interés legítimo (art. 6.1.f RGPD).",
-          "Aquí está la ponderación, para que la juzgues tú en lugar de creernos. Queremos saber qué partes de un sitio gestionado por voluntariado se usan de verdad, para que el tiempo limitado vaya donde ayuda. Lo que te cuesta es poco: nada te señala como quien mira, nada aterriza en tu dispositivo, no se vincula a tu cuenta ni se convierte en un perfil sobre ti, y nunca alimenta una decisión que te afecte. Lo que queda es que una página con tu nombre dentro puede aparecer en una lista de páginas vistas. Nos parece un trato justo para gestionar bien el sitio — y como es interés legítimo y no consentimiento, puedes oponerte sin más, y lo hemos hecho un solo ajuste en vez de un formulario."
+          "La pregunta distinta es qué habilita la medición y la grabación en sí. La dirección de una página puede nombrar a un miembro o a un equipo, y una grabación de sesión muestra la pantalla, donde casi siempre aparece tu nombre: ambas cosas son datos personales, y necesitan una base digan lo que digan las normas sobre el almacenamiento en el dispositivo. Nos basamos en el interés legítimo (art. 6.1.f RGPD).",
+          "Aquí está la ponderación, para que la juzgues tú en lugar de creernos. Queremos saber qué partes de un sitio gestionado por voluntariado se usan de verdad y dónde se atasca la gente, para que el tiempo limitado vaya donde ayuda. Nada aterriza en tu dispositivo, nada se vincula a tu cuenta ni se convierte en un perfil sobre ti, y nada alimenta una decisión que te afecte. Lo que queda son dos cosas, y es más de lo que decía antes esta página: que una página con tu nombre dentro puede aparecer en una lista de páginas vistas — y que una grabación muestra lo que había en tu pantalla, hasta el historial visible de una conversación. Por eso lo que escribes queda excluido, por eso solo el operador ve las grabaciones, y por eso se borran a los 30 días. Nos parece un trato justo para gestionar bien el sitio — y como es interés legítimo y no consentimiento, puedes oponerte sin más, y lo hemos hecho un solo ajuste en vez de un formulario."
         ]
       },
       "storage": {
@@ -88,7 +93,8 @@
           "Por norma, lo que guardamos permanece mientras tengas una cuenta. Elimina tu cuenta y desaparece.",
           "Algo de ello sobrevive a eso porque tiene que ser así. Un mensaje que enviaste forma parte de la conversación de otra persona. Lo que la ley nos obliga a conservar, lo conservamos el tiempo que la ley diga.",
           "Cuando un administrador ha suspendido, vetado o readmitido a alguien, conservamos un registro de esa acción mientras moderemos este sitio. Tiene menos que ver con la persona afectada — una vez eliminada una cuenta, ese registro ya no señala a nadie — y más con poder responder de lo que hicieron nuestros propios administradores.",
-          "Las cifras de medición están limitadas por lo que son, no por un reloj: no hay ningún identificador tuyo en ellas, así que no hay nada ahí que borrar en tu nombre."
+          "Las cifras de medición están limitadas por lo que son, no por un reloj: no hay ningún identificador tuyo en ellas, así que no hay nada ahí que borrar en tu nombre.",
+          "Las grabaciones de sesión son otra cosa y por eso tienen un plazo fijo: se borran automáticamente a los 30 días, incluidas las que hubiéramos guardado mientras tanto. Ocurre solo, no porque alguien se acuerde de hacerlo."
         ]
       },
       "rights": {

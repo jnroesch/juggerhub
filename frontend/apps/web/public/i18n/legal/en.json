@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-08-01",
+    "lastUpdated": "2026-08-02",
     "lastUpdatedLabel": "Last updated {{date}}",
     "authoritativeNotice": "This is a translation for your convenience. The German version is the binding one — if the two ever disagree, the German text governs.",
     "tocLabel": "On this page",
@@ -48,12 +48,17 @@
         ]
       },
       "analytics": {
-        "heading": "How we measure visits",
+        "heading": "How we measure visits and record sessions",
         "body": [
           "We measure how the site is used, so we know which parts are worth the work. It runs on our own servers, and the numbers don't go to an outside analytics company.",
-          "It sets no cookie and stores nothing on your device. It doesn't record your account, your username, your email, or your full network address. Nothing in it says who was doing the browsing.",
+          "It sets no cookie and stores nothing on your device. It doesn't record your account, your username, your email, or your full network address as a data field. There's nothing in the numbers themselves that says who was doing the browsing. For the session recordings further down, that is expressly not the case.",
           "There's one thing we want to be straightforward about, because it's the part you'd reasonably object to. We record the address of every page viewed exactly as it is — and the address of someone's profile, or a team's page, has their name in it. So the numbers do show which profiles and team pages got looked at, and when. They never show who was looking.",
           "We record the address only up to the question mark, never what comes after. That's where deep links and return addresses live, and they'd have carried more than we meant them to.",
+          "Beyond the numbers, we also record sessions. That goes considerably further: what gets recorded is the page as it stood on your screen, along with pointer movement, clicks and scrolling. It's how we find the places where something snags and the numbers alone say nothing — a button pressed twice, a form field filled in over and over.",
+          "What you type is excluded. Every input field is masked in your browser before anything at all is sent — passwords, email addresses, half-written messages. That content does not leave your device.",
+          "What's already on the screen, though, is recorded along with it. Concretely: if you're reading a conversation, the visible history of that conversation is in the recording, including what the other person wrote. We're putting that plainly because it's the furthest-reaching thing on this page and you'd otherwise have no way of guessing it.",
+          "So unlike the numbers, a recording can be connected to you: your own name is on that screen nearly all the time. Recordings are seen only by the person running this site, in the same analytics tool the numbers live in. After 30 days they're deleted automatically.",
+          "Recording stores nothing on your device either. And the browser setting in the last section of this page switches it off completely — it isn't even loaded, so not so much as a request is made.",
           "If you'd rather not be measured at all, the last section on this page tells you how. It's one browser setting, and we honour it."
         ]
       },
@@ -62,8 +67,8 @@
         "body": [
           "Two questions get muddled together, so here they are one at a time.",
           "The rule that makes sites ask permission is about storing things on your device. Ours stores nothing there — no cookie, no local storage, nothing — so the rule doesn't apply. The one cookie we set keeps you signed in, which is necessary for something you asked for, and that's exempt. So there's no banner. It isn't an oversight, and it isn't us being clever with the wording.",
-          "The separate question is what allows the measuring itself. A page address can name a member or a team, so that's personal data, and it needs a basis whatever the cookie rules say. We rely on legitimate interest.",
-          "Here's the balancing, so you can judge it rather than take our word for it. We want to know which parts of a volunteer-run site actually get used, so the limited time goes where it helps. What it costs you is narrow: nothing marks you as the viewer, nothing lands on your device, it isn't tied to your account or built into a profile of you, and it never feeds a decision about you. What's left is that a page with your name in it can show up in a list of pages viewed. We think that's a fair trade for running the site well — and since it's legitimate interest rather than consent, you can object outright, which we've made one setting instead of a form."
+          "The separate question is what allows the measuring and the recording themselves. A page address can name a member or a team, and a session recording shows the screen, which nearly always has your name on it — both are personal data, and they need a basis whatever the device-storage rules say. We rely on legitimate interest.",
+          "Here's the balancing, so you can judge it rather than take our word for it. We want to know which parts of a volunteer-run site actually get used and where people get stuck, so the limited time goes where it helps. Nothing lands on your device, nothing is tied to your account or built into a profile of you, and nothing feeds a decision about you. What's left is two things, and it's more than this page used to say: a page with your name in it can show up in a list of pages viewed — and a recording shows what was on your screen, down to the visible history of a conversation. That's why what you type is excluded, why only the operator sees recordings, and why they're deleted after 30 days. We think that's a fair trade for running the site well — and since it's legitimate interest rather than consent, you can object outright, which we've made one setting instead of a form."
         ]
       },
       "storage": {
@@ -88,7 +93,8 @@
           "As a rule, what we hold stays as long as you have an account. Delete your account and it goes.",
           "Some of it outlives that because it has to. A message you sent is part of someone else's conversation. Anything the law requires us to keep, we keep for as long as the law says.",
           "Where an admin has suspended, banned or reinstated someone, we keep a record of that action for as long as we moderate this place at all. It's less about the person it concerned — once an account is deleted that record no longer points at anyone — and more about being able to answer for what our own admins did.",
-          "The measurement numbers are limited by what they are rather than by a clock: there's no identifier for you in them, so there's nothing there to delete on your behalf."
+          "The measurement numbers are limited by what they are rather than by a clock: there's no identifier for you in them, so there's nothing there to delete on your behalf.",
+          "Session recordings are a different matter and so they have a fixed limit: they're deleted automatically after 30 days, including any we'd saved in the meantime. That happens on its own, not because someone remembers to do it."
         ]
       },
       "rights": {

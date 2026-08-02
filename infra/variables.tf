@@ -298,6 +298,21 @@ variable "umami_website_id" {
   }
 }
 
+# --- Session recording (feature 038 — extends 033 with the rrweb recorder) ---
+# No recorder-behaviour variables by design: recording is on wherever analytics is on, and the
+# sample rate, mask level and kill switch are all dashboard controls. Retention is the exception —
+# Umami has no setting for it, so it is enforced here.
+variable "umami_replay_retention_days" {
+  type        = number
+  default     = 30
+  description = "Days before recordings are deleted by the retention CronJob. PUBLISHED IN THE PRIVACY POLICY — changing it without changing the policy text makes a legal document untrue (038 FR-012a)."
+
+  validation {
+    condition     = var.umami_replay_retention_days > 0 && var.umami_replay_retention_days <= 365
+    error_message = "umami_replay_retention_days must be between 1 and 365."
+  }
+}
+
 variable "umami_db_password" {
   type      = string
   sensitive = true

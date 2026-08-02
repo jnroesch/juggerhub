@@ -81,6 +81,14 @@ server {
         proxy_pass $jh_upstream/script.js;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
+        # The platform's sign-in cookie is httpOnly, SameSite=Strict, path=/ — exactly the shape
+        # that a same-origin request carries by default. It does NOT reach Umami today: the
+        # tracker defaults data-fetch-credentials to "omit" and the recorder hardcodes it
+        # (verified against the shipped assets, feature 038). This line is not a fix; it is what
+        # keeps that true if a future version changes its default. The failure it prevents —
+        # platform session cookies sitting in a third-party application's request logs — is
+        # silent, which is the only reason it is worth a line here.
+        proxy_set_header Cookie "";
         # Constitution VII: analytics must never be able to take the app down. Short
         # timeouts so a wedged Umami cannot tie up frontend worker connections, and no
         # retry — re-sending a dropped beacon is exactly the amplification VII prohibits.
@@ -95,12 +103,87 @@ server {
         proxy_pass $jh_upstream/api/send;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
+        # See /jh-insights.js above — same reasoning, and this is the higher-traffic path.
+        proxy_set_header Cookie "";
         # Umami derives country and its rotating session hash from the client address;
         # without this every visit looks like it came from the nginx pod. It does not
         # store the address itself (FR-005, verified in T037).
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_connect_timeout 2s;
+        proxy_send_timeout 3s;
+        proxy_read_timeout 3s;
+        proxy_next_upstream off;
+    }
+
+    # --- Session recording (feature 038) ------------------------------------
+    # THE DIRECTORY IN THE SCRIPT PATH IS LOAD-BEARING. The recorder computes its own endpoints
+    # from the DIRECTORY part of its own src, not from the origin:
+    #
+    #     l = (data-host-url || "" || src.split("/").slice(0,-1).join("/"))
+    #     POST   l + "/api/record"
+    #     GET    l + "/api/websites/<id>/recorder"
+    #
+    # Served at /jh-insights/r.js, that resolves to /jh-insights/api/... — inside the namespace 033
+    # already owns, with no blocklist-matching token anywhere. Served at a ROOT path such as
+    # /jh-insights-r.js it would resolve to /api/record, which belongs to the .NET backend above,
+    # and the failure would be SILENT: `location /api/` would proxy a fire-and-forget POST to the
+    # backend, which 404s it. No error, no log anyone reads, just no recordings.
+    #
+    # Consequently: do not move these paths, and do not set data-host-url in the snippet.
+    #
+    # EXACT matches, never a `location /jh-insights/api/` prefix. A prefix here would serve every
+    # route Umami exposes — including /api/auth/login and the whole admin surface — from the
+    # APPLICATION's origin, quietly undoing 033's decision to keep the dashboard on its own
+    # hostname. The cost of exact matching is that nginx must know the website id, which is why
+    # JH_ANALYTICS_WEBSITE_ID exists as its own variable.
+    #
+    # With analytics off the id is empty and the third location renders as
+    # `/jh-insights/api/websites//recorder` — a valid location nothing requests. nginx starts, and
+    # analytics-off stays the default with no conditional configuration anywhere.
+    location = /jh-insights/r.js {
+        set $jh_upstream "${JH_ANALYTICS_UPSTREAM}";
+        proxy_pass $jh_upstream/recorder.js;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Cookie "";
+        proxy_connect_timeout 2s;
+        proxy_send_timeout 3s;
+        proxy_read_timeout 3s;
+        proxy_next_upstream off;
+    }
+
+    location = /jh-insights/api/record {
+        set $jh_upstream "${JH_ANALYTICS_UPSTREAM}";
+        proxy_pass $jh_upstream/api/record;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Cookie "";
+        # Umami derives country and its rotating session hash from the client address, exactly as
+        # for /jh-insights/e. It does not store the address itself.
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # The recorder fragments its payload at ~500 KB — under nginx's 1 MB default, but not by
+        # enough that the default should be the thing standing between a recording and a silent
+        # 413 on a fire-and-forget POST.
+        client_max_body_size 2m;
+        proxy_connect_timeout 2s;
+        proxy_send_timeout 3s;
+        proxy_read_timeout 3s;
+        proxy_next_upstream off;
+    }
+
+    # The recorder fetches this BEFORE capturing anything, and obeys what it says: whether replay
+    # is on, the sampling rate, the masking level, the maximum duration. Umami serves it
+    # unauthenticated by design (the browser must read it), cached 60s.
+    location = /jh-insights/api/websites/${JH_ANALYTICS_WEBSITE_ID}/recorder {
+        set $jh_upstream "${JH_ANALYTICS_UPSTREAM}";
+        proxy_pass $jh_upstream/api/websites/${JH_ANALYTICS_WEBSITE_ID}/recorder;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header Cookie "";
         proxy_connect_timeout 2s;
         proxy_send_timeout 3s;
         proxy_read_timeout 3s;

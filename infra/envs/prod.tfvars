@@ -46,3 +46,16 @@ api_authorized_ip_ranges = []
 umami_replicas     = 2
 analytics_hostname = "analytics.juggerhub.com"
 umami_website_id   = "f3c9a5e8-27b1-4d06-8ea4-91b7c62df530"
+
+# --- Session recording (feature 038) ----------------------------------------
+# Recording is on wherever analytics is on. The sample rate is a DASHBOARD setting, not Terraform's
+# business — and Prod should run much lower than Dev: real volume against a database shared with
+# the application (038 FR-030), and every recorded session is a stored picture of a real member's
+# screen, so sampling here is data minimisation and not just cost control.
+#
+# SET THAT RATE IN THE UMAMI DASHBOARD after the first Prod deploy. A newly seeded website starts
+# on Umami's own default of 0.15; nothing here will change it.
+#
+# Retention is the one recording value Terraform owns, because Umami has no setting for it and the
+# privacy policy publishes the number.
+umami_replay_retention_days = 30

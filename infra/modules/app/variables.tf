@@ -158,6 +158,25 @@ variable "umami_website_id" {
   type        = string
 }
 
+# --- Session recording (feature 038) ----------------------------------------
+# There are deliberately NO recorder-behaviour variables here — no on/off, no sample rate, no mask
+# level. Every one of those is a control in the Umami dashboard, and an operator must be able to
+# reach any of them during an incident without waiting for an apply. Terraform seeds a new website
+# and gets out of the way. The only recording value below is retention, which Umami has no setting
+# for and which this repository has to enforce itself.
+variable "umami_replay_retention_days" {
+  description = "How long recordings are kept before the retention CronJob deletes them. THIS NUMBER IS PUBLISHED IN THE PRIVACY POLICY (038 FR-012a), so changing it here without changing the policy text makes a legal document untrue. Whole sessions are deleted, saved replays included."
+  type        = number
+  default     = 30
+
+  validation {
+    # An unbounded or absurd value is the failure that matters: everything deploys, the job runs,
+    # and nothing is ever deleted while the policy keeps promising 30 days.
+    condition     = var.umami_replay_retention_days > 0 && var.umami_replay_retention_days <= 365
+    error_message = "umami_replay_retention_days must be between 1 and 365. Recordings are personal data; indefinite retention is not available here (033's indefinite page-view retention rests on those records containing none)."
+  }
+}
+
 variable "umami_db_password" {
   type      = string
   sensitive = true

@@ -63,6 +63,7 @@ The genuine new risk is an internet-reachable administrative login on a security
 - **Scoped database role** — `umami` owns only the `umami` database and is explicitly revoked from the application database (FR-025). It is not a superuser.
 - **Datastore unchanged and unexposed** — the Postgres Service stays headless/ClusterIP (FR-024).
 - **Session replay and web vitals stay OFF.** Umami v3 introduced session replay; on an authenticated-only platform it would capture member data and destroy every privacy property this spec claims. Treated as a release gate, not a preference.
+  > **SUPERSEDED for session replay by feature 038** (`specs/038-umami-session-recording/`), which enables it as an explicit owner decision and rewrites the affected privacy-policy text in the same release. The reasoning above was not wrong — recording does capture member data, and 038 documents that consequence rather than disputing it. **Web vitals/heatmaps remain OFF and out of scope.**
 - **`DISABLE_TELEMETRY=1`** so the instance makes no outbound call-home (FR-009: nothing leaves for a third party).
 
 ### Resilience posture (Gate 8 detail)
@@ -147,7 +148,7 @@ Full reasoning in [research.md](./research.md); the load-bearing ones:
 | `envsubst` mangles nginx runtime variables (`$host`, `$uri`, …) in the template. | Medium | Broken proxying | The nginx entrypoint only substitutes names present in the environment. All placeholders are prefixed `JH_` so they cannot collide. Verified by diffing the rendered config in quickstart. |
 | Chosen tracker paths still match a blocklist rule. | Low | Silent under-measurement | Avoid the matched token set; verify with a real blocker enabled (quickstart scenario 4), and re-check against SC-002 using the nginx access log. |
 | Analytics write load degrades the app database. | Low | App slowdown | Low volume; Postgres resource limits already bound the StatefulSet. Revisit if page views grow an order of magnitude. |
-| Session replay enabled by accident on an authenticated-only platform. | Low | **Severe privacy breach** | Explicit release gate in quickstart; verified as OFF per website. |
+| Session replay enabled by accident on an authenticated-only platform. | Low | **Severe privacy breach** | ~~Explicit release gate in quickstart; verified as OFF per website.~~ **Superseded by 038**, which enables replay deliberately. The *accident* risk remains and is now guarded differently: the settings are seeded as code and asserted against the live config endpoint (amended quickstart scenario 7), so a dashboard change fails a check instead of going unnoticed. |
 | Website IDs must be created by hand in the dashboard before measurement works. | Certain | Bootstrap friction | Documented as an ordered bootstrap in quickstart. IDs are **not secret** (they ship in page source), so they live in `envs/*.tfvars`, not in GitHub secrets. |
 
 ## Spec drift

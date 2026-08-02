@@ -45,3 +45,9 @@ api_authorized_ip_ranges = []
 umami_replicas     = 1
 analytics_hostname = "analytics-dev.juggerhub.com"
 umami_website_id   = "b7e4d21c-0a53-4f18-9c62-3d5a81f0e447"
+
+# --- Session recording (feature 038) ----------------------------------------
+# Recording is on wherever analytics is on. How much it records, how it masks, and whether it runs
+# at all are dashboard settings, not Terraform's business — Dev records every session today.
+# Retention is here because Umami has no setting for it and the privacy policy publishes the number.
+umami_replay_retention_days = 30

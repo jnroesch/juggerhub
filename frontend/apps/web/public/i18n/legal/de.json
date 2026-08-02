@@ -1,6 +1,6 @@
 {
   "meta": {
-    "lastUpdated": "2026-08-01",
+    "lastUpdated": "2026-08-02",
     "lastUpdatedLabel": "Zuletzt aktualisiert am {{date}}",
     "authoritativeNotice": "Dies ist die verbindliche Fassung.",
     "tocLabel": "Auf dieser Seite",
@@ -48,12 +48,17 @@
         ]
       },
       "analytics": {
-        "heading": "Wie wir Besuche messen",
+        "heading": "Wie wir Besuche messen und Sitzungen aufzeichnen",
         "body": [
           "Wir messen, wie die Seite genutzt wird, um zu wissen, welche Teile die Arbeit wert sind. Das läuft auf unseren eigenen Servern, und die Zahlen gehen nicht an ein externes Statistikunternehmen.",
-          "Es wird kein Cookie gesetzt und nichts auf deinem Gerät gespeichert. Weder dein Konto noch dein Benutzername, deine E-Mail-Adresse oder deine vollständige IP-Adresse werden erfasst. Nichts darin sagt aus, wer da gesurft hat.",
+          "Es wird kein Cookie gesetzt und nichts auf deinem Gerät gespeichert. Weder dein Konto noch dein Benutzername, deine E-Mail-Adresse oder deine vollständige IP-Adresse werden als Datenfeld erfasst. In den reinen Zahlen steckt nichts, was aussagt, wer da gesurft hat. Für die Sitzungsaufzeichnungen weiter unten gilt das ausdrücklich nicht.",
           "Eines wollen wir ausdrücklich klarstellen, weil es der Punkt ist, an dem du berechtigterweise Anstoß nehmen würdest. Wir erfassen die Adresse jeder aufgerufenen Seite genau so, wie sie lautet — und in der Adresse eines Profils oder einer Teamseite steht der jeweilige Name. Aus den Zahlen geht deshalb hervor, welche Profile und Teamseiten wann aufgerufen wurden. Nie geht daraus hervor, wer sie aufgerufen hat.",
           "Wir erfassen die Adresse nur bis zum Fragezeichen, nie das, was danach kommt. Dort stehen Deep Links und Rücksprungadressen, die mehr mitgeführt hätten, als wir beabsichtigt haben.",
+          "Darüber hinaus zeichnen wir Sitzungen auf. Das geht deutlich weiter als Zahlen: Aufgezeichnet wird die Seite so, wie sie auf deinem Bildschirm stand, dazu Mausbewegungen, Klicks und Scrollen. Damit finden wir Stellen, an denen etwas hakt und an denen Zahlen allein nichts verraten — eine Schaltfläche, die zweimal gedrückt wird, ein Formularfeld, das immer wieder neu ausgefüllt wird.",
+          "Was du tippst, ist davon ausgenommen. Jedes Eingabefeld wird bereits in deinem Browser unkenntlich gemacht, bevor überhaupt etwas übertragen wird — Passwörter, E-Mail-Adressen, angefangene Nachrichten. Diese Inhalte verlassen dein Gerät nicht.",
+          "Was dagegen bereits auf dem Bildschirm steht, wird mit aufgezeichnet. Konkret heißt das: Liest du eine Unterhaltung, steht der sichtbare Verlauf dieser Unterhaltung in der Aufzeichnung, einschließlich dessen, was die andere Person geschrieben hat. Wir schreiben das so deutlich hin, weil es der weitreichendste Punkt auf dieser Seite ist und weil man es sonst nicht ahnen würde.",
+          "Anders als bei den reinen Zahlen ist eine Aufzeichnung damit auf dich beziehbar: Auf dem Bildschirm steht in aller Regel dein eigener Name. Aufzeichnungen sieht ausschließlich der Betreiber dieser Seite, im selben Auswertungswerkzeug, in dem auch die Zahlen liegen. Nach 30 Tagen werden sie automatisch gelöscht.",
+          "Auch für die Aufzeichnung gilt: Auf deinem Gerät wird nichts gespeichert. Und die Browser-Einstellung aus dem letzten Abschnitt dieser Seite schaltet sie vollständig ab — dann wird sie gar nicht erst geladen, es entsteht also nicht einmal eine Anfrage.",
           "Wenn du überhaupt nicht gemessen werden möchtest: Im letzten Abschnitt dieser Seite steht, wie. Es ist eine Browser-Einstellung, und wir halten uns daran."
         ]
       },
@@ -62,8 +67,8 @@
         "body": [
           "Zwei Fragen werden oft vermischt, deshalb hier nacheinander.",
           "Die Regel, wegen der Seiten um Erlaubnis fragen, betrifft das Speichern von Informationen auf deinem Gerät (§ 25 TDDDG). Unsere speichert dort nichts — kein Cookie, kein Local Storage, nichts — die Regel greift also nicht. Das eine Cookie, das wir setzen, hält dich angemeldet; das ist für etwas nötig, worum du gebeten hast, und damit ausgenommen. Deshalb gibt es hier kein Banner. Das ist kein Versehen und kein Formulierungstrick.",
-          "Die davon getrennte Frage ist, was das Messen selbst erlaubt. Eine Seitenadresse kann ein Mitglied oder ein Team benennen, also sind das personenbezogene Daten, und die brauchen eine Grundlage, ganz gleich was die Cookie-Regeln sagen. Wir stützen uns auf das berechtigte Interesse (Art. 6 Abs. 1 lit. f DSGVO).",
-          "Hier die Abwägung, damit du sie selbst beurteilen kannst, statt uns glauben zu müssen. Wir wollen wissen, welche Teile einer ehrenamtlich betriebenen Seite tatsächlich genutzt werden, damit die knappe Zeit dort landet, wo sie hilft. Was es dich kostet, ist wenig: Nichts weist dich als Betrachter aus, nichts landet auf deinem Gerät, es wird weder mit deinem Konto verknüpft noch zu einem Profil über dich zusammengeführt und fließt nie in eine Entscheidung über dich ein. Es bleibt, dass eine Seite mit deinem Namen darin in einer Liste aufgerufener Seiten auftauchen kann. Wir halten das für einen fairen Handel, um die Seite gut zu betreiben — und weil es berechtigtes Interesse und keine Einwilligung ist, kannst du rundheraus widersprechen, wozu wir eine einzige Einstellung statt eines Formulars gemacht haben."
+          "Die davon getrennte Frage ist, was das Messen und das Aufzeichnen selbst erlaubt. Eine Seitenadresse kann ein Mitglied oder ein Team benennen, und eine Sitzungsaufzeichnung zeigt den Bildschirm, auf dem in aller Regel dein Name steht — beides sind personenbezogene Daten, und die brauchen eine Grundlage, ganz gleich was die Regeln zum Gerätespeicher sagen. Wir stützen uns auf das berechtigte Interesse (Art. 6 Abs. 1 lit. f DSGVO).",
+          "Hier die Abwägung, damit du sie selbst beurteilen kannst, statt uns glauben zu müssen. Wir wollen wissen, welche Teile einer ehrenamtlich betriebenen Seite tatsächlich genutzt werden und woran Leute hängenbleiben, damit die knappe Zeit dort landet, wo sie hilft. Auf dein Gerät kommt dabei nichts, nichts wird mit deinem Konto verknüpft oder zu einem Profil über dich zusammengeführt, und nichts fließt in eine Entscheidung über dich ein. Was bleibt, ist zweierlei, und das ist mehr als früher auf dieser Seite stand: Eine Seite mit deinem Namen darin kann in einer Liste aufgerufener Seiten auftauchen — und eine Aufzeichnung zeigt, was auf deinem Bildschirm stand, bis hin zum sichtbaren Verlauf einer Unterhaltung. Deshalb ist das, was du tippst, ausgenommen, deshalb sieht Aufzeichnungen nur der Betreiber, und deshalb werden sie nach 30 Tagen gelöscht. Wir halten das für einen fairen Handel, um die Seite gut zu betreiben — und weil es berechtigtes Interesse und keine Einwilligung ist, kannst du rundheraus widersprechen, wozu wir eine einzige Einstellung statt eines Formulars gemacht haben."
         ]
       },
       "storage": {
@@ -88,7 +93,8 @@
           "In der Regel bleibt das, was wir speichern, so lange, wie du ein Konto hast. Lösch dein Konto, und es ist weg.",
           "Manches überdauert das, weil es muss. Eine Nachricht, die du geschrieben hast, ist Teil der Unterhaltung einer anderen Person. Was das Gesetz uns aufzubewahren vorschreibt, bewahren wir so lange auf, wie das Gesetz es sagt.",
           "Wenn ein Admin jemanden gesperrt, verbannt oder wieder freigeschaltet hat, bewahren wir eine Aufzeichnung dieser Aktion so lange auf, wie wir diesen Ort überhaupt moderieren. Dabei geht es weniger um die betroffene Person — nach der Löschung eines Kontos verweist diese Aufzeichnung auf niemanden mehr — als darum, dass wir für das Handeln unserer eigenen Admins einstehen können.",
-          "Die Messzahlen sind durch das begrenzt, was sie sind, nicht durch eine Frist: Es steckt keine Kennung für dich darin, also gibt es darin nichts, was für dich zu löschen wäre."
+          "Die Messzahlen sind durch das begrenzt, was sie sind, nicht durch eine Frist: Es steckt keine Kennung für dich darin, also gibt es darin nichts, was für dich zu löschen wäre.",
+          "Sitzungsaufzeichnungen sind etwas anderes und haben deshalb eine feste Frist: Sie werden nach 30 Tagen automatisch gelöscht, auch die, die wir uns zwischenzeitlich gemerkt haben. Das passiert von selbst und nicht, weil jemand daran denkt."
         ]
       },
       "rights": {
