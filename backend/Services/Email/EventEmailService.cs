@@ -15,12 +15,18 @@ public sealed class EventEmailService
     private readonly IEmailTemplateService _templates;
     private readonly IEmailSender _sender;
     private readonly EmailOptions _options;
+    private readonly IEmailLocalizer _localizer;
 
-    public EventEmailService(IEmailTemplateService templates, IEmailSender sender, IOptions<EmailOptions> options)
+    public EventEmailService(
+        IEmailTemplateService templates,
+        IEmailSender sender,
+        IOptions<EmailOptions> options,
+        IEmailLocalizer localizer)
     {
         _templates = templates;
         _sender = sender;
         _options = options.Value;
+        _localizer = localizer;
     }
 
     public async Task SendCoAdminInviteEmailAsync(
@@ -45,20 +51,17 @@ public sealed class EventEmailService
         await _sender.SendAsync(toEmail, $"You're invited to co-administer {eventName} — JuggerHub", html, ct);
     }
 
-    public Task SendCancellationEmailAsync(
-        string toEmail, string recipientName, string eventName, Guid eventId, CancellationToken ct = default)
+    /// <summary>
+    /// The cancellation notice. Rendered from the shared template in the recipient's language
+    /// (feature 039) — values are escaped by the template layer, so nothing is encoded here.
+    /// </summary>
+    public async Task SendCancellationEmailAsync(
+        string toEmail, string eventName, Guid eventId,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
     {
         var eventUrl = BuildEventLink(_options.FrontendBaseUrl, eventId);
-        var safeName = System.Net.WebUtility.HtmlEncode(recipientName);
-        var safeEvent = System.Net.WebUtility.HtmlEncode(eventName);
-        var html =
-            $"<p>Hi {safeName},</p>" +
-            $"<p><strong>{safeEvent}</strong> has been cancelled by the organiser. No further sign-ups or " +
-            "waiting-list joins are being accepted.</p>" +
-            $"<p>You can still view the event page here: <a href=\"{eventUrl}\">{eventUrl}</a></p>" +
-            "<p>— JuggerHub</p>";
-
-        return _sender.SendAsync(toEmail, $"{eventName} has been cancelled — JuggerHub", html, ct);
+        var html = await _templates.GenerateEventCancelledEmailAsync(eventName, eventUrl, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.eventCancelled", culture, eventName), html, ct);
     }
 
     internal static string BuildInviteLink(string frontendBaseUrl, string token)

@@ -1047,7 +1047,9 @@
       "trainingScheduledSeries": "Eine neue Serie wurde hinzugefügt — sag Bescheid, ob du kannst",
       "trainingScheduledOneoff": "Ein Einzeltermin wurde hinzugefügt — sag Bescheid, ob du kannst",
       "trainingUpdatedCancelled": "Eine Einheit, auf die du geantwortet hast, wurde abgesagt",
-      "trainingUpdatedChanged": "Eine anstehende Einheit hat sich geändert"
+      "trainingUpdatedChanged": "Eine anstehende Einheit hat sich geändert",
+      "eventCancelledTitle": "{{event}} wurde abgesagt",
+      "eventCancelledSupporting": "Die Organisation hat ein Event abgesagt, für das du angemeldet warst"
     }
   },
   "parties": {

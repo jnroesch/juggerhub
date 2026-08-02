@@ -16,7 +16,8 @@ export type NotificationType =
   | 'PartyNews'
   | 'MarketInvite'
   | 'TrainingScheduled'
-  | 'TrainingUpdated';
+  | 'TrainingUpdated'
+  | 'EventCancelled';
 
 export interface TeamInvitePayload {
   invitationId: string;
@@ -77,6 +78,16 @@ export interface TrainingUpdatedPayload {
   kind: 'seriesEdit' | 'cancelled';
 }
 
+/**
+ * Event cancellation (feature 039) — an event the recipient signed up for was called off.
+ * Deliberately not reusing {@link PartyPayload}: a cancellation concerns the event itself and
+ * carries no team or party context, even when the recipient joined via a team sign-up.
+ */
+export interface EventCancelledPayload {
+  eventId: string;
+  eventName: string;
+}
+
 export type NotificationPayload =
   | TeamInvitePayload
   | TeamRoleChangedPayload
@@ -84,7 +95,8 @@ export type NotificationPayload =
   | PartyPayload
   | MarketInvitePayload
   | TrainingScheduledPayload
-  | TrainingUpdatedPayload;
+  | TrainingUpdatedPayload
+  | EventCancelledPayload;
 
 export interface AppNotification {
   id: string;
@@ -147,4 +159,10 @@ export function isTrainingUpdated(
   n: AppNotification,
 ): n is AppNotification & { type: 'TrainingUpdated'; payload: TrainingUpdatedPayload } {
   return n.type === 'TrainingUpdated';
+}
+
+export function isEventCancelled(
+  n: AppNotification,
+): n is AppNotification & { type: 'EventCancelled'; payload: EventCancelledPayload } {
+  return n.type === 'EventCancelled';
 }

@@ -1047,7 +1047,9 @@
       "trainingScheduledSeries": "Se añadió una nueva serie — di si puedes asistir",
       "trainingScheduledOneoff": "Se añadió una sesión única — di si puedes asistir",
       "trainingUpdatedCancelled": "Una sesión a la que respondiste fue cancelada",
-      "trainingUpdatedChanged": "Una sesión próxima cambió"
+      "trainingUpdatedChanged": "Una sesión próxima cambió",
+      "eventCancelledTitle": "{{event}} se ha cancelado",
+      "eventCancelledSupporting": "La organización canceló un evento al que te habías apuntado"
     }
   },
   "parties": {

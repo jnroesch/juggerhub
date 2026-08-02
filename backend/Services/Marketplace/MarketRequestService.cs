@@ -25,18 +25,23 @@ public sealed class MarketRequestService : IMarketRequestService
     private readonly PartyCapacity _capacity;
     private readonly MarketEligibility _eligibility;
     private readonly INotificationService _notifications;
+    private readonly INotificationPreferenceService _preferences;
     private readonly MarketEmailService _email;
+    private readonly ILogger<MarketRequestService> _logger;
 
     public MarketRequestService(
         AppDbContext db, PartyGuard guard, PartyCapacity capacity, MarketEligibility eligibility,
-        INotificationService notifications, MarketEmailService email)
+        INotificationService notifications, INotificationPreferenceService preferences,
+        MarketEmailService email, ILogger<MarketRequestService> logger)
     {
         _db = db;
         _guard = guard;
         _capacity = capacity;
         _eligibility = eligibility;
         _notifications = notifications;
+        _preferences = preferences;
         _email = email;
+        _logger = logger;
     }
 
     /// <summary>Reusable projection of a request to its inbox DTO (party + user identities).</summary>
@@ -201,7 +206,7 @@ public sealed class MarketRequestService : IMarketRequestService
 
         var target = await _db.Users.AsNoTracking()
             .Where(u => u.Id == request.UserId)
-            .Select(u => new { u.Email, Name = u.Profile!.DisplayName })
+            .Select(u => new { u.Email, Name = u.Profile!.DisplayName, u.PreferredLanguage })
             .FirstOrDefaultAsync(ct);
         if (target is null)
         {
@@ -238,14 +243,14 @@ public sealed class MarketRequestService : IMarketRequestService
             return PartyResult<MarketRequestDto>.Fail(PartyOutcome.Conflict, "There's already a pending request with that player.");
         }
 
-        await DeliverInviteAsync(req, partyId, eventId, actorUserId, request.UserId, target.Email, target.Name, ct);
+        await DeliverInviteAsync(req, partyId, eventId, actorUserId, request.UserId, target.Email, target.Name, target.PreferredLanguage, ct);
         return PartyResult<MarketRequestDto>.Ok(await LoadDtoAsync(req.Id, ct));
     }
 
     /// <summary>Notify + email the invited player (never throws into the invite action; feature 010/011).</summary>
     private async Task DeliverInviteAsync(
         MarketRequest req, Guid partyId, Guid eventId, Guid actorUserId, Guid targetUserId,
-        string? targetEmail, string targetName, CancellationToken ct)
+        string? targetEmail, string targetName, string? targetLanguage, CancellationToken ct)
     {
         var info = await _db.Parties.AsNoTracking()
             .Where(p => p.Id == partyId)
@@ -262,9 +267,26 @@ public sealed class MarketRequestService : IMarketRequestService
             dedupeKey: $"market-invite:{req.Id}",
             ct);
 
+        // Email: only if the target has Invites & roster → Email on (feature 011, wired up in 039).
+        // One recipient, but still the batch call so the gate reads the same at every send site.
         if (!string.IsNullOrEmpty(targetEmail))
         {
-            await _email.SendMarketInviteEmailAsync(targetEmail, targetName, info.TeamName, info.EventName, inviterName, eventId, ct);
+            try
+            {
+                var emailRecipients = await _preferences.GetEnabledRecipientsAsync(
+                    [targetUserId], NotificationCategory.InvitesAndRoster, NotificationChannel.Email, ct);
+
+                if (emailRecipients.Contains(targetUserId))
+                {
+                    await _email.SendMarketInviteEmailAsync(
+                        targetEmail, targetName, info.TeamName, info.EventName, inviterName, eventId,
+                        SupportedLanguages.ResolveOrDefault(targetLanguage), ct);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send the market-invite email for request {RequestId}.", req.Id);
+            }
         }
     }
 

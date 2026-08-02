@@ -9,59 +9,52 @@ namespace JuggerHub.Services.Email;
 /// party news notice, and the co-admin invite (reusing the shared invitation template) — and hands
 /// the HTML to <see cref="IEmailSender"/> (Mailpit locally, Resend on Dev/Prod). Links are built
 /// from <see cref="EmailOptions.FrontendBaseUrl"/>. No new infrastructure; mirrors
-/// <see cref="EventEmailService"/>. Bodies for request/news are finalized with dedicated templates
-/// in their stories (party-request.html, party-news.html).
+/// <see cref="EventEmailService"/>.
+///
+/// Feature 039 replaced the hand-rolled request/news bodies with the dedicated
+/// <c>party-request.html</c> / <c>party-news.html</c> templates promised here, so all three
+/// messages now carry the shared chrome and render in the recipient's language.
 /// </summary>
 public sealed class PartyEmailService
 {
     private readonly IEmailTemplateService _templates;
     private readonly IEmailSender _sender;
     private readonly EmailOptions _options;
+    private readonly IEmailLocalizer _localizer;
 
-    public PartyEmailService(IEmailTemplateService templates, IEmailSender sender, IOptions<EmailOptions> options)
+    public PartyEmailService(
+        IEmailTemplateService templates,
+        IEmailSender sender,
+        IOptions<EmailOptions> options,
+        IEmailLocalizer localizer)
     {
         _templates = templates;
         _sender = sender;
         _options = options.Value;
+        _localizer = localizer;
     }
 
     /// <summary>The participation request (and Nudge): invites a team member to a party.</summary>
-    public Task SendPartyRequestEmailAsync(
+    public async Task SendPartyRequestEmailAsync(
         string toEmail, string recipientName, string teamName, string eventName,
-        string teamSlug, Guid eventId, CancellationToken ct = default)
+        string teamSlug, Guid eventId, string culture = SupportedLanguages.Default, CancellationToken ct = default)
     {
         var url = BuildPartyLink(_options.FrontendBaseUrl, teamSlug, eventId);
-        var safeName = System.Net.WebUtility.HtmlEncode(recipientName);
-        var safeTeam = System.Net.WebUtility.HtmlEncode(teamName);
-        var safeEvent = System.Net.WebUtility.HtmlEncode(eventName);
-        var html =
-            $"<p>Hi {safeName},</p>" +
-            $"<p><strong>{safeTeam}</strong> is putting a party together for <strong>{safeEvent}</strong>. " +
-            "Let the crew know if you're in.</p>" +
-            $"<p><a href=\"{url}\">See the request</a></p>" +
-            "<p>— JuggerHub</p>";
-
-        return _sender.SendAsync(toEmail, $"Fancy {eventName}? {teamName} is putting a party together — JuggerHub", html, ct);
+        var html = await _templates.GeneratePartyRequestEmailAsync(recipientName, teamName, eventName, url, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.partyRequest", culture, eventName, teamName), html, ct);
     }
 
-    /// <summary>A new party news post, sent to the crew.</summary>
-    public Task SendPartyNewsEmailAsync(
+    /// <summary>
+    /// A new party news post, sent to the crew. <paramref name="excerpt"/> arrives already
+    /// truncated — the caller owns that, exactly as the team-news path does.
+    /// </summary>
+    public async Task SendPartyNewsEmailAsync(
         string toEmail, string recipientName, string teamName, string eventName,
-        string teamSlug, Guid eventId, string body, CancellationToken ct = default)
+        string teamSlug, Guid eventId, string excerpt, string culture = SupportedLanguages.Default, CancellationToken ct = default)
     {
         var url = BuildPartyLink(_options.FrontendBaseUrl, teamSlug, eventId);
-        var safeName = System.Net.WebUtility.HtmlEncode(recipientName);
-        var safeTeam = System.Net.WebUtility.HtmlEncode(teamName);
-        var safeEvent = System.Net.WebUtility.HtmlEncode(eventName);
-        var safeBody = System.Net.WebUtility.HtmlEncode(body);
-        var html =
-            $"<p>Hi {safeName},</p>" +
-            $"<p>New update for the <strong>{safeTeam}</strong> party at <strong>{safeEvent}</strong>:</p>" +
-            $"<blockquote>{safeBody}</blockquote>" +
-            $"<p><a href=\"{url}\">Open the party</a></p>" +
-            "<p>— JuggerHub</p>";
-
-        return _sender.SendAsync(toEmail, $"{teamName} @ {eventName} — party update — JuggerHub", html, ct);
+        var html = await _templates.GeneratePartyNewsEmailAsync(recipientName, teamName, eventName, excerpt, url, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.partyNews", culture, teamName, eventName), html, ct);
     }
 
     /// <summary>A targeted co-admin invite, reusing the shared invitation template.</summary>

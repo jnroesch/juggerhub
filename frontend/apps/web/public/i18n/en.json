@@ -1043,7 +1043,9 @@
       "trainingScheduledSeries": "A new series was added — say if you can make it",
       "trainingScheduledOneoff": "A one-off was added — say if you can make it",
       "trainingUpdatedCancelled": "A session you responded to was cancelled",
-      "trainingUpdatedChanged": "An upcoming session changed"
+      "trainingUpdatedChanged": "An upcoming session changed",
+      "eventCancelledTitle": "{{event}} was cancelled",
+      "eventCancelledSupporting": "The organiser called off an event you signed up for"
     }
   },
   "parties": {

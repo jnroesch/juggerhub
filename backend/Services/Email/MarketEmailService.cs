@@ -1,4 +1,5 @@
 using JuggerHub.Common;
+using JuggerHub.Services;
 using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Services.Email;
@@ -8,36 +9,37 @@ namespace JuggerHub.Services.Email;
 /// hands the HTML to <see cref="IEmailSender"/> (Mailpit locally, Resend on Dev/Prod). The link points
 /// at the event page, where the invited player's market inbox lives. No new infrastructure; mirrors
 /// <see cref="PartyEmailService"/>.
+///
+/// Feature 039 moved the body onto the shared <c>market-invite.html</c> template, so it now carries
+/// the standard chrome and renders in the recipient's language.
 /// </summary>
 public sealed class MarketEmailService
 {
+    private readonly IEmailTemplateService _templates;
     private readonly IEmailSender _sender;
     private readonly EmailOptions _options;
+    private readonly IEmailLocalizer _localizer;
 
-    public MarketEmailService(IEmailSender sender, IOptions<EmailOptions> options)
+    public MarketEmailService(
+        IEmailTemplateService templates,
+        IEmailSender sender,
+        IOptions<EmailOptions> options,
+        IEmailLocalizer localizer)
     {
+        _templates = templates;
         _sender = sender;
         _options = options.Value;
+        _localizer = localizer;
     }
 
     /// <summary>A party's invite to a free agent: nudges them to answer on the event page.</summary>
-    public Task SendMarketInviteEmailAsync(
+    public async Task SendMarketInviteEmailAsync(
         string toEmail, string recipientName, string teamName, string eventName,
-        string inviterName, Guid eventId, CancellationToken ct = default)
+        string inviterName, Guid eventId, string culture = SupportedLanguages.Default, CancellationToken ct = default)
     {
         var url = BuildEventLink(_options.FrontendBaseUrl, eventId);
-        var safeName = System.Net.WebUtility.HtmlEncode(recipientName);
-        var safeTeam = System.Net.WebUtility.HtmlEncode(teamName);
-        var safeEvent = System.Net.WebUtility.HtmlEncode(eventName);
-        var safeInviter = System.Net.WebUtility.HtmlEncode(inviterName);
-        var html =
-            $"<p>Hi {safeName},</p>" +
-            $"<p><strong>{safeInviter}</strong> invited you to play for <strong>{safeTeam}</strong>'s crew at " +
-            $"<strong>{safeEvent}</strong>. Nothing happens until you accept — take a look and let them know.</p>" +
-            $"<p><a href=\"{url}\">See the invite</a></p>" +
-            "<p>— JuggerHub</p>";
-
-        return _sender.SendAsync(toEmail, $"{teamName} wants you at {eventName} — JuggerHub", html, ct);
+        var html = await _templates.GenerateMarketInviteEmailAsync(recipientName, teamName, eventName, inviterName, url, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.marketInvite", culture, teamName, eventName), html, ct);
     }
 
     internal static string BuildEventLink(string frontendBaseUrl, Guid eventId)
