@@ -9,13 +9,23 @@ using Microsoft.Extensions.Options;
 namespace JuggerHub.Services;
 
 /// <summary>
-/// Marks a template value as markup the product itself authored, so <see cref="EmailTemplateService"/>
+/// Marks a template value as content the product itself authored, so <see cref="EmailTemplateService"/>
 /// substitutes it verbatim instead of HTML-encoding it (feature 039, FR-007).
 ///
 /// Encoding is the default precisely because the opposite default failed: values were substituted
 /// raw, and a member-authored team news post could inject live markup into a JuggerHub-branded
 /// email. Opting out has to be a visible, deliberate act at the call site — never inferred from a
 /// variable name or a template.
+///
+/// <para>
+/// <b>Links are wrapped in this.</b> Every <c>*_URL</c> is built by the server from configured
+/// settings, route ids and <c>Uri.EscapeDataString</c>-encoded tokens — never from user input — so
+/// encoding them buys no safety. It does real damage: the verification and reset links carry
+/// <c>?userId=…&amp;token=…</c>, and escaping that ampersand rewrites the raw source to
+/// <c>&amp;amp;</c>. A browser resolves that back to <c>&amp;</c>, but anything reading the HTML
+/// as text — the e2e suite's link extractor, a plain-text alternate, a naive client — sees a query
+/// parameter called <c>amp;token</c> and loses the token, so the link silently stops working.
+/// </para>
 /// </summary>
 public sealed record RawHtml(string Value)
 {
@@ -64,7 +74,7 @@ public class EmailTemplateService : IEmailTemplateService
         var variables = new Dictionary<string, object>
         {
             ["EMAIL_TITLE"] = _localizer.Get("title.passwordReset", culture),
-            ["RESET_URL"] = resetUrl,
+            ["RESET_URL"] = new RawHtml(resetUrl),
             ["RESET_TOKEN"] = resetToken,
             ["USER_EMAIL"] = userEmail,
             ["FOOTER_REASON"] = _localizer.Get("footer.passwordReset", culture)
@@ -83,7 +93,7 @@ public class EmailTemplateService : IEmailTemplateService
             {"INVITER_NAME", inviterName},
             {"INVITER_EMAIL", inviterEmail},
             {"ORGANIZATION_NAME", organizationName},
-            {"INVITATION_URL", invitationUrl},
+            {"INVITATION_URL", new RawHtml(invitationUrl)},
             {"USER_ROLE", role},
             {"EXPIRATION_DATE", expirationDate.ToString("MMMM dd, yyyy")},
             {"EXPIRATION_TIME", expirationDate.ToString("HH:mm")},
@@ -118,7 +128,7 @@ public class EmailTemplateService : IEmailTemplateService
             {"EMAIL_TITLE", _localizer.Get("title.verification", culture)},
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
-            {"VERIFICATION_URL", verificationUrl},
+            {"VERIFICATION_URL", new RawHtml(verificationUrl)},
             {"FOOTER_REASON", _localizer.Get("footer.verification", culture)}
         };
 
@@ -223,7 +233,7 @@ public class EmailTemplateService : IEmailTemplateService
         {
             ["EMAIL_TITLE"] = $"Your role in {teamName} changed",
             ["TEAM_NAME"] = teamName,
-            ["TEAM_URL"] = teamUrl,
+            ["TEAM_URL"] = new RawHtml(teamUrl),
             ["ACTOR_LINE"] = string.IsNullOrWhiteSpace(actorName) ? "Your role was updated." : $"{actorName} updated your role.",
             ["ROLE_LABEL"] = roleLabel,
             ["ROLE_PHRASE"] = rolePhrase,
@@ -240,7 +250,7 @@ public class EmailTemplateService : IEmailTemplateService
         {
             ["EMAIL_TITLE"] = $"News from {teamName}",
             ["TEAM_NAME"] = teamName,
-            ["TEAM_URL"] = teamUrl,
+            ["TEAM_URL"] = new RawHtml(teamUrl),
             ["AUTHOR_LINE"] = string.IsNullOrWhiteSpace(authorName) ? "Someone" : authorName!,
             ["NEWS_EXCERPT"] = excerpt,
             ["FOOTER_REASON"] = "You're getting this because you're a member of this team on JuggerHub."
@@ -258,7 +268,7 @@ public class EmailTemplateService : IEmailTemplateService
         {
             ["EMAIL_TITLE"] = _localizer.Get("title.eventCancelled", culture),
             ["EVENT_NAME"] = eventName,
-            ["EVENT_URL"] = eventUrl,
+            ["EVENT_URL"] = new RawHtml(eventUrl),
             ["FOOTER_REASON"] = _localizer.Get("footer.eventCancelled", culture),
         };
 
@@ -275,7 +285,7 @@ public class EmailTemplateService : IEmailTemplateService
             ["RECIPIENT_NAME"] = recipientName,
             ["TEAM_NAME"] = teamName,
             ["EVENT_NAME"] = eventName,
-            ["PARTY_URL"] = partyUrl,
+            ["PARTY_URL"] = new RawHtml(partyUrl),
             ["FOOTER_REASON"] = _localizer.Get("footer.partyRequest", culture),
         };
 
@@ -293,7 +303,7 @@ public class EmailTemplateService : IEmailTemplateService
             ["TEAM_NAME"] = teamName,
             ["EVENT_NAME"] = eventName,
             ["NEWS_EXCERPT"] = excerpt,
-            ["PARTY_URL"] = partyUrl,
+            ["PARTY_URL"] = new RawHtml(partyUrl),
             ["FOOTER_REASON"] = _localizer.Get("footer.partyNews", culture),
         };
 
@@ -311,7 +321,7 @@ public class EmailTemplateService : IEmailTemplateService
             ["TEAM_NAME"] = teamName,
             ["EVENT_NAME"] = eventName,
             ["INVITER_NAME"] = inviterName,
-            ["EVENT_URL"] = eventUrl,
+            ["EVENT_URL"] = new RawHtml(eventUrl),
             ["FOOTER_REASON"] = _localizer.Get("footer.marketInvite", culture),
         };
 
@@ -338,14 +348,14 @@ public class EmailTemplateService : IEmailTemplateService
                 "Email:FrontendBaseUrl is not configured — links in outgoing email will be empty.");
         }
 
-        variables.TryAdd("DASHBOARD_URL", baseUrl);
-        variables.TryAdd("SETTINGS_URL", $"{baseUrl}/settings/notifications");
+        variables.TryAdd("DASHBOARD_URL", new RawHtml(baseUrl));
+        variables.TryAdd("SETTINGS_URL", new RawHtml($"{baseUrl}/settings/notifications"));
 
         // Legal reachability from every email (feature 039). Built from the same base URL as every
         // other link, so a message can never point a reader at a different origin than the one
         // beside it. The pages themselves shipped with 036 and are anonymously readable.
-        variables.TryAdd("PRIVACY_URL", $"{baseUrl}/privacy");
-        variables.TryAdd("IMPRINT_URL", $"{baseUrl}/imprint");
+        variables.TryAdd("PRIVACY_URL", new RawHtml($"{baseUrl}/privacy"));
+        variables.TryAdd("IMPRINT_URL", new RawHtml($"{baseUrl}/imprint"));
     }
 
     private async Task<string> GenerateEmailAsync(string templateName, Dictionary<string, object> variables, string culture = SupportedLanguages.Default)

@@ -20,7 +20,7 @@ RawHtml(string Value)     — marker for values that are intentionally markup
 |---|---|
 | EC-1.1 | Every value in the variables dictionary is HTML-encoded before substitution, unless it is a `RawHtml`. |
 | EC-1.2 | `RawHtml` must be applied at the point the value is supplied — never inferred from the variable name or template. |
-| EC-1.3 | URLs are **not** wrapped. Encoding is correct inside `href` (`&` → `&amp;` is required there). |
+| EC-1.3 | URLs **are** wrapped in `RawHtml`. They are built by the server from configuration, route ids and already-escaped tokens — no user input reaches them — so encoding adds no safety, and escaping the `&` in `?userId=…&token=…` breaks every consumer that reads the HTML as text. See research D1b. |
 | EC-1.4 | Only two existing variables qualify for `RawHtml`: `PLAN_FEATURES` and `STATUS_STYLE`, both in unused boilerplate generators (research D1). |
 | EC-1.5 | **Subjects are outside this contract.** They are composed by the calling service and never pass through `ReplaceVariables`. Encoding them would render entities visibly in the recipient's inbox (FR-010). |
 

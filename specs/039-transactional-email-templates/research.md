@@ -33,7 +33,7 @@ deliberately contain markup):
 | `PLAN_FEATURES` | `GenerateSubscriptionWelcomeEmailAsync` — joins with `<br/>` | Needs `RawHtml`; method is unused boilerplate |
 | `STATUS_STYLE` | `GenerateUnusualLoginNotificationEmailAsync` — a CSS declaration list | Needs `RawHtml`; method is unused boilerplate and its template file does not exist |
 | `ACTOR_LINE`, `AUTHOR_LINE` | `team-role-changed` / `team-news` | **No** wrapper — code-composed sentences embedding a user-supplied name. Encoding is correct and desirable. |
-| All URLs (`*_URL`) | `AddSharedUrls` and callers | **No** wrapper — encoding is correct inside `href`; `&` → `&amp;` is required there, not harmful. |
+| All URLs (`*_URL`) | `AddSharedUrls` and callers | **Wrapped** — see D1b. This row originally said "no wrapper, encoding is correct inside `href`". That was wrong in consequence and broke registration; corrected during implementation. |
 
 No other variable carries intentional markup. This closes the open risk the spec quality
 checklist carried into planning.
@@ -66,6 +66,37 @@ reason "You're getting this because…" does not appear literally in the raw bod
 correctly; assertions just have to match on a fragment without the apostrophe. Two tests were
 written against the literal string and failed on exactly this — recorded here because the next
 person writing an email assertion will hit it too.
+
+### D1b. URLs are `RawHtml` (corrected after the e2e caught it)
+
+**Decision**: every `*_URL` value is wrapped in `RawHtml`. The original D1 table said the opposite.
+
+**What went wrong**: encoding applied to links too, so the verification and reset URLs —
+`?userId=…&token=…` — rendered as `?userId=…&amp;token=…`. In a browser that resolves back to `&`,
+so clicking the link by hand still worked, and **both the unit and integration suites passed**:
+`AuthTestHelpers.ParseLink` searches for `token=`, finds it inside `amp;token=`, and captures the
+right value by luck.
+
+The e2e suite reads the link straight out of the HTML with
+`/https?:\/\/[^"'\s]*\/verify-email\?[^"'\s<]+/` and navigates to it verbatim. That yields a query
+parameter named `amp;token`, the real token is lost, and the app answers "this verification link is
+invalid or has expired". Every test that registers a user then stalls at `/sign-in` — which is
+nearly all of them. E2E went from ~9 minutes green to 23 minutes of timeouts.
+
+**Why wrapping is right, not a workaround**: these URLs are built by the server from configured
+settings, route ids, and `Uri.EscapeDataString`-encoded tokens. No user-supplied text reaches them,
+so encoding buys no safety whatsoever, while changing the raw source in a way that breaks any
+consumer reading the HTML as text — the e2e extractor here, but equally a plain-text alternate or a
+naive client. The security boundary FR-006 exists for is user-authored *content*: team names, event
+names, display names, news bodies. Those remain encoded.
+
+**Guard added**: `TemplateRenderMatrixTests.Verification_link_query_string_survives_rendering`
+extracts the link with the *same regex the e2e uses*, parses the query, and asserts both `userId`
+and `token` are present and that no `amp;token` parameter exists — so this fails in a 3-second unit
+run rather than a 23-minute e2e run.
+
+**Lesson worth carrying**: "correct HTML" and "correct in every consumer" are not the same claim.
+`&amp;` inside an `href` is textbook-correct and still broke the product.
 
 ---
 

@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using JuggerHub.Common;
 using JuggerHub.Services;
 using JuggerHub.Services.Email;
@@ -81,6 +82,50 @@ public sealed class TemplateRenderMatrixTests
         Assert.DoesNotContain("&#2", es, StringComparison.Ordinal);
         Assert.Contains("Benachrichtigungen verwalten", de, StringComparison.Ordinal);
         Assert.Contains("Gestionar notificaciones", es, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A link with query parameters survives rendering intact, readable straight out of the raw
+    /// HTML — no <c>&amp;amp;</c> in place of the ampersand.
+    ///
+    /// This pins a regression that the unit and integration suites both missed and only the e2e run
+    /// caught. Encode-by-default originally applied to URLs too, which rewrote
+    /// <c>?userId=…&amp;token=…</c> as <c>?userId=…&amp;amp;token=…</c>. A browser resolves that
+    /// correctly, so clicking the link by hand still worked — but every consumer that reads the
+    /// HTML as text saw a parameter named <c>amp;token</c>, lost the real token, and got
+    /// "this verification link is invalid or has expired". Registration broke everywhere.
+    ///
+    /// The extraction below is deliberately the same regex the e2e suite uses, so this test fails
+    /// for the same reason the e2e would.
+    /// </summary>
+    [Fact]
+    public async Task Verification_link_query_string_survives_rendering()
+    {
+        const string url = $"{BaseUrl}/verify-email?userId=0198c4f2-0000-7000-8000-000000000001&token=CfDJ8AbC%2Fd%2Be";
+
+        var html = await Service().GenerateEmailVerificationEmailAsync("Mira", "mira@example.com", url);
+
+        Assert.DoesNotContain("&amp;token=", html, StringComparison.Ordinal);
+
+        var match = Regex.Match(html, @"https?://[^""'\s]*/verify-email\?[^""'\s<]+");
+        Assert.True(match.Success, "No verification link could be extracted from the rendered email.");
+
+        var query = System.Web.HttpUtility.ParseQueryString(new Uri(match.Value).Query);
+        Assert.Equal("0198c4f2-0000-7000-8000-000000000001", query["userId"]);
+        Assert.False(string.IsNullOrEmpty(query["token"]), "The token parameter was lost in rendering.");
+        Assert.Null(query["amp;token"]);
+    }
+
+    /// <summary>Every link in every new template stays navigable from the raw source.</summary>
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Links_are_not_entity_escaped(string culture)
+    {
+        var html = await Service().GeneratePartyRequestEmailAsync(
+            "Mira", "Rheinfeuer", "Hamburg Autumn Open", $"{BaseUrl}/t/rf/party/abc?ref=email&src=cta", culture);
+
+        Assert.Contains("?ref=email&src=cta", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("&amp;src=cta", html, StringComparison.Ordinal);
     }
 
     /// <summary>Markup in a user-supplied value never reaches the reader as markup (FR-006).</summary>
