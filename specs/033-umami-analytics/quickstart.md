@@ -141,11 +141,36 @@ docker compose exec database psql -U postgres -d umami -c "\d session"
 
 ---
 
-## Scenario 7 — Session replay is OFF (release gate)
+## Scenario 7 — Recorder settings are what was decided (release gate)
 
-In the dashboard, check website settings for session replay and web vitals.
+> **AMENDED by feature 038** (`specs/038-umami-session-recording/spec.md`). This scenario used to
+> read *"Session replay is OFF … On an authenticated-only platform, replay would capture member
+> data wholesale and invalidate every privacy claim in the spec. This is a gate, not a
+> preference."*
+>
+> Session replay is now **deliberately on**, as an owner decision taken with the trade-off written
+> down, and the privacy policy was rewritten in the same release to describe it. The gate is
+> amended rather than deleted: the risk it guarded against was replay being enabled **without
+> anyone deciding to**, and that risk is unchanged. What the check asserts has moved from "off" to
+> "exactly the agreed settings".
 
-**Expect**: disabled. On an authenticated-only platform, replay would capture member data wholesale and invalidate every privacy claim in the spec. This is a gate, not a preference.
+Check the configuration the browser actually obeys, not the dashboard toggles:
+
+```powershell
+curl http://localhost:3000/jh-insights/api/websites/$env:UMAMI_WEBSITE_ID/recorder
+```
+
+**Expect**:
+
+- `replayEnabled: true` — decided in 038, disclosed in the privacy policy
+- `heatmapEnabled: false` — a **separate** capture mechanism, still out of scope, still not
+  disclosed anywhere, and not covered by the retention job
+- `maskLevel: "moderate"` — input values masked in the browser; text on screen captured
+- `sampleRate` — whatever this environment was set to in the dashboard; nothing in the repository writes it, and the product default is `0.15`
+- `maxDuration: 300000`
+
+Anything else means the settings drifted in the dashboard, which is the failure this now guards
+against. Full reasoning: `specs/038-umami-session-recording/contracts/recorder-config.md`.
 
 ---
 
