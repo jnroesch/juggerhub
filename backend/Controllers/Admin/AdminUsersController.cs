@@ -81,6 +81,11 @@ public sealed class AdminUsersController : AdminControllerBase
             AdminUserActionOutcome.ProtectedAdmin => Problem(
                 statusCode: StatusCodes.Status422UnprocessableEntity, title: "Admin accounts are protected",
                 detail: "Platform administrators can't be suspended or banned. Remove them from the admin configuration first."),
+            // 410 Gone, not 409: the account was erased and is never coming back, so this is a
+            // permanent answer rather than a "not right now" (feature 037).
+            AdminUserActionOutcome.AccountErased => Problem(
+                statusCode: StatusCodes.Status410Gone, title: "Account was deleted",
+                detail: "This member erased their account. Account actions no longer apply to it."),
             _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Action failed"),
         };
     }

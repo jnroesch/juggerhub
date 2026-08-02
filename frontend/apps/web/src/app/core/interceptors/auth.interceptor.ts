@@ -21,6 +21,20 @@ const SKIP_REFRESH = [
 ];
 
 /**
+ * Feature 037 — the account-deletion POST re-authenticates, so ITS 401 means "wrong password", not
+ * "session expired". Without this the interceptor would refresh a session that is perfectly valid,
+ * retry the delete with the same wrong password, and end up signing the member out — mistyping your
+ * password while deleting your account would log you out instead of telling you. Caught by the e2e,
+ * which is the only place the two meanings of 401 collide.
+ *
+ * Matched on method as well as path, deliberately: `GET /account/deletion-preview` shares the
+ * prefix, and a 401 there really does mean the session expired and should still refresh.
+ */
+function isReauthenticatingRequest(method: string, url: string): boolean {
+  return method.toUpperCase() === 'POST' && url.includes('/account/deletion');
+}
+
+/**
  * Attaches credentials (so the httpOnly cookies travel) and, on a 401 for a normal
  * request, performs a SINGLE-FLIGHT silent refresh and retries once. If the refresh
  * fails, clears client state and routes to sign-in. The server stays the security
@@ -31,7 +45,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
 
   const authReq = req.clone({ withCredentials: true });
-  const skip = SKIP_REFRESH.some((path) => req.url.includes(path));
+  const skip =
+    SKIP_REFRESH.some((path) => req.url.includes(path)) ||
+    isReauthenticatingRequest(req.method, req.url);
 
   return next(authReq).pipe(
     catchError((error: unknown) => {

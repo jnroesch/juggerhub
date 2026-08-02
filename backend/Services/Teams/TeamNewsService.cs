@@ -20,6 +20,7 @@ public sealed class TeamNewsService : ITeamNewsService
     private readonly INotificationPreferenceService _preferences;
     private readonly TeamEmailService _email;
     private readonly ILogger<TeamNewsService> _logger;
+    private readonly Localization.IRecipientCultureResolver _culture;
 
     public TeamNewsService(
         AppDbContext db,
@@ -27,7 +28,8 @@ public sealed class TeamNewsService : ITeamNewsService
         INotificationService notifications,
         INotificationPreferenceService preferences,
         TeamEmailService email,
-        ILogger<TeamNewsService> logger)
+        ILogger<TeamNewsService> logger,
+        Localization.IRecipientCultureResolver culture)
     {
         _db = db;
         _guard = guard;
@@ -35,6 +37,7 @@ public sealed class TeamNewsService : ITeamNewsService
         _preferences = preferences;
         _email = email;
         _logger = logger;
+        _culture = culture;
     }
 
     public async Task<PagedResult<TeamNewsDto>?> GetFeedAsync(
@@ -48,13 +51,19 @@ public sealed class TeamNewsService : ITeamNewsService
 
         var query = _db.TeamNewsPosts.AsNoTracking().Where(n => n.TeamId == a.TeamId);
         var total = await query.CountAsync(ct);
+
+        // The author's profile is absent once they are banned (filtered, 013) or erased (deleted,
+        // 037), so this projects to null rather than the row being missing. The post itself stays —
+        // it is a record the team relies on — and the author collapses to the neutral placeholder.
+        var placeholder = MemberPlaceholder.For(_culture.ResolveFromRequest());
+
         var items = await query
             .OrderByDescending(n => n.CreatedDate)
             .Skip(pagination.NormalizedSkip)
             .Take(pagination.NormalizedTake)
             .Select(n => new TeamNewsDto(
-                n.Author.Profile!.DisplayName,
-                n.Author.Profile!.Handle,
+                n.Author.Profile != null ? n.Author.Profile.DisplayName : placeholder,
+                n.Author.Profile != null ? n.Author.Profile.Handle : null,
                 // Author's current role in this team (defaults to Member if they've left).
                 _db.TeamMemberships
                     .Where(m => m.TeamId == n.TeamId && m.UserId == n.AuthorUserId)

@@ -90,8 +90,9 @@
       "retention": {
         "heading": "Cuánto tiempo lo conservamos",
         "body": [
-          "Por norma, lo que guardamos permanece mientras tengas una cuenta. Pídenos que lo borremos y lo haremos.",
+          "Por norma, lo que guardamos permanece mientras tengas una cuenta. Elimina tu cuenta y desaparece.",
           "Algo de ello sobrevive a eso porque tiene que ser así. Un mensaje que enviaste forma parte de la conversación de otra persona. Lo que la ley nos obliga a conservar, lo conservamos el tiempo que la ley diga.",
+          "Cuando un administrador ha suspendido, vetado o readmitido a alguien, conservamos un registro de esa acción mientras moderemos este sitio. Tiene menos que ver con la persona afectada — una vez eliminada una cuenta, ese registro ya no señala a nadie — y más con poder responder de lo que hicieron nuestros propios administradores.",
           "Las cifras de medición están limitadas por lo que son, no por un reloj: no hay ningún identificador tuyo en ellas, así que no hay nada ahí que borrar en tu nombre.",
           "Las grabaciones de sesión son otra cosa y por eso tienen un plazo fijo: se borran automáticamente a los 30 días, incluidas las que hubiéramos guardado mientras tanto. Ocurre solo, no porque alguien se acuerde de hacerlo."
         ]
@@ -100,7 +101,9 @@
         "heading": "Tus derechos",
         "body": [
           "Puedes pedir una copia de lo que guardamos sobre ti (art. 15 RGPD), pedir que lo corrijamos (art. 16), que lo borremos (art. 17), que limitemos su tratamiento (art. 18), obtenerlo en una forma que puedas llevarte a otro sitio (art. 20) y oponerte a todo lo que hagamos sobre la base del interés legítimo (art. 21).",
-          "Escribe a hello@juggerhub.com y lo arreglamos.",
+          "Eliminar tu cuenta es lo que puedes hacer tú, en los ajustes de tu cuenta. Ocurre de inmediato: no hay periodo de espera ni forma de deshacerlo.",
+          "Dos cosas que conviene saber antes. Los mensajes que enviaste y las novedades que escribiste se quedan donde están, mostrados como «Un jugador anterior» en lugar de con tu nombre: esas conversaciones pertenecen a todas las personas que participaron en ellas, no solo a ti. Y tu dirección de correo vuelve a quedar libre, así que puedes registrarte con ella más adelante si quieres — sería una cuenta nueva, sin nada heredado.",
+          "Para todo lo demás, escribe a hello@juggerhub.com y lo arreglamos.",
           "La excepción es oponerte a la medición: lleva segundos y puedes hacerlo tú. Va justo aquí debajo.",
           "También puedes reclamar ante una autoridad de protección de datos. La nuestra es Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburgo. La de tu lugar de residencia vale igual."
         ]

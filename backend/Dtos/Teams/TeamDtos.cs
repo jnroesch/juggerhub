@@ -127,7 +127,9 @@ public sealed record TeamMemberDto(
 /// <summary>One read-only news-feed item (author role resolved from their membership).</summary>
 public sealed record TeamNewsDto(
     string AuthorDisplayName,
-    string AuthorHandle,
+    // AuthorHandle is null when the author's profile is gone — banned (013) or erased (037). The
+    // post survives either way; there is simply no profile left to link to (feature 037 FR-023).
+    string? AuthorHandle,
     TeamRole AuthorRole,
     DateTime CreatedDate,
     string Body);

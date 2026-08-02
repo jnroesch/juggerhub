@@ -90,8 +90,9 @@
       "retention": {
         "heading": "How long we keep it",
         "body": [
-          "As a rule, what we hold stays as long as you have an account. Ask us to delete it and we will.",
+          "As a rule, what we hold stays as long as you have an account. Delete your account and it goes.",
           "Some of it outlives that because it has to. A message you sent is part of someone else's conversation. Anything the law requires us to keep, we keep for as long as the law says.",
+          "Where an admin has suspended, banned or reinstated someone, we keep a record of that action for as long as we moderate this place at all. It's less about the person it concerned — once an account is deleted that record no longer points at anyone — and more about being able to answer for what our own admins did.",
           "The measurement numbers are limited by what they are rather than by a clock: there's no identifier for you in them, so there's nothing there to delete on your behalf.",
           "Session recordings are a different matter and so they have a fixed limit: they're deleted automatically after 30 days, including any we'd saved in the meantime. That happens on its own, not because someone remembers to do it."
         ]
@@ -100,7 +101,9 @@
         "heading": "Your rights",
         "body": [
           "You can ask for a copy of what we hold about you, ask us to fix it, ask us to delete it, ask us to limit what we do with it, ask for it in a form you can take elsewhere, and object to anything we do on the basis of legitimate interest.",
-          "Write to hello@juggerhub.com and we'll sort it.",
+          "Deleting your account is the one you can do yourself, in your account settings. It happens straight away — there's no waiting period and no way to undo it.",
+          "Two things to know before you do. Messages you sent and news posts you wrote stay where they are, shown as \"A former player\" instead of your name: those conversations belong to everyone in them, not only to you. And your email address becomes free again, so you can sign up with it later if you want to — it would be a new account, with nothing carried over.",
+          "For everything else, write to hello@juggerhub.com and we'll sort it.",
           "The exception is objecting to measurement, which takes seconds and you can do yourself. That's next.",
           "You can also complain to a data protection authority. Ours is Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg. The one where you live works too."
         ]

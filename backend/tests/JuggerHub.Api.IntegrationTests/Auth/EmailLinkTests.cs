@@ -59,4 +59,23 @@ public sealed class EmailLinkTests
         Assert.NotNull(mail);
         Assert.DoesNotContain("{{", mail!.HtmlBody);
     }
+
+    /// <summary>
+    /// The shared footer carries the privacy policy and imprint (feature 039, FR-022/FR-023). Both
+    /// are built from the same configured host as every other link, so an email can never send a
+    /// reader to a different origin than the one beside it.
+    /// </summary>
+    [Fact]
+    public async Task Footer_carries_privacy_and_imprint_links_on_the_configured_frontend()
+    {
+        var client = _factory.CreateClient();
+        var email = AuthTestHelpers.NewEmail();
+
+        await AuthTestHelpers.RegisterAsync(client, email);
+
+        var mail = _factory.EmailSender.LatestFor(email);
+        Assert.NotNull(mail);
+        Assert.Contains($"href=\"{BaseUrl}/privacy\"", mail!.HtmlBody, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/imprint\"", mail.HtmlBody, StringComparison.Ordinal);
+    }
 }

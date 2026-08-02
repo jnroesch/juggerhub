@@ -490,7 +490,50 @@
     "title": "Account",
     "subtitle": "Protected sample page — you only see this when signed in.",
     "signedInAs": "Signed in as",
-    "notificationSettings": "Notification settings"
+    "notificationSettings": "Notification settings",
+    "delete": {
+      "dangerZone": "Danger zone",
+      "hint": "Deleting your account removes your profile and can't be undone.",
+      "action": "Delete account",
+      "checking": "Checking your account…",
+      "previewFailed": "We couldn't check your account just now. Give it another go.",
+      "confirmTitle": "Delete your account?",
+      "erasedIntro": "We'll delete:",
+      "erased": {
+        "Profile": "Your profile — name, handle, bio and city",
+        "Photo": "Your profile photo",
+        "Email": "Your email address and password",
+        "Memberships": "Your teams, events, parties and training answers",
+        "Notifications": "Your notifications and notification settings",
+        "Sessions": "Every signed-in session, on every device"
+      },
+      "retainedIntro": "What stays — this is the part people don't expect:",
+      "retained": {
+        "ChatMessages": "Messages you sent stay in other people's chats, shown as \"A former player\"",
+        "NewsPosts": "News posts you wrote stay with the team or event, with no author",
+        "ModerationRecords": "Records of admin actions, kept as a record of what admins did",
+        "AwardsGrantedToOthers": "Badges and achievements you gave other people"
+      },
+      "ownWords": "If you typed your name, phone number or address into a message, that text stays too. You're the only one who knows what you wrote.",
+      "permanent": "This is permanent. There's no undo and nothing to restore.",
+      "passwordLabel": "Your password",
+      "confirmationLabel": "Type {{ word }} to confirm",
+      "confirmationWord": "DELETE",
+      "confirmAction": "Delete my account",
+      "deleting": "Deleting…",
+      "failed": "We couldn't delete your account just now. Nothing was changed — please try again.",
+      "blockedTitle": "A few things need sorting first",
+      "blockedNow": "Something changed while you were here. Nothing was deleted.",
+      "blocker": {
+        "SoleTeamAdmin": "you're the only admin of this team.",
+        "SoleEventAdmin": "you're the only admin of this event.",
+        "SolePartyAdmin": "you're the only admin of this party."
+      },
+      "remedy": {
+        "MakeAnotherAdmin": "Make someone else an admin, then come back.",
+        "MakeAnotherAdminOrDisband": "Make someone else an admin, or disband it, then come back."
+      }
+    }
   },
   "settings": {
     "notifications": {
@@ -1043,7 +1086,9 @@
       "trainingScheduledSeries": "A new series was added — say if you can make it",
       "trainingScheduledOneoff": "A one-off was added — say if you can make it",
       "trainingUpdatedCancelled": "A session you responded to was cancelled",
-      "trainingUpdatedChanged": "An upcoming session changed"
+      "trainingUpdatedChanged": "An upcoming session changed",
+      "eventCancelledTitle": "{{event}} was cancelled",
+      "eventCancelledSupporting": "The organiser called off an event you signed up for"
     }
   },
   "parties": {

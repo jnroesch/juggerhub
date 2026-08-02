@@ -200,6 +200,7 @@ builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailO
 builder.Services.Configure<ResetPasswordTokenProviderOptions>(_ => { }); // ctor sets name + 1h lifespan
 builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>(); // existing service, now registered
 builder.Services.AddScoped<AuthEmailService>();
+builder.Services.AddScoped<JuggerHub.Services.Email.AccountEmailService>();
 
 // Localization (feature 031): resolves which language backend-generated content renders in and
 // localizes the short code-authored email strings (subjects/titles/footers).
@@ -228,6 +229,8 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
 // --- Account settings (feature 031: language preference) -------------------
 builder.Services.AddScoped<JuggerHub.Services.Account.ILanguagePreferenceService, JuggerHub.Services.Account.LanguagePreferenceService>();
+// Feature 037 — self-service account erasure.
+builder.Services.AddScoped<JuggerHub.Services.Account.IAccountDeletionService, JuggerHub.Services.Account.AccountDeletionService>();
 // Lets RecipientCultureResolver read the caller's Accept-Language for pre-account email language.
 builder.Services.AddHttpContextAccessor();
 

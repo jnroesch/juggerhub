@@ -19,17 +19,22 @@ public sealed class PartyRosterService : IPartyRosterService
     private readonly PartyGuard _guard;
     private readonly PartyCapacity _capacity;
     private readonly INotificationService _notifications;
+    private readonly INotificationPreferenceService _preferences;
     private readonly PartyEmailService _email;
+    private readonly ILogger<PartyRosterService> _logger;
 
     public PartyRosterService(
         AppDbContext db, PartyGuard guard, PartyCapacity capacity,
-        INotificationService notifications, PartyEmailService email)
+        INotificationService notifications, INotificationPreferenceService preferences,
+        PartyEmailService email, ILogger<PartyRosterService> logger)
     {
         _db = db;
         _guard = guard;
         _capacity = capacity;
         _notifications = notifications;
+        _preferences = preferences;
         _email = email;
+        _logger = logger;
     }
 
     public async Task<PagedResult<PartyMemberDto>?> ListGroupAsync(
@@ -271,7 +276,7 @@ public sealed class PartyRosterService : IPartyRosterService
             .FirstAsync(ct);
         var target = await _db.Users.AsNoTracking()
             .Where(u => u.Id == targetUserId)
-            .Select(u => new { u.Email, Name = u.Profile!.DisplayName })
+            .Select(u => new { u.Email, Name = u.Profile!.DisplayName, u.PreferredLanguage })
             .FirstAsync(ct);
 
         // Fresh dedupe (null) so the nudge always re-alerts.
@@ -283,9 +288,26 @@ public sealed class PartyRosterService : IPartyRosterService
             dedupeKey: null,
             ct);
 
+        // The nudge is the *second* party-request send site — it needs the same Email-channel gate
+        // as the initial fan-out, or muting invites would silence one path and not the other.
         if (!string.IsNullOrEmpty(target.Email))
         {
-            await _email.SendPartyRequestEmailAsync(target.Email, target.Name, info.TeamName, info.EventName, info.TeamSlug, info.EventId, ct);
+            try
+            {
+                var emailRecipients = await _preferences.GetEnabledRecipientsAsync(
+                    [targetUserId], NotificationCategory.InvitesAndRoster, NotificationChannel.Email, ct);
+
+                if (emailRecipients.Contains(targetUserId))
+                {
+                    await _email.SendPartyRequestEmailAsync(
+                        target.Email, target.Name, info.TeamName, info.EventName, info.TeamSlug, info.EventId,
+                        SupportedLanguages.ResolveOrDefault(target.PreferredLanguage), ct);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send the party-request nudge email for party {PartyId}.", partyId);
+            }
         }
 
         return PartyResult.Ok();

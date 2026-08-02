@@ -303,8 +303,15 @@ confirm in both cases that pages render normally and nothing user-visible change
 - **FR-014**: Recordings MUST be stored within the EU and MUST NOT be transmitted to any
   third-party service (inherits 033 FR-009).
 - **FR-015**: A member MUST be able to have recordings of their own sessions deleted on
-  request, through the same manual route the privacy policy already documents for other
-  data.
+  request, by writing to the operator.
+- **FR-015b**: **Deleting an account does NOT delete recordings of that member's sessions**,
+  and the policy MUST NOT let a reader believe otherwise. Feature 037 shipped self-service
+  account deletion that erases immediately, but recordings live in the analytics store keyed
+  by a rotating session identifier with no link to an account — so nothing connects them to
+  the person who just deleted themselves, and they persist until the 30-day expiry
+  (FR-012). This is a direct consequence of FR-008: the very property that keeps recordings
+  from identifying an account is what makes them unreachable by an erasure request. The
+  30-day clock is therefore the real guarantee, not the deletion button.
 - **FR-015a**: A request MUST also be answerable when the member's data appears in
   *someone else's* recording — the FR-006a case, where a message they wrote was on screen
   while another member was recorded. The policy MUST NOT promise a deletion that the
@@ -575,7 +582,9 @@ confirm in both cases that pages render normally and nothing user-visible change
   problem on request. That is a different purpose with a different legal basis and would
   need its own feature.
 - **Heatmaps, funnels, or other aggregate analyses** built on recording data.
-- **Self-service export or deletion of a member's own data.** Still does not exist
-  (recorded in 036); FR-015 uses the existing manual route.
+- **Making recordings reachable by account deletion.** Feature 037 shipped self-service
+  account deletion, but it cannot reach recordings and this feature does not change that —
+  see FR-015b for why, and what the policy must therefore not imply. Bridging the two would
+  mean linking recordings to accounts, which is precisely what FR-008 forbids.
 - **Changing the objection mechanism.** Do Not Track / Global Privacy Control is what 033
   built and what 036 published; this feature re-verifies it rather than replacing it.

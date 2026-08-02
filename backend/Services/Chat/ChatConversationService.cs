@@ -18,18 +18,28 @@ public sealed class ChatConversationService : IChatConversationService
     private readonly ChatGuard _guard;
     private readonly IChatRealtime _realtime;
     private readonly IChatMessageService _messages;
+    private readonly Localization.IRecipientCultureResolver _culture;
 
     public ChatConversationService(
         AppDbContext db,
         ChatGuard guard,
         IChatRealtime realtime,
-        IChatMessageService messages)
+        IChatMessageService messages,
+        Localization.IRecipientCultureResolver culture)
     {
         _db = db;
         _guard = guard;
         _realtime = realtime;
         _messages = messages;
+        _culture = culture;
     }
+
+    /// <summary>
+    /// The neutral stand-in for a member whose name cannot be resolved — banned (013) or erased
+    /// (037). Resolved per request so a German reader sees German; the value itself never varies
+    /// by <em>which</em> member is missing, which is what keeps it non-identifying (FR-026).
+    /// </summary>
+    private string Placeholder => MemberPlaceholder.For(_culture.ResolveFromRequest());
 
     // --- Starting ---------------------------------------------------------------
 
@@ -47,10 +57,16 @@ public sealed class ChatConversationService : IChatConversationService
             return ChatResult<ConversationSummaryDto>.Fail(ChatOutcome.Invalid, "Pick someone to chat with.");
         }
 
-        // Never trust the client's user ids: they must be real, non-banned accounts. Without this a
+        // Never trust the client's user ids: they must be real, reachable accounts. Without this a
         // caller could seed a conversation with arbitrary GUIDs.
+        //
+        // Stated as a POSITIVE test, not "!= Banned" (feature 037). This queries Users directly, so
+        // no query filter backstops it: an exclusion list silently admits every AccountStatus value
+        // added later, and Deleted was exactly that — an erased account would have read as
+        // contactable. Suspended stays reachable by design (013: sign-in is refused, nothing else).
         var known = await _db.Users.AsNoTracking()
-            .Where(u => others.Contains(u.Id) && u.Status != AccountStatus.Banned)
+            .Where(u => others.Contains(u.Id)
+                && (u.Status == AccountStatus.Active || u.Status == AccountStatus.Suspended))
             .Select(u => u.Id)
             .ToListAsync(ct);
 
@@ -156,9 +172,11 @@ public sealed class ChatConversationService : IChatConversationService
             return ChatResult<DirectMessageSentDto>.Fail(ChatOutcome.Invalid, "Pick someone to chat with.");
         }
 
-        // Never trust the client's target id: it must be a real, non-banned account (mirrors StartAsync).
+        // Never trust the client's target id: it must be a real, reachable account (mirrors StartAsync).
+        // Positive test rather than "!= Banned" — see the note in StartAsync (feature 037).
         var known = await _db.Users.AsNoTracking()
-            .AnyAsync(u => u.Id == targetUserId && u.Status != AccountStatus.Banned, ct);
+            .AnyAsync(u => u.Id == targetUserId
+                && (u.Status == AccountStatus.Active || u.Status == AccountStatus.Suspended), ct);
         if (!known)
         {
             return ChatResult<DirectMessageSentDto>.Fail(ChatOutcome.Invalid, "That player is unavailable.");
@@ -454,11 +472,12 @@ public sealed class ChatConversationService : IChatConversationService
                 : r.Last;
 
             var isRequester = r.RequesterUserId == callerId;
+            var placeholder = Placeholder;
 
             items.Add(new ConversationSummaryDto(
                 r.Id,
                 r.Kind,
-                DisplayName(r.Kind, r.Name, r.TeamName, r.Other?.DisplayName, r.EventName, r.RequesterName, isRequester),
+                DisplayName(r.Kind, r.Name, r.TeamName, r.Other?.DisplayName, r.EventName, r.RequesterName, isRequester, placeholder),
                 BuildAvatar(r.Kind, r.TeamId, r.Other?.UserId, r.RequesterUserId, isRequester),
                 last is null
                     ? null
@@ -467,7 +486,7 @@ public sealed class ChatConversationService : IChatConversationService
                         // content the sender withdrew (spec FR-050c).
                         last.IsDeleted ? string.Empty : last.Body,
                         last.CreatedDate,
-                        last.SenderId == callerId ? null : last.SenderName ?? PlaceholderName,
+                        last.SenderId == callerId ? null : last.SenderName ?? placeholder,
                         last.SenderId == callerId,
                         last.Kind == ChatMessageKind.System),
                 unread,
@@ -636,11 +655,12 @@ public sealed class ChatConversationService : IChatConversationService
 
         var memberCount = (await _guard.ResolveParticipantUserIdsAsync(conversationId, ct)).Count;
         var isRequester = row.RequesterUserId == callerId;
+        var placeholder = Placeholder;
 
         return ChatResult<ConversationDetailDto>.Ok(new ConversationDetailDto(
             conversationId,
             row.Kind,
-            DisplayName(row.Kind, row.Name, row.TeamName, row.Other?.DisplayName, row.EventName, row.RequesterName, isRequester),
+            DisplayName(row.Kind, row.Name, row.TeamName, row.Other?.DisplayName, row.EventName, row.RequesterName, isRequester, placeholder),
             BuildAvatar(row.Kind, row.TeamId, row.Other?.UserId, row.RequesterUserId, isRequester),
             row.State,
             row.Me?.IsMuted ?? false,
@@ -693,9 +713,10 @@ public sealed class ChatConversationService : IChatConversationService
             var profile = profiles.FirstOrDefault(p => p.UserId == id);
             return new MemberDto(
                 id,
-                // A banned account's profile is filtered out globally (feature 013), so this is null
-                // rather than missing — render the placeholder instead of dropping the member.
-                profile?.DisplayName ?? PlaceholderName,
+                // A banned account's profile is filtered out globally (feature 013) and an erased
+                // one is deleted outright (feature 037), so this is null rather than missing —
+                // render the placeholder instead of dropping the member.
+                profile?.DisplayName ?? Placeholder,
                 profile?.Handle,
                 null,
                 IsYou: id == callerId,
@@ -777,7 +798,7 @@ public sealed class ChatConversationService : IChatConversationService
         var name = await _db.PlayerProfiles.AsNoTracking()
             .Where(p => p.UserId == callerId)
             .Select(p => p.DisplayName)
-            .FirstOrDefaultAsync(ct) ?? PlaceholderName;
+            .FirstOrDefaultAsync(ct) ?? Placeholder;
 
         // Nothing is persisted: the signal carries its own expiry and the client also expires it on a
         // timer, so a typist who closes their tab mid-word never leaves a stuck indicator (FR-020).
@@ -818,8 +839,10 @@ public sealed class ChatConversationService : IChatConversationService
             return ChatResult.Ok();
         }
 
+        // Positive test rather than "!= Banned" — see the note in StartAsync (feature 037).
         var known = await _db.Users.AsNoTracking()
-            .Where(u => wanted.Contains(u.Id) && u.Status != AccountStatus.Banned)
+            .Where(u => wanted.Contains(u.Id)
+                && (u.Status == AccountStatus.Active || u.Status == AccountStatus.Suspended))
             .Select(u => u.Id)
             .ToListAsync(ct);
 
@@ -1150,9 +1173,6 @@ public sealed class ChatConversationService : IChatConversationService
 
     // --- Projection helpers -----------------------------------------------------
 
-    /// <summary>Stands in for a player whose profile is gone or hidden (deleted/banned — feature 013).</summary>
-    internal const string PlaceholderName = "A former player";
-
     private async Task<ChatResult<ConversationSummaryDto>> SummariseAsync(Guid callerId, Guid conversationId, CancellationToken ct)
     {
         var page = await GetInboxAsync(callerId, new PaginationRequest { Skip = 0, Take = 100 }, ct);
@@ -1173,6 +1193,11 @@ public sealed class ChatConversationService : IChatConversationService
     /// the team/event it concerns — e.g. "Ada K. · Rheinfeuer" — because an admin of several teams/events
     /// needs the context to tell inquiries apart. A frozen <paramref name="stored"/> name (set at
     /// archival, when the link is severed) wins for every derived kind.
+    /// <para>
+    /// The final <c>placeholder</c> argument is the caller's localized
+    /// <see cref="MemberPlaceholder"/> (feature 037). It is passed in rather than read from a
+    /// constant so the value can vary by request culture while this helper stays static and pure.
+    /// </para>
     /// </remarks>
     private static string DisplayName(
         ConversationKind kind,
@@ -1181,15 +1206,16 @@ public sealed class ChatConversationService : IChatConversationService
         string? otherName,
         string? eventName,
         string? requesterName,
-        bool isRequester) =>
+        bool isRequester,
+        string placeholder) =>
         kind switch
         {
             ConversationKind.Group => stored ?? "Group",
-            ConversationKind.Direct => otherName ?? PlaceholderName,
+            ConversationKind.Direct => otherName ?? placeholder,
             ConversationKind.Team => stored ?? teamName ?? "Team chat",
             ConversationKind.Party => stored ?? "Party chat",
-            ConversationKind.TeamInquiry => stored ?? (isRequester ? teamName : InquiryAdminLabel(requesterName, teamName)) ?? PlaceholderName,
-            ConversationKind.EventInquiry => stored ?? (isRequester ? eventName : InquiryAdminLabel(requesterName, eventName)) ?? PlaceholderName,
+            ConversationKind.TeamInquiry => stored ?? (isRequester ? teamName : InquiryAdminLabel(requesterName, teamName, placeholder)) ?? placeholder,
+            ConversationKind.EventInquiry => stored ?? (isRequester ? eventName : InquiryAdminLabel(requesterName, eventName, placeholder)) ?? placeholder,
             _ => stored ?? "Chat",
         };
 
@@ -1198,13 +1224,13 @@ public sealed class ChatConversationService : IChatConversationService
     /// so an admin who manages several can tell them apart (feature 027). Degrades gracefully when
     /// either part is missing.
     /// </summary>
-    private static string InquiryAdminLabel(string? requesterName, string? context) =>
+    private static string InquiryAdminLabel(string? requesterName, string? context, string placeholder) =>
         (requesterName, context) switch
         {
             ({ } r, { } c) => $"{r} · {c}",
             ({ } r, null) => r,
             (null, { } c) => c,
-            _ => PlaceholderName,
+            _ => placeholder,
         };
 
     private static ConversationAvatarDto BuildAvatar(

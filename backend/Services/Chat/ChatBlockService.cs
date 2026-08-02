@@ -18,7 +18,13 @@ public sealed class ChatBlockService : IChatBlockService
 {
     private readonly AppDbContext _db;
 
-    public ChatBlockService(AppDbContext db) => _db = db;
+    private readonly Localization.IRecipientCultureResolver _culture;
+
+    public ChatBlockService(AppDbContext db, Localization.IRecipientCultureResolver culture)
+    {
+        _db = db;
+        _culture = culture;
+    }
 
     public async Task<PagedResult<BlockedUserDto>> ListAsync(
         Guid callerId,
@@ -28,6 +34,7 @@ public sealed class ChatBlockService : IChatBlockService
         var query = _db.UserBlocks.AsNoTracking().Where(b => b.BlockerUserId == callerId);
 
         var total = await query.CountAsync(ct);
+        var placeholder = Common.MemberPlaceholder.For(_culture.ResolveFromRequest());
 
         var items = await query
             .OrderByDescending(b => b.Id)
@@ -37,7 +44,7 @@ public sealed class ChatBlockService : IChatBlockService
                 b.BlockedUserId,
                 // A banned account's profile is filtered out globally (013) — show the placeholder
                 // rather than dropping the row, or the blocker could not unblock them.
-                b.Blocked.Profile!.DisplayName ?? ChatConversationService.PlaceholderName,
+                b.Blocked.Profile!.DisplayName ?? placeholder,
                 b.Blocked.Profile!.Handle,
                 b.CreatedDate))
             .ToListAsync(ct);
