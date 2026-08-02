@@ -85,8 +85,9 @@
       "retention": {
         "heading": "Wie lange wir Daten aufbewahren",
         "body": [
-          "In der Regel bleibt das, was wir speichern, so lange, wie du ein Konto hast. Bitte uns, es zu löschen, und wir tun das.",
+          "In der Regel bleibt das, was wir speichern, so lange, wie du ein Konto hast. Lösch dein Konto, und es ist weg.",
           "Manches überdauert das, weil es muss. Eine Nachricht, die du geschrieben hast, ist Teil der Unterhaltung einer anderen Person. Was das Gesetz uns aufzubewahren vorschreibt, bewahren wir so lange auf, wie das Gesetz es sagt.",
+          "Wenn ein Admin jemanden gesperrt, verbannt oder wieder freigeschaltet hat, bewahren wir eine Aufzeichnung dieser Aktion so lange auf, wie wir diesen Ort überhaupt moderieren. Dabei geht es weniger um die betroffene Person — nach der Löschung eines Kontos verweist diese Aufzeichnung auf niemanden mehr — als darum, dass wir für das Handeln unserer eigenen Admins einstehen können.",
           "Die Messzahlen sind durch das begrenzt, was sie sind, nicht durch eine Frist: Es steckt keine Kennung für dich darin, also gibt es darin nichts, was für dich zu löschen wäre."
         ]
       },
@@ -94,7 +95,9 @@
         "heading": "Deine Rechte",
         "body": [
           "Du kannst Auskunft über die zu dir gespeicherten Daten verlangen (Art. 15 DSGVO), ihre Berichtigung (Art. 16), ihre Löschung (Art. 17), die Einschränkung der Verarbeitung (Art. 18), die Herausgabe in einer Form, die du mitnehmen kannst (Art. 20), und Widerspruch gegen alles, was wir auf Grundlage berechtigten Interesses tun (Art. 21).",
-          "Schreib an hello@juggerhub.com, dann regeln wir das.",
+          "Die Löschung deines Kontos kannst du selbst vornehmen, in deinen Kontoeinstellungen. Sie erfolgt sofort — es gibt keine Wartefrist und keine Möglichkeit, sie rückgängig zu machen.",
+          "Zwei Dinge solltest du vorher wissen. Nachrichten, die du geschrieben hast, und deine News-Beiträge bleiben dort, wo sie sind, und erscheinen statt mit deinem Namen als „Ein ehemaliger Spieler“: Diese Unterhaltungen gehören allen Beteiligten und nicht nur dir. Und deine E-Mail-Adresse wird wieder frei, du kannst dich also später erneut damit registrieren — es wäre dann ein neues Konto, in das nichts übernommen wird.",
+          "Für alles Weitere schreib an hello@juggerhub.com, dann regeln wir das.",
           "Die Ausnahme ist der Widerspruch gegen die Messung: Der dauert Sekunden und geht von allein. Das steht gleich hier drunter.",
           "Du kannst dich außerdem bei einer Datenschutzbehörde beschweren. Für uns zuständig ist Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburg. Die Behörde an deinem Wohnort geht genauso."
         ]

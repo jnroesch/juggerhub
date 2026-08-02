@@ -25,6 +25,13 @@ public interface IEmailTemplateService
     /// <summary>Generate a welcome email (localized by <paramref name="culture"/>).</summary>
     Task<string> GenerateWelcomeEmailAsync(string recipientName, string recipientEmail, string companyName, DateTime createdDate, string culture = Common.SupportedLanguages.Default);
 
+    /// <summary>
+    /// Generate the account-erased confirmation (feature 037). Sent while the address still exists,
+    /// because erasure releases it. Carries no link back into the product — there is no account to
+    /// return to — and no restore offer, because erasure is terminal (spec FR-029).
+    /// </summary>
+    Task<string> GenerateAccountDeletedEmailAsync(string recipientName, string recipientEmail, DateTime deletedAt, string culture = Common.SupportedLanguages.Default);
+
     /// <summary>Generate a team role-change email (feature 011). <paramref name="rolePhrase"/> is a
     /// natural phrase like "an admin"; <paramref name="roleLabel"/> is the badge, e.g. "Admin".</summary>
     Task<string> GenerateTeamRoleChangedEmailAsync(string teamName, string teamUrl, string? actorName, string roleLabel, string rolePhrase);

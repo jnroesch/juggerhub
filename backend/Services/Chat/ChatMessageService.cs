@@ -21,18 +21,24 @@ public sealed class ChatMessageService : IChatMessageService
     private readonly IChatRealtime _realtime;
     private readonly ChatLinkResolver _links;
     private readonly IReadOnlyCollection<string> _allowedHosts;
+    private readonly Localization.IRecipientCultureResolver _culture;
+
+    /// <summary>Localized neutral stand-in for a sender whose profile is gone or hidden.</summary>
+    private string Placeholder => Common.MemberPlaceholder.For(_culture.ResolveFromRequest());
 
     public ChatMessageService(
         AppDbContext db,
         ChatGuard guard,
         IChatRealtime realtime,
         ChatLinkResolver links,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        Localization.IRecipientCultureResolver culture)
     {
         _db = db;
         _guard = guard;
         _realtime = realtime;
         _links = links;
+        _culture = culture;
 
         // Which hosts count as "us" for unfurl. Derived from the frontend base URL the email templates
         // already use, so there is one source of truth for "where does JuggerHub live".
@@ -297,7 +303,7 @@ public sealed class ChatMessageService : IChatMessageService
         var cards = await ResolveCardsAsync(rows, callerId, ct);
 
         var items = rows
-            .Select(r => ToDto(r, callerId, otherLastRead, subjectNames, cards))
+            .Select(r => ToDto(r, callerId, otherLastRead, subjectNames, cards, Placeholder))
             .ToList();
 
         return ChatResult<MessagePageDto>.Ok(new MessagePageDto(items, nextBefore));
@@ -347,7 +353,7 @@ public sealed class ChatMessageService : IChatMessageService
 
         var subjectNames = await ResolveSubjectNamesAsync(new[] { row }, ct);
         var cards = await ResolveCardsAsync(new[] { row }, callerId, ct);
-        return ToDto(row, callerId, null, subjectNames, cards);
+        return ToDto(row, callerId, null, subjectNames, cards, Placeholder);
     }
 
     private async Task<Dictionary<Guid, string>> ResolveSubjectNamesAsync(
@@ -375,7 +381,8 @@ public sealed class ChatMessageService : IChatMessageService
         Guid callerId,
         Guid? otherLastRead,
         IReadOnlyDictionary<Guid, string> subjectNames,
-        IReadOnlyDictionary<Guid, LinkCardDto> cards)
+        IReadOnlyDictionary<Guid, LinkCardDto> cards,
+        string placeholder)
     {
         var isOwn = r.SenderId == callerId;
 
@@ -392,12 +399,16 @@ public sealed class ChatMessageService : IChatMessageService
             r.Kind,
             r.SenderId,
             // A soft-deleted or banned account's profile is hidden by a global query filter
-            // (feature 013), so DisplayName projects to null here rather than the row being absent.
-            // Their past messages must still read coherently, so they get a neutral placeholder
-            // instead of a blank or a crash — history is preserved, not rewritten.
+            // (feature 013) and an ERASED account's profile row is deleted outright (feature 037),
+            // so DisplayName projects to null here rather than the row being absent. Their past
+            // messages must still read coherently, so they get a neutral placeholder instead of a
+            // blank or a crash — history is preserved, not rewritten.
+            //
+            // Note this keys on the NULL, never on account status. That is why erasure needed no
+            // change here, and why adding an AccountStatus value cannot break it.
             isOwn || r.Kind == ChatMessageKind.System
                 ? null
-                : r.SenderDisplayName ?? ChatConversationService.PlaceholderName,
+                : r.SenderDisplayName ?? placeholder,
             isOwn,
             r.IsDeleted ? string.Empty : r.Body,
             r.CreatedDate,
@@ -405,7 +416,7 @@ public sealed class ChatMessageService : IChatMessageService
             readState,
             r.SystemEvent,
             r.SystemSubjectUserId is { } sid
-                ? subjectNames.GetValueOrDefault(sid, ChatConversationService.PlaceholderName)
+                ? subjectNames.GetValueOrDefault(sid, placeholder)
                 : null,
             // Null ⇒ the client renders the body's link as plain text. That covers three cases the
             // viewer cannot tell apart, by design: no link, a target they may not see (FR-040), and a

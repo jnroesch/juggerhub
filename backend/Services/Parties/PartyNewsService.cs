@@ -19,13 +19,20 @@ public sealed class PartyNewsService : IPartyNewsService
     private readonly PartyGuard _guard;
     private readonly INotificationService _notifications;
     private readonly PartyEmailService _email;
+    private readonly Localization.IRecipientCultureResolver _culture;
 
-    public PartyNewsService(AppDbContext db, PartyGuard guard, INotificationService notifications, PartyEmailService email)
+    public PartyNewsService(
+        AppDbContext db,
+        PartyGuard guard,
+        INotificationService notifications,
+        PartyEmailService email,
+        Localization.IRecipientCultureResolver culture)
     {
         _db = db;
         _guard = guard;
         _notifications = notifications;
         _email = email;
+        _culture = culture;
     }
 
     public async Task<PagedResult<PartyNewsDto>?> ListAsync(Guid partyId, Guid actorUserId, PaginationRequest pagination, CancellationToken ct = default)
@@ -38,13 +45,17 @@ public sealed class PartyNewsService : IPartyNewsService
 
         var query = _db.PartyNewsPosts.AsNoTracking().Where(n => n.PartyId == partyId);
         var total = await query.CountAsync(ct);
+        var placeholder = Common.MemberPlaceholder.For(_culture.ResolveFromRequest());
+
         var items = await query
             .OrderByDescending(n => n.CreatedDate)
             .Skip(pagination.NormalizedSkip)
             .Take(pagination.NormalizedTake)
             .Select(n => new PartyNewsDto(
                 n.Id,
-                n.Author.Profile!.DisplayName,
+                // Absent once the author is banned (filtered, 013) or erased (deleted, 037), so this
+                // projects to null. The post stays; the author collapses to the placeholder.
+                n.Author.Profile != null ? n.Author.Profile.DisplayName : placeholder,
                 _db.PartyMembers
                     .Where(m => m.PartyId == partyId && m.UserId == n.AuthorUserId)
                     .Select(m => m.Role)
