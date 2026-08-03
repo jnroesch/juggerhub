@@ -1,4 +1,10 @@
-<div class="flex min-h-screen flex-col bg-background">
+<!--
+  `min-h-dvh`, not `min-h-screen`: `100vh` on mobile is the URL-bar-retracted height, so with the
+  bar on screen the document was always taller than the viewport and every page carried a phantom
+  scroll of a few dozen px. The column is top-aligned, so the dynamic unit only ever moves the
+  bottom edge.
+-->
+<div class="flex min-h-dvh flex-col bg-background">
   @if (anonymous()) {
     <!-- Public bar: shown to signed-out visitors (only the /u/:handle profile is reachable). -->
     <header class="sticky top-0 z-30 flex h-14 items-center justify-between gap-sm border-b border-border bg-surface px-md" data-testid="public-top-bar">
