@@ -10,7 +10,7 @@ namespace JuggerHub.Services.Geocoding;
 /// Feature 030 research R8: the search + resolve source is the bundled, seeded <c>CityReference</c>
 /// table (GeoNames cities500) — a local SQL query, not an external geocoder. Only <em>selected</em>
 /// cities are copied into <see cref="City"/> (with the distance-cache backfill), which is what keeps
-/// <see cref="CityDistance"/> small even though the reference table holds ~235k rows.
+/// <see cref="CityDistance"/> small even though the reference table holds ~225k rows.
 /// </remarks>
 public sealed class CityService : ICityService
 {

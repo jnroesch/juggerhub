@@ -101,3 +101,9 @@ Thumbs.db
 graphify-out/
 # CI-only Playwright artifact dir (bind-mounted out of the e2e container)
 playwright-artifacts/
+# Raw GeoNames downloads used only to regenerate the city seed. Only the gzipped RESULT
+# (cities500.seed.tsv.gz) is committed; cities500.txt alone is ~40 MB.
+backend/Data/Seed/cities500.txt
+backend/Data/Seed/cities500.zip
+backend/Data/Seed/countryInfo.txt
+backend/Data/Seed/admin1CodesASCII.txt

@@ -9,7 +9,7 @@ import {
   MyMarket,
   RecruitingPartyCard,
 } from '../../../core/models/market.models';
-import { POMPFEN_CATALOG, Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
+import { POMPFEN_CATALOG, Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import { problemDetail } from '../../../core/utils/problem';
 
 /** An in-progress apply / invite / post action driving the modal. */
@@ -40,7 +40,7 @@ export class MarketBoardComponent {
   readonly authenticated = input(false);
 
   protected readonly catalog = POMPFEN_CATALOG;
-  protected readonly label = pompfeLabel;
+  protected readonly labelKey = pompfeLabelKey;
 
   protected readonly position = signal<Pompfe | null>(null);
 

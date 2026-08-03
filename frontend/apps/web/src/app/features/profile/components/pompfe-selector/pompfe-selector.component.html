@@ -15,7 +15,7 @@
       [class.text-subtle]="!isSelected(entry.value)"
       [class.bg-surface-card]="!isSelected(entry.value)"
     >
-      {{ entry.de }}<span class="opacity-60"> / {{ entry.en }}</span>
+      {{ entry.labelKey | transloco }}
       @if (entry.isPosition) { <span class="ml-xs text-[10px] uppercase opacity-70">{{ 'profile.pompfeSelector.pos' | transloco }}</span> }
     </button>
   }

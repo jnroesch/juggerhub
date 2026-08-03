@@ -24,7 +24,7 @@
           <p class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.board.invitesToAnswer' | transloco }}</p>
           @for (inv of m.invitesToAnswer; track inv.id) {
             <div class="mt-xs flex items-center justify-between gap-sm">
-              <p class="text-body-sm text-body"><span class="font-semibold">{{ inv.teamName }}</span> {{ 'marketplace.board.wantsYouIn' | transloco }} @if (inv.positions.length) { <span class="text-subtle">{{ 'marketplace.board.at' | transloco }} {{ label(inv.positions[0])?.en }}</span> }</p>
+              <p class="text-body-sm text-body"><span class="font-semibold">{{ inv.teamName }}</span> {{ 'marketplace.board.wantsYouIn' | transloco }} @if (inv.positions.length) { <span class="text-subtle">{{ 'marketplace.board.at' | transloco }} {{ labelKey(inv.positions[0]) | transloco }}</span> }</p>
               <div class="flex gap-xs">
                 <button type="button" (click)="accept(inv.id)" jhButton size="sm">{{ 'common.accept' | transloco }}</button>
                 <button type="button" (click)="decline(inv.id)" jhButton variant="secondary" size="sm">{{ 'common.decline' | transloco }}</button>
@@ -39,7 +39,7 @@
               <span class="min-w-0">
                 <span class="text-body">{{ app.teamName }}</span>
                 @if (app.positions.length) {
-                  <span class="text-subtle"> · @for (pos of app.positions; track pos; let last = $last) {{{ label(pos)?.en }}{{ last ? '' : ', ' }}}</span>
+                  <span class="text-subtle"> · @for (pos of app.positions; track pos; let last = $last) {{{ labelKey(pos) | transloco }}{{ last ? '' : ', ' }}}</span>
                 }
               </span>
               <span class="shrink-0 rounded-full px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-wide"
@@ -55,7 +55,7 @@
   <div class="mt-md flex flex-wrap gap-xs" [attr.aria-label]="'marketplace.board.filterByPosition' | transloco">
     <button type="button" (click)="setPosition(null)" class="rounded-full border px-sm py-0.5 text-body-sm" [class]="position() === null ? 'border-brand bg-surface-accent-soft text-brand' : 'border-border-strong text-subtle hover:bg-surface-sunken'">{{ 'marketplace.all' | transloco }}</button>
     @for (p of catalog; track p.value) {
-      <button type="button" (click)="setPosition(p.value)" class="rounded-full border px-sm py-0.5 text-body-sm" [class]="position() === p.value ? 'border-brand bg-surface-accent-soft text-brand' : 'border-border-strong text-subtle hover:bg-surface-sunken'">{{ p.en }}</button>
+      <button type="button" (click)="setPosition(p.value)" class="rounded-full border px-sm py-0.5 text-body-sm" [class]="position() === p.value ? 'border-brand bg-surface-accent-soft text-brand' : 'border-border-strong text-subtle hover:bg-surface-sunken'">{{ p.labelKey | transloco }}</button>
     }
   </div>
 
@@ -100,7 +100,7 @@
                       </div>
                     </div>
                     @if (party.positionsNeeded.length) {
-                      <p class="mt-1 flex flex-wrap items-center gap-1 text-body-sm text-subtle"><span>{{ 'marketplace.board.needs' | transloco }}</span>@for (pos of party.positionsNeeded; track pos) { <span class="rounded-full bg-surface-secondary-soft px-sm py-0.5 text-eyebrow font-semibold text-teal-7">{{ label(pos)?.en }}</span> }</p>
+                      <p class="mt-1 flex flex-wrap items-center gap-1 text-body-sm text-subtle"><span>{{ 'marketplace.board.needs' | transloco }}</span>@for (pos of party.positionsNeeded; track pos) { <span class="rounded-full bg-surface-secondary-soft px-sm py-0.5 text-eyebrow font-semibold text-teal-7">{{ labelKey(pos) | transloco }}</span> }</p>
                     }
                     @if (party.blurb) { <p class="mt-xs text-body-sm text-body">“{{ party.blurb }}”</p> }
                   </div>
@@ -143,7 +143,7 @@
                       }
                     </div>
                     @if (fa.positions.length) {
-                      <p class="mt-1 flex flex-wrap gap-1 text-body-sm text-subtle">@for (pos of fa.positions; track pos) { <span class="rounded-full bg-surface-secondary-soft px-sm py-0.5 text-eyebrow font-semibold text-teal-7">{{ label(pos)?.en }}</span> }</p>
+                      <p class="mt-1 flex flex-wrap gap-1 text-body-sm text-subtle">@for (pos of fa.positions; track pos) { <span class="rounded-full bg-surface-secondary-soft px-sm py-0.5 text-eyebrow font-semibold text-teal-7">{{ labelKey(pos) | transloco }}</span> }</p>
                     }
                     <p class="mt-xs text-body-sm text-body">“{{ fa.pitch }}”</p>
                   </div>
@@ -179,7 +179,7 @@
         <p class="mt-md text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ (action()?.kind === 'post' ? 'marketplace.board.positionsYouPlay' : 'marketplace.board.whatYoudPlay') | transloco }}</p>
         <div class="mt-xs flex flex-wrap gap-xs">
           @for (p of catalog; track p.value) {
-            <button type="button" (click)="toggleSelected(p.value)" class="rounded-full border px-sm py-0.5 text-body-sm" [class]="selected().includes(p.value) ? 'border-brand bg-surface-accent-soft text-brand' : 'border-border-strong text-subtle hover:bg-surface-sunken'">{{ p.en }}</button>
+            <button type="button" (click)="toggleSelected(p.value)" class="rounded-full border px-sm py-0.5 text-body-sm" [class]="selected().includes(p.value) ? 'border-brand bg-surface-accent-soft text-brand' : 'border-border-strong text-subtle hover:bg-surface-sunken'">{{ p.labelKey | transloco }}</button>
           }
         </div>
 

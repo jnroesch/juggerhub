@@ -50,7 +50,7 @@ three placements:
 | State | Placement | Clicks |
 |---|---|---|
 | Signed out, in the shell (`/u/:handle`, landing) | `jh-app-footer` at the end of the shell's flow column | 1 |
-| Auth / onboarding / invite-accept screens (outside the shell) | `jh-legal-links` inline at the bottom of the card column | 1 |
+| Auth / invite-accept screens (outside the shell) | `jh-legal-links` inline at the bottom of the card column | 1 |
 | **Signed in**, desktop and mobile | **the account page only** — the shell footer does not render for members | 3 (avatar menu → Account → link) |
 
 > **Changed 2026-08-01.** The footer originally rendered in both states. It now sits inside
@@ -58,6 +58,12 @@ three placements:
 > one-click access from anywhere; a member has already made that decision, and a document read
 > once does not earn space on every screen. The `pb-[76px]` reasoning in §2.2 still applies,
 > because the footer must clear the mobile bottom bar on the anonymous in-shell route.
+
+> **Changed 2026-08-03.** `/onboarding` no longer carries the inline cluster (owner decision).
+> Onboarding runs after registration, where 041 shows and records acceptance of the Terms of Use
+> and where the privacy and imprint links sit next to the submit button — the reader has already
+> been given them. The eight remaining off-shell placements are the ones reachable *before* or
+> *without* that step: the five auth screens and the three invite-accept screens.
 
 ### 2.1 `jh-legal-links` (shared)
 

@@ -57,7 +57,7 @@
         <div class="mt-sm flex flex-wrap gap-xs">
           @for (pompfe of p.pompfen; track pompfe) {
             <span class="rounded-pill bg-teal-1 px-md py-xs text-body-sm font-medium text-teal-7" [attr.data-testid]="'profile-pompfe-' + pompfe">
-              {{ labelOf(pompfe)?.de }}
+              {{ labelKey(pompfe) | transloco }}
             </span>
           }
         </div>

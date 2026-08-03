@@ -9,9 +9,9 @@ export type LegalLinksVariant = 'footer' | 'inline';
  * The privacy / imprint link cluster (feature 036).
  *
  * One component, three placements — the app footer inside the shell (covering signed-out and
- * signed-in, desktop and mobile), and inline at the bottom of the nine screens that render
- * outside the shell. That is what makes FR-002's "≤2 clicks from any screen" hold everywhere
- * rather than only where someone remembered to add a link. See
+ * signed-in, desktop and mobile), and inline at the bottom of the eight off-shell screens a
+ * visitor can reach before or without accepting the documents. Onboarding is deliberately not
+ * one of them: it runs after registration, where the terms were shown and accepted. See
  * specs/036-privacy-policy-imprint/contracts/routes.md §2.
  *
  * Presentation only: no injected service, no state, no API call. The labels come from the MAIN

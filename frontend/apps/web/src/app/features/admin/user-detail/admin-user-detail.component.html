@@ -70,7 +70,7 @@
               <span class="text-body-sm text-muted">—</span>
             }
             @for (pompfe of player.pompfen; track pompfe) {
-              <span class="rounded-pill bg-surface-sunken px-sm py-0.5 text-caption font-medium text-body">{{ pompfe }}</span>
+              <span class="rounded-pill bg-surface-sunken px-sm py-0.5 text-caption font-medium text-body">{{ 'pompfen.' + pompfe | transloco }}</span>
             }
           </dd>
         </div>
