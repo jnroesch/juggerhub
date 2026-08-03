@@ -15,5 +15,19 @@
       "Read(~/.aws/**)",
       "Read(~/AppData/Roaming/Microsoft/UserSecrets/**)"
     ]
+  },
+  "hooks": {
+    "WorktreeCreate": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "shell": "bash",
+            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/worktree-create-with-env.js\"",
+            "statusMessage": "Creating worktree and seeding .env"
+          }
+        ]
+      }
+    ]
   }
 }
