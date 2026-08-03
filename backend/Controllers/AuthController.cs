@@ -45,6 +45,17 @@ public sealed class AuthController : ControllerBase
         var result = await _auth.RegisterAsync(request, ct);
         return result.Status switch
         {
+            // Feature 041. Deliberately NOT folded into the neutral response below: a terms
+            // refusal reveals nothing about whether an account exists, and staying silent would
+            // tell the caller to check their email for an account that was never created.
+            RegisterStatus.TermsNotAccepted => Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Terms not accepted", detail: string.Join(" ", result.Errors)),
+            // 409 rather than 400: the request was well-formed, but the caller's copy of the
+            // document is out of date. The fix is to reload, not to correct a field.
+            RegisterStatus.TermsVersionMismatch => Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Terms have changed", detail: string.Join(" ", result.Errors)),
+            RegisterStatus.TermsLanguageUnsupported => Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Unsupported language", detail: string.Join(" ", result.Errors)),
             RegisterStatus.PasswordPolicyViolation => Problem(statusCode: StatusCodes.Status400BadRequest,
                 title: "Password does not meet the policy", detail: string.Join(" ", result.Errors)),
             RegisterStatus.HandleInvalid => Problem(statusCode: StatusCodes.Status400BadRequest,

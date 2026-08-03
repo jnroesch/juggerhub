@@ -37,7 +37,15 @@
           <h1 class="font-display text-h2 font-bold text-ink">{{ document()!.title }}</h1>
 
           <!-- Meta line: caption step, subtle — present, never competing with the content. -->
-          <p class="mt-xs text-caption text-subtle" data-testid="legal-meta">{{ lastUpdatedLine() }}</p>
+          <p class="mt-xs text-caption text-subtle" data-testid="legal-meta">
+            @if (versionLine()) {
+              <!-- Only the terms of use carries a version: it is the one document that binds,
+                   so a reader has to be able to tell which text they agreed to (041 FR-003). -->
+              <span data-testid="legal-version">{{ versionLine() }}</span>
+              <span aria-hidden="true"> · </span>
+            }
+            {{ lastUpdatedLine() }}
+          </p>
           @if (showAuthoritativeNotice()) {
             <p class="mt-xs text-caption text-subtle" data-testid="legal-authoritative-notice">
               {{ meta()!.authoritativeNotice }}
@@ -82,15 +90,17 @@
             </section>
           }
 
-          <!-- FR-016: the two documents always link to each other. -->
-          <p class="mt-2xl border-t border-border-muted pt-md text-body-sm">
-            <a
-              [routerLink]="siblingLink()"
-              data-testid="legal-sibling-link"
-              class="text-link underline underline-offset-2 hover:text-link-hover"
-              >{{ crossLink()?.[siblingLabelKey()] }}</a
-            >
-          </p>
+          <!-- 036 FR-016 / 041 FR-010: every legal document links to every other one. -->
+          <nav class="mt-2xl flex flex-wrap gap-x-md gap-y-xs border-t border-border-muted pt-md text-body-sm">
+            @for (sibling of siblings(); track sibling.link) {
+              <a
+                [routerLink]="sibling.link"
+                data-testid="legal-sibling-link"
+                class="text-link underline underline-offset-2 hover:text-link-hover"
+                >{{ crossLink()?.[sibling.labelKey] }}</a
+              >
+            }
+          </nav>
         </article>
       }
     </jh-page-container>

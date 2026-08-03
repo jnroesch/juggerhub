@@ -676,6 +676,7 @@
   },
   "legal": {
     "footerLabel": "Rechtliches und Seiteninformationen",
+    "terms": "Nutzungsbedingungen",
     "privacy": "Datenschutz",
     "imprint": "Impressum",
     "copyright": "JuggerHub — ein Community-Projekt"
@@ -715,6 +716,12 @@
       "permalinkLabel": "Dein dauerhafter Profil-Link:",
       "permalinkNote": "— dieser kann später nicht geändert werden.",
       "mismatch": "Passwörter stimmen nicht überein.",
+      "termsBefore": "Ich stimme den",
+      "termsLink": "Nutzungsbedingungen",
+      "termsAfter": "zu — einschließlich der Regeln zum Umgang miteinander.",
+      "termsRequired": "Setz das Häkchen, um den Nutzungsbedingungen zuzustimmen.",
+      "termsChanged": "Die Nutzungsbedingungen haben sich geändert, seit diese Seite geladen wurde. Lade die Seite neu und lies die aktuelle Fassung, bevor du dein Konto anlegst.",
+      "termsUnavailable": "Wir konnten die Nutzungsbedingungen nicht laden, deshalb kannst du ihnen noch nicht zustimmen. Prüfe deine Verbindung und lade die Seite neu.",
       "submit": "Konto erstellen",
       "submitting": "Konto wird erstellt…",
       "haveAccount": "Du hast bereits ein Konto?"

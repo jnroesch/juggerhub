@@ -7,8 +7,14 @@ import { AlertComponent, ButtonDirective, LoadingComponent, PageContainerCompone
 import { LanguageSwitcherComponent } from '../settings/language/language-switcher.component';
 import { LegalContentService, type LegalSection } from './legal-content.service';
 
-/** Which of the two documents this page renders. */
-export type LegalDocumentKey = 'privacy' | 'imprint';
+/** Which of the three documents this page renders. */
+export type LegalDocumentKey = 'terms' | 'privacy' | 'imprint';
+
+/** One entry in the cross-link footer: where it goes, and the `crossLink.*` key labelling it. */
+export interface LegalSiblingLink {
+  link: string;
+  labelKey: string;
+}
 
 /** The German text is the binding one; every other language is an informational translation. */
 const AUTHORITATIVE_LANG = 'de';
@@ -50,10 +56,16 @@ export class LegalPageComponent implements OnInit {
   readonly sectionOrder = input.required<readonly string[]>();
   /** Long documents get an anchored table of contents; the imprint does not need one. */
   readonly showToc = input(false);
-  /** Route of the sibling document, so the two always link to each other (FR-016). */
-  readonly siblingLink = input.required<string>();
-  /** Catalog key for the sibling's label. */
-  readonly siblingLabelKey = input.required<string>();
+  /**
+   * The other legal documents, so every one of them is reachable from every other (036 FR-016,
+   * 041 FR-010).
+   *
+   * A list rather than the single `siblingLink`/`siblingLabelKey` pair this component used to
+   * take. That pair encoded "there is exactly one other document", which the terms of use simply
+   * invalidated — and adding a second pair would have encoded "exactly two others" and broken
+   * again on a fourth.
+   */
+  readonly siblings = input.required<readonly LegalSiblingLink[]>();
 
   private readonly service = inject(LegalContentService);
   private readonly locale = inject(TranslocoLocaleService);
@@ -76,13 +88,29 @@ export class LegalPageComponent implements OnInit {
    * "Last updated <date>", with the date formatted for the active locale (031 FR-009) — a
    * German reader sees 31. Juli 2026, not 2026-07-31. Built here rather than with a pipe so the
    * label and its date stay one translated sentence.
+   *
+   * A document's own `lastUpdated` wins over the catalog-level one. Only the terms of use sets
+   * it, because `meta.lastUpdated` is shared across documents and editing the privacy policy
+   * would otherwise appear to revise a contract nobody touched (041 research R4).
    */
   protected readonly lastUpdatedLine = computed(() => {
     const meta = this.meta();
     if (!meta) return '';
 
-    const formatted = this.locale.localizeDate(meta.lastUpdated, this.service.lang(), { dateStyle: 'long' });
+    const date = this.document()?.lastUpdated ?? meta.lastUpdated;
+    const formatted = this.locale.localizeDate(date, this.service.lang(), { dateStyle: 'long' });
     return meta.lastUpdatedLabel.replace('{{date}}', formatted);
+  });
+
+  /**
+   * "Version <id>" for a document that carries one — today only the terms of use. This is the
+   * identifier an acceptance record names, so it is shown rather than kept internal: a member
+   * has to be able to tell which text they agreed to (041 FR-003).
+   */
+  protected readonly versionLine = computed(() => {
+    const version = this.document()?.version;
+    const label = this.meta()?.versionLabel;
+    return version && label ? label.replace('{{version}}', version) : '';
   });
 
   /** Section keys paired with their content, in the declared reading order. */

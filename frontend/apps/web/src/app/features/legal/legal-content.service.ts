@@ -9,11 +9,29 @@ export interface LegalSection {
   body: string[];
 }
 
-/** One legal document — the privacy policy or the imprint. */
+/** One legal document — the terms of use, the privacy policy, or the imprint. */
 export interface LegalDocument {
   title: string;
   intro: string[];
   sections: Record<string, LegalSection>;
+
+  /**
+   * Version identifier of this specific document (feature 041). Present only on the terms of
+   * use, which is the one document that binds and therefore has to say which text you agreed to.
+   * The acceptance record stored at registration names this value.
+   */
+  version?: string;
+
+  /**
+   * This document's own last-updated date, overriding the catalog-level `meta.lastUpdated`.
+   *
+   * Present only on the terms of use, and the reason is not cosmetic: `meta.lastUpdated` is
+   * SHARED by every document in the catalog, so editing the privacy policy moves the date shown
+   * on the others. That is a tolerable wart for two informational documents. On a versioned
+   * contract it is actively misleading — a reader would see the date on their agreement change
+   * because an unrelated privacy paragraph was reworded. See specs/041 research R4.
+   */
+  lastUpdated?: string;
 }
 
 /** The whole `legal` catalog for one language. */
@@ -21,6 +39,8 @@ export interface LegalContent {
   meta: {
     lastUpdated: string;
     lastUpdatedLabel: string;
+    /** "Version {{version}}" — rendered only for a document that carries a `version`. */
+    versionLabel: string;
     authoritativeNotice: string;
     tocLabel: string;
     loadErrorTitle: string;
@@ -28,6 +48,7 @@ export interface LegalContent {
     retry: string;
   };
   crossLink: Record<string, string>;
+  terms: LegalDocument;
   privacy: LegalDocument;
   imprint: LegalDocument;
 }

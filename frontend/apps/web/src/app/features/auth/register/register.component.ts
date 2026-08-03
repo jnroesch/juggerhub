@@ -1,8 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { TranslocoService } from '@jsverse/transloco';
 import { debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
+import { LegalContentService } from '../../legal/legal-content.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { passwordsMatch } from '../../../core/utils/passwords-match.validator';
@@ -28,12 +30,18 @@ type HandleState = 'idle' | 'checking' | 'available' | 'unavailable';
   imports: [LegalLinksComponent, ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent, CardComponent, LanguageSwitcherComponent, TranslocoPipe],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
+  // Feature 041: the acceptance control needs the version of the document it is asking about.
+  // Provided here rather than app-wide so the fetch is tied to this page's lifetime.
+  providers: [LegalContentService],
 })
 export class RegisterComponent {
   private readonly auth = inject(AuthService);
   private readonly profiles = inject(ProfileService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
+  private readonly legal = inject(LegalContentService);
+  private readonly transloco = inject(TranslocoService);
+  private readonly destroyRef = inject(DestroyRef);
 
   /**
    * A pending returnUrl (e.g. an invite opened while signed out) arrives here via the
@@ -59,9 +67,30 @@ export class RegisterComponent {
       handle: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30), Validators.pattern(HANDLE_PATTERN)]],
       password: ['', [Validators.required]],
       confirmPassword: ['', [Validators.required]],
+      // Feature 041 FR-015: starts false and is never set programmatically. A pre-ticked box is
+      // not agreement, and this is the one control on the form where that is a legal point rather
+      // than a usability one.
+      acceptsTerms: [false, [Validators.requiredTrue]],
     },
     { validators: passwordsMatch },
   );
+
+  /**
+   * The version of the Terms of Use this page is actually showing, read from the same catalogue
+   * the `/terms` page renders. Deliberately NOT hard-coded and NOT fetched from the API: the
+   * server refuses any version that is not current, so sending the version we displayed is what
+   * proves the reader saw the current text (specs/041 research R1).
+   */
+  protected readonly termsVersion = computed(() => this.legal.content()?.terms.version ?? null);
+
+  /** True once the document is loaded and a version is known. Until then, agreeing is blocked. */
+  protected readonly termsReady = computed(() => this.termsVersion() !== null);
+
+  /**
+   * The catalogue could not be fetched. Submission stays blocked rather than degrading to a
+   * silent default: nobody may be pushed into agreeing to a document the app could not load.
+   */
+  protected readonly termsUnavailable = this.legal.failed;
 
   protected readonly password = toSignal(this.form.controls.password.valueChanges, { initialValue: '' });
 
@@ -75,6 +104,9 @@ export class RegisterComponent {
   protected readonly handleReason = signal<string | null>(null);
 
   constructor() {
+    // Follows the active language, so the version recorded matches the text that was on screen.
+    this.legal.load().pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+
     const handle = this.form.controls.handle;
     handle.valueChanges
       .pipe(
@@ -100,8 +132,19 @@ export class RegisterComponent {
       });
   }
 
+  /**
+   * `form.valid` already covers the ticked box via `Validators.requiredTrue`; `termsReady` is the
+   * separate condition that the document was actually loaded. Both are usability only — the
+   * server refuses an unaccepted registration regardless of what this button does (FR-018).
+   */
   protected get canSubmit(): boolean {
-    return this.form.valid && this.passwordValid() && this.handleState() === 'available' && !this.submitting();
+    return (
+      this.form.valid &&
+      this.passwordValid() &&
+      this.handleState() === 'available' &&
+      this.termsReady() &&
+      !this.submitting()
+    );
   }
 
   submit(): void {
@@ -109,19 +152,38 @@ export class RegisterComponent {
       return;
     }
 
+    const termsVersion = this.termsVersion();
+    if (!termsVersion) {
+      return;
+    }
+
     this.submitting.set(true);
     this.error.set(null);
     // Confirmation is a client-side UX check; only the fields the API needs are sent.
-    const { email, password, handle } = this.form.getRawValue();
-    this.auth.register({ email, password, handle: handle.trim().toLowerCase() }).subscribe({
-      next: () => {
-        this.submitting.set(false);
-        this.sent.set(true);
-      },
-      error: (err) => {
-        this.submitting.set(false);
-        this.error.set(problemDetail(err));
-      },
-    });
+    const { email, password, handle, acceptsTerms } = this.form.getRawValue();
+    this.auth
+      .register({
+        email,
+        password,
+        handle: handle.trim().toLowerCase(),
+        acceptsTerms,
+        termsVersion,
+        termsLanguage: this.transloco.getActiveLang(),
+      })
+      .subscribe({
+        next: () => {
+          this.submitting.set(false);
+          this.sent.set(true);
+        },
+        error: (err) => {
+          this.submitting.set(false);
+          // A 409 means the document changed under an open tab. Saying "something went wrong"
+          // there is useless — the reader needs to know the text they agreed to is no longer the
+          // current one, and that reloading is the fix.
+          this.error.set(
+            err?.status === 409 ? this.transloco.translate('auth.register.termsChanged') : problemDetail(err),
+          );
+        },
+      });
   }
 }

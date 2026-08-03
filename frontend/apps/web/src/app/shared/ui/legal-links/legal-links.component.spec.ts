@@ -13,7 +13,7 @@ describe('LegalLinksComponent (jh-legal-links)', () => {
     return fixture;
   }
 
-  function link(which: 'privacy' | 'imprint'): HTMLAnchorElement | null {
+  function link(which: 'terms' | 'privacy' | 'imprint'): HTMLAnchorElement | null {
     return fixture.nativeElement.querySelector(`[data-testid="legal-link-${which}"]`);
   }
 
@@ -24,9 +24,10 @@ describe('LegalLinksComponent (jh-legal-links)', () => {
     });
   });
 
-  it('links to both documents', () => {
+  it('links to all three documents', () => {
     create();
 
+    expect(link('terms')?.getAttribute('href')).toBe('/terms');
     expect(link('privacy')?.getAttribute('href')).toBe('/privacy');
     expect(link('imprint')?.getAttribute('href')).toBe('/imprint');
   });
@@ -34,14 +35,19 @@ describe('LegalLinksComponent (jh-legal-links)', () => {
   it('renders the translated labels', () => {
     create();
 
+    expect(link('terms')?.textContent?.trim()).toBe('Terms');
     expect(link('privacy')?.textContent?.trim()).toBe('Privacy');
     expect(link('imprint')?.textContent?.trim()).toBe('Imprint');
   });
 
-  /** Both placements must carry both links — the inline variant only drops the © line. */
-  it('renders both links in the inline variant too', () => {
+  /**
+   * Both placements must carry every link — the inline variant only drops the © line. This is
+   * what makes /register, the placement that matters most for feature 041, reach the terms.
+   */
+  it('renders all three links in the inline variant too', () => {
     create('inline');
 
+    expect(link('terms')).not.toBeNull();
     expect(link('privacy')).not.toBeNull();
     expect(link('imprint')).not.toBeNull();
   });
@@ -61,6 +67,7 @@ describe('LegalLinksComponent (jh-legal-links)', () => {
   it('underlines the links', () => {
     create();
 
+    expect(link('terms')?.className).toContain('underline');
     expect(link('privacy')?.className).toContain('underline');
     expect(link('imprint')?.className).toContain('underline');
   });

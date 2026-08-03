@@ -2,6 +2,7 @@
   "meta": {
     "lastUpdated": "2026-08-02",
     "lastUpdatedLabel": "Last updated {{date}}",
+    "versionLabel": "Version {{version}}",
     "authoritativeNotice": "This is a translation for your convenience. The German version is the binding one — if the two ever disagree, the German text governs.",
     "tocLabel": "On this page",
     "loadErrorTitle": "We couldn't load this page",
@@ -12,7 +13,99 @@
     "toPrivacy": "Privacy",
     "toImprint": "Imprint",
     "toPrivacyLong": "Read the privacy policy",
-    "toImprintLong": "See who runs JuggerHub"
+    "toImprintLong": "See who runs JuggerHub",
+    "toTerms": "Terms",
+    "toTermsLong": "Read the terms of use"
+  },
+  "terms": {
+    "title": "Terms of Use",
+    "version": "2026-08-03",
+    "lastUpdated": "2026-08-03",
+    "intro": [
+      "This is the agreement between you and the person who runs JuggerHub. It sets out what you can expect from us and what we expect from you — nothing more.",
+      "We've tried to write it so that it can actually be read. If anything is unclear, write to us at hello@juggerhub.com."
+    ],
+    "sections": {
+      "whatThisIs": {
+        "heading": "What this is",
+        "body": [
+          "JuggerHub is a platform for the Jugger community: profiles, teams, tournaments, trainings, and the messages that go with them. It is run by Jan Niklas Rösch in Hamburg; the full particulars are in the imprint.",
+          "This is a spare-time project, not a company. There is no team in the background, no hotline, and no department that reviews anything — there is one person doing this in their free time. That shapes these terms in several places, and we would rather say so plainly than pretend otherwise.",
+          "Creating an account means agreeing to these terms. If you'd rather not, don't create one — you can still read the public parts of the site.",
+          "Using JuggerHub is free. There is nothing to pay, nothing to subscribe to, and no advertising."
+        ]
+      },
+      "yourAccount": {
+        "heading": "Your account",
+        "body": [
+          "You need an account to take part. It's yours alone: don't share your credentials, and don't let anyone post in your name. What happens through your account, we attribute to you.",
+          "Choose a name and a handle that don't pass you off as someone else. Creating a team or a tournament that doesn't exist, or presenting yourself as a club you aren't, is not a small thing — other people make decisions based on it.",
+          "There is no minimum age, and we don't ask for yours. If you are a minor, the person with parental responsibility for you is responsible: they agree to these terms on your behalf, and they decide whether you take part here. We cannot verify this, and we don't try to.",
+          "You have to confirm your email address before you can sign in. That isn't red tape — it's the only way to get your account back if you forget your password."
+        ]
+      },
+      "behaviour": {
+        "heading": "How to behave here",
+        "body": [
+          "The short version: be decent. This is a small community where plenty of people also meet offline — at tournaments, at training, at the club. Whoever you write to here, you'll be standing across from one day.",
+          "The longer version. What follows applies everywhere you leave text or images on JuggerHub: in your profile, in team, tournament and training descriptions, in messages and group chats, in marketplace listings, in uploaded images, and in the names and handles you choose.",
+          "No harassment, no insults, no threats, no stalking. Criticising a thing is welcome; attacking a person is not.",
+          "No hatred towards people or groups — not for their origin, skin colour, religion, gender, sexual orientation, disability or age. Not as a joke, and not ironically either.",
+          "No one else's data without their agreement: addresses, phone numbers, screenshots of private conversations. Not yours, not here.",
+          "No sexual content, no depictions of violence, and nothing that breaks the law.",
+          "No spam, no advertising, no bulk messaging. The marketplace is for people being sought for a tournament — not for sales and not for other people’s offers.",
+          "Don't upload anything you have no rights to. An image from a search engine is not your image.",
+          "Don't attack the site technically: no automated scraping, no exploiting security holes, no working around blocks. If you find a hole, write to us — we genuinely appreciate it.",
+          "Don't fake things: no invented tournaments, no teams that don't exist, no one else's identity."
+        ]
+      },
+      "yourContent": {
+        "heading": "What you write and upload",
+        "body": [
+          "What you write and upload stays yours. We claim no ownership of it, and we don't pass it on.",
+          "What we need is permission to display it on JuggerHub: to store it, process it technically, and show it to the people it is meant for — your profile to those allowed to see it, a tournament description to the people taking part, a message to its recipients. Nothing more, and only for as long as it is here.",
+          "You assure us that you hold the rights to what you upload and that it infringes nobody else’s rights.",
+          "How long things are kept, and what happens when you delete them, is in the privacy policy. The two texts are not meant to contradict each other — if you spot something that does, tell us."
+        ]
+      },
+      "whatWeMayDo": {
+        "heading": "What we may do",
+        "body": [
+          "If something breaks these terms, we may remove content, suspend an account temporarily, or ban it permanently. Which of those, we decide case by case — there is no fixed sequence of steps.",
+          "We’ll say openly how this works: there is no report form, no review body, no processing deadline, and no formal appeals procedure. There is one person who looks into it when they hear about it. That is not much — but it is the truth, and an honest \"here’s how it goes\" beats a process we only claim to have.",
+          "If you notice something, write to hello@juggerhub.com. That is the route. And it is the same route if you want to complain because we removed something or suspended your account: write to us and we’ll look at it.",
+          "A ban is not a deletion. A banned account continues to exist but is no longer visible and can no longer sign in; removing content is a separate decision. That an account was suspended, banned or reinstated is something we record — that too is in the privacy policy."
+        ]
+      },
+      "endingIt": {
+        "heading": "When you leave",
+        "body": [
+          "You can delete your account yourself at any time, in your account settings. It happens immediately, with no waiting period, and it cannot be undone.",
+          "Two things outlast that. Messages you wrote and your news posts stay where they are, but appear as \"A former player\" instead of your name: those conversations belong to everyone in them, not only to you. And your email address becomes free again — you can register with it later, and it would be a new account with nothing carried over.",
+          "We can end this agreement too, by banning your account. That needs a reason drawn from these terms.",
+          "What by its nature continues to apply, continues to apply: the rules on content, on liability, and on governing law."
+        ]
+      },
+      "noGuarantees": {
+        "heading": "What we don't promise",
+        "body": [
+          "JuggerHub is provided as it currently is. We promise no availability, no particular speed, and not that everything works without fault. There can be outages, data can be lost, and a feature may look different tomorrow than it does today.",
+          "We are not responsible for other people's content. Whether a tournament really takes place, whether a team is what it claims to be, and whether an arrangement is honoured, is between you and them.",
+          "We are liable for intent and gross negligence. For ordinary negligence we are liable only for breaching essential obligations, and then limited to the foreseeable damage typical of this kind of agreement. Liability for injury to life, body or health, and liability under the German Product Liability Act, are unaffected.",
+          "Don't rely on JuggerHub being the only backup of your data. If something matters to you, keep it somewhere else as well."
+        ]
+      },
+      "changesAndLaw": {
+        "heading": "Changes, law, contact",
+        "body": [
+          "These terms can change. The version that applies is always the one on this page — with the version number and the date shown at the top. We will not send you a message about it and will not ask you to agree again; if this matters to you, look in here now and then.",
+          "Should any provision of these terms be invalid, the rest is unaffected.",
+          "German law applies. If you are a consumer, the mandatory protective provisions of the country you live in are unaffected.",
+          "We are neither obliged nor willing to take part in dispute resolution proceedings before a consumer arbitration body.",
+          "Questions, complaints, tip-offs: hello@juggerhub.com. A person reads it."
+        ]
+      }
+    }
   },
   "privacy": {
     "title": "Privacy",

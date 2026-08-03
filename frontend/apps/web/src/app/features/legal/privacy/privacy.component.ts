@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { LegalPageComponent } from '../legal-page.component';
+import { LegalPageComponent, type LegalSiblingLink } from '../legal-page.component';
 
 /**
  * Reading order for the privacy policy (feature 036). Declared here rather than inferred from
@@ -36,4 +36,10 @@ export const PRIVACY_SECTIONS = [
 })
 export class PrivacyComponent {
   protected readonly sections = PRIVACY_SECTIONS;
+
+  /** The other two legal documents (036 FR-016, extended to three documents by 041). */
+  protected readonly siblings: readonly LegalSiblingLink[] = [
+    { link: '/terms', labelKey: 'toTermsLong' },
+    { link: '/imprint', labelKey: 'toImprintLong' },
+  ];
 }

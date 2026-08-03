@@ -32,6 +32,17 @@ public class User : IdentityUser<Guid>
     public DateTime? StatusChangedAt { get; set; }
 
     /// <summary>
+    /// The Terms of Use versions this account has agreed to (feature 041). Exactly one entry
+    /// today, created in the same <c>SaveChanges</c> as the account itself; a collection rather
+    /// than a single reference so a later version and re-acceptance need no migration (FR-021).
+    /// </summary>
+    /// <remarks>
+    /// These rows are evidence, not owned data — see <see cref="TermsAcceptance"/> for why they
+    /// must survive ban and erasure rather than being cleaned up with the account.
+    /// </remarks>
+    public ICollection<TermsAcceptance> TermsAcceptances { get; set; } = [];
+
+    /// <summary>
     /// The user's chosen interface language (feature 031). A supported BCP-47 base tag
     /// (<c>"en"</c>/<c>"de"</c>/<c>"es"</c>), or <c>null</c> when the user has not chosen one —
     /// in which case the client resolves a language by detection (browser) and the backend

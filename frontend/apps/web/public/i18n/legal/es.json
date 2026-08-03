@@ -2,6 +2,7 @@
   "meta": {
     "lastUpdated": "2026-08-02",
     "lastUpdatedLabel": "Última actualización: {{date}}",
+    "versionLabel": "Versión {{version}}",
     "authoritativeNotice": "Esta es una traducción de cortesía. La versión alemana es la vinculante: si ambas difieren, prevalece el texto en alemán.",
     "tocLabel": "En esta página",
     "loadErrorTitle": "No pudimos cargar esta página",
@@ -12,7 +13,99 @@
     "toPrivacy": "Privacidad",
     "toImprint": "Aviso legal",
     "toPrivacyLong": "Leer la política de privacidad",
-    "toImprintLong": "Quién gestiona JuggerHub"
+    "toImprintLong": "Quién gestiona JuggerHub",
+    "toTerms": "Condiciones",
+    "toTermsLong": "Leer las condiciones de uso"
+  },
+  "terms": {
+    "title": "Condiciones de uso",
+    "version": "2026-08-03",
+    "lastUpdated": "2026-08-03",
+    "intro": [
+      "Este es el acuerdo entre tú y la persona que gestiona JuggerHub. Establece qué puedes esperar de nosotros y qué esperamos de ti — nada más.",
+      "Hemos intentado escribirlo de forma que se pueda leer de verdad. Si algo no te queda claro, escríbenos a hello@juggerhub.com."
+    ],
+    "sections": {
+      "whatThisIs": {
+        "heading": "De qué va esto",
+        "body": [
+          "JuggerHub es una plataforma para la comunidad del jugger: perfiles, equipos, torneos, entrenamientos y los mensajes que van con ello. La gestiona Jan Niklas Rösch en Hamburgo; los datos completos están en el aviso legal.",
+          "Esto es un proyecto de tiempo libre, no una empresa. No hay un equipo detrás, ni una línea de atención, ni un departamento que revise nada: hay una persona que hace esto en su tiempo libre. Eso marca estas condiciones en varios puntos, y preferimos decirlo con claridad antes que aparentar lo contrario.",
+          "Crear una cuenta significa aceptar estas condiciones. Si prefieres no hacerlo, no crees ninguna: las partes públicas del sitio puedes leerlas igualmente.",
+          "El uso es gratuito. No hay nada que pagar, nada a lo que suscribirse y ninguna publicidad."
+        ]
+      },
+      "yourAccount": {
+        "heading": "Tu cuenta",
+        "body": [
+          "Para participar necesitas una cuenta. Es solo tuya: no compartas tus credenciales y no dejes que nadie escriba en tu nombre. Lo que ocurra a través de tu cuenta te lo atribuimos a ti.",
+          "Elige un nombre y un identificador con los que no te hagas pasar por otra persona. Crear un equipo o un torneo que no existe, o presentarte como un club que no eres, no es una nimiedad: hay gente que toma decisiones basándose en ello.",
+          "No hay edad mínima y tampoco te preguntamos la tuya. Si eres menor de edad, la persona que tiene la patria potestad sobre ti es la responsable: acepta estas condiciones en tu nombre y decide si participas aquí. No podemos comprobarlo y tampoco lo intentamos.",
+          "Tienes que confirmar tu dirección de correo antes de poder iniciar sesión. No es burocracia: es la única forma de recuperar tu cuenta si olvidas la contraseña."
+        ]
+      },
+      "behaviour": {
+        "heading": "Cómo nos tratamos aquí",
+        "body": [
+          "La versión corta: sé decente. Esto es una comunidad pequeña en la que mucha gente se encuentra también fuera de internet — en torneos, en los entrenamientos, en el club. A quien escribes aquí, algún día lo tendrás delante.",
+          "La versión más larga. Lo siguiente vale en todos los sitios donde dejas texto o imágenes en JuggerHub: en tu perfil, en las descripciones de equipos, torneos y entrenamientos, en mensajes y chats de grupo, en anuncios del mercado, en las imágenes que subes y en los nombres e identificadores que eliges.",
+          "Nada de acoso, insultos, amenazas ni hostigamiento. Criticar una cosa está bien; atacar a una persona no.",
+          "Nada de odio hacia personas o grupos — ni por su origen, color de piel, religión, género, orientación sexual, discapacidad o edad. Tampoco en broma, ni con ironía.",
+          "Nada de datos de otras personas sin su consentimiento: direcciones, números de teléfono, capturas de conversaciones privadas. No son tuyos y no van aquí.",
+          "Nada de contenido sexual, representaciones de violencia ni nada que infrinja la ley.",
+          "Nada de spam, publicidad ni envíos masivos. El mercado es para quienes se buscan para un torneo, no para ventas ni para ofertas ajenas.",
+          "No subas nada sobre lo que no tengas derechos. Una imagen sacada de un buscador no es tu imagen.",
+          "No ataques el sitio técnicamente: nada de rastreo automatizado, de aprovechar fallos de seguridad ni de saltarse bloqueos. Si encuentras un fallo, escríbenos: de verdad que lo agradecemos.",
+          "No finjas nada: ni torneos inventados, ni equipos que no existen, ni la identidad de otra persona."
+        ]
+      },
+      "yourContent": {
+        "heading": "Lo que escribes y subes",
+        "body": [
+          "Lo que escribes y subes sigue siendo tuyo. No reclamamos ninguna propiedad sobre ello y no lo cedemos a nadie.",
+          "Lo que necesitamos es permiso para mostrarlo en JuggerHub: guardarlo, procesarlo técnicamente y enseñárselo a quienes va dirigido — tu perfil a quienes pueden verlo, la descripción de un torneo a quienes participan, un mensaje a sus destinatarios. Nada más, y solo mientras esté aquí.",
+          "Nos aseguras que tienes los derechos sobre lo que subes y que no vulnera los derechos de nadie.",
+          "Cuánto tiempo se guarda cada cosa y qué pasa al borrarla está en la política de privacidad. Los dos textos no deberían contradecirse; si ves que alguno lo hace, dínoslo."
+        ]
+      },
+      "whatWeMayDo": {
+        "heading": "Lo que podemos hacer",
+        "body": [
+          "Si algo incumple estas condiciones, podemos retirar contenido, suspender una cuenta temporalmente o bloquearla de forma permanente. Cuál de las tres lo decidimos según el caso: no hay una escala fija de pasos.",
+          "Decimos abiertamente cómo funciona: no hay formulario de denuncia, ni instancia revisora, ni plazo de tramitación, ni procedimiento formal de recurso. Hay una persona que lo mira cuando se entera. Es poco, pero es la verdad, y preferimos un «esto funciona así» honesto a un procedimiento que solo afirmamos tener.",
+          "Si ves algo, escribe a hello@juggerhub.com. Esa es la vía. Y es la misma vía si quieres reclamar porque hemos retirado algo o bloqueado tu cuenta: escríbenos y lo miramos.",
+          "Un bloqueo no es un borrado. Una cuenta bloqueada sigue existiendo, pero deja de ser visible y no puede iniciar sesión; retirar contenido es una decisión aparte. Que una cuenta haya sido suspendida, bloqueada o restablecida queda registrado — eso también está en la política de privacidad."
+        ]
+      },
+      "endingIt": {
+        "heading": "Cuando te vas",
+        "body": [
+          "Puedes borrar tu cuenta tú mismo en cualquier momento, en los ajustes de tu cuenta. Ocurre de inmediato, sin periodo de espera, y no se puede deshacer.",
+          "Dos cosas sobreviven a eso. Los mensajes que escribiste y tus publicaciones de novedades se quedan donde están, pero aparecen como «Un jugador anterior» en lugar de con tu nombre: esas conversaciones pertenecen a todas las personas que participan en ellas, no solo a ti. Y tu dirección de correo vuelve a quedar libre: puedes registrarte con ella más adelante, y sería una cuenta nueva a la que no se traslada nada.",
+          "Nosotros también podemos poner fin a este acuerdo bloqueando tu cuenta. Para eso hace falta un motivo salido de estas condiciones.",
+          "Lo que por su naturaleza sigue siendo aplicable, sigue siéndolo: las reglas sobre contenidos, sobre responsabilidad y sobre la ley aplicable."
+        ]
+      },
+      "noGuarantees": {
+        "heading": "Lo que no prometemos",
+        "body": [
+          "JuggerHub se ofrece tal y como está ahora mismo. No prometemos disponibilidad, ni una velocidad determinada, ni que todo funcione sin fallos. Puede haber caídas, se pueden perder datos y una función puede verse mañana distinta de como se ve hoy.",
+          "No somos responsables de los contenidos de otras personas. Si un torneo se celebra de verdad, si un equipo es lo que dice ser y si un acuerdo se cumple, es algo que tenéis que aclarar entre vosotros.",
+          "Respondemos por dolo y por negligencia grave. En caso de negligencia leve respondemos únicamente por el incumplimiento de obligaciones esenciales, y entonces limitado al daño previsible y típico de este tipo de acuerdo. La responsabilidad por daños a la vida, la integridad física o la salud, así como la responsabilidad conforme a la Ley alemana de responsabilidad por productos, no se ven afectadas.",
+          "No des por hecho que JuggerHub es la única copia de seguridad de tus datos. Si algo te importa, guárdalo también en otro sitio."
+        ]
+      },
+      "changesAndLaw": {
+        "heading": "Cambios, ley, contacto",
+        "body": [
+          "Estas condiciones pueden cambiar. Siempre rige la versión que aparece en esta página, con el número de versión y la fecha que figuran arriba. No te enviaremos ningún aviso al respecto ni te pediremos que vuelvas a aceptarlas; si te interesa, pásate por aquí de vez en cuando.",
+          "Si alguna disposición de estas condiciones fuera nula, el resto no se ve afectado.",
+          "Se aplica el derecho alemán. Si eres consumidor, las disposiciones imperativas de protección del país en el que resides no se ven afectadas.",
+          "No estamos obligados ni dispuestos a participar en procedimientos de resolución de litigios ante una junta arbitral de consumo.",
+          "Preguntas, reclamaciones, avisos: hello@juggerhub.com. Lo lee una persona."
+        ]
+      }
+    }
   },
   "privacy": {
     "title": "Privacidad",

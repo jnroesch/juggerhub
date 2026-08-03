@@ -30,6 +30,19 @@ export interface RegisterRequest {
   password: string;
   /** Immutable, unique handle claimed at registration (feature 003). */
   handle: string;
+
+  /** The reader ticked the box themselves (feature 041). Never defaulted to true. */
+  acceptsTerms: boolean;
+
+  /**
+   * The Terms of Use version this client actually displayed, read from the legal catalogue —
+   * never hard-coded here. The server refuses anything that is not the current version, which is
+   * what proves the reader saw the current text rather than a stale cached copy.
+   */
+  termsVersion: string;
+
+  /** The language the document was shown in, recorded alongside the acceptance. */
+  termsLanguage: string;
 }
 
 export interface LoginRequest {

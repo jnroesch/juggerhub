@@ -1,3 +1,4 @@
+using JuggerHub.Common;
 using JuggerHub.Dtos.Auth;
 using JuggerHub.Entities;
 using JuggerHub.Security.PlatformAdmin;
@@ -26,6 +27,7 @@ public sealed class AuthService : IAuthService
     private readonly IProfileService _profiles;
     private readonly PlatformAdminRoleSync _adminRoleSync;
     private readonly IdentityOptions _identityOptions;
+    private readonly TermsOptions _terms;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -37,6 +39,7 @@ public sealed class AuthService : IAuthService
         IProfileService profiles,
         PlatformAdminRoleSync adminRoleSync,
         IOptions<IdentityOptions> identityOptions,
+        IOptions<TermsOptions> terms,
         ILogger<AuthService> logger)
     {
         _userManager = userManager;
@@ -47,11 +50,30 @@ public sealed class AuthService : IAuthService
         _profiles = profiles;
         _adminRoleSync = adminRoleSync;
         _identityOptions = identityOptions.Value;
+        _terms = terms.Value;
         _logger = logger;
     }
 
     public async Task<RegisterResult> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
+        // Terms first — before the password check, the handle resolution, and the account lookup
+        // (feature 041). Two reasons, both deliberate:
+        //
+        //  1. It must not entangle with enumeration neutrality. Several failures below return a
+        //     neutral Accepted() so the response never reveals whether an address is registered.
+        //     A terms refusal depends only on values the caller sent, so returning it here keeps
+        //     the two concerns apart. Folded into the neutral path it would strand the caller on
+        //     "check your email" for an account that was never created.
+        //  2. It is the cheapest check available: two string comparisons, no database round-trip
+        //     and no password hash.
+        //
+        // The disabled submit button on the form is a usability aid. THIS is the boundary.
+        var termsRefusal = ValidateTermsAcceptance(request);
+        if (termsRefusal is not null)
+        {
+            return termsRefusal;
+        }
+
         var email = request.Email.Trim();
 
         // Validate the password independently of the email, so a weak password is
@@ -101,6 +123,19 @@ public sealed class AuthService : IAuthService
             DisplayName = handleCheck.Normalized,
         };
 
+        // The acceptance rides the same graph, and therefore the same SaveChanges (feature 041,
+        // FR-022). That is what makes "no account without evidence, no evidence without an
+        // account" structural rather than a cleanup path: every failure below — the handle race,
+        // a non-succeeding IdentityResult — leaves neither behind.
+        //
+        // Version comes from the server, never from request.TermsVersion, which has already been
+        // checked and is now discarded.
+        user.TermsAcceptances.Add(new TermsAcceptance
+        {
+            Version = _terms.ResolvedVersion,
+            DisplayLanguage = request.TermsLanguage.Trim().ToLowerInvariant(),
+        });
+
         IdentityResult created;
         try
         {
@@ -127,6 +162,39 @@ public sealed class AuthService : IAuthService
 
         await SendVerificationSafelyAsync(user, ct);
         return RegisterResult.Accepted();
+    }
+
+    /// <summary>
+    /// Server-side validation of the Terms of Use acceptance (feature 041, FR-018). Returns the
+    /// refusal to send back, or <c>null</c> when the acceptance is good.
+    /// </summary>
+    /// <remarks>
+    /// Nothing about the submitted values is logged. The outcome is what matters, and an email or
+    /// a handle in a log line would be personal data with no operational value (Principle I).
+    /// </remarks>
+    private RegisterResult? ValidateTermsAcceptance(RegisterRequest request)
+    {
+        if (!request.AcceptsTerms)
+        {
+            return RegisterResult.TermsNotAccepted(
+                "You need to agree to the Terms of Use before an account can be created.");
+        }
+
+        if (!string.Equals(request.TermsVersion?.Trim(), _terms.ResolvedVersion, StringComparison.Ordinal))
+        {
+            // Not a generic failure: the caller read a version of the document that is no longer
+            // the current one, and the only correct fix is to read the new one.
+            return RegisterResult.TermsVersionMismatch(
+                "The Terms of Use have been updated since this page was loaded. Reload and read the current version before continuing.");
+        }
+
+        if (!SupportedLanguages.IsSupported(request.TermsLanguage))
+        {
+            return RegisterResult.TermsLanguageUnsupported(
+                "That is not a language the Terms of Use are published in.");
+        }
+
+        return null;
     }
 
     public async Task<bool> VerifyEmailAsync(VerifyEmailRequest request, CancellationToken ct = default)
