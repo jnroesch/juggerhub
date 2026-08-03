@@ -7,6 +7,7 @@ import { TranslocoService } from '@jsverse/transloco';
 import { provideTranslocoLocale } from '@jsverse/transloco-locale';
 import { PRIVACY_SECTIONS, PrivacyComponent } from './privacy/privacy.component';
 import { IMPRINT_SECTIONS, ImprintComponent } from './imprint/imprint.component';
+import { TERMS_SECTIONS, TermsComponent } from './terms/terms.component';
 import { translocoTestingModule } from '../../../testing/transloco-testing';
 
 const legalEn = require('../../../../public/i18n/legal/en.json');
@@ -35,6 +36,7 @@ describe('Legal pages (feature 036)', () => {
         // a component created outside one resolves them against `/` — which is precisely the bug
         // these pages had. Routing properly is what makes that assertion meaningful.
         provideRouter([
+          { path: 'terms', component: TermsComponent },
           { path: 'privacy', component: PrivacyComponent },
           { path: 'imprint', component: ImprintComponent },
         ]),
@@ -47,7 +49,7 @@ describe('Legal pages (feature 036)', () => {
   afterEach(() => httpMock.verify());
 
   /** Navigates to the page for real and answers its content fetch for the active language. */
-  async function render(path: 'privacy' | 'imprint'): Promise<ComponentFixture<unknown>> {
+  async function render(path: 'terms' | 'privacy' | 'imprint'): Promise<ComponentFixture<unknown>> {
     const harness = await RouterTestingHarness.create(`/${path}`);
 
     httpMock.expectOne('/i18n/legal/en.json').flush(legalEn);
@@ -71,6 +73,13 @@ describe('Legal pages (feature 036)', () => {
 
   function el(fixture: ComponentFixture<unknown>, testId: string): HTMLElement | null {
     return fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
+  }
+
+  /** Every cross-link at the foot of the document, in rendered order. */
+  function siblingHrefs(fixture: ComponentFixture<unknown>): string[] {
+    return Array.from(
+      fixture.nativeElement.querySelectorAll('[data-testid="legal-sibling-link"]') as NodeListOf<HTMLAnchorElement>,
+    ).map((a) => a.getAttribute('href')!);
   }
 
   describe('privacy policy', () => {
@@ -192,10 +201,10 @@ describe('Legal pages (feature 036)', () => {
       }
     });
 
-    it('links to the imprint (FR-016)', async () => {
+    it('links to both other documents (036 FR-016, 041 FR-010)', async () => {
       const fixture = await render('privacy');
 
-      expect(el(fixture, 'legal-sibling-link')?.getAttribute('href')).toBe('/imprint');
+      expect(siblingHrefs(fixture)).toEqual(['/terms', '/imprint']);
     });
 
     /** Constitution I: paragraphs are catalog array entries, so there is no sink to sanitise. */
@@ -206,13 +215,158 @@ describe('Legal pages (feature 036)', () => {
     });
   });
 
+  describe('terms of use (feature 041)', () => {
+    it('renders every section in the declared reading order', async () => {
+      const fixture = await render('terms');
+      const headings: string[] = Array.from(fixture.nativeElement.querySelectorAll('section h2')).map((h) =>
+        (h as HTMLElement).textContent!.trim(),
+      );
+
+      expect(headings.length).toBe(TERMS_SECTIONS.length);
+      expect(headings[0]).toBe(legalEn.terms.sections.whatThisIs.heading);
+      expect(headings[headings.length - 1]).toBe(legalEn.terms.sections.changesAndLaw.heading);
+    });
+
+    /** Same reasoning as the privacy policy: a section added and forgotten here never renders. */
+    it('declares every section that exists in the catalog', () => {
+      expect([...TERMS_SECTIONS].sort()).toEqual(Object.keys(legalEn.terms.sections).sort());
+    });
+
+    it('links to both other documents (FR-010)', async () => {
+      const fixture = await render('terms');
+
+      expect(siblingHrefs(fixture)).toEqual(['/privacy', '/imprint']);
+    });
+
+    /**
+     * FR-003. The version is what an acceptance record names, so a member has to be able to see
+     * which text they agreed to. Shown on the terms and — deliberately — on nothing else.
+     */
+    it('shows its version in the meta line', async () => {
+      const fixture = await render('terms');
+
+      expect(el(fixture, 'legal-version')?.textContent).toContain(legalEn.terms.version);
+    });
+
+    it('shows no version on the privacy policy, which has none', async () => {
+      const fixture = await render('privacy');
+
+      expect(el(fixture, 'legal-version')).toBeNull();
+    });
+
+    /**
+     * Research R4, and the reason the terms carry their own date at all. `meta.lastUpdated` is
+     * SHARED by every document in the catalog, so without this the date on a binding contract
+     * would move whenever an unrelated privacy paragraph was reworded. Pinned with a deliberately
+     * different value so a regression to the shared field cannot pass by coincidence.
+     */
+    it('prefers its own lastUpdated over the shared catalog-level one', async () => {
+      const harness = await RouterTestingHarness.create('/terms');
+      httpMock
+        .expectOne('/i18n/legal/en.json')
+        .flush({
+          ...legalEn,
+          meta: { ...legalEn.meta, lastUpdated: '1999-01-01' },
+          terms: { ...legalEn.terms, lastUpdated: '2026-08-03' },
+        });
+      harness.detectChanges();
+
+      const meta = el(harness.fixture, 'legal-meta')!.textContent!;
+
+      expect(meta).toContain('2026');
+      expect(meta).not.toContain('1999');
+    });
+
+    /**
+     * FR-008: the document must not describe moderation tooling the platform does not have.
+     *
+     * Asserted as a POSITIVE disclosure rather than as absent substrings. The obvious version of
+     * this test — `expect(text).not.toContain('report form')` — fails against correct text,
+     * because the honest sentence is "there is *no* report form". Absence-of-substring cannot
+     * tell a promise from its denial; what actually needs guarding is that the denial is present.
+     */
+    it('states plainly that no moderation process exists', async () => {
+      const fixture = await render('terms');
+      const text: string = fixture.nativeElement.textContent.toLowerCase();
+
+      expect(text).toContain('no report form');
+      expect(text).toContain('no review body');
+      expect(text).toContain('no processing deadline');
+      expect(text).toContain('no formal appeals procedure');
+    });
+
+    /**
+     * The other half of FR-008: no committed turnaround. There is one person who looks when they
+     * hear about it, so any "we respond within N days" would be a promise nobody can keep. A
+     * pattern, not a fixed string, because the exact number is what a later edit would invent.
+     */
+    it('promises no review timeline', async () => {
+      const fixture = await render('terms');
+      const text: string = fixture.nativeElement.textContent.toLowerCase();
+
+      expect(text).not.toMatch(/within \d+ (hours|days|working days|business days)/);
+    });
+
+    /**
+     * FR-006 / FR-009: the privacy policy already tells people "what you write and upload is
+     * yours". The terms must therefore grant a DISPLAY permission and nothing broader — an
+     * ownership or sublicensing claim would put the two documents in direct contradiction.
+     */
+    it('grants a display permission rather than claiming ownership', async () => {
+      const fixture = await render('terms');
+      const text: string = fixture.nativeElement.textContent.toLowerCase();
+
+      expect(text).toContain('stays yours');
+      expect(text).toContain('we claim no ownership');
+      expect(text).toContain('permission to display it');
+    });
+
+    /** FR-007: a real, working route for disputing a removal or a ban. */
+    it('gives a working contact route for disputes', async () => {
+      const fixture = await render('terms');
+
+      expect(fixture.nativeElement.textContent).toContain('hello@juggerhub.com');
+    });
+
+    /**
+     * FR-013, owner decision: no minimum age and no age gate anywhere. The guardian clause in the
+     * text is the whole of it, so the document must carry it — and must not smuggle in a number.
+     */
+    it('sets no minimum age and puts responsibility on a guardian', async () => {
+      const fixture = await render('terms');
+      const text: string = fixture.nativeElement.textContent.toLowerCase();
+
+      expect(text).toContain('there is no minimum age');
+      expect(text).toContain('parental responsibility');
+    });
+
+    /** PC-3: the heading hierarchy is the screen-reader navigation for the document. */
+    it('has an unbroken heading hierarchy', async () => {
+      const fixture = await render('terms');
+      const levels: number[] = Array.from(fixture.nativeElement.querySelectorAll('h1,h2,h3,h4')).map((h) =>
+        Number((h as HTMLElement).tagName.slice(1)),
+      );
+
+      expect(levels[0]).toBe(1);
+      levels.slice(1).forEach((level, i) => expect(level - levels[i]).toBeLessThanOrEqual(1));
+    });
+
+    it('has a target element for every table-of-contents entry', async () => {
+      const fixture = await render('terms');
+
+      for (const key of TERMS_SECTIONS) {
+        expect(fixture.nativeElement.querySelector(`#terms-${key}`)).not.toBeNull();
+      }
+    });
+  });
+
   describe('imprint', () => {
-    it('renders its sections and links back to the privacy policy', async () => {
+    it('renders its sections and links back to the other two documents', async () => {
       const fixture = await render('imprint');
 
       expect(el(fixture, 'legal-imprint')).not.toBeNull();
       expect(fixture.nativeElement.querySelectorAll('section h2').length).toBe(IMPRINT_SECTIONS.length);
-      expect(el(fixture, 'legal-sibling-link')?.getAttribute('href')).toBe('/privacy');
+      expect(siblingHrefs(fixture)).toEqual(['/terms', '/privacy']);
     });
 
     it('declares every section that exists in the catalog', () => {

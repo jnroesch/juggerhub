@@ -40,4 +40,24 @@ public sealed record AdminUserDetailDto(
     IReadOnlyList<AdminUserTeamDto> Teams,
     IReadOnlyList<Pompfe> Pompfen,
     DateTime? LastActiveAt,
-    IReadOnlyList<AdminActivityItemDto> RecentActivity);
+    IReadOnlyList<AdminActivityItemDto> RecentActivity,
+    // Feature 041 — which version of the Terms of Use this account is bound by (FR-025).
+    IReadOnlyList<TermsAcceptanceDto> TermsAcceptances);
+
+/// <summary>
+/// One recorded agreement to the Terms of Use (feature 041, FR-025). Answers "which version is
+/// this account bound by, and when did it agree" without inspecting application logs.
+/// </summary>
+/// <param name="Version">The document version agreed to.</param>
+/// <param name="AcceptedAt">
+/// When the agreement was made — projected from the row's <c>CreatedDate</c>, which the write-once
+/// record uses as its acceptance moment.
+/// </param>
+/// <param name="DisplayLanguage">
+/// The translation the document was shown in. Relevant because the German text is the
+/// authoritative one, so "agreed while reading the Spanish translation" is part of the record.
+/// </param>
+public sealed record TermsAcceptanceDto(
+    string Version,
+    DateTime AcceptedAt,
+    string DisplayLanguage);

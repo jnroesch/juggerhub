@@ -5,6 +5,17 @@
   class="flex flex-wrap items-center gap-x-md gap-y-xs text-body-sm text-muted"
   [class.justify-center]="variant() === 'inline'"
 >
+  <!--
+    Terms first: it is the document with contractual force, and the one a reader on /register is
+    being asked about. Adding it here covers all 11 placements at once (041 FR-010) — the app
+    footer plus the ten off-shell screens — so no screen needs its own edit.
+  -->
+  <a
+    routerLink="/terms"
+    data-testid="legal-link-terms"
+    class="rounded-sm text-link underline underline-offset-2 transition-colors duration-fast hover:text-link-hover"
+    >{{ t('legal.terms') }}</a
+  >
   <a
     routerLink="/privacy"
     data-testid="legal-link-privacy"

@@ -85,6 +85,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     // Feature 013 — append-only admin account-action log.
     public DbSet<AdminActionRecord> AdminActionRecords => Set<AdminActionRecord>();
 
+    // Feature 041 — write-once Terms of Use acceptance evidence. NOT owned data: never
+    // deleted with an account (see TermsAcceptance and AccountDeletionService).
+    public DbSet<TermsAcceptance> TermsAcceptances => Set<TermsAcceptance>();
+
     // Feature 016 — event parties (temporary team subset per event).
     public DbSet<Party> Parties => Set<Party>();
 
@@ -695,6 +699,29 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             entity.HasOne(r => r.Target)
                 .WithMany()
                 .HasForeignKey(r => r.TargetUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---- Feature 041: Terms of Use acceptance ----
+
+        builder.Entity<TermsAcceptance>(entity =>
+        {
+            entity.Property(a => a.Version).HasMaxLength(32).IsRequired();
+            entity.Property(a => a.DisplayLanguage).HasMaxLength(8).IsRequired();
+
+            // FR-025: "which version is this account bound by", newest first.
+            entity.HasIndex(a => new { a.UserId, a.CreatedDate });
+
+            // An account cannot accept the same version twice.
+            entity.HasIndex(a => new { a.UserId, a.Version }).IsUnique();
+
+            // Evidence must never vanish with an account row — same reasoning as
+            // AdminActionRecord above. Erasure (037) neutralises the User row rather than
+            // deleting it, so this row survives pointing at a row identifying nobody (FR-024).
+            // Restrict also makes a naive "delete everything with this UserId" fail loudly.
+            entity.HasOne(a => a.User)
+                .WithMany(u => u.TermsAcceptances)
+                .HasForeignKey(a => a.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

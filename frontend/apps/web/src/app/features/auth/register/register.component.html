@@ -89,6 +89,50 @@
           }
         </div>
 
+        <!--
+          Feature 041 FR-015/FR-016. Unticked on render and never set programmatically. The label
+          is composed from translated segments around a real routerLink — no [innerHTML], so
+          there is no markup sink to sanitise (constitution I).
+        -->
+        <div>
+          <label class="flex items-start gap-sm text-body-sm text-text">
+            <input
+              type="checkbox"
+              formControlName="acceptsTerms"
+              data-testid="register-accept-terms"
+              [attr.aria-describedby]="!form.controls.acceptsTerms.value && form.controls.acceptsTerms.touched ? 'terms-required' : null"
+              class="mt-0.5 h-4 w-4 shrink-0 rounded border-border-strong"
+            />
+            <span>
+              {{ 'auth.register.termsBefore' | transloco }}
+              <a
+                routerLink="/terms"
+                data-testid="register-terms-link"
+                class="rounded-sm text-link underline underline-offset-2 hover:text-link-hover"
+                >{{ 'auth.register.termsLink' | transloco }}</a
+              >
+              {{ 'auth.register.termsAfter' | transloco }}
+            </span>
+          </label>
+
+          @if (!form.controls.acceptsTerms.value && form.controls.acceptsTerms.touched) {
+            <!-- Stated in words: a disabled button alone does not say why (DESIGN.md a11y). -->
+            <p id="terms-required" class="mt-xs text-body-sm text-danger-fg" data-testid="register-terms-required" role="alert">
+              {{ 'auth.register.termsRequired' | transloco }}
+            </p>
+          }
+        </div>
+
+        @if (termsUnavailable()) {
+          <!--
+            The document could not be fetched, so nobody can meaningfully agree to it. Submission
+            stays blocked rather than falling back to a silent default.
+          -->
+          <jh-alert tone="danger" data-testid="register-terms-unavailable">{{
+            'auth.register.termsUnavailable' | transloco
+          }}</jh-alert>
+        }
+
         @if (error()) {
           <jh-alert data-testid="register-error">{{ error() }}</jh-alert>
         }

@@ -229,6 +229,13 @@ export const appRoutes: Route[] = [
   // refresh would redirect a reader away from a page they are legally entitled to see.
   // See specs/036-privacy-policy-imprint/contracts/routes.md (RC-1, RC-2).
   {
+    // Feature 041. Unguarded for the same reason as the other two, plus one of its own: this is
+    // the document someone has to agree to BEFORE they have an account, so putting it behind the
+    // sign-in wall would make the acceptance at registration meaningless.
+    path: 'terms',
+    loadComponent: () => import('./features/legal/terms/terms.component').then((m) => m.TermsComponent),
+  },
+  {
     path: 'privacy',
     loadComponent: () => import('./features/legal/privacy/privacy.component').then((m) => m.PrivacyComponent),
   },

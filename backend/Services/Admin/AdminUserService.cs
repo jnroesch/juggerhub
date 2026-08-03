@@ -120,7 +120,12 @@ public sealed class AdminUserService : IAdminUserService
                 p.Participations.Max(ep => (DateTime?)ep.CreatedDate),
                 p.Participations.OrderByDescending(ep => ep.Event.StartsAt)
                     .Take(ActivityCap)
-                    .Select(ep => new AdminActivityItemDto(ep.Event.Name, ep.Event.StartsAt)).ToList()))
+                    .Select(ep => new AdminActivityItemDto(ep.Event.Name, ep.Event.StartsAt)).ToList(),
+                // Feature 041 FR-025. Newest first, matching the (UserId, CreatedDate) index.
+                // Bounded by construction: one row per document version, and there is one version.
+                _db.TermsAcceptances.Where(a => a.UserId == p.UserId)
+                    .OrderByDescending(a => a.CreatedDate)
+                    .Select(a => new TermsAcceptanceDto(a.Version, a.CreatedDate, a.DisplayLanguage)).ToList()))
             .FirstOrDefaultAsync(ct);
     }
 

@@ -166,6 +166,10 @@ builder.Services
         };
     });
 
+// --- Terms of Use (feature 041): the version recorded on every acceptance at registration ----
+// Kept in parity with the legal catalogues by TermsVersionParityTests, not by discipline.
+builder.Services.Configure<TermsOptions>(builder.Configuration.GetSection(TermsOptions.SectionName));
+
 // --- Platform admin gate (feature 013: PlatformAdmin Identity role, mirrored from config at startup) -----
 builder.Services.Configure<AdminOptions>(builder.Configuration.GetSection(AdminOptions.SectionName));
 builder.Services.AddScoped<PlatformAdminRoleSync>();

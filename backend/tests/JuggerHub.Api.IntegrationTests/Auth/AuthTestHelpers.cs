@@ -1,5 +1,6 @@
 using System.Net.Http.Json;
 using System.Text.RegularExpressions;
+using JuggerHub.Common;
 
 namespace JuggerHub.Api.IntegrationTests.Auth;
 
@@ -17,10 +18,30 @@ internal static class AuthTestHelpers
     /// <summary>A unique, valid handle (lowercase alphanumeric, ≤30 chars) for registration.</summary>
     public static string NewHandle() => $"p{Guid.NewGuid():N}"[..20];
 
+    /// <summary>
+    /// The Terms of Use version registration currently accepts (feature 041). Read from the
+    /// options default rather than hard-coded, so bumping the version does not silently turn every
+    /// registration test into a 409 that has to be chased down one file at a time.
+    /// </summary>
+    public static string CurrentTermsVersion => new TermsOptions().ResolvedVersion;
+
+    /// <summary>
+    /// Registers with a valid Terms of Use acceptance. Acceptance is required by the endpoint
+    /// (feature 041 FR-018), so it is supplied here for every pre-existing caller; tests that
+    /// need to exercise a refusal post their own payload instead.
+    /// </summary>
     public static Task<HttpResponseMessage> RegisterAsync(
         HttpClient client, string email, string? password = null, string? handle = null) =>
         client.PostAsJsonAsync("/api/v1/auth/register",
-            new { email, password = password ?? ValidPassword, handle = handle ?? NewHandle() });
+            new
+            {
+                email,
+                password = password ?? ValidPassword,
+                handle = handle ?? NewHandle(),
+                acceptsTerms = true,
+                termsVersion = CurrentTermsVersion,
+                termsLanguage = "en",
+            });
 
     public static Task<HttpResponseMessage> LoginAsync(HttpClient client, string email, string password, bool rememberMe = false) =>
         client.PostAsJsonAsync("/api/v1/auth/login", new { email, password, rememberMe });

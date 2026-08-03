@@ -672,6 +672,7 @@
   },
   "legal": {
     "footerLabel": "Legal and site information",
+    "terms": "Terms",
     "privacy": "Privacy",
     "imprint": "Imprint",
     "copyright": "JuggerHub — a community project"
@@ -711,6 +712,12 @@
       "permalinkLabel": "Your permanent profile link:",
       "permalinkNote": "— this can't be changed later.",
       "mismatch": "Passwords don't match.",
+      "termsBefore": "I agree to the",
+      "termsLink": "Terms of Use",
+      "termsAfter": "— including the rules on how we treat each other here.",
+      "termsRequired": "Tick the box to confirm you agree to the Terms of Use.",
+      "termsChanged": "The Terms of Use have been updated since this page was loaded. Reload the page and read the current version before creating your account.",
+      "termsUnavailable": "We couldn't load the Terms of Use, so you can't agree to them yet. Check your connection and reload the page.",
       "submit": "Create account",
       "submitting": "Creating account…",
       "haveAccount": "Already have an account?"
