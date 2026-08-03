@@ -1,5 +1,6 @@
-import { APIRequestContext, Page, expect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { resolveCityExternalId } from './support/city';
+import { E2E_PASSWORD, ensureAdminSignedIn, newAccount, registerVerify, signIn } from './support/auth';
 
 /**
  * Feature 013 end-to-end: the gated admin area. Covers the lock-marked entry (admins
@@ -9,77 +10,12 @@ import { resolveCityExternalId } from './support/city';
  * stack's ADMIN_EMAILS — designated at registration/startup by the role sync).
  */
 
-const MAILPIT = process.env['MAILPIT_URL'] || 'http://mailpit:8025';
-const PASSWORD = 'Str0ng!Passw0rd';
-const ADMIN_EMAIL = 'admin@test.de';
-
-async function verifyLinkPath(request: APIRequestContext, to: string): Promise<string> {
-  for (let attempt = 0; attempt < 30; attempt++) {
-    const res = await request.get(`${MAILPIT}/api/v1/search`, { params: { query: `to:${to}` } });
-    if (res.ok()) {
-      const data = (await res.json()) as { messages?: { ID: string }[] };
-      for (const message of data.messages ?? []) {
-        const full = await request.get(`${MAILPIT}/api/v1/message/${message.ID}`);
-        if (!full.ok()) continue;
-        const body = (await full.json()) as { HTML?: string; Text?: string };
-        const html = body.HTML || body.Text || '';
-        const match = html.match(/https?:\/\/[^"'\s]*\/verify-email\?[^"'\s<]+/);
-        if (match) {
-          const url = new URL(match[0]);
-          return url.pathname + url.search;
-        }
-      }
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  throw new Error(`No verification email for ${to} appeared in Mailpit.`);
-}
-
-async function registerVerify(page: Page, request: APIRequestContext, email: string, handle: string): Promise<void> {
-  await page.goto('/register');
-  await page.getByTestId('register-email').fill(email);
-  await page.getByTestId('register-handle').fill(handle);
-  await expect(page.getByTestId('handle-available')).toBeVisible();
-  await page.getByTestId('register-password').fill(PASSWORD);
-  await page.getByTestId('register-confirm-password').fill(PASSWORD);
-  await expect(page.getByTestId('register-submit')).toBeEnabled();
-  await page.getByTestId('register-submit').click();
-  await expect(page.getByTestId('register')).toContainText(/check your email/i);
-  await page.goto(await verifyLinkPath(request, email));
-}
-
-async function signIn(page: Page, email: string): Promise<void> {
-  await page.goto('/sign-in');
-  await page.getByTestId('sign-in-email').fill(email);
-  await page.getByTestId('sign-in-password').fill(PASSWORD);
-  await page.getByTestId('sign-in-submit').click();
-  await expect(page).toHaveURL((u) => !u.pathname.includes('/sign-in'));
-}
-
-/** Sign in as the configured admin, registering+verifying once if it doesn't exist yet. */
-async function ensureAdminSignedIn(page: Page, request: APIRequestContext): Promise<void> {
-  await page.goto('/sign-in');
-  await page.getByTestId('sign-in-email').fill(ADMIN_EMAIL);
-  await page.getByTestId('sign-in-password').fill(PASSWORD);
-  await page.getByTestId('sign-in-submit').click();
-  await page.waitForTimeout(1500);
-  if (page.url().includes('/sign-in')) {
-    await registerVerify(page, request, ADMIN_EMAIL, `admin-${Date.now().toString(36)}`);
-    await signIn(page, ADMIN_EMAIL);
-  }
-}
-
-function uniquePlayer(): { email: string; handle: string } {
-  const suffix = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  return {
-    email: `e2e-adm-${suffix}@example.com`,
-    handle: `e2eadm${suffix}`.replace(/[^a-z0-9]/g, '').slice(0, 20),
-  };
-}
+const uniquePlayer = () => newAccount('e2eadm');
 
 test('non-admins never see the admin entry and /admin bounces them home', async ({ page, request }) => {
-  const { email, handle } = uniquePlayer();
-  await registerVerify(page, request, email, handle);
+  const player = uniquePlayer();
+  const { email, handle } = player;
+  await registerVerify(page, request, player);
   await signIn(page, email);
 
   await page.goto('/');
@@ -92,8 +28,9 @@ test('non-admins never see the admin entry and /admin bounces them home', async 
 });
 
 test('admin: gated entry → overview → find player → suspend blocks sign-in → reinstate restores', async ({ page, request }) => {
-  const { email, handle } = uniquePlayer();
-  await registerVerify(page, request, email, handle);
+  const player = uniquePlayer();
+  const { email, handle } = player;
+  await registerVerify(page, request, player);
 
   // The gated entry lives in the avatar menu on every form factor (owner decision:
   // the top-nav item was dropped in favor of the single account-menu row).
@@ -122,7 +59,7 @@ test('admin: gated entry → overview → find player → suspend blocks sign-in
   // The suspended player is refused sign-in with a clear message.
   await page.goto('/sign-in');
   await page.getByTestId('sign-in-email').fill(email);
-  await page.getByTestId('sign-in-password').fill(PASSWORD);
+  await page.getByTestId('sign-in-password').fill(E2E_PASSWORD);
   await page.getByTestId('sign-in-submit').click();
   await expect(page.getByTestId('sign-in')).toContainText(/suspended/i);
 
@@ -196,8 +133,9 @@ test('admin: catalogue — create, edit, retire, then reinstate a badge type (fe
 
 test('admin: assign a badge to a team, see it on the public page, then revoke it (feature 014)', async ({ page, request }) => {
   // A player creates a team (creator is an auto-member).
-  const { email, handle } = uniquePlayer();
-  await registerVerify(page, request, email, handle);
+  const player = uniquePlayer();
+  const { email, handle } = player;
+  await registerVerify(page, request, player);
   await signIn(page, email);
   const slug = `e2eteam${Date.now().toString(36)}`.slice(0, 18);
   // Feature 030: teams take a structured city selection, not a freeform string. Resolve a real

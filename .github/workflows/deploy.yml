@@ -9,11 +9,13 @@ on:
     branches: [main]
 
 # Deploy jobs pull the images published by the Build workflow from GHCR and run
-# `terraform apply` against AKS. id-token:write is required for Azure OIDC login.
+# `terraform apply` against AKS. id-token:write is required for Azure OIDC login;
+# actions:read lets the e2e gate query the E2E workflow's run for this commit.
 permissions:
   contents: read
   packages: read
   id-token: write
+  actions: read
 
 # Serialize deploys so two runs can't race on the same environment.
 concurrency:
@@ -24,16 +26,68 @@ env:
   TF_VERSION: "1.12.2"
 
 jobs:
-  # --- dev: always runs once Build succeeds (or on manual dispatch) -----------
-  deploy-dev:
+  # --- gate: nothing deploys until E2E is green for THIS commit ---------------
+  # Build and E2E are separate workflows triggered by the same push, so they run
+  # in parallel and Build finishing tells us nothing about E2E. This job polls the
+  # E2E workflow run for the same head SHA and fails if it is not successful, so a
+  # red e2e suite on main blocks the rollout instead of only being visible in the
+  # Actions tab. Both deploy jobs hang off it (deploy-prod via `needs: deploy-dev`).
+  e2e-gate:
     runs-on: ubuntu-latest
-    environment: development
-    # workflow_run fires on completion regardless of result; only deploy when the
+    timeout-minutes: 60
+    # workflow_run fires on completion regardless of result; only proceed when the
     # Build workflow actually succeeded. Manual runs (workflow_dispatch) have no
     # workflow_run payload, so conclusion is empty — allow those through too.
+    # Skipping here skips the deploy jobs with it.
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
+
+    steps:
+      - name: Wait for E2E to succeed for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          # The commit Build ran against — the same commit E2E ran against.
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          set -uo pipefail
+          echo "Waiting for the E2E workflow on ${HEAD_SHA}"
+          # Both workflows are queued by the same event, so the run normally exists
+          # already; keep waiting rather than failing fast if it has not appeared yet.
+          deadline=$(( $(date +%s) + 45 * 60 ))
+          while :; do
+            info="$(gh api \
+              "repos/${REPO}/actions/workflows/e2e.yml/runs?head_sha=${HEAD_SHA}&per_page=1" \
+              --jq '.workflow_runs[0] // {} | "\(.status // "missing") \(.conclusion // "none")"' \
+              2>/dev/null || echo "apierror none")"
+            status="${info%% *}"
+            conclusion="${info##* }"
+            echo "status=${status} conclusion=${conclusion}"
+
+            if [ "$status" = "completed" ]; then
+              if [ "$conclusion" = "success" ]; then
+                echo "E2E is green — proceeding with the deploy."
+                exit 0
+              fi
+              echo "::error::E2E concluded '${conclusion}' for ${HEAD_SHA}; refusing to deploy."
+              exit 1
+            fi
+
+            if [ "$(date +%s)" -ge "$deadline" ]; then
+              echo "::error::Timed out waiting for E2E on ${HEAD_SHA} (last status: ${status})."
+              exit 1
+            fi
+            sleep 30
+          done
+
+  # --- dev: runs once Build succeeds and E2E is green (or on manual dispatch) --
+  deploy-dev:
+    runs-on: ubuntu-latest
+    environment: development
+    # The Build-succeeded / manual-dispatch condition lives on e2e-gate; a skipped
+    # gate skips this job too.
+    needs: e2e-gate
 
     env:
       TF_WORKSPACE_ENV: dev
