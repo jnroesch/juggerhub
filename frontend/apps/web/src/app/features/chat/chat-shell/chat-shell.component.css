@@ -1,1 +1,30 @@
 /* Layout-only; visuals from DESIGN.md tokens. */
+
+/*
+  Chat is the one screen that has to fit the viewport exactly. The composer sits at the bottom of a
+  flex column, so every pixel this box overshoots by pushes the input below the fold — and the
+  reader has to scroll to find the thing the screen exists for.
+
+  Three corrections against the `100vh - 4rem` this used to be:
+  - `dvh`, not `vh`: on mobile `100vh` is the URL-bar-retracted height, so with the bar on screen
+    the column was already taller than what you can see.
+  - the top bar is `h-14` (3.5rem), not 4rem.
+  - below `md` the fixed bottom nav covers the last ~76px plus the home-indicator inset it pads
+    itself with. `<main>`'s `pb-[76px]` reserves that room in the flow, but flow padding cannot
+    shrink a child that names its own height.
+
+  `vh` first as the fallback for anything without `dvh` — same behaviour as before, one breakpoint
+  better.
+*/
+.chat-viewport {
+  height: calc(100vh - 3.5rem - 76px - env(safe-area-inset-bottom, 0px));
+  height: calc(100dvh - 3.5rem - 76px - env(safe-area-inset-bottom, 0px));
+}
+
+/* Desktop drops the bottom bar (`md:hidden`), so the column reclaims that space. */
+@media (min-width: 768px) {
+  .chat-viewport {
+    height: calc(100vh - 3.5rem);
+    height: calc(100dvh - 3.5rem);
+  }
+}

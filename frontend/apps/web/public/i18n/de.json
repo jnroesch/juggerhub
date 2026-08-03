@@ -390,8 +390,7 @@
       "none": "Noch keine Abzeichen oder Erfolge."
     },
     "pompfeSelector": {
-      "aria": "Lieblings-Pompfen",
-      "pos": "Pos"
+      "aria": "Lieblings-Pompfen"
     },
     "owner": {
       "loading": "Dein Profil wird geladen…",
