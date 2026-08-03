@@ -19,9 +19,29 @@ resource "azurerm_kubernetes_cluster" "this" {
     temporary_name_for_rotation  = "systmp"
   }
 
+  # Required from azurerm 5.0. "Manual" is the classic behaviour this cluster has always
+  # had: nodes come from the pools declared below. "Auto" would hand sizing to Node Auto
+  # Provisioning (Karpenter), which would make default_node_pool/user pool advisory —
+  # not what this architecture wants.
+  node_provisioning_profile {
+    mode = "Manual"
+  }
+
   identity {
     type = "SystemAssigned"
   }
+
+  # azurerm 5.0 flipped this default from false to true. Pinned explicitly rather than
+  # inherited, so the value is a decision in the file instead of a property of whichever
+  # provider version happens to be resolved.
+  #
+  # MUST be true: the live clusters already have the OIDC issuer ON, and this field is
+  # ForceNew — setting it false to "preserve 4.x behaviour" plans as a DESTROY/RECREATE
+  # of the whole cluster (verified against dev state, which cascades into the user node
+  # pool and the ingress-IP role assignment). true matches live state and the 5.0
+  # default, so this reads as a no-op. Also the prerequisite for the workload-identity
+  # move that modules/storage/main.tf describes.
+  oidc_issuer_enabled = true
 
   network_profile {
     network_plugin      = "azure"
