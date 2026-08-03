@@ -386,8 +386,7 @@
       "none": "No badges or achievements yet."
     },
     "pompfeSelector": {
-      "aria": "Favorite pompfen",
-      "pos": "pos"
+      "aria": "Favorite pompfen"
     },
     "owner": {
       "loading": "Loading your profile…",

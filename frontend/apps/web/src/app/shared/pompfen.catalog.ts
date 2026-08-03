@@ -22,18 +22,17 @@ export interface PompfeCatalogEntry {
   value: Pompfe;
   /** Transloco key for the label in the active language. */
   labelKey: string;
-  /** Läufer is a position, not a pompfe, but lives in the same selector. */
-  isPosition: boolean;
 }
 
+/** Läufer is a position, not a pompfe, but it lives in the same selector unmarked. */
 export const POMPFEN_CATALOG: readonly PompfeCatalogEntry[] = [
-  { value: 'Stab', labelKey: 'pompfen.Stab', isPosition: false },
-  { value: 'Langpompfe', labelKey: 'pompfen.Langpompfe', isPosition: false },
-  { value: 'Schild', labelKey: 'pompfen.Schild', isPosition: false },
-  { value: 'QTip', labelKey: 'pompfen.QTip', isPosition: false },
-  { value: 'Kette', labelKey: 'pompfen.Kette', isPosition: false },
-  { value: 'DoppelKurz', labelKey: 'pompfen.DoppelKurz', isPosition: false },
-  { value: 'Laeufer', labelKey: 'pompfen.Laeufer', isPosition: true },
+  { value: 'Stab', labelKey: 'pompfen.Stab' },
+  { value: 'Langpompfe', labelKey: 'pompfen.Langpompfe' },
+  { value: 'Schild', labelKey: 'pompfen.Schild' },
+  { value: 'QTip', labelKey: 'pompfen.QTip' },
+  { value: 'Kette', labelKey: 'pompfen.Kette' },
+  { value: 'DoppelKurz', labelKey: 'pompfen.DoppelKurz' },
+  { value: 'Laeufer', labelKey: 'pompfen.Laeufer' },
 ];
 
 /** The i18n key holding a pompfe's label in the active language. */
