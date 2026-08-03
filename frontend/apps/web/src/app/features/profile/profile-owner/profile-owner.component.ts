@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
@@ -22,6 +22,7 @@ import { CityPickerComponent } from '../../../shared/city-picker/city-picker.com
   selector: 'jh-profile-owner',
   imports: [ReactiveFormsModule, PompfeSelectorComponent, ProfileViewComponent, CityPickerComponent, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './profile-owner.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './profile-owner.component.css',
 })
 export class ProfileOwnerComponent {

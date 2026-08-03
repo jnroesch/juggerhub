@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -28,6 +28,7 @@ import { RecognitionDisplayComponent } from '../../profile/components/recognitio
   selector: 'jh-team-detail',
   imports: [RouterLink, DatePipe, RecognitionDisplayComponent, ButtonDirective, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './team-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './team-detail.component.css',
 })
 export class TeamDetailComponent {

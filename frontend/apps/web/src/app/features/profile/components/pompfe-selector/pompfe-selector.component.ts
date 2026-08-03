@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { POMPFEN_CATALOG, Pompfe } from '../../../../shared/pompfen.catalog';
 
@@ -11,6 +11,7 @@ import { POMPFEN_CATALOG, Pompfe } from '../../../../shared/pompfen.catalog';
   selector: 'jh-pompfe-selector',
   imports: [TranslocoPipe],
   templateUrl: './pompfe-selector.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './pompfe-selector.component.css',
 })
 export class PompfeSelectorComponent {

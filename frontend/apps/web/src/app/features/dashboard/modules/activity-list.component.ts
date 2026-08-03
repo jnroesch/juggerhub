@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { RouterLink } from '@angular/router';
 import { CardComponent } from '../../../shared/ui';
@@ -15,6 +15,7 @@ import { relativeTime } from '../../../core/utils/format';
   selector: 'jh-activity-list',
   imports: [RouterLink, CardComponent, TranslocoPipe],
   templateUrl: './activity-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './activity-list.component.css',
 })
 export class ActivityListComponent {

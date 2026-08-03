@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { PasswordPolicy } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth.service';
@@ -19,6 +19,7 @@ interface Rule {
   selector: 'jh-password-rules',
   imports: [TranslocoPipe],
   templateUrl: './password-rules.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './password-rules.component.css',
 })
 export class PasswordRulesComponent {

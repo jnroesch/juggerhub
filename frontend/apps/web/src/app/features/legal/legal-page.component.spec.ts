@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -29,7 +29,7 @@ describe('Legal pages (feature 036)', () => {
     TestBed.configureTestingModule({
       imports: [translocoTestingModule(rootLangs)],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         // The real route paths, not a stub. Anchor links resolve relative to the ACTIVE route, so
         // a component created outside one resolves them against `/` — which is precisely the bug

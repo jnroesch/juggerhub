@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { pompfeLabel } from '../../../../shared/pompfen.catalog';
@@ -15,6 +15,7 @@ import { RecognitionDisplayComponent } from '../recognition-display/recognition-
   selector: 'jh-profile-view',
   imports: [RouterLink, RecognitionDisplayComponent, TranslocoPipe],
   templateUrl: './profile-view.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './profile-view.component.css',
 })
 export class ProfileViewComponent {

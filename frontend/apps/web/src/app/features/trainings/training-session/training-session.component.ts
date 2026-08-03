@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ButtonDirective, LoadingComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -17,6 +17,7 @@ import { problemDetail } from '../../../core/utils/problem';
   selector: 'jh-training-session',
   imports: [RouterLink, ButtonDirective, LoadingComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './training-session.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './training-session.component.css',
 })
 export class TrainingSessionComponent {

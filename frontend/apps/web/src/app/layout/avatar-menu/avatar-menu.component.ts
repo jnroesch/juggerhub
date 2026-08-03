@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, computed, effect, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, effect, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { MembershipService } from '../../core/services/membership.service';
@@ -13,6 +13,7 @@ import { RecognitionAdminService } from '../../core/services/recognition-admin.s
   selector: 'jh-avatar-menu',
   imports: [RouterLink],
   templateUrl: './avatar-menu.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './avatar-menu.component.css',
 })
 export class AvatarMenuComponent {

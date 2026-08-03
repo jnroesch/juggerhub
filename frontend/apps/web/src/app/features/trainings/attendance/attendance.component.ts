@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { LoadingComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -15,6 +15,7 @@ import { problemDetail } from '../../../core/utils/problem';
   selector: 'jh-training-attendance',
   imports: [RouterLink, LoadingComponent, TranslocoPipe],
   templateUrl: './attendance.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './attendance.component.css',
 })
 export class AttendanceComponent {

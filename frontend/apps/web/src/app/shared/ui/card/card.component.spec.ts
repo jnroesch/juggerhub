@@ -1,9 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CardComponent } from './card.component';
 
 @Component({
   imports: [CardComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <jh-card [accent]="accent()" [interactive]="interactive()">
       <p data-testid="content">Body</p>

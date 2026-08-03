@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective } from '../../../shared/ui';
 import { NotificationPreferencesService } from '../../../core/services/notification-preferences.service';
@@ -14,6 +14,7 @@ import { ChannelKey, NotificationCategoryId } from '../../../core/models/notific
   selector: 'jh-notification-settings',
   imports: [ButtonDirective, TranslocoPipe],
   templateUrl: './notification-settings.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './notification-settings.component.css',
 })
 export class NotificationSettingsComponent implements OnInit {

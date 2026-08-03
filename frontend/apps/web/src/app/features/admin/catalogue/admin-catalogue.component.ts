@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -29,6 +29,7 @@ const ICON_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
   selector: 'jh-admin-catalogue',
   imports: [DatePipe, FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-catalogue.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin-catalogue.component.css',
 })
 export class AdminCatalogueComponent {

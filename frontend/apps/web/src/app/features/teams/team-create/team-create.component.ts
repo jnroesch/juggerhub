@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -20,6 +20,7 @@ import { CityPickerComponent } from '../../../shared/city-picker/city-picker.com
   selector: 'jh-team-create',
   imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CityPickerComponent, TranslocoPipe],
   templateUrl: './team-create.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './team-create.component.css',
 })
 export class TeamCreateComponent {

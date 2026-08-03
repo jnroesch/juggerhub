@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 
@@ -22,6 +22,7 @@ export type LegalLinksVariant = 'footer' | 'inline';
   selector: 'jh-legal-links',
   imports: [RouterLink, TranslocoDirective],
   templateUrl: './legal-links.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './legal-links.component.css',
 })
 export class LegalLinksComponent {

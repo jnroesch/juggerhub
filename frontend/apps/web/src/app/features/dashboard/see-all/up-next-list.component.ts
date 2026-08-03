@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { HomeService } from '../../../core/services/home.service';
@@ -14,6 +14,7 @@ import { UpNextCardComponent } from '../modules/up-next-card.component';
   selector: 'jh-up-next-list',
   imports: [UpNextCardComponent, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './up-next-list.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './up-next-list.component.css',
 })
 export class UpNextListComponent implements OnInit {

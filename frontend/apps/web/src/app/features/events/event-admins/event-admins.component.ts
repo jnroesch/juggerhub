@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
@@ -24,6 +24,7 @@ import { problemDetail } from '../../../core/utils/problem';
   selector: 'jh-event-admins',
   imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './event-admins.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './event-admins.component.css',
 })
 export class EventAdminsComponent implements OnInit {

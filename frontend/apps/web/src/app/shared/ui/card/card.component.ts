@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, ChangeDetectionStrategy } from '@angular/core';
 
 /**
  * Shared card primitive (feature 024). A white `surface-card` panel with a 1px muted
@@ -11,6 +11,7 @@ import { Component, input } from '@angular/core';
   selector: 'jh-card',
   templateUrl: './card.component.html',
   styleUrl: './card.component.css',
+  changeDetection: ChangeDetectionStrategy.Eager,
   host: {
     '[class.jh-card--interactive]': 'interactive()',
   },

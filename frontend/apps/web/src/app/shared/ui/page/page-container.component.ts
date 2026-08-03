@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
 
 /** Page-type → DESIGN.md container token (see specs/024-ui-primitives/research.md R6). */
 export type PageWidth = 'sm' | 'md' | 'lg' | 'xl';
@@ -13,6 +13,7 @@ export type PageWidth = 'sm' | 'md' | 'lg' | 'xl';
 @Component({
   selector: 'jh-page-container',
   templateUrl: './page-container.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './page-container.component.css',
 })
 export class PageContainerComponent {

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -15,6 +15,7 @@ type VerifyState = 'verifying' | 'success' | 'failed';
   selector: 'jh-verify-email',
   imports: [LegalLinksComponent, ReactiveFormsModule, RouterLink, ButtonDirective, CardComponent, TranslocoPipe],
   templateUrl: './verify-email.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './verify-email.component.css',
 })
 export class VerifyEmailComponent implements OnInit {

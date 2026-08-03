@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CityPickerComponent } from './city-picker.component';
@@ -20,7 +20,7 @@ describe('CityPickerComponent', () => {
   beforeEach(() => {
     jest.useFakeTimers(); // the type-ahead debounces 250ms
     TestBed.configureTestingModule({
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(CityPickerComponent);

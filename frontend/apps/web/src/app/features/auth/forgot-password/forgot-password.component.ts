@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
@@ -14,6 +14,7 @@ import { LegalLinksComponent, ButtonDirective, AlertComponent, CardComponent } f
   selector: 'jh-forgot-password',
   imports: [LegalLinksComponent, ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CardComponent, TranslocoPipe],
   templateUrl: './forgot-password.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './forgot-password.component.css',
 })
 export class ForgotPasswordComponent {

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -23,6 +23,7 @@ type AwardKind = 'badge' | 'achievement';
   selector: 'jh-admin-team-detail',
   imports: [DatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-team-detail.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin-team-detail.component.css',
 })
 export class AdminTeamDetailComponent {

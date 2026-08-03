@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ButtonDirective, EmptyStateComponent, CardComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -14,6 +14,7 @@ import { PartyService } from '../../../core/services/party.service';
   selector: 'jh-party-invitations',
   imports: [RouterLink, FormsModule, ButtonDirective, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './party-invitations.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './party-invitations.component.css',
 })
 export class PartyInvitationsComponent implements OnInit {

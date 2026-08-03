@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { HomeService } from '../../../core/services/home.service';
@@ -13,6 +13,7 @@ import { NewsListComponent } from '../modules/news-list.component';
   selector: 'jh-news-page',
   imports: [NewsListComponent, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './news-page.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-page.component.css',
 })
 export class NewsPageComponent implements OnInit {

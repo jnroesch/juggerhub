@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -25,6 +25,7 @@ type PendingAction = 'accept' | 'decline';
   selector: 'jh-invite-accept',
   imports: [LegalLinksComponent, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './invite-accept.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './invite-accept.component.css',
 })
 export class InviteAcceptComponent {

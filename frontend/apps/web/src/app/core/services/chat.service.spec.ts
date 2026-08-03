@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { ChatService } from './chat.service';
 import { AuthService } from './auth.service';
@@ -54,7 +54,7 @@ describe('ChatService', () => {
     TestBed.configureTestingModule({
       providers: [
         ChatService,
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         { provide: AuthService, useValue: { isAuthenticated: authed } },
       ],

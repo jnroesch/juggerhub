@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
@@ -16,6 +16,7 @@ import { NavId, badgeText, isActiveDestination } from '../nav-model';
   selector: 'jh-bottom-nav',
   imports: [RouterLink, TranslocoPipe],
   templateUrl: './bottom-nav.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './bottom-nav.component.css',
 })
 export class BottomNavComponent {

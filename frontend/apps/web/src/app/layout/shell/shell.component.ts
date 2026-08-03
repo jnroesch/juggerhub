@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject } from '@angular/core';
+import { Component, OnInit, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { TopNavComponent } from '../top-nav/top-nav.component';
@@ -30,6 +30,7 @@ import { LanguageSwitcherComponent } from '../../features/settings/language/lang
     TranslocoPipe,
   ],
   templateUrl: './shell.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './shell.component.css',
 })
 export class ShellComponent implements OnInit {

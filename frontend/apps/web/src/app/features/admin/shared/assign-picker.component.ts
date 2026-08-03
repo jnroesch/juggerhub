@@ -1,4 +1,4 @@
-import { Component, HostListener, computed, inject, input, output, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ButtonDirective } from '../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -23,6 +23,7 @@ type Tab = 'badge' | 'achievement';
   selector: 'jh-assign-picker',
   imports: [FormsModule, ButtonDirective, TranslocoPipe],
   templateUrl: './assign-picker.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './assign-picker.component.css',
 })
 export class AssignPickerComponent {

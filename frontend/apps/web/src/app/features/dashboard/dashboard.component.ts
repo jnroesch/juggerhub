@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ButtonDirective, EmptyStateComponent } from '../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { HomeService } from '../../core/services/home.service';
@@ -20,6 +20,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
   selector: 'jh-dashboard',
   imports: [RouterLink, NeedsYouCardComponent, UpNextCardComponent, NewsListComponent, ActivityListComponent, ButtonDirective, EmptyStateComponent, TranslocoPipe],
   templateUrl: './dashboard.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './dashboard.component.css',
 })
 export class DashboardComponent implements OnInit {

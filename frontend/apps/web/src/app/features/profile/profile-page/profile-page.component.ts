@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { LoadingComponent } from '../../../shared/ui';
 import { AuthService } from '../../../core/services/auth.service';
@@ -21,6 +21,7 @@ type ProfileMode = 'loading' | 'owner' | 'viewer';
   selector: 'jh-profile-page',
   imports: [ProfileOwnerComponent, ProfilePublicComponent, LoadingComponent],
   templateUrl: './profile-page.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './profile-page.component.css',
 })
 export class ProfilePageComponent {

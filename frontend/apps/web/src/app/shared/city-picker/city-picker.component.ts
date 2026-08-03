@@ -7,6 +7,7 @@ import {
   Output,
   inject,
   signal,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -29,6 +30,7 @@ import { IconComponent } from '../ui';
   selector: 'jh-city-picker',
   imports: [FormsModule, IconComponent],
   templateUrl: './city-picker.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './city-picker.component.css',
 })
 export class CityPickerComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -24,6 +24,7 @@ import { problemDetail } from '../../core/utils/problem';
   selector: 'jh-delete-account',
   imports: [FormsModule, TranslocoPipe, AlertComponent, ButtonDirective],
   templateUrl: './delete-account.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './delete-account.component.css',
 })
 export class DeleteAccountComponent {

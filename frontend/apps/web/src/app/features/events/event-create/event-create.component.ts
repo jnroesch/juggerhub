@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, AlertComponent } from '../../../shared/ui';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -29,6 +29,7 @@ const STEPS: readonly Step[] = ['type', 'when', 'where', 'who', 'fee', 'review']
   selector: 'jh-event-create',
   imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, CityPickerComponent, TranslocoPipe],
   templateUrl: './event-create.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './event-create.component.css',
 })
 export class EventCreateComponent {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { LegalPageComponent } from '../legal-page.component';
 
 /** Reading order for the imprint (feature 036). Short enough that it needs no table of contents. */
@@ -8,6 +8,7 @@ export const IMPRINT_SECTIONS = ['operator', 'contact', 'responsibility', 'dispu
 @Component({
   selector: 'jh-imprint',
   imports: [LegalPageComponent],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './imprint.component.html',
 })
 export class ImprintComponent {

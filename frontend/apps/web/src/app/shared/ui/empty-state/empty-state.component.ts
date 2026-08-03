@@ -1,4 +1,4 @@
-import { Component, computed, input } from '@angular/core';
+import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
 
 /**
  * Shared empty-state primitive (feature 024). One centered, muted, warm treatment for
@@ -11,6 +11,7 @@ import { Component, computed, input } from '@angular/core';
 @Component({
   selector: 'jh-empty-state',
   templateUrl: './empty-state.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './empty-state.component.css',
 })
 export class EmptyStateComponent {

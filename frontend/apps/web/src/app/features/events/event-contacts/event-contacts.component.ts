@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -15,6 +15,7 @@ import { problemDetail } from '../../../core/utils/problem';
   selector: 'jh-event-contacts',
   imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './event-contacts.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './event-contacts.component.css',
 })
 export class EventContactsComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { LanguageService } from './core/i18n/language.service';
 
@@ -6,6 +6,7 @@ import { LanguageService } from './core/i18n/language.service';
   imports: [RouterOutlet],
   selector: 'jh-root',
   templateUrl: './app.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.css',
 })
 export class App {

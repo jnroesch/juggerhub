@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, input, output, signal } from '@angular/core';
+import { Component, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
 import { ButtonDirective } from '../../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -10,6 +10,7 @@ import { EventNews } from '../../../../core/models/event.models';
   selector: 'jh-event-news-feed',
   imports: [DatePipe, FormsModule, ButtonDirective, TranslocoPipe],
   templateUrl: './news-feed.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-feed.component.css',
 })
 export class EventNewsFeedComponent {

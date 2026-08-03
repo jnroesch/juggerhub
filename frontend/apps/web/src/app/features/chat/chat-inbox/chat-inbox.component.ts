@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ButtonDirective } from '../../../shared/ui';
 import { Router, RouterLink } from '@angular/router';
@@ -19,6 +19,7 @@ import { ChatSearchResult, Conversation } from '../../../core/models/chat.models
   selector: 'jh-chat-inbox',
   imports: [RouterLink, FormsModule, ButtonDirective, TranslocoPipe],
   templateUrl: './chat-inbox.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './chat-inbox.component.css',
 })
 export class ChatInboxComponent implements OnInit {

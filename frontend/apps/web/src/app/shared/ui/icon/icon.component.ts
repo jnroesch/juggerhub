@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, ChangeDetectionStrategy } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ICONS, IconName } from './icons';
 
@@ -13,6 +13,7 @@ import { ICONS, IconName } from './icons';
 @Component({
   selector: 'jh-icon',
   templateUrl: './icon.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './icon.component.css',
 })
 export class IconComponent {

@@ -1,4 +1,4 @@
-import { Component, OnInit, effect, inject, signal } from '@angular/core';
+import { Component, OnInit, effect, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent } from '../../shared/ui';
@@ -18,6 +18,7 @@ import { MyInvitation } from '../../core/models/team.models';
   selector: 'jh-my-team',
   imports: [RouterLink, ButtonDirective, LoadingComponent, TranslocoPipe],
   templateUrl: './my-team.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './my-team.component.css',
 })
 export class MyTeamComponent implements OnInit {

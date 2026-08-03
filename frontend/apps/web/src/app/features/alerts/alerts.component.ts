@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective } from '../../shared/ui';
 import { NotificationService } from '../../core/services/notification.service';
@@ -18,6 +18,7 @@ import { NotificationRowComponent } from './notification-row/notification-row.co
   selector: 'jh-alerts',
   imports: [NotificationRowComponent, ButtonDirective, TranslocoPipe],
   templateUrl: './alerts.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './alerts.component.css',
 })
 export class AlertsComponent implements OnInit {
