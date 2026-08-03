@@ -30,6 +30,11 @@
     <!-- Feature 030: bundled GeoNames cities500 seed (regenerate with Data/Seed/regenerate-cities500.mjs). -->
     <Content Include="Data/Seed/cities500.seed.tsv.gz" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <None Remove="Data/Seed/regenerate-cities500.mjs" />
+    <!-- The raw GeoNames downloads the regeneration script consumes are transient and huge
+         (cities500.txt is ~40 MB). They are gitignored, but a local regeneration leaves them in
+         the source tree, where the SDK's default content glob would publish them into the image. -->
+    <Content Remove="Data/Seed/cities500.txt;Data/Seed/cities500.zip;Data/Seed/countryInfo.txt;Data/Seed/admin1CodesASCII.txt" />
+    <None Remove="Data/Seed/cities500.txt;Data/Seed/cities500.zip;Data/Seed/countryInfo.txt;Data/Seed/admin1CodesASCII.txt" />
   </ItemGroup>
 
   <ItemGroup>

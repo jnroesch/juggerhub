@@ -8,7 +8,7 @@ import { Observable } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Party, PartyMember, PartyNews, PartyRosterGroup } from '../../../core/models/party.models';
 import { PartyService } from '../../../core/services/party.service';
-import { Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
+import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 
 /**
  * The party manage hub (feature 016 · wireframes 6d–6h). One page for the whole party: roster in
@@ -94,7 +94,7 @@ export class PartyManageComponent implements OnInit {
   }
 
   protected positions(pompfen: Pompfe[]): string {
-    return pompfen.map((p) => pompfeLabel(p)?.de ?? p).join(' · ');
+    return pompfen.map((p) => this.transloco.translate(pompfeLabelKey(p))).join(' · ');
   }
 
   protected loadTab(group: PartyRosterGroup): void {

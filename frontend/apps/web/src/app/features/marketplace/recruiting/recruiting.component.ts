@@ -8,7 +8,7 @@ import {
   MarketRequest,
   RecruitingSettings,
 } from '../../../core/models/market.models';
-import { POMPFEN_CATALOG, Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
+import { POMPFEN_CATALOG, Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import { problemDetail } from '../../../core/utils/problem';
 import { relativeTime } from '../../../core/utils/format';
 
@@ -30,7 +30,7 @@ export class RecruitingComponent implements OnInit {
   private readonly transloco = inject(TranslocoService);
 
   protected readonly catalog = POMPFEN_CATALOG;
-  protected readonly label = pompfeLabel;
+  protected readonly labelKey = pompfeLabelKey;
   protected readonly rel = relativeTime;
 
   protected id = '';

@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchService } from '../../../core/services/search.service';
 import { FilterChip, PlayerBrowseParams, PlayerCard } from '../../../core/models/search.models';
-import { POMPFEN_CATALOG, Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
+import { POMPFEN_CATALOG, Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
@@ -74,7 +74,8 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
   }
 
   protected label(p: Pompfe): string {
-    return pompfeLabel(p)?.en ?? p;
+    this.lang();
+    return this.t.translate(pompfeLabelKey(p));
   }
 
   protected onQuery(q: string): void {

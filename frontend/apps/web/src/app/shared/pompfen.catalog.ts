@@ -2,6 +2,10 @@
  * Canonical Jugger pompfen catalog (+ the Läufer position), shared by the profile
  * owner selector and the public "Plays" section. The enum string values mirror the
  * backend `Pompfe` enum names exactly. Order here is the display order.
+ *
+ * Labels are NOT held here — they live in the i18n catalogs under `pompfen.*` so a
+ * player sees each name in the language they picked (feature 031). Render them with
+ * the transloco pipe (`entry.labelKey | transloco`) or `TranslocoService.translate`.
  */
 
 export type Pompfe =
@@ -16,25 +20,23 @@ export type Pompfe =
 export interface PompfeCatalogEntry {
   /** Matches the backend enum name / API value. */
   value: Pompfe;
-  /** German label. */
-  de: string;
-  /** English label. */
-  en: string;
+  /** Transloco key for the label in the active language. */
+  labelKey: string;
   /** Läufer is a position, not a pompfe, but lives in the same selector. */
   isPosition: boolean;
 }
 
 export const POMPFEN_CATALOG: readonly PompfeCatalogEntry[] = [
-  { value: 'Stab', de: 'Stab', en: 'Staff', isPosition: false },
-  { value: 'Langpompfe', de: 'Langpompfe', en: 'Long', isPosition: false },
-  { value: 'Schild', de: 'Schild', en: 'Shield', isPosition: false },
-  { value: 'QTip', de: 'Q-Tip', en: 'Q-Tip', isPosition: false },
-  { value: 'Kette', de: 'Kette', en: 'Chain', isPosition: false },
-  { value: 'DoppelKurz', de: 'Doppel-Kurz', en: 'Double-Short', isPosition: false },
-  { value: 'Laeufer', de: 'Läufer', en: 'Runner', isPosition: true },
+  { value: 'Stab', labelKey: 'pompfen.Stab', isPosition: false },
+  { value: 'Langpompfe', labelKey: 'pompfen.Langpompfe', isPosition: false },
+  { value: 'Schild', labelKey: 'pompfen.Schild', isPosition: false },
+  { value: 'QTip', labelKey: 'pompfen.QTip', isPosition: false },
+  { value: 'Kette', labelKey: 'pompfen.Kette', isPosition: false },
+  { value: 'DoppelKurz', labelKey: 'pompfen.DoppelKurz', isPosition: false },
+  { value: 'Laeufer', labelKey: 'pompfen.Laeufer', isPosition: true },
 ];
 
-/** Lookup a catalog entry by its API value. */
-export function pompfeLabel(value: Pompfe): PompfeCatalogEntry | undefined {
-  return POMPFEN_CATALOG.find((p) => p.value === value);
+/** The i18n key holding a pompfe's label in the active language. */
+export function pompfeLabelKey(value: Pompfe): string {
+  return `pompfen.${value}`;
 }

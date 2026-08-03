@@ -2,9 +2,9 @@ import { DatePipe } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ButtonDirective, EmptyStateComponent, CardComponent } from '../../../shared/ui';
-import { Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
+import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import {
   JoinRequest,
   PublicMember,
@@ -35,6 +35,7 @@ export class TeamDetailComponent {
   private readonly parties = inject(PartyService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   protected readonly slug = signal('');
   protected readonly pub = signal<TeamPublicDetail | null>(null);
@@ -223,7 +224,7 @@ export class TeamDetailComponent {
   }
 
   protected positions(pompfen: Pompfe[]): string {
-    return pompfen.map((p) => pompfeLabel(p)?.de ?? p).join(' · ');
+    return pompfen.map((p) => this.transloco.translate(pompfeLabelKey(p))).join(' · ');
   }
 
   /**

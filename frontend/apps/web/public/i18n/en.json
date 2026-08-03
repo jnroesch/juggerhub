@@ -1,4 +1,13 @@
 {
+  "pompfen": {
+    "Stab": "Staff",
+    "Langpompfe": "Long",
+    "Schild": "Shield",
+    "QTip": "Q-Tip",
+    "Kette": "Chain",
+    "DoppelKurz": "Double-Short",
+    "Laeufer": "Runner"
+  },
   "common": {
     "language": "Language",
     "save": "Save",
@@ -775,7 +784,7 @@
     },
     "pompfen": {
       "title": "Which do you play?",
-      "subtitle": "Pick any — including Läufer."
+      "subtitle": "Pick any — including Runner."
     },
     "team": {
       "title": "Find your team",

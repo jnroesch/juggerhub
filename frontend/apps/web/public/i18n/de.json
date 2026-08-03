@@ -3,6 +3,15 @@
     "status": "draft",
     "review": "Machine/AI draft — native-speaker review pending (see #77)"
   },
+  "pompfen": {
+    "Stab": "Stab",
+    "Langpompfe": "Langpompfe",
+    "Schild": "Schild",
+    "QTip": "Q-Tip",
+    "Kette": "Kette",
+    "DoppelKurz": "Doppel-Kurz",
+    "Laeufer": "Läufer"
+  },
   "common": {
     "language": "Sprache",
     "save": "Speichern",

@@ -69,7 +69,7 @@
           [class.text-ink]="!isPending(entry.value)"
           [attr.aria-pressed]="isPending(entry.value)"
           (click)="togglePending(entry.value)"
-        >{{ entry.en }}</button>
+        >{{ entry.labelKey | transloco }}</button>
       }
     </div>
   </div>

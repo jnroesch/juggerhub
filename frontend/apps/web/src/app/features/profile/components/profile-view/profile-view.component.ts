@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { pompfeLabel } from '../../../../shared/pompfen.catalog';
+import { pompfeLabelKey } from '../../../../shared/pompfen.catalog';
 import { ProfileView } from '../../../../core/models/profile.models';
 import { RecognitionDisplayComponent } from '../recognition-display/recognition-display.component';
 
@@ -19,5 +19,5 @@ import { RecognitionDisplayComponent } from '../recognition-display/recognition-
 })
 export class ProfileViewComponent {
   readonly profile = input.required<ProfileView>();
-  protected readonly labelOf = pompfeLabel;
+  protected readonly labelKey = pompfeLabelKey;
 }
