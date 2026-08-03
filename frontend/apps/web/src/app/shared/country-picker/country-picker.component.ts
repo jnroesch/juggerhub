@@ -1,15 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  HostListener,
-  OnInit,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CityService } from '../../core/services/city.service';
 import { Country } from '../../core/models/city.models';

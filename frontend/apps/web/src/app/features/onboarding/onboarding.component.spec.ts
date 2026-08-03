@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import {
   HttpTestingController,
   TestRequest,
@@ -103,7 +103,7 @@ describe('OnboardingComponent', () => {
     TestBed.configureTestingModule({
       imports: [translocoTestingModule()],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: ActivatedRoute, useValue: routeStub },

@@ -21,8 +21,12 @@ COPY . .
 ENTRYPOINT ["npx", "nx", "test", "web", "--watch=false"]
 
 # --- e2e: Playwright against the running stack (desktop + mobile) ------------
-# Official Playwright image bundles browsers matching the installed version.
-FROM mcr.microsoft.com/playwright:v1.61.1-noble AS playwright
+# Official Playwright image bundles browsers matching the installed version, so this tag
+# and the @playwright/test version must move together. @playwright/test is pinned exactly
+# in package.json for that reason: under a caret range any lockfile regeneration can float
+# it past this image, and the mismatch fails every test at browser launch rather than at
+# install — which reads as a total app failure instead of a version skew.
+FROM mcr.microsoft.com/playwright:v1.62.1-noble AS playwright
 WORKDIR /app
 ENV NX_DAEMON=false CI=true
 COPY package.json package-lock.json ./

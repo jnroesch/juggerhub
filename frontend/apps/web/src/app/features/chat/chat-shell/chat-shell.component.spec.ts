@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
 import { Router } from '@angular/router';
@@ -23,7 +23,7 @@ describe('ChatShellComponent', () => {
     TestBed.configureTestingModule({
       imports: [translocoTestingModule()],
       providers: [
-        provideHttpClient(),
+        provideHttpClient(withXhr()),
         provideHttpClientTesting(),
         provideRouter([{ path: 'chat', component: ChatShellComponent }]),
         { provide: AuthService, useValue: { isAuthenticated: signal(true) } },

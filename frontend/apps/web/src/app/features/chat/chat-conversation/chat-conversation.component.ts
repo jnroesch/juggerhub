@@ -1,16 +1,4 @@
-import {
-  AfterViewChecked,
-  Component,
-  ElementRef,
-  OnChanges,
-  SimpleChanges,
-  ViewChild,
-  computed,
-  effect,
-  inject,
-  input,
-  signal,
-} from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnChanges, SimpleChanges, ViewChild, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LoadingComponent } from '../../../shared/ui';

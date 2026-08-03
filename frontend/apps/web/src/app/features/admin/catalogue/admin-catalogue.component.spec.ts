@@ -1,4 +1,4 @@
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { Signal, WritableSignal } from '@angular/core';
@@ -54,7 +54,7 @@ describe('AdminCatalogueComponent', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [translocoTestingModule()],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     httpMock = TestBed.inject(HttpTestingController);
   });
