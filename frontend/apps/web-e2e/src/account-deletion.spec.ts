@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { E2E_PASSWORD, registerVerifySignIn, verifyLinkPath } from './support/auth';
+import { E2E_PASSWORD, newAccount, register, registerVerifySignIn, verifyLinkPath } from './support/auth';
 
 /**
  * Feature 037 — self-service account deletion, in a real browser.
@@ -73,16 +73,8 @@ test.describe('account deletion', () => {
     // 7. …but the ADDRESS is released, so the same person can come back (FR-031). This is the half
     //    that differs from a ban, and the half most likely to regress silently: registration returns
     //    the same neutral acceptance whether or not it created anything, so the proof is signing in.
-    const handle = `back-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    await page.goto('/register');
-    await page.getByTestId('register-email').fill(email);
-    await page.getByTestId('register-handle').fill(handle);
-    await expect(page.getByTestId('handle-available')).toBeVisible();
-    await page.getByTestId('register-password').fill(E2E_PASSWORD);
-    await page.getByTestId('register-confirm-password').fill(E2E_PASSWORD);
-    await page.getByTestId('register-accept-terms').check();
-    await page.getByTestId('register-submit').click();
-    await expect(page.getByTestId('register')).toContainText(/check your email/i);
+    // The deleted account's address, paired with a fresh handle — the old one is gone with it.
+    await register(page, { ...newAccount('back'), email });
 
     await page.goto(await verifyLinkPath(request, email));
     await page.goto('/sign-in');

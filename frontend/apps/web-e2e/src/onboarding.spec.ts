@@ -1,5 +1,6 @@
-import { APIRequestContext, expect, test } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { pickCity } from './support/city';
+import { E2E_PASSWORD, registerVerifySignIn } from './support/auth';
 
 /**
  * Feature 004 end-to-end: a freshly-verified user's first sign-in is routed into
@@ -7,64 +8,12 @@ import { pickCity } from './support/city';
  * sign-in goes straight to the app (shown once). Runs at desktop + mobile projects.
  */
 
-const MAILPIT = process.env['MAILPIT_URL'] || 'http://mailpit:8025';
-const PASSWORD = 'Str0ng!Passw0rd';
-
-/** Polls Mailpit for the newest message to `to` whose body contains a `/{path}?…` link. */
-async function linkFromEmail(request: APIRequestContext, to: string, path: string): Promise<string> {
-  for (let attempt = 0; attempt < 30; attempt++) {
-    const res = await request.get(`${MAILPIT}/api/v1/search`, { params: { query: `to:${to}` } });
-    if (res.ok()) {
-      const data = (await res.json()) as { messages?: { ID: string }[] };
-      for (const message of data.messages ?? []) {
-        const full = await request.get(`${MAILPIT}/api/v1/message/${message.ID}`);
-        if (!full.ok()) continue;
-        const body = (await full.json()) as { HTML?: string; Text?: string };
-        const html = body.HTML || body.Text || '';
-        const match = html.match(new RegExp(`https?://[^"'\\s]*/${path}\\?[^"'\\s<]+`));
-        if (match) return match[0];
-      }
-    }
-    await new Promise((resolve) => setTimeout(resolve, 500));
-  }
-  throw new Error(`No '${path}' email for ${to} appeared in Mailpit.`);
-}
-
-function toPath(url: string): string {
-  const parsed = new URL(url);
-  return parsed.pathname + parsed.search;
-}
-
 test('first login opens onboarding; completing it lands in the app and it is shown only once', async ({
   page,
   request,
 }) => {
-  const stamp = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  const email = `e2e-onb-${stamp}@example.com`;
-  const handle = `onb${stamp}`.toLowerCase();
-
-  // 1. Register + verify.
-  await page.goto('/register');
-  await page.getByTestId('register-email').fill(email);
-  await page.getByTestId('register-handle').fill(handle);
-  await expect(page.getByTestId('handle-available')).toBeVisible();
-  await page.getByTestId('register-password').fill(PASSWORD);
-  await page.getByTestId('register-confirm-password').fill(PASSWORD);
-  await page.getByTestId('register-accept-terms').check();
-  await expect(page.getByTestId('register-submit')).toBeEnabled();
-  await page.getByTestId('register-submit').click();
-  await expect(page.getByTestId('register')).toContainText(/check your email/i);
-
-  const verifyLink = await linkFromEmail(request, email, 'verify-email');
-  await page.goto(toPath(verifyLink));
-  await expect(page.getByTestId('verify-email')).toContainText(/verified/i);
-
-  // 2. First sign-in → routed into onboarding (not the app).
-  await page.goto('/sign-in');
-  await page.getByTestId('sign-in-email').fill(email);
-  await page.getByTestId('sign-in-password').fill(PASSWORD);
-  await page.getByTestId('sign-in-submit').click();
-  await expect(page).toHaveURL(/onboarding/);
+  // 1. Register + verify + first sign-in, which is routed into onboarding (not the app).
+  const { email, handle } = await registerVerifySignIn(page, request, 'onb');
   await expect(page.getByTestId('onboarding')).toContainText(/Welcome to Jugger/i);
 
   // 3. Walk the flow: name (prefilled with the handle) → city → pompfen → team stub → photo+bio.
@@ -101,7 +50,7 @@ test('first login opens onboarding; completing it lands in the app and it is sho
   await expect(page).toHaveURL(/sign-in/);
 
   await page.getByTestId('sign-in-email').fill(email);
-  await page.getByTestId('sign-in-password').fill(PASSWORD);
+  await page.getByTestId('sign-in-password').fill(E2E_PASSWORD);
   await page.getByTestId('sign-in-submit').click();
   // Wait for the login to actually land in the app before navigating on. Asserting only
   // `not /onboarding` would pass instantly while still on /sign-in and race the session cookie,
