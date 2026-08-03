@@ -1,8 +1,11 @@
 <main class="grid min-h-screen place-items-center p-md">
-  <div class="fixed right-4 top-4 z-10">
-    <jh-language-switcher />
-  </div>
-  <jh-card accent class="w-full max-w-md p-xl" data-testid="register">
+  <!-- The switcher sits in flow above the card, not pinned to the viewport: on a phone the
+       form is taller than the screen, so a fixed switcher scrolls over the fields. -->
+  <div class="flex w-full max-w-md flex-col gap-sm">
+    <div class="self-end">
+      <jh-language-switcher />
+    </div>
+    <jh-card accent class="w-full p-xl" data-testid="register">
     @if (sent()) {
       <h1 class="text-heading-md font-semibold text-ink">{{ 'auth.register.checkEmailTitle' | transloco }}</h1>
       <p class="mt-sm text-body-md text-text-muted">
@@ -53,8 +56,9 @@
               @case ('unavailable') { <span class="pr-md text-body-sm text-danger" data-testid="handle-unavailable">✕</span> }
             }
           </div>
-          <p class="mt-xs text-body-sm text-subtle">
-            {{ 'auth.register.permalinkLabel' | transloco }} <span class="font-medium text-text">jugger.app/u/{{ form.controls.handle.value || 'your-handle' }}</span> {{ 'auth.register.permalinkNote' | transloco }}
+          <!-- break-words: host + handle is one unbreakable token and can exceed a phone's width. -->
+          <p class="mt-xs break-words text-body-sm text-subtle">
+            {{ 'auth.register.permalinkLabel' | transloco }} <span class="font-medium text-text">{{ appHost }}/u/{{ form.controls.handle.value || 'your-handle' }}</span> {{ 'auth.register.permalinkNote' | transloco }}
           </p>
           @if (handleState() === 'unavailable' && handleReason()) {
             <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ handleReason() }}</p>
@@ -108,7 +112,8 @@
         <a routerLink="/sign-in" [queryParams]="signInParams" class="font-medium text-link hover:text-link-hover">{{ 'nav.signIn' | transloco }}</a>
       </p>
     }
-  </jh-card>
+    </jh-card>
+  </div>
 
   <jh-legal-links variant="inline" />
 </main>
