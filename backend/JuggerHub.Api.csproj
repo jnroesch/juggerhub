@@ -33,8 +33,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Asp.Versioning.Mvc" Version="10.0.0" />
-    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.0" />
+    <PackageReference Include="Asp.Versioning.Mvc" Version="10.0.1" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="10.0.1" />
     <PackageReference Include="AspNetCore.HealthChecks.NpgSql" Version="9.0.0" />
     <!-- Feature 035 (#97): media bytes live in object storage, not Postgres. Azurite emulates the
          same REST API locally and in tests, so local/Dev/Prod run one code path (Principle V).
@@ -65,11 +65,16 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.16.15" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.16.17" />
     <!-- Feature 034 (#98): server-side image processing (decode/guard/resize/strip/re-encode).
          Pure-managed (no native binary) so behavior is identical across local/Dev/Prod.
          First imaging dependency — deliberately supersedes the 003-profile "no new NuGet
-         packages" bar (recorded drift). Behind IImageProcessor so it stays swappable. -->
+         packages" bar (recorded drift). Behind IImageProcessor so it stays swappable.
+         Stays on 3.x: 4.0.0 enforces the Six Labors license at BUILD time and fails with
+         "No Six Labors license found" unless $(SixLaborsLicenseKey)/$(SixLaborsLicenseFile)
+         or a sixlabors.lic is present. Apache-2.0 likely qualifies for the free OSS tier,
+         but taking 4.x means obtaining a key and plumbing it into CI *and* the Docker
+         build (dotnet publish runs in-image) — a licensing decision, not a version bump. -->
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
   </ItemGroup>
 
