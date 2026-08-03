@@ -48,6 +48,9 @@ export async function registerVerifySignIn(page: Page, request: APIRequestContex
   await expect(page.getByTestId('handle-available')).toBeVisible();
   await page.getByTestId('register-password').fill(E2E_PASSWORD);
   await page.getByTestId('register-confirm-password').fill(E2E_PASSWORD);
+  // Feature 041: accepting the Terms of Use is `Validators.requiredTrue`, so submit stays
+  // disabled until this is ticked. Never pre-ticked in the app — agreement has to be an act.
+  await page.getByTestId('register-accept-terms').check();
   await expect(page.getByTestId('register-submit')).toBeEnabled();
   await page.getByTestId('register-submit').click();
   await expect(page.getByTestId('register')).toContainText(/check your email/i);

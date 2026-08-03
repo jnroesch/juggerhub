@@ -48,6 +48,7 @@ test('register → verify → sign in → sign out → reset password', async ({
   await expect(page.getByTestId('handle-available')).toBeVisible();
   await page.getByTestId('register-password').fill(PASSWORD);
   await page.getByTestId('register-confirm-password').fill(PASSWORD);
+  await page.getByTestId('register-accept-terms').check();
   await expect(page.getByTestId('register-submit')).toBeEnabled();
   await page.getByTestId('register-submit').click();
   await expect(page.getByTestId('register')).toContainText(/check your email/i);

@@ -50,6 +50,7 @@ test('first login opens onboarding; completing it lands in the app and it is sho
   await expect(page.getByTestId('handle-available')).toBeVisible();
   await page.getByTestId('register-password').fill(PASSWORD);
   await page.getByTestId('register-confirm-password').fill(PASSWORD);
+  await page.getByTestId('register-accept-terms').check();
   await expect(page.getByTestId('register-submit')).toBeEnabled();
   await page.getByTestId('register-submit').click();
   await expect(page.getByTestId('register')).toContainText(/check your email/i);
