@@ -122,17 +122,75 @@ say so.
 
 ## Cleanup
 
-Not part of this skill, but when the user later asks to remove a finished worktree:
+The counterpart to creation. **Removing a worktree also removes its branch** — a worktree
+exists to hold a branch, so leaving the branch behind just accumulates dead refs. Do both
+unless the user says otherwise.
+
+### 1. Resolve the branch first
+
+`git worktree list` prints the branch in brackets next to each path. Read it **before**
+removing anything — once the worktree is gone you can no longer ask it what it was on, and
+the branch name often differs from the directory name (a worktree at
+`…worktrees/security-scanning-review` was checked out on `chore/angular-22-migration`).
+
+### 2. Check for work that would be lost
+
+Per worktree, before touching it:
+
+```bash
+git -C "<worktree-path>" status --short          # uncommitted + untracked
+git -C "<worktree-path>" log --oneline main..HEAD  # commits not in main
+```
+
+Report anything either command finds and confirm before continuing. Note that `.env` lives
+there untracked and goes with the directory — that is fine, the hook re-seeds it on the
+next worktree.
+
+### 3. Remove the worktree, then the branch
 
 ```bash
 git -C "<main-repo>" worktree remove "<worktree-path>"
-git -C "<main-repo>" branch -d "<branch>"    # only after it is merged
+git -C "<main-repo>" branch -d "<branch>"
 ```
 
-Confirm first — the worktree may hold uncommitted work, and `.env` lives there untracked.
+Use `-d`, never `-D`. `-d` refuses to delete a branch that isn't merged, which is the guard
+that makes this safe to run without re-deriving merge state by hand — if it refuses, stop
+and ask rather than reaching for `-D`.
+
+### 4. Leave `origin` alone
+
+This repo deletes head branches automatically when a PR merges, so the remote side is
+usually already done and any surviving `origin/<branch>` is just a stale tracking ref.
+Settle it with a prune, which is local:
+
+```bash
+git -C "<main-repo>" fetch origin --prune
+```
+
+Deleting a real remote branch (`git push origin --delete <branch>`) is outward-facing —
+only on explicit request, never as part of routine cleanup.
+
+### 5. Verify
+
+Confirm with `git worktree list` and `git branch` rather than trusting exit codes.
 
 On Windows `git worktree remove` regularly reports `failed to delete … Permission denied`
 while still de-registering the worktree, leaving the directory behind. When that happens,
 delete the leftover directory (`Remove-Item -Recurse -Force`) and run
-`git -C "<main-repo>" worktree prune`; verify with `git worktree list` rather than
-trusting the remove command's exit.
+`git -C "<main-repo>" worktree prune`.
+
+### Bulk pruning
+
+If asked to clean up accumulated branches rather than one worktree's, the safe set is
+"upstream gone **and** merged into main" — intersect the two lists and delete with `-d`,
+then report what was skipped:
+
+```bash
+comm -12 \
+  <(git for-each-ref --format='%(refname:short) %(upstream:track)' refs/heads \
+      | grep '\[gone\]' | cut -d' ' -f1 | sort) \
+  <(git branch --merged main --format='%(refname:short)' | sort)
+```
+
+Run `git fetch origin --prune` first or `[gone]` is stale. Branches with **no** upstream at
+all are not covered by this and need a human decision — they may never have been pushed.
