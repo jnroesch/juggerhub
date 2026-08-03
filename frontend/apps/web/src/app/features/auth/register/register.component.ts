@@ -41,6 +41,13 @@ export class RegisterComponent {
    * action survives the register → verify → sign-in hop instead of being dropped.
    * Only internal paths survive the open-redirect guard.
    */
+  /**
+   * Host for the permalink preview. Read from the browser rather than hardcoded so the
+   * preview matches the origin the account is actually being created on (juggerhub.com,
+   * dev.juggerhub.com, localhost) instead of naming a domain the profile isn't served from.
+   */
+  protected readonly appHost = location.host;
+
   protected readonly signInParams = ((): Record<string, string> => {
     const returnUrl = safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
     return returnUrl ? { returnUrl } : {};

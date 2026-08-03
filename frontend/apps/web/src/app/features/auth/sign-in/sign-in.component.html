@@ -1,8 +1,11 @@
 <main class="grid min-h-screen place-items-center p-md">
-  <div class="fixed right-4 top-4 z-10">
-    <jh-language-switcher />
-  </div>
-  <jh-card accent class="w-full max-w-md p-xl" data-testid="sign-in">
+  <!-- In flow above the card, not pinned to the viewport — a fixed switcher scrolls over
+       the form on short screens (see register). -->
+  <div class="flex w-full max-w-md flex-col gap-sm">
+    <div class="self-end">
+      <jh-language-switcher />
+    </div>
+    <jh-card accent class="w-full p-xl" data-testid="sign-in">
     <h1 class="text-heading-md text-ink">{{ 'auth.signIn.title' | transloco }}</h1>
     <p class="mt-xs text-body-sm text-subtle">{{ 'auth.signIn.subtitle' | transloco }}</p>
 
@@ -72,7 +75,8 @@
       {{ 'auth.signIn.newHere' | transloco }}
       <a routerLink="/register" [queryParams]="returnUrl() ? { returnUrl: returnUrl() } : {}" class="font-medium text-link hover:text-link-hover">{{ 'auth.signIn.createAccount' | transloco }}</a>
     </p>
-  </jh-card>
+    </jh-card>
+  </div>
 
   <jh-legal-links variant="inline" />
 </main>
