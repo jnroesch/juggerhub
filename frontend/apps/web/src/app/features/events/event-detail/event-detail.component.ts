@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -37,7 +37,6 @@ import { MarketBoardComponent } from '../../marketplace/market-board/market-boar
     TranslocoPipe,
   ],
   templateUrl: './event-detail.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './event-detail.component.css',
 })
 export class EventDetailComponent implements OnInit {

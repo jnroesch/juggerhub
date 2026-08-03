@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, input, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, input, signal } from '@angular/core';
 
 /** How long a load may run before the line switches to patient copy (DESIGN.md). */
 export const PATIENT_THRESHOLD_MS = 2_000;
@@ -24,7 +24,6 @@ export const PATIENT_THRESHOLD_MS = 2_000;
 @Component({
   selector: 'jh-loading',
   templateUrl: './loading.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './loading.component.css',
 })
 export class LoadingComponent implements OnInit, OnDestroy {

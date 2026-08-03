@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ButtonDirective, CardComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
@@ -27,7 +27,6 @@ import { relativeTime } from '../../../core/utils/format';
   selector: 'jh-notification-row',
   imports: [RouterLink, ButtonDirective, CardComponent, TranslocoPipe],
   templateUrl: './notification-row.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './notification-row.component.css',
 })
 export class NotificationRowComponent {

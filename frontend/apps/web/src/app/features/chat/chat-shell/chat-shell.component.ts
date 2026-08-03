@@ -1,4 +1,4 @@
-import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map, startWith } from 'rxjs';
@@ -21,7 +21,6 @@ import { ChatInboxComponent } from '../chat-inbox/chat-inbox.component';
   selector: 'jh-chat-shell',
   imports: [RouterOutlet, ChatInboxComponent, TranslocoPipe],
   templateUrl: './chat-shell.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './chat-shell.component.css',
 })
 export class ChatShellComponent {

@@ -1,10 +1,9 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { PageContainerComponent, PageWidth } from './page-container.component';
 
 @Component({
   imports: [PageContainerComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<jh-page-container [width]="width()"><p data-testid="c">Page</p></jh-page-container>`,
 })
 class HostComponent {

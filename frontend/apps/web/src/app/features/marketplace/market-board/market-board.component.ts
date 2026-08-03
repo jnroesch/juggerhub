@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, effect, inject, input, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -29,7 +29,6 @@ type BoardAction =
   selector: 'jh-market-board',
   imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './market-board.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './market-board.component.css',
 })
 export class MarketBoardComponent {

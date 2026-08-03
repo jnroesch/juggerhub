@@ -1,4 +1,4 @@
-import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 /** Status tone → DESIGN.md token triple. */
 export type AlertTone = 'danger' | 'success' | 'warning' | 'info';
@@ -15,7 +15,6 @@ export type AlertTone = 'danger' | 'success' | 'warning' | 'info';
   selector: 'jh-alert',
   templateUrl: './alert.component.html',
   styleUrl: './alert.component.css',
-  changeDetection: ChangeDetectionStrategy.Eager,
   host: {
     role: 'alert',
     class: 'block rounded-md border px-md py-sm text-body-sm',

@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { ButtonDirective } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -19,7 +19,6 @@ import { dayOfMonth, shortWeekday, timeHm } from '../../../core/utils/format';
   selector: 'jh-up-next-card',
   imports: [RouterLink, ButtonDirective, TranslocoPipe],
   templateUrl: './up-next-card.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './up-next-card.component.css',
 })
 export class UpNextCardComponent {

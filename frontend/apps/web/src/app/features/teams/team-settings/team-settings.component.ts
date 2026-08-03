@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -15,7 +15,6 @@ import { problemDetail } from '../../../core/utils/problem';
   selector: 'jh-team-settings',
   imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './team-settings.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './team-settings.component.css',
 })
 export class TeamSettingsComponent {

@@ -1,4 +1,4 @@
-import { Component, computed, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { EarnedRecognition, recognitionIconUrl } from '../../../../core/models/recognition.models';
@@ -13,7 +13,6 @@ import { EarnedRecognition, recognitionIconUrl } from '../../../../core/models/r
   selector: 'jh-recognition-display',
   imports: [DatePipe, TranslocoPipe],
   templateUrl: './recognition-display.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './recognition-display.component.css',
 })
 export class RecognitionDisplayComponent {

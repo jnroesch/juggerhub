@@ -1,4 +1,4 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { LoadingComponent, CardComponent } from '../../../shared/ui';
 import { DatePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
@@ -17,7 +17,6 @@ import { problemDetail } from '../../../core/utils/problem';
   selector: 'jh-admin-overview',
   imports: [DatePipe, RouterLink, FormsModule, LoadingComponent, CardComponent, TranslocoPipe],
   templateUrl: './admin-overview.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin-overview.component.css',
 })
 export class AdminOverviewComponent {

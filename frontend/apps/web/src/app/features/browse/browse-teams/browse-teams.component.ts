@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -20,7 +20,6 @@ import { CountryPickerComponent } from '../../../shared/country-picker/country-p
   selector: 'jh-browse-teams',
   imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent, TranslocoPipe],
   templateUrl: './browse-teams.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './browse-teams.component.css',
 })
 export class BrowseTeamsComponent implements OnInit, OnDestroy {

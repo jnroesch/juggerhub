@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { LegalPageComponent } from '../legal-page.component';
 
 /**
@@ -32,7 +32,6 @@ export const PRIVACY_SECTIONS = [
 @Component({
   selector: 'jh-privacy',
   imports: [LegalPageComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './privacy.component.html',
 })
 export class PrivacyComponent {

@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { LegalLinksComponent, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -15,7 +15,6 @@ import { PartyService } from '../../../core/services/party.service';
   selector: 'jh-party-invite-accept',
   imports: [LegalLinksComponent, DatePipe, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './party-invite-accept.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './party-invite-accept.component.css',
 })
 export class PartyInviteAcceptComponent implements OnInit {

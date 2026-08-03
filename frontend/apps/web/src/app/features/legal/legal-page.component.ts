@@ -1,4 +1,4 @@
-import { Component, DestroyRef, OnInit, computed, inject, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, input } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -41,7 +41,6 @@ const AUTHORITATIVE_LANG = 'de';
   ],
   providers: [LegalContentService],
   templateUrl: './legal-page.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './legal-page.component.css',
 })
 export class LegalPageComponent implements OnInit {

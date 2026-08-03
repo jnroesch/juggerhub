@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -22,7 +22,6 @@ import { relativeTime } from '../../../core/utils/format';
   selector: 'jh-recruiting',
   imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './recruiting.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './recruiting.component.css',
 })
 export class RecruitingComponent implements OnInit {

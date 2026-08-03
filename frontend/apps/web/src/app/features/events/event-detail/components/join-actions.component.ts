@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ButtonDirective, AlertComponent } from '../../../../shared/ui';
@@ -16,7 +16,6 @@ import { PartyContext, PartyContextTeam } from '../../../../core/models/party.mo
   selector: 'jh-event-join-actions',
   imports: [FormsModule, RouterLink, ButtonDirective, AlertComponent, TranslocoPipe],
   templateUrl: './join-actions.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './join-actions.component.css',
 })
 export class EventJoinActionsComponent {

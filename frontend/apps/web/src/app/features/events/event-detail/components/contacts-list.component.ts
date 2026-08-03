@@ -1,4 +1,4 @@
-import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { EventContact } from '../../../../core/models/event.models';
 
@@ -7,7 +7,6 @@ import { EventContact } from '../../../../core/models/event.models';
   selector: 'jh-event-contacts-list',
   imports: [TranslocoPipe],
   templateUrl: './contacts-list.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './contacts-list.component.css',
 })
 export class EventContactsListComponent {

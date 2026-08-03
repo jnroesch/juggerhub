@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, IconComponent, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -18,7 +18,6 @@ import { TrainingSeriesSummary, TrainingSessionRow } from '../../../core/models/
   selector: 'jh-trainings-tab',
   imports: [RouterLink, ButtonDirective, IconComponent, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './trainings-tab.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './trainings-tab.component.css',
 })
 export class TrainingsTabComponent {

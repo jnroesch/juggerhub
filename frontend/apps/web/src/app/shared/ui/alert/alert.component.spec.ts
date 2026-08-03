@@ -1,10 +1,9 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AlertComponent, AlertTone } from './alert.component';
 
 @Component({
   imports: [AlertComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `<jh-alert [tone]="tone()" class="mt-md">Something went wrong.</jh-alert>`,
 })
 class HostComponent {

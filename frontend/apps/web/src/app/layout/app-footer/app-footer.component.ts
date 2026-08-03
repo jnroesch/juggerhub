@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { Component } from '@angular/core';
 import { LegalLinksComponent } from '../../shared/ui';
 
 /**
@@ -17,7 +17,6 @@ import { LegalLinksComponent } from '../../shared/ui';
   selector: 'jh-app-footer',
   imports: [LegalLinksComponent],
   templateUrl: './app-footer.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app-footer.component.css',
 })
 export class AppFooterComponent {}

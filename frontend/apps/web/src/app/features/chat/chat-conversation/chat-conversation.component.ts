@@ -1,17 +1,4 @@
-import {
-  AfterViewChecked,
-  Component,
-  ElementRef,
-  OnChanges,
-  SimpleChanges,
-  ViewChild,
-  computed,
-  effect,
-  inject,
-  input,
-  signal,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { AfterViewChecked, Component, ElementRef, OnChanges, SimpleChanges, ViewChild, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { LoadingComponent } from '../../../shared/ui';
@@ -31,7 +18,6 @@ import { ChatMessage, ConversationDetail } from '../../../core/models/chat.model
   selector: 'jh-chat-conversation',
   imports: [FormsModule, RouterLink, LoadingComponent, TranslocoPipe],
   templateUrl: './chat-conversation.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './chat-conversation.component.css',
 })
 export class ChatConversationComponent implements OnChanges, AfterViewChecked {

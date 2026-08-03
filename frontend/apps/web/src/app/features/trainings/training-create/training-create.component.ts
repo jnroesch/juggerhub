@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, CardComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { FormsModule } from '@angular/forms';
@@ -16,7 +16,6 @@ import { problemDetail } from '../../../core/utils/problem';
   selector: 'jh-training-create',
   imports: [FormsModule, ButtonDirective, CardComponent, TranslocoPipe],
   templateUrl: './training-create.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './training-create.component.css',
 })
 export class TrainingCreateComponent {

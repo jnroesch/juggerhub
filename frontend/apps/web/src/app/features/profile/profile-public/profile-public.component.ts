@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LoadingComponent, CardComponent } from '../../../shared/ui';
@@ -21,7 +21,6 @@ import { ProfileQuickActionsComponent } from '../components/quick-actions/profil
   selector: 'jh-profile-public',
   imports: [RouterLink, ProfileViewComponent, ProfileQuickActionsComponent, LoadingComponent, CardComponent, TranslocoPipe],
   templateUrl: './profile-public.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './profile-public.component.css',
 })
 export class ProfilePublicComponent {

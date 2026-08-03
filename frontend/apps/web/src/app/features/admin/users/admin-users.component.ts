@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -23,7 +23,6 @@ const PAGE_SIZE = 20;
   selector: 'jh-admin-users',
   imports: [RouterLink, FormsModule, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-users.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin-users.component.css',
 })
 export class AdminUsersComponent {

@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
@@ -21,7 +21,6 @@ import { DeleteAccountComponent } from './delete-account.component';
     DeleteAccountComponent,
   ],
   templateUrl: './account.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './account.component.css',
 })
 export class AccountComponent {

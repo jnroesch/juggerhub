@@ -1,10 +1,9 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ButtonDirective, ButtonSize, ButtonVariant } from './button.directive';
 
 @Component({
   imports: [ButtonDirective],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <button jhButton [variant]="variant()" [size]="size()" [full]="full()" class="mt-lg">Go</button>
     <a jhButton variant="secondary" href="#">Link</a>

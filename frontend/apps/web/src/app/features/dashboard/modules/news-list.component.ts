@@ -1,4 +1,4 @@
-import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HomeNews } from '../../../core/models/home.models';
 import { relativeTime } from '../../../core/utils/format';
@@ -12,7 +12,6 @@ import { relativeTime } from '../../../core/utils/format';
   selector: 'jh-news-list',
   imports: [RouterLink],
   templateUrl: './news-list.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './news-list.component.css',
 })
 export class NewsListComponent {

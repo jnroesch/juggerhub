@@ -1,4 +1,4 @@
-import { Component, computed, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Signup } from '../../../../core/models/event.models';
 
@@ -7,7 +7,6 @@ import { Signup } from '../../../../core/models/event.models';
   selector: 'jh-event-participant-groups',
   imports: [TranslocoPipe],
   templateUrl: './participant-groups.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './participant-groups.component.css',
 })
 export class EventParticipantGroupsComponent {

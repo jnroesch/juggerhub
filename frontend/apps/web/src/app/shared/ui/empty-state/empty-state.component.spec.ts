@@ -1,10 +1,9 @@
-import { Component, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { EmptyStateComponent } from './empty-state.component';
 
 @Component({
   imports: [EmptyStateComponent],
-  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <jh-empty-state [heading]="heading()" [inline]="inline()">
       No messages yet.

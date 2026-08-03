@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 import { RouterLink } from '@angular/router';
@@ -20,7 +20,6 @@ import { relativeTime } from '../../../core/utils/format';
   selector: 'jh-needs-you-card',
   imports: [RouterLink, CardComponent, ButtonDirective, TranslocoPipe],
   templateUrl: './needs-you-card.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './needs-you-card.component.css',
 })
 export class NeedsYouCardComponent {

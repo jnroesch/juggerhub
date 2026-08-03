@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LegalLinksComponent, ButtonDirective, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -16,7 +16,6 @@ import { EventService } from '../../../core/services/event.service';
   selector: 'jh-event-invite-accept',
   imports: [LegalLinksComponent, DatePipe, ButtonDirective, LoadingComponent, TranslocoPipe],
   templateUrl: './event-invite-accept.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './event-invite-accept.component.css',
 })
 export class EventInviteAcceptComponent implements OnInit {

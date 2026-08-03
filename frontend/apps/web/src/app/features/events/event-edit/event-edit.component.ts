@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -16,7 +16,6 @@ import { problemDetail } from '../../../core/utils/problem';
   selector: 'jh-event-edit',
   imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './event-edit.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './event-edit.component.css',
 })
 export class EventEditComponent implements OnInit {

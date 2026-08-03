@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, effect, input, output, viewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ElementRef, HostListener, effect, input, output, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective } from '../../../shared/ui';
 
@@ -17,7 +17,6 @@ import { ButtonDirective } from '../../../shared/ui';
   selector: 'jh-filter-panel',
   imports: [ButtonDirective, TranslocoPipe],
   templateUrl: './filter-panel.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './filter-panel.component.css',
 })
 export class FilterPanelComponent {

@@ -1,16 +1,4 @@
-import {
-  Component,
-  DestroyRef,
-  ElementRef,
-  HostListener,
-  OnInit,
-  computed,
-  inject,
-  input,
-  output,
-  signal,
-  ChangeDetectionStrategy
-} from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CityService } from '../../core/services/city.service';
 import { Country } from '../../core/models/city.models';
@@ -32,7 +20,6 @@ const MAX_RESULTS = 6;
   selector: 'jh-country-picker',
   imports: [IconComponent],
   templateUrl: './country-picker.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './country-picker.component.css',
 })
 export class CountryPickerComponent implements OnInit {

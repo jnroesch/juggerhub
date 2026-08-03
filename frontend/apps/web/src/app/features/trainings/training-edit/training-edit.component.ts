@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { FormsModule } from '@angular/forms';
@@ -27,7 +27,6 @@ type EditMode = 'fork' | 'single' | 'series';
   selector: 'jh-training-edit',
   imports: [FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './training-edit.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './training-edit.component.css',
 })
 export class TrainingEditComponent {

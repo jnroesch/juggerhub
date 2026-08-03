@@ -1,4 +1,4 @@
-import { Component, OnChanges, computed, inject, input, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnChanges, computed, inject, input, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective } from '../../../shared/ui';
@@ -18,7 +18,6 @@ import { ChatMember, ConversationDetail } from '../../../core/models/chat.models
   selector: 'jh-chat-details',
   imports: [RouterLink, NgTemplateOutlet, ButtonDirective, TranslocoPipe],
   templateUrl: './chat-details.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './chat-details.component.css',
 })
 export class ChatDetailsComponent implements OnChanges {

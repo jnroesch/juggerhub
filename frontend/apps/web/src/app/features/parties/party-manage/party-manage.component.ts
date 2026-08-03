@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -20,7 +20,6 @@ import { Pompfe, pompfeLabel } from '../../../shared/pompfen.catalog';
   selector: 'jh-party-manage',
   imports: [RouterLink, DatePipe, FormsModule, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './party-manage.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './party-manage.component.css',
 })
 export class PartyManageComponent implements OnInit {

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -18,7 +18,6 @@ import { PersonHit } from '../../../core/models/chat.models';
   selector: 'jh-chat-new',
   imports: [FormsModule, RouterLink, TranslocoPipe],
   templateUrl: './chat-new.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './chat-new.component.css',
 })
 export class ChatNewComponent {

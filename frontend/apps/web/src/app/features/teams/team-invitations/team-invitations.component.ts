@@ -1,4 +1,4 @@
-import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -18,7 +18,6 @@ import { problemDetail } from '../../../core/utils/problem';
   selector: 'jh-team-invitations',
   imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './team-invitations.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './team-invitations.component.css',
 })
 export class TeamInvitationsComponent {

@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
@@ -16,7 +16,6 @@ import { PartyService } from '../../../core/services/party.service';
   selector: 'jh-party-news',
   imports: [RouterLink, DatePipe, FormsModule, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './party-news.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './party-news.component.css',
 })
 export class PartyNewsComponent implements OnInit {

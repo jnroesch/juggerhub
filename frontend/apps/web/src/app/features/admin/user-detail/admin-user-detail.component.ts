@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -26,7 +26,6 @@ type AccountAction = 'suspend' | 'reinstate' | 'ban' | 'unban' | 'reset';
   selector: 'jh-admin-user-detail',
   imports: [DatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-user-detail.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './admin-user-detail.component.css',
 })
 export class AdminUserDetailComponent {

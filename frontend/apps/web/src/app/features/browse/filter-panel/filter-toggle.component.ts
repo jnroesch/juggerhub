@@ -1,4 +1,4 @@
-import { Component, input, output, ChangeDetectionStrategy } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 
 /**
  * A labelled on/off switch used inside browse filter panels (feature 007). Presentational —
@@ -8,7 +8,6 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
   selector: 'jh-filter-toggle',
   imports: [],
   templateUrl: './filter-toggle.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './filter-toggle.component.css',
 })
 export class FilterToggleComponent {

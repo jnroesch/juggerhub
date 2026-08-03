@@ -1,4 +1,4 @@
-import { Component, computed, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
@@ -18,7 +18,6 @@ import { NavId, badgeText, isActiveDestination } from '../nav-model';
   selector: 'jh-top-nav',
   imports: [RouterLink, AvatarMenuComponent, TranslocoPipe],
   templateUrl: './top-nav.component.html',
-  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './top-nav.component.css',
 })
 export class TopNavComponent {
