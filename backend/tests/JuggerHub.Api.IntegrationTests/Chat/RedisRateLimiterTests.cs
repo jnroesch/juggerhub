@@ -101,6 +101,12 @@ public sealed class RedisRateLimiterTests : IAsyncLifetime
     {
         var limiter = Limiter($"t:{Guid.NewGuid():N}", limit: 1, windowSeconds: 1);
 
+        // Begin just after a boundary. The window index is wall-clock seconds (UtcNow / window), so
+        // a first acquire landing at .99s puts the second one in the NEXT window, where a permit is
+        // owed — and the rejection below fails for a reason that has nothing to do with the limiter.
+        // Rare, but it flakes CI (seen on PR #140).
+        await AlignToWindowStartAsync();
+
         Assert.True((await limiter.AcquireAsync(1)).IsAcquired);
         Assert.False((await limiter.AcquireAsync(1)).IsAcquired);
 
@@ -108,6 +114,14 @@ public sealed class RedisRateLimiterTests : IAsyncLifetime
         await Task.Delay(TimeSpan.FromSeconds(2));
 
         Assert.True((await limiter.AcquireAsync(1)).IsAcquired);
+    }
+
+    /// <summary>Waits out the rest of the current second, so a one-second window has just started
+    /// and both calls of a two-call assertion land inside it.</summary>
+    private static Task AlignToWindowStartAsync()
+    {
+        var intoWindowMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() % 1000;
+        return Task.Delay((int)(1000 - intoWindowMs) + 10);
     }
 
     /// <summary>
