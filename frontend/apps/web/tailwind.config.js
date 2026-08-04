@@ -142,6 +142,16 @@ module.exports = {
         'border-strong': 'var(--border-strong)',
       },
       spacing: {
+        /*
+         * `3xs` (2px) is the half-step below the 4px base — pill padding and
+         * other hairline insets only. `2xs` is `space-1`. Both were used in
+         * templates long before they were defined here (GH #137): Tailwind
+         * emits nothing for an unknown scale key, so `py-3xs` silently
+         * rendered as no padding at all. `spacing-scale.spec.ts` now fails on
+         * any spacing utility whose key is not in this scale.
+         */
+        '3xs': '2px',
+        '2xs': '4px',
         xs: '8px',
         sm: '12px',
         md: '16px',
