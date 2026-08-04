@@ -82,8 +82,12 @@ public static class StructuredAddress
     /// the resolving (constitution Principle I).
     /// </summary>
     /// <remarks>
-    /// MUST be called before the caller tracks its own entity for the same save: on a create race
-    /// <see cref="ICityService.ResolveAndUpsertAsync"/> clears the change tracker.
+    /// Call this BEFORE the caller mutates its own entity for the same save: the first use of a city
+    /// inserts it, and that <c>SaveChangesAsync</c> commits whatever else the context is holding —
+    /// so an edit that assigns first and resolves second persists half of a change it may still go on
+    /// to reject. (Resolution no longer detaches the caller's entities; a lost create race detaches
+    /// only its own rows. It used to clear the whole change tracker, which silently voided the
+    /// caller's update — see <see cref="CityService.ResolveAndUpsertAsync"/>.)
     /// </remarks>
     public static async Task<CityResult> ResolveCityAsync(
         ICityService cities, LocationKind kind, LocationSelectionDto? location, string subject,

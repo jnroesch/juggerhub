@@ -242,8 +242,10 @@ public sealed class EventService : IEventService
             return EditEventResult.Fail(EditEventStatus.Forbidden, "Only an event admin can edit it.");
         }
 
-        var ev = await _db.Events.FirstAsync(e => e.Id == eventId, ct);
-
+        // The event itself is loaded further down, AFTER the city is resolved: resolving can save
+        // (first use of a city inserts it) and, on a lost create race, detaches its own rows. Nothing
+        // above the assignment block reads `ev`, so tracking it only once everything has validated
+        // keeps this method independent of what resolution does to the context (StructuredAddress).
         var name = (request.Name ?? string.Empty).Trim();
         if (name.Length < _options.NameMinLength || name.Length > _options.NameMaxLength)
         {
@@ -307,6 +309,7 @@ public sealed class EventService : IEventService
 
         // ParticipantMode is intentionally absent from the edit contract — it is immutable after
         // creation (a stricter form of "mode locked once sign-ups exist", spec FR-030).
+        var ev = await _db.Events.FirstAsync(e => e.Id == eventId, ct);
         ev.Name = name;
         ev.Type = request.Type;
         ev.CustomTypeLabel = customLabel;
