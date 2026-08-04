@@ -46,9 +46,10 @@ export class MyTeamComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (!this.membership.loaded()) {
-      this.membership.load();
-    }
+    // Always re-read on entry, not just on the first visit: the cache is filled once by the shell
+    // at sign-in, so anything that changed memberships since (creating, leaving or deleting a team)
+    // would otherwise leave this page showing the state from page load.
+    this.membership.load();
   }
 
   private loadInvites(): void {

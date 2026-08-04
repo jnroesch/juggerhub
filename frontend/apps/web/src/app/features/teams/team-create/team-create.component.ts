@@ -7,6 +7,7 @@ import { ButtonDirective, AlertComponent } from '../../../shared/ui';
 import { EMPTY, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { SlugAvailability, TeamType } from '../../../core/models/team.models';
 import { CityOption, toSelection } from '../../../core/models/city.models';
+import { MembershipService } from '../../../core/services/membership.service';
 import { TeamService } from '../../../core/services/team.service';
 import { problemDetail } from '../../../core/utils/problem';
 import { CityPickerComponent } from '../../../shared/city-picker/city-picker.component';
@@ -24,6 +25,7 @@ import { CityPickerComponent } from '../../../shared/city-picker/city-picker.com
 })
 export class TeamCreateComponent {
   private readonly teams = inject(TeamService);
+  private readonly membership = inject(MembershipService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
 
@@ -105,7 +107,13 @@ export class TeamCreateComponent {
         location: type === 'CityTeam' ? toSelection(this.selectedCity()) : null,
       })
       .subscribe({
-        next: (team) => this.router.navigate(['/t', team.slug]),
+        next: (team) => {
+          // Creating a team changed this player's memberships — refresh the cache the nav's
+          // "My team" target and the /my-team page read, or both keep showing the teamless state
+          // until the next full page load.
+          this.membership.load();
+          this.router.navigate(['/t', team.slug]);
+        },
         error: (err) => {
           this.submitting.set(false);
           this.error.set(problemDetail(err));
