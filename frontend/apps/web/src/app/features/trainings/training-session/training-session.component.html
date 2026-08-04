@@ -24,9 +24,14 @@
       @if (s.locationKind === 'Virtual') {
         <a [href]="s.virtualLink" class="text-link hover:text-link-hover">{{ 'trainings.online' | transloco }}</a>
       } @else {
-        {{ s.location }}
+        <span data-testid="session-location">{{ s.locationLabel }}</span>
       }
     </p>
+    @if (s.locationKind === 'InPerson' && (s.venueName || s.street || s.postalCode)) {
+      <p class="text-caption text-muted" data-testid="session-address">
+        @if (s.venueName) { {{ s.venueName }} }@if (s.venueName && (s.street || s.postalCode)) { · }@if (s.street) { {{ s.street }} }@if (s.street && s.postalCode) { · }@if (s.postalCode) { {{ s.postalCode }} }
+      </p>
+    }
     @if (!s.isOneOff && s.seriesLabel) {
       <p class="mt-2xs text-caption text-muted">{{ 'trainings.session.partOf' | transloco }} {{ s.name }} · {{ s.seriesLabel }}</p>
     }

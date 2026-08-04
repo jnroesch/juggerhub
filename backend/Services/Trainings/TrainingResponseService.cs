@@ -57,11 +57,11 @@ public sealed class TrainingResponseService : ITrainingResponseService
 
         await _db.SaveChangesAsync(ct);
 
-        var row = await _db.TrainingSessions.AsNoTracking()
+        var raw = await _db.TrainingSessions.AsNoTracking()
             .Where(s => s.Id == sessionId)
             .Select(TrainingSeriesService.RowProjection(userId))
             .FirstAsync(ct);
-        return TrainingResult<TrainingSessionRowDto>.Ok(row);
+        return TrainingResult<TrainingSessionRowDto>.Ok(TrainingSeriesService.ToRow(raw));
     }
 
     public async Task<TrainingResult<PagedResult<AttendanceEntryDto>>> GetAttendanceAsync(
@@ -151,27 +151,56 @@ public sealed class TrainingResponseService : ITrainingResponseService
             .ThenBy(s => s.StartTimeOverride ?? s.Training.StartTime);
 
         var total = await query.CountAsync(ct);
-        var items = await query
+        // The label is composed after materialization so HomeProjections.LocationLabel stays the
+        // single implementation of the city → venue → legacy rule (042 SC-003); it is a C# method
+        // and cannot be translated to SQL. The address itself resolves as an indivisible block
+        // keyed on CityIdOverride — never per-field `??` (042 research R1).
+        var raw = await query
             .Skip(pagination.NormalizedSkip).Take(pagination.NormalizedTake)
-            .Select(s => new AgendaSessionDto(
+            .Select(s => new
+            {
                 s.Id,
                 s.TrainingId,
                 s.Training.Name,
-                !s.Training.IsRecurring,
+                IsOneOff = !s.Training.IsRecurring,
                 s.SessionDate,
-                s.StartTimeOverride ?? s.Training.StartTime,
-                s.EndTimeOverride ?? s.Training.EndTime,
-                s.LocationKindOverride ?? s.Training.LocationKind,
-                (s.LocationKindOverride ?? s.Training.LocationKind) == LocationKind.Virtual ? null : (s.LocationOverride ?? s.Training.Location),
-                (s.LocationKindOverride ?? s.Training.LocationKind) == LocationKind.Virtual ? (s.VirtualLinkOverride ?? s.Training.VirtualLink) : null,
-                s.VisibilityOverride ?? s.Training.Visibility,
+                StartTime = s.StartTimeOverride ?? s.Training.StartTime,
+                EndTime = s.EndTimeOverride ?? s.Training.EndTime,
+                Kind = s.LocationKindOverride ?? s.Training.LocationKind,
+                CityName = s.CityIdOverride != null
+                    ? (s.CityOverride != null ? s.CityOverride.Name : null)
+                    : (s.Training.City != null ? s.Training.City.Name : null),
+                VenueName = s.CityIdOverride != null ? s.VenueNameOverride : s.Training.VenueName,
+                LegacyLocation = s.CityIdOverride != null ? s.LocationOverride : s.Training.Location,
+                VirtualLink = s.VirtualLinkOverride ?? s.Training.VirtualLink,
+                Visibility = s.VisibilityOverride ?? s.Training.Visibility,
                 s.Status,
-                s.Responses.Count(r => r.Answer == TrainingRsvp.Going && (!r.IsGuest || (s.VisibilityOverride ?? s.Training.Visibility) == TrainingVisibility.Public)),
-                s.Responses.Where(r => r.UserId == userId).Select(r => (TrainingRsvp?)r.Answer).FirstOrDefault(),
-                s.Training.Team.Slug,
-                s.Training.Team.Name,
-                !s.Training.Team.Memberships.Any(m => m.UserId == userId)))
+                GoingCount = s.Responses.Count(r => r.Answer == TrainingRsvp.Going && (!r.IsGuest || (s.VisibilityOverride ?? s.Training.Visibility) == TrainingVisibility.Public)),
+                MyAnswer = s.Responses.Where(r => r.UserId == userId).Select(r => (TrainingRsvp?)r.Answer).FirstOrDefault(),
+                TeamSlug = s.Training.Team.Slug,
+                TeamName = s.Training.Team.Name,
+                IsPublicGuest = !s.Training.Team.Memberships.Any(m => m.UserId == userId),
+            })
             .ToListAsync(ct);
+
+        var items = raw.Select(s => new AgendaSessionDto(
+            s.Id,
+            s.TrainingId,
+            s.Name,
+            s.IsOneOff,
+            s.SessionDate,
+            s.StartTime,
+            s.EndTime,
+            s.Kind,
+            TrainingSeriesService.LocationLabelFor(s.Kind, s.CityName, s.VenueName, s.LegacyLocation),
+            s.Kind == LocationKind.Virtual ? s.VirtualLink : null,
+            s.Visibility,
+            s.Status,
+            s.GoingCount,
+            s.MyAnswer,
+            s.TeamSlug,
+            s.TeamName,
+            s.IsPublicGuest)).ToList();
 
         return new PagedResult<AgendaSessionDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
     }

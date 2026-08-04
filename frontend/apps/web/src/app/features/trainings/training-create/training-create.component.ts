@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
 import { CreateTrainingRequest, LocationKind, TrainingInterval, TrainingVisibility } from '../../../core/models/trainings.models';
+import { CityOption, toSelection } from '../../../core/models/city.models';
+import { AddressFieldsComponent } from '../../../shared/address-fields/address-fields.component';
 import { problemDetail } from '../../../core/utils/problem';
 
 /**
@@ -14,7 +16,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-training-create',
-  imports: [FormsModule, ButtonDirective, CardComponent, TranslocoPipe],
+  imports: [FormsModule, ButtonDirective, CardComponent, AddressFieldsComponent, TranslocoPipe],
   templateUrl: './training-create.component.html',
   styleUrl: './training-create.component.css',
 })
@@ -39,10 +41,27 @@ export class TrainingCreateComponent {
   protected startDate = '';
   protected endDate = '';
   protected locationKind: LocationKind = 'InPerson';
-  protected location = '';
+  // Feature 042 — structured address; only meaningful when in-person. These are SIGNALS, not plain
+  // fields: `whereComplete` is a computed() over them, and the app is zoneless — a computed() over
+  // plain properties never recomputes, leaving Continue permanently disabled.
+  protected readonly venueName = signal('');
+  protected readonly street = signal('');
+  protected readonly postalCode = signal('');
+  protected readonly selectedCity = signal<CityOption | null>(null);
   protected virtualLink = '';
   protected description = '';
   protected visibility: TrainingVisibility = 'TeamOnly';
+
+  /**
+   * The "Where" step is only complete when the whole in-person address is there: a street, a
+   * postal code AND a resolved city. A venue name alone is not an address. The server enforces
+   * the same rule — this is guidance, never the boundary (constitution Principle I).
+   */
+  protected readonly whereComplete = computed(() =>
+    this.locationKind === 'InPerson'
+      ? !!this.street().trim() && !!this.postalCode().trim() && this.selectedCity() !== null
+      : !!this.virtualLink.trim(),
+  );
 
   protected readonly weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -72,19 +91,32 @@ export class TrainingCreateComponent {
     this.router.navigate(['/t', this.slug, 'trainings']);
   }
 
+  protected onCitySelected(option: CityOption | null): void {
+    this.selectedCity.set(option);
+  }
+
+  /** Review-step display for the picked city; a neutral dash rather than a blank when unset. */
+  protected cityLabel(): string {
+    return this.selectedCity()?.label ?? '—';
+  }
+
   protected create(): void {
     if (this.busy()) {
       return;
     }
     this.busy.set(true);
     this.error.set(null);
+    const inPerson = this.locationKind === 'InPerson';
     const body: CreateTrainingRequest = {
       isRecurring: this.isRecurring,
       name: this.name.trim(),
       description: this.description.trim() || null,
       locationKind: this.locationKind,
-      location: this.locationKind === 'InPerson' ? this.location.trim() : null,
-      virtualLink: this.locationKind === 'Virtual' ? this.virtualLink.trim() : null,
+      venueName: inPerson ? this.venueName().trim() || null : null,
+      street: inPerson ? this.street().trim() || null : null,
+      postalCode: inPerson ? this.postalCode().trim() || null : null,
+      location: inPerson ? toSelection(this.selectedCity()) : null,
+      virtualLink: inPerson ? null : this.virtualLink.trim(),
       weekday: this.isRecurring ? this.weekday : null,
       interval: this.isRecurring ? this.interval : null,
       startTime: `${this.startTime}:00`,

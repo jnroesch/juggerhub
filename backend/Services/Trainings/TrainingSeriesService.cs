@@ -18,12 +18,16 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
     private readonly AppDbContext _db;
     private readonly TrainingGuard _guard;
     private readonly INotificationService _notifications;
+    private readonly Geocoding.ICityService _cities;
 
-    public TrainingSeriesService(AppDbContext db, TrainingGuard guard, INotificationService notifications)
+    public TrainingSeriesService(
+        AppDbContext db, TrainingGuard guard, INotificationService notifications,
+        Geocoding.ICityService cities)
     {
         _db = db;
         _guard = guard;
         _notifications = notifications;
+        _cities = cities;
     }
 
     public async Task<TrainingResult<CreatedTrainingDto>> CreateAsync(
@@ -46,6 +50,24 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
             return TrainingResult<CreatedTrainingDto>.Fail(TrainingOutcome.Invalid, validation);
         }
 
+        // Structured address + city (feature 042), shared with events so both accept and reject the
+        // same input. Resolve the city BEFORE tracking the training: on a create race
+        // ResolveAndUpsertAsync clears the change tracker.
+        var city = await Geocoding.StructuredAddress.ResolveCityAsync(
+            _cities, request.LocationKind, request.Location, "training", ct);
+        if (city.Reason is not null)
+        {
+            return TrainingResult<CreatedTrainingDto>.Fail(TrainingOutcome.Invalid, city.Reason);
+        }
+
+        var address = Geocoding.StructuredAddress.Resolve(
+            request.LocationKind, request.VenueName, request.Street, request.PostalCode,
+            request.VirtualLink, "training");
+        if (address.Reason is not null)
+        {
+            return TrainingResult<CreatedTrainingDto>.Fail(TrainingOutcome.Invalid, address.Reason);
+        }
+
         var teamId = access.Value.TeamId;
         var training = new Training
         {
@@ -53,8 +75,13 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
             Name = request.Name.Trim(),
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
             LocationKind = request.LocationKind,
-            Location = request.LocationKind == LocationKind.InPerson ? request.Location!.Trim() : null,
-            VirtualLink = request.LocationKind == LocationKind.Virtual ? request.VirtualLink!.Trim() : null,
+            VenueName = address.VenueName,
+            Street = address.Street,
+            PostalCode = address.PostalCode,
+            CityId = city.CityId,
+            City = city.City,
+            VirtualLink = address.VirtualLink,
+            Location = LegacyLocationLabel(request.LocationKind, city.City),
             IsRecurring = request.IsRecurring,
             Weekday = request.IsRecurring ? request.Weekday : null,
             Interval = request.IsRecurring ? request.Interval : null,
@@ -202,9 +229,38 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
         // In-place template updates (upcoming non-detached inherit automatically).
         if (request.Name is { } name && !string.IsNullOrWhiteSpace(name)) training.Name = name.Trim();
         if (request.Description is not null) training.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
-        if (request.LocationKind is { } lk) training.LocationKind = lk;
-        if (request.Location is not null) training.Location = string.IsNullOrWhiteSpace(request.Location) ? null : request.Location.Trim();
-        if (request.VirtualLink is not null) training.VirtualLink = string.IsNullOrWhiteSpace(request.VirtualLink) ? null : request.VirtualLink.Trim();
+
+        // Location: the address is replaced as a BLOCK, never patched field by field (042 FR-007).
+        // A kind change alone re-runs resolution too, which is what clears the address on a switch
+        // to virtual (FR-003).
+        var newKind = request.LocationKind ?? training.LocationKind;
+        if (request.Location is not null || request.LocationKind is not null || request.VirtualLink is not null)
+        {
+            var city = await Geocoding.StructuredAddress.ResolveCityAsync(
+                _cities, newKind, request.Location, "training", ct);
+            if (city.Reason is not null)
+            {
+                return TrainingResult<SeriesEditResultDto>.Fail(TrainingOutcome.Invalid, city.Reason);
+            }
+
+            var address = Geocoding.StructuredAddress.Resolve(
+                newKind, request.VenueName, request.Street, request.PostalCode,
+                request.VirtualLink ?? training.VirtualLink, "training");
+            if (address.Reason is not null)
+            {
+                return TrainingResult<SeriesEditResultDto>.Fail(TrainingOutcome.Invalid, address.Reason);
+            }
+
+            training.LocationKind = newKind;
+            training.VenueName = address.VenueName;
+            training.Street = address.Street;
+            training.PostalCode = address.PostalCode;
+            training.CityId = city.CityId;
+            training.City = city.City;
+            training.VirtualLink = address.VirtualLink;
+            training.Location = LegacyLocationLabel(newKind, city.City);
+        }
+
         if (request.Visibility is { } vis) training.Visibility = vis;
         training.StartTime = newStart;
         training.EndTime = newEnd;
@@ -293,11 +349,20 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
 
     // ---- Helpers -----------------------------------------------------------
 
+    /// <summary>
+    /// Legacy free-text location, now SYSTEM-DERIVED (feature 042): "City, Country" in person, null
+    /// when virtual. Deliberately differs from the event equivalent, which stores "Online" — the
+    /// training read projections null the location for a virtual session and the client renders
+    /// "Online" from the kind.
+    /// </summary>
+    internal static string? LegacyLocationLabel(LocationKind kind, City? city) =>
+        kind == LocationKind.InPerson ? Geocoding.StructuredAddress.CityLabel(city) : null;
+
     private static string? ValidateCreate(CreateTrainingRequest r)
     {
         if (string.IsNullOrWhiteSpace(r.Name)) return "A name is required.";
         if (r.EndTime <= r.StartTime) return "The end time must be after the start time.";
-        if (r.LocationKind == LocationKind.InPerson && string.IsNullOrWhiteSpace(r.Location)) return "A location is required.";
+        // The in-person address and city are validated by StructuredAddress in CreateAsync.
         if (r.LocationKind == LocationKind.Virtual && string.IsNullOrWhiteSpace(r.VirtualLink)) return "A join link is required.";
         if (r.IsRecurring)
         {
@@ -315,16 +380,40 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
         IQueryable<TrainingSession> query, Guid userId, PaginationRequest pagination, CancellationToken ct)
     {
         var total = await query.CountAsync(ct);
-        var items = await query
+        var raw = await query
             .Skip(pagination.NormalizedSkip).Take(pagination.NormalizedTake)
             .Select(RowProjection(userId))
             .ToListAsync(ct);
+        var items = raw.Select(ToRow).ToList();
         return new PagedResult<TrainingSessionRowDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
     }
 
-    /// <summary>Row projection shared by the tab and public list. Guests count only while the session is effectively public.</summary>
-    internal static System.Linq.Expressions.Expression<Func<TrainingSession, TrainingSessionRowDto>> RowProjection(Guid userId) =>
-        s => new TrainingSessionRowDto(
+    /// <summary>
+    /// The raw parts of a session row, straight out of SQL. The display label is composed after
+    /// materialization by <see cref="ToRow"/> — the same two-step the event agenda uses — so
+    /// <see cref="Home.HomeProjections.LocationLabel"/> stays the single implementation of the
+    /// city → venue → legacy rule (042 SC-003). It is a C# method and cannot be translated to SQL.
+    /// </summary>
+    internal sealed record SessionRowRaw(
+        Guid SessionId, Guid TrainingId, string Name, bool IsOneOff, DateOnly SessionDate,
+        TimeOnly StartTime, TimeOnly EndTime, LocationKind Kind,
+        string? CityName, string? VenueName, string? LegacyLocation, string? VirtualLink,
+        TrainingVisibility Visibility, TrainingSessionStatus Status,
+        int GoingCount, int MaybeCount, int CantCount, TrainingRsvp? MyAnswer, bool Detached);
+
+    /// <summary>
+    /// Row projection shared by the tab and public list. Guests count only while the session is
+    /// effectively public.
+    /// </summary>
+    /// <remarks>
+    /// ⚠ The address resolves as an INDIVISIBLE BLOCK keyed on <c>CityIdOverride</c> — never
+    /// per-field with <c>??</c>, which is how every other override on the entity works. Resolving
+    /// it per-field would render a relocated session's street under the SERIES' city, or leak the
+    /// series' venue name onto a session relocated to a venue-less address. See
+    /// <see cref="TrainingSession"/> and feature 042 research R1.
+    /// </remarks>
+    internal static System.Linq.Expressions.Expression<Func<TrainingSession, SessionRowRaw>> RowProjection(Guid userId) =>
+        s => new SessionRowRaw(
             s.Id,
             s.TrainingId,
             s.Training.Name,
@@ -333,8 +422,12 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
             s.StartTimeOverride ?? s.Training.StartTime,
             s.EndTimeOverride ?? s.Training.EndTime,
             s.LocationKindOverride ?? s.Training.LocationKind,
-            (s.LocationKindOverride ?? s.Training.LocationKind) == LocationKind.Virtual ? null : (s.LocationOverride ?? s.Training.Location),
-            (s.LocationKindOverride ?? s.Training.LocationKind) == LocationKind.Virtual ? (s.VirtualLinkOverride ?? s.Training.VirtualLink) : null,
+            s.CityIdOverride != null
+                ? (s.CityOverride != null ? s.CityOverride.Name : null)
+                : (s.Training.City != null ? s.Training.City.Name : null),
+            s.CityIdOverride != null ? s.VenueNameOverride : s.Training.VenueName,
+            s.CityIdOverride != null ? s.LocationOverride : s.Training.Location,
+            s.VirtualLinkOverride ?? s.Training.VirtualLink,
             s.VisibilityOverride ?? s.Training.Visibility,
             s.Status,
             s.Responses.Count(r => r.Answer == TrainingRsvp.Going && (!r.IsGuest || (s.VisibilityOverride ?? s.Training.Visibility) == TrainingVisibility.Public)),
@@ -342,6 +435,35 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
             s.Responses.Count(r => r.Answer == TrainingRsvp.Cant && (!r.IsGuest || (s.VisibilityOverride ?? s.Training.Visibility) == TrainingVisibility.Public)),
             s.Responses.Where(r => r.UserId == userId).Select(r => (TrainingRsvp?)r.Answer).FirstOrDefault(),
             s.Detached);
+
+    /// <summary>Composes the row DTO, including the shared location label, from a materialized raw row.</summary>
+    internal static TrainingSessionRowDto ToRow(SessionRowRaw r) => new(
+        r.SessionId,
+        r.TrainingId,
+        r.Name,
+        r.IsOneOff,
+        r.SessionDate,
+        r.StartTime,
+        r.EndTime,
+        r.Kind,
+        LocationLabelFor(r.Kind, r.CityName, r.VenueName, r.LegacyLocation),
+        r.Kind == LocationKind.Virtual ? r.VirtualLink : null,
+        r.Visibility,
+        r.Status,
+        r.GoingCount,
+        r.MaybeCount,
+        r.CantCount,
+        r.MyAnswer,
+        r.Detached);
+
+    /// <summary>
+    /// The location label shown wherever a training appears (042 FR-010/FR-011). A virtual training
+    /// carries no label — the client renders "Online" from the kind, as it always has.
+    /// </summary>
+    internal static string LocationLabelFor(LocationKind kind, string? cityName, string? venueName, string? legacy) =>
+        kind == LocationKind.Virtual
+            ? string.Empty
+            : Home.HomeProjections.LocationLabel(cityName, venueName, legacy ?? string.Empty);
 
     private async Task NotifyTeamScheduledAsync(Guid teamId, Guid actorId, Training training, Guid firstSessionId, CancellationToken ct)
     {

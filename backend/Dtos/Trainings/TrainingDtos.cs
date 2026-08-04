@@ -4,7 +4,12 @@ namespace JuggerHub.Dtos.Trainings;
 
 // ---- Read models -----------------------------------------------------------
 
-/// <summary>A single session as a row in the Trainings tab / public list (feature 018).</summary>
+/// <summary>
+/// A single session as a row in the Trainings tab / public list (feature 018).
+/// <paramref name="LocationLabel"/> is built server-side (feature 042) so a training and an event
+/// at the same address read identically; a list never renders street or postal code, so they are
+/// deliberately absent here.
+/// </summary>
 public sealed record TrainingSessionRowDto(
     Guid SessionId,
     Guid TrainingId,
@@ -14,7 +19,7 @@ public sealed record TrainingSessionRowDto(
     TimeOnly StartTime,
     TimeOnly EndTime,
     LocationKind LocationKind,
-    string? Location,
+    string LocationLabel,
     string? VirtualLink,
     TrainingVisibility Visibility,
     TrainingSessionStatus Status,
@@ -34,7 +39,7 @@ public sealed record AgendaSessionDto(
     TimeOnly StartTime,
     TimeOnly EndTime,
     LocationKind LocationKind,
-    string? Location,
+    string LocationLabel,
     string? VirtualLink,
     TrainingVisibility Visibility,
     TrainingSessionStatus Status,
@@ -57,7 +62,11 @@ public sealed record TrainingSeriesSummaryDto(
     int UpcomingCount,
     DateOnly? NextSessionDate);
 
-/// <summary>The full session page.</summary>
+/// <summary>
+/// The full session page. Carries the whole structured address (feature 042) because the edit
+/// forms prefill from it — including <paramref name="Location"/>, the resolved city, which
+/// <c>jh-city-picker</c> reads back as its current selection.
+/// </summary>
 public sealed record TrainingSessionDetailDto(
     Guid SessionId,
     Guid TrainingId,
@@ -70,7 +79,11 @@ public sealed record TrainingSessionDetailDto(
     TimeOnly StartTime,
     TimeOnly EndTime,
     LocationKind LocationKind,
-    string? Location,
+    string? VenueName,
+    string? Street,
+    string? PostalCode,
+    JuggerHub.Dtos.Cities.LocationDto? Location,
+    string LocationLabel,
     string? VirtualLink,
     string? SeriesLabel,
     DayOfWeek? Weekday,
@@ -119,13 +132,20 @@ public sealed record SeriesEditResultDto(Guid TrainingId, int AddedSessions, int
 
 // ---- Requests --------------------------------------------------------------
 
-/// <summary>Create a training (series or one-off).</summary>
+/// <summary>
+/// Create a training (series or one-off). For an in-person training <see cref="Street"/>,
+/// <see cref="PostalCode"/> and <see cref="Location"/> are all required; a venue name is optional.
+/// Mirrors <c>CreateEventRequest</c> (feature 042).
+/// </summary>
 public sealed record CreateTrainingRequest(
     bool IsRecurring,
     string Name,
     string? Description,
     LocationKind LocationKind,
-    string? Location,
+    string? VenueName,
+    string? Street,
+    string? PostalCode,
+    JuggerHub.Dtos.Cities.LocationSelectionDto? Location,
     string? VirtualLink,
     DayOfWeek? Weekday,
     TrainingInterval? Interval,
@@ -135,12 +155,22 @@ public sealed record CreateTrainingRequest(
     DateOnly? EndDate,
     TrainingVisibility Visibility);
 
-/// <summary>Edit the whole series. In-place for time/place/visibility; pattern/end-date changes regenerate.</summary>
+/// <summary>
+/// Edit the whole series. In-place for time/place/visibility; pattern/end-date changes regenerate.
+/// </summary>
+/// <remarks>
+/// The address is replaced as a BLOCK: when <see cref="Location"/> is present, venue/street/postal/city
+/// are applied together and an omitted member is stored as null. It is never patched field by field —
+/// that would allow a street from one address against a city from another (042 FR-007).
+/// </remarks>
 public sealed record EditSeriesRequest(
     string? Name,
     string? Description,
     LocationKind? LocationKind,
-    string? Location,
+    string? VenueName,
+    string? Street,
+    string? PostalCode,
+    JuggerHub.Dtos.Cities.LocationSelectionDto? Location,
     string? VirtualLink,
     DayOfWeek? Weekday,
     TrainingInterval? Interval,
@@ -150,12 +180,19 @@ public sealed record EditSeriesRequest(
     TrainingVisibility? Visibility);
 
 /// <summary>Edit a single session — detaches it from the series.</summary>
+/// <remarks>
+/// Supplying <see cref="Location"/> relocates the session: street, postal code and city are required
+/// together and are stored as the session's own indivisible address block (042 FR-006/FR-007).
+/// </remarks>
 public sealed record EditSessionRequest(
     DateOnly? SessionDate,
     TimeOnly? StartTime,
     TimeOnly? EndTime,
     LocationKind? LocationKind,
-    string? Location,
+    string? VenueName,
+    string? Street,
+    string? PostalCode,
+    JuggerHub.Dtos.Cities.LocationSelectionDto? Location,
     string? VirtualLink);
 
 public sealed record SetResponseRequest(TrainingRsvp Answer);

@@ -39,7 +39,7 @@
                 }
               </div>
               <p class="text-body-sm text-muted">
-                <span class="font-mono">{{ time(s.startTime) }}–{{ time(s.endTime) }}</span>@if (s.location) { · {{ s.location }} }
+                <span class="font-mono">{{ time(s.startTime) }}–{{ time(s.endTime) }}</span>@if (s.locationKind === 'Virtual') { · {{ 'trainings.online' | transloco }} } @else if (s.locationLabel) { · {{ s.locationLabel }} }
               </p>
               <p class="text-caption text-muted"><span class="font-mono">{{ s.goingCount }}</span> {{ 'trainings.tab.going' | transloco }}</p>
             </div>

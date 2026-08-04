@@ -24,8 +24,30 @@ public sealed class Training : BaseEntity
 
     public LocationKind LocationKind { get; set; }
 
-    /// <summary>In-person free-text location (e.g. "Sportpark Müngersdorf, Köln"); set when InPerson.</summary>
+    /// <summary>
+    /// ⚠ <b>System-derived legacy label</b> (feature 042) — <c>"City, Country"</c> when InPerson,
+    /// null when Virtual. Never assign this from a request: the structured address below is the
+    /// source of truth, and this exists only so trainings created before 042 still render a
+    /// location through the city → venue → legacy display fallback. Mirrors <see cref="Event.Location"/>.
+    /// </summary>
     public string? Location { get; set; }
+
+    /// <summary>Optional venue name for an in-person training (e.g. "Sportpark Müngersdorf").</summary>
+    public string? VenueName { get; set; }
+
+    /// <summary>Street of an in-person training; required together with <see cref="PostalCode"/>.</summary>
+    public string? Street { get; set; }
+
+    /// <summary>Postal code of an in-person training; required together with <see cref="Street"/>.</summary>
+    public string? PostalCode { get; set; }
+
+    /// <summary>
+    /// The canonical city (feature 030). Required for an in-person training, null for a virtual one —
+    /// and the anchor a later proximity search ("trainings near me") filters and sorts on.
+    /// </summary>
+    public Guid? CityId { get; set; }
+
+    public City? City { get; set; }
 
     /// <summary>Join link for a virtual training; set when Virtual.</summary>
     public string? VirtualLink { get; set; }

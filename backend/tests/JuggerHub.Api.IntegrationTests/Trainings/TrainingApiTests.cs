@@ -57,7 +57,8 @@ public sealed class TrainingApiTests : TrainingTestSupport
         var body = new
         {
             isRecurring = true, name = "X", description = (string?)null,
-            locationKind = "InPerson", location = "Hall", virtualLink = (string?)null,
+            locationKind = "InPerson", venueName = "Hall", street = "Hallenweg 1", postalCode = "50667",
+            location = new { cityExternalId = "TEST:köln", name = "Köln" }, virtualLink = (string?)null,
             weekday = "Tuesday", interval = "Weekly", startTime = "19:00:00", endTime = "21:00:00",
             startDate = start.ToString("yyyy-MM-dd"), endDate = start.AddDays(21).ToString("yyyy-MM-dd"), visibility = "TeamOnly",
         };
@@ -75,7 +76,8 @@ public sealed class TrainingApiTests : TrainingTestSupport
         var body = new
         {
             isRecurring = true, name = "X", description = (string?)null,
-            locationKind = "InPerson", location = "Hall", virtualLink = (string?)null,
+            locationKind = "InPerson", venueName = "Hall", street = "Hallenweg 1", postalCode = "50667",
+            location = new { cityExternalId = "TEST:köln", name = "Köln" }, virtualLink = (string?)null,
             weekday = "Tuesday", interval = "Weekly", startTime = "19:00:00", endTime = "21:00:00",
             startDate = start.ToString("yyyy-MM-dd"), endDate = start.AddDays(-7).ToString("yyyy-MM-dd"), visibility = "TeamOnly",
         };
@@ -197,14 +199,22 @@ public sealed class TrainingApiTests : TrainingTestSupport
         var trainingId = created.GetProperty("trainingId").GetGuid();
         var sessionId = created.GetProperty("firstSessionId").GetGuid();
 
-        // Detach this session with its own location.
-        (await admin.PatchAsJsonAsync($"/api/v1/trainings/sessions/{sessionId}", new { location = "Hall B" })).EnsureSuccessStatusCode();
+        // Detach this session with its own location (structured since feature 042).
+        (await admin.PatchAsJsonAsync($"/api/v1/trainings/sessions/{sessionId}", new
+        {
+            locationKind = "InPerson",
+            venueName = "Hall B",
+            street = "Tempelhofer Damm 1",
+            postalCode = "12101",
+            location = new { cityExternalId = "TEST:berlin", name = "Berlin" },
+        })).EnsureSuccessStatusCode();
         // Whole-series time edit.
         (await admin.PatchAsJsonAsync($"/api/v1/trainings/{trainingId}", new { startTime = "18:00:00", endTime = "20:00:00" })).EnsureSuccessStatusCode();
 
         var detail = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/trainings/sessions/{sessionId}");
         Assert.True(detail.GetProperty("isDetached").GetBoolean());
-        Assert.Equal("Hall B", detail.GetProperty("location").GetString());
+        Assert.Equal("Hall B", detail.GetProperty("venueName").GetString());
+        Assert.Equal("Berlin", detail.GetProperty("locationLabel").GetString());
         Assert.Equal("19:00:00", detail.GetProperty("startTime").GetString()); // kept its own, not the series 18:00
     }
 

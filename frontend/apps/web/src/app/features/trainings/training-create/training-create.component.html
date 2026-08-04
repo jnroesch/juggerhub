@@ -15,17 +15,17 @@
         <p class="font-medium text-heading">{{ 'trainings.create.recurringSeries' | transloco }}</p>
         <p class="text-body-sm text-muted">{{ 'trainings.create.recurringDesc' | transloco }}</p>
       </button>
-      <button type="button" (click)="isRecurring = false"
+      <button type="button" (click)="isRecurring = false" data-testid="training-oneoff"
         class="rounded-lg border p-md text-left" [class.border-brand]="!isRecurring" [class.border-border-muted]="isRecurring">
         <p class="font-medium text-heading">{{ 'trainings.create.oneOffSession' | transloco }}</p>
         <p class="text-body-sm text-muted">{{ 'trainings.create.oneOffDesc' | transloco }}</p>
       </button>
     </div>
     <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.name' | transloco }}
-      <input [(ngModel)]="name" type="text" maxlength="120" [placeholder]="'trainings.create.namePlaceholder' | transloco"
+      <input [(ngModel)]="name" type="text" maxlength="120" data-testid="training-name" [placeholder]="'trainings.create.namePlaceholder' | transloco"
         class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
     </label>
-    <button type="button" (click)="next()" [disabled]="!name.trim()"
+    <button type="button" (click)="next()" [disabled]="!name.trim()" data-testid="training-next-1"
       jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
   }
 
@@ -40,7 +40,7 @@
       </label>
     }
     <label class="mt-md block text-body-sm font-medium text-heading">{{ (isRecurring ? 'trainings.create.firstDate' : 'trainings.form.date') | transloco }}
-      <input [(ngModel)]="startDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+      <input [(ngModel)]="startDate" type="date" data-testid="training-start-date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
     </label>
     <div class="mt-md grid grid-cols-2 gap-sm">
       <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.start' | transloco }}
@@ -67,7 +67,7 @@
         <p class="mt-2xs text-caption text-muted">{{ 'trainings.create.endsPre' | transloco }} <span class="font-mono">{{ summaryCount() }}</span> {{ 'trainings.create.sessionsWord' | transloco }}</p>
       }
     }
-    <button type="button" (click)="next()" [disabled]="!startDate || (isRecurring && !endDate)"
+    <button type="button" (click)="next()" [disabled]="!startDate || (isRecurring && !endDate)" data-testid="training-next-2"
       jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
   }
 
@@ -79,9 +79,14 @@
       <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
     </div>
     @if (locationKind === 'InPerson') {
-      <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.location' | transloco }}
-        <input [(ngModel)]="location" type="text" maxlength="300" [placeholder]="'trainings.create.locationPlaceholder' | transloco" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
-      </label>
+      <jh-address-fields
+        class="mt-md"
+        testIdPrefix="training"
+        [(venueName)]="venueName"
+        [(street)]="street"
+        [(postalCode)]="postalCode"
+        (cityChange)="onCitySelected($event)"
+      />
     } @else {
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
         <input [(ngModel)]="virtualLink" type="url" maxlength="500" placeholder="https://…" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
@@ -90,7 +95,12 @@
     <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.create.descriptionOptional' | transloco }}
       <textarea [(ngModel)]="description" rows="3" maxlength="2000" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body"></textarea>
     </label>
-    <button type="button" (click)="next()" [disabled]="(locationKind === 'InPerson' && !location.trim()) || (locationKind === 'Virtual' && !virtualLink.trim())"
+    @if (locationKind === 'InPerson' && !whereComplete()) {
+      <p class="mt-sm text-body-sm text-muted">
+        {{ (!street().trim() || !postalCode().trim() ? 'trainings.form.addressRequired' : 'trainings.form.cityRequired') | transloco }}
+      </p>
+    }
+    <button type="button" (click)="next()" [disabled]="!whereComplete()" data-testid="training-next-3"
       jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
   }
 
@@ -108,7 +118,7 @@
         <p class="text-body-sm text-muted">{{ 'trainings.create.publicDesc' | transloco }}</p>
       </button>
     </div>
-    <button type="button" (click)="next()" jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
+    <button type="button" (click)="next()" data-testid="training-next-4" jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
   }
 
   <!-- Step 5: review -->
@@ -120,11 +130,18 @@
     <jh-card class="mt-md p-md text-body-sm">
       <p class="font-medium text-heading">{{ name }}</p>
       <p class="mt-2xs text-muted">{{ isRecurring ? (('trainings.weekday.' + weekday | transloco) + ' · ' + interval) : ('trainings.oneOff' | transloco) }} · {{ startTime }}–{{ endTime }}</p>
-      <p class="text-muted">{{ locationKind === 'InPerson' ? location : ('trainings.online' | transloco) }}</p>
+      @if (locationKind === 'InPerson') {
+        <p class="text-muted" data-testid="review-city">{{ cityLabel() }}</p>
+        <p class="text-muted" data-testid="review-address">
+          {{ venueName().trim() || '—' }} · {{ street().trim() || '—' }} · {{ postalCode().trim() || '—' }}
+        </p>
+      } @else {
+        <p class="text-muted">{{ 'trainings.online' | transloco }}</p>
+      }
       <p class="text-muted">{{ (visibility === 'Public' ? 'trainings.public' : 'trainings.create.teamOnly') | transloco }}@if (isRecurring) { · {{ 'trainings.create.reviewUntil' | transloco }} {{ endDate }} }</p>
     </jh-card>
     @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
-    <button type="button" (click)="create()" [disabled]="busy()" jhButton class="mt-lg w-full">
+    <button type="button" (click)="create()" [disabled]="busy()" data-testid="training-create-submit" jhButton class="mt-lg w-full">
       {{ (busy() ? 'trainings.create.creating' : 'trainings.create.createTraining') | transloco }}
     </button>
   }
