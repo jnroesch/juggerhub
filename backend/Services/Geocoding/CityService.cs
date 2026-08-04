@@ -162,7 +162,7 @@ public sealed class CityService : ICityService
         };
 
         _db.Cities.Add(city);
-        AddDistanceRows(city, await LoadOtherCityPointsAsync(ct));
+        var distances = AddDistanceRows(city, await LoadOtherCityPointsAsync(ct));
 
         // A single SaveChangesAsync is atomic and already runs through the provider's execution
         // strategy (EnableRetryOnFailure) — no manual transaction is opened, so the multi-step
@@ -177,7 +177,23 @@ public sealed class CityService : ICityService
         {
             // Lost the create race: another request inserted this ExternalId first (unique index).
             // Discard our losing insert (city + its distance rows) and return the winner.
-            _db.ChangeTracker.Clear();
+            //
+            // ⚠ Detach exactly those rows and nothing else. This was `ChangeTracker.Clear()`, which
+            // empties the WHOLE request-scoped context — including whatever the caller had already
+            // loaded before asking us to resolve a city. Every edit path has that shape ("load the
+            // entity, resolve the picked city, then assign"), so the caller's later
+            // SaveChangesAsync would find nothing tracked, write no row, and still report success:
+            // silent data loss on a 200. Found while making an event's city editable (GH #136).
+            //
+            // Dependents first: detaching the city while its distance rows are still tracked severs
+            // a required relationship, and EF refuses (the FKs aren't nullable).
+            foreach (var distance in distances)
+            {
+                _db.Entry(distance).State = EntityState.Detached;
+            }
+
+            _db.Entry(city).State = EntityState.Detached;
+
             var winner = await _db.Cities.FirstOrDefaultAsync(c => c.ExternalId == externalId, ct);
             if (winner is not null)
             {
@@ -194,19 +210,27 @@ public sealed class CityService : ICityService
             .Select(c => new CityPoint(c.Id, c.Latitude, c.Longitude))
             .ToListAsync(ct);
 
-    private void AddDistanceRows(City city, IReadOnlyList<CityPoint> others)
+    /// <summary>Adds the distance rows for a new city and returns them, so a losing create race can
+    /// detach exactly what it added rather than everything the context is tracking.</summary>
+    private List<CityDistance> AddDistanceRows(City city, IReadOnlyList<CityPoint> others)
     {
         // Self-row: own-city entities rank nearest (distance 0). Required for the proximity join to
         // surface them (data-model.md).
-        _db.CityDistances.Add(new CityDistance { FromCityId = city.Id, ToCityId = city.Id, DistanceKm = 0 });
+        var rows = new List<CityDistance>(others.Count * 2 + 1)
+        {
+            new CityDistance { FromCityId = city.Id, ToCityId = city.Id, DistanceKm = 0 },
+        };
 
         foreach (var other in others)
         {
             var km = HaversineKm(city.Latitude, city.Longitude, other.Latitude, other.Longitude);
             // Stored both ways so the proximity query is a single-sided join from any home city.
-            _db.CityDistances.Add(new CityDistance { FromCityId = city.Id, ToCityId = other.Id, DistanceKm = km });
-            _db.CityDistances.Add(new CityDistance { FromCityId = other.Id, ToCityId = city.Id, DistanceKm = km });
+            rows.Add(new CityDistance { FromCityId = city.Id, ToCityId = other.Id, DistanceKm = km });
+            rows.Add(new CityDistance { FromCityId = other.Id, ToCityId = city.Id, DistanceKm = km });
         }
+
+        _db.CityDistances.AddRange(rows);
+        return rows;
     }
 
     internal static double HaversineKm(double lat1, double lon1, double lat2, double lon2)

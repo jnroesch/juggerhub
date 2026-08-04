@@ -198,9 +198,9 @@ public sealed class ProfileService : IProfileService
 
     public async Task<OwnerProfileDto?> UpdateAsync(Guid userId, UpdateProfileRequest request, CancellationToken ct = default)
     {
-        // Resolve the selected city BEFORE loading (and tracking) the profile: ResolveAndUpsertAsync
-        // owns its own SaveChanges and may clear the change tracker on a create race, which would
-        // detach a profile tracked first. When Location is omitted (null) the city is left unchanged;
+        // Resolve the selected city BEFORE mutating the profile: ResolveAndUpsertAsync owns its own
+        // SaveChanges (first use of a city inserts it), which would commit half-applied changes to
+        // anything already modified here. When Location is omitted (null) the city is left unchanged;
         // an explicit null CityExternalId clears it (feature 030 contract).
         var changeCity = request.Location is not null;
         Guid? resolvedCityId = null;
@@ -260,8 +260,8 @@ public sealed class ProfileService : IProfileService
 
     public async Task<bool> SetHomeCityAsync(Guid userId, LocationSelectionDto selection, CancellationToken ct = default)
     {
-        // Resolve BEFORE tracking the profile — ResolveAndUpsertAsync owns its own SaveChanges and may
-        // clear the change tracker on a create race, which would detach a profile tracked first.
+        // Resolve BEFORE mutating the profile — ResolveAndUpsertAsync owns its own SaveChanges, so
+        // anything already modified here would be committed by it rather than by this method.
         Guid? resolvedCityId = null;
         if (!string.IsNullOrWhiteSpace(selection.CityExternalId))
         {

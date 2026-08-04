@@ -23,6 +23,9 @@ interface WizardApi {
   step: WritableSignal<string>;
   canAdvance: Signal<boolean>;
   onCitySelected(option: CityOption | null): void;
+  // The address group lives outside the FormGroup — `jh-address-fields` two-way binds these.
+  street: WritableSignal<string>;
+  postalCode: WritableSignal<string>;
 }
 
 const BERLIN_OPTION: CityOption = {
@@ -77,7 +80,8 @@ describe('EventCreateComponent wizard validation', () => {
     api.locationKind.set('InPerson');
 
     // Street + postal code present but no city picked yet ⇒ cannot advance.
-    api.form.patchValue({ street: 'Hauptstr 1', postalCode: '10115' });
+    api.street.set('Hauptstr 1');
+    api.postalCode.set('10115');
     expect(api.canAdvance()).toBe(false);
 
     // Picking a canonical city completes the step.

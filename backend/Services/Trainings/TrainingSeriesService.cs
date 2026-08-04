@@ -226,10 +226,6 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
             return TrainingResult<SeriesEditResultDto>.Fail(TrainingOutcome.Invalid, "The end time must be after the start time.");
         }
 
-        // In-place template updates (upcoming non-detached inherit automatically).
-        if (request.Name is { } name && !string.IsNullOrWhiteSpace(name)) training.Name = name.Trim();
-        if (request.Description is not null) training.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
-
         // Location: the address is replaced as a BLOCK, never patched field by field (042 FR-007).
         // A kind change alone re-runs resolution too, which is what clears the address on a switch
         // to virtual (FR-003).
@@ -260,6 +256,12 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
             training.VirtualLink = address.VirtualLink;
             training.Location = LegacyLocationLabel(newKind, city.City);
         }
+
+        // In-place template updates (upcoming non-detached inherit automatically). Deliberately AFTER
+        // the location block: resolving a city for the first time runs its own SaveChanges, which
+        // would commit these assignments even when the address that follows is rejected.
+        if (request.Name is { } name && !string.IsNullOrWhiteSpace(name)) training.Name = name.Trim();
+        if (request.Description is not null) training.Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim();
 
         if (request.Visibility is { } vis) training.Visibility = vis;
         training.StartTime = newStart;

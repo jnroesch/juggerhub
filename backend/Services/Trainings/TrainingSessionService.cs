@@ -77,8 +77,8 @@ public sealed class TrainingSessionService : ITrainingSessionService
         var newKind = request.LocationKind ?? session.LocationKindOverride ?? session.Training.LocationKind;
 
         // Relocating the session: the address is validated and stored as ONE block (042 FR-006/FR-007).
-        // Resolve the city before tracking anything else — on a create race ResolveAndUpsertAsync
-        // clears the change tracker.
+        // Resolve the city before assigning anything below — ResolveAndUpsertAsync owns its own
+        // SaveChanges, which would commit a half-applied edit this method might still reject.
         Geocoding.StructuredAddress.CityResult? relocation = null;
         Geocoding.StructuredAddress.AddressResult? relocationAddress = null;
         if (request.Location is not null || request.LocationKind is not null || request.VirtualLink is not null)
@@ -102,9 +102,6 @@ public sealed class TrainingSessionService : ITrainingSessionService
             relocation = city;
             relocationAddress = address;
         }
-
-        // Reload the session: ResolveCityAsync may have cleared the change tracker above.
-        session = await _db.TrainingSessions.Include(s => s.Training).FirstAsync(s => s.Id == sessionId, ct);
 
         // Detaching freezes the session's whole schedule/place: snapshot every currently-inherited field
         // into its override so a later whole-series edit can no longer move it (spec FR-016). Visibility is

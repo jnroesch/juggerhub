@@ -24,6 +24,17 @@ export async function pickCity(
 }
 
 /**
+ * Clear the city an edit form loaded with. A picker holding a selection renders the confirmed chip
+ * INSTEAD of the search input, so `pickCity` alone can never reach a picker that is already set —
+ * changing a city is always clear-then-search.
+ */
+export async function clearCity(page: Page, containerTestId: string): Promise<void> {
+  const container = page.getByTestId(containerTestId);
+  await container.getByTestId('city-picker-chip').getByRole('button', { name: 'Clear city' }).click();
+  await expect(container.getByTestId('city-picker-input')).toBeVisible();
+}
+
+/**
  * Resolve a real city externalId via the backend search, for API-level fixtures that must send a
  * structured `LocationSelection` instead of the old freeform `city` string. Uses the caller's
  * session-bound request context (city search is authenticated-only since feature 026).
