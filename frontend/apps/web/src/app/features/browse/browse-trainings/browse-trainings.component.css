@@ -1,0 +1,4 @@
+/* Styling comes from the DESIGN.md Tailwind tokens applied in the template. */
+:host {
+  display: block;
+}

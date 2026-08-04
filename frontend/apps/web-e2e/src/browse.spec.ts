@@ -16,6 +16,7 @@ test.beforeEach(async ({ page, request }) => {
 const pages = [
   { path: '/browse/teams', title: 'Teams' },
   { path: '/browse/events', title: 'Events' },
+  { path: '/browse/trainings', title: 'Trainings' },
   { path: '/browse/players', title: 'Players' },
 ];
 
@@ -66,4 +67,112 @@ test('a nonsense query shows the no-results state with a clear action', async ({
 test('players page lists every player', async ({ page }) => {
   await page.goto('/browse/players');
   await expect(page.getByText(/every player on JuggerHub is listed/i)).toBeVisible();
+});
+
+/**
+ * Public trainings (feature 043). The tab strip carries four destinations from here, and the home
+ * empty state's "Browse open trainings" button used to land in the events browser.
+ */
+test.describe('public trainings are discoverable', () => {
+  test('all four tabs are reachable and the trainings tab navigates', async ({ page }) => {
+    await page.goto('/browse/teams');
+
+    for (const id of ['browse-tab-teams', 'browse-tab-events', 'browse-tab-trainings', 'browse-tab-players']) {
+      await expect(page.getByTestId(id)).toBeVisible();
+    }
+
+    await page.getByTestId('browse-tab-trainings').click();
+    await expect(page).toHaveURL(/\/browse\/trainings$/);
+    await expect(page.getByRole('heading', { name: 'Trainings' })).toBeVisible();
+  });
+
+  test('the tab strip stays legible and tappable at every viewport', async ({ page }) => {
+    // FR-026 / SC-008. A fourth `flex-1` cell at 375px would leave ~80px per label, which Spanish
+    // "Entrenamientos" cannot fill legibly — hence the 2-column grid below `sm`. This asserts the
+    // outcome (readable, non-overlapping, ≥44px) rather than the mechanism, so a different DESIGN.md
+    // resolution would still satisfy it. Runs on both the desktop and mobile projects.
+    await page.goto('/browse/trainings');
+
+    const ids = ['browse-tab-teams', 'browse-tab-events', 'browse-tab-trainings', 'browse-tab-players'];
+    const boxes = [];
+    for (const id of ids) {
+      const tab = page.getByTestId(id);
+      await expect(tab).toBeVisible();
+
+      const box = await tab.boundingBox();
+      expect(box, `${id} should have a layout box`).not.toBeNull();
+      // Touch target minimum (DESIGN.md).
+      expect(box!.height).toBeGreaterThanOrEqual(44);
+      // The label must actually fit its cell — this is what catches a clipped "Entrenamientos".
+      const overflows = await tab.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+      expect(overflows, `${id} label is clipped`).toBe(false);
+      boxes.push({ id, ...box! });
+    }
+
+    // No two tabs overlap (a wrapped grid must lay out in rows, not on top of each other).
+    for (let i = 0; i < boxes.length; i++) {
+      for (let j = i + 1; j < boxes.length; j++) {
+        const a = boxes[i];
+        const b = boxes[j];
+        const separated = a.x + a.width <= b.x + 1 || b.x + b.width <= a.x + 1
+          || a.y + a.height <= b.y + 1 || b.y + b.height <= a.y + 1;
+        expect(separated, `${a.id} overlaps ${b.id}`).toBe(true);
+      }
+    }
+  });
+
+  test('the tab strip fits the longest translated labels, not just the English ones', async ({ page }) => {
+    // The check above runs in the session's language (English). Spanish is the binding case —
+    // "Entrenamientos" (14 chars) alongside "Jugadores" is what would clip a four-across row.
+    // Rather than drive the settings UI to switch language, this substitutes the longest label
+    // from each catalogue directly and re-measures: it is the layout's capacity that is under
+    // test, and this asserts it without depending on which language the account happens to use.
+    await page.goto('/browse/trainings');
+
+    const longest = {
+      'browse-tab-teams': 'Equipos',
+      'browse-tab-events': 'Veranstaltungen',
+      'browse-tab-trainings': 'Entrenamientos',
+      'browse-tab-players': 'Jugadores',
+    } as const;
+
+    for (const [id, label] of Object.entries(longest)) {
+      const tab = page.getByTestId(id);
+      await tab.evaluate((el, text) => { el.textContent = text; }, label);
+
+      const overflows = await tab.evaluate((el) => el.scrollWidth > el.clientWidth + 1);
+      expect(overflows, `${id} clips "${label}"`).toBe(false);
+
+      const box = await tab.boundingBox();
+      expect(box!.height).toBeGreaterThanOrEqual(44);
+    }
+  });
+
+  test('filter chips show translated text, not raw keys', async ({ page }) => {
+    // Only reproducible in a browser: the catalogue loads asynchronously, and a `computed()` whose
+    // dependencies never change afterwards keeps whatever `translate()` returned first. Jest
+    // preloads the catalogue synchronously, so the unit suite cannot see this.
+    // ⚠ The teams / events / players pages still fail this — tracked separately, out of scope here.
+    await page.goto('/browse/trainings');
+
+    const chips = page.getByTestId('browse-chips');
+    await chips.waitFor();
+
+    const text = (await chips.textContent()) ?? '';
+    expect(text, 'a chip rendered a raw Transloco key').not.toMatch(/browse\.[a-zA-Z.]+/);
+    expect(text).toContain('Upcoming');
+  });
+
+  test('the home empty state sends a teamless player to trainings, not events', async ({ page }) => {
+    // The bug that motivated the feature: this button rendered "Browse open trainings" and
+    // navigated to /browse/events, a list that only ever holds tournaments and workshops.
+    await page.goto('/');
+
+    const findATeam = page.getByTestId('find-a-team');
+    await expect(findATeam).toBeVisible();
+
+    await findATeam.getByRole('link', { name: /browse open trainings/i }).click();
+    await expect(page).toHaveURL(/\/browse\/trainings$/);
+    await expect(page.getByTestId('browse-tab-trainings')).toBeVisible();
+  });
 });

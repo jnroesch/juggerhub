@@ -212,6 +212,13 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./features/browse/browse-events/browse-events.component').then((m) => m.BrowseEventsComponent),
       },
       {
+        // Feature 043 — public trainings, discoverable across all teams. Team-only sessions are
+        // excluded server-side, so this route needs no guard beyond being signed in.
+        path: 'browse/trainings',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/browse/browse-trainings/browse-trainings.component').then((m) => m.BrowseTrainingsComponent),
+      },
+      {
         path: 'browse/players',
         canActivate: [authGuard],
         loadComponent: () => import('./features/browse/browse-players/browse-players.component').then((m) => m.BrowsePlayersComponent),

@@ -634,6 +634,23 @@
       "chipUpcoming": "Bevorstehend",
       "countOne": "{{count}} Event",
       "countMany": "{{count}} Events"
+    },
+    "tabTrainings": "Trainings",
+    "trainings": {
+      "searchPlaceholder": "Trainings suchen…",
+      "note": "Trainings, die Teams für alle geöffnet haben. Komm als Gast vorbei.",
+      "noun": "Trainings",
+      "countOne": "{{count}} Training",
+      "countMany": "{{count}} Trainings",
+      "hidePastLabel": "Vergangene Trainings ausblenden",
+      "hidePastHint": "Nur bevorstehende",
+      "dateRange": "Zeitraum",
+      "fromDate": "Von",
+      "toDate": "Bis",
+      "city": "Stadt",
+      "cityPlaceholder": "Beliebige Stadt",
+      "sortSoonest": "Demnächst",
+      "chipUpcoming": "Bevorstehend"
     }
   },
   "home": {

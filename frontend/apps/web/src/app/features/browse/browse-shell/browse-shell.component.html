@@ -5,24 +5,43 @@
     <span class="text-eyebrow uppercase text-faint">{{ 'browse.eyebrow' | transloco }}</span>
   </div>
 
-  <!-- Switch between the three discovery areas (feature 008 folds these under Browse). -->
-  <nav class="flex gap-1 rounded-md bg-surface-sunken p-1" aria-label="Browse">
+  <!--
+    Switch between the four discovery areas (feature 008 folds these under Browse; feature 043 added
+    Trainings).
+
+    ⚠ Layout note. A fourth `flex-1` cell leaves roughly 80px of usable width at 375px, which
+    Spanish "Entrenamientos" (14 chars) cannot occupy legibly. The two obvious fixes are both
+    forbidden: a smaller font breaches the "nothing meaningful below caption" rule, and truncation
+    makes a tab unreadable — a control nobody can read is not a control. Horizontal scrolling was
+    also rejected, because it puts the newest destination off-screen with no affordance.
+
+    So the strip is a 2×2 grid below `sm` and a single row of four from `sm` up. Every label stays
+    at full size in all three languages, and `min-h-[44px]` keeps each cell at the touch-target
+    minimum — which the previous three-tab row did not actually meet.
+  -->
+  <nav class="grid grid-cols-2 gap-1 rounded-md bg-surface-sunken p-1 sm:grid-cols-4" aria-label="Browse">
     <a
       routerLink="/browse/teams"
       routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex-1 rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
       data-testid="browse-tab-teams"
     >{{ 'browse.tabTeams' | transloco }}</a>
     <a
       routerLink="/browse/events"
       routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex-1 rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
       data-testid="browse-tab-events"
     >{{ 'browse.tabEvents' | transloco }}</a>
     <a
+      routerLink="/browse/trainings"
+      routerLinkActive="bg-surface-card text-ink shadow-sm"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
+      data-testid="browse-tab-trainings"
+    >{{ 'browse.tabTrainings' | transloco }}</a>
+    <a
       routerLink="/browse/players"
       routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex-1 rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
       data-testid="browse-tab-players"
     >{{ 'browse.tabPlayers' | transloco }}</a>
   </nav>
