@@ -140,14 +140,65 @@ public enum ActivityKind
     TrainingChanged,
 }
 
+/// <summary>Whether a changed training session was called off or merely edited. Serialized by name.</summary>
+public enum TrainingChangeKind
+{
+    Updated,
+    Cancelled,
+}
+
+/// <summary>
+/// The interpolation values for an <see cref="ActivityEntryDto"/> sentence. Only the fields the
+/// entry's <see cref="ActivityEntryDto.Kind"/> uses are populated; the rest stay null.
+///
+/// This DTO exists so the server never composes the sentence. The server does not know the viewer's
+/// language — the catalogue is client-side and switchable at runtime (feature 031) — so a rendered
+/// summary would be English on a German dashboard, and no key-parity guard could ever catch it
+/// because there would be no key. Names here are user data and stay untranslated; the connecting
+/// prose is a <c>home.activity.*</c> key the client picks from <see cref="ActivityEntryDto.Kind"/>
+/// plus the discriminators below.
+/// </summary>
+public sealed record ActivityParamsDto
+{
+    /// <summary>The player the entry is about. Null when their profile carries no display name —
+    /// the client substitutes a translated stand-in rather than an English one.</summary>
+    public string? ActorName { get; init; }
+
+    /// <summary>TeammateJoinedEvent / PartyMemberJoined.</summary>
+    public string? EventName { get; init; }
+
+    /// <summary>NewTeamMember / RoleChanged. Null on RoleChanged when the notification payload
+    /// carried no team name.</summary>
+    public string? TeamName { get; init; }
+
+    /// <summary>TrainingChanged. Null when the payload carried no training name.</summary>
+    public string? TrainingName { get; init; }
+
+    /// <summary>BadgeAwarded.</summary>
+    public string? BadgeName { get; init; }
+
+    /// <summary>BadgeAwarded — the award is the viewer's own. Selects the second-person sentence
+    /// ("You earned…"), which is a different verb form in German/Spanish, not a swapped noun.</summary>
+    public bool IsMine { get; init; }
+
+    /// <summary>RoleChanged — the viewer's new role. Null when the payload role was unrecognized.</summary>
+    public TeamRole? NewRole { get; init; }
+
+    /// <summary>TrainingChanged — cancelled vs. edited.</summary>
+    public TrainingChangeKind? ChangeKind { get; init; }
+}
+
 /// <summary>
 /// A passive, read-only "What's going on" entry (feature 025). Carries no actions. Derived on read
 /// from domain rows (event sign-ups, team memberships, badge awards, party members) plus the viewer's
 /// own passive notification rows for pure state-changes (role change, training reschedule/cancel).
 /// All entries are scoped to the viewer or the viewer's teams/parties server-side.
+///
+/// <see cref="Kind"/> + <see cref="Params"/> describe *what happened*; the client turns that into a
+/// localized sentence. See <see cref="ActivityParamsDto"/> for why the sentence is not built here.
 /// </summary>
 public sealed record ActivityEntryDto(
     ActivityKind Kind,
-    string Summary,
+    ActivityParamsDto Params,
     string? LinkTarget,
     DateTime OccurredAt);

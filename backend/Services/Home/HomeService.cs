@@ -200,8 +200,11 @@ public sealed class HomeService : IHomeService
             .Take(cap)
             .Select(s => new ActivityEntryDto(
                 ActivityKind.TeammateJoinedEvent,
-                (_db.PlayerProfiles.Where(p => p.UserId == s.UserId).Select(p => p.DisplayName).FirstOrDefault() ?? "A teammate")
-                    + " signed up for " + s.Event.Name,
+                new ActivityParamsDto
+                {
+                    ActorName = _db.PlayerProfiles.Where(p => p.UserId == s.UserId).Select(p => p.DisplayName).FirstOrDefault(),
+                    EventName = s.Event.Name,
+                },
                 s.EventId.ToString(),
                 s.CreatedDate))
             .ToListAsync(ct);
@@ -212,8 +215,11 @@ public sealed class HomeService : IHomeService
             .Take(cap)
             .Select(m => new ActivityEntryDto(
                 ActivityKind.NewTeamMember,
-                (_db.PlayerProfiles.Where(p => p.UserId == m.UserId).Select(p => p.DisplayName).FirstOrDefault() ?? "Someone")
-                    + " joined " + m.Team.Name,
+                new ActivityParamsDto
+                {
+                    ActorName = _db.PlayerProfiles.Where(p => p.UserId == m.UserId).Select(p => p.DisplayName).FirstOrDefault(),
+                    TeamName = m.Team.Name,
+                },
                 m.Team.Slug,
                 m.JoinedDate))
             .ToListAsync(ct);
@@ -224,8 +230,11 @@ public sealed class HomeService : IHomeService
             .Take(cap)
             .Select(pm => new ActivityEntryDto(
                 ActivityKind.PartyMemberJoined,
-                (_db.PlayerProfiles.Where(p => p.UserId == pm.UserId).Select(p => p.DisplayName).FirstOrDefault() ?? "Someone")
-                    + " joined the party for " + pm.Party.Event.Name,
+                new ActivityParamsDto
+                {
+                    ActorName = _db.PlayerProfiles.Where(p => p.UserId == pm.UserId).Select(p => p.DisplayName).FirstOrDefault(),
+                    EventName = pm.Party.Event.Name,
+                },
                 pm.Party.EventId.ToString(),
                 pm.CreatedDate))
             .ToListAsync(ct);
@@ -249,7 +258,7 @@ public sealed class HomeService : IHomeService
             .ToListAsync(ct);
         var badges = badgeRaw.Select(b => new ActivityEntryDto(
             ActivityKind.BadgeAwarded,
-            (b.IsMine ? "You" : (b.Name ?? "A teammate")) + " earned the " + b.BadgeName + " badge",
+            new ActivityParamsDto { ActorName = b.Name, BadgeName = b.BadgeName, IsMine = b.IsMine },
             b.Handle,
             b.EarnedAt)).ToList();
 
@@ -273,35 +282,41 @@ public sealed class HomeService : IHomeService
             .ToList();
     }
 
-    /// <summary>Render a passive state-change notification into an activity entry (payload is camelCase JSON).</summary>
+    /// <summary>
+    /// Render a passive state-change notification into an activity entry (payload is camelCase JSON).
+    /// Extracts the payload's facts only — the sentence is composed client-side (see
+    /// <see cref="ActivityParamsDto"/>), so a missing name becomes a null param, never English prose.
+    /// </summary>
     private static ActivityEntryDto StateChangeEntry(NotificationType type, string payload, DateTime when)
     {
         using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(payload) ? "{}" : payload);
         var root = doc.RootElement;
-        string Str(string key) => root.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.String ? v.GetString()! : "";
+        string? Str(string key) => root.TryGetProperty(key, out var v) && v.ValueKind == JsonValueKind.String
+            ? (string.IsNullOrWhiteSpace(v.GetString()) ? null : v.GetString())
+            : null;
 
         if (type == NotificationType.TeamRoleChanged)
         {
-            var team = Str("teamName");
-            var role = Str("newRole");
             var slug = Str("teamSlug");
             return new ActivityEntryDto(
                 ActivityKind.RoleChanged,
-                string.IsNullOrEmpty(team) ? "Your team role changed" : $"Your role in {team} is now {role}",
-                string.IsNullOrEmpty(slug) ? null : slug,
+                new ActivityParamsDto
+                {
+                    TeamName = Str("teamName"),
+                    NewRole = Enum.TryParse<TeamRole>(Str("newRole"), out var role) ? role : null,
+                },
+                slug,
                 when);
         }
 
-        var name = Str("trainingName");
-        var kind = Str("kind");
-        var sessionId = Str("sessionId");
-        var summary = kind == "cancelled"
-            ? (string.IsNullOrEmpty(name) ? "A training was cancelled" : $"{name} was cancelled")
-            : (string.IsNullOrEmpty(name) ? "A training was updated" : $"{name} was updated");
         return new ActivityEntryDto(
             ActivityKind.TrainingChanged,
-            summary,
-            string.IsNullOrEmpty(sessionId) ? null : sessionId,
+            new ActivityParamsDto
+            {
+                TrainingName = Str("trainingName"),
+                ChangeKind = Str("kind") == "cancelled" ? TrainingChangeKind.Cancelled : TrainingChangeKind.Updated,
+            },
+            Str("sessionId"),
             when);
     }
 
