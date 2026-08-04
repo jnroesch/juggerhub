@@ -1,6 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
-import { DatePipe } from '@angular/common';
+import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -21,7 +21,7 @@ type AwardKind = 'badge' | 'achievement';
  */
 @Component({
   selector: 'jh-admin-team-detail',
-  imports: [DatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [TranslocoDatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-team-detail.component.html',
   styleUrl: './admin-team-detail.component.css',
 })

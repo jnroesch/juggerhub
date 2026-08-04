@@ -15,7 +15,7 @@
       @for (n of news(); track n.id) {
         <li class="py-sm first:pt-0 last:pb-0">
           <p class="text-body-md text-body">{{ n.body }}</p>
-          <p class="mt-xs text-body-sm text-faint">{{ n.authorDisplayName }} · {{ n.createdDate | date: 'd MMM, HH:mm' }}</p>
+          <p class="mt-xs text-body-sm text-faint">{{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }}</p>
         </li>
       }
     </ul>

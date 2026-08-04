@@ -25,7 +25,7 @@
     <ul class="mt-sm space-y-xs text-body-md text-body">
       <li class="flex items-center gap-sm">
         <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        {{ d.startsAt | date: 'EEE d MMM, HH:mm' }} → {{ d.endsAt | date: 'EEE d MMM, HH:mm' }}
+        {{ d.startsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }} → {{ d.endsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }}
       </li>
       <li class="flex items-center gap-sm">
         <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.3-7-11a7 7 0 0114 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
@@ -142,7 +142,7 @@
             <div class="rounded-lg border border-border bg-surface-card p-md" data-testid="fee-block">
               <div class="flex items-center justify-between">
                 <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.entranceFee' | transloco }}</h2>
-                @if (d.feePaymentDeadline) { <span class="rounded-full bg-surface-sunken px-sm py-0.5 text-body-sm text-subtle">{{ 'events.detail.payBy' | transloco:{ date: (d.feePaymentDeadline | date: 'd MMM') } }}</span> }
+                @if (d.feePaymentDeadline) { <span class="rounded-full bg-surface-sunken px-sm py-0.5 text-body-sm text-subtle">{{ 'events.detail.payBy' | transloco:{ date: (d.feePaymentDeadline | translocoDate: { month: 'short', day: 'numeric' }) } }}</span> }
               </div>
               <p class="mt-xs text-heading-sm font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-subtle">{{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}</span></p>
               <dl class="mt-sm space-y-0.5 text-body-sm">

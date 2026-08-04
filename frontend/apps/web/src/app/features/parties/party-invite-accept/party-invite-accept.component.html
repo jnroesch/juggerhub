@@ -7,7 +7,7 @@
     <jh-card class="p-lg">
       <p class="text-eyebrow uppercase text-brand">{{ 'parties.inviteAccept.coadminInvite' | transloco }}</p>
       <h1 class="mt-xs text-h3 text-heading">{{ p.teamName }} @ {{ p.eventName }}</h1>
-      <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | date: 'mediumDate' }} · {{ 'parties.inviteAccept.invitedBy' | transloco:{ name: p.inviterDisplayName } }}</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | translocoDate: { dateStyle: 'medium' } }} · {{ 'parties.inviteAccept.invitedBy' | transloco:{ name: p.inviterDisplayName } }}</p>
 
       @if (p.state === 'Usable') {
         <p class="mt-md text-body-sm text-body">{{ 'parties.inviteAccept.acceptHelp' | transloco }}</p>

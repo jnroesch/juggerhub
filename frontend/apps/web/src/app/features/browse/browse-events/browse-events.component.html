@@ -27,7 +27,7 @@
         <span class="flex flex-1 flex-col">
           <span class="text-body-md text-ink">{{ event.name }}</span>
           <span class="text-body-sm text-subtle">
-            {{ event.startsAt | date: 'mediumDate' }}
+            {{ event.startsAt | translocoDate: { dateStyle: 'medium' } }}
             @if (event.locationLabel) {
               · {{ event.locationLabel }}
             }

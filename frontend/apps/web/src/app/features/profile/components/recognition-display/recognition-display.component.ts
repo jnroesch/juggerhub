@@ -1,5 +1,5 @@
 import { Component, computed, input } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { EarnedRecognition, recognitionIconUrl } from '../../../../core/models/recognition.models';
 
@@ -11,7 +11,7 @@ import { EarnedRecognition, recognitionIconUrl } from '../../../../core/models/r
  */
 @Component({
   selector: 'jh-recognition-display',
-  imports: [DatePipe, TranslocoPipe],
+  imports: [TranslocoDatePipe, TranslocoPipe],
   templateUrl: './recognition-display.component.html',
   styleUrl: './recognition-display.component.css',
 })

@@ -23,7 +23,7 @@
               </span>
               <span class="min-w-0">
                 <span class="block truncate text-body-sm font-semibold text-heading">{{ b.name }}</span>
-                <span class="block font-mono text-caption text-muted">{{ b.earnedAt | date: 'MMM y' }}</span>
+                <span class="block font-mono text-caption text-muted">{{ b.earnedAt | translocoDate: { year: 'numeric', month: 'short' } }}</span>
               </span>
             </li>
           }
@@ -57,7 +57,7 @@
                 @if (context(a); as ctx) {
                   <span class="block truncate text-caption text-muted">{{ ctx }}</span>
                 } @else {
-                  <span class="block font-mono text-caption text-muted">{{ a.earnedAt | date: 'MMM y' }}</span>
+                  <span class="block font-mono text-caption text-muted">{{ a.earnedAt | translocoDate: { year: 'numeric', month: 'short' } }}</span>
                 }
               </span>
             </li>

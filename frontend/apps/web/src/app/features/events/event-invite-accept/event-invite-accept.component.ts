@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LegalLinksComponent, ButtonDirective, LoadingComponent } from '../../../shared/ui';
@@ -14,7 +14,7 @@ import { EventService } from '../../../core/services/event.service';
  */
 @Component({
   selector: 'jh-event-invite-accept',
-  imports: [LegalLinksComponent, DatePipe, ButtonDirective, LoadingComponent, TranslocoPipe],
+  imports: [LegalLinksComponent, TranslocoDatePipe, ButtonDirective, LoadingComponent, TranslocoPipe],
   templateUrl: './event-invite-accept.component.html',
   styleUrl: './event-invite-accept.component.css',
 })
