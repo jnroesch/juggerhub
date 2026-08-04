@@ -152,6 +152,7 @@ typography:
     wide: 0.02em
     eyebrow: 0.06em
 spacing:
+  "0.5": 2px
   "1": 4px
   "2": 8px
   "3": 12px
@@ -321,7 +322,11 @@ usage. Fonts are GitHub's open-source Mona Sans / Hubot Sans (shipped via
 - Sticky top nav; content in a centered column; airy section rhythm
   (`section-gap`, `clamp(48px, 8vw, 112px)`).
 - Spacing follows a 4px base (`space-1` 4 → `space-13` 128). Compose from these
-  steps rather than arbitrary values.
+  steps rather than arbitrary values. The one step below the base is the **2px
+  half-step** (`space-0.5`, `3xs`) — reserved for hairline insets where 4px is
+  visibly too loose, in practice the vertical padding of pills. It is not a
+  general-purpose step: if a gap is being tuned by 2px, the wrong step was
+  chosen.
 
 ## Elevation & depth
 
