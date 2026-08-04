@@ -69,7 +69,9 @@
             <p class="mt-xs max-w-md text-body-sm text-muted">{{ 'home.notOnTeamBody' | transloco }}</p>
             <div class="mt-md flex flex-wrap gap-sm">
               <a routerLink="/browse/teams" jhButton>{{ 'home.findTeamNearYou' | transloco }}</a>
-              <a routerLink="/browse/events" class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken">{{ 'home.browseOpenTrainings' | transloco }}</a>
+              <!-- Feature 043: this pointed at /browse/events until the trainings browse existed,
+                   so "Browse open trainings" landed in a list that only ever holds tournaments. -->
+              <a routerLink="/browse/trainings" class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken">{{ 'home.browseOpenTrainings' | transloco }}</a>
             </div>
           </section>
 
