@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HomeNews } from '../../../core/models/home.models';
-import { relativeTime } from '../../../core/utils/format';
+import { injectRelativeTime } from '../../../core/i18n/relative-time';
 
 /**
  * The Home News module (feature 008, party source added by feature 025): authored items tagged by
@@ -17,9 +17,7 @@ import { relativeTime } from '../../../core/utils/format';
 export class NewsListComponent {
   readonly news = input.required<HomeNews[]>();
 
-  protected rel(iso: string): string {
-    return relativeTime(iso);
-  }
+  protected readonly rel = injectRelativeTime();
 
   /** Link target for an item by its source (team → team page; event & party → event page). */
   protected link(item: HomeNews): string[] {

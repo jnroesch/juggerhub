@@ -7,7 +7,7 @@ import { NeedsYouItem } from '../../../core/models/home.models';
 import { TeamService } from '../../../core/services/team.service';
 import { PartyService } from '../../../core/services/party.service';
 import { MarketService } from '../../../core/services/market.service';
-import { relativeTime } from '../../../core/utils/format';
+import { injectRelativeTime } from '../../../core/i18n/relative-time';
 
 /**
  * "Needs you" (feature 025, US1) — the pinned-top actionable block. Invites and requests only: team
@@ -33,9 +33,7 @@ export class NeedsYouCardComponent {
   protected readonly busyId = signal<string | null>(null);
   protected readonly hasAny = computed(() => this.items().length > 0);
 
-  protected rel(iso: string): string {
-    return relativeTime(iso);
-  }
+  protected readonly rel = injectRelativeTime();
 
   /** The navigation route for an item's "view" link, by kind. */
   protected link(item: NeedsYouItem): unknown[] | null {

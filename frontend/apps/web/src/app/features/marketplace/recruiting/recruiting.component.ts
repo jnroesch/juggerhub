@@ -10,7 +10,7 @@ import {
 } from '../../../core/models/market.models';
 import { POMPFEN_CATALOG, Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import { problemDetail } from '../../../core/utils/problem';
-import { relativeTime } from '../../../core/utils/format';
+import { injectRelativeTime } from '../../../core/i18n/relative-time';
 
 /**
  * US2/US3/US5/US6 — the party admin's recruiting screen (`/parties/:id/recruiting`). Flip the party
@@ -31,7 +31,7 @@ export class RecruitingComponent implements OnInit {
 
   protected readonly catalog = POMPFEN_CATALOG;
   protected readonly labelKey = pompfeLabelKey;
-  protected readonly rel = relativeTime;
+  protected readonly rel = injectRelativeTime();
 
   protected id = '';
 
