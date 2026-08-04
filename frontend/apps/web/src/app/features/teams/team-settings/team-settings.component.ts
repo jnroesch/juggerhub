@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 import { TeamDetail } from '../../../core/models/team.models';
+import { MembershipService } from '../../../core/services/membership.service';
 import { TeamService } from '../../../core/services/team.service';
 import { problemDetail } from '../../../core/utils/problem';
 
@@ -19,6 +20,7 @@ import { problemDetail } from '../../../core/utils/problem';
 })
 export class TeamSettingsComponent {
   private readonly teams = inject(TeamService);
+  private readonly membership = inject(MembershipService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
@@ -85,7 +87,11 @@ export class TeamSettingsComponent {
     this.working.set(true);
     this.error.set(null);
     this.teams.stepDown(this.slug()).subscribe({
-      next: () => this.router.navigate(['/t', this.slug()]),
+      next: () => {
+        // The cached membership carries the role the nav and "My team" render.
+        this.membership.load();
+        this.router.navigate(['/t', this.slug()]);
+      },
       error: (err) => {
         this.working.set(false);
         this.error.set(problemDetail(err));
@@ -97,7 +103,11 @@ export class TeamSettingsComponent {
     this.working.set(true);
     this.error.set(null);
     this.teams.deleteTeam(this.slug()).subscribe({
-      next: () => this.router.navigate(['/']),
+      next: () => {
+        // The team is gone — drop it from the cache, or the nav keeps deep-linking to a dead /t/:slug.
+        this.membership.load();
+        this.router.navigate(['/']);
+      },
       error: (err) => {
         this.working.set(false);
         this.error.set(problemDetail(err));

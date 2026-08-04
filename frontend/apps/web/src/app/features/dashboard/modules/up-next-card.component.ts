@@ -7,7 +7,7 @@ import { Signup, SignupStatus } from '../../../core/models/event.models';
 import { AgendaItem } from '../../../core/models/home.models';
 import { TrainingRsvp } from '../../../core/models/trainings.models';
 import { TrainingsService } from '../../../core/services/trainings.service';
-import { dayOfMonth, shortWeekday, timeHm } from '../../../core/utils/format';
+import { dayOfMonth, shortMonth, shortWeekday, timeHm } from '../../../core/utils/format';
 
 /**
  * One "Up next" / "Open to everyone" agenda item (feature 008, unified by feature 025). An Event item
@@ -61,6 +61,7 @@ export class UpNextCardComponent {
 
   protected readonly weekday = computed(() => shortWeekday(this.item().startsAt));
   protected readonly day = computed(() => dayOfMonth(this.item().startsAt));
+  protected readonly month = computed(() => shortMonth(this.item().startsAt));
   protected readonly time = computed(() => timeHm(this.item().startsAt));
 
   /** The route target for the item's title, by kind. */

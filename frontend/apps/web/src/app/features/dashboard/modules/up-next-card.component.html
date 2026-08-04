@@ -3,10 +3,11 @@
   <a
     [routerLink]="route()"
     class="grid h-12 w-12 shrink-0 place-items-center rounded-sm bg-surface-inverse text-on-inverse"
-    [attr.aria-label]="weekday() + ' ' + day()"
+    [attr.aria-label]="weekday() + ' ' + day() + ' ' + month()"
   >
     <span class="text-caption font-semibold uppercase leading-none">{{ weekday() }}</span>
-    <span class="font-mono text-body-md font-bold leading-tight">{{ day() }}</span>
+    <span class="font-mono text-body-md font-bold leading-none">{{ day() }}</span>
+    <span class="text-caption font-semibold uppercase leading-none">{{ month() }}</span>
   </a>
 
   <!-- Title + meta -->

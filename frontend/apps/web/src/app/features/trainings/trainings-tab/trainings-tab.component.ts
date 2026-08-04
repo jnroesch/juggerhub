@@ -66,7 +66,26 @@ export class TrainingsTabComponent {
   }
 
   protected shortDate(date: string): string {
-    return new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+    return this.localDate(date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+  }
+
+  // --- Date chip: weekday over day over month, each part on its own so the chip stays locale-safe. ---
+
+  protected chipWeekday(date: string): string {
+    return this.localDate(date).toLocaleDateString(undefined, { weekday: 'short' });
+  }
+
+  protected chipDay(date: string): string {
+    return String(this.localDate(date).getDate());
+  }
+
+  protected chipMonth(date: string): string {
+    return this.localDate(date).toLocaleDateString(undefined, { month: 'short' });
+  }
+
+  /** `sessionDate` is date-only (`YYYY-MM-DD`), which parses as UTC — pin it to local midnight. */
+  private localDate(date: string): Date {
+    return new Date(`${date}T00:00:00`);
   }
 
   protected answerLabel(a: TrainingSessionRow['myAnswer']): string {

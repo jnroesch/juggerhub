@@ -10,6 +10,11 @@ export function dayOfMonth(iso: string): string {
   return String(new Date(iso).getDate());
 }
 
+/** Short month for a date chip, e.g. "Jul". */
+export function shortMonth(iso: string): string {
+  return new Date(iso).toLocaleDateString(undefined, { month: 'short' });
+}
+
 /** 24-hour time, e.g. "14:00". */
 export function timeHm(iso: string): string {
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
