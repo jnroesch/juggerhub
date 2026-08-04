@@ -21,14 +21,15 @@ Frontend and backend ship together; there is no compatibility window (precedent:
 // LocationSelectionDto — WRITE. The client never sends coordinates or a resolved id.
 { "cityExternalId": "TEST:berlin", "name": "Berlin" }   // name is a hint only
 
-// LocationDto — READ.
+// LocationDto — READ. (Member names verified against backend/Dtos/Cities/CityDtos.cs during
+// implementation: the read shape uses `externalId` and `label`, NOT `cityExternalId`/`displayLabel`.)
 {
-  "cityExternalId": "TEST:berlin",
+  "externalId": "TEST:berlin",
   "name": "Berlin",
   "region": "Berlin",
   "countryName": "Germany",
   "countryCode": "DE",
-  "displayLabel": "Berlin, Germany"
+  "label": "Berlin, Germany"
 }
 ```
 
@@ -75,7 +76,7 @@ Everything else (`isRecurring`, `name`, `description`, `locationKind`, `virtualL
 
 | Status | When |
 |---|---|
-| `200` `CreatedTrainingDto` | unchanged shape |
+| `201` `CreatedTrainingDto` | unchanged shape and status (verified during implementation — the endpoint returns **Created**, not `200`) |
 | `400` | in-person with a missing street or postal code — *"An in-person training needs a street and postal code."* |
 | `400` | in-person with no `location` — *"An in-person training needs a city."* |
 | `400` | `location.cityExternalId` not in the reference dataset — *"That city could not be found."* |
@@ -172,8 +173,8 @@ and event list rows don't carry them either.
   "street": "Aachener Str. 999",
   "postalCode": "50933",
   "location": {
-    "cityExternalId": "TEST:köln", "name": "Köln", "region": "Nordrhein-Westfalen",
-    "countryName": "Germany", "countryCode": "DE", "displayLabel": "Köln, Germany"
+    "externalId": "TEST:köln", "name": "Köln", "region": "Nordrhein-Westfalen",
+    "countryName": "Germany", "countryCode": "DE", "label": "Köln, Germany"
   },
   "virtualLink": null,
   "locationLabel": "Köln"

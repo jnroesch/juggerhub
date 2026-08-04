@@ -20,12 +20,16 @@ public sealed class TrainingSessionService : ITrainingSessionService
     private readonly AppDbContext _db;
     private readonly TrainingGuard _guard;
     private readonly INotificationService _notifications;
+    private readonly Geocoding.ICityService _cities;
 
-    public TrainingSessionService(AppDbContext db, TrainingGuard guard, INotificationService notifications)
+    public TrainingSessionService(
+        AppDbContext db, TrainingGuard guard, INotificationService notifications,
+        Geocoding.ICityService cities)
     {
         _db = db;
         _guard = guard;
         _notifications = notifications;
+        _cities = cities;
     }
 
     public async Task<TrainingResult<TrainingSessionDetailDto>> GetDetailAsync(Guid sessionId, Guid userId, CancellationToken ct = default)
@@ -70,21 +74,86 @@ public sealed class TrainingSessionService : ITrainingSessionService
             return TrainingResult<TrainingSessionDetailDto>.Fail(TrainingOutcome.Invalid, "The end time must be after the start time.");
         }
 
+        var newKind = request.LocationKind ?? session.LocationKindOverride ?? session.Training.LocationKind;
+
+        // Relocating the session: the address is validated and stored as ONE block (042 FR-006/FR-007).
+        // Resolve the city before tracking anything else — on a create race ResolveAndUpsertAsync
+        // clears the change tracker.
+        Geocoding.StructuredAddress.CityResult? relocation = null;
+        Geocoding.StructuredAddress.AddressResult? relocationAddress = null;
+        if (request.Location is not null || request.LocationKind is not null || request.VirtualLink is not null)
+        {
+            var city = await Geocoding.StructuredAddress.ResolveCityAsync(
+                _cities, newKind, request.Location, "training", ct);
+            if (city.Reason is not null)
+            {
+                return TrainingResult<TrainingSessionDetailDto>.Fail(TrainingOutcome.Invalid, city.Reason);
+            }
+
+            var address = Geocoding.StructuredAddress.Resolve(
+                newKind, request.VenueName, request.Street, request.PostalCode,
+                request.VirtualLink ?? session.VirtualLinkOverride ?? session.Training.VirtualLink,
+                "training");
+            if (address.Reason is not null)
+            {
+                return TrainingResult<TrainingSessionDetailDto>.Fail(TrainingOutcome.Invalid, address.Reason);
+            }
+
+            relocation = city;
+            relocationAddress = address;
+        }
+
+        // Reload the session: ResolveCityAsync may have cleared the change tracker above.
+        session = await _db.TrainingSessions.Include(s => s.Training).FirstAsync(s => s.Id == sessionId, ct);
+
         // Detaching freezes the session's whole schedule/place: snapshot every currently-inherited field
         // into its override so a later whole-series edit can no longer move it (spec FR-016). Visibility is
         // deliberately excluded — it follows the series unless a per-session visibility toggle overrides it.
+        //
+        // The address block is frozen the same way (042). Consequence, and intended: after a TIME-ONLY
+        // single-session edit, CityIdOverride is non-null even though the admin never touched the
+        // address. The session is detached; its address is now genuinely its own.
         session.StartTimeOverride ??= session.Training.StartTime;
         session.EndTimeOverride ??= session.Training.EndTime;
         session.LocationKindOverride ??= session.Training.LocationKind;
         session.LocationOverride ??= session.Training.Location;
         session.VirtualLinkOverride ??= session.Training.VirtualLink;
+        if (session.CityIdOverride is null)
+        {
+            session.VenueNameOverride ??= session.Training.VenueName;
+            session.StreetOverride ??= session.Training.Street;
+            session.PostalCodeOverride ??= session.Training.PostalCode;
+            session.CityIdOverride = session.Training.CityId;
+        }
 
         if (request.SessionDate is { } d) session.SessionDate = d;
         if (request.StartTime is { } st) session.StartTimeOverride = st;
         if (request.EndTime is { } et) session.EndTimeOverride = et;
         if (request.LocationKind is { } lk) session.LocationKindOverride = lk;
-        if (request.Location is not null) session.LocationOverride = string.IsNullOrWhiteSpace(request.Location) ? null : request.Location.Trim();
-        if (request.VirtualLink is not null) session.VirtualLinkOverride = string.IsNullOrWhiteSpace(request.VirtualLink) ? null : request.VirtualLink.Trim();
+
+        if (relocation is { } city2 && relocationAddress is { } address2)
+        {
+            session.VenueNameOverride = address2.VenueName;
+            session.StreetOverride = address2.Street;
+            session.PostalCodeOverride = address2.PostalCode;
+            session.CityIdOverride = city2.CityId;
+            session.CityOverride = city2.City;
+            session.VirtualLinkOverride = address2.VirtualLink;
+            session.LocationOverride = TrainingSeriesService.LegacyLocationLabel(newKind, city2.City);
+        }
+
+        // FR-003: a session whose effective kind is virtual carries no address at all. Without this
+        // the frozen block above would sit on a virtual session forever.
+        if ((session.LocationKindOverride ?? session.Training.LocationKind) == LocationKind.Virtual)
+        {
+            session.VenueNameOverride = null;
+            session.StreetOverride = null;
+            session.PostalCodeOverride = null;
+            session.CityIdOverride = null;
+            session.CityOverride = null;
+            session.LocationOverride = null;
+        }
+
         session.Detached = true;
 
         await _db.SaveChangesAsync(ct);
@@ -145,11 +214,11 @@ public sealed class TrainingSessionService : ITrainingSessionService
 
         await NotifySessionCancelledAsync(sessionId, access.Value, userId, ct);
 
-        var row = await _db.TrainingSessions.AsNoTracking()
+        var raw = await _db.TrainingSessions.AsNoTracking()
             .Where(s => s.Id == sessionId)
             .Select(TrainingSeriesService.RowProjection(userId))
             .FirstAsync(ct);
-        return TrainingResult<TrainingSessionRowDto>.Ok(row);
+        return TrainingResult<TrainingSessionRowDto>.Ok(TrainingSeriesService.ToRow(raw));
     }
 
     public async Task<TrainingResult> SetSessionVisibilityAsync(Guid sessionId, TrainingVisibility visibility, Guid userId, CancellationToken ct = default)
@@ -190,7 +259,14 @@ public sealed class TrainingSessionService : ITrainingSessionService
                 StartTime = s.StartTimeOverride ?? s.Training.StartTime,
                 EndTime = s.EndTimeOverride ?? s.Training.EndTime,
                 EffectiveKind = s.LocationKindOverride ?? s.Training.LocationKind,
-                Location = s.LocationOverride ?? s.Training.Location,
+                // ⚠ The address is ONE indivisible block keyed on CityIdOverride — never per-field
+                // `?? Training.X`, which would mix a session's street with the series' city or leak
+                // the series' venue name (042 research R1 / TrainingSession remarks).
+                VenueName = s.CityIdOverride != null ? s.VenueNameOverride : s.Training.VenueName,
+                Street = s.CityIdOverride != null ? s.StreetOverride : s.Training.Street,
+                PostalCode = s.CityIdOverride != null ? s.PostalCodeOverride : s.Training.PostalCode,
+                City = s.CityIdOverride != null ? s.CityOverride : s.Training.City,
+                LegacyLocation = s.CityIdOverride != null ? s.LocationOverride : s.Training.Location,
                 VirtualLink = s.VirtualLinkOverride ?? s.Training.VirtualLink,
                 s.Training.Weekday,
                 s.Training.Interval,
@@ -219,7 +295,15 @@ public sealed class TrainingSessionService : ITrainingSessionService
             head.StartTime,
             head.EndTime,
             head.EffectiveKind,
-            head.EffectiveKind == LocationKind.Virtual ? null : head.Location,
+            head.EffectiveKind == LocationKind.Virtual ? null : head.VenueName,
+            head.EffectiveKind == LocationKind.Virtual ? null : head.Street,
+            head.EffectiveKind == LocationKind.Virtual ? null : head.PostalCode,
+            head.EffectiveKind == LocationKind.Virtual ? null : Geocoding.LocationLabels.ToLocation(head.City),
+            TrainingSeriesService.LocationLabelFor(
+                head.EffectiveKind,
+                head.City?.Name,
+                head.VenueName,
+                head.LegacyLocation),
             head.EffectiveKind == LocationKind.Virtual ? head.VirtualLink : null,
             head.IsRecurring ? SeriesLabel(head.Interval) : null,
             head.Weekday,

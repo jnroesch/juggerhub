@@ -871,11 +871,22 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         {
             entity.Property(t => t.Name).HasMaxLength(120).IsRequired();
             entity.Property(t => t.Description).HasMaxLength(2000);
+            // Legacy free-text location, now system-derived (feature 042) — see Training.Location.
             entity.Property(t => t.Location).HasMaxLength(300);
+            entity.Property(t => t.VenueName).HasMaxLength(120);
+            entity.Property(t => t.Street).HasMaxLength(160);
+            entity.Property(t => t.PostalCode).HasMaxLength(20);
             entity.Property(t => t.VirtualLink).HasMaxLength(500);
 
             // The Trainings tab and active-series overview scan a team's trainings.
             entity.HasIndex(t => t.TeamId);
+
+            // Feature 042 — structured city (in-person trainings), mirroring Event. Restrict: keep
+            // the city while trainings reference it. Null for virtual trainings.
+            entity.HasOne(t => t.City)
+                .WithMany()
+                .HasForeignKey(t => t.CityId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasOne(t => t.Team)
                 .WithMany()
@@ -890,6 +901,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
         builder.Entity<TrainingSession>(entity =>
         {
             entity.Property(s => s.LocationOverride).HasMaxLength(300);
+            entity.Property(s => s.VenueNameOverride).HasMaxLength(120);
+            entity.Property(s => s.StreetOverride).HasMaxLength(160);
+            entity.Property(s => s.PostalCodeOverride).HasMaxLength(20);
             entity.Property(s => s.VirtualLinkOverride).HasMaxLength(500);
 
             // The tab list and dashboard agenda order by (team, date); the reconciliation reads by training.
@@ -900,6 +914,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
                 .WithMany(t => t.Sessions)
                 .HasForeignKey(s => s.TrainingId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Feature 042 — per-session address override. CityIdOverride is the block marker:
+            // non-null exactly when the session carries its own address (see TrainingSession).
+            entity.HasOne(s => s.CityOverride)
+                .WithMany()
+                .HasForeignKey(s => s.CityIdOverride)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         builder.Entity<TrainingResponse>(entity =>

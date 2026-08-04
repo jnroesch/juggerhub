@@ -12,6 +12,8 @@ import {
   TrainingSessionDetail,
   TrainingVisibility,
 } from '../../../core/models/trainings.models';
+import { CityOption, Location, toSelection } from '../../../core/models/city.models';
+import { AddressFieldsComponent } from '../../../shared/address-fields/address-fields.component';
 import { problemDetail } from '../../../core/utils/problem';
 
 type EditMode = 'fork' | 'single' | 'series';
@@ -25,7 +27,7 @@ type EditMode = 'fork' | 'single' | 'series';
  */
 @Component({
   selector: 'jh-training-edit',
-  imports: [FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent, AddressFieldsComponent, TranslocoPipe],
   templateUrl: './training-edit.component.html',
   styleUrl: './training-edit.component.css',
 })
@@ -51,7 +53,18 @@ export class TrainingEditComponent {
   protected startTime = '';
   protected endTime = '';
   protected locationKind: LocationKind = 'InPerson';
-  protected location = '';
+  // Feature 042 — structured address, prefilled from the session detail.
+  protected venueName = '';
+  protected street = '';
+  protected postalCode = '';
+  /** The city currently stored, so the picker reads it back. Set once, before the form renders. */
+  protected readonly initialCity = signal<Location | null>(null);
+  /**
+   * Tri-state, and it has to be: `undefined` = the admin never touched the city (resend the stored
+   * one), `null` = they cleared it (the server refuses that for an in-person training, which is the
+   * point), a value = they picked a new one.
+   */
+  protected readonly pickedCity = signal<CityOption | null | undefined>(undefined);
   protected virtualLink = '';
   protected name = '';
   protected description = '';
@@ -104,7 +117,13 @@ export class TrainingEditComponent {
     this.startTime = s.startTime.slice(0, 5);
     this.endTime = s.endTime.slice(0, 5);
     this.locationKind = s.locationKind;
-    this.location = s.location ?? '';
+    this.venueName = s.venueName ?? '';
+    this.street = s.street ?? '';
+    this.postalCode = s.postalCode ?? '';
+    // Set before the form renders — `jh-city-picker` reads its `initial` in ngOnInit, and the form
+    // only exists in the loaded branch of the template.
+    this.initialCity.set(s.location);
+    this.pickedCity.set(undefined);
     this.virtualLink = s.virtualLink ?? '';
     this.name = s.name;
     this.description = s.description ?? '';
@@ -116,6 +135,33 @@ export class TrainingEditComponent {
 
   protected choose(mode: EditMode): void {
     this.mode.set(mode);
+  }
+
+  protected onCitySelected(option: CityOption | null): void {
+    this.pickedCity.set(option);
+  }
+
+  /**
+   * The city fragment to send. Untouched ⇒ resend the stored city so the block replace does not
+   * silently drop it; cleared ⇒ send an explicit null and let the server refuse it.
+   */
+  private citySelection() {
+    const picked = this.pickedCity();
+    if (picked !== undefined) {
+      return toSelection(picked);
+    }
+    const stored = this.initialCity();
+    return stored ? { cityExternalId: stored.externalId, name: stored.name } : toSelection(null);
+  }
+
+  /** The whole in-person address, always sent together — never field by field (FR-007). */
+  private addressBlock() {
+    return {
+      venueName: this.venueName.trim() || null,
+      street: this.street.trim() || null,
+      postalCode: this.postalCode.trim() || null,
+      location: this.citySelection(),
+    };
   }
 
   protected shortDate(date: string): string {
@@ -132,13 +178,16 @@ export class TrainingEditComponent {
     }
     this.busy.set(true);
     this.error.set(null);
+    const inPerson = this.locationKind === 'InPerson';
     const body: EditSessionRequest = {
       sessionDate: this.sessionDate,
       startTime: `${this.startTime}:00`,
       endTime: `${this.endTime}:00`,
       locationKind: this.locationKind,
-      location: this.locationKind === 'InPerson' ? this.location.trim() : null,
-      virtualLink: this.locationKind === 'Virtual' ? this.virtualLink.trim() : null,
+      ...(inPerson
+        ? this.addressBlock()
+        : { venueName: null, street: null, postalCode: null, location: null }),
+      virtualLink: inPerson ? null : this.virtualLink.trim(),
     };
     this.trainings.editSession(this.sessionId, body).subscribe({
       next: () => this.router.navigate(['/trainings/sessions', this.sessionId]),
@@ -156,12 +205,15 @@ export class TrainingEditComponent {
     }
     this.busy.set(true);
     this.error.set(null);
+    const inPerson = this.locationKind === 'InPerson';
     const body: EditSeriesRequest = {
       name: this.name.trim(),
       description: this.description.trim() || null,
       locationKind: this.locationKind,
-      location: this.locationKind === 'InPerson' ? this.location.trim() : null,
-      virtualLink: this.locationKind === 'Virtual' ? this.virtualLink.trim() : null,
+      ...(inPerson
+        ? this.addressBlock()
+        : { venueName: null, street: null, postalCode: null, location: null }),
+      virtualLink: inPerson ? null : this.virtualLink.trim(),
       startTime: `${this.startTime}:00`,
       endTime: `${this.endTime}:00`,
       visibility: this.visibility,

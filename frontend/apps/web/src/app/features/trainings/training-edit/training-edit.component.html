@@ -52,9 +52,16 @@
         <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
       </div>
       @if (locationKind === 'InPerson') {
-        <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.edit.locationJustThisWeek' | transloco }}
-          <input [(ngModel)]="location" type="text" maxlength="300" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
-        </label>
+        <p class="mt-md text-body-sm font-medium text-heading">{{ 'trainings.edit.locationJustThisWeek' | transloco }}</p>
+        <jh-address-fields
+          class="mt-xs"
+          testIdPrefix="session"
+          [(venueName)]="venueName"
+          [(street)]="street"
+          [(postalCode)]="postalCode"
+          [initialCity]="initialCity()"
+          (cityChange)="onCitySelected($event)"
+        />
       } @else {
         <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
           <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
@@ -102,9 +109,15 @@
         <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
       </div>
       @if (locationKind === 'InPerson') {
-        <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.location' | transloco }}
-          <input [(ngModel)]="location" type="text" maxlength="300" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
-        </label>
+        <jh-address-fields
+          class="mt-md"
+          testIdPrefix="series"
+          [(venueName)]="venueName"
+          [(street)]="street"
+          [(postalCode)]="postalCode"
+          [initialCity]="initialCity()"
+          (cityChange)="onCitySelected($event)"
+        />
       } @else {
         <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
           <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />

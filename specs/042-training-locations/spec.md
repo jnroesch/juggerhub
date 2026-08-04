@@ -141,3 +141,35 @@ One week the hall is booked, so the training happens elsewhere. The admin edits 
 - **Events are not changed.** Event capture, storage and display are the reference model here and are left exactly as they are.
 - **Country is not captured separately.** A training's country comes from its city, as it already does for events and teams.
 - **A venue name alone is not an address.** It is a label for a place, not a locatable one, and never satisfies the in-person requirement on its own.
+
+## Implementation drift
+
+Recorded during implementation (2026-08-04). No functional requirement changed; every item below is
+a correction to a design-artifact assumption, found by building the thing.
+
+1. **Create returns `201 Created`, not `200`.** The contract draft said `200`;
+   `TeamTrainingsController` returns `Created`. [contracts/trainings-api.md](./contracts/trainings-api.md) §1 corrected.
+2. **`LocationDto` uses `externalId` and `label`**, not `cityExternalId`/`displayLabel` — those are
+   the *write* fragment's names. Contract corrected against `backend/Dtos/Cities/CityDtos.cs`.
+3. **The row projection had to become two steps.** [data-model.md](./data-model.md) assumed
+   `HomeProjections.LocationLabel(...)` could be called inside the EF `Select`. It cannot — it is a
+   C# method and EF has no translation for it. The projection now selects the raw parts and composes
+   the label after materialization, which is exactly what the event agenda already does, so SC-003's
+   "one implementation" is preserved (arguably strengthened).
+4. **`DevDataSeeder` needed updating** and was not in the task list. It seeded trainings with
+   free-text locations only, which would have left every seeded dev training without a city — the
+   reseed *is* the migration path here, so this mattered.
+5. **The create wizard needed `data-testid` attributes** before the e2e in T047 could drive it; it
+   had almost none.
+6. **Two i18n keys were orphaned** by the refactor (`trainings.form.location`,
+   `trainings.create.locationPlaceholder`) and were removed from all three catalogues.
+7. **`whereComplete` must read signals.** The first implementation was a `computed()` over plain
+   fields; in a zoneless app that never recomputes, so "Continue" stayed permanently disabled. The
+   e2e caught it — no unit test would have.
+8. **`jh-city-picker` reads its `initial` in `ngOnInit`**, so a value arriving later never reaches
+   the chip. Hosts must render the address group only after their data has loaded. Documented on
+   `AddressFieldsComponent.initialCity` and pinned by a spec.
+
+Two out-of-scope defects found and filed rather than fixed here: **#136** (an event's city cannot be
+changed after creation — `event-edit` has no city picker) and **#137** (`mt-2xs`/`py-3xs` are used in
+templates but absent from the Tailwind spacing scale, so they emit nothing).

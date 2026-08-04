@@ -461,79 +461,26 @@ public sealed class EventService : IEventService
 
     // --- Helpers --------------------------------------------------------------
 
-    private readonly record struct LocationResult(
-        string? VenueName, string? Street, string? PostalCode,
-        string? VirtualLink, string? Reason);
+    /// <summary>
+    /// Resolves the structured city for an event (feature 030). Delegates to the shared
+    /// <see cref="Geocoding.StructuredAddress"/> so events and trainings accept and reject
+    /// identical input (042 research R2).
+    /// </summary>
+    private Task<Geocoding.StructuredAddress.CityResult> ResolveEventCityAsync(
+        LocationKind kind, JuggerHub.Dtos.Cities.LocationSelectionDto? location, CancellationToken ct) =>
+        Geocoding.StructuredAddress.ResolveCityAsync(_cities, kind, location, "event", ct);
+
+    private static Geocoding.StructuredAddress.AddressResult ResolveLocation(
+        LocationKind kind, string? venueName, string? street, string? postalCode, string? virtualLink) =>
+        Geocoding.StructuredAddress.Resolve(kind, venueName, street, postalCode, virtualLink, "event");
 
     /// <summary>
-    /// Resolves the structured city for an event (feature 030). In-person events need a picked city;
-    /// virtual events have none. Returns the resolved <see cref="City"/> (so callers can set the FK
-    /// nav and build the legacy label) or a user-facing reason.
+    /// Legacy free-text location (still read by activity display): "City, Country" or "Online".
+    /// Deliberately NOT shared with trainings — a virtual training stores null here, not "Online".
     /// </summary>
-    private async Task<(Guid? CityId, City? City, string? Reason)> ResolveEventCityAsync(
-        LocationKind kind, JuggerHub.Dtos.Cities.LocationSelectionDto? location, CancellationToken ct)
-    {
-        if (kind != LocationKind.InPerson)
-        {
-            return (null, null, null);
-        }
-
-        if (string.IsNullOrWhiteSpace(location?.CityExternalId))
-        {
-            return (null, null, "An in-person event needs a city.");
-        }
-
-        try
-        {
-            var city = await _cities.ResolveAndUpsertAsync(location.CityExternalId!, location.Name, ct);
-            return (city.Id, city, null);
-        }
-        catch (Geocoding.CityNotResolvableException)
-        {
-            return (null, null, "That city could not be found.");
-        }
-    }
-
-    private static LocationResult ResolveLocation(
-        LocationKind kind, string? venueName, string? street, string? postalCode, string? virtualLink)
-    {
-        if (kind == LocationKind.InPerson)
-        {
-            var venue = Trimmed(venueName);
-            var streetValue = Trimmed(street);
-            var postalValue = Trimmed(postalCode);
-            if (streetValue is null || postalValue is null)
-            {
-                return new LocationResult(null, null, null, null,
-                    "An in-person event needs a street and postal code.");
-            }
-
-            return new LocationResult(venue, streetValue, postalValue, null, null);
-        }
-
-        var link = Trimmed(virtualLink);
-        // Be lenient: accept links without an explicit scheme (e.g. "zoom.us/j/123") by
-        // defaulting to https, and store the normalized absolute URL.
-        if (link is not null && !link.Contains("://", StringComparison.Ordinal))
-        {
-            link = "https://" + link;
-        }
-
-        if (link is null || !Uri.TryCreate(link, UriKind.Absolute, out var uri)
-            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
-            || string.IsNullOrEmpty(uri.Host))
-        {
-            return new LocationResult(null, null, null, null,
-                "Add a link like zoom.us/… or https://meet.… so people can join.");
-        }
-
-        return new LocationResult(null, null, null, link, null);
-    }
-
-    /// <summary>Legacy free-text location (still read by activity display): "City, Country" or "Online".</summary>
     private static string LegacyLocationLabel(LocationKind kind, City? city) =>
         kind == LocationKind.InPerson
-            ? (city is null ? string.Empty : $"{city.Name}, {city.CountryName}")
+            ? (Geocoding.StructuredAddress.CityLabel(city) ?? string.Empty)
             : "Online";
 
     private readonly record struct FeeResult(

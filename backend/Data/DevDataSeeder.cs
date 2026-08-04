@@ -92,7 +92,7 @@ public static class DevDataSeeder
         await SeedTeamsAsync(db, cities, ct);
         await SeedEventsAsync(db, cities, ct);
         await SeedRecognitionsAsync(db, ct);
-        await SeedTrainingsAsync(db, ct);
+        await SeedTrainingsAsync(db, cities, ct);
         await SeedChatAsync(db, ct);
     }
 
@@ -260,7 +260,7 @@ public static class DevDataSeeder
             Body = body,
         });
 
-    private static async Task SeedTrainingsAsync(AppDbContext db, CancellationToken ct)
+    private static async Task SeedTrainingsAsync(AppDbContext db, Dictionary<string, City> cities, CancellationToken ct)
     {
         var team = await db.Teams.AsNoTracking().Where(t => t.Slug == "rheinfeuer")
             .Select(t => new { t.Id }).FirstOrDefaultAsync(ct);
@@ -290,7 +290,12 @@ public static class DevDataSeeder
             Name = "Tuesday Training",
             Description = "Regular team training — drills then scrims. We lend pompfen; bring water & indoor shoes.",
             LocationKind = LocationKind.InPerson,
-            Location = "Sportpark Müngersdorf, Köln",
+            // Feature 042 — structured address; Location is the derived legacy label.
+            VenueName = "Sportpark Müngersdorf",
+            Street = "Aachener Str. 999",
+            PostalCode = "50933",
+            CityId = cities["Köln"].Id,
+            Location = Services.Geocoding.StructuredAddress.CityLabel(cities["Köln"]),
             IsRecurring = true,
             Weekday = DayOfWeek.Tuesday,
             Interval = TrainingInterval.Weekly,
@@ -315,7 +320,11 @@ public static class DevDataSeeder
             Name = "Open mat — newcomers welcome",
             Description = "Casual open training. Everyone welcome, we lend gear.",
             LocationKind = LocationKind.InPerson,
-            Location = "Tempelhofer Feld",
+            VenueName = "Tempelhofer Feld",
+            Street = "Tempelhofer Damm 1",
+            PostalCode = "12101",
+            CityId = cities["Berlin"].Id,
+            Location = Services.Geocoding.StructuredAddress.CityLabel(cities["Berlin"]),
             IsRecurring = false,
             StartTime = new TimeOnly(14, 0),
             EndTime = new TimeOnly(16, 0),

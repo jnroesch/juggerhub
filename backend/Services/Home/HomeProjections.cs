@@ -70,7 +70,9 @@ internal static class HomeProjections
         s.Name,
         s.SessionDate.ToDateTime(s.StartTime),
         s.SessionDate.ToDateTime(s.EndTime),
-        s.LocationKind == LocationKind.Virtual ? "Online" : (s.Location ?? string.Empty),
+        // Feature 042: the label is already composed server-side by the same city → venue → legacy
+        // rule events use, so a training and an event at the same address read identically (SC-003).
+        s.LocationKind == LocationKind.Virtual ? "Online" : s.LocationLabel,
         null,
         null,
         null,

@@ -1,4 +1,5 @@
 import { PagedResult } from './profile.models';
+import { Location, LocationSelection } from './city.models';
 
 export type { PagedResult };
 
@@ -27,7 +28,8 @@ export interface TrainingSessionRow {
   startTime: string;
   endTime: string;
   locationKind: LocationKind;
-  location: string | null;
+  /** Server-composed city → venue → legacy label (feature 042); empty for a virtual session. */
+  locationLabel: string;
   virtualLink: string | null;
   visibility: TrainingVisibility;
   status: TrainingSessionStatus;
@@ -48,7 +50,8 @@ export interface AgendaSession {
   startTime: string;
   endTime: string;
   locationKind: LocationKind;
-  location: string | null;
+  /** Server-composed city → venue → legacy label (feature 042); empty for a virtual session. */
+  locationLabel: string;
   virtualLink: string | null;
   visibility: TrainingVisibility;
   status: TrainingSessionStatus;
@@ -103,7 +106,14 @@ export interface TrainingSessionDetail {
   startTime: string;
   endTime: string;
   locationKind: LocationKind;
-  location: string | null;
+  /** Structured address (feature 042). All null for a virtual training. */
+  venueName: string | null;
+  street: string | null;
+  postalCode: string | null;
+  /** The resolved city; what `jh-city-picker` reads back as its current selection on an edit. */
+  location: Location | null;
+  /** Server-composed city → venue → legacy label; empty for a virtual session. */
+  locationLabel: string;
   virtualLink: string | null;
   seriesLabel: string | null;
   weekday: string | null;
@@ -148,7 +158,14 @@ export interface CreateTrainingRequest {
   name: string;
   description: string | null;
   locationKind: LocationKind;
-  location: string | null;
+  /** In-person only; optional. */
+  venueName: string | null;
+  /** In-person only; required with `postalCode` and `location`. */
+  street: string | null;
+  /** In-person only; required with `street` and `location`. */
+  postalCode: string | null;
+  /** The picked city (feature 042). In-person only — the server re-resolves the external id. */
+  location: LocationSelection | null;
   virtualLink: string | null;
   weekday: string | null;
   interval: TrainingInterval | null;
@@ -159,11 +176,19 @@ export interface CreateTrainingRequest {
   visibility: TrainingVisibility;
 }
 
+/**
+ * The address is replaced as a BLOCK: send `location` together with `venueName`/`street`/
+ * `postalCode`, or omit all four to leave the address untouched. Never patch a single field —
+ * that would allow a street from one address against a city from another (feature 042 FR-007).
+ */
 export interface EditSeriesRequest {
   name?: string;
   description?: string | null;
   locationKind?: LocationKind;
-  location?: string | null;
+  venueName?: string | null;
+  street?: string | null;
+  postalCode?: string | null;
+  location?: LocationSelection | null;
   virtualLink?: string | null;
   weekday?: string;
   interval?: TrainingInterval;
@@ -173,11 +198,15 @@ export interface EditSeriesRequest {
   visibility?: TrainingVisibility;
 }
 
+/** Same block rule as {@link EditSeriesRequest}; supplying it relocates this session only. */
 export interface EditSessionRequest {
   sessionDate?: string;
   startTime?: string;
   endTime?: string;
   locationKind?: LocationKind;
-  location?: string | null;
+  venueName?: string | null;
+  street?: string | null;
+  postalCode?: string | null;
+  location?: LocationSelection | null;
   virtualLink?: string | null;
 }

@@ -142,6 +142,19 @@ Also required before verification (Constitution gate 7): copy
 `specs/042-training-locations/checklists/ui-review.md` and run it against the diff. Three forms and
 three read surfaces change; DESIGN.md wins on any conflict.
 
+## Validation status (2026-08-04)
+
+| Story | How it was validated |
+|---|---|
+| US1 | **Automated end-to-end** — `apps/web-e2e/src/trainings.spec.ts` drives the real wizard against the docker stack: Continue stays disabled through venue-only and street+postal-without-city, the review step reads the address back, and the created session renders "Köln". Plus 7 backend contract tests. |
+| US2 | **Backend integration tests** — label parity across tab row / agenda / detail, the event-vs-training identical-label test (SC-003), city-without-venue, and the virtual case. |
+| US3 | **Backend integration tests** — block replace propagates to every upcoming non-detached session with no per-session write; clearing the city is refused; switching to virtual clears the address. |
+| US4 | **Backend integration tests**, including the venue-leak guard, which was verified to *fail* against a deliberately-broken per-field implementation before being restored. |
+
+Not done: a manual browser walk of the US3/US4 edit forms. Their behaviour is covered by the
+backend tests above and the shared `jh-address-fields` spec, but the edit screens themselves have
+not been clicked through by a human.
+
 ## Definition of done
 
 - [ ] All four user stories validated above
