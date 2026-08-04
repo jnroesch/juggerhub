@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, shareReplay } from 'rxjs';
+import { Observable, shareReplay, tap } from 'rxjs';
 import {
   ActivityItem,
   HandleAvailability,
@@ -33,15 +33,33 @@ export class ProfileService {
   /**
    * Cached owner profile for viewer-context reads (feature 021): handle for
    * self-detection + administered teams. Shared across profile views so opening
-   * several profiles doesn't refetch. Session-lifetime cache; a page reload refreshes it.
+   * several profiles doesn't refetch.
+   *
+   * Dropped by every owner mutation below, so a change the viewer just made is visible on the next
+   * screen without a reload. It used to live for the whole session: setting a home city and
+   * navigating to Browse still read the cached city-less profile, so the proximity Sort option
+   * stayed hidden until F5 (the option only exists once `location` is set).
    */
   getMineCached(): Observable<OwnerProfile> {
     this.mine$ ??= this.getMine().pipe(shareReplay(1));
     return this.mine$;
   }
 
+  /**
+   * Drop the cached owner profile; the next `getMineCached` refetches.
+   *
+   * Every mutation in this service calls it. It is public because the cached payload also carries
+   * `teams`, which changes through `TeamService` (join/leave/role) — a caller that moves the
+   * owner's membership should invalidate here too.
+   */
+  invalidateMine(): void {
+    this.mine$ = undefined;
+  }
+
   updateMine(request: UpdateProfileRequest): Observable<OwnerProfile> {
-    return this.http.put<OwnerProfile>(`${this.base}/me`, request);
+    return this.http
+      .put<OwnerProfile>(`${this.base}/me`, request)
+      .pipe(tap(() => this.invalidateMine()));
   }
 
   /**
@@ -50,13 +68,15 @@ export class ProfileService {
    * proximity (FR-013). 204 on success; 422 unresolvable city; 503 geocoder unavailable.
    */
   setHomeCity(selection: LocationSelection): Observable<void> {
-    return this.http.put<void>(`${this.base}/me/home-city`, selection);
+    return this.http
+      .put<void>(`${this.base}/me/home-city`, selection)
+      .pipe(tap(() => this.invalidateMine()));
   }
 
   uploadAvatar(file: File): Observable<void> {
     const form = new FormData();
     form.append('file', file);
-    return this.http.put<void>(`${this.base}/me/avatar`, form);
+    return this.http.put<void>(`${this.base}/me/avatar`, form).pipe(tap(() => this.invalidateMine()));
   }
 
   /**
