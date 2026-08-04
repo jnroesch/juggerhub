@@ -1,6 +1,8 @@
 <div align="center">
 
-# 🏐 JuggerHub
+<img src="docs/logo.png" alt="JuggerHub" width="140" />
+
+# JuggerHub
 
 **A warm, community-run home for the sport of Jugger** — find teams, book
 training, follow matches, and start local groups.
