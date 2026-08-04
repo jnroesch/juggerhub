@@ -42,9 +42,37 @@
           class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
         <p class="mt-xs text-body-sm text-faint">{{ 'events.edit.limitHint' | transloco:{ count: d.occupiedSpots } }}</p>
       </div>
+
+      <!-- Where it happens: the address, or the join link. The kind itself isn't editable. -->
+      <div data-testid="edit-location">
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.edit.location' | transloco }}</h2>
+        @if (isInPerson()) {
+          <p class="mt-xs text-body-sm text-faint">{{ 'events.edit.locationHint' | transloco }}</p>
+          <jh-address-fields
+            class="mt-sm"
+            testIdPrefix="edit"
+            [(venueName)]="venueName"
+            [(street)]="street"
+            [(postalCode)]="postalCode"
+            [initialCity]="initialCity()"
+            (cityChange)="onCitySelected($event)"
+          />
+        } @else {
+          <p class="mt-xs text-body-sm text-faint">{{ 'events.edit.joinLinkHint' | transloco }}</p>
+          <label for="edit-link" class="mt-sm block text-body-sm text-subtle">{{ 'events.edit.joinLink' | transloco }}</label>
+          <!-- Plain value/input binding, not ngModel: this input lives inside the reactive
+               [formGroup] form, and an ngModel there throws. A signal keeps `locationComplete`
+               reactive, which a FormControl read inside a computed() would not be. -->
+          <input id="edit-link" type="url" maxlength="500" data-testid="edit-link"
+            [value]="virtualLink()" (input)="virtualLink.set($any($event.target).value)"
+            [placeholder]="'events.create.linkPlaceholder' | transloco"
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+        }
+      </div>
+
       @if (editError()) { <jh-alert>{{ editError() }}</jh-alert> }
-      @if (editSaved()) { <p class="text-body-sm text-success">{{ 'events.edit.saved' | transloco }}</p> }
-      <button type="submit" [disabled]="form.invalid || savingEdit()" data-testid="edit-save"
+      @if (editSaved()) { <p class="text-body-sm text-success" data-testid="edit-saved">{{ 'events.edit.saved' | transloco }}</p> }
+      <button type="submit" [disabled]="form.invalid || !locationComplete() || savingEdit()" data-testid="edit-save"
         jhButton>{{ (savingEdit() ? 'events.edit.saving' : 'events.edit.save') | transloco }}</button>
     </form>
 

@@ -7,11 +7,14 @@ import { CityPickerComponent } from '../city-picker/city-picker.component';
 /**
  * The structured in-person address group (feature 042): venue name, street, postal code and a
  * canonical city picked through {@link CityPickerComponent}. Used by the three training forms —
- * create, series edit and single-session edit — so they present and validate the same thing.
+ * create, series edit and single-session edit — and by event create/edit (GH #136), so every form
+ * that locates something presents and validates the same thing. Its labels live in the shared
+ * `address.*` catalogue namespace for the same reason.
  *
  * Deliberately template-driven-compatible (`model()` two-way bindings rather than a
  * `ControlValueAccessor`): the training forms use `ngModel`, and converting them to reactive forms
- * is a larger change than this feature needs (research R5).
+ * is a larger change than this feature needs (research R5). Reactive-form hosts (the two event
+ * forms) hold these three values in signals beside their `FormGroup` rather than in it.
  *
  * Like the city picker, this component owns only input UX. The owning form persists the city by
  * sending `cityExternalId`; the backend re-resolves the canonical city and is the real validator

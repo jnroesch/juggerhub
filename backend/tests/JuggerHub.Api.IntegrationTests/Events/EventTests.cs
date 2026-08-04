@@ -429,6 +429,55 @@ public sealed class EventTests
         Assert.Equal(HttpStatusCode.Forbidden, forbidden.StatusCode);
     }
 
+    /// <summary>
+    /// GH #136 — an event can be moved to another city, and the whole address moves with it. The
+    /// capability was always here; the edit form sent the stored city back unchanged, so nothing
+    /// exercised it. The legacy free-text label has to follow, or the event keeps advertising the
+    /// old city wherever that label is still read.
+    /// </summary>
+    [Fact]
+    public async Task Edit_moves_the_event_to_another_city()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, ValidInPersonPaidTeams());
+
+        var moved = await PatchJsonAsync(org, $"/api/v1/events/{id}", Merge(ValidInPersonPaidTeams(), new
+        {
+            venueName = "Sportpark Müngersdorf",
+            street = "Aachener Str. 999",
+            postalCode = "50933",
+            location = new { cityExternalId = "TEST:köln" },
+        }));
+
+        Assert.Equal(HttpStatusCode.OK, moved.StatusCode);
+        var dto = await moved.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Köln", dto.GetProperty("location").GetProperty("name").GetString());
+        Assert.Equal("Sportpark Müngersdorf", dto.GetProperty("venueName").GetString());
+        Assert.Equal("Aachener Str. 999", dto.GetProperty("street").GetString());
+        Assert.Equal("50933", dto.GetProperty("postalCode").GetString());
+
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var stored = await db.Events.AsNoTracking().Include(e => e.City).FirstAsync(e => e.Id == id);
+        Assert.Equal("Köln", stored.City!.Name);
+        Assert.Equal("Köln, Germany", stored.Location);
+    }
+
+    /// <summary>An in-person event may not be stripped of its city (GH #136: clearing the picker).</summary>
+    [Fact]
+    public async Task Edit_refuses_to_clear_the_city_of_an_in_person_event()
+    {
+        var (org, _, _, _) = await NewUserAsync();
+        var id = await CreateEventAsync(org, ValidInPersonPaidTeams());
+
+        var cleared = await PatchJsonAsync(org, $"/api/v1/events/{id}", Merge(ValidInPersonPaidTeams(), new
+        {
+            location = new { cityExternalId = (string?)null, name = (string?)null },
+        }));
+
+        Assert.Equal(HttpStatusCode.BadRequest, cleared.StatusCode);
+    }
+
     // --- US5: news ------------------------------------------------------------
 
     [Fact]

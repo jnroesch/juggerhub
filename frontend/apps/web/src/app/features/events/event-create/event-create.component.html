@@ -83,15 +83,13 @@
               [class]="locationKind() === 'Virtual' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ 'events.create.virtual' | transloco }}</button>
           </div>
           @if (locationKind() === 'InPerson') {
-            <input type="text" formControlName="venueName" [placeholder]="'events.create.venuePlaceholder' | transloco"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-            <input type="text" formControlName="street" [placeholder]="'events.create.streetPlaceholder' | transloco" data-testid="event-street"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-            <input type="text" formControlName="postalCode" [placeholder]="'events.create.postalPlaceholder' | transloco"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-            <div data-testid="event-city">
-              <jh-city-picker [placeholder]="'events.create.cityPlaceholder' | transloco" (selectedChange)="onCitySelected($event)" />
-            </div>
+            <jh-address-fields
+              testIdPrefix="event"
+              [(venueName)]="venueName"
+              [(street)]="street"
+              [(postalCode)]="postalCode"
+              (cityChange)="onCitySelected($event)"
+            />
           } @else {
             <input type="text" formControlName="virtualLink" [placeholder]="'events.create.linkPlaceholder' | transloco" data-testid="event-link"
               class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
