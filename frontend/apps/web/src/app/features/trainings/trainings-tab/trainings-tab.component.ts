@@ -7,6 +7,7 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { TrainingsService } from '../../../core/services/trainings.service';
 import { TrainingSeriesSummary, TrainingSessionRow } from '../../../core/models/trainings.models';
+import { injectDateFormats } from '../../../core/i18n/locale-format';
 
 /**
  * The team's Trainings tab (feature 018): upcoming sessions as a dated list — each with a Series/One-off
@@ -23,6 +24,7 @@ import { TrainingSeriesSummary, TrainingSessionRow } from '../../../core/models/
 export class TrainingsTabComponent {
   private readonly trainings = inject(TrainingsService);
   private readonly route = inject(ActivatedRoute);
+  private readonly fmt = injectDateFormats();
 
   protected readonly slug = signal('');
   protected readonly sessions = signal<TrainingSessionRow[]>([]);
@@ -65,28 +67,16 @@ export class TrainingsTabComponent {
     return t.slice(0, 5);
   }
 
-  protected shortDate(date: string): string {
-    return this.localDate(date).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
-  }
+  // --- Dates. The shared helpers pin a date-only `sessionDate` to local midnight (it would
+  // otherwise parse as UTC and render a day early) and follow the app language, not the browser's.
+  // Date chip: weekday over day over month, each part on its own so the chip stays locale-safe. ---
 
-  // --- Date chip: weekday over day over month, each part on its own so the chip stays locale-safe. ---
-
-  protected chipWeekday(date: string): string {
-    return this.localDate(date).toLocaleDateString(undefined, { weekday: 'short' });
-  }
-
-  protected chipDay(date: string): string {
-    return String(this.localDate(date).getDate());
-  }
-
-  protected chipMonth(date: string): string {
-    return this.localDate(date).toLocaleDateString(undefined, { month: 'short' });
-  }
-
-  /** `sessionDate` is date-only (`YYYY-MM-DD`), which parses as UTC — pin it to local midnight. */
-  private localDate(date: string): Date {
-    return new Date(`${date}T00:00:00`);
-  }
+  // Arrows rather than `= this.fmt.shortDate`: those would capture `fmt` at field-initialization
+  // time, making these silently depend on declaration order.
+  protected readonly shortDate = (date: string) => this.fmt.shortDate(date);
+  protected readonly chipWeekday = (date: string) => this.fmt.shortWeekday(date);
+  protected readonly chipDay = (date: string) => this.fmt.dayOfMonth(date);
+  protected readonly chipMonth = (date: string) => this.fmt.shortMonth(date);
 
   protected answerLabel(a: TrainingSessionRow['myAnswer']): string {
     switch (a) {

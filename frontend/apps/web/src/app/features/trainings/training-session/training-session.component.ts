@@ -6,6 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
 import { TrainingRsvp, TrainingSessionDetail } from '../../../core/models/trainings.models';
 import { problemDetail } from '../../../core/utils/problem';
+import { injectDateFormats } from '../../../core/i18n/locale-format';
 
 /**
  * A single training session page (feature 018). The three-way Going/Maybe/Can't answer sits front and
@@ -24,6 +25,7 @@ export class TrainingSessionComponent {
   private readonly transloco = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly fmt = injectDateFormats();
 
   protected readonly sessionId = signal('');
   protected readonly session = signal<TrainingSessionDetail | null>(null);
@@ -149,7 +151,6 @@ export class TrainingSessionComponent {
     return t.slice(0, 5);
   }
 
-  protected shortDate(date: string): string {
-    return new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
-  }
+  /** Follows the app language; the shared helper pins a date-only value to local midnight. */
+  protected readonly shortDate = (date: string) => this.fmt.shortDate(date);
 }

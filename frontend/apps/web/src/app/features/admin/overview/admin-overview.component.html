@@ -65,7 +65,7 @@
                     &#64;{{ player.handle }}@if (player.location) { · {{ player.location }}}
                   </span>
                 </span>
-                <span class="whitespace-nowrap text-caption text-subtle">{{ player.joinedAt | date: 'MMM d' }}</span>
+                <span class="whitespace-nowrap text-caption text-subtle">{{ player.joinedAt | translocoDate: { month: 'short', day: 'numeric' } }}</span>
               </a>
             </li>
           }
@@ -86,11 +86,11 @@
               @if (grant.subjectHandle) {
                 <a [routerLink]="['/admin/users', grant.subjectHandle]" class="block transition-colors duration-fast hover:bg-surface-sunken">
                   <span class="block text-body-sm font-medium text-body">{{ grant.name }} → &#64;{{ grant.subjectHandle }}</span>
-                  <span class="block text-caption text-subtle">{{ grant.kind }} · {{ 'admin.overview.by' | transloco }} {{ grant.grantedByDisplayName }} · {{ grant.grantedAt | date: 'MMM d' }}</span>
+                  <span class="block text-caption text-subtle">{{ grant.kind }} · {{ 'admin.overview.by' | transloco }} {{ grant.grantedByDisplayName }} · {{ grant.grantedAt | translocoDate: { month: 'short', day: 'numeric' } }}</span>
                 </a>
               } @else {
                 <span class="block text-body-sm font-medium text-body">{{ grant.name }} → {{ grant.subjectDisplayName }}</span>
-                <span class="block text-caption text-subtle">{{ grant.kind }} · {{ 'admin.overview.by' | transloco }} {{ grant.grantedByDisplayName }} · {{ grant.grantedAt | date: 'MMM d' }}</span>
+                <span class="block text-caption text-subtle">{{ grant.kind }} · {{ 'admin.overview.by' | transloco }} {{ grant.grantedByDisplayName }} · {{ grant.grantedAt | translocoDate: { month: 'short', day: 'numeric' } }}</span>
               }
             </li>
           }

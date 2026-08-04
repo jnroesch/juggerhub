@@ -30,7 +30,7 @@
     }
   </div>
   <p class="mt-1 text-body-sm text-muted">
-    &#64;{{ player.handle }}@if (player.location) { · {{ player.location }}} · {{ 'admin.userDetail.joined' | transloco }} {{ player.joinedAt | date: 'MMM y' }}
+    &#64;{{ player.handle }}@if (player.location) { · {{ player.location }}} · {{ 'admin.userDetail.joined' | transloco }} {{ player.joinedAt | translocoDate: { year: 'numeric', month: 'short' } }}
     · <a [href]="'/u/' + player.handle" target="_blank" rel="noopener" class="font-medium text-link hover:text-link-hover">{{ 'admin.userDetail.viewPublicProfile' | transloco }}</a>
   </p>
 
@@ -76,7 +76,7 @@
         </div>
         <div>
           <dt class="text-caption text-subtle">{{ 'admin.userDetail.lastActive' | transloco }}</dt>
-          <dd class="mt-1 text-body-sm text-body">{{ player.lastActiveAt ? (player.lastActiveAt | date: 'MMM d, y') : '—' }}</dd>
+          <dd class="mt-1 text-body-sm text-body">{{ player.lastActiveAt ? (player.lastActiveAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' }) : '—' }}</dd>
         </div>
         <div>
           <dt class="text-caption text-subtle">{{ 'admin.userDetail.playerId' | transloco }}</dt>
@@ -92,7 +92,7 @@
           @for (item of player.recentActivity; track item.title + item.date) {
             <li class="flex items-baseline justify-between gap-sm py-xs">
               <span class="min-w-0 truncate text-body-sm text-body">{{ item.title }}</span>
-              <span class="whitespace-nowrap font-mono text-caption text-subtle">{{ item.date | date: 'MMM y' }}</span>
+              <span class="whitespace-nowrap font-mono text-caption text-subtle">{{ item.date | translocoDate: { year: 'numeric', month: 'short' } }}</span>
             </li>
           }
         </ul>
@@ -189,7 +189,7 @@
                   <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
                     <span class="min-w-0">
                       <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
-                      <span class="block text-caption text-muted">{{ 'admin.userDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
+                      <span class="block text-caption text-muted">{{ 'admin.userDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
                       @if (a.note) { <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span> }
                     </span>
                     <button
@@ -215,7 +215,7 @@
                   <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
                     <span class="min-w-0">
                       <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
-                      <span class="block text-caption text-muted">{{ 'admin.userDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | date: 'd MMM y' }}</span>
+                      <span class="block text-caption text-muted">{{ 'admin.userDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
                       @if (a.contextLabel || a.contextYear) {
                         <span class="block truncate text-caption text-subtle">{{ a.contextLabel }} {{ a.contextYear }}</span>
                       } @else if (a.note) {

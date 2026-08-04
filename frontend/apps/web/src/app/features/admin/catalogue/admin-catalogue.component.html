@@ -244,7 +244,7 @@
 
         @if (editing(); as e) {
           <p class="mt-md text-caption text-subtle">
-            {{ 'admin.catalogue.formGranted' | transloco }} <span class="font-mono">{{ e.grantedCount }}</span> · {{ 'admin.catalogue.formCreated' | transloco }} {{ e.createdAt | date: 'MMM y' }}
+            {{ 'admin.catalogue.formGranted' | transloco }} <span class="font-mono">{{ e.grantedCount }}</span> · {{ 'admin.catalogue.formCreated' | transloco }} {{ e.createdAt | translocoDate: { year: 'numeric', month: 'short' } }}
           </p>
         }
 

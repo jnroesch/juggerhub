@@ -112,10 +112,30 @@ export type ActivityKind =
   | 'RoleChanged'
   | 'TrainingChanged';
 
+export type TrainingChangeKind = 'Updated' | 'Cancelled';
+
+/**
+ * The interpolation values for an activity sentence. Only the fields the entry's `kind` uses are
+ * populated. The server deliberately sends facts rather than prose — it doesn't know the viewer's
+ * language — so the connecting words come from a `home.activity.*` key chosen here.
+ */
+export interface ActivityParams {
+  /** Null when the player has no display name — substitute a *translated* stand-in, not "Someone". */
+  actorName: string | null;
+  eventName: string | null;
+  teamName: string | null;
+  trainingName: string | null;
+  badgeName: string | null;
+  /** BadgeAwarded — selects the second-person sentence ("You earned…"). */
+  isMine: boolean;
+  newRole: TeamRole | null;
+  changeKind: TrainingChangeKind | null;
+}
+
 /** A passive, read-only "What's going on" entry. No actions. */
 export interface ActivityEntry {
   kind: ActivityKind;
-  summary: string;
+  params: ActivityParams;
   linkTarget: string | null;
   occurredAt: string;
 }

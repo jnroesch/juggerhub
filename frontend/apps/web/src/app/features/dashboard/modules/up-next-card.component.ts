@@ -7,7 +7,7 @@ import { Signup, SignupStatus } from '../../../core/models/event.models';
 import { AgendaItem } from '../../../core/models/home.models';
 import { TrainingRsvp } from '../../../core/models/trainings.models';
 import { TrainingsService } from '../../../core/services/trainings.service';
-import { dayOfMonth, shortMonth, shortWeekday, timeHm } from '../../../core/utils/format';
+import { injectDateFormats } from '../../../core/i18n/locale-format';
 
 /**
  * One "Up next" / "Open to everyone" agenda item (feature 008, unified by feature 025). An Event item
@@ -25,6 +25,7 @@ export class UpNextCardComponent {
   private readonly events = inject(EventService);
   private readonly trainings = inject(TrainingsService);
   private readonly transloco = inject(TranslocoService);
+  private readonly fmt = injectDateFormats();
 
   readonly item = input.required<AgendaItem>();
 
@@ -59,10 +60,10 @@ export class UpNextCardComponent {
     return o === undefined ? this.item().myAnswer : o;
   });
 
-  protected readonly weekday = computed(() => shortWeekday(this.item().startsAt));
-  protected readonly day = computed(() => dayOfMonth(this.item().startsAt));
-  protected readonly month = computed(() => shortMonth(this.item().startsAt));
-  protected readonly time = computed(() => timeHm(this.item().startsAt));
+  protected readonly weekday = computed(() => this.fmt.shortWeekday(this.item().startsAt));
+  protected readonly day = computed(() => this.fmt.dayOfMonth(this.item().startsAt));
+  protected readonly month = computed(() => this.fmt.shortMonth(this.item().startsAt));
+  protected readonly time = computed(() => this.fmt.timeHm(this.item().startsAt));
 
   /** The route target for the item's title, by kind. */
   protected readonly route = computed<unknown[]>(() =>

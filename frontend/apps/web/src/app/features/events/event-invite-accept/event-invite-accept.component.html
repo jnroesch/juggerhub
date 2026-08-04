@@ -8,7 +8,7 @@
     } @else if (preview(); as p) {
       <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand">{{ 'events.inviteAccept.coAdminInvite' | transloco }}</span>
       <h1 class="mt-xs text-heading-md font-bold text-ink">{{ p.eventName }}</h1>
-      <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | date: 'EEE d MMM, HH:mm' }}</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }}</p>
       <p class="mt-xs text-body-sm text-subtle">{{ 'events.inviteAccept.invitedBy' | transloco:{ name: p.inviterDisplayName } }}</p>
 
       @switch (p.state) {

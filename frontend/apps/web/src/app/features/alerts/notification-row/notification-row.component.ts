@@ -15,7 +15,7 @@ import {
   isTrainingScheduled,
   isTrainingUpdated,
 } from '../../../core/models/notification.models';
-import { relativeTime } from '../../../core/utils/format';
+import { injectRelativeTime } from '../../../core/i18n/locale-format';
 
 /**
  * One notification row (feature 010). Presentational: it renders a type-appropriate icon, a title,
@@ -44,7 +44,9 @@ export class NotificationRowComponent {
   /** The row was opened (navigated / tapped) — mark it read. */
   readonly open = output<void>();
 
-  protected readonly time = computed(() => relativeTime(this.notification().createdDate));
+  private readonly rel = injectRelativeTime();
+
+  protected readonly time = computed(() => this.rel(this.notification().createdDate));
 
   /** A route target for link-only types; null when the row acts inline (invite) or can't navigate. */
   protected readonly link = computed<string | null>(() => {

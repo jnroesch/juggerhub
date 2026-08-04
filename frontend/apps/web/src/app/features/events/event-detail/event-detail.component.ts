@@ -1,4 +1,4 @@
-import { DatePipe } from '@angular/common';
+import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LoadingComponent } from '../../../shared/ui';
@@ -27,7 +27,7 @@ import { MarketBoardComponent } from '../../marketplace/market-board/market-boar
   selector: 'jh-event-detail',
   imports: [
     RouterLink,
-    DatePipe,
+    TranslocoDatePipe,
     EventParticipantGroupsComponent,
     EventNewsFeedComponent,
     EventContactsListComponent,

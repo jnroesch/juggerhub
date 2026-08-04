@@ -35,14 +35,43 @@ public sealed class ActivityFeedTests
         var activity = home.GetProperty("activity").EnumerateArray().ToList();
 
         Assert.Contains(activity, a => a.GetProperty("kind").GetString() == "TeammateJoinedEvent"
-            && a.GetProperty("summary").GetString()!.Contains("Open scrim"));
-        Assert.Contains(activity, a => a.GetProperty("kind").GetString() == "NewTeamMember");
+            && a.GetProperty("params").GetProperty("eventName").GetString() == "Open scrim");
+        Assert.Contains(activity, a => a.GetProperty("kind").GetString() == "NewTeamMember"
+            && a.GetProperty("params").GetProperty("teamName").GetString() == "Ironsides");
 
-        // Read-only: entries carry no action fields (only kind/summary/linkTarget/occurredAt).
+        // Read-only: entries carry no action fields (only kind/params/linkTarget/occurredAt).
         foreach (var a in activity)
         {
             Assert.False(a.TryGetProperty("id", out _));
             Assert.False(a.TryGetProperty("actions", out _));
+        }
+    }
+
+    /// <summary>
+    /// The regression tripwire for the localization defect: the feed used to ship a server-composed
+    /// English sentence (<c>summary</c>), which rendered untranslated inside an otherwise German
+    /// dashboard and could never be caught by the catalogue key-parity guard — prose that never
+    /// became a key cannot be missing from <c>de.json</c>. Entries carry facts; the client composes
+    /// the sentence from <c>home.activity.*</c>. Re-adding a rendered field here reintroduces that.
+    /// </summary>
+    [Fact]
+    public async Task Entries_carry_facts_not_a_server_rendered_sentence()
+    {
+        var (client, userId) = await HomeTestSupport.NewUserAsync(_factory);
+        var (teamId, _) = await HomeTestSupport.SeedTeamAsync(_factory, "Ravens");
+        await HomeTestSupport.AddMemberAsync(_factory, teamId, userId);
+
+        var (_, teammateId) = await HomeTestSupport.NewUserAsync(_factory);
+        await HomeTestSupport.AddMemberAsync(_factory, teamId, teammateId);
+
+        var home = await client.GetFromJsonAsync<JsonElement>("/api/v1/home");
+        var activity = home.GetProperty("activity").EnumerateArray().ToList();
+
+        Assert.NotEmpty(activity);
+        foreach (var a in activity)
+        {
+            Assert.False(a.TryGetProperty("summary", out _));
+            Assert.Equal(JsonValueKind.Object, a.GetProperty("params").ValueKind);
         }
     }
 
@@ -61,6 +90,6 @@ public sealed class ActivityFeedTests
         Assert.Contains(home.GetProperty("news").EnumerateArray(),
             n => n.GetProperty("body").GetString() == "Kit order closes Friday");
         Assert.DoesNotContain(home.GetProperty("activity").EnumerateArray(),
-            a => a.GetProperty("summary").GetString() == "Kit order closes Friday");
+            a => a.GetProperty("params").ToString().Contains("Kit order closes Friday"));
     }
 }

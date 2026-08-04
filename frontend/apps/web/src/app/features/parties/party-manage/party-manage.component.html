@@ -9,7 +9,7 @@
       <h1 class="text-h3 text-heading">{{ p.teamName }} @ {{ p.eventName }}</h1>
       <span class="font-mono text-body-sm text-muted">{{ p.inCount }} / {{ p.rosterCap }} {{ 'parties.manage.inSuffix' | transloco }}</span>
     </div>
-    <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | date: 'mediumDate' }}
+    <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | translocoDate: { dateStyle: 'medium' } }}
       @if (isApplied()) { · <span class="font-semibold text-success">{{ 'parties.manage.applied' | transloco }} · {{ p.appliedGroup }}</span> }
     </p>
 
@@ -128,7 +128,7 @@
           @for (n of news(); track n.id) {
             <li class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
               <p class="text-body-sm font-semibold text-heading">{{ n.authorDisplayName }}
-                <span class="ml-1 text-caption font-normal text-subtle">{{ (n.authorRole === 'Admin' ? 'parties.partyAdmin' : 'parties.member') | transloco }} · {{ n.createdDate | date: 'short' }}</span>
+                <span class="ml-1 text-caption font-normal text-subtle">{{ (n.authorRole === 'Admin' ? 'parties.partyAdmin' : 'parties.member') | transloco }} · {{ n.createdDate | translocoDate: { dateStyle: 'short', timeStyle: 'short' } }}</span>
               </p>
               <p class="mt-xs whitespace-pre-line text-body-sm text-body">{{ n.body }}</p>
             </li>

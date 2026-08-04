@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -21,7 +21,7 @@ const EVENT_TYPES: readonly EventType[] = ['Tournament', 'Workshop', 'Other'];
  */
 @Component({
   selector: 'jh-browse-events',
-  imports: [RouterLink, DatePipe, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent, TranslocoPipe],
+  imports: [RouterLink, TranslocoDatePipe, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent, TranslocoPipe],
   templateUrl: './browse-events.component.html',
   styleUrl: './browse-events.component.css',
 })

@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ChatService } from '../../../core/services/chat.service';
 import { ChatSearchResult, Conversation } from '../../../core/models/chat.models';
+import { injectLocale } from '../../../core/i18n/locale-format';
 
 /**
  * The chat inbox (feature 019, wireframe 9a): every conversation as a row, a search that finds both
@@ -26,6 +27,7 @@ export class ChatInboxComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly t = inject(TranslocoService);
   private readonly lang = toSignal(this.t.langChanges$, { initialValue: this.t.getActiveLang() });
+  private readonly locale = injectLocale();
 
   protected readonly conversations = this.chat.conversations;
   protected readonly loading = signal(true);
@@ -135,12 +137,12 @@ export class ChatInboxComponent implements OnInit {
     const sameDay = at.toDateString() === now.toDateString();
 
     if (sameDay) {
-      return at.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+      return at.toLocaleTimeString(this.locale(), { hour: '2-digit', minute: '2-digit' });
     }
 
     const days = (now.getTime() - at.getTime()) / 86_400_000;
     return days < 7
-      ? at.toLocaleDateString(undefined, { weekday: 'short' })
-      : at.toLocaleDateString(undefined, { day: '2-digit', month: '2-digit' });
+      ? at.toLocaleDateString(this.locale(), { weekday: 'short' })
+      : at.toLocaleDateString(this.locale(), { day: '2-digit', month: '2-digit' });
   }
 }

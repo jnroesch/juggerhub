@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { TranslocoService } from '@jsverse/transloco';
 import { EarnedRecognition } from '../../../../core/models/recognition.models';
 import { RecognitionDisplayComponent } from './recognition-display.component';
-import { translocoTestingModule } from '../../../../../testing/transloco-testing';
+import { translocoLocaleTestingProviders, translocoTestingModule } from '../../../../../testing/transloco-testing';
 
 function badge(partial: Partial<EarnedRecognition> = {}): EarnedRecognition {
   return {
@@ -26,7 +27,10 @@ describe('RecognitionDisplayComponent', () => {
   }
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ imports: [translocoTestingModule()] });
+    TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
+      providers: [...translocoLocaleTestingProviders()],
+    });
   });
 
   it('shows an empty state when there are no awards', () => {
@@ -47,6 +51,21 @@ describe('RecognitionDisplayComponent', () => {
     expect(text).toContain('Nationals');
     expect(text).toContain('2026');
     expect(text).not.toContain('No badges or achievements yet.');
+  });
+
+  /**
+   * The earned-date used Angular's `| date:` pipe, which formats against `LOCALE_ID` — fixed at
+   * bootstrap and defaulting to `en-US`, so it rendered English no matter which language the viewer
+   * chose. `translocoDate` follows the active language, including a switch made after first render.
+   */
+  it('formats the earned date in the active language, and re-renders on a switch', () => {
+    const fixture = mount([badge({ earnedAt: '2026-07-01T10:00:00Z' })], []);
+    expect(fixture.nativeElement.textContent).toContain('Jul 2026');
+
+    TestBed.inject(TranslocoService).setActiveLang('de');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('Juli 2026');
   });
 
   it('renders an icon image only when hasIcon is true', () => {

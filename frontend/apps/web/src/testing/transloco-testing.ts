@@ -1,4 +1,7 @@
+import { EnvironmentProviders } from '@angular/core';
 import { TranslocoTestingModule, TranslocoTestingOptions, Translation } from '@jsverse/transloco';
+import { provideTranslocoLocale } from '@jsverse/transloco-locale';
+import { LANG_TO_LOCALE } from '../app/core/i18n/supported-languages';
 
 // Load the real English root catalog via require: a JSON *default* import resolves to `undefined`
 // at runtime under this Jest/ts-jest config (no esModuleInterop), which would leave the test
@@ -31,4 +34,25 @@ export function translocoTestingModule(
     preloadLangs: true,
     ...options,
   });
+}
+
+/**
+ * Providers for a component whose template uses `translocoDate` (or another transloco-locale pipe).
+ *
+ * `TranslocoTestingModule` covers translation only; the locale pipes inject `TranslocoLocaleService`,
+ * which reads config tokens that exist only where `provideTranslocoLocale()` has run. Without these
+ * the component fails to construct with a NullInjectorError rather than a missing-pipe message, so
+ * it is worth recognising.
+ *
+ * Uses the same `LANG_TO_LOCALE` mapping as `app.config.ts`, so a test formats a date exactly as the
+ * running app does.
+ *
+ * Usage:
+ *   TestBed.configureTestingModule({
+ *     imports: [translocoTestingModule()],
+ *     providers: [...translocoLocaleTestingProviders()],
+ *   });
+ */
+export function translocoLocaleTestingProviders(): EnvironmentProviders[] {
+  return provideTranslocoLocale({ langToLocaleMapping: LANG_TO_LOCALE });
 }

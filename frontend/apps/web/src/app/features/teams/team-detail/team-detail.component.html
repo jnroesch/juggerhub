@@ -153,7 +153,7 @@
               @for (a of team.recentActivity; track $index) {
                 <li class="flex items-baseline justify-between gap-sm">
                   <span class="min-w-0 truncate text-body-sm text-body">{{ a.eventName }} @if (a.location) { <span class="text-subtle">· {{ a.location }}</span> }</span>
-                  <span class="shrink-0 font-mono text-caption text-subtle">{{ a.date | date: 'd MMM y' }}</span>
+                  <span class="shrink-0 font-mono text-caption text-subtle">{{ a.date | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
                 </li>
               }
             </ul>
@@ -202,7 +202,7 @@
                 @for (n of news(); track $index) {
                   <li>
                     <p class="text-body-sm text-body">{{ n.body }}</p>
-                    <p class="text-caption text-subtle">{{ n.authorDisplayName }} · {{ n.createdDate | date: 'd MMM y' }}</p>
+                    <p class="text-caption text-subtle">{{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</p>
                   </li>
                 }
               </ul>

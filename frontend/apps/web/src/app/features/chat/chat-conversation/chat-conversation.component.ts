@@ -5,6 +5,7 @@ import { LoadingComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ChatService } from '../../../core/services/chat.service';
 import { ChatMessage, ConversationDetail } from '../../../core/models/chat.models';
+import { injectLocale } from '../../../core/i18n/locale-format';
 
 /**
  * One open conversation (feature 019, wireframe 9b/9c): the thread, the composer, live delivery,
@@ -26,6 +27,7 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
 
   private readonly chat = inject(ChatService);
   private readonly t = inject(TranslocoService);
+  private readonly locale = injectLocale();
 
   @ViewChild('scroller') private scroller?: ElementRef<HTMLElement>;
 
@@ -205,7 +207,7 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
   }
 
   protected messageTime(iso: string): string {
-    return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    return new Date(iso).toLocaleTimeString(this.locale(), { hour: '2-digit', minute: '2-digit' });
   }
 
   /** The wording for a system line. Rendered here so it stays consistent and translatable. */
