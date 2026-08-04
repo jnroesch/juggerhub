@@ -1,4 +1,39 @@
-import { relativeTime } from './format';
+import { dayOfMonth, relativeTime, shortDate, shortMonth, shortWeekday, timeHm } from './format';
+
+/**
+ * These used to pass `undefined` to `toLocaleDateString`, formatting against the *browser's* locale
+ * — so a viewer who set the app to German in an English browser got German copy around English date
+ * chips. They now take the app language explicitly.
+ */
+describe('date formatters', () => {
+  it('follow the given language, not the environment', () => {
+    expect(shortWeekday('2026-07-11T10:00:00Z', 'en')).toBe('Sat');
+    expect(shortWeekday('2026-07-11T10:00:00Z', 'de')).toBe('Sa');
+    expect(shortMonth('2026-07-11T10:00:00Z', 'en')).toBe('Jul');
+    expect(shortMonth('2026-07-11T10:00:00Z', 'es')).toBe('jul');
+  });
+
+  it('composes a short date per language', () => {
+    expect(shortDate('2026-07-11T10:00:00Z', 'en')).toBe('Sat, Jul 11');
+    expect(shortDate('2026-07-11T10:00:00Z', 'de')).toBe('Sa., 11. Juli');
+  });
+
+  /**
+   * `new Date('2026-07-11')` is UTC midnight, which is 11 July only east of Greenwich — the three
+   * trainings components each carried their own `T00:00:00` workaround for this. The shared helper
+   * now owns it, so a session date cannot silently render a day early.
+   */
+  it('reads a date-only value as local midnight, not UTC', () => {
+    expect(shortWeekday('2026-07-11', 'en')).toBe('Sat');
+    expect(dayOfMonth('2026-07-11')).toBe('11');
+    expect(shortDate('2026-07-11', 'en')).toBe('Sat, Jul 11');
+  });
+
+  it('keeps 24-hour time, which is a product choice rather than a locale one', () => {
+    expect(timeHm('2026-07-11T14:30:00', 'en')).toBe('14:30');
+    expect(timeHm('2026-07-11T14:30:00', 'de')).toBe('14:30');
+  });
+});
 
 /**
  * `relativeTime` used to return hard-coded English ("just now", "15m ago"), which rendered

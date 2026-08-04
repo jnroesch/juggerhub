@@ -15,7 +15,7 @@ import {
   isTrainingScheduled,
   isTrainingUpdated,
 } from '../../../core/models/notification.models';
-import { injectRelativeTime } from '../../../core/i18n/relative-time';
+import { injectRelativeTime } from '../../../core/i18n/locale-format';
 
 /**
  * One notification row (feature 010). Presentational: it renders a type-appropriate icon, a title,

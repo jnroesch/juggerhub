@@ -4,7 +4,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { RouterLink } from '@angular/router';
 import { CardComponent } from '../../../shared/ui';
 import { ActivityEntry, ActivityKind } from '../../../core/models/home.models';
-import { injectRelativeTime } from '../../../core/i18n/relative-time';
+import { injectRelativeTime } from '../../../core/i18n/locale-format';
 
 /** One rendered line: the localized sentence plus where it navigates. */
 interface ActivityRow {

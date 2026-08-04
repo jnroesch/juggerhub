@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HomeNews } from '../../../core/models/home.models';
-import { injectRelativeTime } from '../../../core/i18n/relative-time';
+import { injectRelativeTime } from '../../../core/i18n/locale-format';
 
 /**
  * The Home News module (feature 008, party source added by feature 025): authored items tagged by

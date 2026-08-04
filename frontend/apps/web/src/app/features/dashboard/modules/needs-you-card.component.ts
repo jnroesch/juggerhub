@@ -7,7 +7,7 @@ import { NeedsYouItem } from '../../../core/models/home.models';
 import { TeamService } from '../../../core/services/team.service';
 import { PartyService } from '../../../core/services/party.service';
 import { MarketService } from '../../../core/services/market.service';
-import { injectRelativeTime } from '../../../core/i18n/relative-time';
+import { injectRelativeTime } from '../../../core/i18n/locale-format';
 
 /**
  * "Needs you" (feature 025, US1) — the pinned-top actionable block. Invites and requests only: team

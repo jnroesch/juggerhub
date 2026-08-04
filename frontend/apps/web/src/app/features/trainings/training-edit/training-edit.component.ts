@@ -15,6 +15,7 @@ import {
 import { CityOption, Location, toSelection } from '../../../core/models/city.models';
 import { AddressFieldsComponent } from '../../../shared/address-fields/address-fields.component';
 import { problemDetail } from '../../../core/utils/problem';
+import { injectDateFormats } from '../../../core/i18n/locale-format';
 
 type EditMode = 'fork' | 'single' | 'series';
 
@@ -36,6 +37,7 @@ export class TrainingEditComponent {
   private readonly transloco = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly fmt = injectDateFormats();
 
   protected readonly sessionId = this.route.snapshot.paramMap.get('id') ?? '';
   private readonly requestedScope = this.route.snapshot.queryParamMap.get('scope');
@@ -164,9 +166,8 @@ export class TrainingEditComponent {
     };
   }
 
-  protected shortDate(date: string): string {
-    return new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
-  }
+  /** Follows the app language; the shared helper pins a date-only value to local midnight. */
+  protected readonly shortDate = (date: string) => this.fmt.shortDate(date);
 
   protected cancel(): void {
     this.router.navigate(['/trainings/sessions', this.sessionId]);

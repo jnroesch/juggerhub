@@ -1,28 +1,48 @@
-/** Small, pure date/number formatting helpers for the dashboard (feature 008). */
+/**
+ * Small, pure date/number formatting helpers for the dashboard (feature 008).
+ *
+ * Every helper takes an explicit `locale` and none of them defaults it. These used to pass
+ * `undefined` to `toLocaleDateString`, which formats against the **browser's** locale — so a viewer
+ * who set the app to German in a browser configured for English got German copy around English date
+ * chips. The app language is the viewer's stated choice and is what should win; a default parameter
+ * is how the browser locale got in, so there isn't one. Prefer `injectDateFormats` over calling
+ * these directly, so the strings also re-render when the viewer switches language.
+ */
 
-/** Short weekday for a date chip, e.g. "Sat". */
-export function shortWeekday(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { weekday: 'short' });
+/**
+ * A date-only string (`YYYY-MM-DD`) parses as UTC midnight, which renders as the *previous* day for
+ * any viewer west of Greenwich. Pin it to local midnight; full ISO timestamps pass through.
+ */
+function toDate(value: string): Date {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`) : new Date(value);
 }
 
-/** Day of the month for a date chip, e.g. "12". */
-export function dayOfMonth(iso: string): string {
-  return String(new Date(iso).getDate());
+/** Short weekday for a date chip, e.g. "Sat" / "Sa". */
+export function shortWeekday(value: string, locale: string): string {
+  return toDate(value).toLocaleDateString(locale, { weekday: 'short' });
 }
 
-/** Short month for a date chip, e.g. "Jul". */
-export function shortMonth(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { month: 'short' });
+/**
+ * Day of the month for a date chip, e.g. "12". Takes no locale on purpose: it is a bare number, and
+ * every language the app supports (en/de/es) writes it in Latin digits.
+ */
+export function dayOfMonth(value: string): string {
+  return String(toDate(value).getDate());
 }
 
-/** 24-hour time, e.g. "14:00". */
-export function timeHm(iso: string): string {
-  return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+/** Short month for a date chip, e.g. "Jul" / "Jul." */
+export function shortMonth(value: string, locale: string): string {
+  return toDate(value).toLocaleDateString(locale, { month: 'short' });
 }
 
-/** A compact "Sat 12 Jul" style date, e.g. for tournament/fixture rows. */
-export function shortDate(iso: string): string {
-  return new Date(iso).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+/** 24-hour time, e.g. "14:00". `hour12: false` is a product choice, not a locale one. */
+export function timeHm(value: string, locale: string): string {
+  return toDate(value).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+/** A compact "Sat 12 Jul" style date, e.g. for training sessions and fixture rows. */
+export function shortDate(value: string, locale: string): string {
+  return toDate(value).toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' });
 }
 
 /**

@@ -10,7 +10,7 @@ import {
 } from '../../../core/models/market.models';
 import { POMPFEN_CATALOG, Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import { problemDetail } from '../../../core/utils/problem';
-import { injectRelativeTime } from '../../../core/i18n/relative-time';
+import { injectRelativeTime } from '../../../core/i18n/locale-format';
 
 /**
  * US2/US3/US5/US6 — the party admin's recruiting screen (`/parties/:id/recruiting`). Flip the party
