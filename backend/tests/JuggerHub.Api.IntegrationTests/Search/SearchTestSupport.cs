@@ -136,6 +136,140 @@ internal static class SearchTestSupport
         });
     }
 
+    // ---- Trainings (feature 043) -------------------------------------------------
+    //
+    // Seeded straight through the DbContext rather than the create API, because several browse
+    // invariants have no API path at all: a training predating feature 042 (legacy free-text
+    // Location, no CityId), and a session whose address block is set with a deliberately absent
+    // venue name. Going through the API would also force a team-admin dance per fixture.
+
+    /// <summary>
+    /// Seed a training series (or one-off) with a full structured address. Pass
+    /// <paramref name="city"/> = null with a <paramref name="legacyLocation"/> to model a
+    /// pre-042 training; pass <paramref name="kind"/> = Virtual for an online training.
+    /// </summary>
+    public static Task<Guid> SeedTrainingAsync(
+        JuggerHubApiFactory factory,
+        Guid teamId,
+        Guid createdByUserId,
+        string name,
+        TrainingVisibility visibility = TrainingVisibility.Public,
+        string? city = "Berlin",
+        string? venueName = null,
+        string? street = null,
+        string? postalCode = null,
+        string? legacyLocation = null,
+        LocationKind kind = LocationKind.InPerson,
+        bool isRecurring = false) =>
+        WithDbAsync(factory, async db =>
+        {
+            var cityEntity = city is null ? null : await TestCities.GetOrCreateAsync(db, city);
+            var training = new Training
+            {
+                TeamId = teamId,
+                CreatedByUserId = createdByUserId,
+                Name = name,
+                Description = "Seeded for browse tests.",
+                LocationKind = kind,
+                VenueName = kind == LocationKind.Virtual ? null : venueName,
+                Street = kind == LocationKind.Virtual ? null : street,
+                PostalCode = kind == LocationKind.Virtual ? null : postalCode,
+                City = kind == LocationKind.Virtual ? null : cityEntity,
+                // The system-derived legacy label (042). Mirrors what the service writes: "City,
+                // Country" when in-person, null when virtual — unless a test supplies its own to
+                // model a pre-042 row.
+                Location = kind == LocationKind.Virtual
+                    ? null
+                    : legacyLocation ?? (cityEntity is null ? null : $"{cityEntity.Name}, {cityEntity.CountryName}"),
+                VirtualLink = kind == LocationKind.Virtual ? "https://example.com/meet" : null,
+                IsRecurring = isRecurring,
+                Weekday = isRecurring ? DayOfWeek.Tuesday : null,
+                Interval = isRecurring ? TrainingInterval.Weekly : null,
+                StartTime = new TimeOnly(19, 0),
+                EndTime = new TimeOnly(21, 0),
+                StartDate = DateOnly.FromDateTime(DateTime.UtcNow),
+                EndDate = isRecurring ? DateOnly.FromDateTime(DateTime.UtcNow).AddMonths(6) : null,
+                Visibility = visibility,
+            };
+            db.Trainings.Add(training);
+            await db.SaveChangesAsync();
+            return training.Id;
+        });
+
+    /// <summary>
+    /// Seed one dated session of a training.
+    /// </summary>
+    /// <remarks>
+    /// ⚠ The address override is an INDIVISIBLE BLOCK keyed on <c>CityIdOverride</c> (feature 042).
+    /// Supplying <paramref name="overrideCity"/> is what detaches the whole block — the other three
+    /// override columns are then authoritative <em>including when they are null</em>, which is
+    /// exactly the case the venue-leak guard needs (a relocated session at a venue-less address).
+    /// </remarks>
+    public static Task<Guid> SeedTrainingSessionAsync(
+        JuggerHubApiFactory factory,
+        Guid trainingId,
+        DateOnly sessionDate,
+        TrainingVisibility? visibilityOverride = null,
+        TrainingSessionStatus status = TrainingSessionStatus.Scheduled,
+        string? overrideCity = null,
+        string? overrideVenueName = null,
+        string? overrideStreet = null,
+        string? overridePostalCode = null,
+        LocationKind? kindOverride = null) =>
+        WithDbAsync(factory, async db =>
+        {
+            var training = await db.Trainings.AsNoTracking()
+                .Where(t => t.Id == trainingId)
+                .Select(t => new { t.TeamId })
+                .FirstAsync();
+
+            var overrideCityEntity = overrideCity is null ? null : await TestCities.GetOrCreateAsync(db, overrideCity);
+            var session = new TrainingSession
+            {
+                TrainingId = trainingId,
+                TeamId = training.TeamId,
+                SessionDate = sessionDate,
+                VisibilityOverride = visibilityOverride,
+                Status = status,
+                LocationKindOverride = kindOverride,
+                CityOverride = overrideCityEntity,
+                VenueNameOverride = overrideVenueName,
+                StreetOverride = overrideStreet,
+                PostalCodeOverride = overridePostalCode,
+                LocationOverride = overrideCityEntity is null
+                    ? null
+                    : $"{overrideCityEntity.Name}, {overrideCityEntity.CountryName}",
+                Detached = overrideCityEntity is not null,
+            };
+            db.TrainingSessions.Add(session);
+            await db.SaveChangesAsync();
+            return session.Id;
+        });
+
+    /// <summary>Set the caller's home city — the anchor for the nearest-first ordering.</summary>
+    public static Task SetHomeCityAsync(JuggerHubApiFactory factory, Guid userId, string city) =>
+        WithDbAsync(factory, async db =>
+        {
+            var profile = await db.PlayerProfiles.FirstAsync(p => p.UserId == userId);
+            profile.HomeCity = await TestCities.GetOrCreateAsync(db, city);
+            await db.SaveChangesAsync();
+        });
+
+    /// <summary>Add a membership so a test can prove browse does NOT widen for members.</summary>
+    public static Task AddTeamMemberAsync(
+        JuggerHubApiFactory factory, Guid teamId, Guid userId, TeamRole role = TeamRole.Member) =>
+        WithDbAsync(factory, async db =>
+        {
+            db.TeamMemberships.Add(new TeamMembership
+            {
+                TeamId = teamId,
+                UserId = userId,
+                Role = role,
+                JoinedDate = DateTime.UtcNow,
+            });
+            await db.SaveChangesAsync();
+        });
+
     /// <summary>Backdate a team's creation timestamp (to test the created-within-12-months active rule).</summary>
     public static Task BackdateTeamCreatedAsync(JuggerHubApiFactory factory, Guid teamId, DateTime created) =>
         WithDbAsync(factory, async db =>

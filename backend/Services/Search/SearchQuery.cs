@@ -27,6 +27,22 @@ public enum PlayerSort
 }
 
 /// <summary>
+/// Public-training browse sort (feature 043). Default is soonest-upcoming session first.
+/// </summary>
+public enum TrainingSort
+{
+    SessionDateAsc = 0,
+
+    /// <summary>
+    /// Feature 030 pattern — nearest-first, measured from the caller's home city to the session's
+    /// city. <b>Requires a home city</b>: the controller returns 409 when the caller has none rather
+    /// than silently answering with a different ordering. Sessions with no city (every virtual
+    /// training, and any training predating feature 042) are excluded from this view entirely.
+    /// </summary>
+    Proximity = 1,
+}
+
+/// <summary>
 /// Shared helpers for the browse/search services: free-text normalization and the
 /// accent-insensitive <c>ILIKE</c> pattern. All filtering happens server-side; the client
 /// never receives a non-matching row (constitution Principle I).

@@ -9,6 +9,8 @@ import {
   PlayerCard,
   TeamBrowseParams,
   TeamCard,
+  TrainingBrowseParams,
+  TrainingCard,
 } from '../models/search.models';
 
 /**
@@ -30,6 +32,11 @@ export class SearchService {
 
   browsePlayers(params: PlayerBrowseParams): Observable<PagedResult<PlayerCard>> {
     return this.http.get<PagedResult<PlayerCard>>('/api/v1/profiles', { params: toPlayerParams(params) });
+  }
+
+  /** Public trainings across all teams (feature 043). Team-only sessions never appear. */
+  browseTrainings(params: TrainingBrowseParams): Observable<PagedResult<TrainingCard>> {
+    return this.http.get<PagedResult<TrainingCard>>('/api/v1/trainings', { params: toTrainingParams(params) });
   }
 }
 
@@ -63,6 +70,25 @@ function toEventParams(p: EventBrowseParams): HttpParams {
   params = put(params, 'from', p.from);
   params = put(params, 'to', p.to);
   params = put(params, 'type', p.type);
+  params = put(params, 'country', p.country);
+  params = put(params, 'sort', p.sort);
+  params = put(params, 'skip', p.skip);
+  params = put(params, 'take', p.take);
+  return params;
+}
+
+/**
+ * ⚠ Note the `city` line. `toEventParams` and `toTeamParams` above send only `country`, even
+ * though their backends accept a city filter too — trainings is the first surface to actually use
+ * it. Copying one of those builders verbatim would silently drop the city filter.
+ */
+function toTrainingParams(p: TrainingBrowseParams): HttpParams {
+  let params = new HttpParams();
+  params = put(params, 'q', p.q);
+  params = put(params, 'hidePast', p.hidePast);
+  params = put(params, 'from', p.from);
+  params = put(params, 'to', p.to);
+  params = put(params, 'city', p.city);
   params = put(params, 'country', p.country);
   params = put(params, 'sort', p.sort);
   params = put(params, 'skip', p.skip);

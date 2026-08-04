@@ -26,12 +26,63 @@ public sealed class TrainingsController : ControllerBase
     private readonly ITrainingSeriesService _series;
     private readonly ITrainingSessionService _sessions;
     private readonly ITrainingResponseService _responses;
+    private readonly JuggerHub.Services.Search.ITrainingSearchService _search;
+    private readonly JuggerHub.Services.Profile.IProfileService _profiles;
 
-    public TrainingsController(ITrainingSeriesService series, ITrainingSessionService sessions, ITrainingResponseService responses)
+    public TrainingsController(
+        ITrainingSeriesService series,
+        ITrainingSessionService sessions,
+        ITrainingResponseService responses,
+        JuggerHub.Services.Search.ITrainingSearchService search,
+        JuggerHub.Services.Profile.IProfileService profiles)
     {
         _series = series;
         _sessions = sessions;
         _responses = responses;
+        _search = search;
+        _profiles = profiles;
+    }
+
+    // --- Browse public trainings (feature 043) --------------------------------
+
+    /// <summary>
+    /// Public-training browse/search: every session teams have opened to everyone, across all
+    /// teams, one row per dated session. Authenticated-only like the rest of discovery (feature
+    /// 026); all filtering, sorting and paging happen server-side.
+    /// </summary>
+    /// <remarks>
+    /// Team-only sessions are absent from the result set entirely — for every caller, including a
+    /// member of the owning team. The list is defined by the training being public, never by who is
+    /// asking, so there is no membership join to get wrong (feature 043, FR-004).
+    /// </remarks>
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<JuggerHub.Dtos.Search.TrainingCardDto>>> Browse(
+        [FromQuery] JuggerHub.Dtos.Search.TrainingBrowseQuery query,
+        [FromQuery] PaginationRequest pagination,
+        CancellationToken ct)
+    {
+        // Resolve the caller up front so the auth check never depends on a user-supplied query
+        // value — a proximity request must not be the only path that enforces it.
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        // Proximity anchors on the caller's OWN home city, resolved server-side and never accepted
+        // as a parameter. Without one there is nothing to measure from, so ask them to set it (409)
+        // rather than silently returning a different order (FR-021).
+        Guid? homeCityId = null;
+        if (query.Sort == JuggerHub.Services.Search.TrainingSort.Proximity)
+        {
+            homeCityId = await _profiles.GetHomeCityIdAsync(userId, ct);
+            if (homeCityId is null)
+            {
+                return Problem(statusCode: StatusCodes.Status409Conflict, title: "No home city",
+                    detail: "Set your home city to sort trainings by distance.");
+            }
+        }
+
+        return Ok(await _search.BrowseAsync(query, pagination, homeCityId, ct));
     }
 
     // --- Whole series ---------------------------------------------------------

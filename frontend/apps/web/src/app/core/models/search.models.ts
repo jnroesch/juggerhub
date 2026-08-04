@@ -17,6 +17,8 @@ export type LocationKind = 'InPerson' | 'Virtual';
 export type TeamSort = 'NameAsc' | 'Proximity';
 export type EventSort = 'StartsAtAsc' | 'Proximity';
 export type PlayerSort = 'DisplayNameAsc';
+// Feature 043 — public-training browse.
+export type TrainingSort = 'SessionDateAsc' | 'Proximity';
 
 // --- Cards ----------------------------------------------------------------------
 
@@ -58,6 +60,31 @@ export interface PageParams {
   take?: number;
 }
 
+/**
+ * A public training session as a discovery card (feature 043). One card = one dated session.
+ *
+ * `locationLabel` is composed server-side in the same "City, Country" form the events browse
+ * uses, so the two tabs read identically; it is empty for a virtual training, where the client
+ * renders the "Online" wording from `locationKind` in the viewer's own language.
+ */
+export interface TrainingCard {
+  sessionId: string;
+  trainingId: string;
+  name: string;
+  teamSlug: string;
+  teamName: string;
+  isOneOff: boolean;
+  /** ISO date (yyyy-MM-dd) — a session is a date, not an instant. */
+  sessionDate: string;
+  /** Time of day (HH:mm:ss). */
+  startTime: string;
+  /** Time of day (HH:mm:ss). */
+  endTime: string;
+  locationKind: LocationKind;
+  location: Location | null;
+  locationLabel: string;
+}
+
 export interface TeamBrowseParams extends PageParams {
   q?: string;
   activeOnly?: boolean;
@@ -78,6 +105,23 @@ export interface EventBrowseParams extends PageParams {
   /** Feature 030 — filter to a single country (ISO code or name). */
   country?: string | null;
   sort?: EventSort;
+}
+
+export interface TrainingBrowseParams extends PageParams {
+  q?: string;
+  hidePast?: boolean;
+  /** ISO date (yyyy-MM-dd). */
+  from?: string | null;
+  /** ISO date (yyyy-MM-dd). */
+  to?: string | null;
+  /**
+   * Feature 043 — filter to a single canonical city by name. The first city filter in the
+   * product: teams and events accept one server-side but have never sent it.
+   */
+  city?: string | null;
+  /** Filter to a single country (ISO code or name). */
+  country?: string | null;
+  sort?: TrainingSort;
 }
 
 export interface PlayerBrowseParams extends PageParams {

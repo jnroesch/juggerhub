@@ -634,6 +634,23 @@
       "chipUpcoming": "Próximos",
       "countOne": "{{count}} evento",
       "countMany": "{{count}} eventos"
+    },
+    "tabTrainings": "Entrenamientos",
+    "trainings": {
+      "searchPlaceholder": "Buscar entrenamientos…",
+      "note": "Entrenamientos que los equipos han abierto a todo el mundo. Ven como invitado.",
+      "noun": "entrenamientos",
+      "countOne": "{{count}} entrenamiento",
+      "countMany": "{{count}} entrenamientos",
+      "hidePastLabel": "Ocultar entrenamientos pasados",
+      "hidePastHint": "Solo próximos",
+      "dateRange": "Rango de fechas",
+      "fromDate": "Desde",
+      "toDate": "Hasta",
+      "city": "Ciudad",
+      "cityPlaceholder": "Cualquier ciudad",
+      "sortSoonest": "Más próximos",
+      "chipUpcoming": "Próximos"
     }
   },
   "home": {

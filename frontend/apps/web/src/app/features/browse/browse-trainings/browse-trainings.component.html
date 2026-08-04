@@ -1,0 +1,118 @@
+<jh-browse-shell
+  [title]="'browse.tabTrainings' | transloco"
+  [searchPlaceholder]="'browse.trainings.searchPlaceholder' | transloco"
+  [note]="'browse.trainings.note' | transloco"
+  [sortOptions]="sortOptions()"
+  [activeSort]="sort()"
+  (sortChange)="onSortChange($event)"
+  [countLabel]="countLabel()"
+  [chips]="chips()"
+  [activeFilterCount]="activeFilterCount()"
+  [state]="list.state()"
+  [hasMore]="list.hasMore()"
+  [loadingMore]="list.loadingMore()"
+  (query)="onQuery($event)"
+  (openFilters)="openFilters()"
+  (removeChip)="removeChip($event)"
+  (clearAll)="clearAll()"
+  (loadMore)="list.loadMore()"
+  (retry)="list.reload()"
+>
+  <!--
+    Rows mirror the home screen's agenda card: dark date chip, then the content.
+
+    The TEAM leads and the training's own name is secondary — deliberately the reverse of the
+    events row. A guest deciding whether to turn up is choosing a team to train with; the training
+    name is whoever-scheduled-it's label ("Dienstagstraining", "Training") and carries almost no
+    information across teams.
+  -->
+  <div rows class="flex flex-col gap-xs">
+    @for (training of list.items(); track training.sessionId) {
+      <a
+        [routerLink]="['/trainings', 'sessions', training.sessionId]"
+        class="flex items-center gap-sm rounded-md border border-border-muted bg-surface-card px-sm py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
+        data-testid="training-row"
+      >
+        <!-- Date chip -->
+        <span
+          class="grid h-12 w-12 shrink-0 place-items-center rounded-sm bg-surface-inverse text-on-inverse"
+          [attr.aria-label]="dateLabel(training)"
+        >
+          <span class="text-caption font-semibold uppercase leading-none">{{ weekday(training) }}</span>
+          <span class="font-mono text-body-md font-bold leading-none">{{ dayOfMonth(training) }}</span>
+          <span class="text-caption font-semibold uppercase leading-none">{{ month(training) }}</span>
+        </span>
+
+        <!-- Team first, then what and where -->
+        <span class="min-w-0 flex-1">
+          <span class="block truncate font-semibold text-heading" data-testid="training-team">{{ training.teamName }}</span>
+          <span class="block truncate text-caption text-muted" data-testid="training-meta">
+            {{ training.name }} · <span class="font-mono">{{ timeRange(training) }}</span>
+            @if (training.locationKind === 'Virtual') {
+              · {{ 'trainings.online' | transloco }}
+            } @else if (training.locationLabel) {
+              · {{ training.locationLabel }}
+            }
+          </span>
+        </span>
+
+        <span class="shrink-0 rounded-pill border border-border px-sm py-0 text-caption text-subtle">
+          {{ (training.isOneOff ? 'trainings.oneOff' : 'trainings.series') | transloco }}
+        </span>
+      </a>
+    }
+  </div>
+</jh-browse-shell>
+
+<jh-filter-panel
+  [open]="filtersOpen()"
+  [pendingCount]="pendingCount()"
+  [resultNoun]="'browse.trainings.noun' | transloco"
+  (apply)="applyFilters()"
+  (resetFilters)="resetFilters()"
+  (closePanel)="filtersOpen.set(false)"
+>
+  <div class="flex flex-col gap-sm">
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.showEyebrow' | transloco }}</span>
+    <jh-filter-toggle
+      [label]="'browse.trainings.hidePastLabel' | transloco"
+      [hint]="'browse.trainings.hidePastHint' | transloco"
+      [checked]="pendingHidePast()"
+      (toggled)="setPendingHidePast($event)"
+    />
+  </div>
+
+  <div class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.trainings.dateRange' | transloco }}</span>
+    <div class="flex items-center gap-xs">
+      <input
+        type="date"
+        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        [attr.aria-label]="'browse.trainings.fromDate' | transloco"
+        [value]="pendingFrom()"
+        (input)="onPendingFrom($any($event.target).value)"
+      />
+      <span class="text-subtle">–</span>
+      <input
+        type="date"
+        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        [attr.aria-label]="'browse.trainings.toDate' | transloco"
+        [value]="pendingTo()"
+        (input)="onPendingTo($any($event.target).value)"
+      />
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.trainings.city' | transloco }}</span>
+    <jh-city-picker
+      [placeholder]="'browse.trainings.cityPlaceholder' | transloco"
+      (selectedChange)="onPendingCity($event)"
+    />
+  </div>
+
+  <div class="flex flex-col gap-xs">
+    <span class="text-eyebrow uppercase text-faint">{{ 'browse.country' | transloco }}</span>
+    <jh-country-picker [value]="pendingCountry()" (valueChange)="onPendingCountry($event)" />
+  </div>
+</jh-filter-panel>
