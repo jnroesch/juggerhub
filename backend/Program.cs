@@ -402,6 +402,7 @@ builder.Services.Configure<SearchOptions>(builder.Configuration.GetSection(Searc
 builder.Services.AddScoped<ITeamSearchService, TeamSearchService>();
 builder.Services.AddScoped<IEventSearchService, EventSearchService>();
 builder.Services.AddScoped<IPlayerSearchService, PlayerSearchService>();
+builder.Services.AddScoped<ITrainingSearchService, TrainingSearchService>(); // public trainings (043)
 
 // --- Home dashboard (feature 008) ------------------------------------------
 builder.Services.Configure<HomeOptions>(builder.Configuration.GetSection(HomeOptions.SectionName));

@@ -80,6 +80,71 @@ public sealed record EventBrowseQuery
     public EventSort Sort { get; init; } = EventSort.StartsAtAsc;
 }
 
+// ---- Training browse (feature 043) ---------------------------------------------
+
+/// <summary>
+/// A public training session as a discovery card (feature 043). One card = one dated session.
+/// </summary>
+/// <remarks>
+/// <para>
+/// <paramref name="LocationLabel"/> is composed server-side by the same city → venue → legacy rule
+/// events use, so a training and an event at the same address read character-for-character
+/// identically (spec SC-003). A list never renders street or postal code, so they are deliberately
+/// absent — as they are on <see cref="Dtos.Trainings.TrainingSessionRowDto"/>.
+/// </para>
+/// <para>
+/// ⚠ RSVP counts, the visibility flag and the session status are deliberately NOT here. Every listed
+/// row is public and scheduled <em>by construction</em> (the query's two unconditional gates), so
+/// shipping those fields would invite a client-side re-check that is not the security boundary; and
+/// "9 going" on a discovery card reads as capacity, which a training does not have. They live on the
+/// session page, one tap away.
+/// </para>
+/// </remarks>
+public sealed record TrainingCardDto(
+    Guid SessionId,
+    Guid TrainingId,
+    string Name,
+    string TeamSlug,
+    string TeamName,
+    bool IsOneOff,
+    DateOnly SessionDate,
+    TimeOnly StartTime,
+    TimeOnly EndTime,
+    LocationKind LocationKind,
+    LocationDto? Location,
+    string LocationLabel);
+
+/// <summary>Public-training browse filters + sort.</summary>
+public sealed record TrainingBrowseQuery
+{
+    /// <summary>Free-text substring over the training name. Blank ⇒ browse all.</summary>
+    public string? Q { get; init; }
+
+    /// <summary>
+    /// Hide sessions dated before today. Default on. Day-granular by design (feature 043 research
+    /// R2): a session that ended earlier today still counts as upcoming, matching every other
+    /// trainings query. Cancelled and skipped sessions are excluded regardless of this flag.
+    /// </summary>
+    public bool HidePast { get; init; } = true;
+
+    /// <summary>Start of the date range (SessionDate &gt;= From), inclusive.</summary>
+    public DateOnly? From { get; init; }
+
+    /// <summary>End of the date range (SessionDate &lt;= To), inclusive.</summary>
+    public DateOnly? To { get; init; }
+
+    /// <summary>
+    /// Filter to a single canonical city by NAME (accent/case-insensitive). Null ⇒ any city.
+    /// Resolved through the session's address block, so a relocated session matches ITS city.
+    /// </summary>
+    public string? City { get; init; }
+
+    /// <summary>Filter to a single country (ISO code or name). Null ⇒ any country.</summary>
+    public string? Country { get; init; }
+
+    public TrainingSort Sort { get; init; } = TrainingSort.SessionDateAsc;
+}
+
 // ---- Player browse -------------------------------------------------------------
 
 /// <summary>Public player browse card. No email, account id, or internal fields; opted-in only.</summary>
