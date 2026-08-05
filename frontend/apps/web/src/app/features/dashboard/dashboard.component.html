@@ -35,7 +35,7 @@
          Stacks in priority order on mobile: Needs you → Up next → News → What's going on. -->
     <div class="mt-lg grid items-start gap-lg lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
       <!-- Main column -->
-      <div class="flex flex-col gap-lg">
+      <div class="flex min-w-0 flex-col gap-lg">
         <!-- 1. Needs you — actionable, pinned top -->
         @if (home.needsYou.length > 0) {
           <jh-needs-you-card [items]="home.needsYou" (resolved)="onResolved($event)" />
@@ -90,7 +90,7 @@
       </div>
 
       <!-- Rail — reading + ambient -->
-      <aside class="flex flex-col gap-lg">
+      <aside class="flex min-w-0 flex-col gap-lg">
         <!-- 3. News — authored broadcast (team + event + party) -->
         <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="news">
           <div class="mb-sm flex items-center justify-between">
