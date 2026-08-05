@@ -68,6 +68,11 @@ export class AttendanceComponent {
     return `/api/v1/profiles/${encodeURIComponent(handle)}/avatar`;
   }
 
+  /** Placeholder letter for a player without a picture — the roster pattern used across the app. */
+  protected initial(name: string | null | undefined): string {
+    return (name?.trim()?.charAt(0) || '?').toUpperCase();
+  }
+
   protected answerLabel(a: AttendanceEntry['answer']): string {
     return a === 'Going' ? 'trainings.attendance.answerGoing' : a === 'Maybe' ? 'trainings.attendance.answerMaybe' : 'trainings.attendance.answerCant';
   }

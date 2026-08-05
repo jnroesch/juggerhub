@@ -109,6 +109,7 @@ public sealed record WhosComingGroupDto(int Count, IReadOnlyList<WhosComingPerso
 public sealed record WhosComingPersonDto(
     string Handle,
     string DisplayName,
+    bool HasAvatar,
     string? Position,
     bool IsGuest,
     bool IsYou);
@@ -118,6 +119,7 @@ public sealed record AttendanceEntryDto(
     Guid UserId,
     string Handle,
     string DisplayName,
+    bool HasAvatar,
     string? Position,
     bool IsGuest,
     bool IsYou,

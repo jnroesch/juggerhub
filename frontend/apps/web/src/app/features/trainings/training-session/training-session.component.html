@@ -94,7 +94,9 @@
             <ul class="mt-2xs divide-y divide-border-muted">
               @for (p of grp.g.people; track p.handle) {
                 <li class="flex items-center gap-sm py-xs">
-                  <img [src]="avatarUrl(p.handle)" alt="" class="h-8 w-8 rounded-pill bg-surface-secondary-soft object-cover" />
+                  <span class="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-caption font-semibold text-secondary">
+                    @if (p.hasAvatar) { <img [src]="avatarUrl(p.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ initial(p.displayName) }} }
+                  </span>
                   <a [routerLink]="['/u', p.handle]" class="min-w-0 flex-1 truncate text-body-sm font-medium text-heading hover:text-link">
                     {{ p.displayName }}@if (p.isYou) { <span class="text-muted">· {{ 'trainings.attendance.you' | transloco }}</span> }
                   </a>

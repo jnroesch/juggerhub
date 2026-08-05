@@ -329,6 +329,9 @@ public sealed class TrainingSessionService : ITrainingSessionService
                 r.UserId,
                 Handle = r.User.Profile!.Handle,
                 DisplayName = r.User.Profile!.DisplayName,
+                // Whether a picture exists at all — without it the template can only guess, and a
+                // guess renders a broken <img> for every player who never uploaded one.
+                HasAvatar = r.User.Profile!.Avatar != null,
                 FirstPompfe = r.User.Profile!.Pompfen.Select(p => (Pompfe?)p.Pompfe).FirstOrDefault(),
             })
             .ToListAsync(ct);
@@ -340,7 +343,8 @@ public sealed class TrainingSessionService : ITrainingSessionService
                 .OrderByDescending(x => x.UserId == userId)
                 .ThenBy(x => x.DisplayName)
                 .Take(WhosComingTop)
-                .Select(x => new WhosComingPersonDto(x.Handle, x.DisplayName, x.FirstPompfe?.ToString(), x.IsGuest, x.UserId == userId))
+                .Select(x => new WhosComingPersonDto(
+                    x.Handle, x.DisplayName, x.HasAvatar, x.FirstPompfe?.ToString(), x.IsGuest, x.UserId == userId))
                 .ToList();
             return new WhosComingGroupDto(members.Count, people);
         }

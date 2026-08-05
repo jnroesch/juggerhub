@@ -99,6 +99,7 @@ public sealed class TrainingResponseService : ITrainingResponseService
                 r.UserId,
                 r.User.Profile!.Handle,
                 r.User.Profile!.DisplayName,
+                r.User.Profile!.Avatar != null,
                 r.User.Profile!.Pompfen.Select(p => p.Pompfe).Cast<Pompfe?>().FirstOrDefault().ToString(),
                 r.IsGuest,
                 r.UserId == userId,
