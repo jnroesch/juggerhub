@@ -78,6 +78,7 @@ export interface TrainingSeriesSummary {
 export interface WhosComingPerson {
   handle: string;
   displayName: string;
+  hasAvatar: boolean;
   position: string | null;
   isGuest: boolean;
   isYou: boolean;
@@ -133,6 +134,7 @@ export interface AttendanceEntry {
   userId: string;
   handle: string;
   displayName: string;
+  hasAvatar: boolean;
   position: string | null;
   isGuest: boolean;
   isYou: boolean;

@@ -9,7 +9,9 @@
     <ul class="mt-md divide-y divide-border-muted">
       @for (e of entries(); track e.userId) {
         <li class="flex items-center gap-sm py-sm">
-          <img [src]="avatarUrl(e.handle)" alt="" class="h-9 w-9 rounded-pill bg-surface-secondary-soft object-cover" />
+          <span class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary">
+            @if (e.hasAvatar) { <img [src]="avatarUrl(e.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ initial(e.displayName) }} }
+          </span>
           <div class="min-w-0 flex-1">
             <a [routerLink]="['/u', e.handle]" class="block truncate font-medium text-heading hover:text-link">
               {{ e.displayName }}@if (e.isYou) { <span class="text-muted">· {{ 'trainings.attendance.you' | transloco }}</span> }

@@ -76,7 +76,7 @@ Team-only + outsider → 404.
   "isPast": false, "isDetached": false,
   "viewerIsAdmin": false, "viewerIsGuest": false, "myAnswer": "Maybe" | null,
   "whosComing": {
-    "going": { "count": 6, "people": [{ "handle": "ada-k", "displayName": "Ada K.", "position": "Q-Tip", "isGuest": false, "isYou": true }] },
+    "going": { "count": 6, "people": [{ "handle": "ada-k", "displayName": "Ada K.", "hasAvatar": true, "position": "Q-Tip", "isGuest": false, "isYou": true }] },
     "maybe": { "count": 2, "people": [ … ] },
     "cant":  { "count": 1, "people": [ … ] }
   }
@@ -110,7 +110,7 @@ Per-session visibility (sets `VisibilityOverride`). **Auth**: team **admin**. Bo
 ### `GET /api/v1/trainings/sessions/{sessionId}/attendance`
 Full attendance incl. guests. **Auth**: team **admin**. Query `PaginationRequest`, optional
 `group=going|maybe|cant`. `200` → `PagedResult<AttendanceEntryDto>`:
-`{ handle, displayName, position, isGuest, isYou, isTeamAdmin, answer }`. Guests carry `isGuest:true`.
+`{ handle, displayName, hasAvatar, position, isGuest, isYou, isTeamAdmin, answer }`. Guests carry `isGuest:true`.
 
 ### `DELETE /api/v1/trainings/sessions/{sessionId}/guests/{userId}`
 Remove a guest's response (never affects team membership). **Auth**: team **admin**. `204`. `400` if the
