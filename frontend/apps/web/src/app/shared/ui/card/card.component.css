@@ -23,3 +23,9 @@
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
 }
+
+/* Opt-out of the clip so an absolute dropdown/popover can escape the card box
+   (e.g. the roster "manage member" menu). Safe only without the accent strip. */
+:host(.jh-card--overflow-visible) {
+  overflow: visible;
+}
