@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { merge } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
@@ -26,8 +28,22 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
   private readonly profiles = inject(ProfileService);
   private readonly t = inject(TranslocoService);
-  // Recompute translated labels (sort/chips/count) when the active language changes (feature 031).
-  private readonly lang = toSignal(this.t.langChanges$, { initialValue: this.t.getActiveLang() });
+  // Recompute translated labels (sort/chips/count) on a language change (feature 031) AND when a
+  // catalogue finishes loading. A plain `toSignal(langChanges$)` is not enough: the catalogue loads
+  // asynchronously, and a `computed()` (e.g. `chips()`) whose other dependencies never change keeps
+  // whatever `translate()` returned first — the raw key. `equal: () => false` is load-bearing so a
+  // repeat `langChanges$` emission of the same language still notifies. See browse-trainings for the
+  // full write-up (GH #147).
+  private readonly lang = toSignal(
+    merge(
+      this.t.langChanges$,
+      this.t.events$.pipe(
+        filter((e) => e.type === 'translationLoadSuccess'),
+        map(() => this.t.getActiveLang()),
+      ),
+    ),
+    { initialValue: this.t.getActiveLang(), equal: () => false },
+  );
 
   // Applied state (drives results).
   protected readonly query = signal('');
