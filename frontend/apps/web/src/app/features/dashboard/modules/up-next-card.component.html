@@ -1,4 +1,8 @@
-<div class="flex items-center gap-sm rounded-md border border-border-muted bg-surface-card px-sm py-sm">
+<div class="flex flex-col gap-sm rounded-md border border-border-muted bg-surface-card px-sm py-sm sm:flex-row sm:items-center">
+  <!-- Chip + title/meta take the whole top row on mobile so the title gets the
+       full width; the action buttons drop to a second row below. On sm+ the
+       card returns to a single inline row. -->
+  <div class="flex min-w-0 flex-1 items-center gap-sm">
   <!-- Date chip -->
   <a
     [routerLink]="route()"
@@ -24,6 +28,7 @@
     @if (error(); as e) {
       <p class="text-caption text-danger-fg" role="alert">{{ e }}</p>
     }
+  </div>
   </div>
 
   <!-- Action -->
