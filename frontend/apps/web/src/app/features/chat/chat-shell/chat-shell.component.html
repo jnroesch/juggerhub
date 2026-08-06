@@ -17,7 +17,12 @@
   </div>
 
   <!-- The open conversation / new chat / details -->
-  <div class="min-h-0 flex-1" [class.hidden]="!hasChild()" [class.lg:block]="true">
+  <!--
+    min-w-0: a flex child defaults to min-width:auto and won't shrink below its content's
+    intrinsic width. Below lg this pane holds the whole conversation on its own, so without
+    this the header/messages/composer overflow the viewport to the right on narrow screens.
+  -->
+  <div class="min-h-0 min-w-0 flex-1" [class.hidden]="!hasChild()" [class.lg:block]="true">
     @if (hasChild()) {
       <router-outlet />
     } @else {
