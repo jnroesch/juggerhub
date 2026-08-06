@@ -3,6 +3,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      secrets:
+        - proxy_ca
     container_name: juggerhub-backend
     ports:
       - "8080:8080"
@@ -63,6 +65,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      secrets:
+        - proxy_ca
     container_name: juggerhub-frontend
     ports:
       - "3000:80"
@@ -400,3 +404,12 @@ networks:
 volumes:
   db-data:
   azurite-data:
+
+# Optional egress-proxy CA, consumed by the image builds (backend/frontend Dockerfiles).
+# Defaults to /dev/null so ordinary local builds and CI mount an EMPTY secret and the CA
+# steps are no-ops. Behind a TLS-terminating egress proxy (e.g. Claude Code on the web),
+# point PROXY_CA_FILE at the proxy's CA bundle — the .claude SessionStart hook does this
+# automatically — and every `docker compose build`/`up --build`/test run trusts it.
+secrets:
+  proxy_ca:
+    file: ${PROXY_CA_FILE:-/dev/null}
