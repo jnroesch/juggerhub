@@ -174,87 +174,92 @@ jobs:
             echo "::warning::health check not green yet (DNS/cert may still be propagating)"
 
   # --- prod: only after dev succeeds, gated by manual approval ----------------
-  # The `production` Environment has a Required-reviewers rule (you approve each
-  # prod deploy from the Actions run). `needs: deploy-dev` enforces dev-before-prod.
-  deploy-prod:
-    runs-on: ubuntu-latest
-    needs: deploy-dev
-    environment: production
-
-    env:
-      TF_WORKSPACE_ENV: prod
-      TFVARS: envs/prod.tfvars
-      ARM_USE_OIDC: "true"
-      ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
-      ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-      TF_VAR_postgres_password: ${{ secrets.POSTGRES_PASSWORD }}
-      TF_VAR_jwt_signing_key: ${{ secrets.JWT_SIGNING_KEY }}
-      TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
-      TF_VAR_admin_emails: ${{ secrets.ADMIN_EMAILS }}
-      TF_VAR_ghcr_pull_token: ${{ secrets.GHCR_PULL_TOKEN }}
-      # Analytics (feature 033). All three are required — Terraform has no defaults for them, so a
-      # missing one fails THIS environment at apply with an unset-variable error. Deliberate: the
-      # alternative is a shared default signing key or a dashboard left on its seeded credential.
-      # UMAMI_ADMIN_PASSWORD_HASH is the bcrypt hash only; the plaintext never leaves the
-      # Environment. The website ID is not here — it is not a secret and lives in envs/*.tfvars.
-      TF_VAR_umami_db_password: ${{ secrets.UMAMI_DB_PASSWORD }}
-      TF_VAR_umami_app_secret: ${{ secrets.UMAMI_APP_SECRET }}
-      TF_VAR_umami_admin_password_hash: ${{ secrets.UMAMI_ADMIN_PASSWORD_HASH }}
-
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Resolve image tag (matches build.yml `type=sha`)
-        id: img
-        run: |
-          SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
-          echo "tag=sha-${SHA:0:7}" >> "$GITHUB_OUTPUT"
-
-      - name: Azure login (OIDC)
-        uses: azure/login@v3
-        with:
-          client-id: ${{ vars.AZURE_CLIENT_ID }}
-          tenant-id: ${{ vars.AZURE_TENANT_ID }}
-          subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
-
-      - uses: hashicorp/setup-terraform@v4
-        with:
-          terraform_version: ${{ env.TF_VERSION }}
-
-      - name: Terraform apply
-        working-directory: infra
-        run: |
-          terraform init
-          terraform workspace select "$TF_WORKSPACE_ENV" || terraform workspace new "$TF_WORKSPACE_ENV"
-          VARS=(-input=false -auto-approve
-            -var-file="$TFVARS"
-            -var="image_tag=${{ steps.img.outputs.tag }}"
-            -var="image_repo_backend=ghcr.io/${{ github.repository }}/backend"
-            -var="image_repo_frontend=ghcr.io/${{ github.repository }}/frontend"
-            -var="ghcr_username=${{ github.repository_owner }}")
-          # Phase 1 (fresh cluster only; a no-op on every later run): create the
-          # cluster + platform Helm charts so cert-manager's CRDs exist BEFORE the
-          # ClusterIssuer manifests are planned. Avoids the kubernetes_manifest
-          # "cannot connect / CRD not found" failure on first apply.
-          terraform apply "${VARS[@]}" \
-            -target=module.network -target=module.aks \
-            -target=azurerm_role_assignment.aks_ingress_ip \
-            -target=module.platform.helm_release.ingress_nginx \
-            -target=module.platform.helm_release.cert_manager
-          # Phase 2: converge everything (issuers + app + ingress).
-          terraform apply "${VARS[@]}"
-
-      - name: Smoke test
-        working-directory: infra
-        run: |
-          RG="rg-juggerhub-${TF_WORKSPACE_ENV}"
-          CLUSTER="aks-juggerhub-${TF_WORKSPACE_ENV}"
-          az aks get-credentials -g "$RG" -n "$CLUSTER" --overwrite-existing
-          kubectl -n juggerhub rollout status deploy/backend --timeout=180s
-          kubectl -n juggerhub rollout status deploy/frontend --timeout=180s
-          kubectl -n juggerhub rollout status statefulset/postgres --timeout=180s
-          HOST="$(terraform output -raw ingress_host)"
-          curl -fsS --retry 5 --retry-delay 10 "https://${HOST}/api/v1/health" || \
-            echo "::warning::health check not green yet (DNS/cert may still be propagating)"
+  # DISABLED: prod deploys are currently done manually, and the `production`
+  # Environment's Required-reviewers rule leaves this job waiting for an approval
+  # that never comes — blocking the `deploy-${{ github.ref }}` concurrency group
+  # (cancel-in-progress: false) so the next Deploy run can't start. Commented out
+  # so a successful dev deploy ends the run cleanly and the next push can deploy.
+  # Re-enable (and re-check the approval gate) when prod rollouts resume.
+  #
+  # deploy-prod:
+  #   runs-on: ubuntu-latest
+  #   needs: deploy-dev
+  #   environment: production
+  #
+  #   env:
+  #     TF_WORKSPACE_ENV: prod
+  #     TFVARS: envs/prod.tfvars
+  #     ARM_USE_OIDC: "true"
+  #     ARM_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
+  #     ARM_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
+  #     ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  #     TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  #     TF_VAR_postgres_password: ${{ secrets.POSTGRES_PASSWORD }}
+  #     TF_VAR_jwt_signing_key: ${{ secrets.JWT_SIGNING_KEY }}
+  #     TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
+  #     TF_VAR_admin_emails: ${{ secrets.ADMIN_EMAILS }}
+  #     TF_VAR_ghcr_pull_token: ${{ secrets.GHCR_PULL_TOKEN }}
+  #     # Analytics (feature 033). All three are required — Terraform has no defaults for them, so a
+  #     # missing one fails THIS environment at apply with an unset-variable error. Deliberate: the
+  #     # alternative is a shared default signing key or a dashboard left on its seeded credential.
+  #     # UMAMI_ADMIN_PASSWORD_HASH is the bcrypt hash only; the plaintext never leaves the
+  #     # Environment. The website ID is not here — it is not a secret and lives in envs/*.tfvars.
+  #     TF_VAR_umami_db_password: ${{ secrets.UMAMI_DB_PASSWORD }}
+  #     TF_VAR_umami_app_secret: ${{ secrets.UMAMI_APP_SECRET }}
+  #     TF_VAR_umami_admin_password_hash: ${{ secrets.UMAMI_ADMIN_PASSWORD_HASH }}
+  #
+  #   steps:
+  #     - uses: actions/checkout@v7
+  #
+  #     - name: Resolve image tag (matches build.yml `type=sha`)
+  #       id: img
+  #       run: |
+  #         SHA="${{ github.event.workflow_run.head_sha || github.sha }}"
+  #         echo "tag=sha-${SHA:0:7}" >> "$GITHUB_OUTPUT"
+  #
+  #     - name: Azure login (OIDC)
+  #       uses: azure/login@v3
+  #       with:
+  #         client-id: ${{ vars.AZURE_CLIENT_ID }}
+  #         tenant-id: ${{ vars.AZURE_TENANT_ID }}
+  #         subscription-id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  #
+  #     - uses: hashicorp/setup-terraform@v4
+  #       with:
+  #         terraform_version: ${{ env.TF_VERSION }}
+  #
+  #     - name: Terraform apply
+  #       working-directory: infra
+  #       run: |
+  #         terraform init
+  #         terraform workspace select "$TF_WORKSPACE_ENV" || terraform workspace new "$TF_WORKSPACE_ENV"
+  #         VARS=(-input=false -auto-approve
+  #           -var-file="$TFVARS"
+  #           -var="image_tag=${{ steps.img.outputs.tag }}"
+  #           -var="image_repo_backend=ghcr.io/${{ github.repository }}/backend"
+  #           -var="image_repo_frontend=ghcr.io/${{ github.repository }}/frontend"
+  #           -var="ghcr_username=${{ github.repository_owner }}")
+  #         # Phase 1 (fresh cluster only; a no-op on every later run): create the
+  #         # cluster + platform Helm charts so cert-manager's CRDs exist BEFORE the
+  #         # ClusterIssuer manifests are planned. Avoids the kubernetes_manifest
+  #         # "cannot connect / CRD not found" failure on first apply.
+  #         terraform apply "${VARS[@]}" \
+  #           -target=module.network -target=module.aks \
+  #           -target=azurerm_role_assignment.aks_ingress_ip \
+  #           -target=module.platform.helm_release.ingress_nginx \
+  #           -target=module.platform.helm_release.cert_manager
+  #         # Phase 2: converge everything (issuers + app + ingress).
+  #         terraform apply "${VARS[@]}"
+  #
+  #     - name: Smoke test
+  #       working-directory: infra
+  #       run: |
+  #         RG="rg-juggerhub-${TF_WORKSPACE_ENV}"
+  #         CLUSTER="aks-juggerhub-${TF_WORKSPACE_ENV}"
+  #         az aks get-credentials -g "$RG" -n "$CLUSTER" --overwrite-existing
+  #         kubectl -n juggerhub rollout status deploy/backend --timeout=180s
+  #         kubectl -n juggerhub rollout status deploy/frontend --timeout=180s
+  #         kubectl -n juggerhub rollout status statefulset/postgres --timeout=180s
+  #         HOST="$(terraform output -raw ingress_host)"
+  #         curl -fsS --retry 5 --retry-delay 10 "https://${HOST}/api/v1/health" || \
+  #           echo "::warning::health check not green yet (DNS/cert may still be propagating)"
