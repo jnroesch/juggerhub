@@ -38,12 +38,14 @@
         @if (isAnon()) {
           <a routerLink="/sign-in" jhButton data-testid="signin-to-join">{{ 'teams.detail.signInToJoin' | transloco }}</a>
         } @else if (canRequest()) {
-          <button type="button" jhButton [disabled]="requestBusy()" data-testid="request-to-join" (click)="requestToJoin()">{{ 'teams.detail.requestToJoin' | transloco }}</button>
+          <button type="button" jhButton [disabled]="requestBusy()" data-testid="request-to-join" (click)="askConfirm('join')">{{ 'teams.detail.requestToJoin' | transloco }}</button>
         } @else if (requested()) {
           <span class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted" data-testid="requested">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
             {{ 'teams.detail.requested' | transloco }}
           </span>
+          <button type="button" [disabled]="requestBusy()" data-testid="cancel-request" (click)="askConfirm('cancel')"
+            class="rounded-md px-md py-xs text-body-sm font-medium text-subtle hover:bg-surface-sunken hover:text-body disabled:opacity-50">{{ 'teams.detail.cancelRequest' | transloco }}</button>
         }
       </div>
     </header>
@@ -235,5 +237,26 @@
         }
       </aside>
     </div>
+
+    <!-- Join / cancel confirmation (feature 009 — guards accidental clicks) -->
+    @if (confirmIntent(); as intent) {
+      <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-md" role="presentation">
+        <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
+          role="dialog" aria-modal="true" [attr.aria-label]="(intent === 'join' ? 'teams.detail.confirmJoinTitle' : 'teams.detail.confirmCancelTitle') | transloco:{ name: team.name }"
+          data-testid="join-confirm">
+          <div class="border-b border-border-muted px-md py-sm">
+            <h3 class="text-body-lg font-semibold text-heading">{{ (intent === 'join' ? 'teams.detail.confirmJoinTitle' : 'teams.detail.confirmCancelTitle') | transloco:{ name: team.name } }}</h3>
+          </div>
+          <div class="px-md py-md">
+            <p class="text-body-sm text-body">{{ (intent === 'join' ? 'teams.detail.confirmJoinBody' : 'teams.detail.confirmCancelBody') | transloco:{ name: team.name } }}</p>
+          </div>
+          <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
+            <button type="button" (click)="dismissConfirm()" jhButton variant="secondary" size="sm">{{ (intent === 'join' ? 'teams.detail.dismiss' : 'teams.detail.keepRequest') | transloco }}</button>
+            <button type="button" (click)="confirmAction()" [disabled]="requestBusy()" data-testid="join-confirm-submit"
+              jhButton size="sm">{{ (intent === 'join' ? 'teams.detail.confirmJoinSubmit' : 'teams.detail.confirmCancelSubmit') | transloco }}</button>
+          </div>
+        </div>
+      </div>
+    }
   }
 </section>

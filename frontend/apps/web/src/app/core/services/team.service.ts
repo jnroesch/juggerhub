@@ -60,6 +60,11 @@ export class TeamService {
     return this.http.post<void>(`${this.base}/${encodeURIComponent(slug)}/join-requests`, {});
   }
 
+  /** Feature 009 — the requester withdraws their own pending request (idempotent). */
+  cancelJoinRequest(slug: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${encodeURIComponent(slug)}/join-requests/mine`);
+  }
+
   /** Feature 009 — pending join requests (admin only). */
   getJoinRequests(slug: string, skip = 0, take = 50): Observable<PagedResult<JoinRequest>> {
     return this.http.get<PagedResult<JoinRequest>>(`${this.base}/${encodeURIComponent(slug)}/join-requests`, {
