@@ -110,9 +110,8 @@ public sealed class TrainingSearchService : ITrainingSearchService
         // ---- Total ----------------------------------------------------------------------------
         //
         // ⚠ Under proximity the total MUST be computed with the SAME exclusion the join applies,
-        // or "load more" stalls short of a count it can never reach. This follows TeamSearchService
-        // (which gets it right) and deliberately NOT EventSearchService, which counts before its
-        // join — a latent defect left alone here because touching events is out of scope (FR-030).
+        // or "load more" stalls short of a count it can never reach. TeamSearchService,
+        // EventSearchService (since issue #146) and this service all recompute the total this way.
         var total = useProximity
             ? await q.CountAsync(
                 s => (s.CityIdOverride != null ? s.CityIdOverride : s.Training.CityId) != null
