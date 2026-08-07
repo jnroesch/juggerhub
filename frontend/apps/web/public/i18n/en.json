@@ -577,7 +577,6 @@
     }
   },
   "browse": {
-    "eyebrow": "Browse",
     "tabTeams": "Teams",
     "tabEvents": "Events",
     "tabPlayers": "Players",
@@ -604,12 +603,8 @@
     "teams": {
       "searchPlaceholder": "Search teams…",
       "noun": "teams",
-      "countOne": "{{count}} team",
-      "countMany": "{{count}} teams",
       "chipActive": "Active",
       "chipBeginners": "Beginners",
-      "filterActive": "active",
-      "filterBeginnersWelcome": "beginners welcome",
       "activeLabel": "Active teams only",
       "activeHint": "Hide dormant teams",
       "beginnersLabel": "Beginners welcome",
@@ -621,9 +616,7 @@
       "searchPlaceholder": "Search players…",
       "note": "Every player on JuggerHub is listed here.",
       "noun": "players",
-      "position": "Position",
-      "countOne": "{{count}} player",
-      "countMany": "{{count}} players"
+      "position": "Position"
     },
     "events": {
       "searchPlaceholder": "Search events…",
@@ -636,17 +629,13 @@
       "type": "Type",
       "anyType": "Any type",
       "sortSoonest": "Soonest",
-      "chipUpcoming": "Upcoming",
-      "countOne": "{{count}} event",
-      "countMany": "{{count}} events"
+      "chipUpcoming": "Upcoming"
     },
     "tabTrainings": "Trainings",
     "trainings": {
       "searchPlaceholder": "Search trainings…",
       "note": "Trainings teams have opened to everyone. Turn up as a guest.",
       "noun": "trainings",
-      "countOne": "{{count}} training",
-      "countMany": "{{count}} trainings",
       "hidePastLabel": "Hide past sessions",
       "hidePastHint": "Only upcoming",
       "dateRange": "Date range",
@@ -1386,7 +1375,8 @@
       "answerRespond": "Respond ›",
       "activeSeries": "Active series",
       "upcoming": "upcoming",
-      "until": "until"
+      "until": "until",
+      "editSeries": "Edit"
     },
     "attendance": {
       "title": "Attendance",

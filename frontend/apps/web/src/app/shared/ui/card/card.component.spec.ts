@@ -5,7 +5,7 @@ import { CardComponent } from './card.component';
 @Component({
   imports: [CardComponent],
   template: `
-    <jh-card [accent]="accent()" [interactive]="interactive()">
+    <jh-card [accent]="accent()" [interactive]="interactive()" [overflowVisible]="overflowVisible()">
       <p data-testid="content">Body</p>
     </jh-card>
   `,
@@ -13,6 +13,7 @@ import { CardComponent } from './card.component';
 class HostComponent {
   readonly accent = signal(false);
   readonly interactive = signal(false);
+  readonly overflowVisible = signal(false);
 }
 
 describe('CardComponent (jh-card)', () => {
@@ -47,5 +48,12 @@ describe('CardComponent (jh-card)', () => {
     fixture.componentInstance.interactive.set(true);
     fixture.detectChanges();
     expect(card().classList).toContain('jh-card--interactive');
+  });
+
+  it('adds the overflow-visible class only when overflowVisible is set', () => {
+    expect(card().classList).not.toContain('jh-card--overflow-visible');
+    fixture.componentInstance.overflowVisible.set(true);
+    fixture.detectChanges();
+    expect(card().classList).toContain('jh-card--overflow-visible');
   });
 });

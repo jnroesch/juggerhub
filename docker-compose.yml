@@ -3,6 +3,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      secrets:
+        - proxy_ca
     container_name: juggerhub-backend
     ports:
       - "8080:8080"
@@ -63,6 +65,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      secrets:
+        - proxy_ca
     container_name: juggerhub-frontend
     ports:
       - "3000:80"
@@ -400,3 +404,22 @@ networks:
 volumes:
   db-data:
   azurite-data:
+
+# Optional egress-proxy CA, consumed by the image builds (backend/frontend Dockerfiles).
+# Defaults to the committed ZERO-BYTE .proxy-ca-empty so ordinary local builds and CI mount
+# an EMPTY secret and the CA steps are no-ops. Behind a TLS-terminating egress proxy (e.g.
+# Claude Code on the web), point PROXY_CA_FILE at the proxy's CA bundle — the .claude
+# SessionStart hook does this automatically — and every `docker compose build`/`up --build`/
+# test run trusts it.
+#
+# The default is a real file, NOT /dev/null: compose stats secret files on the HOST, so a
+# Unix device path aborts every build on Windows ("failed to stat /dev/null") before any
+# Dockerfile step runs — and it takes the frontend build down with it, though only the
+# backend uses the CA. Local CI is Linux, so nothing but a Windows checkout catches this.
+#
+# .proxy-ca-empty MUST stay zero bytes. The Dockerfiles guard on `[ -s ... ]` (size, not
+# existence), so an empty file is skipped — but add so much as a comment line to it and the
+# builds would install it as a trusted root and run update-ca-certificates over non-PEM text.
+secrets:
+  proxy_ca:
+    file: ${PROXY_CA_FILE:-./.proxy-ca-empty}

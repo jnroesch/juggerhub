@@ -2,7 +2,6 @@
   <!-- Header -->
   <div class="flex items-baseline justify-between">
     <h1 class="text-heading-lg font-semibold text-ink">{{ title() }}</h1>
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.eyebrow' | transloco }}</span>
   </div>
 
   <!--
@@ -171,11 +170,6 @@
         (click)="clearAll.emit()"
       >{{ 'browse.clearAll' | transloco }}</button>
     </div>
-  }
-
-  <!-- Count line -->
-  @if (countLabel() && state() === 'ready') {
-    <p class="text-body-sm text-subtle" data-testid="browse-count">{{ countLabel() }}</p>
   }
 
   <!-- Results / states -->

@@ -19,6 +19,11 @@
 *.cmd        text eol=crlf
 *.bat        text eol=crlf
 
+# The default for the compose `proxy_ca` build secret. It is only ever tested with
+# `[ -s ... ]`, so it MUST stay zero bytes — marked binary so no EOL normalization or
+# text filter can ever put a byte in it. See the `secrets:` note in docker-compose.yml.
+.proxy-ca-empty binary
+
 # Binaries — never normalize:
 *.png  binary
 *.jpg  binary

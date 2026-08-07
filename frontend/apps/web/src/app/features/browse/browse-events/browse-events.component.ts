@@ -2,6 +2,8 @@ import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { merge } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
@@ -29,7 +31,22 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
   private readonly profiles = inject(ProfileService);
   private readonly t = inject(TranslocoService);
-  private readonly lang = toSignal(this.t.langChanges$, { initialValue: this.t.getActiveLang() });
+  // Recompute translated labels (sort/chips/count) on a language change AND when a catalogue
+  // finishes loading. A plain `toSignal(langChanges$)` is not enough: the catalogue loads
+  // asynchronously, and a `computed()` (e.g. `chips()`) whose other dependencies never change keeps
+  // whatever `translate()` returned first — the raw key. `equal: () => false` is load-bearing so a
+  // repeat `langChanges$` emission of the same language still notifies. See browse-trainings for the
+  // full write-up (GH #147).
+  private readonly lang = toSignal(
+    merge(
+      this.t.langChanges$,
+      this.t.events$.pipe(
+        filter((e) => e.type === 'translationLoadSuccess'),
+        map(() => this.t.getActiveLang()),
+      ),
+    ),
+    { initialValue: this.t.getActiveLang(), equal: () => false },
+  );
   protected readonly eventTypes = EVENT_TYPES;
 
   protected readonly query = signal('');
@@ -89,24 +106,6 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     }
     // Sort is not a chip — it has its own Sort menu in the toolbar (feature 030).
     return chips;
-  });
-
-  protected readonly countLabel = computed(() => {
-    this.lang();
-    const n = this.list.total();
-    const parts = [
-      this.t.translate(n === 1 ? 'browse.events.countOne' : 'browse.events.countMany', { count: n }),
-    ];
-    if (this.hidePast()) {
-      parts.push(this.t.translate('browse.events.chipUpcoming'));
-    }
-    if (this.type()) {
-      parts.push(this.type().toLowerCase());
-    }
-    if (this.city().trim()) {
-      parts.push(this.city().trim());
-    }
-    return parts.join(' · ');
   });
 
   ngOnInit(): void {

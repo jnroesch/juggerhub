@@ -14,6 +14,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       target: test
+      secrets:
+        - proxy_ca
     environment:
       - TESTCONTAINERS_HOST_OVERRIDE=host.docker.internal
       - TESTCONTAINERS_RYUK_DISABLED=true
@@ -30,6 +32,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: test
+      secrets:
+        - proxy_ca
     networks:
       - juggerhub-network
 
@@ -39,6 +43,8 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: playwright
+      secrets:
+        - proxy_ca
     environment:
       - BASE_URL=http://frontend:80
       # The auth journey reads verification/reset links from the Mailpit API.

@@ -34,7 +34,10 @@ export class TrainingCreateComponent {
   // Form state.
   protected isRecurring = true;
   protected name = '';
-  protected weekday = 'Tuesday';
+  // Default to today's weekday so the most common case (an admin scheduling a training for the day
+  // they're setting it up) needs no change. Uses the same Monday-first labels as `weekdays` below;
+  // getDay() is Sunday-indexed, hence the Sunday-first lookup array.
+  protected weekday = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
   protected interval: TrainingInterval = 'Weekly';
   protected startTime = '19:00';
   protected endTime = '21:00';

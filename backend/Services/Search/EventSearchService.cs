@@ -92,7 +92,15 @@ public sealed class EventSearchService : IEventSearchService
             q = q.Where(e => e.CityId != null);
         }
 
-        var total = await q.CountAsync(ct);
+        // ⚠ Under proximity the total MUST be computed with the SAME CityDistances exclusion the
+        // inner join in ProximityPage applies (issue #146). An event whose city has no cached
+        // distance row from the home city is dropped from the page but was previously still counted,
+        // overstating totalCount so "load more" chases a count it can never reach. Mirrors
+        // TeamSearchService / TrainingSearchService, which already recompute the total this way.
+        var total = useProximity
+            ? await q.CountAsync(e => e.CityId != null && _db.CityDistances.Any(
+                d => d.FromCityId == homeCityId!.Value && d.ToCityId == e.CityId), ct)
+            : await q.CountAsync(ct);
 
         var page = useProximity
             ? ProximityPage(q, homeCityId!.Value, pagination)

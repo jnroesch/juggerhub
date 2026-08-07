@@ -169,6 +169,19 @@ $test run --rm frontend-test   # Jest unit tests
 $test run --rm playwright      # Playwright e2e (start the stack first)
 ```
 
+### Claude Code on the web
+
+The same stack runs unchanged in [Claude Code on the web](https://code.claude.com/docs/en/claude-code-on-the-web),
+whose sandbox routes all egress through a TLS-terminating proxy and blocks Docker Hub's
+layer CDN. A `SessionStart` hook (`.claude/hooks/session-start.sh`) reconciles that
+automatically on every session: it starts the Docker daemon, configures `mirror.gcr.io`
+as a registry mirror so `docker.io` images pull through an allowed host, seeds `.env`,
+and exports `PROXY_CA_FILE` so the optional `proxy_ca` build secret lets in-container
+`npm ci` / `dotnet restore` trust the proxy CA. The hook and the `proxy_ca` secret are
+**no-ops on a normal checkout and in CI** (the CA file defaults to the committed zero-byte
+`.proxy-ca-empty`, which the Dockerfiles' `[ -s ... ]` guard skips), so nothing here changes
+the local or pipeline build. Keep that file empty — see the note in `docker-compose.yml`.
+
 ---
 
 ## Project structure

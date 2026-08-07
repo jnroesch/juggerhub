@@ -581,7 +581,6 @@
     }
   },
   "browse": {
-    "eyebrow": "Entdecken",
     "tabTeams": "Teams",
     "tabEvents": "Events",
     "tabPlayers": "Spieler",
@@ -608,12 +607,8 @@
     "teams": {
       "searchPlaceholder": "Teams suchen…",
       "noun": "Teams",
-      "countOne": "{{count}} Team",
-      "countMany": "{{count}} Teams",
       "chipActive": "Aktiv",
       "chipBeginners": "Anfänger",
-      "filterActive": "aktiv",
-      "filterBeginnersWelcome": "Anfänger willkommen",
       "activeLabel": "Nur aktive Teams",
       "activeHint": "Inaktive Teams ausblenden",
       "beginnersLabel": "Anfänger willkommen",
@@ -625,9 +620,7 @@
       "searchPlaceholder": "Spieler suchen…",
       "note": "Alle Spieler auf JuggerHub sind hier gelistet.",
       "noun": "Spieler",
-      "position": "Position",
-      "countOne": "{{count}} Spieler",
-      "countMany": "{{count}} Spieler"
+      "position": "Position"
     },
     "events": {
       "searchPlaceholder": "Events suchen…",
@@ -640,17 +633,13 @@
       "type": "Art",
       "anyType": "Beliebige Art",
       "sortSoonest": "Demnächst",
-      "chipUpcoming": "Bevorstehend",
-      "countOne": "{{count}} Event",
-      "countMany": "{{count}} Events"
+      "chipUpcoming": "Bevorstehend"
     },
     "tabTrainings": "Trainings",
     "trainings": {
       "searchPlaceholder": "Trainings suchen…",
       "note": "Trainings, die Teams für alle geöffnet haben. Komm als Gast vorbei.",
       "noun": "Trainings",
-      "countOne": "{{count}} Training",
-      "countMany": "{{count}} Trainings",
       "hidePastLabel": "Vergangene Trainings ausblenden",
       "hidePastHint": "Nur bevorstehende",
       "dateRange": "Zeitraum",
@@ -1390,7 +1379,8 @@
       "answerRespond": "Antworten ›",
       "activeSeries": "Aktive Serien",
       "upcoming": "anstehend",
-      "until": "bis"
+      "until": "bis",
+      "editSeries": "Bearbeiten"
     },
     "attendance": {
       "title": "Teilnahme",

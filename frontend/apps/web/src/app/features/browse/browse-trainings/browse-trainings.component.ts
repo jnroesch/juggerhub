@@ -18,7 +18,7 @@ import { CityPickerComponent } from '../../../shared/city-picker/city-picker.com
 
 /**
  * Public-training browse page (feature 043). The fourth instance of the shared discovery shell,
- * alongside Teams, Events and Players — same search, filters, sort, chips, count, paging and
+ * alongside Teams, Events and Players — same search, filters, sort, chips, paging and
  * states, differing only in the filter set and the row (feature 007, SC-004).
  *
  * Only sessions teams have opened to everyone appear here, enforced server-side; a team-only
@@ -52,16 +52,15 @@ export class BrowseTrainingsComponent implements OnInit, OnDestroy {
    * ⚠ The obvious `toSignal(t.langChanges$, { initialValue: getActiveLang() })` is not enough, and
    * the failure is silent. A `computed()` only re-runs when a dependency actually changes, so a
    * label built before the catalogue arrived keeps the raw key forever unless something it reads
-   * changes afterwards. `countLabel` gets away with it by accident — it reads `list.total()`, which
-   * changes when the fetch returns. `chips()` reads only filter state, which does not, so it renders
-   * `browse.trainings.chipUpcoming` verbatim.
+   * changes afterwards. `chips()` reads only filter state, which does not change when the catalogue
+   * arrives, so without this trigger it would render `browse.trainings.chipUpcoming` verbatim.
    *
    * `equal: () => false` is the load-bearing part: `langChanges$` re-emitting the same language
    * would otherwise be swallowed by signal equality, which is exactly the case that matters on a
    * first load.
    *
-   * The other three browse pages have the same defect (GH #147); not fixed here
-   * because this feature must not touch them (spec FR-030).
+   * The other three browse pages had the same defect and now carry the same fix (GH #147); feature
+   * 043 could not touch them (spec FR-030), so they were fixed separately.
    */
   private readonly lang = toSignal(
     merge(
@@ -128,21 +127,6 @@ export class BrowseTrainingsComponent implements OnInit, OnDestroy {
       chips.push({ key: 'country', label: this.country().trim() });
     }
     return chips;
-  });
-
-  protected readonly countLabel = computed(() => {
-    this.lang();
-    const n = this.list.total();
-    const parts = [
-      this.t.translate(n === 1 ? 'browse.trainings.countOne' : 'browse.trainings.countMany', { count: n }),
-    ];
-    if (this.hidePast()) {
-      parts.push(this.t.translate('browse.trainings.chipUpcoming'));
-    }
-    if (this.city().trim()) {
-      parts.push(this.city().trim());
-    }
-    return parts.join(' · ');
   });
 
   ngOnInit(): void {

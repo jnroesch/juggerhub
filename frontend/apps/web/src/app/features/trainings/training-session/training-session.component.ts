@@ -110,7 +110,7 @@ export class TrainingSessionComponent {
     this.trainings.skip(this.sessionId()).subscribe({
       next: () => {
         const slug = this.session()?.teamSlug;
-        this.router.navigate(['/t', slug]);
+        this.router.navigate(['/t', slug, 'trainings']);
       },
       error: (err) => {
         this.busy.set(false);

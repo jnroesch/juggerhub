@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using JuggerHub.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace JuggerHub.Api.IntegrationTests.Search;
 
@@ -147,6 +148,51 @@ public sealed class EventBrowseTests
     }
 
     [Fact]
+    public async Task Proximity_total_excludes_events_whose_city_has_no_cached_distance()
+    {
+        // Regression for #146: the proximity total must apply the SAME CityDistances exclusion the
+        // inner join applies. An event whose city has no cached distance row from the caller's home
+        // city is dropped from the page, so it must drop from totalCount too — otherwise
+        // BrowseList.hasMore (items.length < total) leaves "load more" chasing a count it can never
+        // reach. Uses unique cities and deletes one distance row to model a broken invariant
+        // (partial backfill, a city inserted bypassing CityService, a failed mid-write).
+        var now = DateTime.UtcNow;
+        var token = "EvtDist" + Rnd();
+        var homeCity = "DistHome" + Rnd();
+        var orphanCity = "DistOrphan" + Rnd();
+
+        var near = await SearchTestSupport.SeedEventAsync(_factory, $"{token} Near", now.AddDays(5), now.AddDays(6), city: homeCity);
+        var orphan = await SearchTestSupport.SeedEventAsync(_factory, $"{token} Orphan", now.AddDays(5), now.AddDays(6), city: orphanCity);
+
+        var (viewer, viewerId, _, _) = await SearchTestSupport.NewUserAsync(_factory);
+        await SearchTestSupport.SetHomeCityAsync(_factory, viewerId, homeCity);
+
+        // Break the invariant: remove the home -> orphan cached distance so the join drops the
+        // orphan-city event.
+        await SearchTestSupport.WithDbAsync(_factory, async db =>
+        {
+            var homeId = await db.Cities.Where(c => c.ExternalId == "TEST:" + homeCity.ToLowerInvariant())
+                .Select(c => c.Id).FirstAsync();
+            var orphanId = await db.Cities.Where(c => c.ExternalId == "TEST:" + orphanCity.ToLowerInvariant())
+                .Select(c => c.Id).FirstAsync();
+            await db.CityDistances
+                .Where(d => d.FromCityId == homeId && d.ToCityId == orphanId)
+                .ExecuteDeleteAsync();
+        });
+
+        var page = await PageAsync(viewer, $"/api/v1/events?q={Uri.EscapeDataString(token)}&sort=Proximity&take=100");
+        var ids = page.GetProperty("items").EnumerateArray()
+            .Select(i => i.GetProperty("id").GetString()!).ToList();
+
+        // The orphan-city event drops out of the items (the join has no distance row)...
+        Assert.Contains(near.ToString(), ids);
+        Assert.DoesNotContain(orphan.ToString(), ids);
+
+        // ...and out of the total, so "load more" cannot chase a count it can never reach.
+        Assert.Equal(ids.Count, page.GetProperty("totalCount").GetInt32());
+    }
+
+    [Fact]
     public async Task Country_filter_matches_the_events_country_and_excludes_others()
     {
         var now = DateTime.UtcNow;
@@ -162,6 +208,14 @@ public sealed class EventBrowseTests
     }
 
     private static string Rnd() => Guid.NewGuid().ToString("N")[..6];
+
+    private static async Task<JsonElement> PageAsync(HttpClient client, string url)
+    {
+        var response = await client.GetAsync(url);
+        Assert.True(response.IsSuccessStatusCode,
+            $"GET {url} failed: {(int)response.StatusCode} {await response.Content.ReadAsStringAsync()}");
+        return await response.Content.ReadFromJsonAsync<JsonElement>();
+    }
 
     private static async Task<List<string>> IdsAsync(HttpClient client, string url)
     {

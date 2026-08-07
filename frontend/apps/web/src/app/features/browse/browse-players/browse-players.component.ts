@@ -1,6 +1,8 @@
 import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
+import { merge } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchService } from '../../../core/services/search.service';
 import { FilterChip, PlayerBrowseParams, PlayerCard } from '../../../core/models/search.models';
@@ -24,7 +26,22 @@ import { CountryPickerComponent } from '../../../shared/country-picker/country-p
 export class BrowsePlayersComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
   private readonly t = inject(TranslocoService);
-  private readonly lang = toSignal(this.t.langChanges$, { initialValue: this.t.getActiveLang() });
+  // Recompute translated labels (chips/count) on a language change AND when a catalogue finishes
+  // loading. A plain `toSignal(langChanges$)` is not enough: the catalogue loads asynchronously, and
+  // a `computed()` (e.g. `chips()`) whose other dependencies never change keeps whatever
+  // `translate()` returned first — the raw key. `equal: () => false` is load-bearing so a repeat
+  // `langChanges$` emission of the same language still notifies. See browse-trainings for the full
+  // write-up (GH #147).
+  private readonly lang = toSignal(
+    merge(
+      this.t.langChanges$,
+      this.t.events$.pipe(
+        filter((e) => e.type === 'translationLoadSuccess'),
+        map(() => this.t.getActiveLang()),
+      ),
+    ),
+    { initialValue: this.t.getActiveLang(), equal: () => false },
+  );
   protected readonly catalog = POMPFEN_CATALOG;
 
   protected readonly query = signal('');
@@ -48,21 +65,6 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
       chips.push({ key: 'city', label: this.city().trim() });
     }
     return chips;
-  });
-
-  protected readonly countLabel = computed(() => {
-    this.lang();
-    const n = this.list.total();
-    const parts = [
-      this.t.translate(n === 1 ? 'browse.players.countOne' : 'browse.players.countMany', { count: n }),
-    ];
-    for (const p of this.positions()) {
-      parts.push(this.label(p).toLowerCase());
-    }
-    if (this.city().trim()) {
-      parts.push(this.city().trim());
-    }
-    return parts.join(' · ');
   });
 
   ngOnInit(): void {

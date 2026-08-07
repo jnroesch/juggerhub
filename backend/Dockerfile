@@ -6,6 +6,16 @@
 FROM mcr.microsoft.com/dotnet/sdk:10.0.302 AS build
 WORKDIR /src
 
+# Optional egress-proxy CA. Behind a TLS-terminating egress proxy (e.g. Claude Code on
+# the web) `dotnet restore` fails against NuGet with "UntrustedRoot" unless the proxy's
+# CA is trusted. The CA arrives as an OPTIONAL build secret (`proxy_ca`, wired in
+# docker-compose.yml from ${PROXY_CA_FILE:-./.proxy-ca-empty}). With no secret the mount
+# is empty and this step is a no-op, so ordinary local builds and CI are unaffected.
+RUN --mount=type=secret,id=proxy_ca,required=false \
+    if [ -s /run/secrets/proxy_ca ]; then \
+      cp /run/secrets/proxy_ca /usr/local/share/ca-certificates/proxy-ca.crt && update-ca-certificates; \
+    fi
+
 # Copy global.json first so `dotnet` enforces the pinned SDK for every command below.
 COPY global.json ./
 

@@ -10,7 +10,7 @@ import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shar
  * Shared browse shell (feature 007) — the single implementation of the discovery behaviour
  * reused by the Teams, Events, and Players pages, so they are provably identical apart from
  * filter set, sort, and row content (SC-004). Presentational: it renders the header, live
- * search, Filters button + badge, Sort, active-filter chips, count line, the results (via the
+ * search, Filters button + badge, Sort, active-filter chips, the results (via the
  * projected [rows] slot), and the empty / no-results / loading / error states. Data-fetching
  * and filter state live in each page (see BrowseList).
  */
@@ -28,8 +28,6 @@ export class BrowseShellComponent {
   readonly title = input.required<string>();
   /** Search input placeholder, e.g. "Search teams…". */
   readonly searchPlaceholder = input('Search…');
-  /** Result-count line, e.g. "3 teams · active · beginners welcome". */
-  readonly countLabel = input('');
   /** Active-filter chips shown above the results. */
   readonly chips = input<FilterChip[]>([]);
   /** Number badge on the Filters button (0 = no badge). */
