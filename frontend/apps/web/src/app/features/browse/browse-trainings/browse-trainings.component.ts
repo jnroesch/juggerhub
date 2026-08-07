@@ -60,8 +60,8 @@ export class BrowseTrainingsComponent implements OnInit, OnDestroy {
    * would otherwise be swallowed by signal equality, which is exactly the case that matters on a
    * first load.
    *
-   * The other three browse pages have the same defect (GH #147); not fixed here
-   * because this feature must not touch them (spec FR-030).
+   * The other three browse pages had the same defect and now carry the same fix (GH #147); feature
+   * 043 could not touch them (spec FR-030), so they were fixed separately.
    */
   private readonly lang = toSignal(
     merge(
