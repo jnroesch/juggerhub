@@ -4,7 +4,7 @@
   } @else if (notFound()) {
     <jh-empty-state [heading]="'trainings.session.notFound' | transloco">{{ 'trainings.session.notFoundBody' | transloco }}</jh-empty-state>
   } @else if (session(); as s) {
-    <a [routerLink]="['/t', s.teamSlug]" class="text-body-sm font-medium text-link hover:text-link-hover">{{ 'trainings.backTrainings' | transloco }}</a>
+    <a [routerLink]="['/t', s.teamSlug, 'trainings']" class="text-body-sm font-medium text-link hover:text-link-hover">{{ 'trainings.backTrainings' | transloco }}</a>
 
     <div class="mt-sm flex items-center gap-xs">
       <span class="rounded-pill border border-border-muted px-sm py-3xs text-caption font-medium text-secondary">
