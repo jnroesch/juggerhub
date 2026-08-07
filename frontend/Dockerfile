@@ -8,8 +8,8 @@ WORKDIR /app
 ENV NX_DAEMON=false
 # Optional egress-proxy CA. Behind a TLS-terminating egress proxy (e.g. Claude Code on
 # the web) `npm ci` fails with SELF_SIGNED_CERT_IN_CHAIN unless the proxy's CA is trusted.
-# The CA arrives as an OPTIONAL build secret (`proxy_ca`, wired in the docker-compose*.yml
-# files from ${PROXY_CA_FILE:-/dev/null}); npm reads it via NODE_EXTRA_CA_CERTS. With no
+# The CA arrives as an OPTIONAL build secret (`proxy_ca`, wired in docker-compose.yml from
+# ${PROXY_CA_FILE:-./.proxy-ca-empty}); npm reads it via NODE_EXTRA_CA_CERTS. With no
 # secret the file is empty and this is a no-op, so ordinary local builds and CI are
 # unaffected. Node is used directly (no apk/update-ca-certificates) — installing that
 # package would itself need the CA that is not yet trusted.
