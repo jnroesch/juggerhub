@@ -96,24 +96,6 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     return chips;
   });
 
-  protected readonly countLabel = computed(() => {
-    this.lang();
-    const n = this.list.total();
-    const parts = [
-      this.t.translate(n === 1 ? 'browse.teams.countOne' : 'browse.teams.countMany', { count: n }),
-    ];
-    if (this.activeOnly()) {
-      parts.push(this.t.translate('browse.teams.filterActive'));
-    }
-    if (this.beginners()) {
-      parts.push(this.t.translate('browse.teams.filterBeginnersWelcome'));
-    }
-    if (this.city().trim()) {
-      parts.push(this.city().trim());
-    }
-    return parts.join(' · ');
-  });
-
   ngOnInit(): void {
     this.reload();
     // Offer "Near me" only when the player has a home city to measure from.

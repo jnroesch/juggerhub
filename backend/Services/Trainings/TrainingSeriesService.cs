@@ -171,7 +171,11 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
                 t.Id, t.Name, t.Weekday, t.Interval, t.StartTime, t.EndTime, t.EndDate, t.Visibility,
                 t.Sessions.Count(s => s.Status == TrainingSessionStatus.Scheduled && s.SessionDate >= today),
                 t.Sessions.Where(s => s.Status == TrainingSessionStatus.Scheduled && s.SessionDate >= today)
-                    .OrderBy(s => s.SessionDate).Select(s => (DateOnly?)s.SessionDate).FirstOrDefault()))
+                    .OrderBy(s => s.SessionDate).Select(s => (DateOnly?)s.SessionDate).FirstOrDefault(),
+                // The next upcoming session is the entry point for editing the whole series (the edit
+                // form is session-keyed): same filter/order as NextSessionDate so the two never diverge.
+                t.Sessions.Where(s => s.Status == TrainingSessionStatus.Scheduled && s.SessionDate >= today)
+                    .OrderBy(s => s.SessionDate).Select(s => (Guid?)s.Id).FirstOrDefault()))
             .ToListAsync(ct);
 
         return TrainingResult<PagedResult<TrainingSeriesSummaryDto>>.Ok(

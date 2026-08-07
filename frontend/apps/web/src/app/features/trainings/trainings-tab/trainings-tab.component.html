@@ -56,11 +56,26 @@
         <h2 class="text-body-sm font-semibold text-heading">{{ 'trainings.tab.activeSeries' | transloco }}</h2>
         <ul class="mt-sm flex flex-col gap-xs">
           @for (ser of series(); track ser.trainingId) {
-            <li class="rounded-md border border-border-muted bg-surface-card px-md py-sm">
-              <p class="font-medium text-heading">{{ ser.name }}</p>
-              <p class="text-caption text-muted">
-                {{ 'trainings.weekday.' + ser.weekday | transloco }} <span class="font-mono">{{ time(ser.startTime) }}</span> · <span class="font-mono">{{ ser.upcomingCount }}</span> {{ 'trainings.tab.upcoming' | transloco }}@if (ser.endDate) { · {{ 'trainings.tab.until' | transloco }} {{ shortDate(ser.endDate) }} }
-              </p>
+            <li>
+              @if (ser.nextSessionId) {
+                <a [routerLink]="['/trainings/sessions', ser.nextSessionId, 'edit']" [queryParams]="{ scope: 'series' }"
+                  class="block rounded-md border border-border-muted bg-surface-card px-md py-sm hover:border-border-strong">
+                  <div class="flex items-center justify-between gap-xs">
+                    <p class="truncate font-medium text-heading">{{ ser.name }}</p>
+                    <span class="shrink-0 text-body-sm font-medium text-link">{{ 'trainings.tab.editSeries' | transloco }}</span>
+                  </div>
+                  <p class="text-caption text-muted">
+                    {{ 'trainings.weekday.' + ser.weekday | transloco }} <span class="font-mono">{{ time(ser.startTime) }}</span> · <span class="font-mono">{{ ser.upcomingCount }}</span> {{ 'trainings.tab.upcoming' | transloco }}@if (ser.endDate) { · {{ 'trainings.tab.until' | transloco }} {{ shortDate(ser.endDate) }} }
+                  </p>
+                </a>
+              } @else {
+                <div class="rounded-md border border-border-muted bg-surface-card px-md py-sm">
+                  <p class="font-medium text-heading">{{ ser.name }}</p>
+                  <p class="text-caption text-muted">
+                    {{ 'trainings.weekday.' + ser.weekday | transloco }} <span class="font-mono">{{ time(ser.startTime) }}</span> · <span class="font-mono">{{ ser.upcomingCount }}</span> {{ 'trainings.tab.upcoming' | transloco }}@if (ser.endDate) { · {{ 'trainings.tab.until' | transloco }} {{ shortDate(ser.endDate) }} }
+                  </p>
+                </div>
+              }
             </li>
           }
         </ul>

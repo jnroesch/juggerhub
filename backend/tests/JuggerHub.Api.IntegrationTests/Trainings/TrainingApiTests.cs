@@ -171,6 +171,25 @@ public sealed class TrainingApiTests : TrainingTestSupport
         Assert.Equal(JsonValueKind.Null, oneOffDetail.GetProperty("endDate").ValueKind);
     }
 
+    [Fact]
+    public async Task Series_overview_exposes_next_session_as_the_edit_entry_point()
+    {
+        var (admin, _, _) = await NewUserAsync();
+        var (_, slug) = await CreateTeamAsync(admin);
+        var start = NextWeekday(DayOfWeek.Tuesday);
+        var created = await CreateSeriesAsync(admin, slug, DayOfWeek.Tuesday, start, start.AddDays(21));
+        var trainingId = created.GetProperty("trainingId").GetGuid();
+        var firstSessionId = created.GetProperty("firstSessionId").GetGuid();
+
+        var page = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/teams/{slug}/trainings/series");
+        var row = page.GetProperty("items").EnumerateArray().Single(i => i.GetProperty("trainingId").GetGuid() == trainingId);
+
+        // The overview row must carry a session id so the tab can link straight into the whole-series
+        // edit form — and it is the earliest upcoming session, i.e. the one create returned first.
+        Assert.Equal(firstSessionId, row.GetProperty("nextSessionId").GetGuid());
+        Assert.Equal(start.ToString("yyyy-MM-dd"), row.GetProperty("nextSessionDate").GetString());
+    }
+
     // --- US3: edit fork, skip, cancel ----------------------------------------
 
     [Fact]
