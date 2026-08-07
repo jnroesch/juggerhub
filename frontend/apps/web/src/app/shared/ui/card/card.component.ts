@@ -13,6 +13,7 @@ import { Component, input } from '@angular/core';
   styleUrl: './card.component.css',
   host: {
     '[class.jh-card--interactive]': 'interactive()',
+    '[class.jh-card--overflow-visible]': 'overflowVisible()',
   },
 })
 export class CardComponent {
@@ -20,6 +21,12 @@ export class CardComponent {
   readonly accent = input(false, { transform: booleanish });
   /** Add the hover lift + deeper shadow (for clickable cards). */
   readonly interactive = input(false, { transform: booleanish });
+  /**
+   * Drop the default `overflow: hidden` clip so a positioned child (an absolute
+   * dropdown / popover) can escape the card's rounded box. Use only on cards
+   * without the `accent` strip, which relies on the clip for its rounded top.
+   */
+  readonly overflowVisible = input(false, { transform: booleanish });
 }
 
 function booleanish(value: boolean | '' | null | undefined): boolean {
