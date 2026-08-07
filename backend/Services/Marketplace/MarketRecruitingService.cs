@@ -50,15 +50,26 @@ public sealed class MarketRecruitingService : IMarketRecruitingService
                 p.EventId,
                 p.RosterCap,
                 InCount = p.Members.Count(m => m.Status == PartyMemberStatus.In),
+                p.SpotsAdvertised,
                 p.PositionsNeeded,
                 p.RecruitBlurb,
             })
             .ToListAsync(ct);
 
-        var cards = items.Select(p => new RecruitingPartyCardDto(
-            p.Id, p.TeamId, p.TeamName, p.TeamSlug, p.EventId,
-            Math.Max(0, p.RosterCap - p.InCount), p.RosterCap, p.InCount,
-            p.PositionsNeeded, p.RecruitBlurb)).ToList();
+        var cards = items.Select(p =>
+        {
+            // The card headline reflects the admin's stated "looking for N" (SpotsAdvertised) rather
+            // than the raw roster remainder, so a party advertising 2 does not read as "7 spots open".
+            // Real availability (RosterCap − In) still caps it — we never advertise more seats than
+            // physically remain — and it is the fallback when the admin set no number (advertised 0).
+            // Apply/accept remain gated on real availability server-side (MarketRequestService).
+            var available = Math.Max(0, p.RosterCap - p.InCount);
+            var openSpots = p.SpotsAdvertised > 0 ? Math.Min(p.SpotsAdvertised, available) : available;
+            return new RecruitingPartyCardDto(
+                p.Id, p.TeamId, p.TeamName, p.TeamSlug, p.EventId,
+                openSpots, p.RosterCap, p.InCount,
+                p.PositionsNeeded, p.RecruitBlurb);
+        }).ToList();
 
         return new PagedResult<RecruitingPartyCardDto>(cards, total, pagination.NormalizedSkip, pagination.NormalizedTake);
     }

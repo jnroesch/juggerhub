@@ -129,7 +129,7 @@ public sealed class MarketplaceTests : PartyTestSupport
 
         var board1 = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/events/{eventId}/market/parties");
         Assert.Equal(1, board1.GetProperty("totalCount").GetInt32());
-        Assert.Equal(7, board1.GetProperty("items")[0].GetProperty("openSpots").GetInt32()); // cap 8 − 1 in
+        Assert.Equal(2, board1.GetProperty("items")[0].GetProperty("openSpots").GetInt32()); // advertised 2 (cap 8 − 1 in leaves room)
     }
 
     [Fact]
