@@ -43,15 +43,17 @@ export class TrainingCreateComponent {
   protected endTime = '21:00';
   protected startDate = '';
   protected endDate = '';
-  protected locationKind: LocationKind = 'InPerson';
-  // Feature 042 — structured address; only meaningful when in-person. These are SIGNALS, not plain
-  // fields: `whereComplete` is a computed() over them, and the app is zoneless — a computed() over
-  // plain properties never recomputes, leaving Continue permanently disabled.
+  // SIGNALS, not plain fields: `whereComplete` is a computed() over them, and the app is zoneless —
+  // a computed() over plain properties never recomputes, leaving Continue permanently disabled. This
+  // caught `locationKind` and `virtualLink` (the Virtual branch): typing a join link never re-ran the
+  // computed, so Continue stayed locked for virtual trainings.
+  protected readonly locationKind = signal<LocationKind>('InPerson');
+  // Feature 042 — structured address; only meaningful when in-person.
   protected readonly venueName = signal('');
   protected readonly street = signal('');
   protected readonly postalCode = signal('');
   protected readonly selectedCity = signal<CityOption | null>(null);
-  protected virtualLink = '';
+  protected readonly virtualLink = signal('');
   protected description = '';
   protected visibility: TrainingVisibility = 'TeamOnly';
 
@@ -61,9 +63,9 @@ export class TrainingCreateComponent {
    * the same rule — this is guidance, never the boundary (constitution Principle I).
    */
   protected readonly whereComplete = computed(() =>
-    this.locationKind === 'InPerson'
+    this.locationKind() === 'InPerson'
       ? !!this.street().trim() && !!this.postalCode().trim() && this.selectedCity() !== null
-      : !!this.virtualLink.trim(),
+      : !!this.virtualLink().trim(),
   );
 
   protected readonly weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -109,17 +111,17 @@ export class TrainingCreateComponent {
     }
     this.busy.set(true);
     this.error.set(null);
-    const inPerson = this.locationKind === 'InPerson';
+    const inPerson = this.locationKind() === 'InPerson';
     const body: CreateTrainingRequest = {
       isRecurring: this.isRecurring,
       name: this.name.trim(),
       description: this.description.trim() || null,
-      locationKind: this.locationKind,
+      locationKind: this.locationKind(),
       venueName: inPerson ? this.venueName().trim() || null : null,
       street: inPerson ? this.street().trim() || null : null,
       postalCode: inPerson ? this.postalCode().trim() || null : null,
       location: inPerson ? toSelection(this.selectedCity()) : null,
-      virtualLink: inPerson ? null : this.virtualLink.trim(),
+      virtualLink: inPerson ? null : this.virtualLink().trim(),
       weekday: this.isRecurring ? this.weekday : null,
       interval: this.isRecurring ? this.interval : null,
       startTime: `${this.startTime}:00`,

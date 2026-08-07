@@ -96,4 +96,20 @@ test('a virtual training asks for no address at all', async ({ page, request }) 
   await expect(page.getByTestId('training-street')).toHaveCount(0);
   await expect(page.getByTestId('training-postal')).toHaveCount(0);
   await expect(page.getByTestId('training-city')).toHaveCount(0);
+
+  // A join link is the only thing "Where" needs for a virtual training: Continue stays blocked
+  // until one is typed, then unlocks (regression — the field is a signal so the computed re-runs).
+  const next3 = page.getByTestId('training-next-3');
+  await expect(next3).toBeDisabled();
+  await page.getByTestId('training-join-link').fill('https://www.meet.com/e2e');
+  await expect(next3).toBeEnabled();
+  await next3.click();
+
+  // Visibility → review shows the training as online (no address), then create it.
+  await page.getByTestId('training-next-4').click();
+  await expect(page.getByTestId('review-address')).toHaveCount(0);
+  await page.getByTestId('training-create-submit').click();
+
+  // Lands on the session page for the created virtual training.
+  await expect(page).toHaveURL(/\/trainings\/sessions\//);
 });

@@ -75,10 +75,10 @@
   @if (step() === 3) {
     <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.create.step3Title' | transloco }}</h1>
     <div class="mt-md grid grid-cols-2 gap-xs">
-      <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">{{ 'trainings.form.inPerson' | transloco }}</button>
-      <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
+      <button type="button" (click)="locationKind.set('InPerson')" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind() === 'InPerson'" [class.border-border-strong]="locationKind() !== 'InPerson'">{{ 'trainings.form.inPerson' | transloco }}</button>
+      <button type="button" (click)="locationKind.set('Virtual')" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind() === 'Virtual'" [class.border-border-strong]="locationKind() !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
     </div>
-    @if (locationKind === 'InPerson') {
+    @if (locationKind() === 'InPerson') {
       <jh-address-fields
         class="mt-md"
         testIdPrefix="training"
@@ -89,13 +89,13 @@
       />
     } @else {
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
-        <input [(ngModel)]="virtualLink" type="url" maxlength="500" placeholder="https://…" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [ngModel]="virtualLink()" (ngModelChange)="virtualLink.set($event)" type="url" maxlength="500" data-testid="training-join-link" placeholder="https://…" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
     }
     <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.create.descriptionOptional' | transloco }}
       <textarea [(ngModel)]="description" rows="3" maxlength="2000" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body"></textarea>
     </label>
-    @if (locationKind === 'InPerson' && !whereComplete()) {
+    @if (locationKind() === 'InPerson' && !whereComplete()) {
       <p class="mt-sm text-body-sm text-muted">
         {{ (!street().trim() || !postalCode().trim() ? 'trainings.form.addressRequired' : 'trainings.form.cityRequired') | transloco }}
       </p>
@@ -130,7 +130,7 @@
     <jh-card class="mt-md p-md text-body-sm">
       <p class="font-medium text-heading">{{ name }}</p>
       <p class="mt-2xs text-muted">{{ isRecurring ? (('trainings.weekday.' + weekday | transloco) + ' · ' + interval) : ('trainings.oneOff' | transloco) }} · {{ startTime }}–{{ endTime }}</p>
-      @if (locationKind === 'InPerson') {
+      @if (locationKind() === 'InPerson') {
         <p class="text-muted" data-testid="review-city">{{ cityLabel() }}</p>
         <p class="text-muted" data-testid="review-address">
           {{ venueName().trim() || '—' }} · {{ street().trim() || '—' }} · {{ postalCode().trim() || '—' }}
