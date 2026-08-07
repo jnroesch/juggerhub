@@ -148,19 +148,44 @@ test.describe('public trainings are discoverable', () => {
     }
   });
 
-  test('filter chips show translated text, not raw keys', async ({ page }) => {
+  test('filter chips show translated text, not raw keys, on every browse page', async ({ page }) => {
     // Only reproducible in a browser: the catalogue loads asynchronously, and a `computed()` whose
-    // dependencies never change afterwards keeps whatever `translate()` returned first. Jest
-    // preloads the catalogue synchronously, so the unit suite cannot see this.
-    // ⚠ The teams / events / players pages still fail this — tracked separately, out of scope here.
-    await page.goto('/browse/trainings');
+    // other dependencies never change afterwards keeps whatever `translate()` returned first — the
+    // raw key. Jest preloads the catalogue synchronously (`preloadLangs: true`), so the unit suite
+    // cannot see this. All four browse pages carry the fix (GH #147); this loops over each so a
+    // regression on any one is caught. A raw chip surfaces as a `browse.*` key (teams/events/
+    // trainings) or a `pompfen.*` key (players position chips).
+    const rawKey = /(?:browse|pompfen)\.[A-Za-z.]+/;
 
-    const chips = page.getByTestId('browse-chips');
-    await chips.waitFor();
+    // Teams, events and trainings each render a default chip, so the bug shows on first paint.
+    const withDefaultChip = [
+      { path: '/browse/teams', text: 'Active' },
+      { path: '/browse/events', text: 'Upcoming' },
+      { path: '/browse/trainings', text: 'Upcoming' },
+    ];
+    for (const { path, text: expected } of withDefaultChip) {
+      await page.goto(path);
+      const chips = page.getByTestId('browse-chips');
+      await chips.waitFor();
 
-    const text = (await chips.textContent()) ?? '';
-    expect(text, 'a chip rendered a raw Transloco key').not.toMatch(/browse\.[a-zA-Z.]+/);
-    expect(text).toContain('Upcoming');
+      const text = (await chips.textContent()) ?? '';
+      expect(text, `${path}: a chip rendered a raw Transloco key`).not.toMatch(rawKey);
+      expect(text, `${path}: chip text missing`).toContain(expected);
+    }
+
+    // Players has no default chip — apply a position filter to produce one, then assert.
+    await page.goto('/browse/players');
+    await page.getByTestId('browse-filters-button').click();
+    const panel = page.getByTestId('filter-panel');
+    await expect(panel).toBeVisible();
+    await panel.getByRole('button', { name: 'Staff' }).click();
+    await page.getByTestId('filter-apply').click();
+
+    const playerChips = page.getByTestId('browse-chips');
+    await playerChips.waitFor();
+    const playerText = (await playerChips.textContent()) ?? '';
+    expect(playerText, 'players: a chip rendered a raw Transloco key').not.toMatch(rawKey);
+    expect(playerText, 'players: chip text missing').toContain('Staff');
   });
 
   test('the home empty state sends a teamless player to trainings, not events', async ({ page }) => {

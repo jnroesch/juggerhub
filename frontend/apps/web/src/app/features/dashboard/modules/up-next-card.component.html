@@ -1,8 +1,9 @@
-<div class="flex items-start gap-sm rounded-md border border-border-muted bg-surface-card px-sm py-sm sm:items-center">
-  <!-- Date chip -->
+<div class="flex items-stretch gap-xs rounded-md border border-border-muted bg-surface-card px-sm py-sm">
+  <!-- Date chip: stretches to the row height (items-stretch) so its top edge lines up
+       with the title and its bottom edge lines up with the action buttons. -->
   <a
     [routerLink]="route()"
-    class="grid h-12 w-12 shrink-0 place-items-center rounded-sm bg-surface-inverse text-on-inverse"
+    class="flex w-12 shrink-0 flex-col items-center justify-center gap-0.5 self-stretch rounded-sm bg-surface-inverse px-2 py-2 text-on-inverse"
     [attr.aria-label]="weekday() + ' ' + day() + ' ' + month()"
   >
     <span class="text-caption font-semibold uppercase leading-none">{{ weekday() }}</span>
@@ -10,13 +11,14 @@
     <span class="text-caption font-semibold uppercase leading-none">{{ month() }}</span>
   </a>
 
-  <!-- Right column: title/meta stacked over the actions on mobile so the buttons
-       align with the text and share its width; on sm+ they sit inline on one row. -->
-  <div class="flex min-w-0 flex-1 flex-col gap-sm sm:flex-row sm:items-center">
-    <!-- Title + meta -->
-    <div class="min-w-0 sm:flex-1">
-      <a [routerLink]="route()" class="block truncate font-semibold text-heading hover:text-link">{{ item().title }}</a>
-      <p class="truncate text-caption text-muted">
+  <!-- Right column: title + city·time on the top line, actions on the bottom line.
+       justify-between pins the two rows to the top and bottom edges of the chip. -->
+  <div class="flex min-w-0 flex-1 flex-col justify-between gap-sm">
+    <!-- Title (left) + city · time (top right). The meta is capped and truncates so
+         "City · time" always survives; a long location suffix is what gets clipped. -->
+    <div class="flex items-baseline gap-xs">
+      <a [routerLink]="route()" class="min-w-0 flex-1 truncate font-semibold text-heading hover:text-link">{{ item().title }}</a>
+      <p class="min-w-0 max-w-[50%] shrink truncate whitespace-nowrap text-caption text-muted">
         {{ item().locationLabel }} · <span class="font-mono">{{ time() }}</span>
         @if (isTraining()) {
           @if (item().isPublicGuest) { · {{ 'home.publicTraining' | transloco }} }
@@ -24,10 +26,11 @@
           · <span class="font-mono">{{ item().spotsRemaining }}</span> {{ 'home.spotsLeft' | transloco }}
         }
       </p>
-      @if (error(); as e) {
-        <p class="text-caption text-danger-fg" role="alert">{{ e }}</p>
-      }
     </div>
+
+    @if (error(); as e) {
+      <p class="text-caption text-danger-fg" role="alert">{{ e }}</p>
+    }
 
     <!-- Action -->
     <div class="shrink-0">
