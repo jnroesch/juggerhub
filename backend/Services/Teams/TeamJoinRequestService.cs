@@ -59,6 +59,29 @@ public sealed class TeamJoinRequestService : ITeamJoinRequestService
         return JoinRequestOutcome.Created;
     }
 
+    public async Task<JoinCancelOutcome> CancelAsync(string slug, Guid userId, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(slug, userId, ct);
+        if (access is not { } a)
+        {
+            return JoinCancelOutcome.TeamNotFound;
+        }
+
+        // Withdraw the caller's own pending request. A cancelled self-request keeps no audit trail
+        // (unlike an admin decline), so the row is deleted — which also frees the partial-unique
+        // slot so the player can cleanly request again later.
+        var request = await _db.TeamJoinRequests
+            .FirstOrDefaultAsync(r => r.TeamId == a.TeamId && r.UserId == userId && r.Status == JoinRequestStatus.Pending, ct);
+        if (request is null)
+        {
+            return JoinCancelOutcome.NothingToCancel;
+        }
+
+        _db.TeamJoinRequests.Remove(request);
+        await _db.SaveChangesAsync(ct);
+        return JoinCancelOutcome.Cancelled;
+    }
+
     public async Task<JoinQueueResult> ListPendingAsync(
         string slug, Guid adminUserId, PaginationRequest pagination, CancellationToken ct = default)
     {

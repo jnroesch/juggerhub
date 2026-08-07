@@ -69,6 +69,46 @@ public sealed class JoinRequestTests
     }
 
     [Fact]
+    public async Task Requester_can_cancel_own_pending_request()
+    {
+        var (admin, _, _, _) = await NewUserAsync();
+        var slug = await NewTeamAsync(admin);
+        var (requester, _, _, _) = await NewUserAsync();
+
+        // Request → Requested.
+        Assert.Equal(HttpStatusCode.NoContent, (await requester.PostAsync($"/api/v1/teams/{slug}/join-requests", null)).StatusCode);
+        Assert.Equal("Requested", await RelationAsync(requester, slug));
+
+        // Cancel → back to NonMember, and the admin queue empties.
+        var cancel = await requester.DeleteAsync($"/api/v1/teams/{slug}/join-requests/mine");
+        Assert.Equal(HttpStatusCode.NoContent, cancel.StatusCode);
+        Assert.Equal("NonMember", await RelationAsync(requester, slug));
+        var queue = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/teams/{slug}/join-requests");
+        Assert.Equal(0, queue.GetProperty("totalCount").GetInt32());
+
+        // Idempotent: cancelling again with nothing pending still succeeds.
+        Assert.Equal(HttpStatusCode.NoContent, (await requester.DeleteAsync($"/api/v1/teams/{slug}/join-requests/mine")).StatusCode);
+
+        // And they can cleanly request again after cancelling.
+        Assert.Equal(HttpStatusCode.NoContent, (await requester.PostAsync($"/api/v1/teams/{slug}/join-requests", null)).StatusCode);
+        Assert.Equal("Requested", await RelationAsync(requester, slug));
+    }
+
+    [Fact]
+    public async Task Cancel_is_unauthorized_for_anonymous_and_404_for_unknown_team()
+    {
+        var (admin, _, _, _) = await NewUserAsync();
+        var slug = await NewTeamAsync(admin);
+
+        var anon = _factory.CreateClient();
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await anon.DeleteAsync($"/api/v1/teams/{slug}/join-requests/mine")).StatusCode);
+
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await admin.DeleteAsync($"/api/v1/teams/does-not-exist/join-requests/mine")).StatusCode);
+    }
+
+    [Fact]
     public async Task Member_cannot_request_and_anonymous_is_unauthorized()
     {
         var (admin, _, _, _) = await NewUserAsync();

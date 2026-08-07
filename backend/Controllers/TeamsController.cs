@@ -175,6 +175,25 @@ public sealed class TeamsController : ControllerBase
         };
     }
 
+    /// <summary>The caller withdraws their own pending request. Idempotent — no pending request is
+    /// treated as already-withdrawn (204).</summary>
+    [HttpDelete("{slug}/join-requests/mine")]
+    public async Task<IActionResult> CancelMyJoinRequest(string slug, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var outcome = await _joinRequests.CancelAsync(slug, userId, ct);
+        return outcome switch
+        {
+            JoinCancelOutcome.Cancelled => NoContent(),
+            JoinCancelOutcome.NothingToCancel => NoContent(),
+            _ => TeamNotFound(),
+        };
+    }
+
     /// <summary>Pending join requests for the team (admin only).</summary>
     [HttpGet("{slug}/join-requests")]
     public async Task<ActionResult<PagedResult<JoinRequestDto>>> GetJoinRequests(

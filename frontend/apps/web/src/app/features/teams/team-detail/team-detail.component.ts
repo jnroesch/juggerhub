@@ -1,5 +1,5 @@
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -53,6 +53,8 @@ export class TeamDetailComponent {
   protected readonly openMenu = signal<string | null>(null);
 
   protected readonly requestBusy = signal(false);
+  /** Which join action a confirmation modal is currently gating (null = closed). */
+  protected readonly confirmIntent = signal<'join' | 'cancel' | null>(null);
 
   protected readonly relation = computed(() => this.pub()?.viewerRelation ?? 'Anonymous');
   protected readonly isMember = computed(() => this.relation() === 'Member' || this.relation() === 'Admin');
@@ -164,7 +166,35 @@ export class TeamDetailComponent {
     });
   }
 
-  protected requestToJoin(): void {
+  /** Open the confirmation modal for a join action (feature 009 — guards accidental clicks). */
+  protected askConfirm(intent: 'join' | 'cancel'): void {
+    if (this.requestBusy()) {
+      return;
+    }
+    this.confirmIntent.set(intent);
+  }
+
+  protected dismissConfirm(): void {
+    this.confirmIntent.set(null);
+  }
+
+  /** Run the action the confirmation modal is gating. */
+  protected confirmAction(): void {
+    if (this.confirmIntent() === 'join') {
+      this.requestToJoin();
+    } else if (this.confirmIntent() === 'cancel') {
+      this.cancelRequest();
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  protected onEscape(): void {
+    if (this.confirmIntent()) {
+      this.dismissConfirm();
+    }
+  }
+
+  private requestToJoin(): void {
     if (this.requestBusy()) {
       return;
     }
@@ -173,10 +203,33 @@ export class TeamDetailComponent {
     this.teams.requestToJoin(this.slug()).subscribe({
       next: () => {
         this.requestBusy.set(false);
+        this.confirmIntent.set(null);
         this.load(); // relation → Requested
       },
       error: (err) => {
         this.requestBusy.set(false);
+        this.confirmIntent.set(null);
+        this.error.set(problemDetail(err));
+      },
+    });
+  }
+
+  /** Feature 009 — withdraw the caller's own pending request; relation → NonMember. */
+  private cancelRequest(): void {
+    if (this.requestBusy()) {
+      return;
+    }
+    this.requestBusy.set(true);
+    this.error.set(null);
+    this.teams.cancelJoinRequest(this.slug()).subscribe({
+      next: () => {
+        this.requestBusy.set(false);
+        this.confirmIntent.set(null);
+        this.load(); // relation → NonMember
+      },
+      error: (err) => {
+        this.requestBusy.set(false);
+        this.confirmIntent.set(null);
         this.error.set(problemDetail(err));
       },
     });
