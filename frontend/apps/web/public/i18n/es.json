@@ -1381,7 +1381,8 @@
       "answerRespond": "Responder ›",
       "activeSeries": "Series activas",
       "upcoming": "próximas",
-      "until": "hasta"
+      "until": "hasta",
+      "editSeries": "Editar"
     },
     "attendance": {
       "title": "Asistencia",

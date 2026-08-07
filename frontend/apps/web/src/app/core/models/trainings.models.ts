@@ -73,6 +73,8 @@ export interface TrainingSeriesSummary {
   visibility: TrainingVisibility;
   upcomingCount: number;
   nextSessionDate: string | null;
+  /** The next upcoming session — the entry point for editing the whole series; null when none remain. */
+  nextSessionId: string | null;
 }
 
 export interface WhosComingPerson {
