@@ -1381,7 +1381,8 @@
       "answerRespond": "Antworten ›",
       "activeSeries": "Aktive Serien",
       "upcoming": "anstehend",
-      "until": "bis"
+      "until": "bis",
+      "editSeries": "Bearbeiten"
     },
     "attendance": {
       "title": "Teilnahme",

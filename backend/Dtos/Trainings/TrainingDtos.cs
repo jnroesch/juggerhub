@@ -60,7 +60,8 @@ public sealed record TrainingSeriesSummaryDto(
     DateOnly? EndDate,
     TrainingVisibility Visibility,
     int UpcomingCount,
-    DateOnly? NextSessionDate);
+    DateOnly? NextSessionDate,
+    Guid? NextSessionId);
 
 /// <summary>
 /// The full session page. Carries the whole structured address (feature 042) because the edit

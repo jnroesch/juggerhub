@@ -1377,7 +1377,8 @@
       "answerRespond": "Respond ›",
       "activeSeries": "Active series",
       "upcoming": "upcoming",
-      "until": "until"
+      "until": "until",
+      "editSeries": "Edit"
     },
     "attendance": {
       "title": "Attendance",
