@@ -173,11 +173,6 @@
     </div>
   }
 
-  <!-- Count line -->
-  @if (countLabel() && state() === 'ready') {
-    <p class="text-body-sm text-subtle" data-testid="browse-count">{{ countLabel() }}</p>
-  }
-
   <!-- Results / states -->
   @switch (state()) {
     @case ('loading') {
