@@ -91,24 +91,6 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     return chips;
   });
 
-  protected readonly countLabel = computed(() => {
-    this.lang();
-    const n = this.list.total();
-    const parts = [
-      this.t.translate(n === 1 ? 'browse.events.countOne' : 'browse.events.countMany', { count: n }),
-    ];
-    if (this.hidePast()) {
-      parts.push(this.t.translate('browse.events.chipUpcoming'));
-    }
-    if (this.type()) {
-      parts.push(this.type().toLowerCase());
-    }
-    if (this.city().trim()) {
-      parts.push(this.city().trim());
-    }
-    return parts.join(' · ');
-  });
-
   ngOnInit(): void {
     this.reload();
     this.profiles.getMineCached().subscribe({

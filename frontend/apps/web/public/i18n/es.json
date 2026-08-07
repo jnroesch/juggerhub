@@ -599,12 +599,8 @@
     "teams": {
       "searchPlaceholder": "Buscar equipos…",
       "noun": "equipos",
-      "countOne": "{{count}} equipo",
-      "countMany": "{{count}} equipos",
       "chipActive": "Activos",
       "chipBeginners": "Principiantes",
-      "filterActive": "activos",
-      "filterBeginnersWelcome": "principiantes bienvenidos",
       "activeLabel": "Solo equipos activos",
       "activeHint": "Ocultar equipos inactivos",
       "beginnersLabel": "Principiantes bienvenidos",
@@ -616,9 +612,7 @@
       "searchPlaceholder": "Buscar jugadores…",
       "note": "Todos los jugadores de JuggerHub aparecen aquí.",
       "noun": "jugadores",
-      "position": "Posición",
-      "countOne": "{{count}} jugador",
-      "countMany": "{{count}} jugadores"
+      "position": "Posición"
     },
     "events": {
       "searchPlaceholder": "Buscar eventos…",
@@ -631,17 +625,13 @@
       "type": "Tipo",
       "anyType": "Cualquier tipo",
       "sortSoonest": "Más próximos",
-      "chipUpcoming": "Próximos",
-      "countOne": "{{count}} evento",
-      "countMany": "{{count}} eventos"
+      "chipUpcoming": "Próximos"
     },
     "tabTrainings": "Entrenamientos",
     "trainings": {
       "searchPlaceholder": "Buscar entrenamientos…",
       "note": "Entrenamientos que los equipos han abierto a todo el mundo. Ven como invitado.",
       "noun": "entrenamientos",
-      "countOne": "{{count}} entrenamiento",
-      "countMany": "{{count}} entrenamientos",
       "hidePastLabel": "Ocultar entrenamientos pasados",
       "hidePastHint": "Solo próximos",
       "dateRange": "Rango de fechas",

@@ -50,21 +50,6 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
     return chips;
   });
 
-  protected readonly countLabel = computed(() => {
-    this.lang();
-    const n = this.list.total();
-    const parts = [
-      this.t.translate(n === 1 ? 'browse.players.countOne' : 'browse.players.countMany', { count: n }),
-    ];
-    for (const p of this.positions()) {
-      parts.push(this.label(p).toLowerCase());
-    }
-    if (this.city().trim()) {
-      parts.push(this.city().trim());
-    }
-    return parts.join(' · ');
-  });
-
   ngOnInit(): void {
     this.reload();
   }
