@@ -23,6 +23,7 @@ services:
       - Email__SmtpHost=mailpit
       - Email__SmtpPort=1025
       - "Email__FromAddress=${EMAIL_FROM_ADDRESS:-JuggerHub <hello@juggerhub.local>}"
+      - "Email__ReplyToAddress=${EMAIL_REPLY_TO_ADDRESS:-}"
       - Email__FrontendBaseUrl=${EMAIL_FRONTEND_BASE_URL:-http://localhost:3000}
       - Email__Resend__ApiKey=${EMAIL_RESEND_API_KEY:-}
       # Feature 012 — temporary platform-admin allowlist (comma-separated emails). See GH #21.

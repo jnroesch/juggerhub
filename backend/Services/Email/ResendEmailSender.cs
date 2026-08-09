@@ -26,15 +26,36 @@ public sealed class ResendEmailSender : IEmailSender
 
     public async Task SendAsync(string to, string subject, string htmlBody, CancellationToken ct = default)
     {
+        // A dictionary rather than an anonymous type so the optional fields (reply_to, headers) can
+        // be omitted entirely when not configured, instead of sent as null. The always-present keys
+        // match Resend's REST contract; `text` makes every message multipart/alternative rather than
+        // single-part HTML, which raises spam scores on its own.
+        var payload = new Dictionary<string, object?>
+        {
+            ["from"] = _options.FromAddress,
+            ["to"] = new[] { to },
+            ["subject"] = subject,
+            ["html"] = htmlBody,
+            ["text"] = EmailDelivery.ToPlainText(htmlBody),
+        };
+
+        if (!string.IsNullOrWhiteSpace(_options.ReplyToAddress)
+            && EmailDelivery.BareAddress(_options.ReplyToAddress) is not null)
+        {
+            payload["reply_to"] = _options.ReplyToAddress.Trim();
+        }
+
+        if (EmailDelivery.BuildListUnsubscribe(_options) is { } listUnsubscribe)
+        {
+            payload["headers"] = new Dictionary<string, string>
+            {
+                ["List-Unsubscribe"] = listUnsubscribe,
+            };
+        }
+
         using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.resend.com/emails")
         {
-            Content = JsonContent.Create(new
-            {
-                from = _options.FromAddress,
-                to = new[] { to },
-                subject,
-                html = htmlBody,
-            }),
+            Content = JsonContent.Create(payload),
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.Resend.ApiKey);
 
