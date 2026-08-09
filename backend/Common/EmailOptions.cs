@@ -20,6 +20,15 @@ public sealed class EmailOptions
     /// </summary>
     public string FromAddress { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Optional <c>Reply-To</c> address. Left empty by default: <see cref="FromAddress"/> is a real
+    /// monitored inbox (<c>hello@juggerhub.com</c>), so replies already reach a person and a
+    /// <c>Reply-To</c> equal to <c>From</c> would be a redundant header. Set this only if the
+    /// <c>From</c> is ever changed to a no-reply sender; both senders accept the
+    /// <c>Display Name &lt;addr&gt;</c> form here too.
+    /// </summary>
+    public string ReplyToAddress { get; set; } = string.Empty;
+
     /// <summary>SMTP host (Mailpit = <c>mailpit</c> in compose). Used when Provider=Smtp.</summary>
     public string SmtpHost { get; set; } = string.Empty;
 
