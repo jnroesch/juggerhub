@@ -52,6 +52,8 @@ export class ProfileQuickActionsComponent implements OnInit {
   // Invite state
   protected readonly adminTeamCount = signal(0);
   protected readonly eligibleTeams = signal<EligibleTeam[]>([]);
+  /** True only when the target is genuinely a MEMBER of ≥1 of the viewer's admin teams. */
+  protected readonly alreadyMember = signal(false);
   protected readonly inviteResolved = signal(false);
   protected readonly pickerOpen = signal(false);
   protected readonly inviting = signal(false);
@@ -146,16 +148,24 @@ export class ProfileQuickActionsComponent implements OnInit {
         this.teams.searchUsers(team.slug, target).pipe(
           map((page) => {
             const hit = page.items.find((u) => u.handle.toLowerCase() === target.toLowerCase());
-            return hit && hit.relation === 'Invitable'
-              ? ({ slug: team.slug, name: team.name, userId: hit.userId } as EligibleTeam)
-              : null;
+            return { team, relation: hit?.relation ?? null, userId: hit?.userId ?? null };
           }),
-          catchError(() => of(null)),
+          catchError(() => of({ team, relation: null, userId: null })),
         ),
       ),
     ).subscribe({
       next: (results) => {
-        this.eligibleTeams.set(results.filter((r): r is EligibleTeam => r !== null));
+        this.eligibleTeams.set(
+          results.flatMap((r) =>
+            r.relation === 'Invitable' && r.userId !== null
+              ? [{ slug: r.team.slug, name: r.team.name, userId: r.userId }]
+              : [],
+          ),
+        );
+        // "Already on your team" is claimed ONLY for a real member — never for a player who is
+        // merely pending-invited, nor for one just invited this session (whose eligible team is
+        // dropped below). Conflating those with membership is the invite-UI display bug.
+        this.alreadyMember.set(results.some((r) => r.relation === 'Member'));
         this.inviteResolved.set(true);
       },
       error: () => this.inviteResolved.set(true),

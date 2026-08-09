@@ -177,6 +177,16 @@ describe('ProfileQuickActionsComponent', () => {
     fixture.detectChanges();
     expect(teams.createTargetedInvite).toHaveBeenCalledWith('rf', 'u-bob');
     expect(el(fixture, 'qa-invited')).not.toBeNull();
+    // The freshly-invited player is NOT on the team — never claim "already on your team".
+    expect(el(fixture, 'qa-invite-reason')).toBeNull();
+  });
+
+  it('does not claim "already on your team" for a pending-invited (non-member) player', () => {
+    mine = owner('viewer', [team('rf', 'Admin')]);
+    teams.searchUsers.mockReturnValue(of(paged([invitable('u-bob', 'bob', 'Invited')])));
+    const fixture = create('bob');
+    // No eligible team, but the player is only pending-invited — the disabled reason must not show.
+    expect(el(fixture, 'qa-invite-reason')).toBeNull();
   });
 
   it('opens a picker of eligible teams when several are eligible', () => {

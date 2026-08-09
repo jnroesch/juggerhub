@@ -17,7 +17,7 @@
 
       <!-- Invite to a team (secondary), admins only -->
       @if (showInvite()) {
-        @if (inviteResolved() && !inviteEligible()) {
+        @if (inviteResolved() && alreadyMember()) {
           <span class="inline-flex items-center gap-xs">
             <button
               type="button"
@@ -36,7 +36,7 @@
             <button
               type="button"
               (click)="onInviteClick()"
-              [disabled]="!inviteResolved() || inviting()"
+              [disabled]="!inviteResolved() || inviting() || !inviteEligible()"
               [attr.aria-haspopup]="eligibleTeams().length > 1 ? 'menu' : null"
               [attr.aria-expanded]="eligibleTeams().length > 1 ? pickerOpen() : null"
               data-testid="qa-invite"
