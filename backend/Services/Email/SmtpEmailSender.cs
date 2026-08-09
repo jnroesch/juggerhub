@@ -27,7 +27,26 @@ public sealed class SmtpEmailSender : IEmailSender
         message.From.Add(MailboxAddress.Parse(_options.FromAddress));
         message.To.Add(MailboxAddress.Parse(to));
         message.Subject = subject;
-        message.Body = new BodyBuilder { HtmlBody = htmlBody }.ToMessageBody();
+
+        // Multipart/alternative: a plain-text part alongside the HTML. Local mail (Mailpit) never
+        // touches a spam filter, but keeping this identical to the Resend path means what a developer
+        // sees locally is what gets sent in Dev/Prod (constitution Principle V).
+        message.Body = new BodyBuilder
+        {
+            HtmlBody = htmlBody,
+            TextBody = EmailDelivery.ToPlainText(htmlBody),
+        }.ToMessageBody();
+
+        if (!string.IsNullOrWhiteSpace(_options.ReplyToAddress)
+            && EmailDelivery.BareAddress(_options.ReplyToAddress) is not null)
+        {
+            message.ReplyTo.Add(MailboxAddress.Parse(_options.ReplyToAddress));
+        }
+
+        if (EmailDelivery.BuildListUnsubscribe(_options) is { } listUnsubscribe)
+        {
+            message.Headers.Add("List-Unsubscribe", listUnsubscribe);
+        }
 
         using var client = new SmtpClient
         {

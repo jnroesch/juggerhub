@@ -89,6 +89,39 @@ cert-manager's HTTP-01 challenge self-heals once the record resolves — no re-a
 
 Full validation steps: [`../specs/015-hosting/quickstart.md`](../specs/015-hosting/quickstart.md).
 
+### Email deliverability — SPF / DKIM / DMARC (operator, manual)
+
+Transactional mail is sent through **Resend** as `JuggerHub <hello@juggerhub.com>`
+(`email_from_address`). Terraform does **not** manage the sending domain's DNS — only the
+app's A record — so the records that make mail authenticate live at the registrar and must be
+added by hand. **This is the single biggest cause of mail landing in spam.** If it is skipped,
+every message fails SPF/DKIM/DMARC and Gmail/Yahoo/Outlook route it to junk regardless of what
+the application does.
+
+One-time setup:
+
+1. In the Resend dashboard, add and verify the domain `juggerhub.com`. Resend shows the exact
+   records to publish — typically an **SPF** `TXT` (`v=spf1 include:…resend… ~all`), a **DKIM**
+   `TXT` on a Resend-provided selector (e.g. `resend._domainkey`), and often a return-path
+   `CNAME`. Publish each at the registrar verbatim.
+2. Publish a **DMARC** policy `TXT` at `_dmarc.juggerhub.com`, starting soft, e.g.
+   `v=DMARC1; p=none; rua=mailto:hello@juggerhub.com`. Tighten to `p=quarantine` / `p=reject`
+   once the aggregate reports show only legitimate mail passing.
+3. Confirm the domain reads **Verified** in Resend (all rows green).
+
+Verify from any machine (not from inside the app):
+
+```bash
+dig +short TXT juggerhub.com                    # SPF present, one v=spf1 record
+dig +short TXT _dmarc.juggerhub.com             # DMARC present
+dig +short TXT resend._domainkey.juggerhub.com  # DKIM key present (selector per Resend)
+```
+
+The application-side deliverability hardening (a `text/plain` alternative, a `List-Unsubscribe`
+header, and an optional `Reply-To`) is already in the senders — see
+[`../backend/Services/Email/EmailDelivery.cs`](../backend/Services/Email/EmailDelivery.cs) — but
+it cannot compensate for a domain that fails authentication.
+
 ### Two-phase apply caveat (first run only)
 
 The `kubernetes` and `helm` providers are configured from the AKS cluster's outputs,
