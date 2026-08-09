@@ -31,7 +31,7 @@
       </div>
 
       <!-- Join action (state-aware) -->
-      <div class="flex shrink-0 items-center gap-sm">
+      <div class="flex w-full shrink-0 flex-col gap-sm sm:w-auto sm:flex-row sm:items-center">
         @if (canContactAdmins()) {
           <button type="button" jhButton variant="secondary" data-testid="contact-admins" (click)="contactAdmins()">{{ 'teams.detail.contactAdmins' | transloco }}</button>
         }
@@ -54,7 +54,7 @@
       <p class="mt-sm rounded-md bg-danger-bg px-sm py-xs text-body-sm text-danger-fg" role="alert">{{ e }}</p>
     }
 
-    <div class="mt-lg grid gap-lg lg:grid-cols-[minmax(0,1fr)_300px]">
+    <div class="mt-lg grid grid-cols-1 gap-lg lg:grid-cols-[minmax(0,1fr)_300px]">
       <div class="flex flex-col gap-lg">
         <!-- Admin: join-request queue -->
         <!-- Pinned party requests (feature 016) — members answer here -->
