@@ -13,7 +13,7 @@ import { problemDetail } from '../../../core/utils/problem';
 import { CityPickerComponent } from '../../../shared/city-picker/city-picker.component';
 
 /**
- * US1 — create a team. A short form: name, a unique immutable "team address" (slug,
+ * US1 — create a team. A short form: name, a unique immutable "team handle" (slug,
  * live availability like the @handle), and the type (city team with a city, or a
  * Mixteam with none). The creator becomes the first admin and lands on the team page.
  */
