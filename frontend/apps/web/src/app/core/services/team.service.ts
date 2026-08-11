@@ -12,6 +12,7 @@ import {
   PagedResult,
   SlugAvailability,
   TeamDetail,
+  TeamHappening,
   TeamInvitation,
   TeamMember,
   TeamNews,
@@ -101,6 +102,17 @@ export class TeamService {
     return this.http.get<PagedResult<ActivityItem>>(`${this.base}/${encodeURIComponent(slug)}/activity`, {
       params: new HttpParams().set('skip', skip).set('take', take),
     });
+  }
+
+  /**
+   * Feature 044 — the team-internal "What's happening" feed (members only; 404 for anyone else).
+   *
+   * Takes no paging parameters and returns a bare array: the feed is hard-capped at 10 entries from
+   * the last 30 days and deliberately offers no "show more". Distinct from `getActivity`, which is
+   * the team's *event* history.
+   */
+  getHappenings(slug: string): Observable<TeamHappening[]> {
+    return this.http.get<TeamHappening[]>(`${this.base}/${encodeURIComponent(slug)}/happenings`);
   }
 
   getNews(slug: string, skip = 0, take = 20): Observable<PagedResult<TeamNews>> {

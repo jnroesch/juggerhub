@@ -30,6 +30,7 @@ public sealed class TeamsController : ControllerBase
 {
     private readonly ITeamService _teams;
     private readonly ITeamActivityService _activity;
+    private readonly ITeamHappeningService _happenings;
     private readonly ITeamNewsService _news;
     private readonly ITeamInvitationService _invitations;
     private readonly ITeamSearchService _search;
@@ -40,6 +41,7 @@ public sealed class TeamsController : ControllerBase
     public TeamsController(
         ITeamService teams,
         ITeamActivityService activity,
+        ITeamHappeningService happenings,
         ITeamNewsService news,
         ITeamInvitationService invitations,
         ITeamSearchService search,
@@ -49,6 +51,7 @@ public sealed class TeamsController : ControllerBase
     {
         _teams = teams;
         _activity = activity;
+        _happenings = happenings;
         _news = news;
         _invitations = invitations;
         _search = search;
@@ -341,6 +344,31 @@ public sealed class TeamsController : ControllerBase
 
         var page = await _activity.GetForTeamAsync(slug, userId, pagination, ct);
         return page is null ? TeamNotFound() : Ok(page);
+    }
+
+    /// <summary>
+    /// The team's recent internal happenings (feature 044) — the members-only "What's happening"
+    /// card. Distinct from <see cref="GetActivity"/>, which serves the team's <em>event</em> history.
+    /// A non-member (or unknown team) yields 404.
+    /// </summary>
+    /// <remarks>
+    /// Takes no pagination parameters and returns a bare list rather than a <c>PagedResult</c>: the
+    /// feature deliberately offers no paging and no "show more" (spec FR-013), and the result is
+    /// hard-bounded twice over — at most 10 entries, none older than 30 days. A <c>TotalCount</c>
+    /// would advertise a surface that does not exist. Same shape as the capped <c>Roster</c> and
+    /// <c>RecentActivity</c> lists already on this page.
+    /// </remarks>
+    [HttpGet("{slug}/happenings")]
+    public async Task<ActionResult<IReadOnlyList<TeamHappeningDto>>> GetHappenings(
+        string slug, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var items = await _happenings.GetForTeamAsync(slug, userId, ct);
+        return items is null ? TeamNotFound() : Ok(items);
     }
 
     [HttpGet("{slug}/news")]

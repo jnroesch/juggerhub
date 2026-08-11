@@ -166,3 +166,50 @@ export interface SlugAvailability {
   /** A code, translated client-side — see {@link IdentifierRejection}. */
   reason: IdentifierRejection | null;
 }
+
+// ---- Team-internal "What's happening" (feature 044) -------------------------
+
+/**
+ * The kinds the team-internal feed can describe. Deliberately separate from `ActivityKind` in
+ * `home.models.ts`: the dashboard switches over its kinds exhaustively and drops unknown ones, so
+ * sharing the union would make team-only kinds vanish silently there. Copy the pattern, not the type.
+ *
+ * Departures and role changes are absent by design — nothing the platform records can reconstruct
+ * them. Events the team played belong to the separate "Recent events" card.
+ */
+export type TeamHappeningKind =
+  | 'MemberJoined'
+  | 'RecognitionAwarded'
+  | 'TrainingSeriesCreated'
+  | 'TrainingSessionCancelled';
+
+/**
+ * The interpolation values for a happening sentence. Only the fields the entry's `kind` uses are
+ * populated. The server sends facts, never prose — it does not know the viewer's language — so the
+ * connecting words come from a `teams.detail.happening.*` key chosen client-side.
+ */
+export interface TeamHappeningParams {
+  /**
+   * MemberJoined. Null when the player has no display name, is banned, or deleted their account —
+   * substitute a *translated* stand-in, never an English placeholder.
+   */
+  actorName: string | null;
+  /** RecognitionAwarded — the badge or achievement name. */
+  recognitionName: string | null;
+  /** Both training kinds — the training series' name. */
+  trainingName: string | null;
+  /** TrainingSessionCancelled — which session was called off (ISO date, no time). */
+  sessionDate: string | null;
+}
+
+/**
+ * One thing that happened inside a team (feature 044) — the members-only "What's happening" card.
+ * Read-only, carries no actions. At most 10 entries, none older than 30 days.
+ */
+export interface TeamHappening {
+  kind: TeamHappeningKind;
+  params: TeamHappeningParams;
+  /** Player handle, session id, or null when there is nowhere sensible to navigate. */
+  linkTarget: string | null;
+  occurredAt: string;
+}

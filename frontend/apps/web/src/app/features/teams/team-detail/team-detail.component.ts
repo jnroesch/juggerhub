@@ -8,6 +8,7 @@ import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import {
   JoinRequest,
   PublicMember,
+  TeamHappening,
   TeamMember,
   TeamNews,
   TeamPublicDetail,
@@ -17,6 +18,7 @@ import { PartyService } from '../../../core/services/party.service';
 import { PartyRequestCard } from '../../../core/models/party.models';
 import { problemDetail } from '../../../core/utils/problem';
 import { RecognitionDisplayComponent } from '../../profile/components/recognition-display/recognition-display.component';
+import { TeamHappeningsComponent } from './happenings/team-happenings.component';
 
 /**
  * The team page (feature 009). Public to everyone: overview, roster (names + positions),
@@ -26,7 +28,7 @@ import { RecognitionDisplayComponent } from '../../profile/components/recognitio
  */
 @Component({
   selector: 'jh-team-detail',
-  imports: [RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, ButtonDirective, EmptyStateComponent, CardComponent, TranslocoPipe],
+  imports: [RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, ButtonDirective, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './team-detail.component.html',
   styleUrl: './team-detail.component.css',
 })
@@ -46,6 +48,8 @@ export class TeamDetailComponent {
   // Members/admins load the full roster (with ids + admin menu) + news; admins load the queue.
   protected readonly members = signal<TeamMember[]>([]);
   protected readonly news = signal<TeamNews[]>([]);
+  /** Feature 044 — the team-internal "What's happening" feed (members only). */
+  protected readonly happenings = signal<TeamHappening[]>([]);
   protected readonly joinRequests = signal<JoinRequest[]>([]);
   // Feature 016: pinned party-request cards a member can answer.
   protected readonly partyRequests = signal<PartyRequestCard[]>([]);
@@ -86,6 +90,7 @@ export class TeamDetailComponent {
     this.notFound.set(false);
     this.members.set([]);
     this.news.set([]);
+    this.happenings.set([]);
     this.joinRequests.set([]);
 
     this.teams.getPublicDetail(this.slug()).subscribe({
@@ -95,6 +100,7 @@ export class TeamDetailComponent {
         if (d.viewerRelation === 'Member' || d.viewerRelation === 'Admin') {
           this.loadMembers();
           this.loadNews();
+          this.loadHappenings();
           this.loadPartyRequests();
         }
         if (d.viewerRelation === 'Admin') {
@@ -114,6 +120,11 @@ export class TeamDetailComponent {
 
   private loadNews(): void {
     this.teams.getNews(this.slug()).subscribe({ next: (p) => this.news.set(p.items) });
+  }
+
+  /** Feature 044 — members only; already capped and windowed server-side, so no paging here. */
+  private loadHappenings(): void {
+    this.teams.getHappenings(this.slug()).subscribe({ next: (items) => this.happenings.set(items) });
   }
 
   protected readonly postingNews = signal(false);
