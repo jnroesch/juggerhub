@@ -10,64 +10,64 @@
   @if (step() === 1) {
     <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.create.step1Title' | transloco }}</h1>
     <div class="mt-md flex flex-col gap-sm">
-      <button type="button" (click)="isRecurring = true"
-        class="rounded-lg border p-md text-left" [class.border-brand]="isRecurring" [class.border-border-muted]="!isRecurring">
+      <button type="button" (click)="isRecurring.set(true)"
+        class="rounded-lg border p-md text-left" [class.border-brand]="isRecurring()" [class.border-border-muted]="!isRecurring()">
         <p class="font-medium text-heading">{{ 'trainings.create.recurringSeries' | transloco }}</p>
         <p class="text-body-sm text-muted">{{ 'trainings.create.recurringDesc' | transloco }}</p>
       </button>
-      <button type="button" (click)="isRecurring = false" data-testid="training-oneoff"
-        class="rounded-lg border p-md text-left" [class.border-brand]="!isRecurring" [class.border-border-muted]="isRecurring">
+      <button type="button" (click)="isRecurring.set(false)" data-testid="training-oneoff"
+        class="rounded-lg border p-md text-left" [class.border-brand]="!isRecurring()" [class.border-border-muted]="isRecurring()">
         <p class="font-medium text-heading">{{ 'trainings.create.oneOffSession' | transloco }}</p>
         <p class="text-body-sm text-muted">{{ 'trainings.create.oneOffDesc' | transloco }}</p>
       </button>
     </div>
     <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.name' | transloco }}
-      <input [(ngModel)]="name" type="text" maxlength="120" data-testid="training-name" [placeholder]="'trainings.create.namePlaceholder' | transloco"
+      <input [ngModel]="name()" (ngModelChange)="name.set($event)" type="text" maxlength="120" data-testid="training-name" [placeholder]="'trainings.create.namePlaceholder' | transloco"
         class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
     </label>
-    <button type="button" (click)="next()" [disabled]="!name.trim()" data-testid="training-next-1"
+    <button type="button" (click)="next()" [disabled]="!name().trim()" data-testid="training-next-1"
       jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
   }
 
   <!-- Step 2: schedule -->
   @if (step() === 2) {
-    <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ (isRecurring ? 'trainings.create.step2RecurTitle' : 'trainings.create.step2OneTitle') | transloco }}</h1>
-    @if (isRecurring) {
+    <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ (isRecurring() ? 'trainings.create.step2RecurTitle' : 'trainings.create.step2OneTitle') | transloco }}</h1>
+    @if (isRecurring()) {
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.dayOfWeek' | transloco }}
-        <select [(ngModel)]="weekday" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body">
+        <select [ngModel]="weekday()" (ngModelChange)="weekday.set($event)" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body">
           @for (d of weekdays; track d) { <option [value]="d">{{ 'trainings.weekday.' + d | transloco }}</option> }
         </select>
       </label>
     }
-    <label class="mt-md block text-body-sm font-medium text-heading">{{ (isRecurring ? 'trainings.create.firstDate' : 'trainings.form.date') | transloco }}
-      <input [(ngModel)]="startDate" type="date" data-testid="training-start-date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+    <label class="mt-md block text-body-sm font-medium text-heading">{{ (isRecurring() ? 'trainings.create.firstDate' : 'trainings.form.date') | transloco }}
+      <input [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" type="date" data-testid="training-start-date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
     </label>
     <div class="mt-md grid grid-cols-2 gap-sm">
       <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.start' | transloco }}
-        <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
       <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.end' | transloco }}
-        <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
     </div>
-    @if (isRecurring) {
+    @if (isRecurring()) {
       <div class="mt-md">
         <span class="text-body-sm font-medium text-heading">{{ 'trainings.form.repeats' | transloco }}</span>
         <div class="mt-2xs grid grid-cols-3 gap-xs">
           @for (opt of [{ v: 'Weekly', l: 'trainings.form.weekly' }, { v: 'BiWeekly', l: 'trainings.form.biweekly' }, { v: 'Monthly', l: 'trainings.form.monthly' }]; track opt.v) {
-            <button type="button" (click)="interval = $any(opt.v)"
-              class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="interval === opt.v" [class.border-border-strong]="interval !== opt.v">{{ opt.l | transloco }}</button>
+            <button type="button" (click)="interval.set($any(opt.v))"
+              class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="interval() === opt.v" [class.border-border-strong]="interval() !== opt.v">{{ opt.l | transloco }}</button>
           }
         </div>
       </div>
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.until' | transloco }}
-        <input [(ngModel)]="endDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
       </label>
       @if (summaryCount() !== null) {
         <p class="mt-2xs text-caption text-muted">{{ 'trainings.create.endsPre' | transloco }} <span class="font-mono">{{ summaryCount() }}</span> {{ 'trainings.create.sessionsWord' | transloco }}</p>
       }
     }
-    <button type="button" (click)="next()" [disabled]="!startDate || (isRecurring && !endDate)" data-testid="training-next-2"
+    <button type="button" (click)="next()" [disabled]="!startDate() || (isRecurring() && !endDate())" data-testid="training-next-2"
       jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
   }
 
@@ -79,9 +79,13 @@
       <button type="button" (click)="locationKind.set('Virtual')" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind() === 'Virtual'" [class.border-border-strong]="locationKind() !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
     </div>
     @if (locationKind() === 'InPerson') {
+      <!-- `initialCity` restores a drafted city into the picker's chip (feature 045). It must be a
+           value that is already there at FIRST render — the picker reads it in its own ngOnInit and
+           never looks again — which is why the draft is read in a field initialiser. -->
       <jh-address-fields
         class="mt-md"
         testIdPrefix="training"
+        [initialCity]="restoredCity"
         [(venueName)]="venueName"
         [(street)]="street"
         [(postalCode)]="postalCode"
@@ -93,7 +97,7 @@
       </label>
     }
     <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.create.descriptionOptional' | transloco }}
-      <textarea [(ngModel)]="description" rows="3" maxlength="2000" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body"></textarea>
+      <textarea [ngModel]="description()" (ngModelChange)="description.set($event)" rows="3" maxlength="2000" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body"></textarea>
     </label>
     @if (locationKind() === 'InPerson' && !whereComplete()) {
       <p class="mt-sm text-body-sm text-muted">
@@ -109,11 +113,11 @@
     <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.create.step4Title' | transloco }}</h1>
     <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.create.changeAnytime' | transloco }}</p>
     <div class="mt-md flex flex-col gap-sm">
-      <button type="button" (click)="visibility = 'TeamOnly'" class="rounded-lg border p-md text-left" [class.border-brand]="visibility === 'TeamOnly'" [class.border-border-muted]="visibility !== 'TeamOnly'">
+      <button type="button" (click)="visibility.set('TeamOnly')" class="rounded-lg border p-md text-left" [class.border-brand]="visibility() === 'TeamOnly'" [class.border-border-muted]="visibility() !== 'TeamOnly'">
         <p class="font-medium text-heading">{{ 'trainings.create.teamOnly' | transloco }}</p>
         <p class="text-body-sm text-muted">{{ 'trainings.create.teamOnlyDesc' | transloco }}</p>
       </button>
-      <button type="button" (click)="visibility = 'Public'" class="rounded-lg border p-md text-left" [class.border-brand]="visibility === 'Public'" [class.border-border-muted]="visibility !== 'Public'">
+      <button type="button" (click)="visibility.set('Public')" class="rounded-lg border p-md text-left" [class.border-brand]="visibility() === 'Public'" [class.border-border-muted]="visibility() !== 'Public'">
         <p class="font-medium text-heading">{{ 'trainings.public' | transloco }}</p>
         <p class="text-body-sm text-muted">{{ 'trainings.create.publicDesc' | transloco }}</p>
       </button>
@@ -124,12 +128,12 @@
   <!-- Step 5: review -->
   @if (step() === 5) {
     <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.create.step5Title' | transloco }}</h1>
-    @if (isRecurring && summaryCount() !== null) {
+    @if (isRecurring() && summaryCount() !== null) {
       <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.create.reviewPre' | transloco }} <span class="font-mono">{{ summaryCount() }}</span> {{ 'trainings.create.reviewPost' | transloco }}</p>
     }
     <jh-card class="mt-md p-md text-body-sm">
-      <p class="font-medium text-heading">{{ name }}</p>
-      <p class="mt-2xs text-muted">{{ isRecurring ? (('trainings.weekday.' + weekday | transloco) + ' · ' + interval) : ('trainings.oneOff' | transloco) }} · {{ startTime }}–{{ endTime }}</p>
+      <p class="font-medium text-heading">{{ name() }}</p>
+      <p class="mt-2xs text-muted">{{ isRecurring() ? (('trainings.weekday.' + weekday() | transloco) + ' · ' + interval()) : ('trainings.oneOff' | transloco) }} · {{ startTime() }}–{{ endTime() }}</p>
       @if (locationKind() === 'InPerson') {
         <p class="text-muted" data-testid="review-city">{{ cityLabel() }}</p>
         <p class="text-muted" data-testid="review-address">
@@ -138,7 +142,7 @@
       } @else {
         <p class="text-muted">{{ 'trainings.online' | transloco }}</p>
       }
-      <p class="text-muted">{{ (visibility === 'Public' ? 'trainings.public' : 'trainings.create.teamOnly') | transloco }}@if (isRecurring) { · {{ 'trainings.create.reviewUntil' | transloco }} {{ endDate }} }</p>
+      <p class="text-muted">{{ (visibility() === 'Public' ? 'trainings.public' : 'trainings.create.teamOnly') | transloco }}@if (isRecurring()) { · {{ 'trainings.create.reviewUntil' | transloco }} {{ endDate() }} }</p>
     </jh-card>
     @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
     <button type="button" (click)="create()" [disabled]="busy()" data-testid="training-create-submit" jhButton class="mt-lg w-full">

@@ -83,8 +83,12 @@
               [class]="locationKind() === 'Virtual' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ 'events.create.virtual' | transloco }}</button>
           </div>
           @if (locationKind() === 'InPerson') {
+            <!-- `initialCity` restores a drafted city into the picker's chip (feature 045). It must
+                 already be there at FIRST render — the picker reads it in its own ngOnInit and never
+                 looks again — which is why the draft is read in a field initialiser. -->
             <jh-address-fields
               testIdPrefix="event"
+              [initialCity]="restoredCity"
               [(venueName)]="venueName"
               [(street)]="street"
               [(postalCode)]="postalCode"

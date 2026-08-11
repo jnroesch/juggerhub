@@ -6,6 +6,7 @@ import {
 import { TestBed } from '@angular/core/testing';
 import { AuthUser } from '../models/auth.models';
 import { AuthService } from './auth.service';
+import { WizardDraftStore } from '../drafts/wizard-draft.store';
 
 const USER: AuthUser = { id: 'u1', email: 'a@example.com', emailConfirmed: true, onboardingCompleted: true, handle: 'a-handle' };
 
@@ -58,6 +59,31 @@ describe('AuthService', () => {
 
     expect(service.isAuthenticated()).toBe(false);
     expect(service.currentUser()).toBeNull();
+  });
+
+  /**
+   * Feature 045 / FR-011. An unfinished create-wizard must not outlive the session that started
+   * it — for the event wizard the draft can hold a fee recipient and bank account number, and the
+   * next person to sign in on a shared device would otherwise be handed it.
+   */
+  it('logout clears unfinished wizard drafts', () => {
+    const drafts = TestBed.inject(WizardDraftStore);
+    const clearAll = jest.spyOn(drafts, 'clearAll');
+
+    service.logout().subscribe();
+    httpMock.expectOne('/api/v1/auth/logout').flush(null);
+
+    expect(clearAll).toHaveBeenCalled();
+  });
+
+  /** The other end of the session: the interceptor calls this when a refresh fails. */
+  it('clearSession clears unfinished wizard drafts', () => {
+    const drafts = TestBed.inject(WizardDraftStore);
+    const clearAll = jest.spyOn(drafts, 'clearAll');
+
+    service.clearSession();
+
+    expect(clearAll).toHaveBeenCalled();
   });
 
   it('loadSession hydrates from /me', () => {
