@@ -129,8 +129,8 @@ Web app: `backend/` (.NET API) and `frontend/apps/web/` (Angular). Paths below a
 - [X] T041 Complete `specs/044-team-activity-feed/checklists/ui-review.md` against the diff. Focus on the **awards overlap** (FR-019/FR-020) — for a member one award now appears in both the dated card and the undated "Badges & achievements" card; they must read as a log and a trophy shelf, not two happenings. Confirm the standing-collection card gained **no** dates
 - [ ] T042 Verify at **375 px** that every kind renders without horizontal scrolling, including the longest German wording (SC-007)
 - [ ] T043 Run the full [quickstart.md](./quickstart.md) validation end to end, including the bounds and self-correction tables
-- [ ] T044 [P] Raise the follow-up GitHub issue for departures, removals, and role changes — excluded by decision D1 because no record survives them. Reference #178 and note that recording must be added before a feed can show them, so the exclusion is tracked outside this spec
-- [ ] T045 Update `specs/044-team-activity-feed/spec.md` with any drift discovered during implementation, and comment on issue #178 with the outcome — specifically that the merge it proposed was replaced by the two-section split (D5)
+- [X] T044 [P] Raise the follow-up GitHub issue for departures, removals, and role changes — excluded by decision D1 because no record survives them. Reference #178 and note that recording must be added before a feed can show them, so the exclusion is tracked outside this spec
+- [X] T045 Update `specs/044-team-activity-feed/spec.md` with any drift discovered during implementation, and comment on issue #178 with the outcome — specifically that the merge it proposed was replaced by the two-section split (D5)
 
 ---
 
@@ -213,7 +213,7 @@ Task: "Add 7 happening keys to frontend/apps/web/public/i18n/es.json"
 
 ## Outstanding after the 2026-08-11 implementation pass
 
-**41 of 45 tasks complete.** Backend and frontend are implemented and verified by automated tests.
+**43 of 45 tasks complete.** Backend and frontend are implemented and verified by automated tests.
 What remains needs either a running application or the owner's go-ahead.
 
 | Task | Why it is still open |
@@ -221,8 +221,8 @@ What remains needs either a running application or the owner's go-ahead.
 | **T038** | Needs the app running — confirm as a signed-in non-member that the card is absent, not present-and-empty. The server side *is* covered by `Non_member_and_unknown_team_are_indistinguishable` and `A_team_only_trainings_cancellation_never_reaches_an_outsider`. |
 | **T042** | Needs the app running — 375px check with the longest German wording. |
 | **T043** | Needs the app running — full quickstart walkthrough. |
-| **T044** | Outward-facing: creating a public GitHub issue for the D1 exclusion (departures / role changes). Awaiting the owner's go-ahead. |
-| **T045** | Spec half is **done** (spec.md §Implementation Notes & Drift). The comment on issue #178 is outward-facing and awaiting the owner's go-ahead. |
+| ~~T044~~ | **Done** — raised as #184. |
+| ~~T045~~ | **Done** — spec.md §Implementation Notes & Drift, plus the outcome comment on #178. Shipped as PR #183. |
 
 The UI review checklist (`checklists/ui-review.md`) is filled in: 33 items verified by code
 inspection, and the items needing a rendered page — including **CHK030** (the awards overlap) and
