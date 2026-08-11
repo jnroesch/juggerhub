@@ -200,16 +200,19 @@ export const appRoutes: Route[] = [
       },
       // Browse / search (feature 007) — authenticated-only since feature 026 (direct-link-only
       // discovery; no anonymous browse). In the shell, lazy-loaded.
-      { path: 'browse', pathMatch: 'full', redirectTo: 'browse/teams' },
-      {
-        path: 'browse/teams',
-        canActivate: [authGuard],
-        loadComponent: () => import('./features/browse/browse-teams/browse-teams.component').then((m) => m.BrowseTeamsComponent),
-      },
+      //
+      // Events is the landing tab: bare `/browse` redirects here, and it is the first cell of the
+      // tab strip in browse-shell.component.html. Keep the two in step if either changes.
+      { path: 'browse', pathMatch: 'full', redirectTo: 'browse/events' },
       {
         path: 'browse/events',
         canActivate: [authGuard],
         loadComponent: () => import('./features/browse/browse-events/browse-events.component').then((m) => m.BrowseEventsComponent),
+      },
+      {
+        path: 'browse/teams',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/browse/browse-teams/browse-teams.component').then((m) => m.BrowseTeamsComponent),
       },
       {
         // Feature 043 — public trainings, discoverable across all teams. Team-only sessions are

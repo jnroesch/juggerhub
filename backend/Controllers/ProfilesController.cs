@@ -62,8 +62,32 @@ public sealed class ProfilesController : ControllerBase
     /// per-player search opt-in was removed in feature 020). Public card fields only.</summary>
     [HttpGet]
     public async Task<ActionResult<PagedResult<PlayerCardDto>>> Browse(
-        [FromQuery] PlayerBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct) =>
-        Ok(await _search.BrowseAsync(query, pagination, ct));
+        [FromQuery] PlayerBrowseQuery query, [FromQuery] PaginationRequest pagination, CancellationToken ct)
+    {
+        // Authenticated-only since feature 026; resolve the caller up front so the auth check never
+        // depends on user-supplied query values (a proximity request must not be the only path that
+        // enforces it).
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        // Proximity sort (feature 030 pattern) anchors on the caller's OWN home city, resolved
+        // server-side and never accepted from the query. Without one there is nothing to measure
+        // from, so ask them to set it (409) rather than silently returning a different order.
+        Guid? homeCityId = null;
+        if (query.Sort == JuggerHub.Services.Search.PlayerSort.Proximity)
+        {
+            homeCityId = await _profiles.GetHomeCityIdAsync(userId, ct);
+            if (homeCityId is null)
+            {
+                return Problem(statusCode: StatusCodes.Status409Conflict, title: "No home city",
+                    detail: "Set your home city to sort players by distance.");
+            }
+        }
+
+        return Ok(await _search.BrowseAsync(query, pagination, homeCityId, ct));
+    }
 
     // --- Owner (authenticated) -------------------------------------------------
 

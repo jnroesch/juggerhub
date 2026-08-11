@@ -81,6 +81,17 @@ test.describe('public trainings are discoverable', () => {
       await expect(page.getByTestId(id)).toBeVisible();
     }
 
+    // Events leads the strip and is where bare /browse lands — the redirect and the first cell are
+    // one decision, so they are asserted together.
+    const order = await page.locator('nav[aria-label="Browse"] a').evaluateAll(
+      (els) => els.map((el) => el.getAttribute('data-testid')),
+    );
+    expect(order[0]).toBe('browse-tab-events');
+    expect(order[1]).toBe('browse-tab-teams');
+
+    await page.goto('/browse');
+    await expect(page).toHaveURL(/\/browse\/events$/);
+
     await page.getByTestId('browse-tab-trainings').click();
     await expect(page).toHaveURL(/\/browse\/trainings$/);
     await expect(page.getByRole('heading', { name: 'Trainings' })).toBeVisible();

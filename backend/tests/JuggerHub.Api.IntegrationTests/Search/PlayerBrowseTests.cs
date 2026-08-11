@@ -108,6 +108,71 @@ public sealed class PlayerBrowseTests
         Assert.True(page.GetProperty("items").GetArrayLength() <= 5);
     }
 
+    // ---- Proximity sort (feature 030 pattern) -------------------------------------
+
+    [Fact]
+    public async Task Proximity_sort_orders_players_nearest_to_the_viewers_home_city_first()
+    {
+        // A shared display-name token isolates just these two players in the shared DB; proximity
+        // then orders them. Berlin ↔ München is ~500 km, so the ordering is unambiguous.
+        var token = "Prox" + Rnd();
+        var (_, nearId, nearHandle, _) = await SearchTestSupport.NewUserAsync(_factory);
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, nearId, displayName: $"{token} Berlin", hometown: "Berlin");
+
+        var (_, farId, farHandle, _) = await SearchTestSupport.NewUserAsync(_factory);
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, farId, displayName: $"{token} Munich", hometown: "München");
+
+        var (viewer, viewerId, _, _) = await SearchTestSupport.NewUserAsync(_factory);
+        await SearchTestSupport.SetHomeCityAsync(_factory, viewerId, "Berlin");
+
+        var handles = await HandlesAsync(viewer, $"/api/v1/profiles?q={Uri.EscapeDataString(token)}&sort=Proximity&take=100");
+
+        var iNear = handles.IndexOf(nearHandle);
+        var iFar = handles.IndexOf(farHandle);
+        Assert.True(iNear >= 0 && iFar >= 0, "both players are present in the proximity view");
+        Assert.True(iNear < iFar, "the home-city (Berlin) player ranks ahead of the Munich player");
+    }
+
+    [Fact]
+    public async Task Proximity_sort_excludes_players_without_a_home_city_and_reports_the_matching_total()
+    {
+        // The distance join has no row for a city-less player, so they drop out of the view. The
+        // total must be recomputed with the join's own predicate — reporting the pre-join count
+        // would promise a page that cannot be paged to.
+        var token = "Prox" + Rnd();
+        var (_, locatedId, locatedHandle, _) = await SearchTestSupport.NewUserAsync(_factory);
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, locatedId, displayName: $"{token} Located", hometown: "Berlin");
+
+        var (_, homelessId, homelessHandle, _) = await SearchTestSupport.NewUserAsync(_factory);
+        await SearchTestSupport.ConfigurePlayerAsync(_factory, homelessId, displayName: $"{token} Homeless");
+
+        var (viewer, viewerId, _, _) = await SearchTestSupport.NewUserAsync(_factory);
+        await SearchTestSupport.SetHomeCityAsync(_factory, viewerId, "Berlin");
+
+        var url = $"/api/v1/profiles?q={Uri.EscapeDataString(token)}&sort=Proximity&take=100";
+        var page = await viewer.GetFromJsonAsync<JsonElement>(url);
+        var handles = page.GetProperty("items").EnumerateArray()
+            .Select(i => i.GetProperty("handle").GetString()!).ToList();
+
+        Assert.Contains(locatedHandle, handles);
+        Assert.DoesNotContain(homelessHandle, handles);
+        Assert.Equal(handles.Count, page.GetProperty("totalCount").GetInt32());
+
+        // Default sort still returns both — proximity narrows the view, it does not hide anyone.
+        var byName = await HandlesAsync(viewer, $"/api/v1/profiles?q={Uri.EscapeDataString(token)}&take=100");
+        Assert.Contains(homelessHandle, byName);
+    }
+
+    [Fact]
+    public async Task Proximity_sort_without_a_home_city_is_rejected()
+    {
+        var (viewer, _, _, _) = await SearchTestSupport.NewUserAsync(_factory);
+        var resp = await viewer.GetAsync("/api/v1/profiles?sort=Proximity&take=10");
+        Assert.Equal(HttpStatusCode.Conflict, resp.StatusCode);
+    }
+
+    private static string Rnd() => Guid.NewGuid().ToString("N")[..6];
+
     private static async Task<List<string>> HandlesAsync(HttpClient client, string url)
     {
         var page = await client.GetFromJsonAsync<JsonElement>(url);

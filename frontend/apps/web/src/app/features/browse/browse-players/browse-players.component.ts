@@ -5,7 +5,8 @@ import { merge } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchService } from '../../../core/services/search.service';
-import { FilterChip, PlayerBrowseParams, PlayerCard } from '../../../core/models/search.models';
+import { ProfileService } from '../../../core/services/profile.service';
+import { FilterChip, PlayerBrowseParams, PlayerCard, SortOption } from '../../../core/models/search.models';
 import { POMPFEN_CATALOG, Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import { BrowseList } from '../browse-list';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
@@ -15,7 +16,8 @@ import { CountryPickerComponent } from '../../../shared/country-picker/country-p
 /**
  * Players browse page (feature 007, US3). Same shell as Teams/Events; the player filter set is
  * position (derived from declared pompfen) and city. Only players who opted into search appear
- * (enforced server-side). Rows link to /u/:handle.
+ * (enforced server-side). Rows link to /u/:handle. Sort is A–Z / Nearest first, on the feature 030
+ * pattern the other three tabs already use.
  */
 @Component({
   selector: 'jh-browse-players',
@@ -25,6 +27,7 @@ import { CountryPickerComponent } from '../../../shared/country-picker/country-p
 })
 export class BrowsePlayersComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
+  private readonly profiles = inject(ProfileService);
   private readonly t = inject(TranslocoService);
   // Recompute translated labels (chips/count) on a language change AND when a catalogue finishes
   // loading. A plain `toSignal(langChanges$)` is not enough: the catalogue loads asynchronously, and
@@ -47,6 +50,31 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
   protected readonly query = signal('');
   protected readonly positions = signal<Pompfe[]>([]);
   protected readonly city = signal('');
+  // Sort selection (feature 030 pattern). "Proximity" measures home city → home city, so it is only
+  // offered once the viewer has one of their own — the server derives that anchor from their profile
+  // and 409s without it. Players who have set no home city drop out of the nearest-first view
+  // entirely, which is why A–Z stays the default.
+  protected readonly sort = signal<'DisplayNameAsc' | 'Proximity'>('DisplayNameAsc');
+  protected readonly hasHomeCity = signal(false);
+
+  /**
+   * "Every player on JuggerHub is listed here" is true of every ordering EXCEPT nearest-first,
+   * which drops players who have set no home city — the distance join has no row for them. The note
+   * is withdrawn for that sort rather than left contradicting the list in front of the viewer.
+   */
+  protected readonly note = computed(() => {
+    this.lang();
+    return this.sort() === 'Proximity' ? null : this.t.translate('browse.players.note');
+  });
+
+  protected readonly sortOptions = computed<SortOption[]>(() => {
+    this.lang();
+    const opts: SortOption[] = [{ value: 'DisplayNameAsc', label: this.t.translate('browse.sortNameAsc') }];
+    if (this.hasHomeCity()) {
+      opts.push({ value: 'Proximity', label: this.t.translate('browse.sortNearest') });
+    }
+    return opts;
+  });
 
   protected readonly filtersOpen = signal(false);
   protected readonly pendingPositions = signal<Pompfe[]>([]);
@@ -69,6 +97,11 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.reload();
+    // Offer "Nearest first" only when the viewer has a home city to measure from.
+    this.profiles.getMineCached().subscribe({
+      next: (p) => this.hasHomeCity.set(p.location != null),
+      error: () => this.hasHomeCity.set(false),
+    });
   }
 
   ngOnDestroy(): void {
@@ -105,6 +138,12 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
     this.refreshPendingCount();
   }
 
+  /** The Sort menu picked a new ordering — applies instantly. */
+  protected onSortChange(value: string): void {
+    this.sort.set(value === 'Proximity' && this.hasHomeCity() ? 'Proximity' : 'DisplayNameAsc');
+    this.reload();
+  }
+
   protected removeChip(key: string): void {
     if (key.startsWith('pos:')) {
       const value = key.slice(4) as Pompfe;
@@ -119,6 +158,7 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
     this.query.set('');
     this.positions.set([]);
     this.city.set('');
+    this.sort.set('DisplayNameAsc');
     this.reload();
   }
 
@@ -143,7 +183,7 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
       q: this.query() || undefined,
       positions: this.positions().length ? this.positions() : undefined,
       country: this.city().trim() || undefined,
-      sort: 'DisplayNameAsc',
+      sort: this.sort(),
     };
   }
 
