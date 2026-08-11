@@ -66,7 +66,7 @@ public sealed class EmailLanguageTests
         // leave accented characters alone, or every German and Spanish email turns into numeric
         // entities. This assertion is what pins that.
         Assert.Contains("Du erhältst diese E-Mail", mail!.HtmlBody, StringComparison.Ordinal);
-        Assert.Contains("Benachrichtigungen verwalten", mail.HtmlBody, StringComparison.Ordinal);
+        Assert.Contains("Meldungen verwalten", mail.HtmlBody, StringComparison.Ordinal);
         Assert.DoesNotContain("getting this because", mail.HtmlBody, StringComparison.Ordinal);
     }
 }

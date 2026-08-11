@@ -522,7 +522,7 @@
     "title": "Konto",
     "subtitle": "Geschützte Beispielseite — du siehst sie nur im angemeldeten Zustand.",
     "signedInAs": "Angemeldet als",
-    "notificationSettings": "Benachrichtigungseinstellungen",
+    "notificationSettings": "Meldungseinstellungen",
     "delete": {
       "dangerZone": "Gefahrenbereich",
       "hint": "Wenn du dein Konto löschst, verschwindet dein Profil — das lässt sich nicht rückgängig machen.",
@@ -536,7 +536,7 @@
         "Photo": "Dein Profilfoto",
         "Email": "Deine E-Mail-Adresse und dein Passwort",
         "Memberships": "Deine Teams, Events, Partys und Trainingsantworten",
-        "Notifications": "Deine Benachrichtigungen und deren Einstellungen",
+        "Notifications": "Deine Meldungen und deren Einstellungen",
         "Sessions": "Jede angemeldete Sitzung auf allen Geräten"
       },
       "retainedIntro": "Was bleibt — damit rechnen die wenigsten:",
@@ -569,7 +569,7 @@
   },
   "settings": {
     "notifications": {
-      "title": "Benachrichtigungseinstellungen",
+      "title": "Meldungseinstellungen",
       "subtitle": "Wähle, wie du von Dingen erfährst. Änderungen werden automatisch gespeichert — es gibt keinen Speichern-Button.",
       "saveError": "Wir konnten diese Änderung nicht speichern. Prüfe deine Verbindung und versuche den Schalter erneut.",
       "loadErrorTitle": "Wir konnten deine Einstellungen nicht laden",
@@ -722,7 +722,7 @@
     "browse": "Entdecken",
     "myTeam": "Mein Team",
     "chat": "Chat",
-    "alerts": "Benachrichtigungen"
+    "alerts": "Meldungen"
   },
   "legal": {
     "footerLabel": "Rechtliches und Seiteninformationen",
@@ -1118,16 +1118,16 @@
     }
   },
   "alerts": {
-    "title": "Benachrichtigungen",
+    "title": "Meldungen",
     "markAllRead": "Alle als gelesen markieren",
-    "loadError": "Wir konnten deine Benachrichtigungen nicht laden",
+    "loadError": "Wir konnten deine Meldungen nicht laden",
     "loadErrorHint": "Bei uns ist etwas schiefgelaufen. Versuche es noch einmal.",
     "emptyTitle": "Du bist auf dem neuesten Stand",
     "emptyHint": "Sobald es etwas gibt — eine Team-Einladung, eine Rollenänderung, ein Neuigkeiten-Beitrag — erscheint es hier.",
     "showOlder": "Ältere anzeigen",
     "row": {
       "unread": "Ungelesen",
-      "fallbackTitle": "Benachrichtigung",
+      "fallbackTitle": "Meldung",
       "teamInviteTitle": "Einladung zu {{team}}",
       "roleChangedTitleAdmin": "Du bist jetzt Admin von {{team}}",
       "roleChangedTitleMember": "Du bist jetzt Mitglied von {{team}}",
@@ -1173,7 +1173,7 @@
       "setByEvent": "vom Event festgelegt",
       "messageToTeam": "Nachricht an das Team",
       "messagePlaceholder": "Wer ist bei diesem dabei?",
-      "postsRequest": "Das schickt eine Anfrage an alle Team-Mitglieder — sie erhalten eine Benachrichtigung und können zu- oder absagen.",
+      "postsRequest": "Das schickt eine Anfrage an alle Team-Mitglieder — sie erhalten eine Meldung und können zu- oder absagen.",
       "submit": "Party gründen & Team fragen",
       "error": "Die Party konnte nicht gegründet werden."
     },
