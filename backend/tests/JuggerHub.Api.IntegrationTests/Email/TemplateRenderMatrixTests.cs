@@ -80,7 +80,7 @@ public sealed class TemplateRenderMatrixTests
 
         Assert.DoesNotContain("&#2", de, StringComparison.Ordinal);
         Assert.DoesNotContain("&#2", es, StringComparison.Ordinal);
-        Assert.Contains("Benachrichtigungen verwalten", de, StringComparison.Ordinal);
+        Assert.Contains("Meldungen verwalten", de, StringComparison.Ordinal);
         Assert.Contains("Gestionar notificaciones", es, StringComparison.Ordinal);
     }
 
