@@ -12,6 +12,7 @@ import {
   ResetPasswordRequest,
   VerifyEmailRequest,
 } from '../models/auth.models';
+import { WizardDraftStore } from '../drafts/wizard-draft.store';
 
 /**
  * Real client-side auth state + API. The server is the security boundary (tokens
@@ -23,6 +24,14 @@ import {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
+  /**
+   * Unfinished create-wizard drafts are cleared whenever the session ends (feature 045, FR-011).
+   * These two points — a deliberate `logout()` and the interceptor's `clearSession()` after a failed
+   * refresh — are the only places the client concludes the session is over, so clearing here means
+   * no component has to remember. It is what stops a shared device handing the next person a
+   * half-filled event including the previous person's fee recipient and account number.
+   */
+  private readonly drafts = inject(WizardDraftStore);
   private readonly base = '/api/v1/auth';
 
   private readonly user = signal<AuthUser | null | undefined>(undefined);
@@ -56,9 +65,12 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    return this.http
-      .post<void>(`${this.base}/logout`, {})
-      .pipe(tap(() => this.user.set(null)));
+    return this.http.post<void>(`${this.base}/logout`, {}).pipe(
+      tap(() => {
+        this.user.set(null);
+        this.drafts.clearAll();
+      }),
+    );
   }
 
   forgotPassword(request: ForgotPasswordRequest): Observable<MessageResponse> {
@@ -111,6 +123,7 @@ export class AuthService {
   /** Clears local auth state (used by the interceptor when refresh fails). */
   clearSession(): void {
     this.user.set(null);
+    this.drafts.clearAll();
   }
 
   /**
