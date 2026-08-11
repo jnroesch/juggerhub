@@ -16,7 +16,7 @@ export type LocationKind = 'InPerson' | 'Virtual';
 // Feature 030 — 'Proximity' is the opt-in nearest-first sort (requires a home city).
 export type TeamSort = 'NameAsc' | 'Proximity';
 export type EventSort = 'StartsAtAsc' | 'Proximity';
-export type PlayerSort = 'DisplayNameAsc';
+export type PlayerSort = 'DisplayNameAsc' | 'Proximity';
 // Feature 043 — public-training browse.
 export type TrainingSort = 'SessionDateAsc' | 'Proximity';
 

@@ -24,6 +24,19 @@ public enum EventSort
 public enum PlayerSort
 {
     DisplayNameAsc = 0,
+
+    /// <summary>
+    /// Feature 030 pattern — nearest-first, measured from the caller's home city to the player's
+    /// home city. <b>Requires a home city</b>: the controller returns 409 when the caller has none
+    /// rather than silently answering with a different ordering. Players who have set no home city
+    /// are excluded from this view entirely (the distance join has no row for them).
+    /// <para>
+    /// City-granular, exactly like the teams and events orderings: it ranks by the distance between
+    /// two <em>cities</em> that are already shown on the cards and already filterable, so it
+    /// discloses nothing a viewer could not read off the list.
+    /// </para>
+    /// </summary>
+    Proximity = 1,
 }
 
 /// <summary>

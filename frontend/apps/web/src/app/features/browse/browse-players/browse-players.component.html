@@ -1,7 +1,10 @@
 <jh-browse-shell
   [title]="'browse.tabPlayers' | transloco"
   [searchPlaceholder]="'browse.players.searchPlaceholder' | transloco"
-  [note]="'browse.players.note' | transloco"
+  [note]="note()"
+  [sortOptions]="sortOptions()"
+  [activeSort]="sort()"
+  (sortChange)="onSortChange($event)"
   [chips]="chips()"
   [activeFilterCount]="activeFilterCount()"
   [state]="list.state()"

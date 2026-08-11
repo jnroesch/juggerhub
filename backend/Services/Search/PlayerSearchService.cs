@@ -16,8 +16,13 @@ namespace JuggerHub.Services.Search;
 /// </summary>
 public interface IPlayerSearchService
 {
+    /// <remarks>
+    /// <paramref name="homeCityId"/> is the caller's home city, required only for
+    /// <see cref="PlayerSort.Proximity"/>; when null under that sort the service falls back to the
+    /// default ordering (the controller returns 409 first).
+    /// </remarks>
     Task<PagedResult<PlayerCardDto>> BrowseAsync(
-        PlayerBrowseQuery query, PaginationRequest pagination, CancellationToken ct = default);
+        PlayerBrowseQuery query, PaginationRequest pagination, Guid? homeCityId = null, CancellationToken ct = default);
 }
 
 /// <inheritdoc />
@@ -33,7 +38,7 @@ public sealed class PlayerSearchService : IPlayerSearchService
     }
 
     public async Task<PagedResult<PlayerCardDto>> BrowseAsync(
-        PlayerBrowseQuery query, PaginationRequest pagination, CancellationToken ct = default)
+        PlayerBrowseQuery query, PaginationRequest pagination, Guid? homeCityId = null, CancellationToken ct = default)
     {
         // All non-banned players are browseable (the AppearInSearch opt-in was removed in feature
         // 020). Banned accounts are still excluded by the global PlayerProfile query filter.
@@ -68,23 +73,57 @@ public sealed class PlayerSearchService : IPlayerSearchService
         }
 
         var total = await q.CountAsync(ct);
-        var items = await q
-            .OrderBy(p => p.DisplayName)
-            .ThenBy(p => p.Id) // stable tiebreaker
+
+        var useProximity = query.Sort == PlayerSort.Proximity && homeCityId is not null;
+        var page = useProximity
+            ? ProximityPage(q, homeCityId!.Value, pagination)
+            : q.OrderBy(p => p.DisplayName)
+                .ThenBy(p => p.Id) // stable tiebreaker
+                .Skip(pagination.NormalizedSkip).Take(pagination.NormalizedTake)
+                .Select(PlayerCardProjection());
+
+        var items = await page.ToListAsync(ct);
+
+        // Proximity excludes players with no home city — the join drops them — so a proximity page
+        // may be shorter than the unfiltered total. Report the count that matches the view, using
+        // the join's own predicate (mirrors TeamSearchService; counting before the join, as the
+        // events service still does, overstates the page).
+        var effectiveTotal = useProximity
+            ? await q.CountAsync(p => p.HomeCityId != null && _db.CityDistances.Any(
+                d => d.FromCityId == homeCityId!.Value && d.ToCityId == p.HomeCityId), ct)
+            : total;
+
+        return new PagedResult<PlayerCardDto>(
+            items, effectiveTotal, pagination.NormalizedSkip, pagination.NormalizedTake);
+    }
+
+    // Nearest-first via the CityDistance cache, anchored on the caller's home city. Players with no
+    // home city are excluded (the join has no row); ties break on Id (feature 030, FR-011/FR-012).
+    private IQueryable<PlayerCardDto> ProximityPage(
+        IQueryable<PlayerProfile> q, Guid homeCityId, PaginationRequest pagination)
+    {
+        var ordered =
+            from p in q
+            join d in _db.CityDistances.Where(cd => cd.FromCityId == homeCityId)
+                on p.HomeCityId equals (Guid?)d.ToCityId
+            orderby d.DistanceKm, p.Id
+            select p;
+
+        return ordered
             .Skip(pagination.NormalizedSkip)
             .Take(pagination.NormalizedTake)
-            .Select(p => new PlayerCardDto(
-                p.Handle,
-                p.DisplayName,
-                p.HomeCity == null
-                    ? null
-                    : new LocationDto(
-                        p.HomeCity.ExternalId, p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
-                        p.HomeCity.Name + ", " + p.HomeCity.CountryName),
-                p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList(),
-                p.Avatar != null))
-            .ToListAsync(ct);
-
-        return new PagedResult<PlayerCardDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
+            .Select(PlayerCardProjection());
     }
+
+    private static System.Linq.Expressions.Expression<Func<PlayerProfile, PlayerCardDto>> PlayerCardProjection() =>
+        p => new PlayerCardDto(
+            p.Handle,
+            p.DisplayName,
+            p.HomeCity == null
+                ? null
+                : new LocationDto(
+                    p.HomeCity.ExternalId, p.HomeCity.Name, p.HomeCity.Region, p.HomeCity.CountryName, p.HomeCity.CountryCode,
+                    p.HomeCity.Name + ", " + p.HomeCity.CountryName),
+            p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList(),
+            p.Avatar != null);
 }
