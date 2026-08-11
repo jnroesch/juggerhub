@@ -50,26 +50,34 @@ public sealed class ProfileService : IProfileService
     {
         var check = await ResolveHandleForRegistrationAsync(rawHandle, ct);
         return new HandleAvailabilityDto(
-            rawHandle, check.Normalized, check.Status == HandleCheckStatus.Available, check.Reason);
+            rawHandle,
+            check.Normalized,
+            check.Status == HandleCheckStatus.Available,
+            check.Reason == HandleRejection.None ? null : check.Reason);
     }
 
     public async Task<HandleCheck> ResolveHandleForRegistrationAsync(string rawHandle, CancellationToken ct = default)
     {
-        // Validate the trimmed input as-typed: the lowercase-only format rules reject
-        // uppercase/spaces/symbols outright (spec US1 AS-3) rather than silently
-        // rewriting them. A valid handle is therefore already its canonical form.
-        var candidate = (rawHandle ?? string.Empty).Trim();
+        // Case is FOLDED, not refused. `Nik-Berlin` and `nik-berlin` are not two different
+        // handles — the second is what the first means — so refusing the capital teaches the
+        // rule only by breaking it, and the uniqueness check below would otherwise treat the
+        // two as distinct. Normalize is the same function every read path already resolves a
+        // handle through, so what is checked here is exactly what would be stored and served.
+        // Everything the format genuinely disallows — spaces, accents, punctuation — still
+        // fails Validate, which is what a pasted display name trips on.
+        var candidate = HandlePolicy.Normalize(rawHandle);
         var rejection = HandlePolicy.Validate(candidate, _options.HandleMinLength, _options.HandleMaxLength);
         if (rejection != HandleRejection.None)
         {
-            return new HandleCheck(HandleCheckStatus.Invalid, candidate,
+            return new HandleCheck(HandleCheckStatus.Invalid, candidate, rejection,
                 HandlePolicy.Describe(rejection, _options.HandleMinLength, _options.HandleMaxLength));
         }
 
         var taken = await _db.PlayerProfiles.AsNoTracking().AnyAsync(p => p.Handle == candidate, ct);
         return taken
-            ? new HandleCheck(HandleCheckStatus.Taken, candidate, "That handle isn't available.")
-            : new HandleCheck(HandleCheckStatus.Available, candidate, null);
+            ? new HandleCheck(HandleCheckStatus.Taken, candidate, HandleRejection.Taken,
+                HandlePolicy.Describe(HandleRejection.Taken, _options.HandleMinLength, _options.HandleMaxLength))
+            : new HandleCheck(HandleCheckStatus.Available, candidate, HandleRejection.None, null);
     }
 
     public async Task<OwnerProfileDto?> GetOwnerAsync(Guid userId, CancellationToken ct = default)

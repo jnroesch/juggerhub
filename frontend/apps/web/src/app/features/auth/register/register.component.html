@@ -45,6 +45,7 @@
               autocomplete="off"
               autocapitalize="none"
               spellcheck="false"
+              jhLowercase
               formControlName="handle"
               data-testid="register-handle"
               placeholder="your-handle"
@@ -54,14 +55,22 @@
               @case ('checking') { <span class="pr-md text-body-sm text-subtle">…</span> }
               @case ('available') { <span class="pr-md text-body-sm text-success" data-testid="handle-available">✓</span> }
               @case ('unavailable') { <span class="pr-md text-body-sm text-danger" data-testid="handle-unavailable">✕</span> }
+              @case ('failed') { <span class="pr-md text-body-sm text-danger" data-testid="handle-check-failed">!</span> }
             }
           </div>
           <!-- break-words: host + handle is one unbreakable token and can exceed a phone's width. -->
           <p class="mt-xs break-words text-body-sm text-subtle">
             {{ 'auth.register.permalinkLabel' | transloco }} <span class="font-medium text-text">{{ appHost }}/u/{{ form.controls.handle.value || 'your-handle' }}</span> {{ 'auth.register.permalinkNote' | transloco }}
           </p>
-          @if (handleState() === 'unavailable' && handleReason()) {
-            <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ handleReason() }}</p>
+          <!-- The handle is permanent, so say plainly that the name people read is not. -->
+          <p class="mt-xs text-body-sm text-faint">{{ 'auth.register.displayNameNote' | transloco }}</p>
+          @if (handleState() === 'unavailable' && handleReasonKey(); as reasonKey) {
+            <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ reasonKey | transloco: reasonParams }}</p>
+          } @else if (handleState() === 'failed') {
+            <!-- Submit is blocked until a check succeeds, so say why rather than leaving a dead button. -->
+            <p class="mt-xs text-body-sm text-danger-fg" data-testid="handle-check-failed-message" role="alert">
+              {{ 'auth.register.handleCheckFailed' | transloco }}
+            </p>
           }
         </div>
 

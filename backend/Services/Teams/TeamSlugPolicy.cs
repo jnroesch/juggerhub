@@ -3,8 +3,10 @@ using System.Text.RegularExpressions;
 namespace JuggerHub.Services.Teams;
 
 /// <summary>
-/// The reason a team slug was rejected (used to shape UX messages). <see cref="None"/>
-/// means the slug is well-formed and not reserved (uniqueness is checked separately).
+/// The reason a team slug was refused. Travels to the client as the <c>reason</c> on the
+/// availability response, so the UI renders its own translated sentence instead of the
+/// English prose <see cref="TeamSlugPolicy.Describe"/> produces for API error bodies.
+/// <see cref="None"/> means the slug is well-formed and not reserved.
 /// </summary>
 public enum SlugRejection
 {
@@ -14,6 +16,12 @@ public enum SlugRejection
     TooLong,
     InvalidFormat,
     Reserved,
+
+    /// <summary>
+    /// Already claimed. Never returned by <see cref="TeamSlugPolicy.Validate"/> — that method
+    /// never touches the database; the caller performing the uniqueness check sets it.
+    /// </summary>
+    Taken,
 }
 
 /// <summary>
@@ -78,8 +86,10 @@ public static partial class TeamSlugPolicy
         SlugRejection.Empty => "Choose a team address.",
         SlugRejection.TooShort => $"Use at least {minLength} characters.",
         SlugRejection.TooLong => $"Use at most {maxLength} characters.",
-        SlugRejection.InvalidFormat => "Use lowercase letters, numbers, and single hyphens.",
+        // Case is folded by Normalize rather than refused, so this must not name it as a rule.
+        SlugRejection.InvalidFormat => "Use letters, numbers, and single hyphens — no spaces or accents.",
         SlugRejection.Reserved => "That team address isn't available.",
+        SlugRejection.Taken => "That team address isn't available.",
         _ => "That team address isn't available.",
     };
 }

@@ -50,7 +50,18 @@ public enum CompleteOnboardingStatus
 }
 
 /// <summary>Result of resolving a handle for registration, incl. its normalized form.</summary>
-public readonly record struct HandleCheck(HandleCheckStatus Status, string Normalized, string? Reason);
+/// <param name="Status">Available, malformed, or already claimed.</param>
+/// <param name="Normalized">The canonical form — this, not the raw input, is what gets stored.</param>
+/// <param name="Reason">
+/// Machine-readable refusal (<see cref="HandleRejection.None"/> when acceptable). This is what
+/// reaches the client, so the UI can render the sentence in the reader's own language.
+/// </param>
+/// <param name="ReasonText">
+/// The same refusal as English prose, for API error bodies (<c>ProblemDetails</c>), which are
+/// English throughout. Resolved here because only this service knows the configured bounds.
+/// </param>
+public readonly record struct HandleCheck(
+    HandleCheckStatus Status, string Normalized, HandleRejection Reason, string? ReasonText);
 
 /// <summary>Result of an avatar upload (carries a reason for non-success outcomes).</summary>
 public sealed record AvatarSetResult(AvatarSetStatus Status, string? Reason)

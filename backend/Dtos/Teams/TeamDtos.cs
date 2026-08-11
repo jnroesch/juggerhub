@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using JuggerHub.Dtos.Cities;
 using JuggerHub.Entities;
+using JuggerHub.Services.Teams;
 
 namespace JuggerHub.Dtos.Teams;
 
@@ -26,10 +27,17 @@ public enum InviteState
 // --- Requests ---------------------------------------------------------------
 
 /// <summary>Create a team. The <see cref="Slug"/> format/reserved/uniqueness and the
-/// city rule (required iff CityTeam) are enforced server-side.</summary>
+/// city rule (required iff CityTeam) are enforced server-side.
+/// <para>
+/// The slug carries NO format attribute on purpose. <c>TeamSlugPolicy</c> folds case before it
+/// validates, and a <c>RegularExpression</c> here would run first — 400-ing <c>Rheinfeuer</c> at
+/// model binding while the availability endpoint, which has no such attribute, had just answered
+/// "available, normalized rheinfeuer" for the very same input. Length and presence stay here as
+/// payload guards; the format rule lives in exactly one place.
+/// </para></summary>
 public sealed record CreateTeamRequest(
     [Required, MinLength(2), MaxLength(50)] string Name,
-    [Required, MaxLength(30), RegularExpression("^[a-z0-9]+(?:-[a-z0-9]+)*$", ErrorMessage = "Use lowercase letters, numbers, and single hyphens.")] string Slug,
+    [Required, MaxLength(30)] string Slug,
     [Required] TeamType Type,
     // Feature 030 — structured home city selection (required for a CityTeam, null for a Mixteam).
     LocationSelectionDto? Location);
@@ -186,4 +194,12 @@ public sealed record MyInvitationDto(
 public sealed record AcceptInviteResultDto(string TeamSlug);
 
 /// <summary>Result of a live team-slug availability/format check (UX aid; not a security boundary).</summary>
-public sealed record SlugAvailabilityDto(string Slug, string Normalized, bool Available, string? Reason);
+/// <param name="Slug">Echoed back exactly as submitted.</param>
+/// <param name="Normalized">What the slug would actually be stored and served as — case folded.</param>
+/// <param name="Available">True when the normalized slug is well-formed and unclaimed.</param>
+/// <param name="Reason">
+/// Why it was refused, or null when available. A code rather than a sentence: the caller
+/// renders it in the reader's own language (the API's own error prose is English-only).
+/// </param>
+public sealed record SlugAvailabilityDto(
+    string Slug, string Normalized, bool Available, SlugRejection? Reason);

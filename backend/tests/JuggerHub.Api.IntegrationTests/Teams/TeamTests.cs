@@ -67,10 +67,10 @@ public sealed class TeamTests
 
     [Theory]
     [InlineData("Has Space")]
-    [InlineData("UPPER")]
     [InlineData("ab")]
-    [InlineData("new")]   // reserved
-    [InlineData("join")]  // reserved
+    [InlineData("new")]     // reserved
+    [InlineData("join")]    // reserved
+    [InlineData("NEW")]     // reserved, and case is folded before the reserved list is consulted
     public async Task Malformed_or_reserved_slug_is_rejected_with_400(string slug)
     {
         var (client, _, _, _) = await NewUserAsync();
@@ -109,6 +109,46 @@ public sealed class TeamTests
         Assert.False(taken.GetProperty("available").GetBoolean());
         Assert.False(reserved.GetProperty("available").GetBoolean());
         Assert.True(free.GetProperty("available").GetBoolean());
+
+        // The refusal travels as a CODE, not a sentence: the UI owns the wording, in its own
+        // language. A prose reason here would be English for every reader.
+        Assert.Equal("Taken", taken.GetProperty("reason").GetString());
+        Assert.Equal("Reserved", reserved.GetProperty("reason").GetString());
+        Assert.Equal(JsonValueKind.Null, free.GetProperty("reason").ValueKind);
+    }
+
+    [Fact]
+    public async Task Create_folds_slug_case_instead_of_400ing_on_it()
+    {
+        var (client, _, _, _) = await NewUserAsync();
+        var slug = NewSlug();
+
+        // Before this, the availability endpoint (which folds) answered "available, normalized
+        // <lowercase>" while POST /teams rejected the very same string at model binding.
+        var check = await client.GetFromJsonAsync<JsonElement>(
+            $"/api/v1/teams/slug-available?slug={slug.ToUpperInvariant()}");
+        Assert.True(check.GetProperty("available").GetBoolean());
+        Assert.Equal(slug, check.GetProperty("normalized").GetString());
+
+        var resp = await client.PostAsJsonAsync("/api/v1/teams",
+            new { name = "Rheinfeuer", slug = slug.ToUpperInvariant(), type = "Mixteam", location = (object?)null });
+
+        Assert.Equal(HttpStatusCode.Created, resp.StatusCode);
+        var dto = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(slug, dto.GetProperty("slug").GetString());
+    }
+
+    [Fact]
+    public async Task Create_still_rejects_a_slug_that_is_malformed_beyond_its_case()
+    {
+        var (client, _, _, _) = await NewUserAsync();
+
+        // Folding case must not become "accept anything and mangle it": a pasted team name still
+        // fails, which is what keeps the format warning meaningful.
+        var resp = await client.PostAsJsonAsync("/api/v1/teams",
+            new { name = "Rheinfeuer", slug = "Rhein Feuer", type = "Mixteam", location = (object?)null });
+
+        Assert.Equal(HttpStatusCode.BadRequest, resp.StatusCode);
     }
 
     // --- US2: visibility ------------------------------------------------------

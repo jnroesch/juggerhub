@@ -90,12 +90,12 @@ public sealed class AuthService : IAuthService
         var handleCheck = await _profiles.ResolveHandleForRegistrationAsync(request.Handle, ct);
         if (handleCheck.Status == HandleCheckStatus.Invalid)
         {
-            return RegisterResult.HandleInvalid(handleCheck.Reason ?? "That handle isn't available.");
+            return RegisterResult.HandleInvalid(handleCheck.ReasonText ?? "That handle isn't available.");
         }
 
         if (handleCheck.Status == HandleCheckStatus.Taken)
         {
-            return RegisterResult.HandleTaken(handleCheck.Reason ?? "That handle isn't available.");
+            return RegisterResult.HandleTaken(handleCheck.ReasonText ?? "That handle isn't available.");
         }
 
         var existing = await _userManager.FindByEmailAsync(email);

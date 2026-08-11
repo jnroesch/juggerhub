@@ -87,6 +87,155 @@ describe('RegisterComponent', () => {
     instance.passwordValid.set(true);
   }
 
+  describe('handle field', () => {
+    /** Drives the two signals the availability pipeline would otherwise set after a debounce. */
+    function setReason(fixture: ComponentFixture<RegisterComponent>, reason: string): void {
+      const instance = fixture.componentInstance as unknown as {
+        handleState: { set: (v: string) => void };
+        handleReason: { set: (v: string) => void };
+      };
+      instance.handleState.set('unavailable');
+      instance.handleReason.set(reason);
+      fixture.detectChanges();
+    }
+
+    function reasonText(fixture: ComponentFixture<RegisterComponent>): string {
+      return fixture.nativeElement.querySelector('[role="alert"]')?.textContent?.trim() ?? '';
+    }
+
+    it('renders the refusal from the catalogue, not the code the server sent', () => {
+      const fixture = createComponent();
+
+      setReason(fixture, 'Taken');
+
+      // The visible sentence must come from the catalogue: the server's `reason` is a code, and
+      // its own prose would have been English for a German or Spanish reader.
+      expect(reasonText(fixture)).toBe("That handle isn't available.");
+    });
+
+    it('interpolates the bounds into a length refusal', () => {
+      const fixture = createComponent();
+
+      setReason(fixture, 'TooShort');
+
+      expect(reasonText(fixture)).toBe('Use at least 3 characters.');
+    });
+
+    it('names the rule that was actually broken rather than one blanket message', () => {
+      const fixture = createComponent();
+
+      // Two characters is short but well-formed; the reader should be told about the length.
+      form(fixture).get('handle')!.setValue('ab');
+      setReason(fixture, 'TooShort');
+      expect(reasonText(fixture)).toBe('Use at least 3 characters.');
+
+      setReason(fixture, 'InvalidFormat');
+      expect(reasonText(fixture)).toContain('letters, numbers, and single hyphens');
+    });
+
+    /**
+     * The pipeline itself, on real timers-worth of debounce. The signal-driven tests above set
+     * the end states; these cover the windows *between* them, where submit used to ride on a
+     * verdict about a handle that had already been edited away.
+     */
+    describe('availability pipeline', () => {
+      beforeEach(() => jest.useFakeTimers()); // the check debounces 350ms
+      afterEach(() => jest.useRealTimers());
+
+      function typeHandle(fixture: ComponentFixture<RegisterComponent>, value: string): void {
+        const input = el(fixture, 'register-handle') as HTMLInputElement;
+        input.value = value;
+        input.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
+      }
+
+      function checkRequest() {
+        return httpMock.expectOne((r) => r.url === '/api/v1/auth/handle-available');
+      }
+
+      /** Everything except the handle, which each test drives through the real input. */
+      function fillRest(fixture: ComponentFixture<RegisterComponent>): void {
+        form(fixture).patchValue({ ...VALID_FORM, handle: '' });
+        (fixture.componentInstance as unknown as { passwordValid: { set: (v: boolean) => void } })
+          .passwordValid.set(true);
+      }
+
+      it('drops the previous verdict on the keystroke, not after the debounce', () => {
+        const fixture = createComponent();
+        fillRest(fixture);
+
+        typeHandle(fixture, 'nik');
+        jest.advanceTimersByTime(350);
+        checkRequest().flush({ available: true, normalized: 'nik', reason: null });
+        fixture.detectChanges();
+        expect(submitButton(fixture).disabled).toBe(false);
+
+        // Edited but not yet re-checked: the old "available" says nothing about this handle.
+        typeHandle(fixture, 'nikolas');
+        expect(submitButton(fixture).disabled).toBe(true);
+
+        jest.advanceTimersByTime(350);
+        checkRequest().flush({ available: false, normalized: 'nikolas', reason: 'Taken' });
+        fixture.detectChanges();
+        expect(submitButton(fixture).disabled).toBe(true);
+      });
+
+      it('re-checks a handle typed, deleted, and typed again', () => {
+        const fixture = createComponent();
+        fillRest(fixture);
+
+        typeHandle(fixture, 'nik');
+        jest.advanceTimersByTime(350);
+        checkRequest().flush({ available: true, normalized: 'nik', reason: null });
+        fixture.detectChanges();
+
+        // Back to the same value: with the dedup behind the debounce this was swallowed as
+        // "unchanged", stranding the field on idle with nothing in flight.
+        typeHandle(fixture, 'nikk');
+        typeHandle(fixture, 'nik');
+        jest.advanceTimersByTime(350);
+        checkRequest().flush({ available: true, normalized: 'nik', reason: null });
+        fixture.detectChanges();
+
+        expect(submitButton(fixture).disabled).toBe(false);
+      });
+
+      /**
+       * A failed check leaves availability unknown, so submit stays blocked — which is why the
+       * failure has to be both said out loud and recoverable. Before, the error tore the
+       * subscription down: the field stuck on "checking" and no later keystroke was checked.
+       */
+      it('says the check failed and still checks the next handle typed', () => {
+        const fixture = createComponent();
+        fillRest(fixture);
+
+        typeHandle(fixture, 'nik');
+        jest.advanceTimersByTime(350);
+        checkRequest().error(new ProgressEvent('network error'));
+        fixture.detectChanges();
+
+        expect(submitButton(fixture).disabled).toBe(true);
+        expect(el(fixture, 'handle-check-failed-message')).not.toBeNull();
+
+        typeHandle(fixture, 'nikolas');
+        jest.advanceTimersByTime(350);
+        checkRequest().flush({ available: true, normalized: 'nikolas', reason: null });
+        fixture.detectChanges();
+
+        expect(el(fixture, 'handle-check-failed-message')).toBeNull();
+        expect(submitButton(fixture).disabled).toBe(false);
+      });
+    });
+
+    it('tells the reader the handle is not the name people will read', () => {
+      const fixture = createComponent();
+
+      // The handle is permanent and chosen under time pressure; without this, picking one reads
+      // like naming yourself forever.
+      expect(fixture.nativeElement.textContent).toContain('you can set a display name on your profile later');
+    });
+  });
+
   it('flags a password mismatch and clears it once they match', () => {
     const fixture = createComponent();
 
