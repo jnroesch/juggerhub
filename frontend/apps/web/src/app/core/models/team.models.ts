@@ -4,6 +4,7 @@
  * anonymous. Enums are serialized as names by the backend.
  */
 import { Location, LocationSelection } from './city.models';
+import { IdentifierRejection } from './identifier.models';
 import { Pompfe } from '../../shared/pompfen.catalog';
 import { ActivityItem, PagedResult } from './profile.models';
 import { EarnedRecognition } from './recognition.models';
@@ -162,5 +163,6 @@ export interface SlugAvailability {
   slug: string;
   normalized: string;
   available: boolean;
-  reason: string | null;
+  /** A code, translated client-side — see {@link IdentifierRejection}. */
+  reason: IdentifierRejection | null;
 }

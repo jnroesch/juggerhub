@@ -63,13 +63,11 @@ public sealed class TeamService : ITeamService
         var rejection = TeamSlugPolicy.Validate(normalized, _options.SlugMinLength, _options.SlugMaxLength);
         if (rejection != SlugRejection.None)
         {
-            return new SlugAvailabilityDto(rawSlug, normalized, false,
-                TeamSlugPolicy.Describe(rejection, _options.SlugMinLength, _options.SlugMaxLength));
+            return new SlugAvailabilityDto(rawSlug, normalized, false, rejection);
         }
 
         var taken = await _db.Teams.AsNoTracking().AnyAsync(t => t.Slug == normalized, ct);
-        return new SlugAvailabilityDto(rawSlug, normalized, !taken,
-            taken ? "That team address isn't available." : null);
+        return new SlugAvailabilityDto(rawSlug, normalized, !taken, taken ? SlugRejection.Taken : null);
     }
 
     public async Task<CreateTeamResult> CreateAsync(Guid userId, CreateTeamRequest request, CancellationToken ct = default)

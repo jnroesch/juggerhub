@@ -62,17 +62,27 @@
       "name": "Nombre del equipo",
       "address": "Handle del equipo",
       "checking": "Comprobando…",
+      "checkFailed": "No se pudo comprobar ese handle. Revisa tu conexión e inténtalo de nuevo.",
       "slugAvailable": "✓ /t/{{slug}} está disponible",
       "slugUnavailable": "Ese handle no está disponible.",
-      "slugHint": "Tu enlace permanente — minúsculas, números, guiones. No se puede cambiar más adelante.",
+      "slugHint": "Tu enlace permanente — letras, números, guiones. Las mayúsculas pasan a minúsculas. No se puede cambiar más adelante.",
       "type": "Tipo de equipo",
       "cityTeam": "Equipo de ciudad",
       "mixteam": "Mixteam",
       "city": "Ciudad",
       "cityHint": "Los equipos de ciudad aparecen cuando los jugadores buscan en su zona.",
+      "cityRequired": "Elige una ciudad para continuar.",
       "mixteamNote": "No hace falta ciudad. Un Mixteam son jugadores de distintas ciudades que compiten juntos en torneos.",
       "submit": "Crear equipo",
-      "submitting": "Creando…"
+      "submitting": "Creando…",
+      "slugReason": {
+        "empty": "Elige un handle de equipo.",
+        "tooShort": "Usa al menos {{min}} caracteres.",
+        "tooLong": "Usa como máximo {{max}} caracteres.",
+        "invalidFormat": "Usa letras, números y guiones simples — sin espacios ni acentos.",
+        "reserved": "Ese handle no está disponible.",
+        "taken": "Ese handle no está disponible."
+      }
     },
     "settings": {
       "title": "Ajustes del equipo",
@@ -774,7 +784,9 @@
       "termsUnavailable": "No hemos podido cargar las condiciones de uso, así que todavía no puedes aceptarlas. Comprueba tu conexión y recarga la página.",
       "submit": "Crear cuenta",
       "submitting": "Creando cuenta…",
-      "haveAccount": "¿Ya tienes una cuenta?"
+      "haveAccount": "¿Ya tienes una cuenta?",
+      "displayNameNote": "Esta es tu dirección, no tu nombre — podrás elegir un nombre visible en tu perfil más adelante.",
+      "handleCheckFailed": "No se pudo comprobar ese handle. Revisa tu conexión e inténtalo de nuevo."
     },
     "forgot": {
       "title": "¿Olvidaste tu contraseña?",
@@ -807,6 +819,14 @@
       "failedBody": "Este enlace de verificación no es válido o ha caducado. Introduce tu correo para obtener uno nuevo.",
       "resent": "Si esa cuenta necesita verificación, ya va en camino un nuevo enlace.",
       "resend": "Reenviar correo de verificación"
+    },
+    "handleReason": {
+      "empty": "Elige un usuario.",
+      "tooShort": "Usa al menos {{min}} caracteres.",
+      "tooLong": "Usa como máximo {{max}} caracteres.",
+      "invalidFormat": "Usa letras, números y guiones simples — sin espacios ni acentos.",
+      "reserved": "Ese usuario no está disponible.",
+      "taken": "Ese usuario no está disponible."
     }
   },
   "onboarding": {

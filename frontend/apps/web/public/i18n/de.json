@@ -62,17 +62,27 @@
       "name": "Teamname",
       "address": "Team-Handle",
       "checking": "Wird geprüft…",
+      "checkFailed": "Das Handle konnte nicht geprüft werden. Prüfe deine Verbindung und versuch es noch mal.",
       "slugAvailable": "✓ /t/{{slug}} ist verfügbar",
       "slugUnavailable": "Dieses Handle ist nicht verfügbar.",
-      "slugHint": "Dein dauerhafter Link — Kleinbuchstaben, Zahlen, Bindestriche. Später nicht änderbar.",
+      "slugHint": "Dein dauerhafter Link — Buchstaben, Zahlen, Bindestriche. Großbuchstaben werden klein. Später nicht änderbar.",
       "type": "Teamart",
       "cityTeam": "Stadtteam",
       "mixteam": "Mixteam",
       "city": "Stadt",
       "cityHint": "Stadtteams erscheinen, wenn Spieler in ihrer Umgebung suchen.",
+      "cityRequired": "Wähle eine Stadt, um fortzufahren.",
       "mixteamNote": "Keine Stadt nötig. Ein Mixteam sind Spieler aus verschiedenen Städten, die gemeinsam an Turnieren teilnehmen.",
       "submit": "Team erstellen",
-      "submitting": "Wird erstellt…"
+      "submitting": "Wird erstellt…",
+      "slugReason": {
+        "empty": "Wähle ein Team-Handle.",
+        "tooShort": "Verwende mindestens {{min}} Zeichen.",
+        "tooLong": "Verwende höchstens {{max}} Zeichen.",
+        "invalidFormat": "Verwende Buchstaben, Zahlen und einzelne Bindestriche — keine Leerzeichen oder Umlaute.",
+        "reserved": "Dieses Handle ist nicht verfügbar.",
+        "taken": "Dieses Handle ist nicht verfügbar."
+      }
     },
     "settings": {
       "title": "Team-Einstellungen",
@@ -774,7 +784,9 @@
       "termsUnavailable": "Wir konnten die Nutzungsbedingungen nicht laden, deshalb kannst du ihnen noch nicht zustimmen. Prüfe deine Verbindung und lade die Seite neu.",
       "submit": "Konto erstellen",
       "submitting": "Konto wird erstellt…",
-      "haveAccount": "Du hast bereits ein Konto?"
+      "haveAccount": "Du hast bereits ein Konto?",
+      "displayNameNote": "Das ist deine Adresse, nicht dein Name — einen Anzeigenamen kannst du später in deinem Profil festlegen.",
+      "handleCheckFailed": "Das Handle konnte nicht geprüft werden. Prüfe deine Verbindung und versuch es noch mal."
     },
     "forgot": {
       "title": "Passwort vergessen?",
@@ -807,6 +819,14 @@
       "failedBody": "Dieser Bestätigungslink ist ungültig oder abgelaufen. Gib deine E-Mail-Adresse ein, um einen neuen zu erhalten.",
       "resent": "Falls dieses Konto bestätigt werden muss, ist ein neuer Link unterwegs.",
       "resend": "Bestätigungs-E-Mail erneut senden"
+    },
+    "handleReason": {
+      "empty": "Wähle einen Benutzernamen.",
+      "tooShort": "Verwende mindestens {{min}} Zeichen.",
+      "tooLong": "Verwende höchstens {{max}} Zeichen.",
+      "invalidFormat": "Verwende Buchstaben, Zahlen und einzelne Bindestriche — keine Leerzeichen oder Umlaute.",
+      "reserved": "Dieser Benutzername ist nicht verfügbar.",
+      "taken": "Dieser Benutzername ist nicht verfügbar."
     }
   },
   "onboarding": {

@@ -16,16 +16,19 @@
       <div class="mt-xs flex items-center rounded-md border border-border-strong bg-surface-card px-md focus-within:border-brand focus-within:ring-2 focus-within:ring-focus">
         <span class="font-mono text-body-sm text-faint">/t/</span>
         <input id="team-slug" type="text" formControlName="slug" placeholder="rheinfeuer" data-testid="team-slug"
-          autocapitalize="none" autocomplete="off" spellcheck="false" (input)="onSlugInput($event)"
+          autocapitalize="none" autocomplete="off" spellcheck="false" jhLowercase
           class="w-full bg-transparent py-sm pl-0.5 font-mono text-body-md text-body outline-none" />
       </div>
       @if (checkingSlug()) {
         <p class="mt-xs text-body-sm text-subtle">{{ 'teams.create.checking' | transloco }}</p>
+      } @else if (slugCheckFailed()) {
+        <!-- Submit is blocked until a check succeeds, so say why rather than leaving a dead button. -->
+        <p class="mt-xs text-body-sm text-danger" data-testid="slug-check-failed" role="alert">{{ 'teams.create.checkFailed' | transloco }}</p>
       } @else if (slugStatus(); as s) {
         @if (s.available) {
           <p class="mt-xs text-body-sm text-success" data-testid="slug-ok">{{ 'teams.create.slugAvailable' | transloco:{ slug: s.normalized } }}</p>
         } @else {
-          <p class="mt-xs text-body-sm text-danger" data-testid="slug-bad">{{ s.reason ?? ('teams.create.slugUnavailable' | transloco) }}</p>
+          <p class="mt-xs text-body-sm text-danger" data-testid="slug-bad">{{ slugReasonKey() | transloco: reasonParams }}</p>
         }
       } @else {
         <p class="mt-xs text-body-sm text-faint">{{ 'teams.create.slugHint' | transloco }}</p>
@@ -55,6 +58,9 @@
           <jh-city-picker [placeholder]="'onboarding.city.placeholder' | transloco" (selectedChange)="onCitySelected($event)" />
         </div>
         <p class="mt-xs text-body-sm text-faint">{{ 'teams.create.cityHint' | transloco }}</p>
+        @if (!selectedCity()) {
+          <p class="mt-xs text-body-sm text-subtle" data-testid="city-required">{{ 'teams.create.cityRequired' | transloco }}</p>
+        }
       </div>
     } @else {
       <div class="rounded-md border border-dashed border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg" data-testid="mixteam-note">
@@ -66,7 +72,7 @@
       <jh-alert data-testid="team-create-error">{{ error() }}</jh-alert>
     }
 
-    <button type="submit" [disabled]="form.invalid || submitting() || slugStatus()?.available === false" data-testid="team-create-submit"
+    <button type="submit" [disabled]="!canSubmit" data-testid="team-create-submit"
       jhButton class="w-full">
       {{ (submitting() ? 'teams.create.submitting' : 'teams.create.submit') | transloco }}
     </button>

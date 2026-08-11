@@ -57,10 +57,10 @@ public sealed class ProfileTests
 
     [Theory]
     [InlineData("Has Space")]
-    [InlineData("UPPER")]
     [InlineData("ab")]            // too short
     [InlineData("-leading")]
     [InlineData("bad_underscore")]
+    [InlineData("Nik Müller")]    // what a pasted display name looks like: case folds, the rest doesn't
     public async Task Register_with_malformed_handle_is_rejected_with_400(string handle)
     {
         var client = _factory.CreateClient();
@@ -94,6 +94,52 @@ public sealed class ProfileTests
         Assert.False(taken.GetProperty("available").GetBoolean());
         Assert.True(free.GetProperty("available").GetBoolean());
         Assert.False(reserved.GetProperty("available").GetBoolean());
+
+        // The refusal travels as a CODE, not a sentence: the UI owns the wording, in its own
+        // language. A prose reason here would be English for every reader.
+        Assert.Equal("Taken", taken.GetProperty("reason").GetString());
+        Assert.Equal("Reserved", reserved.GetProperty("reason").GetString());
+        Assert.Equal(JsonValueKind.Null, free.GetProperty("reason").ValueKind);
+    }
+
+    [Fact]
+    public async Task Handle_available_endpoint_folds_case_rather_than_refusing_it()
+    {
+        var client = _factory.CreateClient();
+        var handle = AuthTestHelpers.NewHandle();
+        await AuthTestHelpers.RegisterAsync(client, AuthTestHelpers.NewEmail(), handle: handle);
+
+        var free = await client.GetFromJsonAsync<JsonElement>(
+            $"/api/v1/auth/handle-available?handle={AuthTestHelpers.NewHandle().ToUpperInvariant()}");
+        var takenInCaps = await client.GetFromJsonAsync<JsonElement>(
+            $"/api/v1/auth/handle-available?handle={handle.ToUpperInvariant()}");
+
+        // Capitals are not a format failure — they are folded to the form that would be stored.
+        Assert.True(free.GetProperty("available").GetBoolean());
+        Assert.Equal(free.GetProperty("normalized").GetString(), free.GetProperty("handle").GetString()!.ToLowerInvariant());
+
+        // And the uniqueness check runs on that folded form, so a capitalised spelling of an
+        // existing handle is correctly reported as taken instead of looking free.
+        Assert.False(takenInCaps.GetProperty("available").GetBoolean());
+        Assert.Equal("Taken", takenInCaps.GetProperty("reason").GetString());
+    }
+
+    [Fact]
+    public async Task Register_accepts_a_capitalised_handle_and_stores_the_folded_form()
+    {
+        var client = _factory.CreateClient();
+        var handle = AuthTestHelpers.NewHandle();
+
+        var response = await AuthTestHelpers.RegisterAsync(
+            client, AuthTestHelpers.NewEmail(), handle: handle.ToUpperInvariant());
+
+        Assert.True(response.IsSuccessStatusCode);
+
+        // What was stored is the lowercase form the form previewed as the permanent link — not a
+        // second, capitalised handle that would live at a URL nobody was shown.
+        var lookup = await client.GetFromJsonAsync<JsonElement>($"/api/v1/auth/handle-available?handle={handle}");
+        Assert.False(lookup.GetProperty("available").GetBoolean());
+        Assert.Equal("Taken", lookup.GetProperty("reason").GetString());
     }
 
     // --- US2: public profile safety -------------------------------------------

@@ -58,17 +58,27 @@
       "name": "Team name",
       "address": "Team handle",
       "checking": "Checking…",
+      "checkFailed": "Couldn't check that handle. Check your connection and try again.",
       "slugAvailable": "✓ /t/{{slug}} is available",
       "slugUnavailable": "That handle isn't available.",
-      "slugHint": "Your permanent link — lowercase letters, numbers, hyphens. Can't be changed later.",
+      "slugHint": "Your permanent link — letters, numbers, hyphens. Capitals become lowercase. Can't be changed later.",
       "type": "Team type",
       "cityTeam": "City team",
       "mixteam": "Mixteam",
       "city": "City",
       "cityHint": "City teams show up when players search their area.",
+      "cityRequired": "Pick a city to continue.",
       "mixteamNote": "No city needed. A Mixteam is players from different cities who enter tournaments together.",
       "submit": "Create team",
-      "submitting": "Creating…"
+      "submitting": "Creating…",
+      "slugReason": {
+        "empty": "Choose a team handle.",
+        "tooShort": "Use at least {{min}} characters.",
+        "tooLong": "Use at most {{max}} characters.",
+        "invalidFormat": "Use letters, numbers, and single hyphens — no spaces or accents.",
+        "reserved": "That handle isn't available.",
+        "taken": "That handle isn't available."
+      }
     },
     "settings": {
       "title": "Team settings",
@@ -770,7 +780,9 @@
       "termsUnavailable": "We couldn't load the Terms of Use, so you can't agree to them yet. Check your connection and reload the page.",
       "submit": "Create account",
       "submitting": "Creating account…",
-      "haveAccount": "Already have an account?"
+      "haveAccount": "Already have an account?",
+      "displayNameNote": "This is your address, not your name — you can set a display name on your profile later.",
+      "handleCheckFailed": "Couldn't check that handle. Check your connection and try again."
     },
     "forgot": {
       "title": "Forgot your password?",
@@ -803,6 +815,14 @@
       "failedBody": "This verification link is invalid or has expired. Enter your email to get a new one.",
       "resent": "If that account needs verifying, a new link is on its way.",
       "resend": "Resend verification email"
+    },
+    "handleReason": {
+      "empty": "Choose a handle.",
+      "tooShort": "Use at least {{min}} characters.",
+      "tooLong": "Use at most {{max}} characters.",
+      "invalidFormat": "Use letters, numbers, and single hyphens — no spaces or accents.",
+      "reserved": "That handle isn't available.",
+      "taken": "That handle isn't available."
     }
   },
   "onboarding": {

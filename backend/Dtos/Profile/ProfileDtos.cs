@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using JuggerHub.Dtos.Cities;
 using JuggerHub.Dtos.Recognition;
 using JuggerHub.Entities;
+using JuggerHub.Services.Profile;
 
 namespace JuggerHub.Dtos.Profile;
 
@@ -66,4 +67,12 @@ public sealed record PublicProfileDto(
     IReadOnlyList<EarnedRecognitionDto> Achievements);
 
 /// <summary>Result of a live handle availability/format check (UX aid; not a security boundary).</summary>
-public sealed record HandleAvailabilityDto(string Handle, string Normalized, bool Available, string? Reason);
+/// <param name="Handle">Echoed back exactly as submitted.</param>
+/// <param name="Normalized">What the handle would actually be stored and served as — case folded.</param>
+/// <param name="Available">True when the normalized handle is well-formed and unclaimed.</param>
+/// <param name="Reason">
+/// Why it was refused, or null when available. A code rather than a sentence: the caller
+/// renders it in the reader's own language (the API's own error prose is English-only).
+/// </param>
+public sealed record HandleAvailabilityDto(
+    string Handle, string Normalized, bool Available, HandleRejection? Reason);

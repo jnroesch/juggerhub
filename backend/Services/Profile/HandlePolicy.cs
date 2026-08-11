@@ -3,8 +3,10 @@ using System.Text.RegularExpressions;
 namespace JuggerHub.Services.Profile;
 
 /// <summary>
-/// The reason a handle was rejected (used to shape UX messages). <see cref="None"/>
-/// means the handle is well-formed and not reserved (uniqueness is checked separately).
+/// The reason a handle was refused. Travels to the client as the <c>reason</c> on the
+/// availability response, so the UI renders its own translated sentence instead of the
+/// English prose <see cref="HandlePolicy.Describe"/> produces for API error bodies.
+/// <see cref="None"/> means the handle is well-formed and not reserved.
 /// </summary>
 public enum HandleRejection
 {
@@ -14,6 +16,12 @@ public enum HandleRejection
     TooLong,
     InvalidFormat,
     Reserved,
+
+    /// <summary>
+    /// Already claimed. Never returned by <see cref="HandlePolicy.Validate"/> — that method
+    /// never touches the database; the caller performing the uniqueness check sets it.
+    /// </summary>
+    Taken,
 }
 
 /// <summary>
@@ -81,8 +89,10 @@ public static partial class HandlePolicy
         HandleRejection.Empty => "Choose a handle.",
         HandleRejection.TooShort => $"Use at least {minLength} characters.",
         HandleRejection.TooLong => $"Use at most {maxLength} characters.",
-        HandleRejection.InvalidFormat => "Use lowercase letters, numbers, and single hyphens.",
+        // Case is folded by Normalize rather than refused, so this must not name it as a rule.
+        HandleRejection.InvalidFormat => "Use letters, numbers, and single hyphens — no spaces or accents.",
         HandleRejection.Reserved => "That handle isn't available.",
+        HandleRejection.Taken => "That handle isn't available.",
         _ => "That handle isn't available.",
     };
 }

@@ -3,6 +3,7 @@
  * intentionally free of email/account data — the server strips it at the boundary.
  */
 import { Location, LocationSelection } from './city.models';
+import { IdentifierRejection } from './identifier.models';
 import { Pompfe } from '../../shared/pompfen.catalog';
 import { EarnedRecognition } from './recognition.models';
 
@@ -87,7 +88,8 @@ export interface HandleAvailability {
   handle: string;
   normalized: string;
   available: boolean;
-  reason: string | null;
+  /** A code, translated client-side — see {@link IdentifierRejection}. */
+  reason: IdentifierRejection | null;
 }
 
 export interface PagedResult<T> {
