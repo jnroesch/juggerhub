@@ -255,6 +255,57 @@ public sealed class TrainingApiTests : TrainingTestSupport
     }
 
     [Fact]
+    public async Task Series_edit_returns_a_surviving_next_session_even_when_it_deleted_the_entry_point()
+    {
+        var (admin, _, _) = await NewUserAsync();
+        var (_, slug) = await CreateTeamAsync(admin);
+        var start = NextWeekday(DayOfWeek.Tuesday);
+        var created = await CreateSeriesAsync(admin, slug, DayOfWeek.Tuesday, start, start.AddDays(21));
+        var trainingId = created.GetProperty("trainingId").GetGuid();
+
+        // The edit form is session-keyed and entered from the overview's next upcoming session.
+        var page = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/teams/{slug}/trainings/series");
+        var row = page.GetProperty("items").EnumerateArray().Single(i => i.GetProperty("trainingId").GetGuid() == trainingId);
+        var entrySessionId = row.GetProperty("nextSessionId").GetGuid();
+
+        var edit = await admin.PatchAsJsonAsync($"/api/v1/trainings/{trainingId}", new { weekday = "Thursday" });
+        edit.EnsureSuccessStatusCode();
+        var result = await edit.Content.ReadFromJsonAsync<JsonElement>();
+
+        // Moving the weekday moves every date, so the session the form was opened from is gone (GH #181).
+        Assert.Equal(HttpStatusCode.NotFound, (await admin.GetAsync($"/api/v1/trainings/sessions/{entrySessionId}")).StatusCode);
+
+        // The post-save destination must resolve — and be a session of the regenerated pattern.
+        var nextSessionId = result.GetProperty("nextSessionId").GetGuid();
+        Assert.NotEqual(entrySessionId, nextSessionId);
+        var next = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/trainings/sessions/{nextSessionId}");
+        Assert.Equal(trainingId, next.GetProperty("trainingId").GetGuid());
+        Assert.Equal(DayOfWeek.Thursday, DateOnly.Parse(next.GetProperty("sessionDate").GetString()!).DayOfWeek);
+
+        // Same session the overview now points at, so the two entry points never disagree.
+        var afterPage = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/teams/{slug}/trainings/series");
+        var afterRow = afterPage.GetProperty("items").EnumerateArray().Single(i => i.GetProperty("trainingId").GetGuid() == trainingId);
+        Assert.Equal(nextSessionId, afterRow.GetProperty("nextSessionId").GetGuid());
+    }
+
+    [Fact]
+    public async Task Series_edit_without_regeneration_returns_the_unchanged_next_session()
+    {
+        var (admin, _, _) = await NewUserAsync();
+        var (_, slug) = await CreateTeamAsync(admin);
+        var start = NextWeekday(DayOfWeek.Tuesday);
+        var created = await CreateSeriesAsync(admin, slug, DayOfWeek.Tuesday, start, start.AddDays(21));
+        var trainingId = created.GetProperty("trainingId").GetGuid();
+        var firstSessionId = created.GetProperty("firstSessionId").GetGuid();
+
+        var edit = await admin.PatchAsJsonAsync($"/api/v1/trainings/{trainingId}", new { startTime = "19:30:00", endTime = "21:30:00" });
+        edit.EnsureSuccessStatusCode();
+        var result = await edit.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Equal(firstSessionId, result.GetProperty("nextSessionId").GetGuid());
+    }
+
+    [Fact]
     public async Task Skip_hides_the_session_and_cancel_keeps_it_but_blocks_responses()
     {
         var (admin, _, _) = await NewUserAsync();

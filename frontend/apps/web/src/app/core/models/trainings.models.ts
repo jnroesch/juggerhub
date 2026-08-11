@@ -155,6 +155,11 @@ export interface SeriesEditResult {
   addedSessions: number;
   removedSessions: number;
   keptSessions: number;
+  /**
+   * The earliest surviving upcoming session — where to go after saving. A pattern change deletes the
+   * session the edit form was opened from, so the entry-point id is not navigable (GH #181).
+   */
+  nextSessionId: string | null;
 }
 
 export interface CreateTrainingRequest {
