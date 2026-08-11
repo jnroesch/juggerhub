@@ -35,4 +35,12 @@ describe('app.routes — authenticated-only access (feature 026)', () => {
     expect(appRoutes.find((r) => r.path === 'p/:handle')).toBeUndefined();
     expect(find('profile')).toBeUndefined();
   });
+
+  // Events, not Teams, is the browse landing tab. It is a one-word redirect that no other test
+  // touches (the e2e specs all deep-link), so it would otherwise be free to drift back.
+  it('lands bare /browse on the events tab', () => {
+    const browse = find('browse');
+    expect(browse?.pathMatch).toBe('full');
+    expect(browse?.redirectTo).toBe('browse/events');
+  });
 });
