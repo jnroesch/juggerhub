@@ -274,6 +274,7 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
         var added = 0;
         var removed = 0;
         var kept = 0;
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var patternChanged = training.IsRecurring
             && (request.Weekday is not null || request.Interval is not null || request.EndDate is not null);
@@ -283,7 +284,6 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
             var weekday = request.Weekday ?? training.Weekday!.Value;
             var interval = request.Interval ?? training.Interval!.Value;
             var endDate = request.EndDate ?? training.EndDate!.Value;
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var regenFrom = training.StartDate > today ? training.StartDate : today;
 
             var wanted = RecurrenceExpander.Expand(regenFrom, weekday, interval, endDate).ToHashSet();
@@ -323,14 +323,25 @@ public sealed class TrainingSeriesService : ITrainingSeriesService
         }
         else
         {
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
             kept = training.Sessions.Count(s => !s.Detached && s.Status == TrainingSessionStatus.Scheduled && s.SessionDate >= today);
         }
 
         await _db.SaveChangesAsync(ct);
         await NotifyRespondersUpdatedAsync(training.Id, training.TeamId, training.Name, "seriesEdit", null, userId, ct);
 
-        return TrainingResult<SeriesEditResultDto>.Ok(new SeriesEditResultDto(training.Id, added, removed, kept));
+        // Read the surviving entry point back from the DB, AFTER the save: a pattern change deletes the
+        // session the (session-keyed) edit form was opened from, so the caller has nowhere valid to
+        // return to otherwise (GH #181). Requeried rather than read off training.Sessions, which still
+        // holds the just-deleted rows.
+        var nextSessionId = await _db.TrainingSessions.AsNoTracking()
+            .Where(s => s.TrainingId == training.Id
+                && s.Status == TrainingSessionStatus.Scheduled
+                && s.SessionDate >= today)
+            .OrderBy(s => s.SessionDate)
+            .Select(s => (Guid?)s.Id)
+            .FirstOrDefaultAsync(ct);
+
+        return TrainingResult<SeriesEditResultDto>.Ok(new SeriesEditResultDto(training.Id, added, removed, kept, nextSessionId));
     }
 
     public async Task<TrainingResult> SetSeriesVisibilityAsync(

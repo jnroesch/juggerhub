@@ -121,7 +121,10 @@ Edit the whole series. **Auth**: team **admin**. Body (all optional):
 `{ name?, description?, startTime?, endTime?, locationKind?, location?, virtualLink?, weekday?,
 interval?, endDate?, visibility? }`. In-place fields update the template + upcoming non-detached
 sessions; `weekday`/`interval`/`endDate` changes trigger regeneration (see data-model §Reconciliation).
-`200` → `{ trainingId, addedSessions, removedSessions, keptSessions }`. Side effect: `TrainingUpdated`
+`200` → `{ trainingId, addedSessions, removedSessions, keptSessions, nextSessionId }`, where
+`nextSessionId` is the earliest surviving upcoming session (same rule as the series overview row) or
+`null` if none survives — regeneration deletes the session the edit form was opened from, so the
+caller needs somewhere valid to go (GH #181). Side effect: `TrainingUpdated`
 (kind `seriesEdit`) to responders of surviving upcoming sessions. `400` if a change yields zero future
 sessions.
 

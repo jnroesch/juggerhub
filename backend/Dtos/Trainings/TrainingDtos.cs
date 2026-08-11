@@ -131,7 +131,14 @@ public sealed record AttendanceEntryDto(
 public sealed record CreatedTrainingDto(Guid TrainingId, int SessionCount, Guid FirstSessionId);
 
 /// <summary>Result of a whole-series edit.</summary>
-public sealed record SeriesEditResultDto(Guid TrainingId, int AddedSessions, int RemovedSessions, int KeptSessions);
+/// <remarks>
+/// <paramref name="NextSessionId"/> is the surviving entry point: the edit form is session-keyed and a
+/// pattern change hard-deletes the session it was opened from, so the caller cannot navigate back to
+/// where it came from (GH #181). Same filter and order as <see cref="TrainingSeriesSummaryDto"/>'s
+/// <c>NextSessionId</c>, so the two never disagree. Null only if nothing upcoming survives.
+/// </remarks>
+public sealed record SeriesEditResultDto(
+    Guid TrainingId, int AddedSessions, int RemovedSessions, int KeptSessions, Guid? NextSessionId);
 
 // ---- Requests --------------------------------------------------------------
 
