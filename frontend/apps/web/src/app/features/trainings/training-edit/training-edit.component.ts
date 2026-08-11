@@ -225,7 +225,14 @@ export class TrainingEditComponent {
     if (this.endDate && this.endDate !== this.origEndDate) body.endDate = this.endDate;
 
     this.trainings.editSeries(s.trainingId, body).subscribe({
-      next: () => this.router.navigate(['/trainings/sessions', this.sessionId]),
+      // Never back to `this.sessionId`: a weekday/interval/end-date change regenerates the future set
+      // and hard-deletes the session this form was opened from, so that id 404s (GH #181). Go to the
+      // surviving next session the server reports; fall back to the team's trainings tab if the series
+      // has no upcoming session left.
+      next: (r) =>
+        r.nextSessionId
+          ? this.router.navigate(['/trainings/sessions', r.nextSessionId])
+          : this.router.navigate(['/t', s.teamSlug, 'trainings']),
       error: (err) => {
         this.busy.set(false);
         this.error.set(problemDetail(err, this.transloco.translate('trainings.genericError')));
