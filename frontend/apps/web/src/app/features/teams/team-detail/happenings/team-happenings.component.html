@@ -1,0 +1,21 @@
+<jh-card class="p-md" data-testid="happenings">
+  <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.happeningTitle' | transloco }}</h2>
+  @if (hasAny()) {
+    <ul class="flex flex-col gap-xs">
+      @for (row of rows(); track $index) {
+        <li class="flex items-baseline gap-sm" [attr.data-kind]="row.kind">
+          <span class="min-w-0 flex-1 text-body-sm text-body">
+            @if (row.route; as route) {
+              <a [routerLink]="route" class="hover:text-link">{{ row.text }}</a>
+            } @else {
+              {{ row.text }}
+            }
+          </span>
+          <span class="shrink-0 text-caption text-subtle">{{ row.time }}</span>
+        </li>
+      }
+    </ul>
+  } @else {
+    <jh-empty-state inline>{{ 'teams.detail.noHappenings' | transloco }}</jh-empty-state>
+  }
+</jh-card>

@@ -329,6 +329,7 @@ builder.Services.AddScoped<TeamMembershipGuard>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ITeamInvitationService, TeamInvitationService>();
 builder.Services.AddScoped<ITeamActivityService, TeamActivityService>();
+builder.Services.AddScoped<ITeamHappeningService, TeamHappeningService>(); // feature 044
 builder.Services.AddScoped<ITeamJoinRequestService, TeamJoinRequestService>(); // feature 009
 builder.Services.AddScoped<ITeamNewsService, TeamNewsService>();
 builder.Services.AddScoped<TeamEmailService>();

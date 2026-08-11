@@ -147,9 +147,10 @@
           }
         </jh-card>
 
-        <!-- Recent activity -->
+        <!-- Recent events (feature 005/006). Named for what it contains: events the team played.
+             The team's internal happenings live in the members-only card further down (feature 044). -->
         <jh-card class="p-md" data-testid="activity">
-          <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.recentActivity' | transloco }}</h2>
+          <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.recentEvents' | transloco }}</h2>
           @if (team.recentActivity.length > 0) {
             <ul class="flex flex-col gap-xs">
               @for (a of team.recentActivity; track $index) {
@@ -160,7 +161,7 @@
               }
             </ul>
           } @else {
-            <jh-empty-state inline>{{ 'teams.detail.noActivity' | transloco }}</jh-empty-state>
+            <jh-empty-state inline>{{ 'teams.detail.noEvents' | transloco }}</jh-empty-state>
           }
         </jh-card>
 
@@ -212,6 +213,12 @@
               <jh-empty-state inline>{{ 'teams.detail.noNews' | transloco }}</jh-empty-state>
             }
           </jh-card>
+
+          <!-- What's happening (feature 044, GH #178): the team-internal catch-up feed — joins,
+               awards, training changes. Members only: the server refuses the data to anyone else,
+               and this @if is UX, not the boundary. Placed AFTER news for the same reason the
+               dashboard puts its activity list last — a passive log must not bury authored posts. -->
+          <jh-team-happenings [items]="happenings()" [slug]="slug()" />
         }
       </div>
 
