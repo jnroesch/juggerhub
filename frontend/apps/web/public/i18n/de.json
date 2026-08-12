@@ -424,6 +424,7 @@
       "invitedTo": "In {{name}} eingeladen."
     },
     "recognition": {
+      "heading": "Abzeichen & Erfolge",
       "badges": "Abzeichen",
       "achievements": "Erfolge",
       "none": "Noch keine Abzeichen oder Erfolge."

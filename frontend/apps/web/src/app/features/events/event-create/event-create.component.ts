@@ -1,6 +1,7 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { ButtonDirective, AlertComponent } from '../../../shared/ui';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -66,7 +67,7 @@ function pristineDraft(): EventDraft {
  */
 @Component({
   selector: 'jh-event-create',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, AddressFieldsComponent, TranslocoPipe],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, AddressFieldsComponent, TranslocoPipe, TranslocoDatePipe],
   templateUrl: './event-create.component.html',
   styleUrl: './event-create.component.css',
 })

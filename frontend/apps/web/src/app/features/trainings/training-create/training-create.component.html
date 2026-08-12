@@ -142,7 +142,7 @@
       } @else {
         <p class="text-muted">{{ 'trainings.online' | transloco }}</p>
       }
-      <p class="text-muted">{{ (visibility() === 'Public' ? 'trainings.public' : 'trainings.create.teamOnly') | transloco }}@if (isRecurring()) { · {{ 'trainings.create.reviewUntil' | transloco }} {{ endDate() }} }</p>
+      <p class="text-muted">{{ (visibility() === 'Public' ? 'trainings.public' : 'trainings.create.teamOnly') | transloco }}@if (isRecurring()) { · {{ 'trainings.create.reviewUntil' | transloco }} {{ untilLabel() }} }</p>
     </jh-card>
     @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
     <button type="button" (click)="create()" [disabled]="busy()" data-testid="training-create-submit" jhButton class="mt-lg w-full">

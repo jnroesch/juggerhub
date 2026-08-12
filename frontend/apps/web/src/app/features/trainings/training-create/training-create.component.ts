@@ -10,6 +10,7 @@ import { AddressFieldsComponent } from '../../../shared/address-fields/address-f
 import { problemDetail } from '../../../core/utils/problem';
 import { WizardDraftStore } from '../../../core/drafts/wizard-draft.store';
 import { DRAFT_VERSION, TrainingDraft, TrainingDraftStep } from '../../../core/drafts/wizard-draft.models';
+import { injectDateFormats } from '../../../core/i18n/locale-format';
 
 /**
  * The pristine wizard, as a draft. Computed rather than written out inline because two things need
@@ -73,6 +74,7 @@ export class TrainingCreateComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly drafts = inject(WizardDraftStore);
+  private readonly fmt = injectDateFormats();
 
   protected readonly slug = this.route.snapshot.paramMap.get('slug') ?? '';
 
@@ -143,6 +145,17 @@ export class TrainingCreateComponent {
     const days = Math.floor((end.getTime() - start.getTime()) / 86400000);
     const per = this.interval() === 'Weekly' ? 7 : this.interval() === 'BiWeekly' ? 14 : 30;
     return Math.max(1, Math.floor(days / per) + 1);
+  });
+
+  /**
+   * The series end date for the review step, in the active language — never the raw `YYYY-MM-DD`
+   * the `<input type="date">` holds (GH #187). Routes through the same locale-bound helper as every
+   * other trainings surface (tab / session / edit), so it also re-renders on a language switch and
+   * pins the date-only value to local midnight (no day-early bug). Empty until the user picks a date.
+   */
+  protected readonly untilLabel = computed(() => {
+    const value = this.endDate();
+    return value ? this.fmt.shortDate(value) : '';
   });
 
   constructor() {

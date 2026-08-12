@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, Router, provideRouter } from '@angular/router';
 import { WritableSignal } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 import { TrainingCreateComponent } from './training-create.component';
 import { translocoTestingModule } from '../../../../testing/transloco-testing';
 import { LocationKind, TrainingInterval, TrainingVisibility } from '../../../core/models/trainings.models';
@@ -291,6 +292,34 @@ describe('TrainingCreateComponent draft persistence', () => {
       }).not.toThrow();
 
       expect(api.name()).toBe('Tuesday practice');
+    });
+  });
+
+  /**
+   * GH #187 — the review step must show the series end date in the active language, never the raw
+   * `YYYY-MM-DD` the date input holds. Mirrors the recognition-display regression spec: the de/en
+   * difference plus a mid-review language switch that re-renders. The shared locale-bound helper
+   * follows the active language; Angular's `| date` pipe would be pinned to `LOCALE_ID` at bootstrap.
+   */
+  describe('review step end date (GH #187)', () => {
+    it('shows the end date in the active language and re-renders on a switch', () => {
+      configure();
+      createComponent();
+
+      api.isRecurring.set(true);
+      api.endDate.set('2026-12-31');
+      api.step.set(5);
+      fixture.detectChanges();
+
+      const text = () => fixture.nativeElement.textContent as string;
+      expect(text()).not.toContain('2026-12-31');
+      expect(text()).toContain('Dec'); // en short month
+
+      TestBed.inject(TranslocoService).setActiveLang('de');
+      fixture.detectChanges();
+
+      expect(text()).toContain('Dez'); // de short month
+      expect(text()).not.toContain('Dec');
     });
   });
 });
