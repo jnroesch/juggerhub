@@ -3,14 +3,14 @@
     <jh-loading />
   } @else if (notFound()) {
     <jh-card accent class="mx-auto mt-2xl max-w-md p-xl text-center" data-testid="profile-notfound">
-      <h1 class="text-heading-md text-ink">{{ 'profile.public.notFoundTitle' | transloco }}</h1>
-      <p class="mt-sm text-body-md text-text-muted">{{ 'profile.public.notFoundBody' | transloco }}</p>
+      <h1 class="text-h4 text-heading">{{ 'profile.public.notFoundTitle' | transloco }}</h1>
+      <p class="mt-sm text-body-md text-muted">{{ 'profile.public.notFoundBody' | transloco }}</p>
       <a routerLink="/" class="mt-lg inline-block text-body-md font-medium text-link hover:text-link-hover">{{ 'profile.public.goToHub' | transloco }}</a>
     </jh-card>
   } @else if (view(); as v) {
     <div data-testid="profile-public">
       <!-- Quick actions (feature 021) — signed-in, non-self viewers only. Renders nothing otherwise. -->
-      <jh-profile-quick-actions [handle]="v.handle" class="mb-lg block" />
+      <jh-profile-quick-actions [handle]="v.handle" class="mb-lg" />
 
       <jh-profile-view [profile]="v" />
     </div>

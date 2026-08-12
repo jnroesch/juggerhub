@@ -67,5 +67,7 @@
     }
   </div>
 } @else {
-  <p class="text-body-sm text-faint">{{ 'profile.recognition.none' | transloco }}</p>
+  <!-- Both call sites (team detail + profile) wrap this in a titled card, so the
+       heading lives there — the empty state is just the message. -->
+  <p class="text-body-sm text-subtle">{{ 'profile.recognition.none' | transloco }}</p>
 }

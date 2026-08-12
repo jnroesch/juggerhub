@@ -21,17 +21,16 @@
     @if (!editing()) {
       <!-- View mode: the SAME shared presentation as any other player's profile. -->
       @if (view(); as v) {
-        <jh-profile-view [profile]="v" class="mt-md block" />
+        <jh-profile-view [profile]="v" class="mt-md" />
       }
 
-      <hr class="my-lg border-border" />
-
-      <!-- Profile visibility (feature 026) — owner-only instant toggle, no edit round trip. -->
-      <section data-testid="profile-visibility">
-        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'profile.owner.visibility' | transloco }}</p>
-        <label class="mt-sm flex cursor-pointer items-center justify-between gap-md rounded-md border border-border-strong bg-surface-card p-md">
+      <!-- Profile visibility (feature 026) — owner-only instant toggle, no edit round trip.
+           A card like every other section now that the profile is carded. -->
+      <jh-card class="mt-lg p-md" data-testid="profile-visibility">
+        <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'profile.owner.visibility' | transloco }}</h2>
+        <label class="flex cursor-pointer items-center justify-between gap-md rounded-md border border-border-strong bg-surface-card p-md">
           <span class="text-body-sm">
-            <span class="font-medium text-ink">{{ 'profile.owner.makePublic' | transloco }}</span>
+            <span class="font-medium text-heading">{{ 'profile.owner.makePublic' | transloco }}</span>
             <span class="mt-2xs block text-subtle" data-testid="profile-visibility-state">
               @if (p.isPublic) {
                 {{ 'profile.owner.publicOn' | transloco }}
@@ -48,7 +47,7 @@
         @if (visibilitySaving()) {
           <p class="mt-xs text-body-sm text-subtle" role="status">{{ 'events.edit.saving' | transloco }}</p>
         }
-      </section>
+      </jh-card>
 
       @if (saved()) {
         <p class="mt-lg text-body-sm text-success" role="status" data-testid="profile-saved">{{ 'events.edit.saved' | transloco }}</p>
@@ -59,7 +58,7 @@
         <div class="flex items-start gap-md">
           <div class="relative shrink-0">
             @if (avatarUrl(); as url) {
-              <img [src]="url" [alt]="'profile.owner.yourPicture' | transloco" class="h-20 w-20 rounded-full border border-border object-cover" />
+              <img [src]="url" [alt]="'profile.owner.yourPicture' | transloco" class="h-20 w-20 rounded-full border border-default object-cover" />
             } @else {
               <div class="grid h-20 w-20 place-items-center rounded-full border border-dashed border-border-strong bg-surface-subtle text-body-sm text-subtle">{{ 'profile.view.photo' | transloco }}</div>
             }
@@ -82,25 +81,25 @@
           class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
 
         <div>
-          <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'profile.view.plays' | transloco }}</p>
+          <p class="text-eyebrow uppercase text-muted">{{ 'profile.view.plays' | transloco }}</p>
           <p class="mb-sm mt-xs text-body-sm text-subtle">{{ 'profile.owner.pickFavorites' | transloco }}</p>
           <jh-pompfe-selector [selected]="selectedPompfen()" (selectionChange)="onPompfenChange($event)" />
         </div>
 
         <div>
-          <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'profile.owner.visibility' | transloco }}</p>
+          <p class="text-eyebrow uppercase text-muted">{{ 'profile.owner.visibility' | transloco }}</p>
           <label class="mt-sm flex cursor-pointer items-start gap-sm rounded-md border border-border-strong bg-surface-card p-md">
             <input type="checkbox" formControlName="isPublic" data-testid="profile-ispublic"
               class="mt-0.5 h-5 w-5 shrink-0 rounded-sm border-border-strong text-brand focus:ring-2 focus:ring-focus" />
             <span class="text-body-sm">
-              <span class="font-medium text-ink">{{ 'profile.owner.makePublic' | transloco }}</span>
+              <span class="font-medium text-heading">{{ 'profile.owner.makePublic' | transloco }}</span>
               <span class="mt-2xs block text-subtle">{{ 'profile.owner.makePublicHint' | transloco }}</span>
             </span>
           </label>
         </div>
       </form>
 
-      <div class="sticky bottom-0 mt-lg flex justify-end gap-sm bg-background/80 py-md backdrop-blur">
+      <div class="sticky bottom-0 mt-lg flex justify-end gap-sm bg-surface-page/80 py-md backdrop-blur">
         <button type="button" (click)="save()" [disabled]="form.invalid || saving()" data-testid="profile-save"
           jhButton>
           {{ (saving() ? 'events.edit.saving' : 'events.contactsManage.saveChanges') | transloco }}
