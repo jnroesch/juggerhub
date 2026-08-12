@@ -4,6 +4,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { pompfeLabelKey } from '../../../../shared/pompfen.catalog';
 import { ProfileView } from '../../../../core/models/profile.models';
 import { RecognitionDisplayComponent } from '../recognition-display/recognition-display.component';
+import { CardComponent } from '../../../../shared/ui';
 
 /**
  * Shared, read-only presentation of a player profile (feature 026). Used both for the owner's own
@@ -13,11 +14,16 @@ import { RecognitionDisplayComponent } from '../recognition-display/recognition-
  */
 @Component({
   selector: 'jh-profile-view',
-  imports: [RouterLink, RecognitionDisplayComponent, TranslocoPipe],
+  imports: [RouterLink, RecognitionDisplayComponent, TranslocoPipe, CardComponent],
   templateUrl: './profile-view.component.html',
   styleUrl: './profile-view.component.css',
 })
 export class ProfileViewComponent {
   readonly profile = input.required<ProfileView>();
   protected readonly labelKey = pompfeLabelKey;
+
+  /** First letter for the gradient avatar fallback tile, mirroring the team hero. */
+  protected initial(name: string | null | undefined): string {
+    return (name?.trim()?.charAt(0) || '?').toUpperCase();
+  }
 }

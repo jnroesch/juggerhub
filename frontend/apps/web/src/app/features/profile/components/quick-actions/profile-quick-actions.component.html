@@ -1,6 +1,6 @@
 @if (visible()) {
   <div
-    class="flex flex-col gap-xs border-b border-border px-lg py-sm"
+    class="flex flex-col gap-xs border-b border-default px-lg py-sm"
     data-testid="profile-quick-actions"
   >
     <div class="flex flex-wrap items-center gap-sm">
@@ -59,7 +59,7 @@
                     type="button"
                     role="menuitem"
                     (click)="sendInvite(t)"
-                    class="block w-full rounded-sm px-md py-xs text-left text-body-sm text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                    class="block w-full rounded-sm px-md py-xs text-left text-body-sm text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                   >
                     {{ t.name }}
                   </button>

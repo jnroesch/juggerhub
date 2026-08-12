@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
+import { ButtonDirective, LoadingComponent, AlertComponent, CardComponent } from '../../../shared/ui';
 import { Pompfe } from '../../../shared/pompfen.catalog';
 import { OwnerProfile, ProfileView } from '../../../core/models/profile.models';
 import { CityOption, Location, toSelection } from '../../../core/models/city.models';
@@ -20,7 +20,7 @@ import { CityPickerComponent } from '../../../shared/city-picker/city-picker.com
  */
 @Component({
   selector: 'jh-profile-owner',
-  imports: [ReactiveFormsModule, PompfeSelectorComponent, ProfileViewComponent, CityPickerComponent, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
+  imports: [ReactiveFormsModule, PompfeSelectorComponent, ProfileViewComponent, CityPickerComponent, ButtonDirective, LoadingComponent, AlertComponent, CardComponent, TranslocoPipe],
   templateUrl: './profile-owner.component.html',
   styleUrl: './profile-owner.component.css',
 })

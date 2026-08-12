@@ -1,1 +1,8 @@
-/* Presentational only — layout comes from utility classes in the template. */
+/* Presentational only — layout comes from utility classes in the template.
+
+   Block host so a caller's margin/`space-y-*` gap actually applies (see the
+   note in recognition-display.component.css — same inline-box hazard, GH #192).
+   This lets the hosting components drop their call-site `block` workaround. */
+:host {
+  display: block;
+}
