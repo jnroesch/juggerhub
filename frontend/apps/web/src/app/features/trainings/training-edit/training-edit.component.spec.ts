@@ -28,7 +28,6 @@ const SESSION: TrainingSessionDetail = {
   location: { externalId: 'osm:R:1', name: 'Köln', countryName: 'Germany', countryCode: 'DE', label: 'Köln, Germany' },
   locationLabel: 'Sportpark, Köln',
   virtualLink: null,
-  seriesLabel: 'Weekly on Tuesday',
   weekday: 'Tuesday',
   interval: 'Weekly',
   endDate: '2026-09-29',

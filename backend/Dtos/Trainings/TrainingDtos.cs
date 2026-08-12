@@ -86,7 +86,6 @@ public sealed record TrainingSessionDetailDto(
     JuggerHub.Dtos.Cities.LocationDto? Location,
     string LocationLabel,
     string? VirtualLink,
-    string? SeriesLabel,
     DayOfWeek? Weekday,
     TrainingInterval? Interval,
     DateOnly? EndDate,

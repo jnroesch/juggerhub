@@ -1,12 +1,13 @@
-<div class="mx-auto max-w-2xl px-md py-lg">
+<section class="mx-auto max-w-container-md px-md py-lg lg:max-w-container-lg" data-testid="training-session">
   @if (loading()) {
     <jh-loading />
   } @else if (notFound()) {
     <jh-empty-state [heading]="'trainings.session.notFound' | transloco">{{ 'trainings.session.notFoundBody' | transloco }}</jh-empty-state>
   } @else if (session(); as s) {
-    <a [routerLink]="['/t', s.teamSlug, 'trainings']" class="text-body-sm font-medium text-link hover:text-link-hover">{{ 'trainings.backTrainings' | transloco }}</a>
+    <a [routerLink]="['/t', s.teamSlug, 'trainings']" class="text-body-sm text-subtle hover:text-text">{{ 'trainings.backTrainings' | transloco }}</a>
 
-    <div class="mt-sm flex items-center gap-xs">
+    <!-- Hero: chips, title, icon meta list -->
+    <div class="mt-sm flex flex-wrap items-center gap-xs">
       <span class="rounded-pill border border-border-muted px-sm py-3xs text-caption font-medium text-secondary">
         {{ (s.isOneOff ? 'trainings.oneOff' : 'trainings.series') | transloco }}
       </span>
@@ -16,149 +17,176 @@
       <span class="text-body-sm text-muted">{{ s.teamName }}</span>
     </div>
 
-    <h1 class="mt-xs text-heading-lg font-semibold text-heading">{{ s.name }}</h1>
-    <p class="mt-2xs text-body-sm text-body">
-      {{ shortDate(s.sessionDate) }} · <span class="font-mono">{{ time(s.startTime) }}–{{ time(s.endTime) }}</span>
-    </p>
-    <p class="text-body-sm text-muted">
-      @if (s.locationKind === 'Virtual') {
-        <a [href]="s.virtualLink" class="text-link hover:text-link-hover">{{ 'trainings.online' | transloco }}</a>
-      } @else {
-        <span data-testid="session-location">{{ s.locationLabel }}</span>
+    <h1 class="mt-sm text-heading-xl font-bold text-ink">{{ s.name }}</h1>
+
+    <ul class="mt-sm space-y-xs text-body-md text-body">
+      <li class="flex items-center gap-sm">
+        <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        {{ shortDate(s.sessionDate) }} · <span class="font-mono">{{ time(s.startTime) }}–{{ time(s.endTime) }}</span>
+      </li>
+      <li class="flex items-start gap-sm">
+        <svg class="mt-0.5 h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 21s-7-6.3-7-11a7 7 0 0114 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        @if (s.locationKind === 'Virtual') {
+          <a [href]="s.virtualLink" target="_blank" rel="noopener" class="break-all font-medium text-link hover:text-link-hover">{{ 'trainings.online' | transloco }}</a>
+        } @else {
+          <span data-testid="session-location">{{ s.locationLabel }}</span>
+        }
+      </li>
+      @if (!s.isOneOff) {
+        <li class="flex items-center gap-sm">
+          <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+          <span data-testid="session-series">{{ 'trainings.session.partOfSeries' | transloco }} · {{ intervalKey(s.interval) | transloco }}</span>
+        </li>
       }
-    </p>
-    @if (s.locationKind === 'InPerson' && (s.venueName || s.street || s.postalCode)) {
-      <p class="text-caption text-muted" data-testid="session-address">
-        @if (s.venueName) { {{ s.venueName }} }@if (s.venueName && (s.street || s.postalCode)) { · }@if (s.street) { {{ s.street }} }@if (s.street && s.postalCode) { · }@if (s.postalCode) { {{ s.postalCode }} }
-      </p>
-    }
-    @if (!s.isOneOff && s.seriesLabel) {
-      <p class="mt-2xs text-caption text-muted">{{ 'trainings.session.partOf' | transloco }} {{ s.name }} · {{ s.seriesLabel }}</p>
-    }
+    </ul>
 
     @if (isCancelled()) {
-      <div class="mt-md rounded-md border border-danger-border bg-danger-bg p-sm text-body-sm text-danger-fg">
+      <div class="mt-md rounded-md border border-danger-border bg-danger-bg px-md py-sm text-body-sm font-semibold text-danger-fg" data-testid="session-cancelled">
         {{ 'trainings.session.cancelledNote' | transloco }}
       </div>
     }
 
-    <!-- RSVP -->
-    @if (canRespond()) {
-      <jh-card class="mt-lg p-md">
-        <h2 class="text-body-sm font-semibold text-heading">
-          {{ (s.viewerIsGuest ? 'trainings.session.comingAlong' : 'trainings.session.willYouMakeIt') | transloco }}
-        </h2>
-        <div class="mt-sm grid grid-cols-3 gap-sm">
-          <button type="button" (click)="respond('Going')" [disabled]="busy()"
-            class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium transition-all duration-fast active:translate-y-px"
-            [class.border-success-border]="s.myAnswer === 'Going'" [class.bg-success-bg]="s.myAnswer === 'Going'"
-            [class.text-success-fg]="s.myAnswer === 'Going'" [class.border-border-strong]="s.myAnswer !== 'Going'">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
-            <span>{{ 'trainings.session.going' | transloco }}</span>
-          </button>
-          <button type="button" (click)="respond('Maybe')" [disabled]="busy()"
-            class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium transition-all duration-fast active:translate-y-px"
-            [class.border-warning-border]="s.myAnswer === 'Maybe'" [class.bg-warning-bg]="s.myAnswer === 'Maybe'"
-            [class.border-border-strong]="s.myAnswer !== 'Maybe'">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
-            <span>{{ 'trainings.session.maybe' | transloco }}</span>
-          </button>
-          <button type="button" (click)="respond('Cant')" [disabled]="busy()"
-            class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium transition-all duration-fast active:translate-y-px"
-            [class.border-danger-border]="s.myAnswer === 'Cant'" [class.bg-danger-bg]="s.myAnswer === 'Cant'"
-            [class.text-danger-fg]="s.myAnswer === 'Cant'" [class.border-border-strong]="s.myAnswer !== 'Cant'">
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-            <span>{{ 'trainings.session.cant' | transloco }}</span>
-          </button>
-        </div>
-        <p class="mt-sm text-caption text-muted">
-          {{ (s.viewerIsGuest ? 'trainings.session.rsvpGuestNote' : 'trainings.session.rsvpMemberNote') | transloco }}
-        </p>
-      </jh-card>
-    }
-
     @if (error()) {
-      <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p>
+      <p class="mt-sm text-body-sm text-danger-fg" role="alert">{{ error() }}</p>
     }
 
-    <!-- Who's coming -->
-    <section class="mt-lg">
-      <h2 class="text-body-sm font-semibold text-heading">{{ 'trainings.session.whosComing' | transloco }}</h2>
-      <p class="mt-2xs text-caption text-muted">
-        <span class="font-mono">{{ s.whosComing.going.count }}</span> {{ 'trainings.session.goingWord' | transloco }} · <span class="font-mono">{{ s.whosComing.maybe.count }}</span> {{ 'trainings.session.maybeWord' | transloco }} · <span class="font-mono">{{ s.whosComing.cant.count }}</span> {{ 'trainings.session.outWord' | transloco }}
-      </p>
-      @for (grp of [{ label: 'trainings.session.groupGoing', g: s.whosComing.going }, { label: 'trainings.session.groupMaybe', g: s.whosComing.maybe }, { label: 'trainings.session.groupCant', g: s.whosComing.cant }]; track grp.label) {
-        @if (grp.g.count > 0) {
-          <div class="mt-sm">
-            <p class="text-caption font-medium text-muted">{{ grp.label | transloco }} · <span class="font-mono">{{ grp.g.count }}</span></p>
-            <ul class="mt-2xs divide-y divide-border-muted">
-              @for (p of grp.g.people; track p.handle) {
-                <li class="flex items-center gap-sm py-xs">
-                  <span class="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-caption font-semibold text-secondary">
-                    @if (p.hasAvatar) { <img [src]="avatarUrl(p.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ initial(p.displayName) }} }
-                  </span>
-                  <a [routerLink]="['/u', p.handle]" class="min-w-0 flex-1 truncate text-body-sm font-medium text-heading hover:text-link">
-                    {{ p.displayName }}@if (p.isYou) { <span class="text-muted">· {{ 'trainings.attendance.you' | transloco }}</span> }
-                  </a>
-                  @if (p.isGuest) {
-                    <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ 'trainings.session.guest' | transloco }}</span>
-                  }
-                  @if (p.position) {
-                    <span class="text-caption text-muted">{{ p.position }}</span>
-                  }
-                </li>
-              }
-              @if (grp.g.count > grp.g.people.length) {
-                <li class="py-xs text-caption text-muted">+ {{ grp.g.count - grp.g.people.length }} {{ 'trainings.session.more' | transloco }}</li>
-              }
-            </ul>
+    <!-- Content: main column + sticky RSVP/admin aside on desktop -->
+    <div class="mt-lg lg:grid lg:grid-cols-3 lg:gap-lg">
+      <!-- Main column -->
+      <div class="space-y-md lg:col-span-2">
+        <!-- About (first — the organiser's note is the useful part) -->
+        @if (s.description) {
+          <div class="rounded-lg border border-border bg-surface-card p-md">
+            <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'trainings.session.about' | transloco }}</h2>
+            <p class="mt-xs whitespace-pre-line text-body-md text-body">{{ s.description }}</p>
           </div>
         }
-      }
-      @if (s.whosComing.going.count === 0 && s.whosComing.maybe.count === 0 && s.whosComing.cant.count === 0) {
-        <p class="mt-sm text-body-sm text-muted">{{ 'trainings.session.noAnswers' | transloco }}</p>
-      }
-    </section>
 
-    @if (s.description) {
-      <section class="mt-lg">
-        <h2 class="text-body-sm font-semibold text-heading">{{ 'trainings.session.about' | transloco }}</h2>
-        <p class="mt-2xs whitespace-pre-line text-body-sm text-body">{{ s.description }}</p>
-      </section>
-    }
-
-    <!-- Admin manage -->
-    @if (s.viewerIsAdmin) {
-      <section class="mt-lg rounded-lg border border-border-muted bg-surface-sunken p-md">
-        <button type="button" (click)="menuOpen.set(!menuOpen())" class="text-body-sm font-semibold text-heading">
-          {{ 'trainings.session.manageSession' | transloco }} {{ menuOpen() ? '▴' : '▾' }}
-        </button>
-        @if (menuOpen()) {
-          <div class="mt-sm flex flex-col gap-xs">
-            @if (canRespond()) {
-              @if (s.isOneOff || s.isDetached) {
-                <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">{{ 'trainings.session.editThisSession' | transloco }}</a>
-              } @else {
-                <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" [queryParams]="{ scope: 'single' }" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">{{ 'trainings.session.editThisSession' | transloco }}</a>
-                <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" [queryParams]="{ scope: 'series' }" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">{{ 'trainings.session.editWholeSeries' | transloco }}</a>
-              }
-            }
-            <a [routerLink]="['/trainings/sessions', sessionId(), 'attendance']" class="rounded-md border border-border-strong bg-surface px-md py-xs text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">{{ 'trainings.session.seeFullAttendance' | transloco }}</a>
-            <button type="button" (click)="toggleVisibility()" [disabled]="busy()" class="rounded-md border border-border-strong bg-surface px-md py-xs text-left text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">
-              {{ (s.visibility === 'Public' ? 'trainings.session.makeTeamOnly' : 'trainings.session.makePublic') | transloco }}
-            </button>
-            @if (s.visibility === 'Public') {
-              <button type="button" (click)="copyLink()" class="rounded-md border border-border-strong bg-surface px-md py-xs text-left text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">{{ 'trainings.session.copyLink' | transloco }}</button>
-            }
-            @if (!s.isOneOff && canRespond()) {
-              <button type="button" (click)="skip()" [disabled]="busy()" class="rounded-md border border-border-strong bg-surface px-md py-xs text-left text-body-sm font-medium text-text hover:bg-surface-sunken transition-all duration-fast active:translate-y-px">{{ 'trainings.session.skipDate' | transloco }}</button>
-            }
-            @if (canRespond()) {
-              <button type="button" (click)="cancel()" [disabled]="busy()" jhButton variant="danger" size="sm">{{ 'trainings.session.cancelSession' | transloco }}</button>
-            }
+        <!-- Where (structured address; venue → street → postcode+city → country) -->
+        @if (s.locationKind === 'InPerson' && (s.venueName || s.street || s.postalCode || s.location)) {
+          <div class="rounded-lg border border-border bg-surface-card p-md" data-testid="session-address">
+            <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'trainings.session.where' | transloco }}</h2>
+            <p class="mt-xs text-body-md text-body">
+              @if (s.venueName) { <span class="font-semibold">{{ s.venueName }}</span><br /> }
+              @if (s.street) { {{ s.street }}<br /> }
+              @if (s.postalCode || s.location) { {{ s.postalCode }} {{ s.location?.name }}<br /> }
+              @if (s.location) { {{ s.location.countryName }} }
+            </p>
           </div>
         }
-      </section>
-    }
+
+        <!-- Who's coming -->
+        <div class="rounded-lg border border-border bg-surface-card p-md">
+          <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'trainings.session.whosComing' | transloco }}</h2>
+          @for (grp of [{ label: 'trainings.session.groupGoing', g: s.whosComing.going }, { label: 'trainings.session.groupMaybe', g: s.whosComing.maybe }, { label: 'trainings.session.groupCant', g: s.whosComing.cant }]; track grp.label) {
+            @if (grp.g.count > 0) {
+              <div class="mt-sm">
+                <p class="text-caption font-medium text-muted">{{ grp.label | transloco }} · <span class="font-mono">{{ grp.g.count }}</span></p>
+                <ul class="mt-2xs divide-y divide-border-muted">
+                  @for (p of grp.g.people; track p.handle) {
+                    <li class="flex items-center gap-sm py-xs">
+                      <span class="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-caption font-semibold text-secondary">
+                        @if (p.hasAvatar) { <img [src]="avatarUrl(p.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ initial(p.displayName) }} }
+                      </span>
+                      <a [routerLink]="['/u', p.handle]" class="min-w-0 flex-1 truncate text-body-sm font-medium text-heading hover:text-link">
+                        {{ p.displayName }}@if (p.isYou) { <span class="text-muted">· {{ 'trainings.attendance.you' | transloco }}</span> }
+                      </a>
+                      @if (p.isGuest) {
+                        <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ 'trainings.session.guest' | transloco }}</span>
+                      }
+                      @if (p.position) {
+                        <span class="text-caption text-muted">{{ p.position }}</span>
+                      }
+                    </li>
+                  }
+                  @if (grp.g.count > grp.g.people.length) {
+                    <li class="py-xs text-caption text-muted">+ <span class="font-mono">{{ grp.g.count - grp.g.people.length }}</span> {{ 'trainings.session.more' | transloco }}</li>
+                  }
+                </ul>
+              </div>
+            }
+          }
+          @if (s.whosComing.going.count === 0 && s.whosComing.maybe.count === 0 && s.whosComing.cant.count === 0) {
+            <p class="mt-sm text-body-sm text-muted">{{ 'trainings.session.noAnswers' | transloco }}</p>
+          }
+        </div>
+      </div>
+
+      <!-- Aside: RSVP + admin menu; sticky beside the content on desktop -->
+      <aside class="lg:col-span-1">
+        <div class="mt-md space-y-md lg:mt-0 lg:sticky lg:top-[4.5rem]">
+          <!-- RSVP -->
+          @if (canRespond()) {
+            <div class="rounded-lg border border-border bg-surface-card p-md">
+              <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">
+                {{ (s.viewerIsGuest ? 'trainings.session.comingAlong' : 'trainings.session.willYouMakeIt') | transloco }}
+              </h2>
+              <div role="group" [attr.aria-label]="(s.viewerIsGuest ? 'trainings.session.comingAlong' : 'trainings.session.willYouMakeIt') | transloco" class="mt-sm grid grid-cols-3 gap-sm">
+                <button type="button" (click)="respond('Going')" [disabled]="busy()" [attr.aria-pressed]="s.myAnswer === 'Going'"
+                  class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium transition-all duration-fast active:translate-y-px"
+                  [class.border-success-border]="s.myAnswer === 'Going'" [class.bg-success-bg]="s.myAnswer === 'Going'"
+                  [class.text-success-fg]="s.myAnswer === 'Going'" [class.border-border-strong]="s.myAnswer !== 'Going'">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+                  <span>{{ 'trainings.session.going' | transloco }}</span>
+                </button>
+                <button type="button" (click)="respond('Maybe')" [disabled]="busy()" [attr.aria-pressed]="s.myAnswer === 'Maybe'"
+                  class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium transition-all duration-fast active:translate-y-px"
+                  [class.border-warning-border]="s.myAnswer === 'Maybe'" [class.bg-warning-bg]="s.myAnswer === 'Maybe'"
+                  [class.text-warning-fg]="s.myAnswer === 'Maybe'" [class.border-border-strong]="s.myAnswer !== 'Maybe'">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                  <span>{{ 'trainings.session.maybe' | transloco }}</span>
+                </button>
+                <button type="button" (click)="respond('Cant')" [disabled]="busy()" [attr.aria-pressed]="s.myAnswer === 'Cant'"
+                  class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium transition-all duration-fast active:translate-y-px"
+                  [class.border-danger-border]="s.myAnswer === 'Cant'" [class.bg-danger-bg]="s.myAnswer === 'Cant'"
+                  [class.text-danger-fg]="s.myAnswer === 'Cant'" [class.border-border-strong]="s.myAnswer !== 'Cant'">
+                  <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                  <span>{{ 'trainings.session.cant' | transloco }}</span>
+                </button>
+              </div>
+              <p class="mt-sm text-caption text-muted">
+                {{ (s.viewerIsGuest ? 'trainings.session.rsvpGuestNote' : 'trainings.session.rsvpMemberNote') | transloco }}
+              </p>
+            </div>
+          }
+
+          <!-- Admin manage menu -->
+          @if (s.viewerIsAdmin) {
+            <div>
+              <button type="button" (click)="menuOpen.set(!menuOpen())" [attr.aria-expanded]="menuOpen()" data-testid="manage-menu"
+                class="flex w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm font-semibold text-body transition-colors duration-fast hover:bg-surface-sunken">
+                <span>{{ 'trainings.session.manageSession' | transloco }}</span>
+                <svg class="h-4 w-4 text-muted transition-transform duration-fast" [class.rotate-180]="menuOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              @if (menuOpen()) {
+                <div class="mt-xs overflow-hidden rounded-md border border-border bg-surface-card" data-testid="manage-menu-panel">
+                  @if (canRespond()) {
+                    @if (s.isOneOff || s.isDetached) {
+                      <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'trainings.session.editThisSession' | transloco }}</a>
+                    } @else {
+                      <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" [queryParams]="{ scope: 'single' }" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'trainings.session.editThisSession' | transloco }}</a>
+                      <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" [queryParams]="{ scope: 'series' }" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'trainings.session.editWholeSeries' | transloco }}</a>
+                    }
+                  }
+                  <a [routerLink]="['/trainings/sessions', sessionId(), 'attendance']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'trainings.session.seeFullAttendance' | transloco }}</a>
+                  <button type="button" (click)="toggleVisibility()" [disabled]="busy()" class="block w-full px-md py-sm text-left text-body-sm text-body hover:bg-surface-sunken disabled:opacity-60">
+                    {{ (s.visibility === 'Public' ? 'trainings.session.makeTeamOnly' : 'trainings.session.makePublic') | transloco }}
+                  </button>
+                  @if (s.visibility === 'Public') {
+                    <button type="button" (click)="copyLink()" class="block w-full px-md py-sm text-left text-body-sm text-body hover:bg-surface-sunken">{{ 'trainings.session.copyLink' | transloco }}</button>
+                  }
+                  @if (!s.isOneOff && canRespond()) {
+                    <button type="button" (click)="skip()" [disabled]="busy()" class="block w-full px-md py-sm text-left text-body-sm text-body hover:bg-surface-sunken disabled:opacity-60">{{ 'trainings.session.skipDate' | transloco }}</button>
+                  }
+                  @if (canRespond()) {
+                    <button type="button" (click)="cancel()" [disabled]="busy()" class="block w-full px-md py-sm text-left text-body-sm font-medium text-danger hover:bg-surface-sunken disabled:opacity-60">{{ 'trainings.session.cancelSession' | transloco }}</button>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </aside>
+    </div>
   }
-</div>
+</section>

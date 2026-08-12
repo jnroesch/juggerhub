@@ -1450,7 +1450,9 @@
       "makePublic": "Make this session public",
       "copyLink": "Copy shareable link",
       "skipDate": "Skip this date",
-      "cancelSession": "Cancel this session"
+      "cancelSession": "Cancel this session",
+      "partOfSeries": "Part of a series",
+      "where": "Where"
     },
     "create": {
       "cancelStep": "✕ Cancel",
@@ -1479,7 +1481,13 @@
       "reviewPost": "sessions players can respond to.",
       "reviewUntil": "until",
       "creating": "Creating…",
-      "createTraining": "Create training"
+      "createTraining": "Create training",
+      "successTitle": "Training created",
+      "successSubtitle": "You're all set — players can respond now.",
+      "successSessions": "sessions created",
+      "successCreateAnother": "Create another training",
+      "successGoToTrainings": "Go to trainings",
+      "successViewFirst": "View first session"
     },
     "edit": {
       "cancel": "‹ Cancel",

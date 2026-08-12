@@ -5,6 +5,22 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
 import { CreateTrainingRequest, LocationKind, TrainingInterval, TrainingVisibility } from '../../../core/models/trainings.models';
+
+/**
+ * A snapshot of what was just created, shown on the wizard's success step (GH #188). Captured from
+ * the form the instant the server accepts, because the form signals are reset to pristine immediately
+ * afterwards so the persistence effect can't re-save the submitted answers as a fresh draft.
+ */
+interface CreatedSummary {
+  name: string;
+  sessionCount: number;
+  firstSessionId: string;
+  isOneOff: boolean;
+  weekday: string;
+  interval: TrainingInterval;
+  startTime: string;
+  endTime: string;
+}
 import { CityOption, toSelection } from '../../../core/models/city.models';
 import { AddressFieldsComponent } from '../../../shared/address-fields/address-fields.component';
 import { problemDetail } from '../../../core/utils/problem';
@@ -96,6 +112,12 @@ export class TrainingCreateComponent {
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
 
+  /**
+   * Non-null once a create succeeds — the wizard swaps to a success step instead of redirecting to
+   * one arbitrary session of the new series (GH #188). Not part of the persisted snapshot.
+   */
+  protected readonly created = signal<CreatedSummary | null>(null);
+
   // Form state. All signals — see the class comment.
   protected readonly isRecurring = signal(this.restored?.isRecurring ?? this.pristine.isRecurring);
   protected readonly name = signal(this.restored?.name ?? this.pristine.name);
@@ -120,7 +142,7 @@ export class TrainingCreateComponent {
    * the live signal: the picker reads it once at first render (see {@link restored}), and a later
    * value would be ignored anyway.
    */
-  protected readonly restoredCity = this.restored?.city ?? null;
+  protected restoredCity = this.restored?.city ?? null;
 
   /**
    * The "Where" step is only complete when the whole in-person address is there: a street, a
@@ -260,7 +282,22 @@ export class TrainingCreateComponent {
         // Only once the server has accepted it (FR-007). Clearing on the click instead would throw
         // the user's answers away at the one moment they most need them — a rejected create.
         this.drafts.clearTraining(this.slug);
-        this.router.navigate(['/trainings/sessions', created.firstSessionId]);
+        // Confirm the series on a success step rather than dropping the user on one arbitrary session
+        // (GH #188). Capture the summary BEFORE resetting the form, so nothing is lost to the reset.
+        this.created.set({
+          name: this.name().trim(),
+          sessionCount: created.sessionCount,
+          firstSessionId: created.firstSessionId,
+          isOneOff: !this.isRecurring(),
+          weekday: this.weekday(),
+          interval: this.interval(),
+          startTime: this.startTime(),
+          endTime: this.endTime(),
+        });
+        // Return the wizard to pristine so the persistence effect sees no draft to write — otherwise
+        // the just-submitted answers would be re-saved and "create another" would not start blank.
+        this.busy.set(false);
+        this.resetToPristine();
       },
       error: (err) => {
         this.busy.set(false);
@@ -268,5 +305,63 @@ export class TrainingCreateComponent {
         this.step.set(2); // schedule errors surface here
       },
     });
+  }
+
+  /** Start over from a genuinely blank wizard, keeping the team context (GH #188). */
+  protected createAnother(): void {
+    this.created.set(null);
+    this.resetToPristine();
+  }
+
+  protected goToTrainings(): void {
+    this.router.navigate(['/t', this.slug, 'trainings']);
+  }
+
+  /** The old default destination, now an opt-in secondary link off the success step. */
+  protected viewFirstSession(): void {
+    const summary = this.created();
+    if (summary) {
+      this.router.navigate(['/trainings/sessions', summary.firstSessionId]);
+    }
+  }
+
+  /** i18n key for a series interval, translated client-side — matches the session page (GH #189). */
+  protected intervalKey(interval: TrainingInterval): string {
+    switch (interval) {
+      case 'Weekly':
+        return 'trainings.form.weekly';
+      case 'BiWeekly':
+        return 'trainings.form.biweekly';
+      case 'Monthly':
+        return 'trainings.form.monthly';
+    }
+  }
+
+  /**
+   * Reset every answer signal to the pristine wizard. Returning to pristine is what stops the
+   * persistence effect from writing the just-submitted answers back as a new draft, and it clears
+   * the restored-city hint so "create another" opens a blank picker.
+   */
+  private resetToPristine(): void {
+    const p = this.pristine;
+    this.step.set(p.step);
+    this.isRecurring.set(p.isRecurring);
+    this.name.set(p.name);
+    this.weekday.set(p.weekday);
+    this.interval.set(p.interval);
+    this.startTime.set(p.startTime);
+    this.endTime.set(p.endTime);
+    this.startDate.set(p.startDate);
+    this.endDate.set(p.endDate);
+    this.locationKind.set(p.locationKind);
+    this.venueName.set(p.venueName);
+    this.street.set(p.street);
+    this.postalCode.set(p.postalCode);
+    this.selectedCity.set(p.city);
+    this.virtualLink.set(p.virtualLink);
+    this.description.set(p.description);
+    this.visibility.set(p.visibility);
+    this.restoredCity = null;
+    this.error.set(null);
   }
 }

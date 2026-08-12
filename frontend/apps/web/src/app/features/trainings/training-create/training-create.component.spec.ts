@@ -40,8 +40,10 @@ interface WizardApi {
   virtualLink: WritableSignal<string>;
   description: WritableSignal<string>;
   visibility: WritableSignal<TrainingVisibility>;
+  created: () => { name: string; sessionCount: number; isOneOff: boolean; firstSessionId: string } | null;
   cancel(): void;
   create(): void;
+  createAnother(): void;
 }
 
 const KOELN: CityOption = {
@@ -320,6 +322,64 @@ describe('TrainingCreateComponent draft persistence', () => {
 
       expect(text()).toContain('Dez'); // de short month
       expect(text()).not.toContain('Dec');
+    });
+  });
+
+  /**
+   * GH #188 — after a successful create the wizard shows a success step confirming the series,
+   * instead of redirecting to one arbitrary session. The subtle part is the interaction with the
+   * draft-persistence effect: the just-submitted answers must NOT be re-saved as a fresh draft, and
+   * "create another" must open a genuinely blank wizard.
+   */
+  describe('success step (GH #188)', () => {
+    function submitRecurring(): void {
+      configure();
+      store.writeTraining(SLUG, { ...FULL_DRAFT, isRecurring: true, step: 5 });
+      createComponent();
+
+      api.create();
+      httpMock
+        .expectOne(`/api/v1/teams/${SLUG}/trainings`)
+        .flush({ trainingId: 't1', sessionCount: 12, firstSessionId: 's1' });
+      fixture.detectChanges();
+    }
+
+    it('shows the success step with the session count and clears the draft', () => {
+      submitRecurring();
+
+      expect(api.created()).toEqual(
+        expect.objectContaining({ name: 'Tuesday practice', sessionCount: 12, firstSessionId: 's1' }),
+      );
+      expect(store.readTraining(SLUG)).toBeNull();
+
+      const success = fixture.nativeElement.querySelector('[data-testid="training-success"]');
+      expect(success).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="training-success-count"]').textContent).toContain('12');
+    });
+
+    /**
+     * The heart of the fix: returning to pristine on success is what stops the effect from writing
+     * the submitted answers back. Without it, a reopened wizard would "restore" the finished draft.
+     */
+    it('resets the wizard to a blank state and persists nothing after success', () => {
+      submitRecurring();
+
+      expect(api.name()).toBe('');
+      expect(api.step()).toBe(1);
+      expect(store.readTraining(SLUG)).toBeNull();
+    });
+
+    it('create another returns to a blank wizard, not the success step', () => {
+      submitRecurring();
+
+      api.createAnother();
+      fixture.detectChanges();
+
+      expect(api.created()).toBeNull();
+      expect(api.name()).toBe('');
+      expect(api.step()).toBe(1);
+      expect(store.readTraining(SLUG)).toBeNull();
+      expect(fixture.nativeElement.querySelector('[data-testid="training-success"]')).toBeNull();
     });
   });
 });

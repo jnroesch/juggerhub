@@ -1,10 +1,10 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, LoadingComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
+import { LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
-import { TrainingRsvp, TrainingSessionDetail } from '../../../core/models/trainings.models';
+import { TrainingInterval, TrainingRsvp, TrainingSessionDetail } from '../../../core/models/trainings.models';
 import { problemDetail } from '../../../core/utils/problem';
 import { injectDateFormats } from '../../../core/i18n/locale-format';
 
@@ -16,7 +16,7 @@ import { injectDateFormats } from '../../../core/i18n/locale-format';
  */
 @Component({
   selector: 'jh-training-session',
-  imports: [RouterLink, ButtonDirective, LoadingComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
+  imports: [RouterLink, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './training-session.component.html',
   styleUrl: './training-session.component.css',
 })
@@ -154,6 +154,25 @@ export class TrainingSessionComponent {
 
   protected time(t: string): string {
     return t.slice(0, 5);
+  }
+
+  /**
+   * i18n key for a series' recurrence interval, translated client-side. Replaces the server's old
+   * `SeriesLabel` string, which shipped untranslated English ("monthly") into every locale (GH #189).
+   * Reuses the wizard's interval labels; falls back to a generic "series" for a recurring session
+   * whose interval is somehow absent.
+   */
+  protected intervalKey(interval: TrainingInterval | null): string {
+    switch (interval) {
+      case 'Weekly':
+        return 'trainings.form.weekly';
+      case 'BiWeekly':
+        return 'trainings.form.biweekly';
+      case 'Monthly':
+        return 'trainings.form.monthly';
+      default:
+        return 'trainings.series';
+    }
   }
 
   /** Follows the app language; the shared helper pins a date-only value to local midnight. */

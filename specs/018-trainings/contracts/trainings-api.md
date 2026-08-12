@@ -72,7 +72,7 @@ Team-only + outsider → 404.
   "name": "Tuesday Training", "description": "…", "isOneOff": false,
   "sessionDate": "2025-11-19", "startTime": "19:00", "endTime": "21:00",
   "locationKind": "InPerson", "location": "Sportpark Müngersdorf, Köln", "virtualLink": null,
-  "seriesLabel": "weekly", "visibility": "TeamOnly", "status": "Scheduled",
+  "weekday": "Tuesday", "interval": "Weekly", "visibility": "TeamOnly", "status": "Scheduled",
   "isPast": false, "isDetached": false,
   "viewerIsAdmin": false, "viewerIsGuest": false, "myAnswer": "Maybe" | null,
   "whosComing": {
