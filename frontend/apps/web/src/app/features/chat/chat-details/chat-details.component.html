@@ -34,7 +34,11 @@
 
   @if (detail(); as d) {
     <div class="mt-lg text-center">
-      <span class="mx-auto block size-20 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+      @if (d.avatar.url; as url) {
+        <img [src]="url" alt="" class="mx-auto block size-20 rounded-pill object-cover" />
+      } @else {
+        <span class="mx-auto block size-20 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+      }
       <h2 class="mt-sm text-h4 text-heading">{{ d.name }}</h2>
       <p class="text-body-sm text-muted">
         <span class="font-mono">{{ d.memberCount }}</span>
@@ -90,7 +94,11 @@
 
     <!-- The row's contents, shared by the linked and plain shapes above so they can't drift apart. -->
     <ng-template #memberRow let-m>
-      <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+      @if (m.avatarUrl; as url) {
+        <img [src]="url" alt="" class="size-10 shrink-0 rounded-pill object-cover" />
+      } @else {
+        <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+      }
       <span class="min-w-0 flex-1">
         <span class="block truncate text-body-md text-body">
           {{ m.displayName }}

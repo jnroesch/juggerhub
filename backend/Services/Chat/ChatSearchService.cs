@@ -115,7 +115,7 @@ public sealed class ChatSearchService : IChatSearchService
             .OrderBy(p => p.DisplayName)
             .Skip(pagination.NormalizedSkip)
             .Take(pagination.NormalizedTake)
-            .Select(p => new { p.UserId, p.DisplayName, p.Handle })
+            .Select(p => new { p.UserId, p.DisplayName, p.Handle, HasAvatar = p.Avatar != null })
             .ToListAsync(ct);
 
         var items = new List<PersonHitDto>(rows.Count);
@@ -128,7 +128,7 @@ public sealed class ChatSearchService : IChatSearchService
                 .Select(c => (Guid?)c.Id)
                 .FirstOrDefaultAsync(ct);
 
-            items.Add(new PersonHitDto(r.UserId, r.DisplayName, r.Handle, null, existing));
+            items.Add(new PersonHitDto(r.UserId, r.DisplayName, r.Handle, ChatAvatarUrl.ForPlayer(r.Handle, r.HasAvatar), existing));
         }
 
         return new PagedResult<PersonHitDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);

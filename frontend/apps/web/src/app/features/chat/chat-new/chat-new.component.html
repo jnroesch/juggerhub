@@ -110,7 +110,11 @@
               }
             </span>
 
-            <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+            @if (p.avatarUrl; as url) {
+              <img [src]="url" alt="" class="size-10 shrink-0 rounded-pill object-cover" />
+            } @else {
+              <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+            }
 
             <span class="min-w-0 flex-1">
               <span class="block truncate text-body-md text-body">{{ p.displayName }}</span>

@@ -36,6 +36,8 @@ export class ChatComposeComponent implements OnInit {
   private readonly router = inject(Router);
 
   protected readonly displayName = signal('');
+  /** The target player's avatar URL (DM mode); null in inquiry mode and for players without one. */
+  protected readonly avatarUrl = signal<string | null>(null);
   protected readonly targetUserId = signal<string | null>(null);
   protected readonly resolving = signal(true);
   /** The player can't be messaged (blocked, or the account is gone), or the target is unavailable. */
@@ -83,10 +85,11 @@ export class ChatComposeComponent implements OnInit {
     }
 
     // DM mode: the entry points pass the resolved person via navigation state to save a round trip.
-    const state = history.state as { userId?: string; displayName?: string } | null;
+    const state = history.state as { userId?: string; displayName?: string; avatarUrl?: string | null } | null;
     if (state?.userId) {
       this.targetUserId.set(state.userId);
       this.displayName.set(state.displayName ?? this.handle());
+      this.avatarUrl.set(state.avatarUrl ?? null);
       this.resolving.set(false);
       return;
     }
@@ -108,6 +111,7 @@ export class ChatComposeComponent implements OnInit {
         }
         this.targetUserId.set(hit.userId);
         this.displayName.set(hit.displayName);
+        this.avatarUrl.set(hit.avatarUrl);
         this.resolving.set(false);
       },
       error: () => {

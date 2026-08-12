@@ -102,7 +102,7 @@ export class ChatNewComponent {
         void this.router.navigate(['/chat', person.existingConversationId]);
       } else {
         void this.router.navigate(['/chat/compose', person.handle ?? person.userId], {
-          state: { userId: person.userId, displayName: person.displayName },
+          state: { userId: person.userId, displayName: person.displayName, avatarUrl: person.avatarUrl },
         });
       }
       return;

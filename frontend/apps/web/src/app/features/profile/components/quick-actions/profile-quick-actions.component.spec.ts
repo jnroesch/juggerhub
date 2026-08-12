@@ -128,7 +128,7 @@ describe('ProfileQuickActionsComponent', () => {
     const fixture = create('bob');
     (el(fixture, 'qa-message') as HTMLButtonElement).click();
     expect(router.navigate).toHaveBeenCalledWith(['/chat/compose', 'bob'], {
-      state: { userId: 'u-bob', displayName: 'bob' },
+      state: { userId: 'u-bob', displayName: 'bob', avatarUrl: null },
     });
     expect(chat.start).not.toHaveBeenCalled();
   });

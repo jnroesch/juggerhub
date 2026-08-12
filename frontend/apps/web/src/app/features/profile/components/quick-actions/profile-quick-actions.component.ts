@@ -127,7 +127,7 @@ export class ProfileQuickActionsComponent implements OnInit {
         // No conversation yet — open a compose draft (feature 022 lazy creation). Nothing is created
         // until the first message is sent, so opening Message and leaving pollutes nothing.
         void this.router.navigate(['/chat/compose', target], {
-          state: { userId: hit.userId, displayName: hit.displayName },
+          state: { userId: hit.userId, displayName: hit.displayName, avatarUrl: hit.avatarUrl },
         });
       },
       error: () => this.failMessage(),

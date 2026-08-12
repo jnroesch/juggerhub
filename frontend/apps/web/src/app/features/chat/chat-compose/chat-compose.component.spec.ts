@@ -24,7 +24,10 @@ const chat = {
 };
 let navigate: jest.SpyInstance;
 
-function create(handle: string, state?: { userId?: string; displayName?: string }) {
+function create(
+  handle: string,
+  state?: { userId?: string; displayName?: string; avatarUrl?: string | null },
+) {
   window.history.replaceState(state ?? {}, '');
   TestBed.configureTestingModule({
     imports: [translocoTestingModule()],
@@ -84,6 +87,18 @@ describe('ChatComposeComponent', () => {
     expect(el(fixture, 'compose-recipient')?.textContent).toContain('Bob B');
     expect(chat.search).not.toHaveBeenCalled();
     expect(chat.sendDirect).not.toHaveBeenCalled();
+  });
+
+  it("shows the recipient's avatar from navigation state (issue #193)", () => {
+    const fixture = create('bob', { userId: 'u-bob', displayName: 'Bob B', avatarUrl: '/api/v1/profiles/bob/avatar' });
+    const img = fixture.nativeElement.querySelector('header img') as HTMLImageElement;
+    expect(img).not.toBeNull();
+    expect(img.getAttribute('src')).toBe('/api/v1/profiles/bob/avatar');
+  });
+
+  it('shows the placeholder when the recipient has no avatar (issue #193)', () => {
+    const fixture = create('ann', { userId: 'u-ann', displayName: 'Ann A' });
+    expect(fixture.nativeElement.querySelector('header img')).toBeNull();
   });
 
   it('resolves the target from the handle when no navigation state is present', () => {
