@@ -85,7 +85,11 @@
             @for (person of r.people.items; track person.userId) {
               <li class="flex items-center justify-between gap-md px-md py-sm">
                 <span class="flex items-center gap-sm">
-                  <span class="size-10 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+                  @if (person.avatarUrl; as url) {
+                    <img [src]="url" alt="" class="size-10 shrink-0 rounded-pill object-cover" />
+                  } @else {
+                    <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+                  }
                   <span class="text-body-md text-body">{{ person.displayName }}</span>
                 </span>
                 <button
@@ -114,7 +118,11 @@
             >
               <!-- Round for a DM, a 2x2 cluster for a group/team/party -->
               @if (c.kind === 'Direct') {
-                <span class="size-11 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+                @if (c.avatar.url; as url) {
+                  <img [src]="url" alt="" class="size-11 shrink-0 rounded-pill object-cover" />
+                } @else {
+                  <span class="size-11 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+                }
               } @else {
                 <span class="grid size-11 shrink-0 grid-cols-2 gap-px overflow-hidden rounded-pill" aria-hidden="true">
                   @for (q of [1, 2, 3, 4]; track q) {

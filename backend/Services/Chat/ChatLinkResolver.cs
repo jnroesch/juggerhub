@@ -83,7 +83,11 @@ public sealed class ChatLinkResolver
                     p.DisplayName,
                     p.HomeCity == null ? null : p.HomeCity.Name + ", " + p.HomeCity.CountryName,
                     $"/u/{p.Handle}",
-                    null),
+                    // Only players carry an avatar; team/event/training cards have no crest image and
+                    // stay null (issue #193). The banned-account filter above already excluded them.
+                    // Plain interpolation (not Uri.EscapeDataString) so EF can translate it, matching
+                    // the `/u/{Handle}` href above — handles are already URL-safe.
+                    p.Avatar != null ? "/api/v1/profiles/" + p.Handle + "/avatar" : null),
             })
             .ToDictionaryAsync(x => x.UserId, x => x.Card, ct);
 

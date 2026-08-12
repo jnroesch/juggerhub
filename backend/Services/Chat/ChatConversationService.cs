@@ -430,11 +430,13 @@ public sealed class ChatConversationService : IChatConversationService
                 TeamName = c.Team!.Name,
                 EventName = c.Event!.Name,
                 RequesterName = c.Requester!.Profile!.DisplayName,
+                RequesterHandle = c.Requester!.Profile!.Handle,
+                RequesterHasAvatar = c.Requester!.Profile!.Avatar != null,
                 State_ = c.State,
                 Me = c.Participants.FirstOrDefault(p => p.UserId == callerId),
                 Other = c.Participants
                     .Where(p => p.UserId != callerId)
-                    .Select(p => new { p.UserId, p.User.Profile!.DisplayName })
+                    .Select(p => new { p.UserId, p.User.Profile!.DisplayName, p.User.Profile!.Handle, HasAvatar = p.User.Profile!.Avatar != null })
                     .FirstOrDefault(),
                 Last = c.Messages
                     .OrderByDescending(m => m.Id)
@@ -478,7 +480,7 @@ public sealed class ChatConversationService : IChatConversationService
                 r.Id,
                 r.Kind,
                 DisplayName(r.Kind, r.Name, r.TeamName, r.Other?.DisplayName, r.EventName, r.RequesterName, isRequester, placeholder),
-                BuildAvatar(r.Kind, r.TeamId, r.Other?.UserId, r.RequesterUserId, isRequester),
+                BuildAvatar(r.Kind, r.TeamId, r.Other?.UserId, r.Other?.Handle, r.Other?.HasAvatar ?? false, r.RequesterUserId, r.RequesterHandle, r.RequesterHasAvatar, isRequester),
                 last is null
                     ? null
                     : new LastMessageDto(
@@ -645,9 +647,11 @@ public sealed class ChatConversationService : IChatConversationService
                 TeamName = c.Team!.Name,
                 EventName = c.Event!.Name,
                 RequesterName = c.Requester!.Profile!.DisplayName,
+                RequesterHandle = c.Requester!.Profile!.Handle,
+                RequesterHasAvatar = c.Requester!.Profile!.Avatar != null,
                 Other = c.Participants
                     .Where(p => p.UserId != callerId)
-                    .Select(p => new { p.UserId, p.User.Profile!.DisplayName })
+                    .Select(p => new { p.UserId, p.User.Profile!.DisplayName, p.User.Profile!.Handle, HasAvatar = p.User.Profile!.Avatar != null })
                     .FirstOrDefault(),
                 Me = c.Participants.FirstOrDefault(p => p.UserId == callerId),
             })
@@ -661,7 +665,7 @@ public sealed class ChatConversationService : IChatConversationService
             conversationId,
             row.Kind,
             DisplayName(row.Kind, row.Name, row.TeamName, row.Other?.DisplayName, row.EventName, row.RequesterName, isRequester, placeholder),
-            BuildAvatar(row.Kind, row.TeamId, row.Other?.UserId, row.RequesterUserId, isRequester),
+            BuildAvatar(row.Kind, row.TeamId, row.Other?.UserId, row.Other?.Handle, row.Other?.HasAvatar ?? false, row.RequesterUserId, row.RequesterHandle, row.RequesterHasAvatar, isRequester),
             row.State,
             row.Me?.IsMuted ?? false,
             row.Me?.IsHidden ?? false,
@@ -697,7 +701,7 @@ public sealed class ChatConversationService : IChatConversationService
 
         var profiles = await _db.PlayerProfiles.AsNoTracking()
             .Where(p => page.Contains(p.UserId))
-            .Select(p => new { p.UserId, p.DisplayName, p.Handle })
+            .Select(p => new { p.UserId, p.DisplayName, p.Handle, HasAvatar = p.Avatar != null })
             .ToListAsync(ct);
 
         var viaMarket = a.Kind == ConversationKind.Party
@@ -718,7 +722,9 @@ public sealed class ChatConversationService : IChatConversationService
                 // render the placeholder instead of dropping the member.
                 profile?.DisplayName ?? Placeholder,
                 profile?.Handle,
-                null,
+                // Null for a banned/erased account (its profile is filtered out, so `profile` is null)
+                // — the avatar must not become a way around the placeholder name above (issue #193).
+                ChatAvatarUrl.ForPlayer(profile?.Handle, profile?.HasAvatar ?? false),
                 IsYou: id == callerId,
                 ViaMarket: viaMarket.Contains(id));
         }).ToList();
@@ -1233,24 +1239,34 @@ public sealed class ChatConversationService : IChatConversationService
             _ => placeholder,
         };
 
+    // Team/party/event conversations have no crest image — there is no team-avatar endpoint (issue
+    // #193), so their Url stays null and the client renders its cluster placeholder. Only the player
+    // faces (a DM's partner, and the requester an inquiry admin sees) carry a real avatar URL.
     private static ConversationAvatarDto BuildAvatar(
         ConversationKind kind,
         Guid? teamId,
         Guid? otherUserId,
+        string? otherHandle,
+        bool otherHasAvatar,
         Guid? requesterUserId,
+        string? requesterHandle,
+        bool requesterHasAvatar,
         bool isRequester) =>
         kind switch
         {
-            ConversationKind.Direct => new ConversationAvatarDto("User", otherUserId, null, null),
+            ConversationKind.Direct => new ConversationAvatarDto(
+                "User", otherUserId, null, ChatAvatarUrl.ForPlayer(otherHandle, otherHasAvatar)),
             ConversationKind.Team => new ConversationAvatarDto("Team", null, teamId, null),
             ConversationKind.Party => new ConversationAvatarDto("Party", null, null, null),
             // Requester sees the team/event crest; an admin sees the requester's avatar.
             ConversationKind.TeamInquiry => isRequester
                 ? new ConversationAvatarDto("Team", null, teamId, null)
-                : new ConversationAvatarDto("User", requesterUserId, null, null),
+                : new ConversationAvatarDto(
+                    "User", requesterUserId, null, ChatAvatarUrl.ForPlayer(requesterHandle, requesterHasAvatar)),
             ConversationKind.EventInquiry => isRequester
                 ? new ConversationAvatarDto("Event", null, null, null)
-                : new ConversationAvatarDto("User", requesterUserId, null, null),
+                : new ConversationAvatarDto(
+                    "User", requesterUserId, null, ChatAvatarUrl.ForPlayer(requesterHandle, requesterHasAvatar)),
             _ => new ConversationAvatarDto("Group", null, null, null),
         };
 }

@@ -11,7 +11,11 @@
       </svg>
     </a>
 
-    <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+    @if (avatarUrl(); as url) {
+      <img [src]="url" alt="" class="size-10 shrink-0 rounded-pill object-cover" />
+    } @else {
+      <span class="size-10 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
+    }
 
     <span class="min-w-0 flex-1">
       <h1 class="truncate text-body-lg font-semibold text-heading" data-testid="compose-recipient">

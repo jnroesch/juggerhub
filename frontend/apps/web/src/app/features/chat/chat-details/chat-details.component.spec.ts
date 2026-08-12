@@ -99,4 +99,17 @@ describe('ChatDetailsComponent (issue #68)', () => {
     expect(me.textContent).toContain('· you');
     expect(me.textContent).toContain('guest · via market');
   });
+
+  it("renders a member's avatar when the server sends a URL, and the placeholder otherwise (issue #193)", () => {
+    const fixture = create([
+      member('u-bob', 'bob', { avatarUrl: '/api/v1/profiles/bob/avatar' }),
+      member('u-ann', 'ann'),
+    ]);
+    const [bob, ann] = rows(fixture);
+
+    const bobImg = bob.querySelector('img');
+    expect(bobImg).not.toBeNull();
+    expect(bobImg?.getAttribute('src')).toBe('/api/v1/profiles/bob/avatar');
+    expect(ann.querySelector('img')).toBeNull();
+  });
 });

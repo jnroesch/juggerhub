@@ -147,4 +147,32 @@ public abstract class ChatTestSupport
         db.UserBlocks.Add(new UserBlock { BlockerUserId = blockerUserId, BlockedUserId = blockedUserId });
         await db.SaveChangesAsync();
     }
+
+    /// <summary>
+    /// Give a player an avatar descriptor so <c>Avatar != null</c> holds (feature 035: the row is a
+    /// pointer to blob storage, not the bytes — enough for the chat projections to build the URL).
+    /// </summary>
+    protected async Task SeedAvatarAsync(Guid userId)
+    {
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var profileId = await db.PlayerProfiles.Where(p => p.UserId == userId).Select(p => p.Id).FirstAsync();
+        db.ProfileAvatars.Add(new ProfileAvatar
+        {
+            ProfileId = profileId,
+            ContentType = "image/webp",
+            ObjectKey = $"avatars/{Guid.NewGuid():N}.webp",
+            SizeBytes = 1024,
+        });
+        await db.SaveChangesAsync();
+    }
+
+    /// <summary>Ban an account so the global profile query filter hides it (feature 013).</summary>
+    protected async Task BanAsync(Guid userId)
+    {
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.Users.Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.Status, AccountStatus.Banned));
+    }
 }
