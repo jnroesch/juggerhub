@@ -1,1 +1,11 @@
-/* Recognition display (feature 012) — styling via Tailwind utilities per DESIGN.md. */
+/* Recognition display (feature 012) — styling via Tailwind utilities per DESIGN.md.
+
+   Declare the host as a block. Angular's default for a custom element is
+   `display: inline`, and vertical margins never apply to an inline box — so a
+   parent spacing its children with `space-y-*` (which sets `margin-top` on each
+   child after the first) silently drops this component's top gap on the floor.
+   Every shared `shared/ui/` primitive declares this for the same reason; this
+   feature-level component needs it too (GH #192). */
+:host {
+  display: block;
+}

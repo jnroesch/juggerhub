@@ -420,6 +420,7 @@
       "invitedTo": "Invited to {{name}}."
     },
     "recognition": {
+      "heading": "Badges & achievements",
       "badges": "Badges",
       "achievements": "Achievements",
       "none": "No badges or achievements yet."

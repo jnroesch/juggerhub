@@ -4,7 +4,8 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { Signal, WritableSignal } from '@angular/core';
 import { EventCreateComponent } from './event-create.component';
-import { translocoTestingModule } from '../../../../testing/transloco-testing';
+import { TranslocoService } from '@jsverse/transloco';
+import { translocoTestingModule, translocoLocaleTestingProviders } from '../../../../testing/transloco-testing';
 import { EventType, LocationKind, ParticipantMode } from '../../../core/models/event.models';
 import { CityOption } from '../../../core/models/city.models';
 import { DRAFT_VERSION, EventDraft } from '../../../core/drafts/wizard-draft.models';
@@ -53,7 +54,7 @@ describe('EventCreateComponent wizard validation', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [translocoTestingModule()],
-      providers: [provideHttpClient(withXhr()), provideHttpClientTesting(), provideRouter([])],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting(), provideRouter([]), ...translocoLocaleTestingProviders()],
     });
     fixture = TestBed.createComponent(EventCreateComponent);
     api = fixture.componentInstance as unknown as WizardApi;
@@ -179,7 +180,7 @@ describe('EventCreateComponent draft persistence', () => {
   function configure(): void {
     TestBed.configureTestingModule({
       imports: [translocoTestingModule()],
-      providers: [provideHttpClient(withXhr()), provideHttpClientTesting(), provideRouter([])],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting(), provideRouter([]), ...translocoLocaleTestingProviders()],
     });
     store = TestBed.inject(WizardDraftStore);
     httpMock = TestBed.inject(HttpTestingController);
@@ -326,5 +327,28 @@ describe('EventCreateComponent draft persistence', () => {
       .flush({ detail: 'Nope.' }, { status: 400, statusText: 'Bad Request' });
 
     expect(store.readEvent()?.name).toBe('Autumn Cup');
+  });
+
+  /**
+   * GH #187 — the review step must show start/end in the active language, never the raw
+   * `datetime-local` strings. Mirrors the recognition-display regression spec: assert the de/en
+   * difference and that a mid-review language switch re-renders. `translocoDate` follows the active
+   * language, unlike Angular's `| date` pipe, which is pinned to `LOCALE_ID` at bootstrap.
+   */
+  it('renders the review start/end in the active language, not raw datetime-local', () => {
+    configure();
+    store.writeEvent({ ...FULL_DRAFT, step: 'review' });
+    createComponent();
+
+    const text = () => fixture.nativeElement.textContent as string;
+    // startsAt/endsAt are 2026-10-01T10:00 / 2026-10-02T18:00.
+    expect(text()).not.toContain('2026-10-01T10:00');
+    expect(text()).toContain('Oct'); // en short month
+
+    TestBed.inject(TranslocoService).setActiveLang('de');
+    fixture.detectChanges();
+
+    expect(text()).toContain('Okt'); // de short month
+    expect(text()).not.toContain('Oct');
   });
 });
