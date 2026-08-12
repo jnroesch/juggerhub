@@ -424,6 +424,7 @@
       "invitedTo": "Invitado a {{name}}."
     },
     "recognition": {
+      "heading": "Insignias y logros",
       "badges": "Insignias",
       "achievements": "Logros",
       "none": "Aún no hay insignias ni logros."

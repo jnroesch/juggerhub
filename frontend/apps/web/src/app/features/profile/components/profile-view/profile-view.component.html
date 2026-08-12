@@ -67,7 +67,12 @@
     <hr class="border-border" />
 
     <!-- Badges & achievements (feature 012) -->
-    <jh-recognition-display [badges]="p.badges" [achievements]="p.achievements" />
+    <section>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'profile.recognition.heading' | transloco }}</p>
+      <div class="mt-sm">
+        <jh-recognition-display [badges]="p.badges" [achievements]="p.achievements" />
+      </div>
+    </section>
   </div>
 
   <!-- Right column: recent activity -->
