@@ -302,7 +302,6 @@ public sealed class TrainingSessionService : ITrainingSessionService
                 head.VenueName,
                 head.LegacyLocation),
             head.EffectiveKind == LocationKind.Virtual ? head.VirtualLink : null,
-            head.IsRecurring ? SeriesLabel(head.Interval) : null,
             head.Weekday,
             head.Interval,
             head.EndDate,
@@ -368,11 +367,4 @@ public sealed class TrainingSessionService : ITrainingSessionService
         await _notifications.CreateManyAsync(responders, NotificationType.TrainingUpdated, payload, actorId, $"training-updated:{sessionId}:cancelled", ct);
     }
 
-    private static string SeriesLabel(TrainingInterval? interval) => interval switch
-    {
-        TrainingInterval.Weekly => "weekly",
-        TrainingInterval.BiWeekly => "every 2 weeks",
-        TrainingInterval.Monthly => "monthly",
-        _ => "series",
-    };
 }

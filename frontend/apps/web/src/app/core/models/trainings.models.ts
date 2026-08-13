@@ -118,7 +118,6 @@ export interface TrainingSessionDetail {
   /** Server-composed city → venue → legacy label; empty for a virtual session. */
   locationLabel: string;
   virtualLink: string | null;
-  seriesLabel: string | null;
   weekday: string | null;
   interval: TrainingInterval | null;
   endDate: string | null;

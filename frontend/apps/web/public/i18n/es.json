@@ -1454,7 +1454,9 @@
       "makePublic": "Hacer pública esta sesión",
       "copyLink": "Copiar enlace para compartir",
       "skipDate": "Saltar esta fecha",
-      "cancelSession": "Cancelar esta sesión"
+      "cancelSession": "Cancelar esta sesión",
+      "partOfSeries": "Parte de una serie",
+      "where": "Dónde"
     },
     "create": {
       "cancelStep": "✕ Cancelar",
@@ -1483,7 +1485,13 @@
       "reviewPost": "sesiones a las que los jugadores pueden responder.",
       "reviewUntil": "hasta",
       "creating": "Creando…",
-      "createTraining": "Crear entrenamiento"
+      "createTraining": "Crear entrenamiento",
+      "successTitle": "Entrenamiento creado",
+      "successSubtitle": "Todo listo — los jugadores ya pueden responder.",
+      "successSessions": "sesiones creadas",
+      "successCreateAnother": "Crear otro entrenamiento",
+      "successGoToTrainings": "Ir a entrenamientos",
+      "successViewFirst": "Ver la primera sesión"
     },
     "edit": {
       "cancel": "‹ Cancelar",

@@ -1,4 +1,5 @@
 <div class="mx-auto max-w-lg px-md py-lg">
+  @if (!created()) {
   <div class="flex items-center justify-between">
     <button type="button" (click)="step() === 1 ? cancel() : back()" class="text-body-sm font-medium text-link hover:text-link-hover">
       {{ (step() === 1 ? 'trainings.create.cancelStep' : 'trainings.create.back') | transloco }}
@@ -148,5 +149,36 @@
     <button type="button" (click)="create()" [disabled]="busy()" data-testid="training-create-submit" jhButton class="mt-lg w-full">
       {{ (busy() ? 'trainings.create.creating' : 'trainings.create.createTraining') | transloco }}
     </button>
+  }
+  }
+
+  <!-- Success: confirm the series, don't drop the user on one arbitrary session (GH #188) -->
+  @if (created(); as c) {
+    <div class="py-lg text-center" data-testid="training-success">
+      <span class="mx-auto grid h-12 w-12 place-items-center rounded-pill border border-success-border bg-success-bg text-success-fg">
+        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+      </span>
+      <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.create.successTitle' | transloco }}</h1>
+      <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.create.successSubtitle' | transloco }}</p>
+    </div>
+
+    <jh-card class="p-md text-body-sm">
+      <p class="font-medium text-heading">{{ c.name }}</p>
+      <p class="mt-2xs text-muted">
+        {{ c.isOneOff ? ('trainings.oneOff' | transloco) : (('trainings.weekday.' + c.weekday | transloco) + ' · ' + (intervalKey(c.interval) | transloco)) }}
+        · <span class="font-mono">{{ c.startTime }}–{{ c.endTime }}</span>
+      </p>
+      @if (!c.isOneOff) {
+        <p class="mt-xs text-muted" data-testid="training-success-count">
+          <span class="font-mono">{{ c.sessionCount }}</span> {{ 'trainings.create.successSessions' | transloco }}
+        </p>
+      }
+    </jh-card>
+
+    <button type="button" (click)="createAnother()" data-testid="training-success-another" jhButton class="mt-lg w-full">{{ 'trainings.create.successCreateAnother' | transloco }}</button>
+    <button type="button" (click)="goToTrainings()" data-testid="training-success-trainings"
+      class="mt-sm w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken">{{ 'trainings.create.successGoToTrainings' | transloco }}</button>
+    <button type="button" (click)="viewFirstSession()" data-testid="training-success-first"
+      class="mt-sm w-full text-body-sm font-medium text-link hover:text-link-hover">{{ 'trainings.create.successViewFirst' | transloco }}</button>
   }
 </div>

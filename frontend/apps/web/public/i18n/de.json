@@ -1454,7 +1454,9 @@
       "makePublic": "Diese Einheit öffentlich machen",
       "copyLink": "Teilbaren Link kopieren",
       "skipDate": "Diesen Termin auslassen",
-      "cancelSession": "Diese Einheit absagen"
+      "cancelSession": "Diese Einheit absagen",
+      "partOfSeries": "Teil einer Serie",
+      "where": "Wo"
     },
     "create": {
       "cancelStep": "✕ Abbrechen",
@@ -1483,7 +1485,13 @@
       "reviewPost": "Einheiten, auf die Spieler antworten können.",
       "reviewUntil": "bis",
       "creating": "Wird erstellt…",
-      "createTraining": "Training erstellen"
+      "createTraining": "Training erstellen",
+      "successTitle": "Training erstellt",
+      "successSubtitle": "Alles bereit — Spieler können jetzt antworten.",
+      "successSessions": "Einheiten erstellt",
+      "successCreateAnother": "Weiteres Training anlegen",
+      "successGoToTrainings": "Zu den Trainings",
+      "successViewFirst": "Erste Einheit ansehen"
     },
     "edit": {
       "cancel": "‹ Abbrechen",
