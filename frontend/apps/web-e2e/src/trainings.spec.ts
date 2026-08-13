@@ -65,7 +65,11 @@ test('create an in-person training with a structured address', async ({ page, re
 
   await page.getByTestId('training-create-submit').click();
 
-  // 6. Lands on the session page, showing the city-anchored label plus the full address.
+  // 6. A success step confirms the training instead of dropping the admin on one arbitrary
+  //    session (GH #188). Following "View first session" reaches the session page, which shows
+  //    the city-anchored label plus the full address.
+  await expect(page.getByTestId('training-success')).toBeVisible();
+  await page.getByTestId('training-success-first').click();
   await expect(page.getByTestId('session-location')).toHaveText('Köln');
   await expect(page.getByTestId('session-address')).toContainText('Sportpark Müngersdorf');
   await expect(page.getByTestId('session-address')).toContainText('50933');
@@ -110,6 +114,8 @@ test('a virtual training asks for no address at all', async ({ page, request }) 
   await expect(page.getByTestId('review-address')).toHaveCount(0);
   await page.getByTestId('training-create-submit').click();
 
-  // Lands on the session page for the created virtual training.
+  // A success step confirms the created training (GH #188); follow it to the session page.
+  await expect(page.getByTestId('training-success')).toBeVisible();
+  await page.getByTestId('training-success-first').click();
   await expect(page).toHaveURL(/\/trainings\/sessions\//);
 });
