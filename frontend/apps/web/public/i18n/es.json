@@ -224,6 +224,7 @@
       "inviteCoAdmins": "Invitar coadministradores",
       "cancelEvent": "Cancelar evento",
       "manageEvent": "Gestionar evento",
+      "contactAdmins": "Contactar con administradores del evento",
       "entranceFee": "Cuota de inscripción",
       "payBy": "Paga antes del {{date}}",
       "payTo": "Pagar a",

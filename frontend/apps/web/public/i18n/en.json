@@ -220,6 +220,7 @@
       "inviteCoAdmins": "Invite co-admins",
       "cancelEvent": "Cancel event",
       "manageEvent": "Manage event",
+      "contactAdmins": "Contact event admins",
       "entranceFee": "Entrance fee",
       "payBy": "Pay by {{date}}",
       "payTo": "Pay to",
