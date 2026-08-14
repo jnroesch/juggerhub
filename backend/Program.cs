@@ -503,14 +503,6 @@ using (var adminSyncScope = app.Services.CreateScope())
     await adminSyncScope.ServiceProvider.GetRequiredService<PlatformAdminRoleSync>().SyncAsync();
 }
 
-// Development-only sample data for demonstrable "recent activity" (never in Prod).
-if (app.Environment.IsDevelopment())
-{
-    using var seedScope = app.Services.CreateScope();
-    var seedDb = seedScope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DevDataSeeder.SeedAsync(seedDb);
-}
-
 // --- Middleware pipeline ----------------------------------------------------
 // Exception handler is registered first so it wraps the whole pipeline.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
