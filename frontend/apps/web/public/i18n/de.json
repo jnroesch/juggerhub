@@ -224,6 +224,7 @@
       "inviteCoAdmins": "Co-Admins einladen",
       "cancelEvent": "Event absagen",
       "manageEvent": "Event verwalten",
+      "contactAdmins": "Event-Admins kontaktieren",
       "entranceFee": "Teilnahmegebühr",
       "payBy": "Zahlen bis {{date}}",
       "payTo": "Zahlen an",
