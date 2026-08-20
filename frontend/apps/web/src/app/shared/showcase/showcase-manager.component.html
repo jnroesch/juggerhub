@@ -6,7 +6,7 @@
   @if (images().length === 0) {
     <!-- The invitation an owner sees on an empty gallery. A viewer who cannot add pictures is
          shown nothing at all — this component is not on their page (spec FR-026). -->
-    <p class="text-body-sm text-muted">{{ 'showcase.emptyOwner' | transloco: { max: maxImages } }}</p>
+    <p class="text-body-sm text-muted">{{ emptyKey() | transloco: { max: maxImages } }}</p>
   }
 
   @if (images().length > 0) {

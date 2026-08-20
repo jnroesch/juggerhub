@@ -45,6 +45,14 @@ export class ShowcaseManagerComponent {
   protected readonly captionDraft = signal('');
 
   protected readonly maxImages = SHOWCASE_MAX_IMAGES;
+
+  /**
+   * The empty-gallery invitation is addressed to the owner, and a team is not a person: "show what
+   * playing looks like for you" is wrong copy on a team's gallery.
+   */
+  protected readonly emptyKey = computed(() =>
+    this.owner().kind === 'team' ? 'showcase.emptyTeamOwner' : 'showcase.emptyOwner',
+  );
   protected readonly full = computed(() => this.images().length >= SHOWCASE_MAX_IMAGES);
   protected readonly remaining = computed(() => SHOWCASE_MAX_IMAGES - this.images().length);
 

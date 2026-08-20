@@ -200,6 +200,11 @@
                 [error]="showcaseError()"
                 [retry]="reloadShowcase"
               />
+              @if (showcaseEmptyForAdmin()) {
+                <p class="text-body-sm text-subtle" data-testid="team-showcase-empty">
+                  {{ 'showcase.emptyTeamOwner' | transloco: { max: maxShowcaseImages } }}
+                </p>
+              }
             }
           </jh-card>
         }

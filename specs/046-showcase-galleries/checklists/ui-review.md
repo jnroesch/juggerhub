@@ -99,9 +99,20 @@ from reading the markup. Two defects were found this way and fixed:
    only by uploading a realistically sized picture through the real proxy. Fixed by setting the
    limit to 8 MB with a comment tying it to `MaxInputBytes`.
 
-Also measured on the live page: horizontal overflow at 375 px is **0 px** (SC-007), and the
-uploaded picture renders with `naturalWidth > 0`, i.e. the browser really fetched bytes through
-the gated read path.
+A second mobile pass, after the view/edit rework, walked all six states at 375 px — profile edit
+(empty and filled), profile view, the enlarged view, and the team card reading, empty and managing.
+Every one measured **0 px** horizontal overflow (SC-007), and two more defects surfaced:
+
+5. **The empty team card was a bare heading and a button**, where every neighbouring card on that
+   page ("Recent events", "Badges & achievements") says why it is empty. It now carries the
+   invitation.
+6. **The shared manager spoke profile copy on a team's gallery** — "Show what playing looks like
+   for *you*" for a team. The `emptyTeamOwner` string existed from the start and was never wired
+   up; the manager now picks its invitation from the owner kind. Caught only because the empty
+   team state had never been looked at.
+
+Uploaded pictures render with `naturalWidth > 0`, i.e. the browser really fetched bytes through the
+gated read path.
 
 ## Notes
 

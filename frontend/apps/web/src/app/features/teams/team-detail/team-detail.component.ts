@@ -19,7 +19,7 @@ import { PartyRequestCard } from '../../../core/models/party.models';
 import { problemDetail } from '../../../core/utils/problem';
 import { RecognitionDisplayComponent } from '../../profile/components/recognition-display/recognition-display.component';
 import { TeamHappeningsComponent } from './happenings/team-happenings.component';
-import { ShowcaseGalleryComponent, ShowcaseManagerComponent } from '../../../shared/showcase';
+import { SHOWCASE_MAX_IMAGES, ShowcaseGalleryComponent, ShowcaseManagerComponent } from '../../../shared/showcase';
 import { ShowcaseImage } from '../../../core/models/showcase.models';
 import { ShowcaseService } from '../../../core/services/showcase.service';
 
@@ -70,6 +70,17 @@ export class TeamDetailComponent {
   protected readonly showcaseError = signal<string | null>(null);
 
   protected readonly showcaseOwner = computed(() => ({ kind: 'team', slug: this.slug() }) as const);
+
+  protected readonly maxShowcaseImages = SHOWCASE_MAX_IMAGES;
+
+  /** An admin looking at an empty gallery gets the invitation, not a bare heading. */
+  protected readonly showcaseEmptyForAdmin = computed(
+    () =>
+      this.isAdmin() &&
+      !this.showcaseLoading() &&
+      this.showcaseError() === null &&
+      this.showcaseImages().length === 0,
+  );
 
   /** Hidden entirely for a viewer who cannot add pictures when there are none (spec FR-026). */
   protected readonly showShowcase = computed(
