@@ -200,6 +200,29 @@ task list wins.
 |---|---|---|
 | `GET …/showcase` returns a bare `ShowcaseImageDto[]`, not `PagedResult<T>` (Principle III: "pagination is mandatory") | The collection is hard-capped at **5** by the feature's central requirement (FR-001), enforced server-side. The response is bounded by construction, which is the outcome the pagination rule exists to guarantee. | A `PagedResult<T>` envelope on a five-element list would ship `totalCount`, `skip` and `take` that can never vary, advertising a paging affordance that does not exist and inviting a client to implement "show more" against a closed set. Precedent on the same pages: `Roster` (48) and `RecentActivity` (6), and feature 044 recorded this identical deviation for the team happenings feed. |
 
+## Implementation notes
+
+Recorded after the build, for the next person reading this feature.
+
+- **The write core is generic over the two entities** via a small `IShowcaseImage` interface
+  (`Id`, `Position`, `ObjectKey`) that both descriptor entities implement. It is not mapped by EF —
+  it exists only so `ShowcaseWriter` can lock, count, renumber, and compact either gallery without
+  knowing whose it is. That is what keeps the cap identical on both surfaces rather than
+  reimplemented twice.
+- **Two places refuse differently, on purpose.** A team *member* who is not an admin gets `403`
+  (they already know the team exists, so nothing is disclosed); a *non-member* gets `404`, matching
+  every other team write. Everything about an image — listing, bytes, caption, delete, reorder — is
+  `404` for every refusal.
+- **`DELETE` is not idempotent**, contrary to the first draft of the contract. A repeated delete
+  answers `404` like every other refusal, because a `204` there would distinguish "an id that used
+  to be yours" from "an id that is not yours". The contract file records the change and the reason.
+- **The owner's own profile fetches the gallery once** and passes it to both the read view and the
+  editing controls (`jh-profile-view [showcase]`), so SC-008's "one listing request per page load"
+  holds on the surface most likely to violate it.
+- **The upload path pre-checks the cap before storing an object**, then re-checks it under the lock.
+  The pre-check is not the guarantee — it only avoids writing an object that would immediately be
+  deleted in the common non-concurrent case.
+
 ## Spec drift
 
 - **SC-002 ("exactly 5 stored and 5 refusals" from a burst of 10)** is met *because of* the per-owner

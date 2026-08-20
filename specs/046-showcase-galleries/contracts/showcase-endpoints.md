@@ -76,9 +76,15 @@ caller's, `400` when the caption is too long.
 
 ### `DELETE /api/v1/profiles/me/showcase/{imageId}`
 
-`204` on success **and** when the image is already gone (idempotent). `404` when it belongs to
-someone else — indistinguishable from "no such image", by design. Remaining positions are compacted
-before the response returns.
+`204` on success. `404` for **every** other case — no such image, already deleted, or belongs to
+someone else — deliberately indistinguishable. Remaining positions are compacted before the response
+returns.
+
+> **Changed during implementation.** This contract first specified an idempotent `204` for an
+> already-deleted image. That would have made the response distinguish "an id that used to be yours"
+> from "an id that is not yours", which is exactly the kind of difference FR-023 exists to remove —
+> for one status code's worth of convenience. A repeated delete now answers `404` like everything
+> else, and the client treats it as "already gone" rather than needing the server to say so.
 
 ### `PUT /api/v1/profiles/me/showcase/order`
 
