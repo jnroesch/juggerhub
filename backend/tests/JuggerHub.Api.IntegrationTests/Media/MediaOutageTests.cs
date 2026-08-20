@@ -90,6 +90,36 @@ public sealed class MediaOutageTests : IClassFixture<JuggerHubApiFactory>
         Assert.Equal(before, after);
     }
 
+    [Fact]
+    public async Task Showcase_upload_during_an_outage_writes_no_row_and_consumes_no_slot()
+    {
+        // Feature 046 (#99). The dangerous failure here is not the error the member sees, it is a
+        // descriptor row committed for bytes that were never stored: it would occupy one of five
+        // slots and render as a permanently broken picture. The write ordering (store the object,
+        // and only then commit the row) is what makes that impossible.
+        var (client, handle) = await MemberWithAvatarAsync();
+
+        using var brokenStore = WithUnavailableStore();
+        using var degraded = brokenStore.CreateClient();
+        await AuthTestHelpers.LoginAsync(degraded, await EmailForAsync(handle), AuthTestHelpers.ValidPassword);
+
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(Png()), "file", "showcase.png");
+        var upload = await degraded.PostAsync("/api/v1/profiles/me/showcase", content);
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, upload.StatusCode);
+
+        var body = await upload.Content.ReadAsStringAsync();
+        foreach (var leak in new[] { "devstoreaccount1", "AccountKey", "Azure", "Exception", "stack" })
+        {
+            Assert.DoesNotContain(leak, body, StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Back on the healthy client: the gallery is exactly as empty as it was.
+        var listing = await client.GetStringAsync($"/api/v1/profiles/{handle}/showcase");
+        Assert.Equal("[]", listing);
+    }
+
     /// <summary>A factory whose media store always fails, standing in for an unreachable store.</summary>
     private WebApplicationFactory<Program> WithUnavailableStore() =>
         _factory.WithWebHostBuilder(builder => builder.ConfigureTestServices(services =>

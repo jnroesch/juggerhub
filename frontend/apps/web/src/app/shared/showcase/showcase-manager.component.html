@@ -30,7 +30,7 @@
                 [id]="'showcase-caption-' + i"
                 type="text"
                 maxlength="120"
-                class="mt-3xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm"
+                class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
                 [value]="captionDraft()"
                 (input)="captionDraft.set($any($event.target).value)"
                 [attr.data-testid]="'showcase-caption-input-' + i"
@@ -62,7 +62,7 @@
             }
           </div>
 
-          <div class="flex shrink-0 items-center gap-3xs">
+          <div class="flex shrink-0 items-center gap-2xs">
             <button
               type="button"
               (click)="move(i, -1)"
@@ -116,7 +116,7 @@
       data-testid="showcase-add"
     >
       <jh-icon name="plus" />
-      <span class="ml-3xs">{{ 'showcase.add' | transloco }}</span>
+      <span class="ml-2xs">{{ 'showcase.add' | transloco }}</span>
       <input
         type="file"
         accept="image/png,image/jpeg,image/webp"
@@ -127,7 +127,7 @@
       />
     </label>
 
-    <p class="text-body-sm text-muted" data-testid="showcase-remaining">
+    <p class="font-mono text-body-sm text-muted" data-testid="showcase-remaining">
       @if (full()) {
         {{ 'showcase.full' | transloco: { max: maxImages } }}
       } @else {

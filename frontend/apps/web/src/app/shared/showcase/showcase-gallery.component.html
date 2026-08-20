@@ -17,7 +17,7 @@
       <li>
         <button
           type="button"
-          class="group block w-full overflow-hidden rounded-lg border border-border-muted bg-surface-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+          class="group block w-full overflow-hidden rounded-xl border border-border-muted bg-surface-card focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus"
           (click)="open(i, $event)"
           [attr.data-testid]="'showcase-thumb-' + i"
           [attr.aria-label]="
@@ -37,7 +37,7 @@
           />
         </button>
         @if (image.caption) {
-          <p class="mt-3xs line-clamp-2 text-body-sm text-muted">{{ image.caption }}</p>
+          <p class="mt-2xs line-clamp-2 text-body-sm text-muted">{{ image.caption }}</p>
         }
       </li>
     }
@@ -70,7 +70,7 @@
           ('showcase.imageAlt'
             | transloco: { owner: ownerName(), index: openedNumber(), total: images().length })
         "
-        class="max-h-[75vh] w-auto max-w-full rounded-lg object-contain"
+        class="max-h-[75vh] w-auto max-w-full rounded-xl object-contain"
       />
 
       @if (current.caption) {
