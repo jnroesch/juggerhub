@@ -158,6 +158,11 @@ test before the UI exists.
 | **7 — Frontend manage** | `showcase-manager`: upload, caption, move up/down, remove; full-gallery and failure messaging. | US1 and US5 pass in the browser. |
 | **8 — i18n + Gate 7** | `showcase.*` in all three catalogues; `checklists/ui-review.md` instantiated and verified. | Parity guard green; checklist complete. |
 
+**Execution order lives in [tasks.md](./tasks.md), not in this table.** The phases above are a
+narrative of the same work; tasks.md folds each surface's frontend into its user story so US1 is
+shippable whole rather than as a backend half waiting for a UI phase. Where the two differ, the
+task list wins.
+
 ## Traps this plan exists to prevent
 
 1. **The sweep deletes every gallery.** `MediaReconciliationService` deletes every object no

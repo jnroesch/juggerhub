@@ -73,7 +73,7 @@ add five, be refused a sixth from curl, reorder, caption, remove, and confirm th
 
 ### Tests for User Story 1
 
-- [ ] T014 [P] [US1] Create `backend/tests/JuggerHub.Api.IntegrationTests/Profile/ProfileShowcaseTests.cs` covering: empty gallery lists `[]`; upload returns `201` and the DTO; five succeed and the sixth returns `409`; delete compacts positions to `0..n-1`; caption set, changed, and cleared; reorder applies; a non-permutation reorder returns `409` with **nothing written**.
+- [ ] T014 [P] [US1] Create `backend/tests/JuggerHub.Api.IntegrationTests/Profile/ProfileShowcaseTests.cs` covering: empty gallery lists `[]`; upload returns `201` and the DTO; five succeed and the sixth returns `409`; delete compacts positions to `0..n-1` **and reclaims the stored object** (FR-011 — the ordinary delete path, distinct from the two cascade paths in T028/T031); deleting an already-deleted image is idempotent (`204`); caption set, changed, and cleared, with an over-length caption (>120 chars) returning `400` (FR-005); reorder applies; a non-permutation reorder returns `409` with **nothing written**.
 - [ ] T015 [P] [US1] Concurrency test in the same file: 10 parallel `POST`s against an empty gallery leave **exactly 5** rows and produce 5 `409`s (SC-002, research R2).
 - [ ] T016 [P] [US1] Test that the avatar is untouched by every showcase operation and vice versa (FR-004).
 
