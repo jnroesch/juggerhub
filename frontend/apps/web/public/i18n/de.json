@@ -1546,6 +1546,9 @@
       "unreadable": "Wir konnten dieses Bild nicht lesen. Probier ein anderes.",
       "unavailable": "Wir konnten das Bild gerade nicht speichern. Bitte versuch es noch einmal.",
       "unknown": "Das hat nicht geklappt – versuch es noch einmal."
-    }
+    },
+    "manage": "Galerie bearbeiten",
+    "doneManaging": "Fertig",
+    "appliesImmediately": "Bilder werden sofort hinzugefügt und entfernt – du musst nichts speichern."
   }
 }

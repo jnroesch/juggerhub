@@ -80,6 +80,13 @@ export class TeamDetailComponent {
       this.showcaseImages().length > 0,
   );
 
+  /** Admins switch the card between looking at the gallery and changing it. */
+  protected readonly showcaseManaging = signal(false);
+
+  protected toggleShowcaseManaging(): void {
+    this.showcaseManaging.update((managing) => !managing);
+  }
+
   protected onShowcaseChanged(images: ShowcaseImage[]): void {
     this.showcaseImages.set(images);
   }

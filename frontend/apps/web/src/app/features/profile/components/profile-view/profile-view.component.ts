@@ -59,23 +59,12 @@ export class ProfileViewComponent {
   );
 
   /**
-   * True when the host projects editing controls into the gallery card (the owner's own profile).
-   * They live inside the same card as the pictures, so the page never grows a second "Showcase"
-   * heading for the same collection.
-   */
-  readonly showcaseManageable = input(false);
-
-  /**
-   * A viewer who cannot add pictures sees no gallery at all when there are none — an empty frame
-   * would be a promise of something that is not there (spec FR-026). Someone who CAN add them
-   * always sees the card, because that is where the invitation lives.
+   * No pictures means no gallery at all — an empty frame would promise something that is not
+   * there (spec FR-026). This component is read-only on every surface, including the owner's own
+   * profile: editing happens in the profile's edit mode, so the pictures are never listed twice.
    */
   protected readonly showGallery = computed(
-    () =>
-      this.showcaseManageable() ||
-      this.showcaseLoading() ||
-      this.showcaseError() !== null ||
-      this.showcaseImages().length > 0,
+    () => this.showcaseLoading() || this.showcaseError() !== null || this.showcaseImages().length > 0,
   );
 
   protected readonly reloadShowcase = (): void => {

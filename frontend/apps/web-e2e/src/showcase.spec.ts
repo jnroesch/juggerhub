@@ -28,17 +28,25 @@ test('add showcase pictures, page through them, and remove one', async ({ page, 
   const { handle } = await registerVerifySignIn(page, request, 'show');
 
   await page.goto(`/u/${handle}`);
-  await expect(page.getByTestId('profile-showcase-manager')).toBeVisible();
 
-  // 1. An empty gallery still shows the owner their card — that is where the invitation to add a
-  //    picture lives — but there is nothing in it yet.
-  await expect(page.getByTestId('profile-showcase')).toBeVisible();
-  await expect(page.getByTestId('showcase-thumb-0')).toHaveCount(0);
+  // 1. Nothing to show yet, and view mode offers no editing — the gallery is edited where the rest
+  //    of the profile is, behind Edit.
+  await expect(page.getByTestId('profile-showcase')).toHaveCount(0);
+  await expect(page.getByTestId('profile-showcase-manager')).toHaveCount(0);
+
+  await page.getByTestId('profile-edit').click();
+  await expect(page.getByTestId('profile-showcase-manager')).toBeVisible();
 
   // 2. Add one; it appears in both the manager list and the read-only gallery.
   await addPicture(page, 0);
   await expect(page.getByTestId('showcase-manager-list').locator('li')).toHaveCount(1);
+
+  // 2b. Back in view mode the picture shows in the gallery, exactly as a visitor sees it — and the
+  //     editing controls are gone.
+  await page.getByTestId('profile-cancel').click();
+  await expect(page.getByTestId('profile-showcase')).toBeVisible();
   await expect(page.getByTestId('showcase-thumb-0')).toBeVisible();
+  await expect(page.getByTestId('profile-showcase-manager')).toHaveCount(0);
 
   // 3. The picture is really served: the browser fetched bytes, not a broken image.
   const rendered = await page
@@ -54,6 +62,7 @@ test('add showcase pictures, page through them, and remove one', async ({ page, 
   await expect(page.getByTestId('showcase-viewer')).toHaveCount(0);
 
   // 5. Fill the gallery: the add control closes itself once five are stored.
+  await page.getByTestId('profile-edit').click();
   for (let i = 1; i < 5; i++) {
     await addPicture(page, i);
     await expect(page.getByTestId('showcase-manager-list').locator('li')).toHaveCount(i + 1);
@@ -79,10 +88,13 @@ test('a team admin fills the team gallery and it renders on the team page', asyn
 
   await page.goto(`/t/${slug}`);
 
-  // As the team's admin: the card is there with its controls, and empty to begin with.
+  // As the team's admin: the card is there, showing the (empty) gallery, with a way into editing.
   await expect(page.getByTestId('team-showcase')).toBeVisible();
-  await expect(page.getByTestId('team-showcase-manager')).toBeVisible();
+  await expect(page.getByTestId('team-showcase-manager')).toHaveCount(0);
   await expect(page.getByTestId('showcase-thumb-0')).toHaveCount(0);
+
+  await page.getByTestId('team-showcase-manage-toggle').click();
+  await expect(page.getByTestId('team-showcase-manager')).toBeVisible();
 
   // One at a time: the add control disables itself while an upload is in flight, so a second
   // programmatic file-pick inside that window is dropped — a person cannot hit it, but a test
@@ -91,6 +103,10 @@ test('a team admin fills the team gallery and it renders on the team page', asyn
   await expect(page.getByTestId('showcase-manager-list').locator('li')).toHaveCount(1);
   await addPicture(page, 1);
   await expect(page.getByTestId('showcase-manager-list').locator('li')).toHaveCount(2);
+
+  // Switch back to looking: the gallery shows them and the editing list is gone.
+  await page.getByTestId('team-showcase-manage-toggle').click();
+  await expect(page.getByTestId('team-showcase-manager')).toHaveCount(0);
   await expect(page.getByTestId('showcase-thumb-1')).toBeVisible();
 
   // The pictures really came down the gated read path.
@@ -101,6 +117,7 @@ test('a team admin fills the team gallery and it renders on the team page', asyn
   expect(width).toBeGreaterThan(0);
 
   // Reordering swaps them and survives a reload.
+  await page.getByTestId('team-showcase-manage-toggle').click();
   await page.getByTestId('showcase-move-down-0').click();
   await expect(page.getByTestId('showcase-manager-list').locator('li')).toHaveCount(2);
   await page.reload();

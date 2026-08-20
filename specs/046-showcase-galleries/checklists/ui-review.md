@@ -62,7 +62,7 @@
 
 ## Empty, loading & error states
 
-- [x] CHK028 Empty states offer a warm, low-pressure next step — "Show what playing looks like for you — add up to 5 pictures." For a viewer who cannot add pictures the gallery is **absent entirely** rather than an empty frame (spec FR-026)
+- [x] CHK028 Empty states offer a warm, low-pressure next step — "Show what playing looks like for you — add up to 5 pictures.", shown where pictures are added (profile edit mode, the team card's editing view). For anyone looking rather than editing, an empty gallery is **absent entirely** rather than an empty frame (spec FR-026)
 - [x] CHK029 Loading and error states exist and are styled to the system — `jh-loading` (one muted line, never a spinner) and `jh-alert` + "Try again"; an error is never rendered as an empty state
 
 ## Feature-specific UI
@@ -71,6 +71,7 @@
 - [x] CHK031 Captions are bound as text, never as markup — member-supplied and therefore untrusted (spec FR-029)
 - [x] CHK032 Reordering is keyboard- and touch-operable — move up / move down buttons, disabled at the ends; no drag-and-drop, and no new dependency
 - [x] CHK033 The manager is not rendered at all for a viewer who may not edit — not hidden with a class, not disabled (`team-detail.component.html`, guarded by `isAdmin()`)
+- [x] CHK035 Looking and editing are never on screen at once — the profile edits its gallery in edit mode (like the avatar), and the team card toggles between the gallery and the editing list. The same picture is never listed twice on one screen
 - [x] CHK034 Each upload refusal has its own sentence — full / type / size / unreadable / store-unavailable, never a status code or a technical detail
 
 ## Verified against the running app
@@ -78,11 +79,14 @@
 Screenshots taken from the real stack (docker compose, desktop 1280px and mobile 375px), not
 from reading the markup. Two defects were found this way and fixed:
 
-1. **Two "Showcase" cards on the owner's own profile** — the read gallery in the left column and
-   the editing controls in a separate full-width card below, far apart and identically titled.
-   Exactly the two-sections-one-name confusion feature 044 was reported about. The owner's
-   controls now project into the gallery's own card (`[showcaseManageable]` + `[showcaseManager]`),
-   matching how the team page already stacks them.
+1. **The gallery was editable in view mode, listing the same five pictures twice** — first as
+   thumbnails, then as an editing list, while the page's own Edit button implied nothing was
+   editable yet. Two rounds fixed this: the controls first moved into the gallery's card (which
+   removed the duplicate *heading* but not the duplicate *content*), and then out of view mode
+   altogether. The profile now follows the model it already had — view mode shows what a visitor
+   sees, and the showcase is edited in **edit mode**, beside the avatar, which is edited the same
+   way. The team page has no such mode, so its card carries an explicit **Edit gallery / Done**
+   toggle: an admin is either looking at the gallery or changing it, never both.
 2. **Mono prose** — see CHK007.
 3. **Cramped manager rows at 375 px** — the caption was squeezed to "Te…" and the edit button
    wrapped underneath the arrows. The row now wraps as a unit, dropping the controls onto their

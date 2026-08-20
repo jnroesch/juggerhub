@@ -1542,6 +1542,9 @@
       "unreadable": "We couldn't read that picture. Try another one.",
       "unavailable": "We couldn't store that picture just now. Please try again.",
       "unknown": "That didn't go through — give it another go."
-    }
+    },
+    "manage": "Edit gallery",
+    "doneManaging": "Done",
+    "appliesImmediately": "Pictures are added and removed straight away — no need to save."
   }
 }

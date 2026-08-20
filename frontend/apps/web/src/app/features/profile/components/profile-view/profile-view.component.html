@@ -77,11 +77,6 @@
             [error]="showcaseError()"
             [retry]="reloadShowcase"
           />
-          @if (showcaseManageable()) {
-            <div class="mt-md border-t border-border-muted pt-md">
-              <ng-content select="[showcaseManager]"></ng-content>
-            </div>
-          }
         </jh-card>
       }
 

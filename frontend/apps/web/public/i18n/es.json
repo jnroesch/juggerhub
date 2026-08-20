@@ -1546,6 +1546,9 @@
       "unreadable": "No pudimos leer esa foto. Prueba con otra.",
       "unavailable": "No pudimos guardar la foto ahora mismo. Inténtalo de nuevo.",
       "unknown": "No salió — inténtalo otra vez."
-    }
+    },
+    "manage": "Editar galería",
+    "doneManaging": "Listo",
+    "appliesImmediately": "Las fotos se añaden y se quitan al momento — no hace falta guardar."
   }
 }

@@ -216,6 +216,10 @@ Recorded after the build, for the next person reading this feature.
 - **`DELETE` is not idempotent**, contrary to the first draft of the contract. A repeated delete
   answers `404` like every other refusal, because a `204` there would distinguish "an id that used
   to be yours" from "an id that is not yours". The contract file records the change and the reason.
+- **Editing and viewing are separate states on both surfaces.** The profile already splits view
+  mode from edit mode, so the gallery's controls live in edit mode next to the avatar; the team
+  page has no such split, so its card toggles between the gallery and the editing list. Rendering
+  both at once listed the same five pictures twice and contradicted the page's own Edit button.
 - **The owner's own profile fetches the gallery once** and passes it to both the read view and the
   editing controls (`jh-profile-view [showcase]`), so SC-008's "one listing request per page load"
   holds on the surface most likely to violate it.

@@ -170,23 +170,36 @@
              at all rather than hidden with a class. -->
         @if (showShowcase()) {
           <jh-card class="p-md" data-testid="team-showcase">
-            <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'showcase.teamHeading' | transloco }}</h2>
-            <jh-showcase-gallery
-              [owner]="showcaseOwner()"
-              [images]="showcaseImages()"
-              [ownerName]="team.name"
-              [loading]="showcaseLoading()"
-              [error]="showcaseError()"
-              [retry]="reloadShowcase"
-            />
-            @if (isAdmin()) {
-              <div class="mt-md border-t border-border-muted pt-md" data-testid="team-showcase-manager">
+            <div class="mb-sm flex items-center justify-between gap-sm">
+              <h2 class="text-body-lg font-semibold text-heading">{{ 'showcase.teamHeading' | transloco }}</h2>
+              <!-- This page has no edit mode, so the gallery carries its own. Showing the pictures
+                   and the editing list at once listed the same five twice; an admin switches
+                   between looking and changing, and everyone else only ever looks. -->
+              @if (isAdmin()) {
+                <button type="button" (click)="toggleShowcaseManaging()" jhButton variant="secondary" size="sm"
+                  data-testid="team-showcase-manage-toggle">
+                  {{ (showcaseManaging() ? 'showcase.doneManaging' : 'showcase.manage') | transloco }}
+                </button>
+              }
+            </div>
+
+            @if (isAdmin() && showcaseManaging()) {
+              <div data-testid="team-showcase-manager">
                 <jh-showcase-manager
                   [owner]="showcaseOwner()"
                   [images]="showcaseImages()"
                   (changed)="onShowcaseChanged($event)"
                 />
               </div>
+            } @else {
+              <jh-showcase-gallery
+                [owner]="showcaseOwner()"
+                [images]="showcaseImages()"
+                [ownerName]="team.name"
+                [loading]="showcaseLoading()"
+                [error]="showcaseError()"
+                [retry]="reloadShowcase"
+              />
             }
           </jh-card>
         }
