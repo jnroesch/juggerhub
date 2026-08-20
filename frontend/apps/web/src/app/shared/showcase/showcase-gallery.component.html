@@ -1,0 +1,119 @@
+@if (loading()) {
+  <jh-loading [label]="'showcase.loading' | transloco" />
+} @else if (error(); as message) {
+  <!-- Error and empty are different things and must look different (DESIGN.md): this one says
+       we could not find out, and offers a way to ask again. -->
+  <jh-alert tone="danger" data-testid="showcase-error">
+    <span>{{ message }}</span>
+    @if (retry()) {
+      <button type="button" (click)="onRetry()" jhButton variant="secondary" size="sm" class="ml-sm">
+        {{ 'common.tryAgain' | transloco }}
+      </button>
+    }
+  </jh-alert>
+} @else if (images().length > 0) {
+  <ul class="grid grid-cols-2 gap-sm sm:grid-cols-3 md:grid-cols-5" data-testid="showcase-grid">
+    @for (image of images(); track image.id; let i = $index) {
+      <li>
+        <button
+          type="button"
+          class="group block w-full overflow-hidden rounded-lg border border-border-muted bg-surface-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary"
+          (click)="open(i, $event)"
+          [attr.data-testid]="'showcase-thumb-' + i"
+          [attr.aria-label]="
+            altKeyFor(image) ??
+            ('showcase.imageAlt' | transloco: { owner: ownerName(), index: i + 1, total: images().length })
+          "
+        >
+          <img
+            [src]="imageUrl(image)"
+            [alt]="
+              altKeyFor(image) ??
+              ('showcase.imageAlt' | transloco: { owner: ownerName(), index: i + 1, total: images().length })
+            "
+            loading="lazy"
+            decoding="async"
+            class="aspect-square w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+          />
+        </button>
+        @if (image.caption) {
+          <p class="mt-3xs line-clamp-2 text-body-sm text-muted">{{ image.caption }}</p>
+        }
+      </li>
+    }
+  </ul>
+}
+
+@if (opened(); as current) {
+  <!-- Enlarged view. Same overlay shape as the team-detail confirmation dialog, so the app has
+       one modal treatment rather than two. -->
+  <div
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-sm"
+    role="presentation"
+    (click)="close()"
+  >
+    <div
+      class="relative flex max-h-full w-full max-w-container-lg flex-col items-center gap-sm"
+      #viewer
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'showcase.viewerLabel' | transloco"
+      tabindex="-1"
+      data-testid="showcase-viewer"
+      (click)="$event.stopPropagation()"
+      (keydown)="onOverlayKeydown($event)"
+    >
+      <img
+        [src]="imageUrl(current)"
+        [alt]="
+          altKeyFor(current) ??
+          ('showcase.imageAlt'
+            | transloco: { owner: ownerName(), index: openedNumber(), total: images().length })
+        "
+        class="max-h-[75vh] w-auto max-w-full rounded-lg object-contain"
+      />
+
+      @if (current.caption) {
+        <p class="max-w-container-sm text-center text-body-sm text-white">{{ current.caption }}</p>
+      }
+
+      <div class="flex items-center gap-sm">
+        <button
+          type="button"
+          (click)="previous()"
+          [disabled]="!hasPrevious()"
+          jhButton
+          variant="secondary"
+          size="sm"
+          data-testid="showcase-previous"
+          [attr.aria-label]="'showcase.previous' | transloco"
+        >
+          <jh-icon name="chevron-left" />
+        </button>
+        <button
+          type="button"
+          (click)="next()"
+          [disabled]="!hasNext()"
+          jhButton
+          variant="secondary"
+          size="sm"
+          data-testid="showcase-next"
+          [attr.aria-label]="'showcase.next' | transloco"
+        >
+          <jh-icon name="chevron-right" />
+        </button>
+        <button
+          type="button"
+          (click)="close()"
+          jhButton
+          variant="secondary"
+          size="sm"
+          data-testid="showcase-close"
+          [attr.aria-label]="'showcase.close' | transloco"
+        >
+          <jh-icon name="x" />
+        </button>
+      </div>
+    </div>
+  </div>
+}

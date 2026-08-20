@@ -1,0 +1,138 @@
+<div class="flex flex-col gap-sm">
+  @if (error(); as message) {
+    <jh-alert tone="danger" data-testid="showcase-manager-error">{{ message }}</jh-alert>
+  }
+
+  @if (images().length === 0) {
+    <!-- The invitation an owner sees on an empty gallery. A viewer who cannot add pictures is
+         shown nothing at all — this component is not on their page (spec FR-026). -->
+    <p class="text-body-sm text-muted">{{ 'showcase.emptyOwner' | transloco: { max: maxImages } }}</p>
+  }
+
+  @if (images().length > 0) {
+    <ul class="flex flex-col gap-sm" data-testid="showcase-manager-list">
+      @for (image of images(); track image.id; let i = $index; let first = $first; let last = $last) {
+        <li class="flex items-start gap-sm rounded-lg border border-border-muted bg-surface-card p-sm">
+          <img
+            [src]="imageUrl(image)"
+            alt=""
+            class="h-16 w-16 shrink-0 rounded-md object-cover"
+            loading="lazy"
+            decoding="async"
+          />
+
+          <div class="min-w-0 flex-1">
+            @if (editingId() === image.id) {
+              <label class="block text-body-sm text-muted" [attr.for]="'showcase-caption-' + i">
+                {{ 'showcase.captionLabel' | transloco }}
+              </label>
+              <input
+                [id]="'showcase-caption-' + i"
+                type="text"
+                maxlength="120"
+                class="mt-3xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm"
+                [value]="captionDraft()"
+                (input)="captionDraft.set($any($event.target).value)"
+                [attr.data-testid]="'showcase-caption-input-' + i"
+              />
+              <div class="mt-xs flex gap-xs">
+                <button type="button" (click)="saveCaption(image)" [disabled]="busy()" jhButton size="sm"
+                  [attr.data-testid]="'showcase-caption-save-' + i">
+                  {{ 'common.save' | transloco }}
+                </button>
+                <button type="button" (click)="cancelEditing()" jhButton variant="secondary" size="sm">
+                  {{ 'common.cancel' | transloco }}
+                </button>
+              </div>
+            } @else {
+              <p class="truncate text-body-sm text-body">
+                {{ image.caption || ('showcase.noCaption' | transloco) }}
+              </p>
+              <button
+                type="button"
+                (click)="startEditing(image)"
+                jhButton
+                variant="secondary"
+                size="sm"
+                class="mt-xs"
+                [attr.data-testid]="'showcase-edit-caption-' + i"
+              >
+                {{ (image.caption ? 'showcase.editCaption' : 'showcase.addCaption') | transloco }}
+              </button>
+            }
+          </div>
+
+          <div class="flex shrink-0 items-center gap-3xs">
+            <button
+              type="button"
+              (click)="move(i, -1)"
+              [disabled]="first || busy()"
+              jhButton
+              variant="secondary"
+              size="sm"
+              [attr.aria-label]="'showcase.moveUp' | transloco"
+              [attr.data-testid]="'showcase-move-up-' + i"
+            >
+              <jh-icon name="arrow-up" />
+            </button>
+            <button
+              type="button"
+              (click)="move(i, 1)"
+              [disabled]="last || busy()"
+              jhButton
+              variant="secondary"
+              size="sm"
+              [attr.aria-label]="'showcase.moveDown' | transloco"
+              [attr.data-testid]="'showcase-move-down-' + i"
+            >
+              <jh-icon name="arrow-down" />
+            </button>
+            <button
+              type="button"
+              (click)="remove(image)"
+              [disabled]="busy()"
+              jhButton
+              variant="secondary"
+              size="sm"
+              [attr.aria-label]="'showcase.remove' | transloco"
+              [attr.data-testid]="'showcase-remove-' + i"
+            >
+              <jh-icon name="trash" />
+            </button>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+
+  <div class="flex items-center gap-sm">
+    <label
+      jhButton
+      variant="secondary"
+      size="sm"
+      class="cursor-pointer"
+      [class.pointer-events-none]="full() || busy()"
+      [class.opacity-60]="full() || busy()"
+      data-testid="showcase-add"
+    >
+      <jh-icon name="plus" />
+      <span class="ml-3xs">{{ 'showcase.add' | transloco }}</span>
+      <input
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        class="sr-only"
+        [disabled]="full() || busy()"
+        (change)="onFileSelected($event)"
+        data-testid="showcase-file-input"
+      />
+    </label>
+
+    <p class="text-body-sm text-muted" data-testid="showcase-remaining">
+      @if (full()) {
+        {{ 'showcase.full' | transloco: { max: maxImages } }}
+      } @else {
+        {{ 'showcase.remaining' | transloco: { remaining: remaining(), max: maxImages } }}
+      }
+    </p>
+  </div>
+</div>

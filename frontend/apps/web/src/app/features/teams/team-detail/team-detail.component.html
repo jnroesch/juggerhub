@@ -165,6 +165,32 @@
           }
         </jh-card>
 
+        <!-- Showcase gallery (feature 046). Every signed-in viewer sees the pictures; only an
+             admin gets the managing controls, and for anyone else that component is not rendered
+             at all rather than hidden with a class. -->
+        @if (showShowcase()) {
+          <jh-card class="p-md" data-testid="team-showcase">
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'showcase.teamHeading' | transloco }}</h2>
+            <jh-showcase-gallery
+              [owner]="showcaseOwner()"
+              [images]="showcaseImages()"
+              [ownerName]="team.name"
+              [loading]="showcaseLoading()"
+              [error]="showcaseError()"
+              [retry]="reloadShowcase"
+            />
+            @if (isAdmin()) {
+              <div class="mt-md border-t border-border-muted pt-md" data-testid="team-showcase-manager">
+                <jh-showcase-manager
+                  [owner]="showcaseOwner()"
+                  [images]="showcaseImages()"
+                  (changed)="onShowcaseChanged($event)"
+                />
+              </div>
+            }
+          </jh-card>
+        }
+
         <!-- Badges & achievements (feature 012) -->
         <jh-card class="p-md" data-testid="recognitions">
           <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.badges' | transloco }}</h2>

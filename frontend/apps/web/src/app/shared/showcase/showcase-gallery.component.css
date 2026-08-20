@@ -1,0 +1,5 @@
+/* The gallery relies entirely on DESIGN.md tokens through Tailwind utilities; this file exists
+   because the project keeps .html/.css/.ts separate for every component (constitution VI). */
+:host {
+  display: block;
+}

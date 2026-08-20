@@ -19,6 +19,9 @@ import { PartyRequestCard } from '../../../core/models/party.models';
 import { problemDetail } from '../../../core/utils/problem';
 import { RecognitionDisplayComponent } from '../../profile/components/recognition-display/recognition-display.component';
 import { TeamHappeningsComponent } from './happenings/team-happenings.component';
+import { ShowcaseGalleryComponent, ShowcaseManagerComponent } from '../../../shared/showcase';
+import { ShowcaseImage } from '../../../core/models/showcase.models';
+import { ShowcaseService } from '../../../core/services/showcase.service';
 
 /**
  * The team page (feature 009). Public to everyone: overview, roster (names + positions),
@@ -28,7 +31,7 @@ import { TeamHappeningsComponent } from './happenings/team-happenings.component'
  */
 @Component({
   selector: 'jh-team-detail',
-  imports: [RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, ButtonDirective, EmptyStateComponent, CardComponent, TranslocoPipe],
+  imports: [RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, ShowcaseGalleryComponent, ShowcaseManagerComponent, ButtonDirective, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './team-detail.component.html',
   styleUrl: './team-detail.component.css',
 })
@@ -38,6 +41,7 @@ export class TeamDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
+  private readonly showcase = inject(ShowcaseService);
 
   protected readonly slug = signal('');
   protected readonly pub = signal<TeamPublicDetail | null>(null);
@@ -55,6 +59,50 @@ export class TeamDetailComponent {
   protected readonly partyRequests = signal<PartyRequestCard[]>([]);
   protected readonly partyBusy = signal(false);
   protected readonly openMenu = signal<string | null>(null);
+
+  /**
+   * The team's showcase gallery (feature 046). Read by every signed-in viewer; managed only by
+   * admins, whose controls are a separate component that is not even instantiated for anyone
+   * else.
+   */
+  protected readonly showcaseImages = signal<ShowcaseImage[]>([]);
+  protected readonly showcaseLoading = signal(false);
+  protected readonly showcaseError = signal<string | null>(null);
+
+  protected readonly showcaseOwner = computed(() => ({ kind: 'team', slug: this.slug() }) as const);
+
+  /** Hidden entirely for a viewer who cannot add pictures when there are none (spec FR-026). */
+  protected readonly showShowcase = computed(
+    () =>
+      this.isAdmin() ||
+      this.showcaseLoading() ||
+      this.showcaseError() !== null ||
+      this.showcaseImages().length > 0,
+  );
+
+  protected onShowcaseChanged(images: ShowcaseImage[]): void {
+    this.showcaseImages.set(images);
+  }
+
+  protected readonly reloadShowcase = (): void => {
+    const slug = this.slug();
+    if (!slug) {
+      return;
+    }
+
+    this.showcaseLoading.set(true);
+    this.showcaseError.set(null);
+    this.showcase.list({ kind: 'team', slug }).subscribe({
+      next: (images) => {
+        this.showcaseImages.set(images);
+        this.showcaseLoading.set(false);
+      },
+      error: () => {
+        this.showcaseError.set(this.transloco.translate('showcase.loadFailed'));
+        this.showcaseLoading.set(false);
+      },
+    });
+  };
 
   protected readonly requestBusy = signal(false);
   /** Which join action a confirmation modal is currently gating (null = closed). */
@@ -92,11 +140,15 @@ export class TeamDetailComponent {
     this.news.set([]);
     this.happenings.set([]);
     this.joinRequests.set([]);
+    this.showcaseImages.set([]);
 
     this.teams.getPublicDetail(this.slug()).subscribe({
       next: (d) => {
         this.pub.set(d);
         this.loading.set(false);
+        // The gallery is visible to every signed-in viewer, member or not (spec FR-020), so it
+        // is loaded outside the membership branches below.
+        this.reloadShowcase();
         if (d.viewerRelation === 'Member' || d.viewerRelation === 'Admin') {
           this.loadMembers();
           this.loadNews();

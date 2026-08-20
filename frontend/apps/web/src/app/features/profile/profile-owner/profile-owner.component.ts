@@ -10,6 +10,9 @@ import { problemDetail } from '../../../core/utils/problem';
 import { PompfeSelectorComponent } from '../components/pompfe-selector/pompfe-selector.component';
 import { ProfileViewComponent } from '../components/profile-view/profile-view.component';
 import { CityPickerComponent } from '../../../shared/city-picker/city-picker.component';
+import { ShowcaseManagerComponent } from '../../../shared/showcase';
+import { ShowcaseImage } from '../../../core/models/showcase.models';
+import { ShowcaseService } from '../../../core/services/showcase.service';
 
 /**
  * The owner's own profile (feature 026 — hosted by the profile page at /u/:handle for the owner).
@@ -20,12 +23,13 @@ import { CityPickerComponent } from '../../../shared/city-picker/city-picker.com
  */
 @Component({
   selector: 'jh-profile-owner',
-  imports: [ReactiveFormsModule, PompfeSelectorComponent, ProfileViewComponent, CityPickerComponent, ButtonDirective, LoadingComponent, AlertComponent, CardComponent, TranslocoPipe],
+  imports: [ReactiveFormsModule, PompfeSelectorComponent, ProfileViewComponent, CityPickerComponent, ShowcaseManagerComponent, ButtonDirective, LoadingComponent, AlertComponent, CardComponent, TranslocoPipe],
   templateUrl: './profile-owner.component.html',
   styleUrl: './profile-owner.component.css',
 })
 export class ProfileOwnerComponent {
   private readonly profiles = inject(ProfileService);
+  private readonly showcase = inject(ShowcaseService);
   private readonly fb = inject(FormBuilder);
 
   protected readonly profile = signal<OwnerProfile | null>(null);
@@ -38,6 +42,30 @@ export class ProfileOwnerComponent {
   // Feature 026 — the visibility toggle saves on its own (instant), independently of the edit form.
   protected readonly visibilitySaving = signal(false);
   private readonly avatarVersion = signal(0);
+
+  /**
+   * The owner's showcase gallery (feature 046). Held here, not in the two children, so the page
+   * issues exactly one listing request and both the read view and the editing controls show the
+   * same five rows.
+   */
+  protected readonly showcaseImages = signal<ShowcaseImage[]>([]);
+
+  protected readonly showcaseOwner = computed(
+    () => ({ kind: 'profile', handle: this.profile()?.handle ?? '' }) as const,
+  );
+
+  protected onShowcaseChanged(images: ShowcaseImage[]): void {
+    this.showcaseImages.set(images);
+  }
+
+  private loadShowcase(handle: string): void {
+    this.showcase.list({ kind: 'profile', handle }).subscribe({
+      // A failure here leaves the gallery empty rather than blocking the profile: the pictures
+      // are an addition to the page, not the page.
+      next: (images) => this.showcaseImages.set(images),
+      error: () => this.showcaseImages.set([]),
+    });
+  }
 
   // Feature 030 — structured home city, held outside the reactive form (the picker emits a
   // CityOption, not a form value). `initialLocation` prefills the picker; `cityTouched` distinguishes
@@ -99,6 +127,7 @@ export class ProfileOwnerComponent {
         this.selectedCity.set(null);
         this.cityTouched.set(false);
         this.selectedPompfen.set(p.pompfen);
+        this.loadShowcase(p.handle);
         this.loading.set(false);
       },
       error: (err) => {

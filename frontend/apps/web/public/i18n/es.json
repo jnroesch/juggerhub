@@ -1514,5 +1514,38 @@
       "seriesNotifyNote": "Se notifica del cambio a quienes respondieron. Cambiar el día, el intervalo o la fecha de fin regenera las fechas próximas.",
       "saveToAll": "Guardar en todas las próximas"
     }
+  },
+  "showcase": {
+    "loading": "Cargando fotos…",
+    "viewerLabel": "Visor de fotos",
+    "previous": "Foto anterior",
+    "next": "Foto siguiente",
+    "close": "Cerrar",
+    "imageAlt": "Foto {{index}} de {{total}} de la galería de {{owner}}",
+    "add": "Añadir una foto",
+    "remaining": "Quedan {{remaining}} de {{max}}",
+    "full": "Ya tienes las {{max}} — quita una para añadir otra.",
+    "emptyOwner": "Enseña cómo juegas: añade hasta {{max}} fotos.",
+    "emptyTeamOwner": "Enseñad cómo es vuestro equipo: hasta {{max}} fotos.",
+    "noCaption": "Sin pie de foto",
+    "captionLabel": "Pie de foto",
+    "addCaption": "Añadir un pie de foto",
+    "editCaption": "Editar el pie de foto",
+    "moveUp": "Mover antes",
+    "moveDown": "Mover después",
+    "remove": "Quitar la foto",
+    "loadFailed": "No pudimos cargar estas fotos.",
+    "actionFailed": "No salió — inténtalo otra vez.",
+    "staleOrder": "La galería cambió mientras la editabas. La hemos recargado.",
+    "profileHeading": "Galería",
+    "teamHeading": "Galería",
+    "upload": {
+      "full": "Ya tienes {{max}} fotos. Quita una para añadir otra.",
+      "type": "Ese archivo no es una foto que podamos usar. Prueba con JPEG, PNG o WebP.",
+      "size": "Esa foto es demasiado grande. Prueba con una más pequeña.",
+      "unreadable": "No pudimos leer esa foto. Prueba con otra.",
+      "unavailable": "No pudimos guardar la foto ahora mismo. Inténtalo de nuevo.",
+      "unknown": "No salió — inténtalo otra vez."
+    }
   }
 }

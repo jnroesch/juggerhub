@@ -1,0 +1,5 @@
+/* Layout comes from DESIGN.md tokens via Tailwind utilities; this file exists because every
+   component keeps .html/.css/.ts separate (constitution VI). */
+:host {
+  display: block;
+}

@@ -84,11 +84,11 @@ add five, be refused a sixth from curl, reorder, caption, remove, and confirm th
 - [X] T019 [US1] Map `ImageProcessingStatus` to `ShowcaseAddStatus` in `ProfileShowcaseService`, mirroring `ProfileService.MapProcessingStatus`, so each failure category keeps a distinct non-technical reason (FR-016).
 - [X] T020 [US1] Add the five profile endpoints to `backend/Controllers/ProfilesController.cs` per [contracts](./contracts/showcase-endpoints.md): `GET {handle}/showcase` and `GET {handle}/showcase/{imageId}/image` (`[AllowAnonymous]`, the image one also `[EnableRateLimiting(MediaRead)]` and returning through `MediaResponse.File`), plus `POST`/`PATCH`/`DELETE`/`PUT …/order` under `me/showcase` (`[Authorize]`, `POST` with `[RequestSizeLimit(8 MB)]` and `[EnableRateLimiting(MediaUpload)]`). Controllers stay thin: marshal `IFormFile`, map status → result, nothing else.
 - [X] T021 [US1] Register `IProfileShowcaseService` and `ShowcaseWriter` in `backend/Program.cs` alongside the existing profile services.
-- [ ] T022 [P] [US1] Add `frontend/apps/web/src/app/core/models/showcase.models.ts` (`ShowcaseImage`, request shapes) and `core/services/showcase.service.ts` — one service serving both surfaces, with `profileImageUrl(handle, id)` / `teamImageUrl(slug, id)` helpers mirroring `ProfileService.avatarUrl`. **No automatic retry on any mutation** (Principle VII, browser hop).
-- [ ] T023 [US1] Create `frontend/apps/web/src/app/shared/showcase/showcase-gallery.component.{ts,html,css}` — read-only thumbnail grid, signals-based, with the three states per DESIGN.md: one muted `jh-loading` line, `jh-alert` + "Try again" on failure, and **nothing rendered at all** for a viewer who cannot edit an empty gallery (FR-026). Enlarged view arrives in US3.
-- [ ] T024 [US1] Create `frontend/apps/web/src/app/shared/showcase/showcase-manager.component.{ts,html,css}` — add (file input), caption edit, move up/down, remove, plus the disabled-when-full affordance. **No drag-and-drop library** (research R13). Optimistic UI is fine; a failed call must restore the previous order.
-- [ ] T025 [US1] Wire the gallery into `features/profile/components/profile-view/` (public and owner profile) and the manager into `features/profile/profile-owner/`, per DESIGN.md card and spacing tokens.
-- [ ] T026 [P] [US1] Jest specs for both components in `shared/showcase/`: order rendering, full-gallery state, failure restores previous order, empty renders nothing for a non-editor.
+- [X] T022 [P] [US1] Add `frontend/apps/web/src/app/core/models/showcase.models.ts` (`ShowcaseImage`, request shapes) and `core/services/showcase.service.ts` — one service serving both surfaces, with `profileImageUrl(handle, id)` / `teamImageUrl(slug, id)` helpers mirroring `ProfileService.avatarUrl`. **No automatic retry on any mutation** (Principle VII, browser hop).
+- [X] T023 [US1] Create `frontend/apps/web/src/app/shared/showcase/showcase-gallery.component.{ts,html,css}` — read-only thumbnail grid, signals-based, with the three states per DESIGN.md: one muted `jh-loading` line, `jh-alert` + "Try again" on failure, and **nothing rendered at all** for a viewer who cannot edit an empty gallery (FR-026). Enlarged view arrives in US3.
+- [X] T024 [US1] Create `frontend/apps/web/src/app/shared/showcase/showcase-manager.component.{ts,html,css}` — add (file input), caption edit, move up/down, remove, plus the disabled-when-full affordance. **No drag-and-drop library** (research R13). Optimistic UI is fine; a failed call must restore the previous order.
+- [X] T025 [US1] Wire the gallery into `features/profile/components/profile-view/` (public and owner profile) and the manager into `features/profile/profile-owner/`, per DESIGN.md card and spacing tokens.
+- [X] T026 [P] [US1] Jest specs for both components in `shared/showcase/`: order rendering, full-gallery state, failure restores previous order, empty renders nothing for a non-editor.
 - [X] T027 [US1] Extend the pre-transaction key harvest in `backend/Services/Account/AccountDeletionService.cs` to collect profile showcase keys (with `IgnoreQueryFilters()`, next to the existing avatar read at line ~134) and generalise `ReclaimAvatarObjectAsync` to reclaim the whole list **after commit**, keeping its contract: never fail the request, log at error, leave the remainder to the sweep (research R7).
 - [X] T028 [P] [US1] Test in `backend/tests/JuggerHub.Api.IntegrationTests/AccountDeletion/`: a member with five showcase images erases their account → zero rows **and** zero objects remain (FR-012, SC-010).
 
@@ -118,8 +118,8 @@ deleting the team removes the objects.
 - [X] T034 [US2] Add the five team endpoints to `backend/Controllers/TeamsController.cs` per [contracts](./contracts/showcase-endpoints.md). No `[AllowAnonymous]` anywhere — the class-level `[Authorize]` is the team surface's rule (feature 026).
 - [X] T035 [US2] Register `ITeamShowcaseService` in `backend/Program.cs`.
 - [X] T036 [US2] Harvest team showcase object keys **before** `Teams.ExecuteDeleteAsync` in `TeamService.DeleteAsync` (beside the existing "archive the chat BEFORE the team goes" step) and delete the objects after the delete succeeds, best-effort and logged (research R7).
-- [ ] T037 [US2] Render the gallery on `features/teams/team-detail/` for every signed-in viewer, and the manager for admins only — the manager component must not be in the template at all for a non-admin, so the "offered nothing" rule is structural rather than CSS.
-- [ ] T038 [P] [US2] Jest spec for the team surface: admin sees controls, member and outsider see none.
+- [X] T037 [US2] Render the gallery on `features/teams/team-detail/` for every signed-in viewer, and the manager for admins only — the manager component must not be in the template at all for a non-admin, so the "offered nothing" rule is structural rather than CSS.
+- [X] T038 [P] [US2] Jest spec for the team surface: admin sees controls, member and outsider see none.
 
 **Checkpoint**: both surfaces work end to end; the feature's scope is met apart from the enlarged
 view and the polish phases.
@@ -154,8 +154,8 @@ the six-row table, then the outage and missing-object checks.
 
 - [X] T045 [P] [US5] Backend tests: PDF-as-JPEG, oversized file, 45 MP image, truncated JPEG, zero bytes, and a sixth-into-full each return the right status and a **distinct** reason; after each, the gallery holds exactly what it held before (FR-015, FR-016, SC-006).
 - [ ] T046 [P] [US5] Test the store-outage path against the Azurite Testcontainer (model it on feature 035's `MediaOutageTests.cs`): an upload that cannot be stored writes **no** row and consumes no slot; a stale descriptor is never created.
-- [ ] T047 [US5] Surface each reason in `showcase-manager.component` as a translated, human sentence with a retry affordance — never a status code, never a stack trace (DESIGN.md "Loading, error & retry states", Principle I).
-- [ ] T048 [P] [US5] Jest spec: each failure category renders its own message and leaves the rendered gallery unchanged.
+- [X] T047 [US5] Surface each reason in `showcase-manager.component` as a translated, human sentence with a retry affordance — never a status code, never a stack trace (DESIGN.md "Loading, error & retry states", Principle I).
+- [X] T048 [P] [US5] Jest spec: each failure category renders its own message and leaves the rendered gallery unchanged.
 
 ---
 
@@ -165,17 +165,17 @@ the six-row table, then the outage and missing-object checks.
 
 **Independent Test**: quickstart [US3](./quickstart.md#us3--viewers-can-look-at-a-picture-properly-p2).
 
-- [ ] T049 [US3] Add the enlarged view to `shared/showcase/showcase-gallery.component.{ts,html,css}`, copying the established modal markup at `features/teams/team-detail/team-detail.component.html:250` — `fixed inset-0 z-50 … bg-black/40`, `role="dialog"`, `aria-modal="true"`, a labelled close control.
-- [ ] T050 [US3] Keyboard handling: Enter/Space opens from a thumbnail, ArrowLeft/ArrowRight page within the gallery order and stop at the ends, Escape closes, focus is trapped while open and **returned to the originating thumbnail** on close (FR-027, SC-007).
-- [ ] T051 [US3] Responsive behaviour: uniform thumbnail grid regardless of source aspect ratio, and an enlarged view that fits the whole picture (`object-contain`) at 375 px with no horizontal page scroll and no clipped controls (FR-025, edge case "very tall or very wide").
-- [ ] T052 [P] [US3] Jest spec for open/next/previous/close, end-stops, and focus restoration.
-- [ ] T053 [P] [US3] Alt text: caption when present, otherwise a translated generic alternative naming the owner (FR-028); captions rendered as text, never markup (FR-029).
+- [X] T049 [US3] Add the enlarged view to `shared/showcase/showcase-gallery.component.{ts,html,css}`, copying the established modal markup at `features/teams/team-detail/team-detail.component.html:250` — `fixed inset-0 z-50 … bg-black/40`, `role="dialog"`, `aria-modal="true"`, a labelled close control.
+- [X] T050 [US3] Keyboard handling: Enter/Space opens from a thumbnail, ArrowLeft/ArrowRight page within the gallery order and stop at the ends, Escape closes, focus is trapped while open and **returned to the originating thumbnail** on close (FR-027, SC-007).
+- [X] T051 [US3] Responsive behaviour: uniform thumbnail grid regardless of source aspect ratio, and an enlarged view that fits the whole picture (`object-contain`) at 375 px with no horizontal page scroll and no clipped controls (FR-025, edge case "very tall or very wide").
+- [X] T052 [P] [US3] Jest spec for open/next/previous/close, end-stops, and focus restoration.
+- [X] T053 [P] [US3] Alt text: caption when present, otherwise a translated generic alternative naming the owner (FR-028); captions rendered as text, never markup (FR-029).
 
 ---
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
-- [ ] T054 Add the `showcase.*` block to `frontend/apps/web/public/i18n/en.json`, `de.json`, and `es.json` — all three in the same commit, or feature 042's parity guard turns the suite red (by design). Sentence case, "you" voice, no emoji (DESIGN.md).
+- [X] T054 Add the `showcase.*` block to `frontend/apps/web/public/i18n/en.json`, `de.json`, and `es.json` — all three in the same commit, or feature 042's parity guard turns the suite red (by design). Sentence case, "you" voice, no emoji (DESIGN.md).
 - [ ] T055 Instantiate `specs/046-showcase-galleries/checklists/ui-review.md` from `.specify/templates/ui-review-checklist-template.md` and verify every item against the diff — Gate 7 is engaged because this feature ships new UI on two screens. DESIGN.md wins any conflict; report conflicts rather than resolving them silently.
 - [ ] T056 [P] Verify `SC-008` in the browser: a five-image gallery issues one listing request and five image requests; an empty gallery issues the listing and **zero** image requests.
 - [ ] T057 [P] Confirm no `PagedResult<T>` crept into the listing endpoints and that the Complexity Tracking deviation in [plan.md](./plan.md#complexity-tracking) still describes what shipped.

@@ -64,6 +64,22 @@
         }
       </jh-card>
 
+      <!-- Showcase gallery (feature 046) — absent entirely for a viewer when the player has no
+           pictures; the owner's invitation to add some lives on their edit surface. -->
+      @if (showGallery()) {
+        <jh-card class="p-md" data-testid="profile-showcase">
+          <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'showcase.profileHeading' | transloco }}</h2>
+          <jh-showcase-gallery
+            [owner]="showcaseOwner()"
+            [images]="showcaseImages()"
+            [ownerName]="p.displayName"
+            [loading]="showcaseLoading()"
+            [error]="showcaseError()"
+            [retry]="reloadShowcase"
+          />
+        </jh-card>
+      }
+
       <!-- Badges & achievements (feature 012) — same card + heading treatment as team detail. -->
       <jh-card class="p-md">
         <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'profile.recognition.heading' | transloco }}</h2>

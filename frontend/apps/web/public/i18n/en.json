@@ -1510,5 +1510,38 @@
       "seriesNotifyNote": "Responders are notified of the change. Changing the day, interval or end date regenerates upcoming dates.",
       "saveToAll": "Save to all upcoming"
     }
+  },
+  "showcase": {
+    "loading": "Loading pictures…",
+    "viewerLabel": "Picture viewer",
+    "previous": "Previous picture",
+    "next": "Next picture",
+    "close": "Close",
+    "imageAlt": "Showcase picture {{index}} of {{total}} from {{owner}}",
+    "add": "Add a picture",
+    "remaining": "{{remaining}} of {{max}} left",
+    "full": "You've got all {{max}} — remove one to add another.",
+    "emptyOwner": "Show what playing looks like for you — add up to {{max}} pictures.",
+    "emptyTeamOwner": "Show what your team is like — add up to {{max}} pictures.",
+    "noCaption": "No caption",
+    "captionLabel": "Caption",
+    "addCaption": "Add a caption",
+    "editCaption": "Edit caption",
+    "moveUp": "Move earlier",
+    "moveDown": "Move later",
+    "remove": "Remove picture",
+    "loadFailed": "We couldn't load these pictures.",
+    "actionFailed": "That didn't go through — give it another go.",
+    "staleOrder": "This gallery changed while you were editing it. We've reloaded it.",
+    "profileHeading": "Showcase",
+    "teamHeading": "Showcase",
+    "upload": {
+      "full": "You've already got {{max}} pictures. Remove one to add another.",
+      "type": "That file isn't a picture we can use. Try a JPEG, PNG or WebP.",
+      "size": "That picture is too big. Try a smaller one.",
+      "unreadable": "We couldn't read that picture. Try another one.",
+      "unavailable": "We couldn't store that picture just now. Please try again.",
+      "unknown": "That didn't go through — give it another go."
+    }
   }
 }

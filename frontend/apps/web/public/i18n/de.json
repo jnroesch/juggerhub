@@ -1514,5 +1514,38 @@
       "seriesNotifyNote": "Antwortende werden über die Änderung benachrichtigt. Änderungen an Tag, Intervall oder Enddatum erzeugen anstehende Termine neu.",
       "saveToAll": "Für alle anstehenden speichern"
     }
+  },
+  "showcase": {
+    "loading": "Bilder werden geladen…",
+    "viewerLabel": "Bildansicht",
+    "previous": "Vorheriges Bild",
+    "next": "Nächstes Bild",
+    "close": "Schließen",
+    "imageAlt": "Bild {{index}} von {{total}} aus der Galerie von {{owner}}",
+    "add": "Bild hinzufügen",
+    "remaining": "Noch {{remaining}} von {{max}} frei",
+    "full": "Alle {{max}} Plätze sind belegt – entferne eins, um ein neues hinzuzufügen.",
+    "emptyOwner": "Zeig, wie Jugger bei dir aussieht – bis zu {{max}} Bilder.",
+    "emptyTeamOwner": "Zeigt, wie euer Team spielt – bis zu {{max}} Bilder.",
+    "noCaption": "Keine Bildunterschrift",
+    "captionLabel": "Bildunterschrift",
+    "addCaption": "Bildunterschrift hinzufügen",
+    "editCaption": "Bildunterschrift bearbeiten",
+    "moveUp": "Nach vorne schieben",
+    "moveDown": "Nach hinten schieben",
+    "remove": "Bild entfernen",
+    "loadFailed": "Wir konnten die Bilder nicht laden.",
+    "actionFailed": "Das hat nicht geklappt – versuch es noch einmal.",
+    "staleOrder": "Die Galerie hat sich beim Bearbeiten geändert. Wir haben sie neu geladen.",
+    "profileHeading": "Galerie",
+    "teamHeading": "Galerie",
+    "upload": {
+      "full": "Du hast schon {{max}} Bilder. Entferne eins, um ein neues hinzuzufügen.",
+      "type": "Diese Datei können wir nicht verwenden. Probier ein JPEG, PNG oder WebP.",
+      "size": "Das Bild ist zu groß. Probier ein kleineres.",
+      "unreadable": "Wir konnten dieses Bild nicht lesen. Probier ein anderes.",
+      "unavailable": "Wir konnten das Bild gerade nicht speichern. Bitte versuch es noch einmal.",
+      "unknown": "Das hat nicht geklappt – versuch es noch einmal."
+    }
   }
 }
