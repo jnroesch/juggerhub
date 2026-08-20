@@ -8,6 +8,16 @@
 
 **Input**: User description: "Showcase image galleries for player and team profiles (GH #99): up to 5 images per player profile and up to 5 per team, displayed on their public pages. Bounded 1:N collection distinct from the identity avatar/team logo. Reuses the #98 image processing pipeline and #97 media storage abstraction. CRUD (list, upload, reorder, delete) for both profile and team surfaces; hard cap of 5 enforced server-side; visibility + ban gating consistent with existing avatar rules; gallery UI on public profile and team pages per DESIGN.md."
 
+## Clarifications
+
+### Session 2026-08-20
+
+- Q: Should each showcase image carry an owner-supplied caption? (#99 open question 1) → A: Yes — one **optional** plain-text caption of at most 120 characters per image, editable and removable after upload. No separate title. The caption doubles as the image's accessible text alternative, which an unlabelled photo otherwise lacks. (FR-005, FR-009, FR-028, FR-029)
+- Q: How should showcase images be processed and sized? (#99 open question 2) → A: A **new showcase processing profile**, separate from the avatar one: **fit** within bounds preserving aspect ratio (never square-crop, never upscale), longest side **1280 px**, stored ceiling **1 MB**. Square-cropping would cut the subject out of exactly the pictures this feature exists to show. Caps a full five-image gallery at 5 MB per owner. (FR-014, SC-005)
+- Q: Who may add, reorder, and remove a team's showcase images? → A: **Team admins only.** Matches every other team-presentation surface, and keeps the platform from carrying member-posted content it has no tooling to moderate — banning an account remains the only lever. (FR-008, US2 scenario 3)
+- Q: Is an enlarged (lightbox) view in scope, or thumbnails only? → A: **In scope**, with next/previous paging, Escape-to-close, and focus restored — otherwise the pictures are only ever seen as thumbnails, which undercuts the point of a showcase. (US3, FR-027, SC-007)
+- Q: Independent 5-caps for profile vs team? (#99 open question 3) → A: **Yes**, as the issue assumed — counted per owner and never pooled. (FR-003, US2 scenario 6)
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - A player showcases their best moments (Priority: P1)
@@ -190,8 +200,7 @@ Someone picks the wrong file — a PDF, a 40-megapixel panorama, a corrupt downl
 
 - **Reuses, does not rebuild**: the server-side processing pipeline (#98 / feature 034) and the media storage abstraction (#97 / feature 035) are already merged and in service; this feature adds a new owner kind to them and introduces no second way to store or process a picture.
 - **Teams have no logo today.** The issue's phrase "identity avatar / team logo" describes the *pattern*; no team logo exists in the product. A team's showcase is therefore its first image media, and a team logo remains out of scope — this feature must not become a back-door team logo.
-- **Team admins govern the team gallery** (FR-008), by analogy with every other team-presentation surface. Letting any member post to a team's showcase would be a moderation surface the platform does not have.
-- **Independent caps** for profile and team, as the issue assumed.
+- **Team admins govern the team gallery** and **the two 5-caps are independent** — both settled by the owner in Clarifications, not assumed.
 - **The cap is a fixed platform constant, not configuration** — five, the same in every environment, mirroring how other bounded platform limits are handled. Changing it later is a code change.
 - **No moderation, reporting, or takedown capability** is added. The platform has no content-removal tooling beyond banning an account, and this feature does not invent any; a banned account's showcase disappears with everything else of theirs, which remains the only lever.
 - **No cross-surface reuse**: showcase pictures appear on the profile and team pages only. Browse lists, cards, search results, chat, and the home dashboard are unchanged and keep using the identity picture.
