@@ -65,3 +65,44 @@ test('add showcase pictures, page through them, and remove one', async ({ page, 
   await expect(page.getByTestId('showcase-manager-list').locator('li')).toHaveCount(4);
   await expect(page.getByTestId('showcase-file-input')).toBeEnabled();
 });
+
+test('a team admin fills the team gallery and it renders on the team page', async ({ page, request }) => {
+  await registerVerifySignIn(page, request, 'showteam');
+
+  // Create a team through the API in the page's own session — the UI path is covered elsewhere,
+  // and what this spec is about is the gallery.
+  const slug = `showteam-${Date.now()}`.slice(0, 30);
+  const created = await page.request.post('/api/v1/teams', {
+    data: { name: 'Rheinfeuer Berlin', slug, type: 'Mixteam', location: null },
+  });
+  expect(created.ok()).toBeTruthy();
+
+  await page.goto(`/t/${slug}`);
+
+  // As the team's admin: the card is there with its controls, and empty to begin with.
+  await expect(page.getByTestId('team-showcase')).toBeVisible();
+  await expect(page.getByTestId('team-showcase-manager')).toBeVisible();
+  await expect(page.getByTestId('showcase-thumb-0')).toHaveCount(0);
+
+  // One at a time: the add control disables itself while an upload is in flight, so a second
+  // programmatic file-pick inside that window is dropped — a person cannot hit it, but a test
+  // firing two `setInputFiles` back to back can.
+  await addPicture(page, 0);
+  await expect(page.getByTestId('showcase-manager-list').locator('li')).toHaveCount(1);
+  await addPicture(page, 1);
+  await expect(page.getByTestId('showcase-manager-list').locator('li')).toHaveCount(2);
+  await expect(page.getByTestId('showcase-thumb-1')).toBeVisible();
+
+  // The pictures really came down the gated read path.
+  const width = await page
+    .getByTestId('showcase-thumb-0')
+    .locator('img')
+    .evaluate((img: HTMLImageElement) => img.naturalWidth);
+  expect(width).toBeGreaterThan(0);
+
+  // Reordering swaps them and survives a reload.
+  await page.getByTestId('showcase-move-down-0').click();
+  await expect(page.getByTestId('showcase-manager-list').locator('li')).toHaveCount(2);
+  await page.reload();
+  await expect(page.getByTestId('showcase-thumb-1')).toBeVisible();
+});
