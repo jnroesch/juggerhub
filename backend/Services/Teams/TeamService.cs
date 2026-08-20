@@ -33,6 +33,10 @@ public sealed class TeamService : ITeamService
     /// <summary>Feature 019: a team's chat must be archived (snapshotted) before the team row is deleted.</summary>
     private readonly Chat.IChatConversationService _chat;
 
+    /// <summary>Feature 046: the team's showcase objects must be reclaimed around the cascade that
+    /// deletes their descriptor rows.</summary>
+    private readonly ITeamShowcaseService _showcase;
+
     public TeamService(
         AppDbContext db,
         TeamMembershipGuard guard,
@@ -43,11 +47,13 @@ public sealed class TeamService : ITeamService
         ICityService cities,
         ILogger<TeamService> logger,
         IOptions<TeamOptions> options,
-        Chat.IChatConversationService chat)
+        Chat.IChatConversationService chat,
+        ITeamShowcaseService showcase)
     {
         _db = db;
         _guard = guard;
         _chat = chat;
+        _showcase = showcase;
         _recognitions = recognitions;
         _cities = cities;
         _notifications = notifications;
@@ -310,9 +316,22 @@ public sealed class TeamService : ITeamService
         // Restrict FK, which would otherwise block this delete outright.
         await _chat.ArchiveForTeamAsync(a.TeamId, ct);
 
-        // DB-level ON DELETE CASCADE removes memberships/invites/news; participations SET NULL
-        // (event history preserved). ExecuteDelete is a single statement.
+        // Read the showcase object keys BEFORE the cascade (feature 046 / #99). The cascade removes
+        // the descriptor rows inside PostgreSQL with no application code running, and a descriptor
+        // is only a POINTER — the pictures themselves would survive in the media store, reachable
+        // by nothing but reclaimed only when an operator happens to run a reconciliation sweep.
+        // After this delete the keys are unrecoverable, so reading them late is not an option.
+        var showcaseObjectKeys = await _showcase.ObjectKeysForTeamAsync(a.TeamId, ct);
+
+        // DB-level ON DELETE CASCADE removes memberships/invites/news/showcase; participations SET
+        // NULL (event history preserved). ExecuteDelete is a single statement.
         await _db.Teams.Where(t => t.Id == a.TeamId).ExecuteDeleteAsync(ct);
+
+        // AFTER the rows are gone: a blob delete cannot be rolled back, so doing it earlier would
+        // destroy pictures for a delete that then failed. Best-effort and logged — the team is
+        // already gone and this cannot fail the request.
+        await _showcase.ReclaimObjectsAsync(showcaseObjectKeys, ct);
+
         return DeleteTeamStatus.Deleted;
     }
 

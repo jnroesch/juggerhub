@@ -5,12 +5,16 @@ using JuggerHub.Common;
 using JuggerHub.Dtos.Parties;
 using JuggerHub.Dtos.Search;
 using JuggerHub.Dtos.Teams;
+using JuggerHub.Services.Media;
 using JuggerHub.Services.Parties;
 using JuggerHub.Services.Search;
 using JuggerHub.Services.Teams;
+using JuggerHub.Security.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Controllers;
 
@@ -37,6 +41,8 @@ public sealed class TeamsController : ControllerBase
     private readonly ITeamJoinRequestService _joinRequests;
     private readonly IPartyService _parties;
     private readonly JuggerHub.Services.Profile.IProfileService _profiles;
+    private readonly ITeamShowcaseService _showcase;
+    private readonly IOptions<MediaStorageOptions> _mediaOptions;
 
     public TeamsController(
         ITeamService teams,
@@ -47,7 +53,9 @@ public sealed class TeamsController : ControllerBase
         ITeamSearchService search,
         ITeamJoinRequestService joinRequests,
         IPartyService parties,
-        JuggerHub.Services.Profile.IProfileService profiles)
+        JuggerHub.Services.Profile.IProfileService profiles,
+        ITeamShowcaseService showcase,
+        IOptions<MediaStorageOptions> mediaOptions)
     {
         _teams = teams;
         _activity = activity;
@@ -58,6 +66,8 @@ public sealed class TeamsController : ControllerBase
         _joinRequests = joinRequests;
         _parties = parties;
         _profiles = profiles;
+        _showcase = showcase;
+        _mediaOptions = mediaOptions;
     }
 
     /// <summary>The pinned party-request cards a team member can see (feature 016). Member-gated:
@@ -370,6 +380,142 @@ public sealed class TeamsController : ControllerBase
         var items = await _happenings.GetForTeamAsync(slug, userId, ct);
         return items is null ? TeamNotFound() : Ok(items);
     }
+
+
+    // --- Showcase gallery (feature 046 / #99) ---------------------------------
+
+    /// <summary>
+    /// The team's showcase gallery: at most five pictures, in the admins' order. Visible to any
+    /// signed-in caller — it neither widens for members nor narrows for non-members (spec FR-020).
+    /// No pagination: the collection is capped at five (see the plan's Complexity Tracking).
+    /// </summary>
+    [HttpGet("{slug}/showcase")]
+    public async Task<ActionResult<IReadOnlyList<Dtos.Profile.ShowcaseImageDto>>> GetShowcase(
+        string slug, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var images = await _showcase.ListAsync(slug, userId, ct);
+        return images is null ? TeamNotFound() : Ok(images);
+    }
+
+    /// <summary>The bytes of one of the team's showcase pictures.</summary>
+    [HttpGet("{slug}/showcase/{imageId:guid}/image")]
+    [EnableRateLimiting(RateLimitPolicies.MediaRead)]
+    public async Task<IActionResult> GetShowcaseImage(string slug, Guid imageId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var image = await _showcase.GetImageAsync(slug, imageId, userId, ct);
+
+        // 404 for every refusal — unknown, absent and store-unavailable are indistinguishable.
+        return image is null
+            ? NotFound()
+            : MediaResponse.File(this, image.Value, _mediaOptions.Value);
+    }
+
+    /// <summary>Add a picture to the team's showcase. Team admins only.</summary>
+    [HttpPost("{slug}/showcase")]
+    [RequestSizeLimit(8 * 1024 * 1024)]
+    [EnableRateLimiting(RateLimitPolicies.MediaUpload)]
+    public async Task<ActionResult<Dtos.Profile.ShowcaseImageDto>> AddShowcaseImage(
+        string slug, IFormFile file, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        if (file is null || file.Length == 0)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: "No image",
+                detail: "No image was provided.");
+        }
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, ct);
+        var result = await _showcase.AddAsync(slug, userId, ms.ToArray(), ct);
+
+        return result.Status switch
+        {
+            ShowcaseAddStatus.Success => StatusCode(StatusCodes.Status201Created,
+                new Dtos.Profile.ShowcaseImageDto(result.Id, null, result.Position)),
+            // A non-member cannot tell this team from one that does not exist; a member who is not
+            // an admin already knows it exists, so they get an honest 403.
+            ShowcaseAddStatus.OwnerNotFound => TeamNotFound(),
+            ShowcaseAddStatus.Forbidden => Problem(statusCode: StatusCodes.Status403Forbidden,
+                title: "Admins only",
+                detail: "Only a team admin can change the team's gallery."),
+            ShowcaseAddStatus.GalleryFull => Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Gallery full",
+                detail: $"A showcase holds at most {ShowcaseWriter.MaxImagesPerOwner} pictures. Remove one to add another."),
+            ShowcaseAddStatus.StoreUnavailable => Problem(statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Could not store the picture",
+                detail: "We could not store that picture just now. Please try again."),
+            _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid image",
+                detail: result.Reason ?? "That picture could not be used."),
+        };
+    }
+
+    /// <summary>Set or clear a caption on one of the team's pictures. Team admins only.</summary>
+    [HttpPatch("{slug}/showcase/{imageId:guid}")]
+    public async Task<IActionResult> SetShowcaseCaption(
+        string slug, Guid imageId, [FromBody] Dtos.Profile.UpdateShowcaseCaptionRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return MapShowcaseMutation(await _showcase.SetCaptionAsync(slug, userId, imageId, request.Caption, ct));
+    }
+
+    /// <summary>Remove one of the team's showcase pictures. Team admins only.</summary>
+    [HttpDelete("{slug}/showcase/{imageId:guid}")]
+    public async Task<IActionResult> RemoveShowcaseImage(string slug, Guid imageId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return MapShowcaseMutation(await _showcase.RemoveAsync(slug, userId, imageId, ct));
+    }
+
+    /// <summary>Apply a complete new order to the team's showcase. Team admins only.</summary>
+    [HttpPut("{slug}/showcase/order")]
+    public async Task<IActionResult> ReorderShowcase(
+        string slug, [FromBody] Dtos.Profile.ReorderShowcaseRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return MapShowcaseMutation(await _showcase.ReorderAsync(slug, userId, request.ImageIds ?? [], ct));
+    }
+
+    /// <summary>Shared status mapping for the three team showcase mutations.</summary>
+    private IActionResult MapShowcaseMutation(ShowcaseMutateStatus status) => status switch
+    {
+        ShowcaseMutateStatus.Success => NoContent(),
+        ShowcaseMutateStatus.Forbidden => Problem(statusCode: StatusCodes.Status403Forbidden,
+            title: "Admins only",
+            detail: "Only a team admin can change the team's gallery."),
+        ShowcaseMutateStatus.CaptionTooLong => Problem(statusCode: StatusCodes.Status400BadRequest,
+            title: "Caption too long",
+            detail: "A caption is at most 120 characters."),
+        ShowcaseMutateStatus.StaleOrder => Problem(statusCode: StatusCodes.Status409Conflict,
+            title: "Gallery changed",
+            detail: "That gallery changed while you were editing it. Reload and try again."),
+        _ => TeamNotFound(),
+    };
 
     [HttpGet("{slug}/news")]
     public async Task<ActionResult<PagedResult<TeamNewsDto>>> GetNews(

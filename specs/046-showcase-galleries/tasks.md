@@ -107,17 +107,17 @@ deleting the team removes the objects.
 
 ### Tests for User Story 2
 
-- [ ] T029 [P] [US2] Create `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamShowcaseTests.cs`: admin can add/reorder/caption/remove; an ordinary member gets `403` on every write; a non-member gets `404` on writes and `200` on reads; an anonymous caller gets `401`; the sixth image returns `409`.
-- [ ] T030 [P] [US2] Test that a profile gallery at five and a team gallery at five coexist — caps are per owner, never pooled (FR-003).
-- [ ] T031 [P] [US2] Test that deleting a team removes both the rows and the stored objects (FR-012, SC-010).
-- [ ] T032 [P] [US2] Test that a team gallery stays visible after a member who uploaded to it is banned (research R3) — the team is not punished for a member's standing.
+- [X] T029 [P] [US2] Create `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamShowcaseTests.cs`: admin can add/reorder/caption/remove; an ordinary member gets `403` on every write; a non-member gets `404` on writes and `200` on reads; an anonymous caller gets `401`; the sixth image returns `409`.
+- [X] T030 [P] [US2] Test that a profile gallery at five and a team gallery at five coexist — caps are per owner, never pooled (FR-003).
+- [X] T031 [P] [US2] Test that deleting a team removes both the rows and the stored objects (FR-012, SC-010).
+- [X] T032 [P] [US2] Test that a team gallery stays visible after a member who uploaded to it is banned (research R3) — the team is not punished for a member's standing.
 
 ### Implementation for User Story 2
 
-- [ ] T033 [US2] Create `backend/Services/Teams/ITeamShowcaseService.cs` and `TeamShowcaseService.cs` — same five operations, authorization via `TeamMembershipGuard.ResolveAsync`: reads require any signed-in caller, writes require `IsAdmin` (`403`), a non-member gets `404`. Writes delegate to the same `ShowcaseWriter`.
-- [ ] T034 [US2] Add the five team endpoints to `backend/Controllers/TeamsController.cs` per [contracts](./contracts/showcase-endpoints.md). No `[AllowAnonymous]` anywhere — the class-level `[Authorize]` is the team surface's rule (feature 026).
-- [ ] T035 [US2] Register `ITeamShowcaseService` in `backend/Program.cs`.
-- [ ] T036 [US2] Harvest team showcase object keys **before** `Teams.ExecuteDeleteAsync` in `TeamService.DeleteAsync` (beside the existing "archive the chat BEFORE the team goes" step) and delete the objects after the delete succeeds, best-effort and logged (research R7).
+- [X] T033 [US2] Create `backend/Services/Teams/ITeamShowcaseService.cs` and `TeamShowcaseService.cs` — same five operations, authorization via `TeamMembershipGuard.ResolveAsync`: reads require any signed-in caller, writes require `IsAdmin` (`403`), a non-member gets `404`. Writes delegate to the same `ShowcaseWriter`.
+- [X] T034 [US2] Add the five team endpoints to `backend/Controllers/TeamsController.cs` per [contracts](./contracts/showcase-endpoints.md). No `[AllowAnonymous]` anywhere — the class-level `[Authorize]` is the team surface's rule (feature 026).
+- [X] T035 [US2] Register `ITeamShowcaseService` in `backend/Program.cs`.
+- [X] T036 [US2] Harvest team showcase object keys **before** `Teams.ExecuteDeleteAsync` in `TeamService.DeleteAsync` (beside the existing "archive the chat BEFORE the team goes" step) and delete the objects after the delete succeeds, best-effort and logged (research R7).
 - [ ] T037 [US2] Render the gallery on `features/teams/team-detail/` for every signed-in viewer, and the manager for admins only — the manager component must not be in the template at all for a non-admin, so the "offered nothing" rule is structural rather than CSS.
 - [ ] T038 [P] [US2] Jest spec for the team surface: admin sees controls, member and outsider see none.
 
@@ -134,12 +134,12 @@ No production code is expected here beyond fixes the tests find.
 **Independent Test**: quickstart [US4](./quickstart.md#us4--the-showcase-does-not-open-a-privacy-hole-p1),
 every numbered check.
 
-- [ ] T039 [P] [US4] Gating tests in `Profile/ProfileShowcaseTests.cs`: private profile → anonymous listing and image both `404`, signed-in both `200`; public profile → anonymous both `200`; banned owner → all four `404`; a public→private switch takes effect on the very next request (FR-018, FR-019, FR-021, SC-003).
-- [ ] T040 [P] [US4] Test that every refusal is `404` and byte-identical across "no such image", "not permitted", and "store unavailable" — no status, header, or body distinguishes them (FR-023).
-- [ ] T041 [P] [US4] Test that no response body or header from any of the ten endpoints contains an object key, container name, or storage URL, and that the `ETag` is the 32-hex fingerprint rather than the key (FR-022, SC-004). Model it on feature 035's `MediaPrivacyTests.cs`.
-- [ ] T042 [P] [US4] Test that another member cannot mutate someone else's gallery: `PATCH`/`DELETE`/`PUT …/order` against a foreign image id → `404`, target gallery unchanged (FR-007).
-- [ ] T043 [US4] Add the two new anonymous profile reads to `backend/tests/JuggerHub.Api.IntegrationTests/Security/AnonymousAllowlistTests.cs`, and assert the team showcase endpoints are **not** anonymous — the allowlist is the record of what 026 deliberately leaves open.
-- [ ] T044 [US4] Test that a descriptor whose object has vanished degrades to a `404` for that one image while the rest of the gallery still lists and renders (FR-024).
+- [X] T039 [P] [US4] Gating tests in `Profile/ProfileShowcaseTests.cs`: private profile → anonymous listing and image both `404`, signed-in both `200`; public profile → anonymous both `200`; banned owner → all four `404`; a public→private switch takes effect on the very next request (FR-018, FR-019, FR-021, SC-003).
+- [X] T040 [P] [US4] Test that every refusal is `404` and byte-identical across "no such image", "not permitted", and "store unavailable" — no status, header, or body distinguishes them (FR-023).
+- [X] T041 [P] [US4] Test that no response body or header from any of the ten endpoints contains an object key, container name, or storage URL, and that the `ETag` is the 32-hex fingerprint rather than the key (FR-022, SC-004). Model it on feature 035's `MediaPrivacyTests.cs`.
+- [X] T042 [P] [US4] Test that another member cannot mutate someone else's gallery: `PATCH`/`DELETE`/`PUT …/order` against a foreign image id → `404`, target gallery unchanged (FR-007).
+- [X] T043 [US4] Add the two new anonymous profile reads to `backend/tests/JuggerHub.Api.IntegrationTests/Security/AnonymousAllowlistTests.cs`, and assert the team showcase endpoints are **not** anonymous — the allowlist is the record of what 026 deliberately leaves open.
+- [X] T044 [US4] Test that a descriptor whose object has vanished degrades to a `404` for that one image while the rest of the gallery still lists and renders (FR-024).
 
 **Checkpoint**: the privacy story is evidenced by tests, not by reading the code.
 
@@ -152,7 +152,7 @@ every numbered check.
 **Independent Test**: quickstart [US5](./quickstart.md#us5--a-bad-upload-fails-clearly-and-changes-nothing-p2) —
 the six-row table, then the outage and missing-object checks.
 
-- [ ] T045 [P] [US5] Backend tests: PDF-as-JPEG, oversized file, 45 MP image, truncated JPEG, zero bytes, and a sixth-into-full each return the right status and a **distinct** reason; after each, the gallery holds exactly what it held before (FR-015, FR-016, SC-006).
+- [X] T045 [P] [US5] Backend tests: PDF-as-JPEG, oversized file, 45 MP image, truncated JPEG, zero bytes, and a sixth-into-full each return the right status and a **distinct** reason; after each, the gallery holds exactly what it held before (FR-015, FR-016, SC-006).
 - [ ] T046 [P] [US5] Test the store-outage path against the Azurite Testcontainer (model it on feature 035's `MediaOutageTests.cs`): an upload that cannot be stored writes **no** row and consumes no slot; a stale descriptor is never created.
 - [ ] T047 [US5] Surface each reason in `showcase-manager.component` as a translated, human sentence with a retry affordance — never a status code, never a stack trace (DESIGN.md "Loading, error & retry states", Principle I).
 - [ ] T048 [P] [US5] Jest spec: each failure category renders its own message and leaves the rendered gallery unchanged.

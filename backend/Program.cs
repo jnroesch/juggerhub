@@ -333,6 +333,7 @@ builder.Services.AddScoped<IEventActivityService, EventActivityService>();
 builder.Services.Configure<TeamOptions>(builder.Configuration.GetSection(TeamOptions.SectionName));
 builder.Services.AddScoped<TeamMembershipGuard>();
 builder.Services.AddScoped<ITeamService, TeamService>();
+builder.Services.AddScoped<ITeamShowcaseService, TeamShowcaseService>();
 builder.Services.AddScoped<ITeamInvitationService, TeamInvitationService>();
 builder.Services.AddScoped<ITeamActivityService, TeamActivityService>();
 builder.Services.AddScoped<ITeamHappeningService, TeamHappeningService>(); // feature 044
