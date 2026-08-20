@@ -21,7 +21,17 @@
     @if (!editing()) {
       <!-- View mode: the SAME shared presentation as any other player's profile. -->
       @if (view(); as v) {
-        <jh-profile-view [profile]="v" [showcase]="showcaseImages()" class="mt-md" />
+        <jh-profile-view [profile]="v" [showcase]="showcaseImages()" [showcaseManageable]="true" class="mt-md">
+          <!-- Owner-only controls, inside the gallery's own card so the page carries ONE
+               "Showcase" heading rather than two sections with the same name. -->
+          <jh-showcase-manager
+            showcaseManager
+            [owner]="showcaseOwner()"
+            [images]="showcaseImages()"
+            (changed)="onShowcaseChanged($event)"
+            data-testid="profile-showcase-manager"
+          />
+        </jh-profile-view>
       }
 
       <!-- Profile visibility (feature 026) — owner-only instant toggle, no edit round trip.
@@ -47,17 +57,6 @@
         @if (visibilitySaving()) {
           <p class="mt-xs text-body-sm text-subtle" role="status">{{ 'events.edit.saving' | transloco }}</p>
         }
-      </jh-card>
-
-      <!-- Showcase gallery (feature 046) — owner-only editing. Its actions apply immediately,
-           independently of the edit form's save, exactly like the visibility toggle above. -->
-      <jh-card class="mt-lg p-md" data-testid="profile-showcase-manager">
-        <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'showcase.profileHeading' | transloco }}</h2>
-        <jh-showcase-manager
-          [owner]="showcaseOwner()"
-          [images]="showcaseImages()"
-          (changed)="onShowcaseChanged($event)"
-        />
       </jh-card>
 
       @if (saved()) {

@@ -179,9 +179,9 @@ the six-row table, then the outage and missing-object checks.
 - [X] T055 Instantiate `specs/046-showcase-galleries/checklists/ui-review.md` from `.specify/templates/ui-review-checklist-template.md` and verify every item against the diff — Gate 7 is engaged because this feature ships new UI on two screens. DESIGN.md wins any conflict; report conflicts rather than resolving them silently.
 - [X] T056 [P] Verify `SC-008` in the browser: a five-image gallery issues one listing request and five image requests; an empty gallery issues the listing and **zero** image requests.
 - [X] T057 [P] Confirm no `PagedResult<T>` crept into the listing endpoints and that the Complexity Tracking deviation in [plan.md](./plan.md#complexity-tracking) still describes what shipped.
-- [ ] T058 Run the full quickstart end to end against a local stack, including the two ⚠ cross-cutting checks (sweep, account deletion). Record what was run; never report a check that was not made.
-- [ ] T059 Run `dotnet test backend/JuggerHub.slnx` and `npx nx lint web && npx nx test web && npx nx build web`; both green before the feature is considered done.
-- [ ] T060 [P] Update `README`/docs only if a documented surface changed — otherwise skip deliberately rather than inventing documentation.
+- [X] T058 Run the full quickstart end to end against a local stack, including the two ⚠ cross-cutting checks (sweep, account deletion). Record what was run; never report a check that was not made.
+- [X] T059 Run `dotnet test backend/JuggerHub.slnx` and `npx nx lint web && npx nx test web && npx nx build web`; both green before the feature is considered done.
+- [X] T060 [P] Update `README`/docs only if a documented surface changed — otherwise skip deliberately rather than inventing documentation.
 
 ---
 

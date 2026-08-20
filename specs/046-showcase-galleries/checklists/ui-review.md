@@ -23,7 +23,7 @@
 ## Typography, numbers & voice
 
 - [x] CHK006 Headings/hero use **Hubot Sans**; body and UI text use **Mona Sans** — headings use the standard `text-body-lg font-semibold text-heading` card-heading treatment
-- [x] CHK007 Scores, stats, times, and counts are set in the **mono** face — the "N of 5 left" counter carries `font-mono`
+- [x] CHK007 Scores, stats, times, and counts are set in the **mono** face — **no mono is used here, deliberately**. The only number in this UI is inside a sentence ("You've got all 5 — remove one to add another."), and setting a full sentence in the mono face looked wrong on the rendered page. DESIGN.md's mono is for tabular data — scores, times, stats ("5 : 3", "14:00") — not for prose that happens to contain a digit. Recorded rather than silently dropped.
 - [x] CHK008 **Sentence case everywhere** — verified across all 29 new keys in en/de/es
 - [x] CHK009 Nothing meaningful drops below 12px; body is 16px — captions and counters use `text-body-sm`
 - [x] CHK010 Copy addresses the reader as **"you"**, CTAs invite, no emoji — "Show what playing looks like for you", "Add a picture"; no emoji in any of the three catalogues
@@ -72,6 +72,32 @@
 - [x] CHK032 Reordering is keyboard- and touch-operable — move up / move down buttons, disabled at the ends; no drag-and-drop, and no new dependency
 - [x] CHK033 The manager is not rendered at all for a viewer who may not edit — not hidden with a class, not disabled (`team-detail.component.html`, guarded by `isAdmin()`)
 - [x] CHK034 Each upload refusal has its own sentence — full / type / size / unreadable / store-unavailable, never a status code or a technical detail
+
+## Verified against the running app
+
+Screenshots taken from the real stack (docker compose, desktop 1280px and mobile 375px), not
+from reading the markup. Two defects were found this way and fixed:
+
+1. **Two "Showcase" cards on the owner's own profile** — the read gallery in the left column and
+   the editing controls in a separate full-width card below, far apart and identically titled.
+   Exactly the two-sections-one-name confusion feature 044 was reported about. The owner's
+   controls now project into the gallery's own card (`[showcaseManageable]` + `[showcaseManager]`),
+   matching how the team page already stacks them.
+2. **Mono prose** — see CHK007.
+3. **Cramped manager rows at 375 px** — the caption was squeezed to "Te…" and the edit button
+   wrapped underneath the arrows. The row now wraps as a unit, dropping the controls onto their
+   own right-aligned line, so the caption keeps its width.
+4. **⚠ Uploads over 1 MB never reached the application at all** — `location /api/` in
+   `frontend/nginx.conf.template` set no `client_max_body_size`, so nginx's 1 MB default rejected
+   every upload between 1 MB and the backend's 8 MB `MaxInputBytes` with a raw HTML 413. A phone
+   photo — precisely the case the 8 MB cap exists for — failed with an error page instead of the
+   application's plain-language reason. Pre-existing (it affected avatars too since 034), found
+   only by uploading a realistically sized picture through the real proxy. Fixed by setting the
+   limit to 8 MB with a comment tying it to `MaxInputBytes`.
+
+Also measured on the live page: horizontal overflow at 375 px is **0 px** (SC-007), and the
+uploaded picture renders with `naturalWidth > 0`, i.e. the browser really fetched bytes through
+the gated read path.
 
 ## Notes
 

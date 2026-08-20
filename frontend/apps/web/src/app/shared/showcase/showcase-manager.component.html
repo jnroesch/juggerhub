@@ -12,7 +12,9 @@
   @if (images().length > 0) {
     <ul class="flex flex-col gap-sm" data-testid="showcase-manager-list">
       @for (image of images(); track image.id; let i = $index; let first = $first; let last = $last) {
-        <li class="flex items-start gap-sm rounded-lg border border-border-muted bg-surface-card p-sm">
+        <!-- Wraps rather than squeezes: at 375px the controls drop to their own line instead of
+             crushing the caption to an ellipsis and pushing the edit button under the arrows. -->
+        <li class="flex flex-wrap items-start gap-sm rounded-lg border border-border-muted bg-surface-card p-sm">
           <img
             [src]="imageUrl(image)"
             alt=""
@@ -21,7 +23,7 @@
             decoding="async"
           />
 
-          <div class="min-w-0 flex-1">
+          <div class="min-w-0 flex-1 basis-40">
             @if (editingId() === image.id) {
               <label class="block text-body-sm text-muted" [attr.for]="'showcase-caption-' + i">
                 {{ 'showcase.captionLabel' | transloco }}
@@ -62,7 +64,7 @@
             }
           </div>
 
-          <div class="flex shrink-0 items-center gap-2xs">
+          <div class="ml-auto flex shrink-0 items-center gap-2xs">
             <button
               type="button"
               (click)="move(i, -1)"
@@ -127,7 +129,7 @@
       />
     </label>
 
-    <p class="font-mono text-body-sm text-muted" data-testid="showcase-remaining">
+    <p class="text-body-sm text-muted" data-testid="showcase-remaining">
       @if (full()) {
         {{ 'showcase.full' | transloco: { max: maxImages } }}
       } @else {
