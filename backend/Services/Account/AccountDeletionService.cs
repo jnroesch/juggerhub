@@ -128,13 +128,19 @@ public sealed class AccountDeletionService : IAccountDeletionService
             return AccountDeletionResult.Fail(AccountDeletionOutcome.PasswordRejected);
         }
 
-        // Read the object key BEFORE the cascade removes the descriptor row. Feature 035 moved avatar
-        // bytes to blob storage, so deleting the row deletes a POINTER — the image outlives it unless
-        // we reclaim it explicitly (FR-015).
-        var avatarObjectKey = await _db.ProfileAvatars.AsNoTracking().IgnoreQueryFilters()
+        // Read the object keys BEFORE the cascade removes the descriptor rows. Feature 035 moved
+        // media bytes to blob storage, so deleting a row deletes a POINTER — the image outlives it
+        // unless we reclaim it explicitly (FR-015). Feature 046 added the showcase gallery, whose
+        // rows cascade with the profile exactly as the avatar's does, so its keys are collected here
+        // too: miss them and up to five pictures of a member who asked to be erased survive in the
+        // store until an operator happens to run a reconciliation sweep.
+        var mediaObjectKeys = await _db.ProfileAvatars.AsNoTracking().IgnoreQueryFilters()
             .Where(a => a.Profile.UserId == userId)
             .Select(a => a.ObjectKey)
-            .FirstOrDefaultAsync(ct);
+            .Concat(_db.ProfileShowcaseImages.AsNoTracking().IgnoreQueryFilters()
+                .Where(g => g.Profile.UserId == userId)
+                .Select(g => g.ObjectKey))
+            .ToListAsync(ct);
 
         // Send while the address still exists (FR-040). Before the transaction, not inside it: a
         // delivery failure must never roll back an erasure the member asked for — see SendFarewell.
@@ -183,7 +189,7 @@ public sealed class AccountDeletionService : IAccountDeletionService
         // AFTER commit: a blob delete cannot be rolled back, so doing it earlier would destroy an
         // image for an erasure that then failed. A failure here leaves an orphan that 035's
         // reconciliation sweep reclaims — logged, never surfaced (FR-015).
-        await ReclaimAvatarObjectAsync(avatarObjectKey, userId, ct);
+        await ReclaimMediaObjectsAsync(mediaObjectKeys, userId, ct);
 
         return AccountDeletionResult.Done();
     }
@@ -384,27 +390,35 @@ public sealed class AccountDeletionService : IAccountDeletionService
     }
 
     /// <summary>
-    /// Reclaim the avatar's stored object after commit (FR-015). Feature 035 put the bytes in blob
-    /// storage, so the cascade deleted a descriptor and not an image.
+    /// Reclaim the member's stored media objects after commit (FR-015) — the avatar and every
+    /// showcase picture. Feature 035 put the bytes in blob storage, so the cascade deleted
+    /// descriptors and not images.
     /// </summary>
-    private async Task ReclaimAvatarObjectAsync(string? objectKey, Guid userId, CancellationToken ct)
+    /// <remarks>
+    /// One failure never stops the others: each object is attempted independently, because a
+    /// half-reclaimed erasure is worse than a logged orphan.
+    /// </remarks>
+    private async Task ReclaimMediaObjectsAsync(IReadOnlyList<string> objectKeys, Guid userId, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(objectKey))
+        foreach (var objectKey in objectKeys)
         {
-            return;
-        }
+            if (string.IsNullOrWhiteSpace(objectKey))
+            {
+                continue;
+            }
 
-        try
-        {
-            await _media.DeleteAsync(objectKey, ct);
-        }
-        catch (Exception ex)
-        {
-            // The account is already gone and cannot be brought back, so this cannot fail the request.
-            // Logged at error because it leaves a real orphan — reclaimed by 035's reconciliation
-            // sweep, but somebody should know it happened.
-            _logger.LogError(ex,
-                "Avatar object could not be reclaimed after erasing {UserId}; left for reconciliation", userId);
+            try
+            {
+                await _media.DeleteAsync(objectKey, ct);
+            }
+            catch (Exception ex)
+            {
+                // The account is already gone and cannot be brought back, so this cannot fail the
+                // request. Logged at error because it leaves a real orphan — reclaimed by 035's
+                // reconciliation sweep, but somebody should know it happened.
+                _logger.LogError(ex,
+                    "A media object could not be reclaimed after erasing {UserId}; left for reconciliation", userId);
+            }
         }
     }
 }

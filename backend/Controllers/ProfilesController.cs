@@ -41,17 +41,20 @@ public sealed class ProfilesController : ControllerBase
     private readonly IPlayerSearchService _search;
     private readonly IHomeService _home;
     private readonly ITeamInvitationService _invitations;
+    private readonly IProfileShowcaseService _showcase;
     private readonly IOptions<MediaStorageOptions> _mediaOptions;
 
     public ProfilesController(
         IProfileService profiles, IEventActivityService activity, IPlayerSearchService search, IHomeService home,
-        ITeamInvitationService invitations, IOptions<MediaStorageOptions> mediaOptions)
+        ITeamInvitationService invitations, IProfileShowcaseService showcase,
+        IOptions<MediaStorageOptions> mediaOptions)
     {
         _profiles = profiles;
         _activity = activity;
         _search = search;
         _home = home;
         _invitations = invitations;
+        _showcase = showcase;
         _mediaOptions = mediaOptions;
     }
 
@@ -255,6 +258,149 @@ public sealed class ProfilesController : ControllerBase
             new MediaContent(avatar.Value.Content, avatar.Value.ContentType, avatar.Value.ObjectKey),
             _mediaOptions.Value);
     }
+
+
+    // --- Showcase gallery (feature 046 / #99) ---------------------------------
+
+    /// <summary>
+    /// A player's showcase gallery: at most five pictures, in the owner's order. Visibility-gated in
+    /// the service exactly like the avatar — any signed-in caller, or an anonymous one when the owner
+    /// opted the profile public. No pagination: the collection is capped at five, so a
+    /// <c>PagedResult</c> envelope would advertise paging that cannot exist (see the plan's
+    /// Complexity Tracking).
+    /// </summary>
+    [HttpGet("{handle}/showcase")]
+    [AllowAnonymous]
+    public async Task<ActionResult<IReadOnlyList<ShowcaseImageDto>>> GetShowcase(string handle, CancellationToken ct)
+    {
+        var images = await _showcase.ListAsync(handle, GetOptionalUserId(), ct);
+        return images is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "Profile not found",
+                detail: "No profile exists for that handle.")
+            : Ok(images);
+    }
+
+    /// <summary>The bytes of one showcase picture.</summary>
+    [HttpGet("{handle}/showcase/{imageId:guid}/image")]
+    [AllowAnonymous]
+    [EnableRateLimiting(RateLimitPolicies.MediaRead)]
+    public async Task<IActionResult> GetShowcaseImage(string handle, Guid imageId, CancellationToken ct)
+    {
+        // The service applies the visibility gate and the banned-account filter BEFORE it opens the
+        // stored object, so reaching this line already means the caller is entitled to the bytes.
+        var image = await _showcase.GetImageAsync(handle, imageId, GetOptionalUserId(), ct);
+        if (image is null)
+        {
+            // 404 for every refusal — not found, not permitted, and store-unavailable are
+            // deliberately indistinguishable, so the endpoint never becomes an existence oracle.
+            return NotFound();
+        }
+
+        return MediaResponse.File(this, image.Value, _mediaOptions.Value);
+    }
+
+    /// <summary>Add a picture to the caller's own showcase. Owner-only: acts on the authenticated
+    /// subject alone.</summary>
+    [HttpPost("me/showcase")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [RequestSizeLimit(8 * 1024 * 1024)]
+    [EnableRateLimiting(RateLimitPolicies.MediaUpload)]
+    public async Task<ActionResult<ShowcaseImageDto>> AddShowcaseImage(IFormFile file, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        if (file is null || file.Length == 0)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: "No image",
+                detail: "No image was provided.");
+        }
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, ct);
+        var result = await _showcase.AddAsync(userId, ms.ToArray(), ct);
+
+        return result.Status switch
+        {
+            ShowcaseAddStatus.Success => CreatedAtAction(
+                nameof(GetShowcase),
+                new { handle = await _profiles.GetHandleAsync(userId, ct) },
+                new ShowcaseImageDto(result.Id, null, result.Position)),
+            ShowcaseAddStatus.OwnerNotFound => NotFound(),
+            // Distinct from a processing failure so the client can say "you already have five"
+            // rather than "invalid image" (spec FR-016).
+            ShowcaseAddStatus.GalleryFull => Problem(statusCode: StatusCodes.Status409Conflict,
+                title: "Gallery full",
+                detail: $"A showcase holds at most {ShowcaseWriter.MaxImagesPerOwner} pictures. Remove one to add another."),
+            ShowcaseAddStatus.StoreUnavailable => Problem(statusCode: StatusCodes.Status503ServiceUnavailable,
+                title: "Could not store the picture",
+                detail: "We could not store that picture just now. Please try again."),
+            _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid image",
+                detail: result.Reason ?? "That picture could not be used."),
+        };
+    }
+
+    /// <summary>Set or clear the caption on one of the caller's own showcase pictures.</summary>
+    [HttpPatch("me/showcase/{imageId:guid}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<IActionResult> SetShowcaseCaption(
+        Guid imageId, [FromBody] UpdateShowcaseCaptionRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var status = await _showcase.SetCaptionAsync(userId, imageId, request.Caption, ct);
+        return MapShowcaseMutation(status);
+    }
+
+    /// <summary>Remove one of the caller's own showcase pictures.</summary>
+    [HttpDelete("me/showcase/{imageId:guid}")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<IActionResult> RemoveShowcaseImage(Guid imageId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var status = await _showcase.RemoveAsync(userId, imageId, ct);
+        return MapShowcaseMutation(status);
+    }
+
+    /// <summary>Apply a complete new order to the caller's own showcase.</summary>
+    [HttpPut("me/showcase/order")]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    public async Task<IActionResult> ReorderShowcase(
+        [FromBody] ReorderShowcaseRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var status = await _showcase.ReorderAsync(userId, request.ImageIds ?? [], ct);
+        return MapShowcaseMutation(status);
+    }
+
+    /// <summary>Shared status mapping for the three showcase mutations.</summary>
+    private IActionResult MapShowcaseMutation(ShowcaseMutateStatus status) => status switch
+    {
+        ShowcaseMutateStatus.Success => NoContent(),
+        ShowcaseMutateStatus.CaptionTooLong => Problem(statusCode: StatusCodes.Status400BadRequest,
+            title: "Caption too long",
+            detail: $"A caption is at most {ProfileShowcaseService.MaxCaptionLength} characters."),
+        // The caller's view is out of date — typically a picture was removed while their page was
+        // open. Nothing was written; the client reloads and tries again.
+        ShowcaseMutateStatus.StaleOrder => Problem(statusCode: StatusCodes.Status409Conflict,
+            title: "Gallery changed",
+            detail: "That gallery changed while you were editing it. Reload and try again."),
+        // NotFound also covers "belongs to someone else" — deliberately indistinguishable.
+        _ => NotFound(),
+    };
 
     [HttpGet("{handle}/activity")]
     [AllowAnonymous]

@@ -48,6 +48,9 @@ public enum ShowcaseMutateStatus
     /// <summary>The caller may see this gallery but not change it.</summary>
     Forbidden,
 
+    /// <summary>The caption exceeds the 120-character limit. Nothing was written.</summary>
+    CaptionTooLong,
+
     /// <summary>
     /// The submitted order is not an exact permutation of the owner's current images — wrong length,
     /// a duplicate, a stranger, or one was removed while the page was open. Nothing was written;

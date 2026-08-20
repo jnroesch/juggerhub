@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using JuggerHub.Api.IntegrationTests.Auth;
 using JuggerHub.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JuggerHub.Api.IntegrationTests.AccountDeletion;
 
@@ -88,6 +89,59 @@ public sealed class AccountErasureTests : AccountDeletionTestSupport
             Assert.False(await db.ProfileAvatars.IgnoreQueryFilters().AnyAsync(a => a.Profile.UserId == userId));
             Assert.False(await db.EventParticipations.IgnoreQueryFilters().AnyAsync(ep => ep.Profile.UserId == userId));
         });
+    }
+
+    [Fact]
+    public async Task Erasure_removes_the_showcase_gallery_rows_and_their_stored_objects()
+    {
+        // Feature 046 (#99). The rows cascade with the profile — but a cascade deletes descriptors
+        // inside PostgreSQL with no application code running, so the pictures themselves survive
+        // unless the keys are harvested before the transaction and reclaimed after it. Up to five
+        // photographs of a member who asked to be erased is not a rounding error.
+        var (client, userId, handle, _) = await NewMemberAsync();
+
+        var keys = new List<string>();
+        for (var i = 0; i < 3; i++)
+        {
+            using var content = new MultipartFormDataContent();
+            content.Add(new ByteArrayContent(ShowcasePng()), "file", "showcase.png");
+            (await client.PostAsync("/api/v1/profiles/me/showcase", content)).EnsureSuccessStatusCode();
+        }
+
+        keys.AddRange(await WithDbAsync(db => db.ProfileShowcaseImages.IgnoreQueryFilters()
+            .Where(g => g.Profile.UserId == userId)
+            .Select(g => g.ObjectKey)
+            .ToListAsync()));
+        Assert.Equal(3, keys.Count);
+
+        var store = Factory.Services.GetRequiredService<JuggerHub.Services.Media.IMediaStore>();
+        foreach (var key in keys)
+        {
+            Assert.True(await store.ExistsAsync(key));
+        }
+
+        Assert.Equal(HttpStatusCode.NoContent, (await DeleteAccountAsync(client)).StatusCode);
+
+        Assert.False(await WithDbAsync(db => db.ProfileShowcaseImages.IgnoreQueryFilters()
+            .AnyAsync(g => g.Profile.UserId == userId)));
+
+        foreach (var key in keys)
+        {
+            Assert.False(await store.ExistsAsync(key), "a showcase picture survived the erasure that removed its row");
+        }
+
+        // And the gallery is not reachable through the read path either.
+        var anon = Factory.CreateClient();
+        Assert.Equal(HttpStatusCode.NotFound, (await anon.GetAsync($"/api/v1/profiles/{handle}/showcase")).StatusCode);
+    }
+
+    private static byte[] ShowcasePng()
+    {
+        using var image = new SixLabors.ImageSharp.Image<SixLabors.ImageSharp.PixelFormats.Rgba32>(
+            120, 90, new SixLabors.ImageSharp.PixelFormats.Rgba32(10, 120, 200));
+        using var ms = new MemoryStream();
+        image.Save(ms, new SixLabors.ImageSharp.Formats.Png.PngEncoder());
+        return ms.ToArray();
     }
 
     [Fact]

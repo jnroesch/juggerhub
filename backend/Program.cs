@@ -321,6 +321,12 @@ builder.Services.AddScoped<MediaReconciliationService>();
 // --- Player profile + activity (feature 003) -------------------------------
 builder.Services.Configure<ProfileOptions>(builder.Configuration.GetSection(ProfileOptions.SectionName));
 builder.Services.AddScoped<IProfileService, ProfileService>();
+
+// Feature 046 (#99) — showcase galleries. ShowcaseWriter is the per-owner locked write core both
+// surfaces share; registering it once is what keeps the five-image cap identical for profiles and
+// teams.
+builder.Services.AddScoped<JuggerHub.Services.Media.ShowcaseWriter>();
+builder.Services.AddScoped<IProfileShowcaseService, ProfileShowcaseService>();
 builder.Services.AddScoped<IEventActivityService, EventActivityService>();
 
 // --- Teams + memberships + invitations (feature 005) -----------------------
