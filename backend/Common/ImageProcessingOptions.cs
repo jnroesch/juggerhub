@@ -67,4 +67,20 @@ public sealed class ImageProcessingOptions
         Quality = 80,
         MaxOutputBytes = 128 * 1024,
     };
+
+    /// <summary>
+    /// The showcase-gallery context profile (feature 046 / #99). <b>Fit, never square-crop</b>: a
+    /// showcase picture is the subject — a team huddle, a tournament shot, a panorama of the pitch —
+    /// and center-cropping it to a square cuts that subject out of exactly the pictures the gallery
+    /// exists to show. The avatar profile crops because an avatar is rendered in a circle; nothing
+    /// here is. 1280 px covers a full-width phone view and the enlarged desktop view, and the 1 MB
+    /// ceiling bounds a full five-image gallery at 5 MB per owner (spec SC-005).
+    /// </summary>
+    public ImageProcessingProfile Showcase { get; set; } = new()
+    {
+        ResizeMode = ImageResizeMode.Fit,
+        MaxDimension = 1280,
+        Quality = 80,
+        MaxOutputBytes = 1024 * 1024,
+    };
 }

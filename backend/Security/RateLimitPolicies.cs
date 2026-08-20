@@ -63,6 +63,17 @@ public static class RateLimitPolicies
     /// </summary>
     internal const int MediaReadPerMinute = 300;
 
+    /// <summary>Media uploads — showcase gallery images (feature 046 / #99).</summary>
+    public const string MediaUpload = "media-upload";
+
+    /// <summary>
+    /// 20/min. Uploads are the expensive direction — decode, pixel guard, resize, re-encode, then a
+    /// blob write — and unlike reads they are never anonymous. A member filling a five-slot gallery
+    /// twice over in one minute stays well inside this; a script feeding the processor does not. The
+    /// limit bounds the CPU an upload path can claim, not the pace of a person picking photos.
+    /// </summary>
+    internal const int MediaUploadPerMinute = 20;
+
     public static IServiceCollection AddJuggerHubRateLimiting(
         this IServiceCollection services,
         string? redisConnection)
@@ -83,6 +94,10 @@ public static class RateLimitPolicies
             options.AddPolicy(ChatSend, PartitionByUser(ChatSend, ChatSendPerMinute));
             options.AddPolicy(ChatTyping, PartitionByUser(ChatTyping, ChatTypingPerMinute));
             options.AddPolicy(MediaRead, PartitionByCaller(MediaRead, MediaReadPerMinute));
+
+            // PartitionByUser, not PartitionByCaller: every upload endpoint is [Authorize]d, so there
+            // is no anonymous caller to keep apart by IP — the reason PartitionByCaller exists.
+            options.AddPolicy(MediaUpload, PartitionByUser(MediaUpload, MediaUploadPerMinute));
         });
 
         return services;

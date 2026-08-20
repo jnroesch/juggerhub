@@ -61,5 +61,9 @@ public sealed class PlayerProfile : BaseEntity
 
     public ProfileAvatar? Avatar { get; set; }
 
+    /// <summary>The player's showcase gallery (feature 046) — at most five pictures, ordered.
+    /// Distinct from <see cref="Avatar"/>: content, not identity.</summary>
+    public ICollection<ProfileShowcaseImage> ShowcaseImages { get; set; } = [];
+
     public ICollection<EventParticipation> Participations { get; set; } = [];
 }

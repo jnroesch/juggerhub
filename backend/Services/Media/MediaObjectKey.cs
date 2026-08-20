@@ -11,6 +11,12 @@ public enum MediaKind
 
     /// <summary>An achievement definition's catalogue icon.</summary>
     AchievementIcon,
+
+    /// <summary>One picture in a player's showcase gallery (feature 046 / #99).</summary>
+    ProfileShowcase,
+
+    /// <summary>One picture in a team's showcase gallery (feature 046 / #99).</summary>
+    TeamShowcase,
 }
 
 /// <summary>
@@ -57,6 +63,10 @@ public static class MediaObjectKey
         MediaKind.Avatar => "avatars",
         MediaKind.BadgeIcon => "badge-icons",
         MediaKind.AchievementIcon => "achievement-icons",
+        // Two prefixes rather than one shared "showcase", so a container listing tells an operator
+        // which owner kind an object belongs to. Legibility only — never a security boundary.
+        MediaKind.ProfileShowcase => "profile-showcase",
+        MediaKind.TeamShowcase => "team-showcase",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown media kind."),
     };
 }

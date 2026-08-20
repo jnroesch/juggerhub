@@ -207,6 +207,58 @@ public sealed class ImageProcessorTests
         Assert.Equal(ImageProcessingStatus.OutputTooLarge, result.Status);
     }
 
+    // --- Feature 046 / #99: the showcase profile ------------------------------
+
+    [Fact]
+    public void Showcase_profile_fits_a_panorama_without_squaring_it()
+    {
+        // The whole point of the showcase profile: a 3:1 panorama must come back a 3:1 panorama.
+        // Reusing the avatar's SquareCrop here would return 1280x1280 and throw away the subject.
+        using var img = Gradient(3000, 1000);
+        var jpeg = Encode(img, new JpegEncoder());
+
+        var options = new ImageProcessingOptions();
+        var result = NewProcessor(options).Process(jpeg, options.Showcase);
+
+        Assert.Equal(ImageProcessingStatus.Success, result.Status);
+        Assert.Equal("image/webp", result.ContentType);
+        Assert.Equal(1280, result.Width);
+        Assert.True(Math.Max(result.Width, result.Height) <= 1280, "largest side must be within the showcase bound");
+        Assert.NotEqual(result.Width, result.Height);
+
+        // Aspect ratio preserved to within a rounding pixel.
+        var sourceRatio = 3000d / 1000d;
+        var outputRatio = result.Width / (double)result.Height;
+        Assert.True(Math.Abs(sourceRatio - outputRatio) < 0.01, $"aspect ratio drifted: {outputRatio}");
+
+        Assert.True(result.Bytes!.Length <= options.Showcase.MaxOutputBytes, "stored showcase image must be within 1 MB");
+    }
+
+    [Fact]
+    public void Showcase_profile_never_upscales_a_small_picture()
+    {
+        using var img = Gradient(640, 480);
+        var options = new ImageProcessingOptions();
+
+        var result = NewProcessor(options).Process(Encode(img, new PngEncoder()), options.Showcase);
+
+        Assert.Equal(ImageProcessingStatus.Success, result.Status);
+        Assert.Equal(640, result.Width);
+        Assert.Equal(480, result.Height);
+    }
+
+    [Fact]
+    public void Showcase_profile_differs_from_the_avatar_profile()
+    {
+        // Guards the decision rather than the arithmetic: if someone "simplifies" the showcase
+        // profile back onto the avatar's, this fails and points at spec FR-014.
+        var options = new ImageProcessingOptions();
+
+        Assert.Equal(ImageResizeMode.Fit, options.Showcase.ResizeMode);
+        Assert.Equal(ImageResizeMode.SquareCrop, options.Avatar.ResizeMode);
+        Assert.True(options.Showcase.MaxDimension > options.Avatar.MaxDimension);
+    }
+
     // --- helpers --------------------------------------------------------------
 
     private static Image<Rgba32> Solid(int w, int h, Rgba32 color) => new(w, h, color);

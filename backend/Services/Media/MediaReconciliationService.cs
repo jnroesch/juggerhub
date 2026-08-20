@@ -55,7 +55,7 @@ public sealed class MediaReconciliationService
     /// <summary>Delete every stored object no descriptor references and old enough to be safe.</summary>
     public async Task<MediaReconciliationResult> SweepAsync(CancellationToken ct = default)
     {
-        // Referenced keys are read up front, across all three descriptor tables. IgnoreQueryFilters
+        // Referenced keys are read up front, across every descriptor table. IgnoreQueryFilters
         // is essential: the ProfileAvatars ban filter would otherwise hide a banned member's row,
         // the sweep would see their object as unreferenced, and it would delete media belonging to
         // an account that is suspended rather than gone — irreversibly, and exactly the wrong call.
@@ -71,6 +71,22 @@ public sealed class MediaReconciliationService
         }
 
         foreach (var key in await _db.AchievementIcons.IgnoreQueryFilters().Select(i => i.ObjectKey).ToListAsync(ct))
+        {
+            referenced.Add(key);
+        }
+
+        // Feature 046 (#99) — the two showcase galleries. These loops are not optional bookkeeping:
+        // this method deletes every object it does not find here, so a gallery table missing from
+        // this list means the next sweep destroys every showcase image in the environment. The
+        // ProfileShowcaseImages read needs IgnoreQueryFilters for the same reason ProfileAvatars
+        // does — its ban filter would otherwise hide a suspended member's live objects and the sweep
+        // would reclaim them. If a future feature adds another descriptor table, it belongs here too.
+        foreach (var key in await _db.ProfileShowcaseImages.IgnoreQueryFilters().Select(g => g.ObjectKey).ToListAsync(ct))
+        {
+            referenced.Add(key);
+        }
+
+        foreach (var key in await _db.TeamShowcaseImages.IgnoreQueryFilters().Select(g => g.ObjectKey).ToListAsync(ct))
         {
             referenced.Add(key);
         }

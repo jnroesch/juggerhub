@@ -40,4 +40,8 @@ public sealed class Team : BaseEntity
     public ICollection<TeamInvitation> Invitations { get; set; } = [];
 
     public ICollection<TeamNewsPost> News { get; set; } = [];
+
+    /// <summary>The team's showcase gallery (feature 046) — at most five pictures, ordered,
+    /// managed by the team's admins.</summary>
+    public ICollection<TeamShowcaseImage> ShowcaseImages { get; set; } = [];
 }

@@ -41,6 +41,10 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     public DbSet<ProfileAvatar> ProfileAvatars => Set<ProfileAvatar>();
 
+    public DbSet<ProfileShowcaseImage> ProfileShowcaseImages => Set<ProfileShowcaseImage>();
+
+    public DbSet<TeamShowcaseImage> TeamShowcaseImages => Set<TeamShowcaseImage>();
+
     public DbSet<Event> Events => Set<Event>();
 
     public DbSet<EventParticipation> EventParticipations => Set<EventParticipation>();
@@ -223,6 +227,52 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
             // Two descriptors must never claim the same object: deleting one would silently break
             // the other, and the sweep would see a referenced key as unreferenced.
             entity.HasIndex(a => a.ObjectKey).IsUnique();
+        });
+
+        // Feature 046 (#99) — the two showcase galleries. Same shape, two tables, for the reason the
+        // ProfileAvatar block above states: the ban gate is a query filter over an owner navigation,
+        // and a polymorphic media row would not have one.
+        builder.Entity<ProfileShowcaseImage>(entity =>
+        {
+            // Matches the PlayerProfile/ProfileAvatar ban filter (013): a banned player's showcase is
+            // not served either. Feature 037: safe unchanged for Deleted — these rows cascade away
+            // with the profile, so there is nothing for the predicate to admit.
+            entity.HasQueryFilter(g => g.Profile.User.Status != AccountStatus.Banned);
+
+            entity.Property(g => g.Caption).HasMaxLength(120);
+            entity.Property(g => g.ContentType).HasMaxLength(64).IsRequired();
+            entity.Property(g => g.ObjectKey).HasMaxLength(MediaObjectKey.MaxLength).IsRequired();
+
+            // NOT unique. Uniqueness of (owner, position) is maintained by the writer, which
+            // serializes every add, remove and reorder for an owner on that owner's row
+            // (ShowcaseWriter). A unique constraint would additionally have to be DEFERRABLE: EF
+            // issues one UPDATE per row during a reorder, and Postgres rejects the transient
+            // duplicate mid-permutation. The index exists because every read orders by it.
+            entity.HasIndex(g => new { g.ProfileId, g.Position });
+
+            entity.HasIndex(g => g.ObjectKey).IsUnique();
+
+            entity.HasOne(g => g.Profile)
+                .WithMany(p => p.ShowcaseImages)
+                .HasForeignKey(g => g.ProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TeamShowcaseImage>(entity =>
+        {
+            // Deliberately NO query filter: a team's gallery does not depend on any member's account
+            // standing. See the entity's remarks.
+            entity.Property(g => g.Caption).HasMaxLength(120);
+            entity.Property(g => g.ContentType).HasMaxLength(64).IsRequired();
+            entity.Property(g => g.ObjectKey).HasMaxLength(MediaObjectKey.MaxLength).IsRequired();
+
+            entity.HasIndex(g => new { g.TeamId, g.Position });
+            entity.HasIndex(g => g.ObjectKey).IsUnique();
+
+            entity.HasOne(g => g.Team)
+                .WithMany(t => t.ShowcaseImages)
+                .HasForeignKey(g => g.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<Event>(entity =>
