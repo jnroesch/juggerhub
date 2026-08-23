@@ -51,7 +51,7 @@ COPY . .
 ENTRYPOINT ["npx", "nx", "e2e", "web-e2e"]
 
 # --- runtime: nginx serving the SPA + proxying /api -------------------------
-FROM nginx:1.31.3-alpine AS runtime
+FROM nginx:1.31.4-alpine AS runtime
 # Config is a TEMPLATE, not a finished file: the nginx image's own entrypoint
 # (/docker-entrypoint.d/20-envsubst-on-templates.sh) renders /etc/nginx/templates/*.template
 # into /etc/nginx/conf.d/ at container start. That is what lets one built image carry
