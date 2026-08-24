@@ -1549,6 +1549,7 @@
     },
     "manage": "Galerie bearbeiten",
     "doneManaging": "Fertig",
-    "appliesImmediately": "Bilder werden sofort hinzugefügt und entfernt – du musst nichts speichern."
+    "appliesImmediately": "Bilder werden sofort hinzugefügt und entfernt – du musst nichts speichern.",
+    "stripLabel": "Galerie – scrolle, um alle zu sehen"
   }
 }

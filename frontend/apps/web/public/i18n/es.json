@@ -1549,6 +1549,7 @@
     },
     "manage": "Editar galería",
     "doneManaging": "Listo",
-    "appliesImmediately": "Las fotos se añaden y se quitan al momento — no hace falta guardar."
+    "appliesImmediately": "Las fotos se añaden y se quitan al momento — no hace falta guardar.",
+    "stripLabel": "Galería — desplázate para verlas todas"
   }
 }

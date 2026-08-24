@@ -367,6 +367,26 @@ subtle `ease-bounce` for toggles and playful moments.
   radius, ≥44px tall; focus uses `border-focus` + the coral `focus-ring`.
 - **Chips / badges / tags** — `pill` radius; sage for position/roster chips,
   lemon for "New"/highlight badges.
+- **Media strip** — a horizontally scrolling row for a small, bounded set of
+  pictures (feature 046's showcase gallery is the first). Each item sits in an
+  `xl`-radius frame on `surface-sunken` and is **fitted, never cropped**
+  (`object-contain`) — cropping to a uniform tile undoes the work of storing the
+  picture whole. Cap **both** dimensions on the image and fix neither
+  (`max-h-40 w-auto max-w-[78vw]`, growing to `lg:max-h-56 lg:max-w-[32rem]`), in
+  absolute units — a percentage cap against a shrink-to-fit flex item resolves
+  cyclically and comes out smaller than intended, and a fixed height letterboxes
+  anything wider than the frame. The viewport cap is what makes the next item
+  **peek** on a phone, which is what tells the reader there is more.
+  Scrolling is CSS — `overflow-x-auto` + `snap-x snap-mandatory`, items
+  `snap-center` — so touch, trackpad and keyboard arrows work with no library and
+  no JS animation. The container carries `tabindex="0"` and a label so it is
+  reachable and announced; leave a `<ul>`'s native list role in place, so the
+  item count is announced too. Add prev/next buttons **only while the strip
+  actually overflows**, and disable the one whose end has been reached; an
+  arrow that does nothing is worse than no arrow. Respect
+  `prefers-reduced-motion` when scrolling programmatically. Use this for pictures
+  and cards, never for text or form controls — and never as a way to hide
+  content that should simply wrap.
 
 ## Loading, error & retry states
 

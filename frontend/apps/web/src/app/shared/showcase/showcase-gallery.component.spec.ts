@@ -38,7 +38,7 @@ describe('ShowcaseGalleryComponent (jh-showcase-gallery)', () => {
   });
 
   it('renders nothing at all for an empty gallery — an empty frame would promise pictures that are not there', () => {
-    expect(el('showcase-grid')).toBeNull();
+    expect(el('showcase-strip')).toBeNull();
     expect(el('showcase-viewer')).toBeNull();
   });
 
@@ -96,12 +96,82 @@ describe('ShowcaseGalleryComponent (jh-showcase-gallery)', () => {
     expect(document.activeElement).toBe(opener);
   });
 
+  it('shows each picture whole inside its frame rather than cropping it to a tile', () => {
+    // The Fit processing profile exists so a panorama survives upload intact; a cover-cropped
+    // thumbnail would undo that at the last step.
+    setImages([image('a', null, 0)]);
+
+    const img = fixture.nativeElement.querySelector('[data-testid="showcase-thumb-0"] img') as HTMLElement;
+    expect(img.classList).toContain('object-contain');
+    expect(img.classList).not.toContain('object-cover');
+  });
+
+  it('is a labelled, keyboard-focusable scroll region', () => {
+    setImages([image('a', null, 0), image('b', null, 1)]);
+
+    const strip = el('showcase-strip') as HTMLElement;
+    expect(strip.getAttribute('tabindex')).toBe('0');
+    expect(strip.getAttribute('aria-label')).toBeTruthy();
+    // The native list role is deliberately left in place: it is what makes a screen reader
+    // announce how many pictures there are. `role="group"` would suppress that, and putting the
+    // count in the label instead would have to read "1 pictures".
+    expect(strip.tagName).toBe('UL');
+    expect(strip.hasAttribute('role')).toBe(false);
+    expect(strip.querySelectorAll('li')).toHaveLength(2);
+  });
+
+  it('offers no scroll arrows when everything already fits', () => {
+    // jsdom reports zero geometry, which is exactly the "nothing to scroll to" case: an arrow that
+    // does nothing is worse than no arrow.
+    setImages([image('a', null, 0), image('b', null, 1)]);
+
+    expect(el('showcase-strip-controls')).toBeNull();
+  });
+
+  it('offers arrows once the strip overflows, disabled at the end it has reached', () => {
+    setImages([image('a', null, 0), image('b', null, 1), image('c', null, 2)]);
+
+    const strip = el('showcase-strip') as HTMLElement;
+    Object.defineProperty(strip, 'scrollWidth', { value: 900, configurable: true });
+    Object.defineProperty(strip, 'clientWidth', { value: 300, configurable: true });
+    strip.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect(el('showcase-strip-controls')).not.toBeNull();
+    expect((el('showcase-strip-previous') as HTMLButtonElement).disabled).toBe(true);
+    expect((el('showcase-strip-next') as HTMLButtonElement).disabled).toBe(false);
+
+    strip.scrollLeft = 600;
+    strip.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    expect((el('showcase-strip-previous') as HTMLButtonElement).disabled).toBe(false);
+    expect((el('showcase-strip-next') as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('scrolls the strip by roughly a screenful when an arrow is used', () => {
+    setImages([image('a', null, 0), image('b', null, 1), image('c', null, 2)]);
+
+    const strip = el('showcase-strip') as HTMLElement;
+    Object.defineProperty(strip, 'scrollWidth', { value: 900, configurable: true });
+    Object.defineProperty(strip, 'clientWidth', { value: 300, configurable: true });
+    strip.scrollBy = jest.fn();
+    strip.dispatchEvent(new Event('scroll'));
+    fixture.detectChanges();
+
+    (el('showcase-strip-next') as HTMLElement).click();
+
+    expect(strip.scrollBy).toHaveBeenCalledWith(
+      expect.objectContaining({ left: 300 * 0.85 }),
+    );
+  });
+
   it('shows a loading line rather than an empty gallery while the list is being read', () => {
     fixture.componentRef.setInput('loading', true);
     fixture.detectChanges();
 
     expect(fixture.nativeElement.querySelector('jh-loading')).not.toBeNull();
-    expect(el('showcase-grid')).toBeNull();
+    expect(el('showcase-strip')).toBeNull();
   });
 
   it('shows an error with a retry — never an empty state — when the list could not be read', () => {

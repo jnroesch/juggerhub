@@ -24,7 +24,7 @@
 
 - [x] CHK006 Headings/hero use **Hubot Sans**; body and UI text use **Mona Sans** — headings use the standard `text-body-lg font-semibold text-heading` card-heading treatment
 - [x] CHK007 Scores, stats, times, and counts are set in the **mono** face — **no mono is used here, deliberately**. The only number in this UI is inside a sentence ("You've got all 5 — remove one to add another."), and setting a full sentence in the mono face looked wrong on the rendered page. DESIGN.md's mono is for tabular data — scores, times, stats ("5 : 3", "14:00") — not for prose that happens to contain a digit. Recorded rather than silently dropped.
-- [x] CHK008 **Sentence case everywhere** — verified across all 29 new keys in en/de/es
+- [x] CHK008 **Sentence case everywhere** — verified across all 33 new keys in en/de/es
 - [x] CHK009 Nothing meaningful drops below 12px; body is 16px — captions and counters use `text-body-sm`
 - [x] CHK010 Copy addresses the reader as **"you"**, CTAs invite, no emoji — "Show what playing looks like for you", "Add a picture"; no emoji in any of the three catalogues
 
@@ -32,20 +32,20 @@
 
 - [x] CHK011 Interactive controls have a **touch target ≥ 44px** — every control is a `jhButton`, whose directive owns the height
 - [x] CHK012 Spacing composes from the 4px scale tokens — `2xs`/`xs`/`sm`/`md` only. The 2px `3xs` half-step was used in the first draft and **removed**: DESIGN.md reserves it for hairline pill insets, not general layout
-- [x] CHK013 Content sits in a centered column capped at `container-lg`; mobile-first — the grid is `grid-cols-2` → `sm:grid-cols-3` → `md:grid-cols-5`; the enlarged view is capped at `max-w-container-lg`
+- [x] CHK013 Content sits in a centered column capped at `container-lg`; mobile-first — the strip inherits the host card's width and scrolls horizontally *within* it (the page itself never scrolls sideways); the enlarged view is capped at `max-w-container-lg`
 - [x] CHK014 Section rhythm uses `section-gap` — inherited from the host pages; the gallery is a card inside their existing rhythm
 
 ## Shape & elevation
 
-- [x] CHK015 **No sharp corners** — thumbnails and the enlarged picture are `rounded-xl` (media), the manager's list rows and its 64px row thumbnails `rounded-lg`/`rounded-md`, the caption input `rounded-md`
+- [x] CHK015 **No sharp corners** — the strip frames and the enlarged picture are `rounded-xl` (media), the manager's list rows and its 64px row thumbnails `rounded-lg`/`rounded-md`, the caption input `rounded-md`
 - [x] CHK016 Shadows are the warm-tinted tokens — the gallery adds no shadow of its own; the host `jh-card` supplies it
 - [x] CHK017 Cards are white `surface-card` with a 1px muted border and soft shadow, lifting on hover — the gallery lives inside `jh-card` on all three surfaces
 - [x] CHK018 Larger shadows reserved for floating elements — the enlarged view floats above a scrim, as the existing modal does
 
 ## Motion & states
 
-- [x] CHK019 Transitions use the `fast`/`base`/`slow` durations and token easings — thumbnail hover is `duration-200`; the caption input uses `duration-fast`
-- [x] CHK020 Focus is always visible: 2px coral border + coral `focus-ring` — `focus:border-brand focus:ring-2 focus:ring-focus` on the thumbnail buttons and the caption input, matching the repo's existing inputs
+- [x] CHK019 Transitions use the `fast`/`base`/`slow` durations and token easings — strip-item hover is `duration-200`; the caption input uses `duration-fast`
+- [x] CHK020 Focus is always visible: 2px coral border + coral `focus-ring` — `focus:border-brand focus:ring-2 focus:ring-focus` on the strip's picture buttons and the caption input; the strip itself takes `focus-visible:ring-2 focus-visible:ring-focus` when tabbed to, matching the repo's existing inputs
 - [x] CHK021 Buttons darken a brand step + glow on hover, nudge on press — owned by the `jhButton` directive
 - [x] CHK022 No infinite decorative animation loops — none
 
@@ -58,7 +58,7 @@
 
 - [x] CHK025 Body text meets **WCAG AA contrast** — token pairs unchanged; the only new pairing is white-on-`black/80` in the enlarged view
 - [x] CHK026 Status is **never conveyed by color alone** — every state carries text (`jh-alert`, the loading line, the counter)
-- [x] CHK027 Interactive elements are keyboard-reachable with a visible focus state and appropriate labels/roles — thumbnails are `<button>`s with `aria-label`; the enlarged view is `role="dialog" aria-modal="true"` with a label, takes focus on open, pages with arrows, closes on Escape, and **returns focus to the thumbnail it was opened from** (covered by a Jest test)
+- [x] CHK027 Interactive elements are keyboard-reachable with a visible focus state and appropriate labels/roles — each picture is a `<button>` with an `aria-label`; the strip is focusable and scrolls with the arrow keys, keeps its native list role so a screen reader announces how many pictures there are, and — where it overflows — offers previous/next buttons for pointer users; the enlarged view is `role="dialog" aria-modal="true"` with a label, takes focus on open, pages with arrows, closes on Escape, and **returns focus to the picture it was opened from** (covered by a Jest test)
 
 ## Empty, loading & error states
 
@@ -67,7 +67,7 @@
 
 ## Feature-specific UI
 
-- [x] CHK030 Thumbnails form a uniform grid regardless of source aspect ratio (`aspect-square object-cover`), while the enlarged view shows the **whole** picture (`object-contain`) — so a panorama is never cropped where it is being looked at
+- [x] CHK030 No picture is ever cropped, in the strip or enlarged (`object-contain` in both) — each sits inside a frame that caps both dimensions and fixes neither, so a panorama comes out short and wide and a portrait tall and narrow. See Notes for why the original uniform grid was replaced
 - [x] CHK031 Captions are bound as text, never as markup — member-supplied and therefore untrusted (spec FR-029)
 - [x] CHK032 Reordering is keyboard- and touch-operable — move up / move down buttons, disabled at the ends; no drag-and-drop, and no new dependency
 - [x] CHK033 The manager is not rendered at all for a viewer who may not edit — not hidden with a class, not disabled (`team-detail.component.html`, guarded by `isAdmin()`)
@@ -114,6 +114,12 @@ Every one measured **0 px** horizontal overflow (SC-007), and two more defects s
 Uploaded pictures render with `naturalWidth > 0`, i.e. the browser really fetched bytes through the
 gated read path.
 
+A third pass replaced the thumbnail grid with the **scroll-snap filmstrip** (owner's choice among
+four carousel treatments). Screenshots at 1280 px and 375 px confirm each picture is shown whole,
+that the next one peeks in on a phone so the strip reads as scrollable, and that the
+previous/next buttons appear on a desktop card — where the frame fills the card and there is no
+peek to rely on. Horizontal page overflow remains **0 px** at 375 px.
+
 ## Notes
 
 - **CHK002 reading**: DESIGN.md's "one coral CTA per view" is applied here as one primary action
@@ -121,7 +127,14 @@ gated read path.
   `post news`. Every gallery control that is not a confirming submit is secondary. If the owner
   prefers the stricter reading, the caption editor's Save becomes `variant="secondary"` — a
   one-attribute change.
-- **375 px**: the grid drops to two columns and the enlarged view fits within the viewport with no
-  horizontal page scroll (spec SC-007). Verified by reading the markup; a device-emulation pass is
-  part of the quickstart, which has not been run against a live stack in this environment.
+- **375 px**: the strip and the enlarged view both fit within the viewport with no horizontal page
+  scroll (spec SC-007) — verified in device emulation against the running stack, not by reading the
+  markup.
+- **CHK030 / the grid that was replaced**: the first implementation used `aspect-square
+  object-cover` tiles, which satisfied "uniform grid" but crop — undoing, at the last step, the
+  reason the stored image is processed with the `Fit` profile rather than square-cropped. Five
+  tiles across a narrow card were also too small to show anything. The filmstrip keeps the
+  uncropped picture and gives it the room to be seen; the spec's aspect-ratio edge case was
+  updated to say *uncropped* rather than *uniform*. The scrolling is CSS (`snap-x` +
+  `overflow-x-auto`), so touch, trackpad and keyboard all work with no new dependency.
 - No conflict with DESIGN.md was found that required a decision to be escalated.

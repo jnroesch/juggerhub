@@ -87,16 +87,19 @@ Sign in as **A**, open your own profile.
 
 ### US3 — Viewers can look at a picture properly (P2)
 
-1. **Enlarge.** Click a thumbnail → the picture opens enlarged over the page with a visible close
+1. **Enlarge.** Click a picture in the strip → it opens enlarged over the page with a visible close
    control. → *FR-027*
 2. **Page through.** Next/previous move through the gallery in its order and stop at the ends
    without wrapping into emptiness. → *FR-027*
-3. **Keyboard only.** Tab to a thumbnail, Enter to open, arrow keys to move, Escape to close —
-   focus returns to the thumbnail you opened from. → *FR-027, SC-007*
+3. **Keyboard only.** Tab to a picture, Enter to open, arrow keys to move, Escape to close —
+   focus returns to the picture you opened from. The strip itself is focusable and scrolls with the
+   arrow keys; where it overflows, the previous/next buttons under it do the same with a pointer.
+   → *FR-027, SC-007*
 4. **375 px.** In device emulation at 375 px wide, both the gallery and the enlarged view are usable
    with **no horizontal page scroll** and no clipped controls. → *FR-025, SC-007*
-5. **Odd aspect ratios.** The panorama and the portrait shot: thumbnails stay a uniform grid; the
-   enlarged view shows each whole picture rather than cropping the subject out. → *edge case*
+5. **Odd aspect ratios.** The panorama and the portrait shot: both appear whole in the strip — the
+   panorama short and wide, the portrait tall and narrow, neither letterboxed nor cropped — and the
+   enlarged view likewise shows each whole picture. → *edge case*
 
 ### US4 — The showcase does not open a privacy hole (P1)
 

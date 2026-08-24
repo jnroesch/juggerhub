@@ -12,36 +12,103 @@
     }
   </jh-alert>
 } @else if (images().length > 0) {
-  <ul class="grid grid-cols-2 gap-sm sm:grid-cols-3 md:grid-cols-5" data-testid="showcase-grid">
-    @for (image of images(); track image.id; let i = $index) {
-      <li>
-        <button
-          type="button"
-          class="group block w-full overflow-hidden rounded-xl border border-border-muted bg-surface-card focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus"
-          (click)="open(i, $event)"
-          [attr.data-testid]="'showcase-thumb-' + i"
-          [attr.aria-label]="
-            altKeyFor(image) ??
-            ('showcase.imageAlt' | transloco: { owner: ownerName(), index: i + 1, total: images().length })
-          "
-        >
-          <img
-            [src]="imageUrl(image)"
-            [alt]="
+  <div class="relative">
+    <!--
+      A scroll-snap filmstrip, not a grid. Two reasons: a grid tile has to crop to stay uniform,
+      which contradicts the whole point of the Fit processing profile (a panorama arrives whole and
+      then gets squared off in the thumbnail); and five tiles across a narrow card are too small to
+      show anything. Here each picture gets a large frame it sits inside uncropped, and the next one
+      peeks in so the strip reads as scrollable rather than clipped.
+
+      The scrolling itself is CSS — `snap-x` plus `overflow-x-auto` — so touch swipe, trackpad and
+      keyboard arrows all work natively with no library and no JS animation. The buttons below exist
+      for pointer users on wide screens, who have neither a swipe nor the strip focused.
+
+      The `<ul>` deliberately keeps its native list role — no `role="group"` — so a screen reader
+      still announces how many pictures there are. Putting the count in the label instead would
+      have to say "1 pictures", since the catalogues carry no plural forms.
+    -->
+    <ul
+      #strip
+      class="flex snap-x snap-mandatory items-start gap-sm overflow-x-auto pb-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      tabindex="0"
+      [attr.aria-label]="'showcase.stripLabel' | transloco"
+      (scroll)="measure()"
+      data-testid="showcase-strip"
+    >
+      @for (image of images(); track image.id; let i = $index) {
+        <!--
+          The frame hugs the picture: both dimensions are capped and neither is fixed, so a
+          panorama comes out short and wide, a portrait tall and narrow, and neither gets bars or a
+          crop. Fixing the height instead looks tidier in a mockup but letterboxes anything wider
+          than the frame — which would undo, at the last step, the whole reason the stored image is
+          fitted rather than square-cropped. Both caps sit on the IMAGE, in absolute units — a
+          percentage cap against a shrink-to-fit flex item resolves cyclically and comes out
+          smaller than intended. 78vw keeps the next item peeking on a phone; the rem cap from lg up
+          keeps one picture from filling a wide card, where the peek is the only thing telling a
+          reader there is more.
+        -->
+        <li class="flex shrink-0 grow-0 snap-center flex-col">
+          <button
+            type="button"
+            class="group block overflow-hidden rounded-xl border border-border-muted bg-surface-sunken focus:border-brand focus:outline-none focus:ring-2 focus:ring-focus"
+            (click)="open(i, $event)"
+            [attr.data-testid]="'showcase-thumb-' + i"
+            [attr.aria-label]="
               altKeyFor(image) ??
               ('showcase.imageAlt' | transloco: { owner: ownerName(), index: i + 1, total: images().length })
             "
-            loading="lazy"
-            decoding="async"
-            class="aspect-square w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
-          />
+          >
+            <img
+              [src]="imageUrl(image)"
+              [alt]="
+                altKeyFor(image) ??
+                ('showcase.imageAlt' | transloco: { owner: ownerName(), index: i + 1, total: images().length })
+              "
+              loading="lazy"
+              decoding="async"
+              (load)="measure()"
+              class="max-h-40 w-auto max-w-[78vw] lg:max-w-[32rem] object-contain transition-transform duration-200 group-hover:scale-[1.02] sm:max-h-48 lg:max-h-56"
+            />
+          </button>
+          @if (image.caption) {
+            <p class="mt-2xs line-clamp-2 max-w-[20rem] text-body-sm text-muted">{{ image.caption }}</p>
+          }
+        </li>
+      }
+    </ul>
+
+    <!-- Only rendered when the strip actually overflows: with two pictures on a wide card there is
+         nothing to scroll to, and an arrow that does nothing is worse than no arrow. -->
+    @if (overflowing()) {
+      <div class="mt-2xs flex justify-end gap-2xs" data-testid="showcase-strip-controls">
+        <button
+          type="button"
+          (click)="scrollStrip(-1)"
+          [disabled]="atStart()"
+          jhButton
+          variant="secondary"
+          size="sm"
+          data-testid="showcase-strip-previous"
+          [attr.aria-label]="'showcase.previous' | transloco"
+        >
+          <jh-icon name="chevron-left" />
         </button>
-        @if (image.caption) {
-          <p class="mt-2xs line-clamp-2 text-body-sm text-muted">{{ image.caption }}</p>
-        }
-      </li>
+        <button
+          type="button"
+          (click)="scrollStrip(1)"
+          [disabled]="atEnd()"
+          jhButton
+          variant="secondary"
+          size="sm"
+          data-testid="showcase-strip-next"
+          [attr.aria-label]="'showcase.next' | transloco"
+        >
+          <jh-icon name="chevron-right" />
+        </button>
+      </div>
     }
-  </ul>
+  </div>
 }
 
 @if (opened(); as current) {

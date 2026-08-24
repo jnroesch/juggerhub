@@ -8,7 +8,7 @@
 
 Up to **5 showcase pictures per player profile and per team**, shown on the profile and team pages,
 with add / reorder / caption / remove for the owner (a member for their own profile, a **team admin**
-for a team) and a thumbnails-plus-enlarged-view for everyone entitled to see them.
+for a team) and a scrolling strip plus an enlarged view for everyone entitled to see them.
 
 The plumbing already exists and is not rebuilt: **feature 034** supplies the image processor (this
 feature adds a `Showcase` profile to it — an extension point 034 explicitly anticipated for #99) and
@@ -65,7 +65,7 @@ recorded deviation (Complexity Tracking).*
 | **V — Environment parity** | No new configuration variable, no new resource. The showcase processing profile has a safe built-in default so the feature runs with zero configuration, identically in local/Dev/Prod. | PASS |
 | **VI — Conventions** | Angular `.html`/`.css`/`.ts` kept separate; any script added is `.ps1`. | PASS |
 | **VII — Resilient by default** | **Not engaged.** This feature adds no outbound integration: blob calls inherit `Resilience:Outbound:MediaStore` from 035. Adding a retry loop, a `Task.Delay`, or a second breaker here is review-rejectable. The one thing it *does* engage: the multi-step add/reorder/delete transactions run through `CreateExecutionStrategy` with all mutation inside the delegate, and the frontend never auto-retries an upload (browser-hop mutation). | PASS |
-| **Gate 7 — UI/design compliance** | Engaged. This feature ships new UI on two screens, so `checklists/ui-review.md` is instantiated from the template and verified against the diff before verification. DESIGN.md governs the grid, the enlarged view, and the loading/error/empty states. | INSTANTIATED |
+| **Gate 7 — UI/design compliance** | Engaged. This feature ships new UI on two screens, so `checklists/ui-review.md` is instantiated from the template and verified against the diff before verification. DESIGN.md governs the strip, the enlarged view, and the loading/error/empty states. | INSTANTIATED |
 | **Gate 8 — Resilience review** | Applies only to confirm nothing was added — see VII. | PASS |
 
 ## Project Structure

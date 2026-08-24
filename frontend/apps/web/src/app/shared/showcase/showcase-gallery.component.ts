@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, effect, inject, input, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, computed, effect, inject, input, signal, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ShowcaseImage, ShowcaseOwner } from '../../core/models/showcase.models';
 import { ShowcaseService } from '../../core/services/showcase.service';
@@ -15,6 +15,11 @@ import { AlertComponent, ButtonDirective, IconComponent, LoadingComponent } from
  *
  * The images are fed in by the parent rather than fetched here, so a page that already knows
  * its gallery (the owner's profile, which is editing it) does not issue a second request.
+ *
+ * **Layout is a scroll-snap filmstrip.** A grid had to crop each tile square to stay uniform, which
+ * undid the Fit processing profile at the last step — a panorama arrives whole and is then shown
+ * with its ends cut off. The strip gives each picture a large frame it sits inside uncropped, and
+ * scrolling is pure CSS, so touch, trackpad and keyboard all work with no library.
  */
 @Component({
   selector: 'jh-showcase-gallery',
@@ -64,6 +69,50 @@ export class ShowcaseGalleryComponent {
   private opener: HTMLElement | null = null;
 
   private readonly viewer = viewChild<ElementRef<HTMLElement>>('viewer');
+  private readonly strip = viewChild<ElementRef<HTMLElement>>('strip');
+
+  /**
+   * Whether the strip has anything to scroll to, and where it currently sits. Measured from the
+   * element rather than computed from the picture count: how many fit depends on the width of the
+   * card the gallery was dropped into, which the component does not know.
+   */
+  protected readonly overflowing = signal(false);
+  protected readonly atStart = signal(true);
+  protected readonly atEnd = signal(false);
+
+  /**
+   * Re-read the strip's scroll geometry. Called on scroll, on resize, and as each picture loads —
+   * an image arriving is what turns a strip that fits into one that overflows.
+   */
+  protected measure(): void {
+    const el = this.strip()?.nativeElement;
+    if (!el) {
+      return;
+    }
+
+    const furthest = el.scrollWidth - el.clientWidth;
+    // A pixel of tolerance: fractional widths mean scrollLeft rarely lands exactly on the end.
+    this.overflowing.set(furthest > 1);
+    this.atStart.set(el.scrollLeft <= 1);
+    this.atEnd.set(el.scrollLeft >= furthest - 1);
+  }
+
+  @HostListener('window:resize')
+  protected onResize(): void {
+    this.measure();
+  }
+
+  /** Scroll one screenful of strip in the given direction. */
+  protected scrollStrip(direction: -1 | 1): void {
+    const el = this.strip()?.nativeElement;
+    if (!el) {
+      return;
+    }
+
+    // Honour a reduced-motion preference: 'smooth' ignores it, so ask before choosing.
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    el.scrollBy({ left: direction * el.clientWidth * 0.85, behavior: reduced ? 'auto' : 'smooth' });
+  }
 
   constructor() {
     // Move focus into the overlay when it opens, so the arrow and Escape keys reach it without
@@ -73,6 +122,13 @@ export class ShowcaseGalleryComponent {
       if (this.openIndex() !== null) {
         setTimeout(() => this.viewer()?.nativeElement.focus(), 0);
       }
+    });
+
+    // Re-measure whenever the pictures change — one removed can turn an overflowing strip into one
+    // that fits, and the arrows must go with it.
+    effect(() => {
+      this.images();
+      setTimeout(() => this.measure(), 0);
     });
   }
 

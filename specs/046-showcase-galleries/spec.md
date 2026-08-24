@@ -60,9 +60,9 @@ A team admin opens the team page and adds up to five pictures of the team — tr
 
 ### User Story 3 - Viewers can look at a picture properly (Priority: P2)
 
-A visitor looking at a profile or team page sees the showcase as a row of thumbnails. Tapping one opens it large enough to actually see, and they can move to the next and previous picture and close it again — on a phone as well as a desktop.
+A visitor looking at a profile or team page sees the showcase as a horizontal strip of pictures they can swipe or scroll through. Tapping one opens it large enough to actually see, and they can move to the next and previous picture and close it again — on a phone as well as a desktop.
 
-**Why this priority**: Thumbnails alone technically satisfy "galleries render", but a showcase nobody can see properly does not deliver the value the issue asks for. It is sequenced after the mechanism exists because it is presentation over an already-working collection.
+**Why this priority**: A bare listing technically satisfies "galleries render", but a showcase nobody can see properly does not deliver the value the issue asks for. It is sequenced after the mechanism exists because it is presentation over an already-working collection.
 
 **Independent Test**: With a gallery of three pictures, open the first at full size, move forward and back through all three, and close — using a pointer, using a keyboard, and on a narrow (375 px) viewport.
 
@@ -123,7 +123,7 @@ Someone picks the wrong file — a PDF, a 40-megapixel panorama, a corrupt downl
 - **A gallery picture whose stored image has vanished** (reconciliation, storage incident): the entry degrades to the same "no picture" outcome the avatar already has, and the surrounding gallery still renders.
 - **Deleting the last picture** returns the gallery to its empty state, not to a broken or zero-height frame.
 - **Account deletion**: a deleted member's showcase pictures are removed along with the rest of their profile media; nothing survives pointing at a person who no longer exists.
-- **Very tall or very wide source pictures** (panoramas, portrait phone shots): thumbnails stay a uniform grid and the enlarged view shows the whole picture rather than cropping its subject away.
+- **Very tall or very wide source pictures** (panoramas, portrait phone shots): neither the strip nor the enlarged view crops the subject away — a picture is shown whole in a frame it fits inside, so a panorama reads short and wide and a portrait tall and narrow.
 
 ## Requirements *(mandatory)*
 

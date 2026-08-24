@@ -1545,6 +1545,7 @@
     },
     "manage": "Edit gallery",
     "doneManaging": "Done",
-    "appliesImmediately": "Pictures are added and removed straight away — no need to save."
+    "appliesImmediately": "Pictures are added and removed straight away — no need to save.",
+    "stripLabel": "Showcase gallery — scroll to see them all"
   }
 }
