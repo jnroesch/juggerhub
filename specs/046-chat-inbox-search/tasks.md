@@ -39,10 +39,10 @@ this feature lives in the worktree `juggerhub.worktrees/046-chat-inbox-search` o
 
 **Purpose**: a fresh worktree has no toolchain state; make both halves build before touching code.
 
-- [ ] T001 Install frontend dependencies in the worktree: `cd frontend && npm ci` (the worktree
+- [X] T001 Install frontend dependencies in the worktree: `cd frontend && npm ci` (the worktree
       hook seeds `.env` but not `node_modules`; a stale or missing tree fakes failures — see the
       Angular 22 lesson in memory). Confirm `npx nx test web --watch=false --testPathPattern=chat-inbox` is green before any change.
-- [ ] T002 [P] Confirm the backend builds in the worktree: `dotnet build backend/JuggerHub.Api.csproj`
+- [X] T002 [P] Confirm the backend builds in the worktree: `dotnet build backend/JuggerHub.Api.csproj`
       (or the solution at the repo root). Confirm the Chat collection is green at baseline:
       `dotnet test backend/tests/JuggerHub.Api.IntegrationTests --filter "FullyQualifiedName~IntegrationTests.Chat.ChatSearchTests"`.
 
@@ -57,7 +57,7 @@ do not depend on it but share files with it (`ChatDtos.cs`, the controller), so 
 characters (SC-007). The predicate is *appended* to `VisibleConversations(callerId)`; nothing
 else in `GetInboxAsync` moves.
 
-- [ ] T003 Add `ChatGuard.MatchesName(AppDbContext db, Guid callerId, string pattern)` in
+- [X] T003 Add `ChatGuard.MatchesName(AppDbContext db, Guid callerId, string pattern)` in
       `backend/Services/Chat/ChatGuard.cs`, directly below `IsMemberOf`, returning
       `Expression<Func<Conversation, bool>>`. One expression, two halves (EF cannot compose
       separately built lambdas): **members** — per-kind branches mirroring `IsMemberOf` exactly
@@ -70,14 +70,14 @@ else in `GetInboxAsync` moves.
       **names** — `ILike(Unaccent(c.Name))`, `ILike(Unaccent(c.Team!.Name))` for Team and
       TeamInquiry, `ILike(Unaccent(c.Event!.Name))` for EventInquiry. XML-doc it with the
       data-model invariants I3/I4/I6/I7 and the "add a new kind here AND in IsMemberOf" warning.
-- [ ] T004 Extend `GetInboxAsync` in `backend/Services/Chat/IChatConversationService.cs` and
+- [X] T004 Extend `GetInboxAsync` in `backend/Services/Chat/IChatConversationService.cs` and
       `backend/Services/Chat/ChatConversationService.cs` with an optional `string? query = null`
       parameter (existing internal call sites need no change). Trim it; when its length is
       `>= ChatConstants.MinSearchTermLength`, build `pattern = $"%{trimmed}%"` and apply
       `.Where(ChatGuard.MatchesName(_db, callerId, pattern))` to `VisibleConversations(callerId)`
       **before** the existing `CountAsync` / `OrderByDescending` / `Skip` / `Take` / projection.
       Otherwise leave the query untouched. Document the ≥2 rule with a pointer to research §1.
-- [ ] T005 Pass the term through in `backend/Controllers/ChatConversationsController.cs`:
+- [X] T005 Pass the term through in `backend/Controllers/ChatConversationsController.cs`:
       `Inbox([FromQuery] PaginationRequest pagination, [FromQuery] string? q, CancellationToken ct)`
       → `_conversations.GetInboxAsync(userId, pagination, q, ct)`. No validation beyond the
       service's own rule; a short term is not an error (contract).
@@ -98,7 +98,7 @@ inbox UI shows them as rows that open on tap.
 
 ### Tests for User Story 1 (write first, watch them fail)
 
-- [ ] T006 [P] [US1] Create `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatInboxSearchTests.cs`
+- [X] T006 [P] [US1] Create `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatInboxSearchTests.cs`
       (`[Collection("Chat")]`, extends `ChatTestSupport`; add a helper that sets a user's
       `DisplayName` through a scoped `AppDbContext`, following `AddTeamMemberAsync`) with these
       facts against `GET /api/v1/chat/conversations?q=…`:
@@ -117,11 +117,11 @@ inbox UI shows them as rows that open on tap.
       `Your_own_name_does_not_list_every_conversation`;
       `Matching_is_accent_and_case_insensitive` (display name "Jörg", terms `jorg` and `JÖRG`);
       `A_name_only_in_someone_elses_conversation_returns_nothing_and_no_count` (SC-003).
-- [ ] T007 [P] [US1] Add to `frontend/apps/web/src/app/core/services/chat.service.spec.ts`:
+- [X] T007 [P] [US1] Add to `frontend/apps/web/src/app/core/services/chat.service.spec.ts`:
       `searchInbox` issues `GET /api/v1/chat/conversations?q=len&skip=0&take=20` and returns the
       page **without changing `conversations()`** (seed the signal via a prior `loadInbox` flush
       and assert it is untouched after the search flush).
-- [ ] T008 [P] [US1] Add to `frontend/apps/web/src/app/features/chat/chat-inbox/chat-inbox.component.spec.ts`
+- [X] T008 [P] [US1] Add to `frontend/apps/web/src/app/features/chat/chat-inbox/chat-inbox.component.spec.ts`
       (extend the existing `chat` double with `searchInbox: jest.fn()`): typing a two-character
       term (after the 250 ms debounce — use `jest.useFakeTimers()`) renders the returned
       conversations as `[data-testid="conversation-<id>"]` rows inside
@@ -132,17 +132,17 @@ inbox UI shows them as rows that open on tap.
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Add `searchInbox(term: string, take = 20): Observable<PagedResult<Conversation>>`
+- [X] T009 [US1] Add `searchInbox(term: string, take = 20): Observable<PagedResult<Conversation>>`
       to `frontend/apps/web/src/app/core/services/chat.service.ts` next to `loadInbox`, calling
       `${this.base}/conversations` with `q`, `skip=0`, `take` — **no `tap` into `_conversations`**
       (research §4). Leave `loadInbox` and `search` as they are for now (US2 trims `search`).
-- [ ] T010 [US1] Rewire `frontend/apps/web/src/app/features/chat/chat-inbox/chat-inbox.component.ts`:
+- [X] T010 [US1] Rewire `frontend/apps/web/src/app/features/chat/chat-inbox/chat-inbox.component.ts`:
       `results = signal<Conversation[] | null>(null)`; `displayed = computed(() => this.isSearching() ? (this.results() ?? []) : this.conversations())`;
       `runSearch` calls `chat.searchInbox(value)` and stores `page.items`; drop `chatWith`, the
       `ChatSearchResult` import and the `Router` injection if nothing else uses it; keep the 250 ms
       debounce and the two-character rule; update the class doc comment (it still says "finds both
       messages and people").
-- [ ] T011 [US1] Rewrite the results region of
+- [X] T011 [US1] Rewrite the results region of
       `frontend/apps/web/src/app/features/chat/chat-inbox/chat-inbox.component.html`: remove the
       "In your messages" and "People" sections and the `chatWith` button; render **one** `@for`
       over `displayed()` using the existing row markup (keep `data-testid="conversation-list"` and
@@ -150,13 +150,13 @@ inbox UI shows them as rows that open on tap.
       (DESIGN.md loading rule — no spinner, no skeleton, no layout shift); keep the
       `[data-testid="search-empty"]` state with `chat.inbox.nothingMatched`; the normal empty
       state (`chat-empty`) must not appear while a term is active.
-- [ ] T012 [US1] Update the three catalogues together — `frontend/apps/web/public/i18n/en.json`,
+- [X] T012 [US1] Update the three catalogues together — `frontend/apps/web/public/i18n/en.json`,
       `de.json`, `es.json` — under `chat.inbox`: `searchSr` → "Search your chats by name" / "Deine
       Chats nach Namen durchsuchen" / "Buscar en tus chats por nombre"; `searchPlaceholder` →
       "Find a chat by name…" / "Chat nach Name finden…" / "Buscar un chat por nombre…"; **delete**
       `inYourMessages`, `people` and `chat` from all three (used nowhere else — verified). Run
       `npx nx test web --watch=false --testPathPattern=catalog-parity`.
-- [ ] T013 [US1] Run T006–T008 and the Phase 2 code together:
+- [X] T013 [US1] Run T006–T008 and the Phase 2 code together:
       `dotnet test backend/tests/JuggerHub.Api.IntegrationTests --filter "FullyQualifiedName~ChatInboxSearchTests"`
       and `npx nx test web --watch=false --testPathPattern="chat.service|chat-inbox"`. Fix until green.
 
@@ -174,11 +174,11 @@ inbox UI shows them as rows that open on tap.
 
 ### Tests for User Story 2 (write first)
 
-- [ ] T014 [P] [US2] Add `Message_text_never_matches` to
+- [X] T014 [P] [US2] Add `Message_text_never_matches` to
       `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatInboxSearchTests.cs` (SC-002: send a
       message containing a unique token to a DM whose partner's name does not contain it; `?q=<token>`
       returns `items: []`, `totalCount: 0`).
-- [ ] T015 [P] [US2] Rework `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatSearchTests.cs`:
+- [X] T015 [P] [US2] Rework `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatSearchTests.cs`:
       **delete** `Finds_a_message_in_your_own_conversation`,
       `A_term_only_in_someone_elses_conversation_returns_nothing`,
       `Leaving_a_group_removes_its_messages_from_your_search`, `A_deleted_message_never_matches`;
@@ -192,20 +192,20 @@ inbox UI shows them as rows that open on tap.
 
 ### Implementation for User Story 2
 
-- [ ] T016 [US2] In `backend/Dtos/Chat/ChatDtos.cs` delete `MessageSearchHitDto` and change
+- [X] T016 [US2] In `backend/Dtos/Chat/ChatDtos.cs` delete `MessageSearchHitDto` and change
       `ChatSearchResultDto` to `(PagedResult<PersonHitDto> People)`; refresh its summary comment.
-- [ ] T017 [US2] In `backend/Services/Chat/ChatSearchService.cs` delete `SearchMessagesAsync`
+- [X] T017 [US2] In `backend/Services/Chat/ChatSearchService.cs` delete `SearchMessagesAsync`
       and the `messages` half of `SearchAsync`/`Empty`; rewrite the class remarks (the scope-predicate
       paragraph is about message results and no longer applies — say what the service is now: people
       to start a chat with, open reach, self and blocks excluded). Update the summary in
       `backend/Services/Chat/IChatSearchService.cs`. Refresh the controller's `Search` doc comment
       in `backend/Controllers/ChatConversationsController.cs` if it mentions messages.
-- [ ] T018 [US2] In `frontend/apps/web/src/app/core/models/chat.models.ts` delete
+- [X] T018 [US2] In `frontend/apps/web/src/app/core/models/chat.models.ts` delete
       `MessageSearchHit` and the `messages` member of `ChatSearchResult`; in
       `frontend/apps/web/src/app/core/services/chat.service.spec.ts` rename and trim
       `'searches messages and people'` to people only. `grep -rn "messages.items\|MessageSearchHit" frontend/apps/web/src`
       must return nothing.
-- [ ] T019 [US2] Run `dotnet test … --filter "FullyQualifiedName~ChatSearchTests|FullyQualifiedName~ChatInboxSearchTests"`
+- [X] T019 [US2] Run `dotnet test … --filter "FullyQualifiedName~ChatSearchTests|FullyQualifiedName~ChatInboxSearchTests"`
       and `npx nx test web --watch=false --testPathPattern=chat`. Fix until green.
 
 **Checkpoint**: quickstart Scenario B passes, including the two direct requests.
@@ -220,7 +220,7 @@ even when no member does. The code is the names half of T003; this phase proves 
 **Independent Test**: seed a group "Tournament trip", a team "Hamburg Jugger" and an inquiry
 thread, none with a member whose name contains the term; `?q=trip` and `?q=hamb` list them.
 
-- [ ] T020 [US3] Add to `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatInboxSearchTests.cs`:
+- [X] T020 [US3] Add to `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatInboxSearchTests.cs`:
       `Finds_a_group_by_its_name`; `Finds_a_team_chat_by_the_teams_name`;
       `Finds_an_admin_contact_thread_by_team_name_and_by_requester_name` (start the thread with
       the feature-027 endpoint — copy the call shape from `ChatInquiryTests.cs`; search as the
@@ -228,7 +228,7 @@ thread, none with a member whose name contains the term; `?q=trip` and `?q=hamb`
       `A_conversation_matching_by_name_and_member_is_listed_once`;
       `Fallback_labels_are_not_names` (a group named "Weekend crew" is not returned for `?q=group`;
       no party seeding needed — assert the literal does not match).
-- [ ] T021 [US3] Run the US3 facts; if the inquiry branch or `c.Event!.Name` fails to translate,
+- [X] T021 [US3] Run the US3 facts; if the inquiry branch or `c.Event!.Name` fails to translate,
       fix the expression in `backend/Services/Chat/ChatGuard.cs` (never post-filter in memory).
 
 **Checkpoint**: quickstart Scenario C passes.
@@ -243,10 +243,10 @@ and the profile Message action still reaches anyone and still excludes blocked p
 **Independent Test**: the existing specs for those three surfaces and `ChatSearchTests`' people
 facts pass unchanged.
 
-- [ ] T022 [P] [US4] Run, unchanged, `npx nx test web --watch=false --testPathPattern="chat-new|chat-compose|profile-quick-actions"`
+- [X] T022 [P] [US4] Run, unchanged, `npx nx test web --watch=false --testPathPattern="chat-new|chat-compose|profile-quick-actions"`
       and confirm each still reads `res.people.items` against the trimmed `ChatSearchResult`
       (compile error = the contract was narrowed too far).
-- [ ] T023 [P] [US4] Run `dotnet test … --filter "FullyQualifiedName~ChatSearchTests"` and
+- [X] T023 [P] [US4] Run `dotnet test … --filter "FullyQualifiedName~ChatSearchTests"` and
       `FullyQualifiedName~ChatLazyDirectTests|ChatBlockTests` — `Finds_people_and_surfaces_an_existing_dm`,
       `People_search_reaches_players_you_share_nothing_with`, `You_never_appear_in_your_own_people_search`
       and the block exclusion must be green.
@@ -257,12 +257,12 @@ facts pass unchanged.
 
 ## Phase 7: Documentation amendments (feature 019)
 
-- [ ] T024 [P] In `specs/019-chat/spec.md` add a second callout under `## Amendments`, after
+- [X] T024 [P] In `specs/019-chat/spec.md` add a second callout under `## Amendments`, after
       022's, in the same style: "**Amended by feature 046 (2026-09-08) — inbox search finds
       conversations by name; message-text search removed.** …" pointing at
       `specs/046-chat-inbox-search/`; append "*(superseded by 046)*" to FR-034, FR-035, FR-036,
       FR-050c and SC-006, and a one-line note under User Story 6's heading.
-- [ ] T025 [P] In `specs/019-chat/contracts/chat-api.md`, at the top of the **Search** section,
+- [X] T025 [P] In `specs/019-chat/contracts/chat-api.md`, at the top of the **Search** section,
       add: "> Amended by 046: `messages` removed; `GET /chat/conversations` gained `q` — see
       `specs/046-chat-inbox-search/contracts/chat-inbox-search-api.md`."
 
@@ -270,18 +270,27 @@ facts pass unchanged.
 
 ## Phase 8: Polish & cross-cutting
 
-- [ ] T026 Instantiate `specs/046-chat-inbox-search/checklists/ui-review.md` from
+- [X] T026 Instantiate `specs/046-chat-inbox-search/checklists/ui-review.md` from
       `.specify/templates/ui-review-checklist-template.md` and verify every item against the
       diff of `chat-inbox.component.html` and the catalogues (Gate 7): sentence case, "you" voice,
       `role="status"` loading line, empty-vs-error distinction, 44px targets unchanged, no colour
       alone, no emoji. Report any DESIGN.md conflict; do not resolve it silently.
-- [ ] T027 Full verification: `dotnet test backend/tests/JuggerHub.Api.IntegrationTests --filter "FullyQualifiedName~IntegrationTests.Chat"`;
+- [X] T027 Full verification: `dotnet test backend/tests/JuggerHub.Api.IntegrationTests --filter "FullyQualifiedName~IntegrationTests.Chat"`;
       `cd frontend && npx nx test web --watch=false`; `npm run lint`; `npm run build`. Record
       counts and any failure verbatim.
+      *2026-09-08*: backend Chat collection **178/178 passed** (3 m 6 s; `ChatInboxSearchTests`
+      18 + `ChatSearchTests` 7 among them); frontend **71 suites, 507/507 passed** (catalogue
+      parity included); `npm run lint` clean; `npm run build` (production) passed. No failures.
 - [ ] T028 Walk `specs/046-chat-inbox-search/quickstart.md` Scenarios A–E in the running app
       (the `run` skill launches it). Record what was verified and what could not be.
-- [ ] T029 Comment on GitHub #221 with the outcome (what changed, the FR-002 fallback-label drift,
+      *2026-09-08: not walked in the browser.* The worktree's compose stack cannot start without
+      colliding with the main checkout's stopped `juggerhub-*` containers (issue #119's fixed
+      `container_name`s), and tearing those down was not the session's call. Every scenario's
+      observable behaviour is covered at the API by `ChatInboxSearchTests` (18 facts) and at the
+      component by the inbox spec (6 cases); the manual walk remains open for the reviewer.
+- [X] T029 Comment on GitHub #221 with the outcome (what changed, the FR-002 fallback-label drift,
       #222 for the un-hide gap) and note the branch; do not open a PR unless asked.
+      *2026-09-08*: posted — https://github.com/jnroesch/juggerhub/issues/221#issuecomment-5586763003
 
 ---
 
