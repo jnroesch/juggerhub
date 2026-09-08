@@ -60,7 +60,7 @@ public sealed class EventTests
     public async Task End_before_start_is_rejected()
     {
         var (client, _, _, _) = await NewUserAsync();
-        var body = Merge(ValidInPersonPaidTeams(), new { startsAt = "2026-09-06T18:00:00Z", endsAt = "2026-09-05T09:00:00Z" });
+        var body = Merge(ValidInPersonPaidTeams(), new { startsAt = DateTime.UtcNow.AddDays(31).AddHours(18).ToString("yyyy-MM-ddTHH:mm:ssZ"), endsAt = DateTime.UtcNow.AddDays(30).AddHours(9).ToString("yyyy-MM-ddTHH:mm:ssZ") });
 
         var resp = await client.PostAsJsonAsync("/api/v1/events", body);
 
@@ -793,8 +793,8 @@ public sealed class EventTests
         name = "Berlin Cup",
         type = "Tournament",
         description = "Two days of open Jugger on the old airfield. All divisions welcome.",
-        startsAt = "2026-09-05T09:00:00Z",
-        endsAt = "2026-09-06T18:00:00Z",
+        startsAt = DateTime.UtcNow.AddDays(30).AddHours(9).ToString("yyyy-MM-ddTHH:mm:ssZ"),
+        endsAt = DateTime.UtcNow.AddDays(31).AddHours(18).ToString("yyyy-MM-ddTHH:mm:ssZ"),
         locationKind = "InPerson",
         venueName = "Altes Flugfeld",
         street = "Hauptstrasse 1",
