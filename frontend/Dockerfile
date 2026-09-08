@@ -37,7 +37,7 @@ ENTRYPOINT ["npx", "nx", "test", "web", "--watch=false"]
 # in package.json for that reason: under a caret range any lockfile regeneration can float
 # it past this image, and the mismatch fails every test at browser launch rather than at
 # install — which reads as a total app failure instead of a version skew.
-FROM mcr.microsoft.com/playwright:v1.62.1-noble AS playwright
+FROM mcr.microsoft.com/playwright:v1.63.0-noble AS playwright
 WORKDIR /app
 ENV NX_DAEMON=false CI=true
 # Optional egress-proxy CA — see the note in the `deps` stage above.
