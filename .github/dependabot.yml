@@ -6,10 +6,30 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 10
+    # Minor and patch updates travel together, majors come as their own PR.
+    # A single unmergeable major used to hold the whole weekly group hostage.
     groups:
       backend-dependencies:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # 3.x needs AspNetCore.OpenApi 11.x / .NET 11; restore fails NU1608 today.
+      # See #229.
+      - dependency-name: "Microsoft.OpenApi"
+        update-types:
+          - version-update:semver-major
+      # 10.2 adds analyzers (AV0015/16/29/30) that TreatWarningsAsErrors turns
+      # into build errors. Acting on them changes API versioning behaviour, so
+      # it is a decision rather than a bump. See #226.
+      - dependency-name: "Asp.Versioning.Mvc"
+        versions:
+          - ">= 10.2"
+      - dependency-name: "Asp.Versioning.Mvc.ApiExplorer"
+        versions:
+          - ">= 10.2"
 
   # Frontend — npm
   - package-ecosystem: npm
@@ -21,6 +41,14 @@ updates:
       frontend-dependencies:
         patterns:
           - "*"
+        update-types:
+          - minor
+          - patch
+    ignore:
+      # Tailwind 4 is a CSS-first rewrite of the theme and styles. See #225.
+      - dependency-name: "tailwindcss"
+        update-types:
+          - version-update:semver-major
 
   # Container images
   - package-ecosystem: docker
