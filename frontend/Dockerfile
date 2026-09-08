@@ -3,7 +3,7 @@
 
 # --- deps: install node_modules (cached on lockfile) ------------------------
 # Node pinned to match frontend/.nvmrc, package.json "engines", and CI.
-FROM node:26.5.0-alpine AS deps
+FROM node:26.8.1-alpine AS deps
 WORKDIR /app
 ENV NX_DAEMON=false
 # Optional egress-proxy CA. Behind a TLS-terminating egress proxy (e.g. Claude Code on
@@ -51,7 +51,7 @@ COPY . .
 ENTRYPOINT ["npx", "nx", "e2e", "web-e2e"]
 
 # --- runtime: nginx serving the SPA + proxying /api -------------------------
-FROM nginx:1.31.3-alpine AS runtime
+FROM nginx:1.31.5-alpine AS runtime
 # Config is a TEMPLATE, not a finished file: the nginx image's own entrypoint
 # (/docker-entrypoint.d/20-envsubst-on-templates.sh) renders /etc/nginx/templates/*.template
 # into /etc/nginx/conf.d/ at container start. That is what lets one built image carry

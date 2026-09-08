@@ -455,7 +455,7 @@ public sealed class MarketplaceTests : PartyTestSupport
         object body = new
         {
             name = "Solo Open", type = "Tournament", description = "Individuals.",
-            startsAt = "2026-09-05T09:00:00Z", endsAt = "2026-09-06T18:00:00Z",
+            startsAt = DateTime.UtcNow.AddDays(30).AddHours(9).ToString("yyyy-MM-ddTHH:mm:ssZ"), endsAt = DateTime.UtcNow.AddDays(31).AddHours(18).ToString("yyyy-MM-ddTHH:mm:ssZ"),
             locationKind = "Virtual", virtualLink = "https://jugger.example/solo",
             participantMode = "Individuals", participationLimit = 16, rosterCap = (int?)null,
             isPaid = false,
