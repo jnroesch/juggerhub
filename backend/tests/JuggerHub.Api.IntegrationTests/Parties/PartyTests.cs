@@ -521,7 +521,7 @@ public sealed class PartyTests : PartyTestSupport
         var resp = await admin.PostAsJsonAsync("/api/v1/events", new
         {
             name = "Too small", type = "Tournament", description = "x",
-            startsAt = "2026-09-05T09:00:00Z", endsAt = "2026-09-06T18:00:00Z",
+            startsAt = DateTime.UtcNow.AddDays(30).AddHours(9).ToString("yyyy-MM-ddTHH:mm:ssZ"), endsAt = DateTime.UtcNow.AddDays(31).AddHours(18).ToString("yyyy-MM-ddTHH:mm:ssZ"),
             locationKind = "Virtual", virtualLink = "https://x.example/1",
             participantMode = "Teams", participationLimit = 8, rosterCap = 3,
             isPaid = false,
