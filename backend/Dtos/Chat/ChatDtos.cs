@@ -88,16 +88,6 @@ public sealed record MessageDto(
 /// </summary>
 public sealed record MessagePageDto(IReadOnlyList<MessageDto> Items, Guid? NextBefore);
 
-/// <summary>One hit when searching your own messages.</summary>
-public sealed record MessageSearchHitDto(
-    Guid MessageId,
-    Guid ConversationId,
-    string ConversationName,
-    ConversationKind ConversationKind,
-    string Snippet,
-    DateTime SentAt,
-    string? SenderName);
-
 /// <summary>One hit when searching for people to chat with.</summary>
 public sealed record PersonHitDto(
     Guid UserId,
@@ -106,10 +96,13 @@ public sealed record PersonHitDto(
     string? AvatarUrl,
     Guid? ExistingConversationId);
 
-/// <summary>Search results, split the way the inbox renders them: your messages, and people.</summary>
-public sealed record ChatSearchResultDto(
-    Common.PagedResult<MessageSearchHitDto> Messages,
-    Common.PagedResult<PersonHitDto> People);
+/// <summary>
+/// People search results, for starting a chat. The envelope is kept although it has a single member:
+/// feature 046 removed the <c>messages</c> half (the product no longer searches message text), and
+/// the three remaining callers — the new-chat picker, compose-by-handle and the profile Message action
+/// — read <c>people</c> and nothing else, so they are untouched by the removal.
+/// </summary>
+public sealed record ChatSearchResultDto(Common.PagedResult<PersonHitDto> People);
 
 /// <summary>A player you have blocked.</summary>
 public sealed record BlockedUserDto(Guid UserId, string DisplayName, string? Handle, DateTime BlockedAt);

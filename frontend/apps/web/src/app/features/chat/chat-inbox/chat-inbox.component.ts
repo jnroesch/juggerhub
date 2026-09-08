@@ -1,20 +1,22 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ButtonDirective } from '../../../shared/ui';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ChatService } from '../../../core/services/chat.service';
-import { ChatSearchResult, Conversation } from '../../../core/models/chat.models';
+import { Conversation } from '../../../core/models/chat.models';
 import { injectLocale } from '../../../core/i18n/locale-format';
 
 /**
- * The chat inbox (feature 019, wireframe 9a): every conversation as a row, a search that finds both
- * messages and people, and a warm empty state.
+ * The chat inbox (feature 019, wireframe 9a): every conversation as a row, a search that narrows
+ * those rows to the conversations whose members' or own names match (feature 046), and a warm empty
+ * state.
  *
- * Rows render live — the shared {@link ChatService} keeps them current over SignalR — and the four
- * kinds read at a glance: DMs are round avatars, groups a 2×2 cluster, and the auto-made team and
- * party chats wear a small tag.
+ * Rows render live — the shared {@link ChatService} keeps them current over SignalR — and the kinds
+ * read at a glance: DMs are round avatars, groups a 2×2 cluster, and the auto-made team and party
+ * chats wear a small tag. Search results are those same rows, from the same endpoint, so a match
+ * looks and behaves exactly like its inbox row. Message text is never searched.
  */
 @Component({
   selector: 'jh-chat-inbox',
@@ -24,7 +26,6 @@ import { injectLocale } from '../../../core/i18n/locale-format';
 })
 export class ChatInboxComponent implements OnInit {
   private readonly chat = inject(ChatService);
-  private readonly router = inject(Router);
   private readonly t = inject(TranslocoService);
   private readonly lang = toSignal(this.t.langChanges$, { initialValue: this.t.getActiveLang() });
   private readonly locale = injectLocale();
@@ -34,15 +35,32 @@ export class ChatInboxComponent implements OnInit {
   protected readonly failed = signal(false);
 
   protected readonly term = signal('');
-  protected readonly results = signal<ChatSearchResult | null>(null);
+  /** The conversations the current term matched; null until the first page for a term arrives. */
+  protected readonly results = signal<Conversation[] | null>(null);
   protected readonly searching = signal(false);
 
   /** Search replaces the list while a term is entered; clearing it returns to the inbox. */
   protected readonly isSearching = computed(() => this.term().trim().length >= 2);
 
+  /**
+   * What the list renders: the inbox, or — while a term is entered — the conversations it matched.
+   * Until the first page for a term arrives the inbox stays put beneath the status line, so a search
+   * never blanks the screen (DESIGN.md: keep what's there and let the quiet line do the talking).
+   */
+  protected readonly displayed = computed(() =>
+    this.isSearching() ? (this.results() ?? this.conversations()) : this.conversations(),
+  );
+
+  /** A term was searched and matched nothing — an empty state, never an error. */
+  protected readonly noMatches = computed(
+    () => this.isSearching() && !this.searching() && this.results()?.length === 0,
+  );
+
   protected readonly hasNothing = computed(() => !this.loading() && this.conversations().length === 0);
 
   private searchTimer?: ReturnType<typeof setTimeout>;
+  /** Bumped per search so a late response for an older term can never overwrite a newer one. */
+  private searchSeq = 0;
 
   ngOnInit(): void {
     this.chat.loadInbox().subscribe({
@@ -59,7 +77,9 @@ export class ChatInboxComponent implements OnInit {
 
     clearTimeout(this.searchTimer);
     if (value.trim().length < 2) {
+      this.searchSeq++;
       this.results.set(null);
+      this.searching.set(false);
       return;
     }
 
@@ -68,32 +88,26 @@ export class ChatInboxComponent implements OnInit {
   }
 
   private runSearch(value: string): void {
+    const seq = ++this.searchSeq;
     this.searching.set(true);
-    this.chat.search(value).subscribe({
-      next: (r) => {
-        this.results.set(r);
+    this.chat.searchInbox(value.trim()).subscribe({
+      next: (page) => {
+        if (seq !== this.searchSeq) {
+          return;
+        }
+        this.results.set([...page.items]);
         this.searching.set(false);
       },
-      error: () => this.searching.set(false),
+      error: () => {
+        if (seq === this.searchSeq) {
+          this.searching.set(false);
+        }
+      },
     });
   }
 
   protected clearSearch(): void {
-    this.term.set('');
-    this.results.set(null);
-  }
-
-  /** A person result opens the existing DM, or starts one. */
-  protected chatWith(userId: string, existingConversationId: string | null): void {
-    if (existingConversationId) {
-      void this.router.navigate(['/chat', existingConversationId]);
-      return;
-    }
-
-    this.chat.start([userId], null).subscribe({
-      next: (c) => void this.router.navigate(['/chat', c.id]),
-      error: () => undefined,
-    });
+    this.onTermChange('');
   }
 
   /** Names of people typing in a row's conversation ("Lena is typing…"). */

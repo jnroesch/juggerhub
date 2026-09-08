@@ -54,6 +54,22 @@ public abstract class ChatTestSupport
         await db.SaveChangesAsync();
     }
 
+    /// <summary>
+    /// Give a player a chosen display name. Names are what the inbox and people searches read
+    /// (feature 046), so tests set them explicitly — with a unique token, because every chat test class
+    /// shares one database.
+    /// </summary>
+    protected async Task SetDisplayNameAsync(Guid userId, string displayName)
+    {
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        await db.PlayerProfiles
+            .Where(p => p.UserId == userId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.DisplayName, displayName)
+                .SetProperty(p => p.ModifiedDate, DateTime.UtcNow));
+    }
+
     protected async Task RemoveTeamMemberAsync(Guid teamId, Guid userId)
     {
         using var scope = Factory.Services.CreateScope();

@@ -105,6 +105,19 @@ export class ChatService {
       .pipe(tap((page) => this._conversations.set([...page.items])));
   }
 
+  /**
+   * The inbox narrowed to conversations whose members' or own names match (feature 046) — never
+   * message text. Returns the page **without touching {@link conversations}**: that signal is what
+   * SignalR keeps current, so clearing the term must restore it instantly and a message arriving
+   * mid-search must patch the right list. The two-character minimum is the server's rule as well; a
+   * shorter term simply yields the plain inbox.
+   */
+  searchInbox(term: string, take = 20): Observable<PagedResult<Conversation>> {
+    return this.http.get<PagedResult<Conversation>>(`${this.base}/conversations`, {
+      params: new HttpParams().set('q', term).set('skip', 0).set('take', take),
+    });
+  }
+
   refreshUnread(): void {
     this.http
       .get<{ unreadCount: number }>(`${this.base}/conversations/unread-count`)
