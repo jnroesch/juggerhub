@@ -508,7 +508,8 @@
       "systemJoined": "{{name}} joined the chat",
       "systemLeft": "{{name}} left the chat",
       "systemRemoved": "{{name}} was removed",
-      "systemGroupCreated": "{{name}} started this group"
+      "systemGroupCreated": "{{name}} started this group",
+      "messageUnavailable": "This message can’t be displayed."
     },
     "details": {
       "backToChat": "Back to the chat",

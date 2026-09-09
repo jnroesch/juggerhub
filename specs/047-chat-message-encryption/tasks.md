@@ -104,12 +104,12 @@ placeholder bubble. Quickstart §3.
 
 - [X] T028 [US1] `backend/Dtos/Chat/ChatDtos.cs` — `MessageDto` gains `bool IsUnavailable` after `IsDeleted`. `LastMessageDto` is **not** changed (contracts/chat-api-delta.md)
 - [X] T029 [US1] `ChatMessageService.ToDto` — replace the TODO: on `TryUnprotect` returning false, emit `Body = ""`, `IsUnavailable = true`, `LinkCard = null`, and log **one warning** naming conversation id, message id and key version — never the ciphertext, never the key, never the plaintext (FR-010/FR-014)
-- [ ] T030 [US1] `frontend/apps/web/src/app/core/models/chat.models.ts` — `readonly isUnavailable: boolean;` beside `isDeleted`
-- [ ] T031 [US1] `frontend/apps/web/src/app/features/chat/chat-conversation/chat-conversation.component.html` (~L112) — a sibling branch to the deleted tombstone rendering `chat.conversation.messageUnavailable`, reusing the existing italic/opacity treatment. No new component, no new token
-- [ ] T032 [US1] Add `chat.conversation.messageUnavailable` to **`en.json`, `de.json` and `es.json` in the same commit** — `catalog-parity.spec.ts` goes red otherwise. English: "This message can't be displayed."
+- [X] T030 [US1] `frontend/apps/web/src/app/core/models/chat.models.ts` — `readonly isUnavailable: boolean;` beside `isDeleted`
+- [X] T031 [US1] `frontend/apps/web/src/app/features/chat/chat-conversation/chat-conversation.component.html` (~L112) — a sibling branch to the deleted tombstone rendering `chat.conversation.messageUnavailable`, reusing the existing italic/opacity treatment. No new component, no new token
+- [X] T032 [US1] Add `chat.conversation.messageUnavailable` to **`en.json`, `de.json` and `es.json` in the same commit** — `catalog-parity.spec.ts` goes red otherwise. English: "This message can't be displayed."
 - [X] T033 [P] [US1] Backend test: corrupt a stored row, request the conversation, assert **200** with every other message intact and exactly one carrying `isUnavailable: true` and an empty body (SC-006)
 - [X] T034 [P] [US1] Backend test for SC-009: after that request, assert no captured log line in `JuggerHubApiFactory.ErrorLogs` contains the plaintext, the ciphertext, or any base64 fragment of the configured key
-- [ ] T035 [P] [US1] Frontend spec: a message with `isUnavailable` renders the placeholder and not an empty bubble; a deleted one still renders the deleted tombstone
+- [X] T035 [P] [US1] Frontend spec: a message with `isUnavailable` renders the placeholder and not an empty bubble; a deleted one still renders the deleted tombstone
 
 **Checkpoint**: both suites green; quickstart §3 passes; SC-005, SC-006, SC-007 and SC-009 met.
 

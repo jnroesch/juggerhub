@@ -98,6 +98,12 @@ export interface ChatMessage {
   readonly body: string;
   readonly sentAt: string;
   readonly isDeleted: boolean;
+  /**
+   * The server could not decrypt this message's stored text (feature 047) — a retired key, or a
+   * corrupted row. `body` is empty and the bubble reads as unavailable. Never true together with
+   * `isDeleted`: a deleted row holds no ciphertext to fail on.
+   */
+  readonly isUnavailable: boolean;
   readonly readState: ReadState;
   readonly systemEvent: ChatSystemEvent | null;
   readonly systemSubjectName: string | null;

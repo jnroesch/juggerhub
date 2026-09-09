@@ -41,6 +41,7 @@ describe('ChatService', () => {
     body: 'hello',
     sentAt: '2026-07-16T19:38:00Z',
     isDeleted: false,
+    isUnavailable: false,
     readState: null,
     systemEvent: null,
     systemSubjectName: null,

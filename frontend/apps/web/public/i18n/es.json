@@ -512,7 +512,8 @@
       "systemJoined": "{{name}} se unió al chat",
       "systemLeft": "{{name}} salió del chat",
       "systemRemoved": "{{name}} fue eliminado",
-      "systemGroupCreated": "{{name}} creó este grupo"
+      "systemGroupCreated": "{{name}} creó este grupo",
+      "messageUnavailable": "Este mensaje no se puede mostrar."
     },
     "details": {
       "backToChat": "Volver al chat",
