@@ -376,12 +376,13 @@ builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingResponseService
 // from the roster on every request rather than mirrored into rows, so removal revokes access by
 // construction (see specs/019-chat/research.md §4).
 builder.Services.AddScoped<JuggerHub.Services.Chat.ChatGuard>();
-// Message bodies are encrypted at rest (feature 047 / #223). This call VALIDATES the configured
-// keys and throws if none is usable — deliberately fatal, in every environment including
-// Development, and with no switch that turns encryption off. The alternative to a loud refusal is
-// an application that starts happily and writes message text in the clear, which is the exact
-// state this feature exists to leave behind. Same reasoning as the Redis backplane guard below.
-builder.Services.AddChatMessageEncryption(builder.Configuration);
+// Message bodies are encrypted at rest (feature 047 / #223). The keys are validated once the host
+// is built (see ValidateChatMessageEncryption below), and a missing or malformed key is fatal — in
+// every environment including Development, with no switch that turns encryption off. The
+// alternative to a loud refusal is an application that starts happily and writes message text in
+// the clear, which is the exact state this feature exists to leave behind. Same reasoning as the
+// Redis backplane guard below.
+builder.Services.AddChatMessageEncryption();
 // Resolves link cards against the VIEWER's permissions at read time, never the sender's, and never
 // over the network (specs/019-chat/research.md §5).
 builder.Services.AddScoped<JuggerHub.Services.Chat.ChatLinkResolver>();
@@ -484,6 +485,12 @@ builder.Services.AddOpenApi("v1");
 
 var app = builder.Build();
 
+// --- Chat message encryption (feature 047 / #223) --------------------------
+// Constructs the cipher, which parses and validates Chat:Encryption:Keys. Deliberately BEFORE the
+// migrations below: refusing to start on a missing key should not first alter anyone's schema.
+// Throws with a message naming the configuration key and never echoing key material (FR-007).
+app.Services.ValidateChatMessageEncryption();
+
 // --- Auto-apply EF migrations on startup (fail-fast) -----------------------
 // Every environment (incl. Production) is brought up to schema before serving;
 // a failure logs a generic error and exits non-zero rather than serving against
@@ -515,7 +522,10 @@ if (app.Environment.IsDevelopment())
 {
     using var seedScope = app.Services.CreateScope();
     var seedDb = seedScope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DevDataSeeder.SeedAsync(seedDb);
+    // Seeded chat messages go through the same cipher as real ones (feature 047) — a seeder that
+    // wrote plaintext would leave local development looking nothing like the thing being built.
+    var seedCipher = seedScope.ServiceProvider.GetRequiredService<IChatMessageCipher>();
+    await DevDataSeeder.SeedAsync(seedDb, seedCipher);
 }
 
 // --- Middleware pipeline ----------------------------------------------------

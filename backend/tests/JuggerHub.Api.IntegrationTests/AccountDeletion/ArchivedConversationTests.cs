@@ -57,12 +57,8 @@ public sealed class ArchivedConversationTests : AccountDeletionTestSupport
         {
             var conversation = new Conversation { Kind = ConversationKind.Team, TeamId = teamId };
             db.Conversations.Add(conversation);
-            db.ChatMessages.Add(new ChatMessage
-            {
-                Conversation = conversation,
-                SenderId = leaverId,
-                Body = "Pitch is booked for Saturday.",
-            });
+            db.ChatMessages.Add(
+                Chat.ChatMessageSeed.Member(conversation, leaverId, "Pitch is booked for Saturday."));
             await db.SaveChangesAsync();
             return conversation.Id;
         });
@@ -100,12 +96,8 @@ public sealed class ArchivedConversationTests : AccountDeletionTestSupport
         {
             var conversation = new Conversation { Kind = ConversationKind.Team, TeamId = teamId };
             db.Conversations.Add(conversation);
-            db.ChatMessages.Add(new ChatMessage
-            {
-                Conversation = conversation,
-                SenderId = leaverId,
-                Body = "Pitch is booked for Saturday.",
-            });
+            db.ChatMessages.Add(
+                Chat.ChatMessageSeed.Member(conversation, leaverId, "Pitch is booked for Saturday."));
             await db.SaveChangesAsync();
             return conversation.Id;
         });

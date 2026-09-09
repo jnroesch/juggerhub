@@ -63,20 +63,20 @@ messages works exactly as before.
 **Independent test**: send a message, read the row with `psql`, see no fragment of it; open
 the conversation and read it normally. Quickstart §1–§2.
 
-- [ ] T012 [US1] `backend/Entities/ChatMessage.cs` — replace `public string Body` with `public byte[] BodyCipher { get; set; } = [];` and **rewrite the XML remark**: the old one says the body is "stored verbatim", which becomes false. The replacement states it is an authenticated-encryption envelope, that the decrypted value is still never markup (019 FR-014 unchanged), and that only `IChatMessageCipher` produces it. Data-model D1/D5
-- [ ] T013 [US1] `backend/Data/AppDbContext.cs` L1015 — `entity.Property(m => m.BodyCipher).IsRequired();`, no `HasMaxLength` (data-model D3)
-- [ ] T014 [US1] Generate migration `EncryptChatMessageBodies` (`dotnet ef migrations add`) — drops `Body`, adds `BodyCipher` (`bytea`, NOT NULL, default empty). Add a comment on `Down` saying it restores the column but **cannot restore content**; no backfill and no plaintext compatibility (FR-025)
-- [ ] T015 [US1] `backend/Services/Chat/ChatMessageService.cs` **send path** (~L100–110) — construct the `ChatMessage` first (its UUIDv7 `Id` is assigned by `BaseEntity`'s field initialiser), then `BodyCipher = _cipher.Protect(trimmed, message.Id)`. `ChatLinkParser.Parse(trimmed, …)` still runs on the **plaintext**, before encryption (FR-012). The 2 000-character check stays on `trimmed` (FR-011)
-- [ ] T016 [US1] `backend/Services/Chat/ChatMessageService.cs` **delete path** (~L468) — `message.BodyCipher = [];` (never `Protect("")`). `LinkKind`/`LinkTargetId` clearing is unchanged. Data-model D2
-- [ ] T017 [US1] `backend/Services/Chat/ChatMessageService.cs` **system lines** (~L497) — `BodyCipher = []`
-- [ ] T018 [US1] `backend/Services/Chat/ChatMessageService.cs` **projections** (~L286, ~L340) — the private `Row` record's `string Body` becomes `byte[] BodyCipher`; both `.Select(...)` sites project `m.BodyCipher`
-- [ ] T019 [US1] `backend/Services/Chat/ChatMessageService.cs` **`ToDto`** (~L413) — decrypt here, where the culture and the row id are both in hand: deleted or system ⇒ `""`; otherwise `TryUnprotect(r.BodyCipher, r.Id, out var text)`. Success ⇒ the text. Failure ⇒ handled in US1-adjacent phase 5 (leave a single `TODO(T028)` returning `""` so this phase compiles and the suite is green)
-- [ ] T020 [US1] `backend/Services/Chat/ChatConversationService.cs` inbox preview (~L456 project, ~L499 render) — project `m.BodyCipher`; a deleted last message still previews `""`; otherwise decrypt for the preview
-- [ ] T021 [US1] `backend/Data/DevDataSeeder.cs` (~L255–260) — seed through the cipher rather than assigning a string
-- [ ] T022 [US1] `backend/tests/.../Chat/ChatDeleteTests.cs` L72 — `Assert.Equal(string.Empty, row.Body)` becomes `Assert.Empty(row.BodyCipher)`; the assertion's meaning is unchanged and the comment should say so
-- [ ] T023 [P] [US1] Add `ChatMessageEncryptionTests` — send a message through the API, then read the raw row via the DbContext and assert the plaintext is **absent** from `BodyCipher` and that the first byte is the configured version (SC-001)
-- [ ] T024 [P] [US1] Extend the same suite: a **round-trip through the API** for emoji, newlines and a 2 000-character message; the inbox preview shows the real text; a deleted message leaves `BodyCipher` empty and previews empty; a link message still resolves its card (SC-002)
-- [ ] T025 [US1] Run the full backend suite and fix fallout. Every remaining reference to `ChatMessage.Body` must be gone — `grep -rn "\.Body" backend --include=*.cs | grep -i chat` should return nothing but the unrelated `SmtpEmailSender` hit
+- [X] T012 [US1] `backend/Entities/ChatMessage.cs` — replace `public string Body` with `public byte[] BodyCipher { get; set; } = [];` and **rewrite the XML remark**: the old one says the body is "stored verbatim", which becomes false. The replacement states it is an authenticated-encryption envelope, that the decrypted value is still never markup (019 FR-014 unchanged), and that only `IChatMessageCipher` produces it. Data-model D1/D5
+- [X] T013 [US1] `backend/Data/AppDbContext.cs` L1015 — `entity.Property(m => m.BodyCipher).IsRequired();`, no `HasMaxLength` (data-model D3)
+- [X] T014 [US1] Generate migration `EncryptChatMessageBodies` (`dotnet ef migrations add`) — drops `Body`, adds `BodyCipher` (`bytea`, NOT NULL, default empty). Add a comment on `Down` saying it restores the column but **cannot restore content**; no backfill and no plaintext compatibility (FR-025)
+- [X] T015 [US1] `backend/Services/Chat/ChatMessageService.cs` **send path** (~L100–110) — construct the `ChatMessage` first (its UUIDv7 `Id` is assigned by `BaseEntity`'s field initialiser), then `BodyCipher = _cipher.Protect(trimmed, message.Id)`. `ChatLinkParser.Parse(trimmed, …)` still runs on the **plaintext**, before encryption (FR-012). The 2 000-character check stays on `trimmed` (FR-011)
+- [X] T016 [US1] `backend/Services/Chat/ChatMessageService.cs` **delete path** (~L468) — `message.BodyCipher = [];` (never `Protect("")`). `LinkKind`/`LinkTargetId` clearing is unchanged. Data-model D2
+- [X] T017 [US1] `backend/Services/Chat/ChatMessageService.cs` **system lines** (~L497) — `BodyCipher = []`
+- [X] T018 [US1] `backend/Services/Chat/ChatMessageService.cs` **projections** (~L286, ~L340) — the private `Row` record's `string Body` becomes `byte[] BodyCipher`; both `.Select(...)` sites project `m.BodyCipher`
+- [X] T019 [US1] `backend/Services/Chat/ChatMessageService.cs` **`ToDto`** (~L413) — decrypt here, where the culture and the row id are both in hand: deleted or system ⇒ `""`; otherwise `TryUnprotect(r.BodyCipher, r.Id, out var text)`. Success ⇒ the text. Failure ⇒ handled in US1-adjacent phase 5 (leave a single `TODO(T028)` returning `""` so this phase compiles and the suite is green)
+- [X] T020 [US1] `backend/Services/Chat/ChatConversationService.cs` inbox preview (~L456 project, ~L499 render) — project `m.BodyCipher`; a deleted last message still previews `""`; otherwise decrypt for the preview
+- [X] T021 [US1] `backend/Data/DevDataSeeder.cs` (~L255–260) — seed through the cipher rather than assigning a string
+- [X] T022 [US1] `backend/tests/.../Chat/ChatDeleteTests.cs` L72 — `Assert.Equal(string.Empty, row.Body)` becomes `Assert.Empty(row.BodyCipher)`; the assertion's meaning is unchanged and the comment should say so
+- [X] T023 [P] [US1] Add `ChatMessageEncryptionTests` — send a message through the API, then read the raw row via the DbContext and assert the plaintext is **absent** from `BodyCipher` and that the first byte is the configured version (SC-001)
+- [X] T024 [P] [US1] Extend the same suite: a **round-trip through the API** for emoji, newlines and a 2 000-character message; the inbox preview shows the real text; a deleted message leaves `BodyCipher` empty and previews empty; a link message still resolves its card (SC-002)
+- [X] T025 [US1] Run the full backend suite and fix fallout. Every remaining reference to `ChatMessage.Body` must be gone — `grep -rn "\.Body" backend --include=*.cs | grep -i chat` should return nothing but the unrelated `SmtpEmailSender` hit
 
 **Checkpoint**: backend suite green; quickstart §1 and §2 pass by hand; SC-001 and SC-002 met.
 
@@ -90,8 +90,8 @@ because it is the same code path.
 **Independent test**: two configured versions; rows written under either read correctly; new
 rows carry the first version. Quickstart §3.
 
-- [ ] T026 [P] [US4] Add a test that configures `"2:<k2>;1:<k1>"`, writes a row under version 1 directly, sends a new message through the API, and asserts: both read correctly, and the new row's first byte is `2` (SC-007)
-- [ ] T027 [P] [US4] Add a test that a row whose version byte is **not** configured reads as unavailable rather than throwing — the rotation-gone-wrong case, which is also the FR-009 path
+- [X] T026 [P] [US4] Add a test that configures `"2:<k2>;1:<k1>"`, writes a row under version 1 directly, sends a new message through the API, and asserts: both read correctly, and the new row's first byte is `2` (SC-007)
+- [X] T027 [P] [US4] Add a test that a row whose version byte is **not** configured reads as unavailable rather than throwing — the rotation-gone-wrong case, which is also the FR-009 path
 
 ---
 
@@ -102,13 +102,13 @@ rows carry the first version. Quickstart §3.
 **Independent test**: corrupt one row's ciphertext; the conversation still opens with one
 placeholder bubble. Quickstart §3.
 
-- [ ] T028 [US1] `backend/Dtos/Chat/ChatDtos.cs` — `MessageDto` gains `bool IsUnavailable` after `IsDeleted`. `LastMessageDto` is **not** changed (contracts/chat-api-delta.md)
-- [ ] T029 [US1] `ChatMessageService.ToDto` — replace the TODO: on `TryUnprotect` returning false, emit `Body = ""`, `IsUnavailable = true`, `LinkCard = null`, and log **one warning** naming conversation id, message id and key version — never the ciphertext, never the key, never the plaintext (FR-010/FR-014)
+- [X] T028 [US1] `backend/Dtos/Chat/ChatDtos.cs` — `MessageDto` gains `bool IsUnavailable` after `IsDeleted`. `LastMessageDto` is **not** changed (contracts/chat-api-delta.md)
+- [X] T029 [US1] `ChatMessageService.ToDto` — replace the TODO: on `TryUnprotect` returning false, emit `Body = ""`, `IsUnavailable = true`, `LinkCard = null`, and log **one warning** naming conversation id, message id and key version — never the ciphertext, never the key, never the plaintext (FR-010/FR-014)
 - [ ] T030 [US1] `frontend/apps/web/src/app/core/models/chat.models.ts` — `readonly isUnavailable: boolean;` beside `isDeleted`
 - [ ] T031 [US1] `frontend/apps/web/src/app/features/chat/chat-conversation/chat-conversation.component.html` (~L112) — a sibling branch to the deleted tombstone rendering `chat.conversation.messageUnavailable`, reusing the existing italic/opacity treatment. No new component, no new token
 - [ ] T032 [US1] Add `chat.conversation.messageUnavailable` to **`en.json`, `de.json` and `es.json` in the same commit** — `catalog-parity.spec.ts` goes red otherwise. English: "This message can't be displayed."
-- [ ] T033 [P] [US1] Backend test: corrupt a stored row, request the conversation, assert **200** with every other message intact and exactly one carrying `isUnavailable: true` and an empty body (SC-006)
-- [ ] T034 [P] [US1] Backend test for SC-009: after that request, assert no captured log line in `JuggerHubApiFactory.ErrorLogs` contains the plaintext, the ciphertext, or any base64 fragment of the configured key
+- [X] T033 [P] [US1] Backend test: corrupt a stored row, request the conversation, assert **200** with every other message intact and exactly one carrying `isUnavailable: true` and an empty body (SC-006)
+- [X] T034 [P] [US1] Backend test for SC-009: after that request, assert no captured log line in `JuggerHubApiFactory.ErrorLogs` contains the plaintext, the ciphertext, or any base64 fragment of the configured key
 - [ ] T035 [P] [US1] Frontend spec: a message with `isUnavailable` renders the placeholder and not an empty bubble; a deleted one still renders the deleted tombstone
 
 **Checkpoint**: both suites green; quickstart §3 passes; SC-005, SC-006, SC-007 and SC-009 met.

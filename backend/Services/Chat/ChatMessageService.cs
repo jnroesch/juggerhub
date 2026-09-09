@@ -22,6 +22,8 @@ public sealed class ChatMessageService : IChatMessageService
     private readonly ChatLinkResolver _links;
     private readonly IReadOnlyCollection<string> _allowedHosts;
     private readonly Localization.IRecipientCultureResolver _culture;
+    private readonly Encryption.IChatMessageCipher _cipher;
+    private readonly ILogger<ChatMessageService> _logger;
 
     /// <summary>Localized neutral stand-in for a sender whose profile is gone or hidden.</summary>
     private string Placeholder => Common.MemberPlaceholder.For(_culture.ResolveFromRequest());
@@ -32,13 +34,17 @@ public sealed class ChatMessageService : IChatMessageService
         IChatRealtime realtime,
         ChatLinkResolver links,
         IConfiguration configuration,
-        Localization.IRecipientCultureResolver culture)
+        Localization.IRecipientCultureResolver culture,
+        Encryption.IChatMessageCipher cipher,
+        ILogger<ChatMessageService> logger)
     {
         _db = db;
         _guard = guard;
         _realtime = realtime;
         _links = links;
         _culture = culture;
+        _cipher = cipher;
+        _logger = logger;
 
         // Which hosts count as "us" for unfurl. Derived from the frontend base URL the email templates
         // already use, so there is one source of truth for "where does JuggerHub live".
@@ -104,11 +110,18 @@ public sealed class ChatMessageService : IChatMessageService
             ConversationId = conversationId,
             SenderId = callerId,
             Kind = ChatMessageKind.Member,
-            Body = trimmed,
             // A link whose target does not exist stays plain text rather than a broken card.
             LinkKind = linkTargetId is null ? ChatLinkKind.None : parsed.Kind,
             LinkTargetId = linkTargetId,
         };
+
+        // Encrypted AFTER construction, never in the initialiser: the ciphertext is bound to this
+        // row's id as associated data, and BaseEntity assigns that id in its field initialiser, so
+        // it only exists once the object does (feature 047, research §3). Note the ordering with
+        // the link parse above — unfurl reads the text the player typed, before it becomes bytes,
+        // which is the only moment it is available (FR-012).
+        message.BodyCipher = _cipher.Protect(trimmed, message.Id);
+
         _db.ChatMessages.Add(message);
 
         // Denormalised so the inbox can order without a correlated subquery. Uses the entity's own
@@ -280,10 +293,11 @@ public sealed class ChatMessageService : IChatMessageService
             .Take(size + 1) // one extra to know whether another page exists
             .Select(m => new Row(
                 m.Id,
+                m.ConversationId,
                 m.Kind,
                 m.SenderId,
                 m.Sender!.Profile!.DisplayName,
-                m.Body,
+                m.BodyCipher,
                 m.CreatedDate,
                 m.IsDeleted,
                 m.SystemEvent,
@@ -334,10 +348,11 @@ public sealed class ChatMessageService : IChatMessageService
             .Where(m => m.Id == messageId)
             .Select(m => new Row(
                 m.Id,
+                m.ConversationId,
                 m.Kind,
                 m.SenderId,
                 m.Sender!.Profile!.DisplayName,
-                m.Body,
+                m.BodyCipher,
                 m.CreatedDate,
                 m.IsDeleted,
                 m.SystemEvent,
@@ -376,7 +391,37 @@ public sealed class ChatMessageService : IChatMessageService
             .ToDictionaryAsync(p => p.UserId, p => p.DisplayName, ct);
     }
 
-    private static MessageDto ToDto(
+    /// <summary>
+    /// Reads a row's stored text (feature 047). Rows that hold nothing — system lines, and messages
+    /// the sender deleted — are not an error and are not asked; anything else that will not decrypt
+    /// is reported so <em>that one message</em> can carry a placeholder while the rest of the
+    /// conversation renders normally (FR-009).
+    /// </summary>
+    private (string Body, bool IsUnavailable) ReadBody(Row r)
+    {
+        if (r.IsDeleted || r.BodyCipher.Length == 0)
+        {
+            return (string.Empty, false);
+        }
+
+        if (_cipher.TryUnprotect(r.BodyCipher, r.Id, out var text))
+        {
+            return (text, false);
+        }
+
+        // Identifiers and the key version only — never the ciphertext, never the key, never a
+        // guess at the content (FR-010/FR-014). The version is the useful part: it tells an
+        // operator whether they retired a key that rows still depend on.
+        _logger.LogWarning(
+            "Chat message {MessageId} in conversation {ConversationId} could not be decrypted (key version {KeyVersion}).",
+            r.Id,
+            r.ConversationId,
+            _cipher.VersionOf(r.BodyCipher));
+
+        return (string.Empty, true);
+    }
+
+    private MessageDto ToDto(
         Row r,
         Guid callerId,
         Guid? otherLastRead,
@@ -385,6 +430,7 @@ public sealed class ChatMessageService : IChatMessageService
         string placeholder)
     {
         var isOwn = r.SenderId == callerId;
+        var (body, isUnavailable) = ReadBody(r);
 
         string? readState = null;
         if (isOwn && !r.IsDeleted && r.Kind == ChatMessageKind.Member)
@@ -410,9 +456,10 @@ public sealed class ChatMessageService : IChatMessageService
                 ? null
                 : r.SenderDisplayName ?? placeholder,
             isOwn,
-            r.IsDeleted ? string.Empty : r.Body,
+            body,
             r.CreatedDate,
             r.IsDeleted,
+            isUnavailable,
             readState,
             r.SystemEvent,
             r.SystemSubjectUserId is { } sid
@@ -420,8 +467,10 @@ public sealed class ChatMessageService : IChatMessageService
                 : null,
             // Null ⇒ the client renders the body's link as plain text. That covers three cases the
             // viewer cannot tell apart, by design: no link, a target they may not see (FR-040), and a
-            // target that no longer exists (FR-041).
-            cards.GetValueOrDefault(r.Id));
+            // target that no longer exists (FR-041). A message whose text could not be decrypted
+            // gets no card either — a card beside a placeholder would advertise the content of a
+            // message we are telling the reader we cannot show them.
+            isUnavailable ? null : cards.GetValueOrDefault(r.Id));
     }
 
     // --- Delete -----------------------------------------------------------------
@@ -465,7 +514,10 @@ public sealed class ChatMessageService : IChatMessageService
         // for any query that forgot to check it, and "deleted" would be a rendering convention rather
         // than a fact. The row survives only to hold its place in the order (data-model R12).
         message.IsDeleted = true;
-        message.Body = string.Empty;
+        // Zero-length, never Protect("") — an envelope around the empty string is 29 bytes that
+        // look exactly like a short message, and "the content is gone from the row" would stop
+        // being something anyone could observe (feature 047, data-model D2).
+        message.BodyCipher = [];
         message.LinkKind = ChatLinkKind.None;
         message.LinkTargetId = null;
 
@@ -495,7 +547,9 @@ public sealed class ChatMessageService : IChatMessageService
             // Null sender is what makes a system line unforgeable by a member (data-model R13).
             SenderId = null,
             Kind = ChatMessageKind.System,
-            Body = string.Empty,
+            // A system line has nothing to say — the client renders it from SystemEvent and the
+            // subject's name. Zero-length, not an envelope (feature 047, data-model D2).
+            BodyCipher = [],
             SystemEvent = systemEvent,
             SystemSubjectUserId = subjectUserId,
         });
@@ -506,10 +560,11 @@ public sealed class ChatMessageService : IChatMessageService
     /// <summary>Flat projection row; kept private so the query shape stays in one place.</summary>
     private sealed record Row(
         Guid Id,
+        Guid ConversationId,
         ChatMessageKind Kind,
         Guid? SenderId,
         string? SenderDisplayName,
-        string Body,
+        byte[] BodyCipher,
         DateTime CreatedDate,
         bool IsDeleted,
         ChatSystemEvent? SystemEvent,
