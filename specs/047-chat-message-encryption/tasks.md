@@ -29,9 +29,9 @@ Web application: `backend/`, `frontend/apps/web/`, `infra/`, repo-root `scripts/
 **Purpose**: the two things every later phase needs — somewhere for keys to come from, and
 somewhere for certificates to come from. Nothing here changes behaviour.
 
-- [ ] T001 Add `certs/` to `.gitignore` so no certificate or private key can be committed (FR-018)
-- [ ] T002 [P] Create `scripts/dev-postgres-certs.ps1` — generates a local CA and a Postgres server certificate into `certs/local/` (`ca.crt`, `server.crt`, `server.key`) using .NET `CertificateRequest` + `ExportPkcs8PrivateKeyPem()`, no OpenSSL dependency; SANs `database`, `localhost`, `127.0.0.1`; idempotent (skips when a valid, unexpired cert already exists); prints where the files went. Research §6
-- [ ] T003 [P] Add `CHAT_ENCRYPTION_KEYS=` to `.env.sample` with a comment stating the format (`version:base64key`, `;`-separated, **first entry writes**), that the key is 32 bytes base64, and that losing it destroys every stored message
+- [X] T001 Add `certs/` to `.gitignore` so no certificate or private key can be committed (FR-018)
+- [X] T002 [P] Create `scripts/dev-postgres-certs.ps1` — generates a local CA and a Postgres server certificate into `certs/local/` (`ca.crt`, `server.crt`, `server.key`) using .NET `CertificateRequest` + `ExportPkcs8PrivateKeyPem()`, no OpenSSL dependency; SANs `database`, `localhost`, `127.0.0.1`; idempotent (skips when a valid, unexpired cert already exists); prints where the files went. Research §6
+- [X] T003 [P] Add `CHAT_ENCRYPTION_KEYS=` to `.env.sample` with a comment stating the format (`version:base64key`, `;`-separated, **first entry writes**), that the key is 32 bytes base64, and that losing it destroys every stored message
 
 **Checkpoint**: `./scripts/dev-postgres-certs.ps1` produces three files under `certs/local/` and `git status` shows none of them.
 
@@ -42,14 +42,14 @@ somewhere for certificates to come from. Nothing here changes behaviour.
 **Purpose**: a complete, tested, unused component. Nothing references it yet, which is what
 makes its tests mean something.
 
-- [ ] T004 Create `backend/Services/Chat/Encryption/IChatMessageCipher.cs` — `byte[] Protect(string plaintext, Guid messageId)` and `bool TryUnprotect(byte[] cipher, Guid messageId, out string plaintext)`, with XML docs stating that `TryUnprotect` never throws on bad input and that empty text is the caller's business (contract C4/C5)
-- [ ] T005 Create `backend/Services/Chat/Encryption/ChatEncryptionOptions.cs` — binds the single `Chat:Encryption:Keys` string; a `Parse()` that yields ordered `(byte Version, byte[] Key)` entries and throws with a message naming the configuration key and **containing no key material** (contract S1–S5)
-- [ ] T006 Create `backend/Services/Chat/Encryption/AesGcmChatMessageCipher.cs` — envelope `[version:1][nonce:12][tag:16][ciphertext:n]`, `new AesGcm(key, tagSizeInBytes: 16)`, nonce from `RandomNumberGenerator`, **associated data = the message id's 16 bytes**; `Protect` uses the first configured entry; `TryUnprotect` reads any configured version and returns `false` for a short envelope, an unknown version, or a failed tag. Research §3, data-model "Envelope layout"
-- [ ] T007 Create `backend/Services/Chat/Encryption/ChatEncryptionServiceCollectionExtensions.cs` — `AddChatMessageEncryption(IConfiguration)`: parse, validate, register `IChatMessageCipher` as a **singleton** holding the parsed keys
-- [ ] T008 Wire it in `backend/Program.cs` beside the Redis fail-fast (~L426–443), matching its placement and tone — startup **throws** when no usable key is configured (FR-007). There is no switch that disables encryption
-- [ ] T009 [P] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatMessageCipherTests.cs` covering contract cases **C1–C11**: envelope size and layout, a fresh nonce per call, round-trip for ASCII/emoji/combining marks/newlines/2 000 chars, `Protect("")` and `TryUnprotect([])` throwing, rejection on a different message id, rejection of a single flipped byte, a short envelope returning false without throwing, an unknown version returning false, and two configured versions where the first writes
-- [ ] T010 [P] Add `ChatEncryptionOptionsTests` covering **S1–S6**, asserting for each failure that the exception names `Chat:Encryption:Keys` and that **no base64 fragment of the input appears in the message**
-- [ ] T011 Add `["Chat:Encryption:Keys"] = "1:<fixed 32-byte test key>"` to `JuggerHubApiFactory`'s in-memory configuration so the existing suite can boot
+- [X] T004 Create `backend/Services/Chat/Encryption/IChatMessageCipher.cs` — `byte[] Protect(string plaintext, Guid messageId)` and `bool TryUnprotect(byte[] cipher, Guid messageId, out string plaintext)`, with XML docs stating that `TryUnprotect` never throws on bad input and that empty text is the caller's business (contract C4/C5)
+- [X] T005 Create `backend/Common/ChatEncryptionOptions.cs` (options live in `Common/` by project convention — a deviation from the plan file tree) — binds the single `Chat:Encryption:Keys` string; a `Parse()` that yields ordered `(byte Version, byte[] Key)` entries and throws with a message naming the configuration key and **containing no key material** (contract S1–S5)
+- [X] T006 Create `backend/Services/Chat/Encryption/AesGcmChatMessageCipher.cs` — envelope `[version:1][nonce:12][tag:16][ciphertext:n]`, `new AesGcm(key, tagSizeInBytes: 16)`, nonce from `RandomNumberGenerator`, **associated data = the message id's 16 bytes**; `Protect` uses the first configured entry; `TryUnprotect` reads any configured version and returns `false` for a short envelope, an unknown version, or a failed tag. Research §3, data-model "Envelope layout"
+- [X] T007 Create `backend/Services/Chat/Encryption/ChatEncryptionServiceCollectionExtensions.cs` — `AddChatMessageEncryption(IConfiguration)`: parse, validate, register `IChatMessageCipher` as a **singleton** holding the parsed keys
+- [X] T008 Wire it in `backend/Program.cs` beside the Redis fail-fast (~L426–443), matching its placement and tone — startup **throws** when no usable key is configured (FR-007). There is no switch that disables encryption
+- [X] T009 [P] Add `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatMessageCipherTests.cs` covering contract cases **C1–C11**: envelope size and layout, a fresh nonce per call, round-trip for ASCII/emoji/combining marks/newlines/2 000 chars, `Protect("")` and `TryUnprotect([])` throwing, rejection on a different message id, rejection of a single flipped byte, a short envelope returning false without throwing, an unknown version returning false, and two configured versions where the first writes
+- [X] T010 [P] Add `ChatEncryptionOptionsTests` covering **S1–S6**, asserting for each failure that the exception names `Chat:Encryption:Keys` and that **no base64 fragment of the input appears in the message**
+- [X] T011 Add `["Chat:Encryption:Keys"] = "1:<fixed 32-byte test key>"` to `JuggerHubApiFactory`'s in-memory configuration so the existing suite can boot
 
 **Checkpoint**: `dotnet test` green. The cipher is complete and nothing in the product calls it yet.
 

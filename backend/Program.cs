@@ -10,6 +10,7 @@ using JuggerHub.Services;
 using JuggerHub.Services.Achievements;
 using JuggerHub.Services.Auth;
 using JuggerHub.Services.Badges;
+using JuggerHub.Services.Chat.Encryption;
 using JuggerHub.Services.Email;
 using JuggerHub.Services.Events;
 using JuggerHub.Services.Health;
@@ -375,6 +376,12 @@ builder.Services.AddScoped<JuggerHub.Services.Trainings.ITrainingResponseService
 // from the roster on every request rather than mirrored into rows, so removal revokes access by
 // construction (see specs/019-chat/research.md §4).
 builder.Services.AddScoped<JuggerHub.Services.Chat.ChatGuard>();
+// Message bodies are encrypted at rest (feature 047 / #223). This call VALIDATES the configured
+// keys and throws if none is usable — deliberately fatal, in every environment including
+// Development, and with no switch that turns encryption off. The alternative to a loud refusal is
+// an application that starts happily and writes message text in the clear, which is the exact
+// state this feature exists to leave behind. Same reasoning as the Redis backplane guard below.
+builder.Services.AddChatMessageEncryption(builder.Configuration);
 // Resolves link cards against the VIEWER's permissions at read time, never the sender's, and never
 // over the network (specs/019-chat/research.md §5).
 builder.Services.AddScoped<JuggerHub.Services.Chat.ChatLinkResolver>();
