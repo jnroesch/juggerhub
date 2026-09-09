@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import type { HubConnection } from '@microsoft/signalr';
-import { Observable, tap } from 'rxjs';
+import { EMPTY, Observable, defer, finalize, tap } from 'rxjs';
 import { PagedResult } from '../models/notification.models';
 import {
   BlockedUser,
@@ -47,6 +47,7 @@ export class ChatService {
   private readonly _messages = signal<ChatMessage[]>([]);
   private readonly _openId = signal<string | null>(null);
   private readonly _nextBefore = signal<string | null>(null);
+  private readonly _loadingOlder = signal(false);
   private readonly _typing = signal<TypingSignal[]>([]);
 
   /** Total unread for the Chat nav badge. */
@@ -58,6 +59,8 @@ export class ChatService {
   readonly openConversationId = this._openId.asReadonly();
   /** True while older history remains to page in. */
   readonly hasMoreHistory = computed(() => this._nextBefore() !== null);
+  /** True while a page of older history is in flight — see {@link loadOlder}. */
+  readonly loadingOlder = this._loadingOlder.asReadonly();
 
   /** Who is typing right now, expiry already applied. */
   readonly typing = computed(() => {
@@ -103,6 +106,19 @@ export class ChatService {
         params: new HttpParams().set('skip', 0).set('take', take),
       })
       .pipe(tap((page) => this._conversations.set([...page.items])));
+  }
+
+  /**
+   * The inbox narrowed to conversations whose members' or own names match (feature 046) — never
+   * message text. Returns the page **without touching {@link conversations}**: that signal is what
+   * SignalR keeps current, so clearing the term must restore it instantly and a message arriving
+   * mid-search must patch the right list. The two-character minimum is the server's rule as well; a
+   * shorter term simply yields the plain inbox.
+   */
+  searchInbox(term: string, take = 20): Observable<PagedResult<Conversation>> {
+    return this.http.get<PagedResult<Conversation>>(`${this.base}/conversations`, {
+      params: new HttpParams().set('q', term).set('skip', 0).set('take', take),
+    });
   }
 
   refreshUnread(): void {
@@ -203,6 +219,9 @@ export class ChatService {
     this._openId.set(conversationId);
     this._messages.set([]);
     this._nextBefore.set(null);
+    // Switching conversations while a history page is in flight must not leave the guard stuck: the
+    // response that would have cleared it is discarded below, because it belongs to the old thread.
+    this._loadingOlder.set(false);
 
     return this.http.get<MessagePage>(`${this.base}/conversations/${conversationId}/messages`).pipe(
       tap((page) => {
@@ -214,22 +233,49 @@ export class ChatService {
     );
   }
 
-  /** Page further back. Keyset on the message id — a message arriving mid-scroll cannot shift a page. */
+  /**
+   * Page further back. Keyset on the message id — a message arriving mid-scroll cannot shift a page.
+   *
+   * **One page at a time.** Scroll events fire many times a second, so without a guard several
+   * requests carrying the *identical* `before` cursor go out before the first response advances it,
+   * and every one of them prepends the same page again (GH #220). The guard lives here rather than in
+   * the scroll handler so there is a single owner and no caller can bypass it; a call made while a
+   * page is in flight completes without emitting, so callers see "nothing arrived" rather than an
+   * error. Both the cursor and the guard are read at *subscribe* time (hence `defer`), so a returned
+   * observable that is never subscribed cannot strand the flag.
+   */
   loadOlder(conversationId: string): Observable<MessagePage> {
-    const before = this._nextBefore();
-    let params = new HttpParams();
-    if (before) {
-      params = params.set('before', before);
-    }
+    return defer(() => {
+      if (this._loadingOlder()) {
+        return EMPTY;
+      }
 
-    return this.http
-      .get<MessagePage>(`${this.base}/conversations/${conversationId}/messages`, { params })
-      .pipe(
-        tap((page) => {
-          this._messages.update((existing) => [...[...page.items].reverse(), ...existing]);
-          this._nextBefore.set(page.nextBefore);
-        }),
-      );
+      const before = this._nextBefore();
+      let params = new HttpParams();
+      if (before) {
+        params = params.set('before', before);
+      }
+
+      this._loadingOlder.set(true);
+
+      return this.http
+        .get<MessagePage>(`${this.base}/conversations/${conversationId}/messages`, { params })
+        .pipe(
+          tap((page) => {
+            // A page for a conversation that is no longer open belongs to nothing on screen.
+            if (this._openId() !== conversationId) {
+              return;
+            }
+            this.prependOlder(page.items);
+            this._nextBefore.set(page.nextBefore);
+          }),
+          finalize(() => {
+            if (this._openId() === conversationId) {
+              this._loadingOlder.set(false);
+            }
+          }),
+        );
+    });
   }
 
   send(conversationId: string, body: string): Observable<ChatMessage> {
@@ -315,6 +361,21 @@ export class ChatService {
   }
 
   // --- Local state helpers --------------------------------------------------
+
+  /**
+   * Prepend a page of older history, oldest-first, dropping anything the thread already holds.
+   *
+   * Defence in depth behind the in-flight guard in {@link loadOlder}: a repeated id gives the
+   * template's `track m.id` duplicate keys (NG0955) and renders the same messages twice. It also
+   * covers the honest overlap — a message that arrived live and then turned up inside a page.
+   */
+  private prependOlder(items: readonly ChatMessage[]): void {
+    this._messages.update((existing) => {
+      const known = new Set(existing.map((m) => m.id));
+      const older = [...items].reverse().filter((m) => !known.has(m.id));
+      return older.length > 0 ? [...older, ...existing] : existing;
+    });
+  }
 
   private appendMessage(message: ChatMessage): void {
     this._messages.update((ms) => (ms.some((m) => m.id === message.id) ? ms : [...ms, message]));

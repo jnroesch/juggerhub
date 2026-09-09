@@ -33,6 +33,7 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
 
   protected readonly messages = this.chat.messages;
   protected readonly hasMoreHistory = this.chat.hasMoreHistory;
+  protected readonly loadingOlder = this.chat.loadingOlder;
   protected readonly typingHere = this.chat.typingHere;
 
   protected readonly detail = signal<ConversationDetail | null>(null);
@@ -58,22 +59,42 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
 
   private pinnedToBottom = true;
   private pendingScrollToBottom = false;
-  private lastCount = 0;
+  /** The scroller height captured before a history page was requested; applied once it has rendered. */
+  private pendingScrollAnchor: number | null = null;
+  /** The newest message the thread held on the last pass — the anchor for "what has arrived since". */
+  private lastLatestId: string | null = null;
 
   constructor() {
     // A message arriving while the reader is scrolled up must NOT yank them to the bottom (FR-021):
     // it drops in behind a divider and raises the jump pill instead.
+    //
+    // Tracked by the id of the newest message rather than by the length, because the thread also
+    // grows at the *front* when the reader pages back through history — and older messages are not
+    // new ones: counting them would raise "30 new messages" and plant a divider above the page the
+    // reader just asked for.
     effect(() => {
-      const count = this.messages().length;
-      if (count > this.lastCount && this.lastCount > 0) {
-        if (this.pinnedToBottom) {
-          this.pendingScrollToBottom = true;
-        } else {
-          this.newWhileAway.update((n) => n + (count - this.lastCount));
-          this.dividerBeforeId.update((id) => id ?? this.messages()[this.lastCount]?.id ?? null);
-        }
+      const all = this.messages();
+      const latestId = all.length > 0 ? all[all.length - 1].id : null;
+      const previousLatestId = this.lastLatestId;
+      this.lastLatestId = latestId;
+
+      // Nothing yet, a thread just opened, or only older history came in.
+      if (previousLatestId === null || latestId === previousLatestId) {
+        return;
       }
-      this.lastCount = count;
+
+      const previousIndex = all.findIndex((m) => m.id === previousLatestId);
+      const arrived = previousIndex >= 0 ? all.length - 1 - previousIndex : all.length;
+      if (arrived <= 0) {
+        return;
+      }
+
+      if (this.pinnedToBottom) {
+        this.pendingScrollToBottom = true;
+      } else {
+        this.newWhileAway.update((n) => n + arrived);
+        this.dividerBeforeId.update((id) => id ?? all[previousIndex + 1]?.id ?? null);
+      }
     });
   }
 
@@ -88,6 +109,15 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
       this.pendingScrollToBottom = false;
       this.scrollToBottom();
     }
+
+    if (this.pendingScrollAnchor !== null) {
+      const previousHeight = this.pendingScrollAnchor;
+      this.pendingScrollAnchor = null;
+      const el = this.scroller?.nativeElement;
+      if (el) {
+        el.scrollTop = el.scrollHeight - previousHeight;
+      }
+    }
   }
 
   private open(): void {
@@ -95,7 +125,8 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
     this.loading.set(true);
     this.failed.set(false);
     this.resetDivider();
-    this.lastCount = 0;
+    this.lastLatestId = null;
+    this.pendingScrollAnchor = null;
     this.pinnedToBottom = true;
 
     this.chat.getDetail(id).subscribe({
@@ -130,14 +161,16 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
       this.chat.markReadToLatest(this.conversationId());
     }
 
-    // Reaching the top pages further back.
-    if (el.scrollTop < 80 && this.hasMoreHistory()) {
+    // Reaching the top pages further back. The service refuses a second page while one is in flight
+    // (GH #220); asking here as well keeps the pointless subscriptions from being created at all.
+    if (el.scrollTop < 80 && this.hasMoreHistory() && !this.loadingOlder()) {
       const previousHeight = el.scrollHeight;
       this.chat.loadOlder(this.conversationId()).subscribe({
-        next: () => {
-          // Keep the reader's eye where it was: prepending content would otherwise jump the view.
-          queueMicrotask(() => (el.scrollTop = el.scrollHeight - previousHeight));
-        },
+        // Keep the reader's eye where it was: prepending content would otherwise jump the view. The
+        // measurement has to wait for the prepended rows to be in the DOM, and the app is zoneless —
+        // rendering is scheduled on a rAF/timeout race, so a microtask still sees the OLD height and
+        // would park the reader at scrollTop 0, straight back on the trigger.
+        next: () => (this.pendingScrollAnchor = previousHeight),
         error: () => undefined,
       });
     }

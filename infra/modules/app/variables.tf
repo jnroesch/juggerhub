@@ -102,6 +102,12 @@ variable "jwt_signing_key" {
   sensitive = true
 }
 
+# Feature 047 — see the root variables.tf for the format and the warning about losing it.
+variable "chat_encryption_keys" {
+  type      = string
+  sensitive = true
+}
+
 variable "resend_api_key" {
   type      = string
   sensitive = true

@@ -67,6 +67,12 @@ public sealed record LinkCardDto(
     string? AvatarUrl);
 
 /// <summary>One message in a thread.</summary>
+/// <remarks>
+/// <c>IsUnavailable</c> means the stored text could not be decrypted (feature 047 FR-009) — a
+/// retired key, or a corrupted row. <c>Body</c> is then empty and the client renders a neutral
+/// placeholder for that one message; the rest of the conversation is unaffected. It is never true
+/// together with <c>IsDeleted</c>, because a deleted row holds no ciphertext to fail on.
+/// </remarks>
 public sealed record MessageDto(
     Guid Id,
     ChatMessageKind Kind,
@@ -76,6 +82,7 @@ public sealed record MessageDto(
     string Body,
     DateTime SentAt,
     bool IsDeleted,
+    bool IsUnavailable,
     string? ReadState,
     ChatSystemEvent? SystemEvent,
     string? SystemSubjectName,
@@ -88,16 +95,6 @@ public sealed record MessageDto(
 /// </summary>
 public sealed record MessagePageDto(IReadOnlyList<MessageDto> Items, Guid? NextBefore);
 
-/// <summary>One hit when searching your own messages.</summary>
-public sealed record MessageSearchHitDto(
-    Guid MessageId,
-    Guid ConversationId,
-    string ConversationName,
-    ConversationKind ConversationKind,
-    string Snippet,
-    DateTime SentAt,
-    string? SenderName);
-
 /// <summary>One hit when searching for people to chat with.</summary>
 public sealed record PersonHitDto(
     Guid UserId,
@@ -106,10 +103,13 @@ public sealed record PersonHitDto(
     string? AvatarUrl,
     Guid? ExistingConversationId);
 
-/// <summary>Search results, split the way the inbox renders them: your messages, and people.</summary>
-public sealed record ChatSearchResultDto(
-    Common.PagedResult<MessageSearchHitDto> Messages,
-    Common.PagedResult<PersonHitDto> People);
+/// <summary>
+/// People search results, for starting a chat. The envelope is kept although it has a single member:
+/// feature 046 removed the <c>messages</c> half (the product no longer searches message text), and
+/// the three remaining callers — the new-chat picker, compose-by-handle and the profile Message action
+/// — read <c>people</c> and nothing else, so they are untouched by the removal.
+/// </summary>
+public sealed record ChatSearchResultDto(Common.PagedResult<PersonHitDto> People);
 
 /// <summary>A player you have blocked.</summary>
 public sealed record BlockedUserDto(Guid UserId, string DisplayName, string? Handle, DateTime BlockedAt);

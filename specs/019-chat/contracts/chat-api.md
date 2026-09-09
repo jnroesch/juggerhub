@@ -228,6 +228,12 @@ Pushes `chatTyping` to the **other** participants with a 5 s expiry (research §
 
 ## Search
 
+> **Amended by 046 (2026-09-08):** the `messages` half below is **removed** — the response is
+> `{ people }` only — and `GET /api/v1/chat/conversations` gained an optional `q` that narrows
+> the inbox by member and conversation name. See
+> `specs/046-chat-inbox-search/contracts/chat-inbox-search-api.md`. The text below is kept as
+> the record of what shipped with 019.
+
 ### `GET /api/v1/chat/search`
 
 Query: `q` (required, ≥ 2 chars), `skip`, `take`.

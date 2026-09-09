@@ -3,7 +3,7 @@
 
 # --- build: restore + publish the API ---------------------------------------
 # SDK pinned to match backend/global.json and CI.
-FROM mcr.microsoft.com/dotnet/sdk:10.0.302 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0.400 AS build
 WORKDIR /src
 
 # Optional egress-proxy CA. Behind a TLS-terminating egress proxy (e.g. Claude Code on
@@ -43,7 +43,7 @@ ENTRYPOINT ["dotnet", "test", \
 
 # --- runtime: lean ASP.NET image with only the publish output ---------------
 # ASP.NET runtime pinned (latest 10.0 patch at time of pinning).
-FROM mcr.microsoft.com/dotnet/aspnet:10.0.10 AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0.11 AS runtime
 WORKDIR /app
 
 # curl is used by the compose healthcheck to probe /api/v1/health.

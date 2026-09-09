@@ -98,6 +98,12 @@ export interface ChatMessage {
   readonly body: string;
   readonly sentAt: string;
   readonly isDeleted: boolean;
+  /**
+   * The server could not decrypt this message's stored text (feature 047) — a retired key, or a
+   * corrupted row. `body` is empty and the bubble reads as unavailable. Never true together with
+   * `isDeleted`: a deleted row holds no ciphertext to fail on.
+   */
+  readonly isUnavailable: boolean;
   readonly readState: ReadState;
   readonly systemEvent: ChatSystemEvent | null;
   readonly systemSubjectName: string | null;
@@ -110,16 +116,6 @@ export interface MessagePage {
   readonly nextBefore: string | null;
 }
 
-export interface MessageSearchHit {
-  readonly messageId: string;
-  readonly conversationId: string;
-  readonly conversationName: string;
-  readonly conversationKind: ConversationKind;
-  readonly snippet: string;
-  readonly sentAt: string;
-  readonly senderName: string | null;
-}
-
 export interface PersonHit {
   readonly userId: string;
   readonly displayName: string;
@@ -129,8 +125,11 @@ export interface PersonHit {
   readonly existingConversationId: string | null;
 }
 
+/**
+ * People to start a chat with. Since feature 046 this is people only — the product does not search
+ * message text; the inbox narrows itself by name through `ChatService.searchInbox`.
+ */
 export interface ChatSearchResult {
-  readonly messages: { items: readonly MessageSearchHit[]; totalCount: number };
   readonly people: { items: readonly PersonHit[]; totalCount: number };
 }
 

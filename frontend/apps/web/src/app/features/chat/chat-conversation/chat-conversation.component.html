@@ -111,6 +111,15 @@
               >
                 @if (m.isDeleted) {
                   <span class="italic opacity-80">{{ 'chat.inbox.messageDeleted' | transloco }}</span>
+                } @else if (m.isUnavailable) {
+                  <!--
+                    The server could not decrypt this one message (feature 047 FR-009). Same neutral
+                    treatment as a tombstone but a DIFFERENT string: nobody withdrew this, and
+                    saying "deleted" would be a lie about what happened to it.
+                  -->
+                  <span class="italic opacity-80" data-testid="unavailable-message">{{
+                    'chat.conversation.messageUnavailable' | transloco
+                  }}</span>
                 } @else {
                   <!-- Bound as TEXT, never HTML: user content is never markup (FR-014) -->
                   <span class="whitespace-pre-wrap break-words">{{ m.body }}</span>

@@ -224,6 +224,7 @@
       "inviteCoAdmins": "Co-Admins einladen",
       "cancelEvent": "Event absagen",
       "manageEvent": "Event verwalten",
+      "contactAdmins": "Event-Admins kontaktieren",
       "entranceFee": "Teilnahmegebühr",
       "payBy": "Zahlen bis {{date}}",
       "payTo": "Zahlen an",
@@ -467,13 +468,10 @@
     "inbox": {
       "title": "Nachrichten",
       "startChat": "Chat starten",
-      "searchSr": "Nachrichten und Personen suchen",
-      "searchPlaceholder": "Nachrichten suchen",
+      "searchSr": "Deine Chats nach Namen durchsuchen",
+      "searchPlaceholder": "Chat nach Name finden…",
       "loadError": "Wir konnten deine Nachrichten nicht laden. Versuch es gleich noch einmal.",
       "nothingMatched": "Nichts passt zu „{{term}}“.",
-      "inYourMessages": "In deinen Nachrichten",
-      "people": "Personen",
-      "chat": "Chat",
       "archived": "Archiviert",
       "systemJoined": "Jemand ist dem Chat beigetreten",
       "youPrefix": "Du:",
@@ -514,7 +512,8 @@
       "systemJoined": "{{name}} ist dem Chat beigetreten",
       "systemLeft": "{{name}} hat den Chat verlassen",
       "systemRemoved": "{{name}} wurde entfernt",
-      "systemGroupCreated": "{{name}} hat diese Gruppe erstellt"
+      "systemGroupCreated": "{{name}} hat diese Gruppe erstellt",
+      "messageUnavailable": "Diese Nachricht kann nicht angezeigt werden."
     },
     "details": {
       "backToChat": "Zurück zum Chat",

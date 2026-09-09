@@ -98,7 +98,11 @@ locals {
   # those characters routinely, and the failure would look like a networking problem rather than a
   # quoting one. Only the URL needs this: psql receives the password through PGPASSWORD and -v,
   # both of which take it literally.
-  umami_database_url = "postgresql://umami:${urlencode(var.umami_db_password)}@postgres:5432/umami"
+  # sslmode=require (feature 047): the database now presents a certificate, and Prisma's default
+  # `prefer` would negotiate TLS anyway — this makes it explicit rather than incidental. Umami is
+  # deliberately NOT given the internal CA: it carries analytics, not messages, so its hop is
+  # encrypted but unverified. Recorded as a residual in the 047 research.
+  umami_database_url = "postgresql://umami:${urlencode(var.umami_db_password)}@postgres:5432/umami?sslmode=require"
 
   # The post-deploy Job is named after a digest of everything that decides what it DOES. A
   # Kubernetes Job's pod spec is immutable, so a Job that already exists is never re-run and a

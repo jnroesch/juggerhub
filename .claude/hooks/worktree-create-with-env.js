@@ -24,7 +24,22 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const SEED_FILES = ['.env'];
+/**
+ * Gitignored local files a worktree needs to actually run the stack.
+ *
+ * The certs are the Postgres TLS material (feature 047); without them the `database` service
+ * exits at startup, because the backend connects with `SSL Mode=VerifyFull`. They are COPIED
+ * rather than regenerated per worktree on purpose: every local worktree talks to the same
+ * `database` service name, so one CA serves all of them, and a fresh CA per worktree would be
+ * work that buys nothing. If the main repo has none yet, they are simply skipped — the
+ * SessionStart hook generates them, and `scripts/dev-postgres-certs.ps1` is the manual route.
+ */
+const SEED_FILES = [
+  '.env',
+  'certs/local/ca.crt',
+  'certs/local/server.crt',
+  'certs/local/server.key',
+];
 
 const git = (repo, ...args) =>
   execFileSync('git', ['-C', repo, ...args], { encoding: 'utf8' }).trim();

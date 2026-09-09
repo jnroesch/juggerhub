@@ -19,19 +19,22 @@ public sealed class ChatConversationService : IChatConversationService
     private readonly IChatRealtime _realtime;
     private readonly IChatMessageService _messages;
     private readonly Localization.IRecipientCultureResolver _culture;
+    private readonly Encryption.IChatMessageCipher _cipher;
 
     public ChatConversationService(
         AppDbContext db,
         ChatGuard guard,
         IChatRealtime realtime,
         IChatMessageService messages,
-        Localization.IRecipientCultureResolver culture)
+        Localization.IRecipientCultureResolver culture,
+        Encryption.IChatMessageCipher cipher)
     {
         _db = db;
         _guard = guard;
         _realtime = realtime;
         _messages = messages;
         _culture = culture;
+        _cipher = cipher;
     }
 
     /// <summary>
@@ -405,15 +408,25 @@ public sealed class ChatConversationService : IChatConversationService
     public async Task<PagedResult<ConversationSummaryDto>> GetInboxAsync(
         Guid callerId,
         PaginationRequest pagination,
+        string? query = null,
         CancellationToken ct = default)
     {
         await EnsureAutoChatsForAsync(callerId, ct);
 
-        var query = VisibleConversations(callerId);
+        var visible = VisibleConversations(callerId);
 
-        var total = await query.CountAsync(ct);
+        // Feature 046: the inbox search is this same query with one more WHERE — never a second query,
+        // so eligibility, rows, order and bound are the inbox's by construction (046 research §1). A
+        // term shorter than the minimum is "no term": the plain inbox, not an error — the search box
+        // calls this on every keystroke.
+        var term = query?.Trim() ?? string.Empty;
+        var q = term.Length >= ChatConstants.MinSearchTermLength
+            ? visible.Where(ChatGuard.MatchesName(_db, callerId, $"%{term}%"))
+            : visible;
 
-        var rows = await query
+        var total = await q.CountAsync(ct);
+
+        var rows = await q
             .OrderByDescending(c => c.LastMessageDate ?? c.CreatedDate)
             .Skip(pagination.NormalizedSkip)
             .Take(pagination.NormalizedTake)
@@ -443,7 +456,7 @@ public sealed class ChatConversationService : IChatConversationService
                     .Select(m => new
                     {
                         m.Id,
-                        m.Body,
+                        m.BodyCipher,
                         m.CreatedDate,
                         m.SenderId,
                         m.IsDeleted,
@@ -485,8 +498,15 @@ public sealed class ChatConversationService : IChatConversationService
                     ? null
                     : new LastMessageDto(
                         // A deleted message surrenders its preview — the inbox must not keep showing
-                        // content the sender withdrew (spec FR-050c).
-                        last.IsDeleted ? string.Empty : last.Body,
+                        // content the sender withdrew (spec FR-050c). A message whose stored text
+                        // will not decrypt (feature 047) gets the same empty preview rather than a
+                        // second flag on this DTO: the row still shows its sender and timestamp,
+                        // and opening the conversation is where the placeholder belongs.
+                        last.IsDeleted || last.BodyCipher.Length == 0
+                            ? string.Empty
+                            : _cipher.TryUnprotect(last.BodyCipher, last.Id, out var preview)
+                                ? preview
+                                : string.Empty,
                         last.CreatedDate,
                         last.SenderId == callerId ? null : last.SenderName ?? placeholder,
                         last.SenderId == callerId,
@@ -1181,7 +1201,7 @@ public sealed class ChatConversationService : IChatConversationService
 
     private async Task<ChatResult<ConversationSummaryDto>> SummariseAsync(Guid callerId, Guid conversationId, CancellationToken ct)
     {
-        var page = await GetInboxAsync(callerId, new PaginationRequest { Skip = 0, Take = 100 }, ct);
+        var page = await GetInboxAsync(callerId, new PaginationRequest { Skip = 0, Take = 100 }, null, ct);
         var found = page.Items.FirstOrDefault(c => c.Id == conversationId);
 
         return found is null

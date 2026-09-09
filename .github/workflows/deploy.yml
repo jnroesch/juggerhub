@@ -101,6 +101,9 @@ jobs:
       TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
       TF_VAR_postgres_password: ${{ secrets.POSTGRES_PASSWORD }}
       TF_VAR_jwt_signing_key: ${{ secrets.JWT_SIGNING_KEY }}
+      # Feature 047 — chat message encryption. LOSING THIS DESTROYS EVERY STORED MESSAGE:
+      # it is deliberately not in the database, so a restore without it yields no readable chat.
+      TF_VAR_chat_encryption_keys: ${{ secrets.CHAT_ENCRYPTION_KEYS }}
       TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
       TF_VAR_admin_emails: ${{ secrets.ADMIN_EMAILS }}
       TF_VAR_ghcr_pull_token: ${{ secrets.GHCR_PULL_TOKEN }}
@@ -196,6 +199,7 @@ jobs:
   #     TF_VAR_subscription_id: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   #     TF_VAR_postgres_password: ${{ secrets.POSTGRES_PASSWORD }}
   #     TF_VAR_jwt_signing_key: ${{ secrets.JWT_SIGNING_KEY }}
+  #     TF_VAR_chat_encryption_keys: ${{ secrets.CHAT_ENCRYPTION_KEYS }}
   #     TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
   #     TF_VAR_admin_emails: ${{ secrets.ADMIN_EMAILS }}
   #     TF_VAR_ghcr_pull_token: ${{ secrets.GHCR_PULL_TOKEN }}

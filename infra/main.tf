@@ -114,6 +114,7 @@ module "app" {
   jwt_issuer              = var.jwt_issuer
   jwt_audience            = var.jwt_audience
   jwt_signing_key         = var.jwt_signing_key
+  chat_encryption_keys    = var.chat_encryption_keys
   resend_api_key          = var.resend_api_key
   email_from_address      = var.email_from_address
   email_frontend_base_url = local.email_frontend_base_url

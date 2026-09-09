@@ -69,7 +69,11 @@ public sealed class ChatDeleteTests : ChatTestSupport
         var row = await db.ChatMessages.AsNoTracking().FirstAsync(m => m.Id == target);
 
         Assert.True(row.IsDeleted);
-        Assert.Equal(string.Empty, row.Body);
+        // Feature 047 changed the column, not the fact this asserts: the row holds NOTHING. A
+        // zero-length array, never an envelope around the empty string — an envelope would be 29
+        // bytes indistinguishable from a short message, and "the content is genuinely gone" would
+        // become a rendering convention again (data-model D2).
+        Assert.Empty(row.BodyCipher);
         Assert.Equal(ChatLinkKind.None, row.LinkKind);
         Assert.Null(row.LinkTargetId);
     }

@@ -7,14 +7,24 @@ using Microsoft.EntityFrameworkCore;
 namespace JuggerHub.Services.Chat;
 
 /// <summary>
-/// Chat search (feature 019, User Story 6). Matching uses <c>ILike</c> + <c>Unaccent</c>, the
-/// convention feature 007 established and every other search surface in this codebase follows.
+/// People search for starting a chat (feature 019, User Story 6; narrowed by feature 046). Matching
+/// uses <c>ILike</c> + <c>Unaccent</c>, the convention feature 007 established and every other search
+/// surface in this codebase follows.
 /// </summary>
 /// <remarks>
-/// <b>The scope predicate is the security property here.</b> Message results are restricted to the
-/// caller's own conversations inside the database query (spec FR-035) — never fetched broadly and
-/// filtered afterwards, which would leak through counts, timing, or the next careless refactor. A term
-/// that exists only in someone else's conversation returns nothing, and nothing hints that it exists.
+/// <para>
+/// <b>This service reads no message text.</b> Feature 046 removed message-body search from the
+/// product: the inbox — its only consumer — now finds conversations by name through
+/// <see cref="IChatConversationService.GetInboxAsync"/>, and the removal is from the API rather than
+/// just the interface (046 FR-010), because a dormant half that reads message bodies is exactly the
+/// surface the security-first principle exists to shrink.
+/// </para>
+/// <para>
+/// What remains is the people half, which the new-chat picker, compose-by-handle (feature 022) and
+/// the profile Message action (feature 021) depend on: open reach (019 FR-049) minus the caller and
+/// anyone blocked in either direction (FR-033), each hit carrying an existing DM id so a duplicate is
+/// never started (FR-008).
+/// </para>
 /// </remarks>
 public sealed class ChatSearchService : IChatSearchService
 {
@@ -37,58 +47,7 @@ public sealed class ChatSearchService : IChatSearchService
 
         var pattern = $"%{trimmed}%";
 
-        var messages = await SearchMessagesAsync(callerId, pattern, pagination, ct);
-        var people = await SearchPeopleAsync(callerId, pattern, pagination, ct);
-
-        return new ChatSearchResultDto(messages, people);
-    }
-
-    private async Task<PagedResult<MessageSearchHitDto>> SearchMessagesAsync(
-        Guid callerId,
-        string pattern,
-        PaginationRequest pagination,
-        CancellationToken ct)
-    {
-        // The membership predicate runs first and is indexed, so the ILIKE only ever scans this
-        // player's own messages — which is both the security boundary and why the scan is cheap.
-        var query = _db.ChatMessages.AsNoTracking()
-            .Where(m => !m.IsDeleted && m.Kind == ChatMessageKind.Member)
-            // Membership AND the join cutoff, in one predicate: the roster/participant row must both
-            // exist and pre-date the message (its JoinedDate/CreatedDate <= the message), so search
-            // never surfaces a message from before the caller joined (spec FR-035, FR-051). Archived
-            // chats are exempt — their history stays fully searchable (FR-027) — and are checked first
-            // because archival stamps snapshot rows at archive time.
-            .Where(m =>
-                (m.Conversation.State == ConversationState.Archived
-                    && m.Conversation.Participants.Any(p => p.UserId == callerId && p.LeftDate == null))
-                || ((m.Conversation.Kind == ConversationKind.Direct || m.Conversation.Kind == ConversationKind.Group)
-                    && m.Conversation.Participants.Any(p => p.UserId == callerId && p.LeftDate == null && p.JoinedDate <= m.CreatedDate))
-                || (m.Conversation.Kind == ConversationKind.Team
-                    && _db.TeamMemberships.Any(tm => tm.TeamId == m.Conversation.TeamId && tm.UserId == callerId && tm.JoinedDate <= m.CreatedDate))
-                || (m.Conversation.Kind == ConversationKind.Party
-                    && _db.PartyMembers.Any(pm => pm.PartyId == m.Conversation.PartyId
-                        && pm.UserId == callerId
-                        && pm.Status == PartyMemberStatus.In
-                        && pm.CreatedDate <= m.CreatedDate)))
-            .Where(m => EF.Functions.ILike(AppDbContext.Unaccent(m.Body), AppDbContext.Unaccent(pattern)));
-
-        var total = await query.CountAsync(ct);
-
-        var items = await query
-            .OrderByDescending(m => m.Id)
-            .Skip(pagination.NormalizedSkip)
-            .Take(pagination.NormalizedTake)
-            .Select(m => new MessageSearchHitDto(
-                m.Id,
-                m.ConversationId,
-                m.Conversation.Name ?? m.Conversation.Team!.Name ?? "Chat",
-                m.Conversation.Kind,
-                m.Body,
-                m.CreatedDate,
-                m.Sender!.Profile!.DisplayName))
-            .ToListAsync(ct);
-
-        return new PagedResult<MessageSearchHitDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
+        return new ChatSearchResultDto(await SearchPeopleAsync(callerId, pattern, pagination, ct));
     }
 
     private async Task<PagedResult<PersonHitDto>> SearchPeopleAsync(
@@ -135,7 +94,5 @@ public sealed class ChatSearchService : IChatSearchService
     }
 
     private static ChatSearchResultDto Empty(PaginationRequest pagination) =>
-        new(
-            new PagedResult<MessageSearchHitDto>(Array.Empty<MessageSearchHitDto>(), 0, pagination.NormalizedSkip, pagination.NormalizedTake),
-            new PagedResult<PersonHitDto>(Array.Empty<PersonHitDto>(), 0, pagination.NormalizedSkip, pagination.NormalizedTake));
+        new(new PagedResult<PersonHitDto>(Array.Empty<PersonHitDto>(), 0, pagination.NormalizedSkip, pagination.NormalizedTake));
 }

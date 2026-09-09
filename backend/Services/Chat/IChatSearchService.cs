@@ -4,14 +4,16 @@ using JuggerHub.Dtos.Chat;
 namespace JuggerHub.Services.Chat;
 
 /// <summary>
-/// Search from the inbox (feature 019, User Story 6): messages from the caller's own conversations,
-/// and people to start a chat with.
+/// People to start a chat with (feature 019, User Story 6). Since feature 046 this is people only —
+/// message text is not searched anywhere in the product; the inbox finds conversations by name via
+/// <see cref="IChatConversationService.GetInboxAsync"/>.
 /// </summary>
 public interface IChatSearchService
 {
     /// <summary>
-    /// Search. Message results are scoped to the caller's own conversations <b>in the query itself</b>
-    /// — never post-filtered (spec FR-035).
+    /// Search players by display name or handle: open reach (019 FR-049), excluding the caller and
+    /// anyone blocked in either direction (FR-033). A term shorter than the minimum yields an empty
+    /// result, never an error.
     /// </summary>
     Task<ChatSearchResultDto> SearchAsync(
         Guid callerId,
