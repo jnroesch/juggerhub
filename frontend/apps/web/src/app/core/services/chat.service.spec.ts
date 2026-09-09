@@ -113,6 +113,80 @@ describe('ChatService', () => {
     expect(service.messages().map((m) => m.body)).toEqual(['first', 'second']);
   });
 
+  /** Open 'c1' with one page of history and a cursor to page back from. Leaves nothing outstanding. */
+  const openWithMoreHistory = (nextBefore = 'm1') => {
+    service.openConversation('c1').subscribe();
+    httpMock
+      .expectOne('/api/v1/chat/conversations/c1/messages')
+      .flush({ items: [message({ id: 'm2', body: 'second' }), message({ id: 'm1', body: 'first' })], nextBefore });
+    httpMock.expectOne('/api/v1/chat/conversations/c1/read').flush(null);
+    httpMock.match('/api/v1/chat/conversations/unread-count').forEach((r) => r.flush({ unreadCount: 0 }));
+  };
+
+  it('pages history one request at a time however often the scroller asks (GH #220)', () => {
+    TestBed.tick();
+    flushInitialUnread();
+    openWithMoreHistory();
+
+    // A fling to the top fires many scroll events before the first response lands.
+    service.loadOlder('c1').subscribe();
+    service.loadOlder('c1').subscribe();
+    service.loadOlder('c1').subscribe();
+
+    // One request, not three — three would carry the identical `before` cursor and each prepend the
+    // same page again.
+    const req = httpMock.expectOne('/api/v1/chat/conversations/c1/messages?before=m1');
+    expect(service.loadingOlder()).toBe(true);
+    req.flush({ items: [message({ id: 'm0', body: 'older' })], nextBefore: null });
+
+    expect(service.messages().map((m) => m.id)).toEqual(['m0', 'm1', 'm2']);
+    expect(service.loadingOlder()).toBe(false);
+    expect(service.hasMoreHistory()).toBe(false);
+
+    // And the guard releases: the next scroll to the top may page again.
+    service.loadOlder('c1').subscribe();
+    httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({ items: [], nextBefore: null });
+  });
+
+  it('never prepends a message id the thread already holds', () => {
+    TestBed.tick();
+    flushInitialUnread();
+    openWithMoreHistory();
+
+    // A page that overlaps what is on screen — e.g. a message that also arrived live.
+    service.loadOlder('c1').subscribe();
+    httpMock
+      .expectOne('/api/v1/chat/conversations/c1/messages?before=m1')
+      .flush({ items: [message({ id: 'm1', body: 'first' }), message({ id: 'm0', body: 'older' })], nextBefore: null });
+
+    // Duplicate ids would give the `track m.id` loop repeated keys (NG0955) and render twice.
+    expect(service.messages().map((m) => m.id)).toEqual(['m0', 'm1', 'm2']);
+  });
+
+  it('discards a history page for a conversation that is no longer open', () => {
+    TestBed.tick();
+    flushInitialUnread();
+    openWithMoreHistory();
+
+    service.loadOlder('c1').subscribe();
+    const stale = httpMock.expectOne('/api/v1/chat/conversations/c1/messages?before=m1');
+
+    // The reader switches threads while the page is still in flight.
+    service.openConversation('c2').subscribe();
+    httpMock
+      .expectOne('/api/v1/chat/conversations/c2/messages')
+      .flush({ items: [message({ id: 'n1', body: 'other thread' })], nextBefore: 'n1' });
+    httpMock.expectOne('/api/v1/chat/conversations/c2/read').flush(null);
+    httpMock.match('/api/v1/chat/conversations/unread-count').forEach((r) => r.flush({ unreadCount: 0 }));
+
+    stale.flush({ items: [message({ id: 'm0', body: 'older' })], nextBefore: null });
+
+    // c1's history stays out of c2's thread, and the guard is free for the new conversation.
+    expect(service.messages().map((m) => m.id)).toEqual(['n1']);
+    expect(service.loadingOlder()).toBe(false);
+    expect(service.hasMoreHistory()).toBe(true);
+  });
+
   it('appends a sent message to the open thread', () => {
     TestBed.tick();
     flushInitialUnread();
