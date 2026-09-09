@@ -127,13 +127,20 @@ it cannot compensate for a domain that fails authentication.
 Chat message bodies are stored encrypted. The key is the GitHub Environment secret
 **`CHAT_ENCRYPTION_KEYS`**, one value per environment, in the form
 `version:base64key` — several entries separated by `;`, and **the first entry is the write
-key**. Each key is exactly 32 bytes, base64-encoded:
+key**. Each key is exactly 32 bytes, base64-encoded.
+
+This prints the **complete secret value**, version prefix included — paste it as-is, do not add
+anything to it:
 
 ```powershell
 $b = [byte[]]::new(32)
 [System.Security.Cryptography.RandomNumberGenerator]::Fill($b)
-"1:" + [Convert]::ToBase64String($b)
+"1:" + [Convert]::ToBase64String($b)     # -> 1:aGVsbG8...=   the WHOLE value, prefix included
 ```
+
+The `1:` is not decoration — it is the key *version*, recorded in every row that key protects, and
+the value is rejected without it. A bare base64 string fails `terraform plan` on the
+`chat_encryption_keys` variable, and fails backend startup locally.
 
 The backend **refuses to start** without a usable key. There is no setting that turns encryption
 off — that is deliberate, and a missing key is meant to stop the rollout rather than quietly
