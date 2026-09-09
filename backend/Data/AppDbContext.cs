@@ -1012,7 +1012,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
         builder.Entity<ChatMessage>(entity =>
         {
-            entity.Property(m => m.Body).HasMaxLength(2000);
+            // bytea, and deliberately unbounded (feature 047). The player-facing limit stays where
+            // it always was — a 2 000-character check on the trimmed plaintext in ChatMessageService
+            // — because the stored value is an envelope whose size depends on the UTF-8 encoding of
+            // the text, not on its character count. A byte column is also what makes "nothing
+            // matches on message text in SQL" structural rather than remembered: ILIKE over bytea
+            // does not exist.
+            entity.Property(m => m.BodyCipher).IsRequired();
 
             // Backs BOTH hot paths on one composite: the keyset history page
             // (WHERE ConversationId = x AND Id < cursor ORDER BY Id DESC) and the unread count

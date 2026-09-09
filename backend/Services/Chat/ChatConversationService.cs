@@ -19,19 +19,22 @@ public sealed class ChatConversationService : IChatConversationService
     private readonly IChatRealtime _realtime;
     private readonly IChatMessageService _messages;
     private readonly Localization.IRecipientCultureResolver _culture;
+    private readonly Encryption.IChatMessageCipher _cipher;
 
     public ChatConversationService(
         AppDbContext db,
         ChatGuard guard,
         IChatRealtime realtime,
         IChatMessageService messages,
-        Localization.IRecipientCultureResolver culture)
+        Localization.IRecipientCultureResolver culture,
+        Encryption.IChatMessageCipher cipher)
     {
         _db = db;
         _guard = guard;
         _realtime = realtime;
         _messages = messages;
         _culture = culture;
+        _cipher = cipher;
     }
 
     /// <summary>
@@ -453,7 +456,7 @@ public sealed class ChatConversationService : IChatConversationService
                     .Select(m => new
                     {
                         m.Id,
-                        m.Body,
+                        m.BodyCipher,
                         m.CreatedDate,
                         m.SenderId,
                         m.IsDeleted,
@@ -495,8 +498,15 @@ public sealed class ChatConversationService : IChatConversationService
                     ? null
                     : new LastMessageDto(
                         // A deleted message surrenders its preview — the inbox must not keep showing
-                        // content the sender withdrew (spec FR-050c).
-                        last.IsDeleted ? string.Empty : last.Body,
+                        // content the sender withdrew (spec FR-050c). A message whose stored text
+                        // will not decrypt (feature 047) gets the same empty preview rather than a
+                        // second flag on this DTO: the row still shows its sender and timestamp,
+                        // and opening the conversation is where the placeholder belongs.
+                        last.IsDeleted || last.BodyCipher.Length == 0
+                            ? string.Empty
+                            : _cipher.TryUnprotect(last.BodyCipher, last.Id, out var preview)
+                                ? preview
+                                : string.Empty,
                         last.CreatedDate,
                         last.SenderId == callerId ? null : last.SenderName ?? placeholder,
                         last.SenderId == callerId,

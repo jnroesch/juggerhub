@@ -67,6 +67,12 @@ public sealed record LinkCardDto(
     string? AvatarUrl);
 
 /// <summary>One message in a thread.</summary>
+/// <remarks>
+/// <c>IsUnavailable</c> means the stored text could not be decrypted (feature 047 FR-009) — a
+/// retired key, or a corrupted row. <c>Body</c> is then empty and the client renders a neutral
+/// placeholder for that one message; the rest of the conversation is unaffected. It is never true
+/// together with <c>IsDeleted</c>, because a deleted row holds no ciphertext to fail on.
+/// </remarks>
 public sealed record MessageDto(
     Guid Id,
     ChatMessageKind Kind,
@@ -76,6 +82,7 @@ public sealed record MessageDto(
     string Body,
     DateTime SentAt,
     bool IsDeleted,
+    bool IsUnavailable,
     string? ReadState,
     ChatSystemEvent? SystemEvent,
     string? SystemSubjectName,

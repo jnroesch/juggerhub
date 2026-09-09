@@ -14,7 +14,15 @@ locals {
 
   # .NET connection string assembled from parts (kept out of tfvars/state as
   # plaintext beyond the sensitive secret).
-  connection_string = "Host=postgres;Port=5432;Database=${var.postgres_db};Username=${var.postgres_user};Password=${var.postgres_password}"
+  #
+  # Feature 047: TLS is required AND the server is verified. `SSL Mode=VerifyFull`, never
+  # `Require`, and `Trust Server Certificate` must never appear here — it would silently undo the
+  # check this exists for. The CA arrives as a file mounted by the backend Deployment, at the same
+  # path docker-compose uses, so this string differs from the local one only in host and
+  # credentials (Principle V).
+  #
+  # `Host=postgres` must be in the certificate's SAN list — VerifyFull matches the host as written.
+  connection_string = "Host=postgres;Port=5432;Database=${var.postgres_db};Username=${var.postgres_user};Password=${var.postgres_password};SSL Mode=VerifyFull;Root Certificate=/etc/juggerhub/certs/ca.crt"
 
   tags = {
     project     = local.project

@@ -122,11 +122,100 @@ header, and an optional `Reply-To`) is already in the senders — see
 [`../backend/Services/Email/EmailDelivery.cs`](../backend/Services/Email/EmailDelivery.cs) — but
 it cannot compensate for a domain that fails authentication.
 
+### Chat message encryption key (feature 047 / GH #223)
+
+Chat message bodies are stored encrypted. The key is the GitHub Environment secret
+**`CHAT_ENCRYPTION_KEYS`**, one value per environment, in the form
+`version:base64key` — several entries separated by `;`, and **the first entry is the write
+key**. Each key is exactly 32 bytes, base64-encoded.
+
+This prints the **complete secret value**, version prefix included — paste it as-is, do not add
+anything to it:
+
+```powershell
+$b = [byte[]]::new(32)
+[System.Security.Cryptography.RandomNumberGenerator]::Fill($b)
+"1:" + [Convert]::ToBase64String($b)     # -> 1:aGVsbG8...=   the WHOLE value, prefix included
+```
+
+The `1:` is not decoration — it is the key *version*, recorded in every row that key protects, and
+the value is rejected without it. A bare base64 string fails `terraform plan` on the
+`chat_encryption_keys` variable, and fails backend startup locally.
+
+The backend **refuses to start** without a usable key. There is no setting that turns encryption
+off — that is deliberate, and a missing key is meant to stop the rollout rather than quietly
+store message text in the clear.
+
+> ⚠ **Restoring a database is not enough to restore chat.**
+> The key is deliberately *not* in the database — that is the entire point, and it is what makes a
+> stolen or mishandled database copy unreadable. A restore performed without the key that each row
+> names produces a working platform in which **every stored message is permanently unreadable**.
+> Treat `CHAT_ENCRYPTION_KEYS` as a required companion artefact of any backup, kept somewhere the
+> database is not. Losing both loses all chat history, with no recovery path.
+
+**Rotating** means prepending a new key and keeping the old one for as long as rows still name it:
+`CHAT_ENCRYPTION_KEYS = "2:<new>;1:<old>"`. New messages take version 2; old ones keep reading.
+Removing `1:` later makes every row still stamped with it unreadable — those messages then render
+as *"This message can't be displayed."* rather than breaking their conversations.
+
+### Postgres TLS certificates (feature 047)
+
+The backend connects with `SSL Mode=VerifyFull`, so Postgres presents a certificate and the backend
+verifies it. Both come from **cert-manager**, which the platform module already installs: a
+self-signed `Issuer` bootstraps an internal CA (`postgres-ca`), which signs the server certificate
+(`postgres-tls`). Nothing to configure and no secret to supply — but note two things:
+
+- The certificate's SAN list **must contain the bare name `postgres`**, because the connection
+  string says `Host=postgres` and `VerifyFull` matches the host as written, not the name it
+  resolves to.
+- `Trust Server Certificate` must never appear in the connection string. It would silently disable
+  the verification this exists for.
+
+Locally the equivalent is `./scripts/dev-postgres-certs.ps1`, which writes a CA and server
+certificate into the gitignored `certs/local/`. It is idempotent and normally runs itself — the
+Claude Code `SessionStart` hook generates the material when it is missing, and the `WorktreeCreate`
+hook copies it into a new worktree alongside `.env`. Run the script by hand only on a plain
+checkout that has neither.
+
+#### Certificate lifetimes and how to rotate — read before shortening anything
+
+Both certificates carry **explicit long durations**: the CA 10 years (renewed a year out), the
+server certificate 5 years (renewed 30 days out, matching what the local script issues).
+
+That is a deliberate deferral, not a default anyone forgot to change. cert-manager renews on its
+own, but **PostgreSQL does not re-read `ssl_cert_file` by itself** — it is a `SIGHUP`-context
+setting and nothing here sends a reload. With cert-manager's usual 90-day cadence, Postgres would
+keep serving the *old* certificate after a renewal, silently self-heal if the pod happened to
+restart inside the 30-day overlap, and otherwise start refusing connections about three months
+after an apply with nothing in the diff to explain it. Tracked as **GH #239**; until that lands,
+shortening these durations re-arms that failure.
+
+**To rotate deliberately** (a suspected key compromise, or the five years running out):
+
+```powershell
+# 1. Delete the Secret; cert-manager re-issues from the Certificate resource within seconds.
+kubectl -n juggerhub delete secret postgres-tls
+
+# 2. Postgres will NOT pick it up on its own. Reload it — this re-reads the certificate
+#    without dropping the database (a restart also works and is more disruptive).
+kubectl -n juggerhub exec statefulset/postgres -- psql -U <user> -d <db> -c "SELECT pg_reload_conf();"
+
+# 3. Verify what the SERVER now presents, not what the Secret contains.
+kubectl -n juggerhub exec deployment/backend -- \
+  openssl s_client -starttls postgres -connect postgres:5432 -showcerts </dev/null
+```
+
+Rotating the **CA** additionally requires deleting `postgres-ca`, letting the server certificate
+re-issue beneath it, and restarting the backend so it picks up the new `ca.crt` — do that one in a
+maintenance window, since it briefly invalidates the trust chain in both directions.
+
 ### Two-phase apply caveat (first run only)
 
 The `kubernetes` and `helm` providers are configured from the AKS cluster's outputs,
-and the Let's Encrypt `ClusterIssuer`s depend on cert-manager's CRDs. On a **brand-new**
-cluster you may need to create the cluster + platform first, then the app:
+and the Let's Encrypt `ClusterIssuer`s depend on cert-manager's CRDs — as do the Postgres TLS
+`Issuer`/`Certificate` objects added by feature 047, which `kubernetes_manifest` resolves at
+**plan** time. On a **brand-new** cluster you may need to create the cluster + platform first,
+then the app:
 
 ```powershell
 terraform apply -target=module.aks -target=module.platform -var-file=envs/dev.tfvars

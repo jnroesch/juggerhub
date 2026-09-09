@@ -27,7 +27,19 @@ jobs:
           cat > .env <<'EOF'
           JWT_SIGNING_KEY=ci-e2e-signing-key-not-a-secret-0123456789abcdef
           ADMIN_EMAILS=admin@test.de
+          CHAT_ENCRYPTION_KEYS=1:Q0ktZTJlLW5vdC1hLXNlY3JldC0zMi1ieXRlLWtleSE=
           EOF
+
+      # Feature 047: the backend connects to Postgres with `SSL Mode=VerifyFull`, so the
+      # database needs a certificate and the backend needs the CA that signed it. The files are
+      # gitignored, so CI has to make its own — the same way a fresh clone does.
+      #
+      # Deliberately the repo's own script rather than an inline openssl block: one definition of
+      # what these certificates contain (the SAN list in particular is load-bearing, since
+      # VerifyFull matches the host string as written), and running it here means CI exercises the
+      # script every PR instead of it only ever being run by hand.
+      - name: Generate Postgres TLS material
+        run: pwsh ./scripts/dev-postgres-certs.ps1
 
       # Bring up an isolated stack (own project name, no published ports, no pinned
       # container names) with a fresh database, and wait for healthchecks.

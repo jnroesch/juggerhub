@@ -1,4 +1,5 @@
 using JuggerHub.Entities;
+using JuggerHub.Services.Chat.Encryption;
 using Microsoft.EntityFrameworkCore;
 
 namespace JuggerHub.Data;
@@ -29,7 +30,7 @@ public static class DevDataSeeder
         ("Leipzig", "R:62649", "Saxony", 51.3397, 12.3731),
     ];
 
-    public static async Task SeedAsync(AppDbContext db, CancellationToken ct = default)
+    public static async Task SeedAsync(AppDbContext db, IChatMessageCipher cipher, CancellationToken ct = default)
     {
         var cities = await EnsureCitiesAsync(db, ct);
 
@@ -93,7 +94,7 @@ public static class DevDataSeeder
         await SeedEventsAsync(db, cities, ct);
         await SeedRecognitionsAsync(db, ct);
         await SeedTrainingsAsync(db, cities, ct);
-        await SeedChatAsync(db, ct);
+        await SeedChatAsync(db, cipher, ct);
     }
 
     /// <summary>
@@ -171,7 +172,7 @@ public static class DevDataSeeder
     /// it appear that way locally exercises the same ensure-on-access path that gives a pre-existing
     /// team its chat in production (FR-024). Seeding it would hide the interesting bit.
     /// </remarks>
-    private static async Task SeedChatAsync(AppDbContext db, CancellationToken ct)
+    private static async Task SeedChatAsync(AppDbContext db, IChatMessageCipher cipher, CancellationToken ct)
     {
         if (await db.Conversations.AnyAsync(c => c.Kind == ConversationKind.Direct, ct))
         {
@@ -211,9 +212,9 @@ public static class DevDataSeeder
         db.Conversations.Add(dm);
         AddParticipants(db, dm.Id, ada, ben);
 
-        AddMessage(db, dm.Id, ben, "you coming to training tonight?");
-        AddMessage(db, dm.Id, ada, "yeah! leaving in 5");
-        AddMessage(db, dm.Id, ben, "grabbing the chain, omw");
+        AddMessage(db, cipher, dm.Id, ben, "you coming to training tonight?");
+        AddMessage(db, cipher, dm.Id, ada, "yeah! leaving in 5");
+        AddMessage(db, cipher, dm.Id, ben, "grabbing the chain, omw");
 
         // A named group, if there is a third member to put in it.
         if (members.Count >= 3)
@@ -228,9 +229,9 @@ public static class DevDataSeeder
             db.Conversations.Add(group);
             AddParticipants(db, group.Id, ada, ben, members[2]);
 
-            AddMessage(db, group.Id, members[2], "who's bringing pompfen sat?");
-            AddMessage(db, group.Id, ben, "i've got 4 spare");
-            AddMessage(db, group.Id, ada, "i'll bring the chain + a bag of Q-tips");
+            AddMessage(db, cipher, group.Id, members[2], "who's bringing pompfen sat?");
+            AddMessage(db, cipher, group.Id, ben, "i've got 4 spare");
+            AddMessage(db, cipher, group.Id, ada, "i'll bring the chain + a bag of Q-tips");
         }
 
         await db.SaveChangesAsync(ct);
@@ -251,14 +252,24 @@ public static class DevDataSeeder
         }
     }
 
-    private static void AddMessage(AppDbContext db, Guid conversationId, Guid senderId, string body) =>
-        db.ChatMessages.Add(new ChatMessage
+    private static void AddMessage(
+        AppDbContext db,
+        IChatMessageCipher cipher,
+        Guid conversationId,
+        Guid senderId,
+        string body)
+    {
+        // Construct first, encrypt second: the ciphertext is bound to this row's id as associated
+        // data, and BaseEntity assigns that id in its field initialiser (feature 047).
+        var message = new ChatMessage
         {
             ConversationId = conversationId,
             SenderId = senderId,
             Kind = ChatMessageKind.Member,
-            Body = body,
-        });
+        };
+        message.BodyCipher = cipher.Protect(body, message.Id);
+        db.ChatMessages.Add(message);
+    }
 
     private static async Task SeedTrainingsAsync(AppDbContext db, Dictionary<string, City> cities, CancellationToken ct)
     {

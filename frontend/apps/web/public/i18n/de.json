@@ -512,7 +512,8 @@
       "systemJoined": "{{name}} ist dem Chat beigetreten",
       "systemLeft": "{{name}} hat den Chat verlassen",
       "systemRemoved": "{{name}} wurde entfernt",
-      "systemGroupCreated": "{{name}} hat diese Gruppe erstellt"
+      "systemGroupCreated": "{{name}} hat diese Gruppe erstellt",
+      "messageUnavailable": "Diese Nachricht kann nicht angezeigt werden."
     },
     "details": {
       "backToChat": "Zurück zum Chat",

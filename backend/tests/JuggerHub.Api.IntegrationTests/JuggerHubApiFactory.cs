@@ -37,6 +37,13 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
     public const string MediaContainerName = "media";
 
     /// <summary>
+    /// The chat message encryption key the test host runs with (feature 047), in the configured
+    /// <c>version:base64key</c> form. Exposed so a test can assert against the version byte a row
+    /// carries, or configure a second cipher to prove rotation.
+    /// </summary>
+    public const string TestEncryptionKey = "1:AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=";
+
+    /// <summary>
     /// The Azurite blob endpoint, so a test can bypass the API and request an object key straight
     /// from storage — the check that proves the store is not publicly readable (SC-010).
     /// </summary>
@@ -73,6 +80,17 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
                 ["Email:Provider"] = "Smtp",
                 ["Email:FromAddress"] = "test@juggerhub.local",
                 ["Email:FrontendBaseUrl"] = "http://localhost:3000",
+                // Feature 047 — chat message bodies are encrypted at rest, and the host refuses to
+                // start without a key. A FIXED key, not a random one: a test that writes a row and
+                // reads it back in a later assertion must be able to, and a per-run key would make
+                // the encryption suite's failures look like flakes.
+                //
+                // Note what is NOT configured here: the connection string carries no TLS
+                // parameters. The Testcontainers Postgres has no certificate, deliberately —
+                // TLS is connection-string configuration, so every line of code this feature
+                // adds is still covered, while the connection parameters are verified by hand
+                // (specs/047-chat-message-encryption/quickstart.md §4, research §8).
+                ["Chat:Encryption:Keys"] = TestEncryptionKey,
                 // Feature 013 — the platform-admin sync source. Tests register an account
                 // with this email and re-run the role sync (see RecognitionTestSupport)
                 // to exercise admin-only routes.
