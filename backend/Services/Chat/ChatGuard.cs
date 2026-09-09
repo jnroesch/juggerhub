@@ -93,6 +93,71 @@ public sealed class ChatGuard
                     && pm.Status == PartyMemberStatus.In);
 
     /// <summary>
+    /// <b>The inbox search predicate</b> (feature 046): does a term match a <em>current member other
+    /// than the caller</em>, or the conversation's own name? The sibling of <see cref="IsMemberOf"/>,
+    /// deliberately shaped like it — the same per-kind branches read the same sources of truth, so a
+    /// member who leaves a roster stops matching at the instant they stop being a member (046
+    /// data-model I3). <b>A new conversation kind must be added here AND in <see cref="IsMemberOf"/>.</b>
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Member names are read only through <c>db.PlayerProfiles</c>, never via <c>User.Profile</c>: the
+    /// ban query filter on profiles then makes a banned or erased member unmatchable for free (I4), and
+    /// that navigation is known to misbehave against the filter. The caller is excluded from every
+    /// member branch (I6) — they are in all of their conversations, so their own name would list the
+    /// whole inbox. Only stored or derived names are matched; the inbox's fallback labels ("Party chat",
+    /// "Group", "Team chat") are presentation, not names (I7). Message text is never a source (I5).
+    /// </para>
+    /// <para>
+    /// One expression rather than two: EF Core cannot compose separately built lambdas, so the member
+    /// half and the name half are ORed inline. <paramref name="pattern"/> is the ready-made
+    /// <c>%term%</c>; matching is <c>ILike</c> + <c>unaccent</c>, the convention since feature 007.
+    /// Archived chats read their snapshotted participants and frozen name, exactly as
+    /// <see cref="IsMemberOf"/> does; the roster branches are guarded against them for the same reason.
+    /// </para>
+    /// </remarks>
+    public static System.Linq.Expressions.Expression<Func<Conversation, bool>> MatchesName(AppDbContext db, Guid callerId, string pattern) =>
+        c =>
+            // --- members other than the caller, per kind, same sources as IsMemberOf ---
+            ((c.State == ConversationState.Archived || c.Kind == ConversationKind.Direct || c.Kind == ConversationKind.Group)
+                && c.Participants.Any(p => p.UserId != callerId && p.LeftDate == null
+                    && db.PlayerProfiles.Any(pp => pp.UserId == p.UserId
+                        && (EF.Functions.ILike(AppDbContext.Unaccent(pp.DisplayName), AppDbContext.Unaccent(pattern))
+                            || EF.Functions.ILike(pp.Handle, pattern)))))
+            || (c.State != ConversationState.Archived && c.Kind == ConversationKind.Team
+                && db.TeamMemberships.Any(m => m.TeamId == c.TeamId && m.UserId != callerId
+                    && db.PlayerProfiles.Any(pp => pp.UserId == m.UserId
+                        && (EF.Functions.ILike(AppDbContext.Unaccent(pp.DisplayName), AppDbContext.Unaccent(pattern))
+                            || EF.Functions.ILike(pp.Handle, pattern)))))
+            || (c.State != ConversationState.Archived && c.Kind == ConversationKind.Party
+                && db.PartyMembers.Any(pm => pm.PartyId == c.PartyId && pm.UserId != callerId && pm.Status == PartyMemberStatus.In
+                    && db.PlayerProfiles.Any(pp => pp.UserId == pm.UserId
+                        && (EF.Functions.ILike(AppDbContext.Unaccent(pp.DisplayName), AppDbContext.Unaccent(pattern))
+                            || EF.Functions.ILike(pp.Handle, pattern)))))
+            || (c.State != ConversationState.Archived
+                && (c.Kind == ConversationKind.TeamInquiry || c.Kind == ConversationKind.EventInquiry)
+                && c.RequesterUserId != callerId
+                && db.PlayerProfiles.Any(pp => pp.UserId == c.RequesterUserId
+                    && (EF.Functions.ILike(AppDbContext.Unaccent(pp.DisplayName), AppDbContext.Unaccent(pattern))
+                        || EF.Functions.ILike(pp.Handle, pattern))))
+            || (c.State != ConversationState.Archived && c.Kind == ConversationKind.TeamInquiry
+                && db.TeamMemberships.Any(m => m.TeamId == c.TeamId && m.UserId != callerId && m.Role == TeamRole.Admin
+                    && db.PlayerProfiles.Any(pp => pp.UserId == m.UserId
+                        && (EF.Functions.ILike(AppDbContext.Unaccent(pp.DisplayName), AppDbContext.Unaccent(pattern))
+                            || EF.Functions.ILike(pp.Handle, pattern)))))
+            || (c.State != ConversationState.Archived && c.Kind == ConversationKind.EventInquiry
+                && db.EventAdmins.Any(a => a.EventId == c.EventId && a.UserId != callerId
+                    && db.PlayerProfiles.Any(pp => pp.UserId == a.UserId
+                        && (EF.Functions.ILike(AppDbContext.Unaccent(pp.DisplayName), AppDbContext.Unaccent(pattern))
+                            || EF.Functions.ILike(pp.Handle, pattern)))))
+            // --- names: stored (groups, archived snapshots) or derived (team / event) ---
+            || EF.Functions.ILike(AppDbContext.Unaccent(c.Name!), AppDbContext.Unaccent(pattern))
+            || ((c.Kind == ConversationKind.Team || c.Kind == ConversationKind.TeamInquiry)
+                && EF.Functions.ILike(AppDbContext.Unaccent(c.Team!.Name), AppDbContext.Unaccent(pattern)))
+            || (c.Kind == ConversationKind.EventInquiry
+                && EF.Functions.ILike(AppDbContext.Unaccent(c.Event!.Name), AppDbContext.Unaccent(pattern)));
+
+    /// <summary>
     /// Resolve a caller's access to a conversation. Returns null when the conversation does not exist
     /// <em>or</em> the caller is not a member — the caller cannot tell which, by design.
     /// </summary>

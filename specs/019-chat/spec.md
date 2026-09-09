@@ -18,6 +18,17 @@
 > out of the inbox. Groups and team/party auto-chats are unchanged. See
 > `specs/022-lazy-dm-creation/`.
 
+> **Amended by feature 046 (2026-09-08) — the inbox search finds conversations by name;
+> message-text search is removed.** Typing into the inbox search now narrows the inbox to
+> the player's own conversations in which another current member's name matches, or whose
+> shown name matches (group name, team name, an admin-contact thread's team or event).
+> Results are the inbox's own rows, in inbox order; hidden conversations and blocked DMs stay
+> excluded. **Message text is not searched anywhere in the product** — the API no longer
+> offers it, not merely the interface. The people search behind the new-chat picker,
+> compose-by-handle (022) and the profile Message action (021) is unchanged: open reach
+> (FR-049), blocked players excluded (FR-033). User Story 6, FR-034, FR-035, FR-036, FR-050c's
+> search clause and SC-006 are superseded. See `specs/046-chat-inbox-search/`.
+
 ## Clarifications
 
 ### Session 2026-07-16
@@ -141,6 +152,10 @@ A player who does not want a conversation buzzing can mute it — it stops drivi
 ---
 
 ### User Story 6 - A player finds a message or a person (Priority: P3)
+
+> *Superseded by feature 046 (2026-09-08): the inbox search finds conversations by the names of
+> their members or their own name, and message text is no longer searched. The story below is
+> kept as the record of what shipped with 019.*
 
 A player taps the search bar on the inbox and types. They get two things: messages from inside their own conversations, and people they could start a new chat with. Tapping a message result jumps to that conversation; tapping a person starts (or opens) a direct chat with them.
 
@@ -283,9 +298,9 @@ A player on a wide screen sees the inbox become a left rail with every conversat
 
 **Search**
 
-- **FR-034**: A player MUST be able to search from the inbox and receive results grouped into messages and people.
-- **FR-035**: Message search MUST only ever return messages from conversations the searching player is currently a member of.
-- **FR-036**: Selecting a message result MUST take the player to that message in its conversation; selecting a person result MUST open or start a direct conversation with them.
+- **FR-034**: A player MUST be able to search from the inbox and receive results grouped into messages and people. *(superseded by 046 — the inbox search returns conversations matched by member or conversation name)*
+- **FR-035**: Message search MUST only ever return messages from conversations the searching player is currently a member of. *(superseded by 046 — message search no longer exists; 046 FR-003 carries the same scoping rule for conversations)*
+- **FR-036**: Selecting a message result MUST take the player to that message in its conversation; selecting a person result MUST open or start a direct conversation with them. *(superseded by 046 — selecting a result opens that conversation; people are reached through the new-chat picker)*
 
 **Link unfurl**
 
@@ -319,7 +334,7 @@ A player on a wide screen sees the inbox become a left rail with every conversat
 - **FR-050**: A sender MUST be able to delete their own message. The message's content MUST be removed for every viewer and replaced in place by a neutral "message deleted" marker, preserving the thread's continuity for anyone who already read around it.
 - **FR-050a**: Deleting a message MUST be available only to its own sender; no member may delete another member's message, and there is no moderator delete in this feature.
 - **FR-050b**: Editing a sent message is out of scope. A message's text MUST be immutable once sent — the only correction available is delete-and-resend.
-- **FR-050c**: A deleted message MUST stop contributing content to the inbox preview, to the unfurled card it carried, and to message search results.
+- **FR-050c**: A deleted message MUST stop contributing content to the inbox preview, to the unfurled card it carried, and to message search results. *(the search clause is moot since 046 — message search no longer exists; the preview and card clauses stand)*
 
 **Surfacing outside Chat**
 
@@ -346,7 +361,7 @@ A player on a wide screen sees the inbox become a left rail with every conversat
 - **SC-003**: A player joining a team finds that team's chat already in their inbox with the full roster present, having taken no action to create or join it.
 - **SC-004**: A player who leaves a team, or is removed from it, loses access to that team's chat in 100% of cases, verified by a direct request for it being refused.
 - **SC-005**: A blocked player cannot deliver a direct message to the blocker under any path — including a direct request that bypasses the interface — while both continue to use a shared group chat normally.
-- **SC-006**: Message search returns results only from the searching player's own conversations; a term present only in a conversation they are not in returns zero results, verified by a direct request.
+- **SC-006**: Message search returns results only from the searching player's own conversations; a term present only in a conversation they are not in returns zero results, verified by a direct request. *(superseded by 046 SC-002/SC-003 — message search no longer exists; the no-leak guarantee now holds for conversation names)*
 - **SC-007**: A pasted link to a training renders a card carrying that training's name and time, and a viewer without permission to see that training gets only the plain link — verified for the same message from two different viewers.
 - **SC-008**: A player's unread total is correct after reading on a second device, with no refresh of the first.
 - **SC-009**: The same conversation exercised at mobile and desktop widths produces identical message, unread, typing and receipt behaviour; only the layout differs.

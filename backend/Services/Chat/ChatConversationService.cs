@@ -405,15 +405,25 @@ public sealed class ChatConversationService : IChatConversationService
     public async Task<PagedResult<ConversationSummaryDto>> GetInboxAsync(
         Guid callerId,
         PaginationRequest pagination,
+        string? query = null,
         CancellationToken ct = default)
     {
         await EnsureAutoChatsForAsync(callerId, ct);
 
-        var query = VisibleConversations(callerId);
+        var visible = VisibleConversations(callerId);
 
-        var total = await query.CountAsync(ct);
+        // Feature 046: the inbox search is this same query with one more WHERE — never a second query,
+        // so eligibility, rows, order and bound are the inbox's by construction (046 research §1). A
+        // term shorter than the minimum is "no term": the plain inbox, not an error — the search box
+        // calls this on every keystroke.
+        var term = query?.Trim() ?? string.Empty;
+        var q = term.Length >= ChatConstants.MinSearchTermLength
+            ? visible.Where(ChatGuard.MatchesName(_db, callerId, $"%{term}%"))
+            : visible;
 
-        var rows = await query
+        var total = await q.CountAsync(ct);
+
+        var rows = await q
             .OrderByDescending(c => c.LastMessageDate ?? c.CreatedDate)
             .Skip(pagination.NormalizedSkip)
             .Take(pagination.NormalizedTake)
@@ -1181,7 +1191,7 @@ public sealed class ChatConversationService : IChatConversationService
 
     private async Task<ChatResult<ConversationSummaryDto>> SummariseAsync(Guid callerId, Guid conversationId, CancellationToken ct)
     {
-        var page = await GetInboxAsync(callerId, new PaginationRequest { Skip = 0, Take = 100 }, ct);
+        var page = await GetInboxAsync(callerId, new PaginationRequest { Skip = 0, Take = 100 }, null, ct);
         var found = page.Items.FirstOrDefault(c => c.Id == conversationId);
 
         return found is null

@@ -57,10 +57,17 @@ public interface IChatConversationService
         Guid targetId,
         CancellationToken ct = default);
 
-    /// <summary>The caller's inbox, most recently active first. Excludes hidden and blocked-counterpart DMs.</summary>
+    /// <summary>
+    /// The caller's inbox, most recently active first. Excludes hidden and blocked-counterpart DMs.
+    /// With a <paramref name="query"/> of at least <see cref="ChatConstants.MinSearchTermLength"/>
+    /// characters (feature 046), narrowed to conversations in which another current member's name
+    /// matches, or whose shown name matches — the same eligibility, rows, order and bound as the plain
+    /// inbox, never message text. A shorter or absent query is "no query", not an error.
+    /// </summary>
     Task<PagedResult<ConversationSummaryDto>> GetInboxAsync(
         Guid callerId,
         PaginationRequest pagination,
+        string? query = null,
         CancellationToken ct = default);
 
     /// <summary>The nav badge total: unread across non-muted, non-hidden conversations.</summary>

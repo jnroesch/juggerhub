@@ -37,9 +37,15 @@ public sealed class ChatConversationsController : ControllerBase
         _blocks = blocks;
     }
 
+    /// <summary>
+    /// The inbox. With <paramref name="q"/> (feature 046) it is narrowed to conversations whose members'
+    /// or own names match — the same rows, order and bound. A short or missing term is simply the plain
+    /// inbox rather than a 400: the search box calls this on every keystroke.
+    /// </summary>
     [HttpGet("conversations")]
     public async Task<ActionResult<PagedResult<ConversationSummaryDto>>> Inbox(
         [FromQuery] PaginationRequest pagination,
+        [FromQuery] string? q,
         CancellationToken ct)
     {
         if (!TryGetUserId(out var userId))
@@ -47,7 +53,7 @@ public sealed class ChatConversationsController : ControllerBase
             return Unauthorized();
         }
 
-        return Ok(await _conversations.GetInboxAsync(userId, pagination, ct));
+        return Ok(await _conversations.GetInboxAsync(userId, pagination, q, ct));
     }
 
     [HttpGet("conversations/unread-count")]
@@ -289,9 +295,10 @@ public sealed class ChatConversationsController : ControllerBase
     // --- Search (US6) ---------------------------------------------------------
 
     /// <summary>
-    /// Search messages and people. A short or missing term returns an empty result rather than a 400 —
-    /// the search box calls this on every keystroke, and flashing an error at one character typed would
-    /// be its own bug.
+    /// Search people to start a chat with (message text is not searched anywhere since feature 046 —
+    /// the inbox narrows itself by name via <see cref="Inbox"/>). A short or missing term returns an
+    /// empty result rather than a 400 — the pickers call this on every keystroke, and flashing an error
+    /// at one character typed would be its own bug.
     /// </summary>
     [HttpGet("search")]
     public async Task<ActionResult<ChatSearchResultDto>> Search(

@@ -240,17 +240,37 @@ describe('ChatService', () => {
     expect(service.conversations()[0].isMuted).toBe(true);
   });
 
-  it('searches messages and people', () => {
+  it('searches the inbox by name without touching the live conversation list (feature 046)', () => {
     TestBed.tick();
     flushInitialUnread();
 
-    service.search('chain').subscribe((r) => {
-      expect(r.messages.items.length).toBe(1);
+    service.loadInbox().subscribe();
+    httpMock
+      .expectOne('/api/v1/chat/conversations?skip=0&take=20')
+      .flush({ items: [conversation()], totalCount: 1, skip: 0, take: 20 });
+
+    let page: Conversation[] = [];
+    service.searchInbox('len').subscribe((r) => (page = [...r.items]));
+
+    const req = httpMock.expectOne('/api/v1/chat/conversations?q=len&skip=0&take=20');
+    expect(req.request.method).toBe('GET');
+    req.flush({ items: [conversation({ id: 'c9', name: 'Lena B.' })], totalCount: 1, skip: 0, take: 20 });
+
+    expect(page.map((c) => c.id)).toEqual(['c9']);
+    // The list SignalR keeps current is untouched, so clearing the term restores it instantly.
+    expect(service.conversations().map((c) => c.id)).toEqual(['c1']);
+  });
+
+  it('searches people to start a chat with (people only since feature 046)', () => {
+    TestBed.tick();
+    flushInitialUnread();
+
+    service.search('kofi').subscribe((r) => {
       expect(r.people.items.length).toBe(1);
+      expect('messages' in r).toBe(false);
     });
 
-    httpMock.expectOne('/api/v1/chat/search?q=chain&skip=0&take=20').flush({
-      messages: { items: [{ messageId: 'm1' }], totalCount: 1 },
+    httpMock.expectOne('/api/v1/chat/search?q=kofi&skip=0&take=20').flush({
       people: { items: [{ userId: 'u9' }], totalCount: 1 },
     });
   });

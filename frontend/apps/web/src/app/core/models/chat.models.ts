@@ -110,16 +110,6 @@ export interface MessagePage {
   readonly nextBefore: string | null;
 }
 
-export interface MessageSearchHit {
-  readonly messageId: string;
-  readonly conversationId: string;
-  readonly conversationName: string;
-  readonly conversationKind: ConversationKind;
-  readonly snippet: string;
-  readonly sentAt: string;
-  readonly senderName: string | null;
-}
-
 export interface PersonHit {
   readonly userId: string;
   readonly displayName: string;
@@ -129,8 +119,11 @@ export interface PersonHit {
   readonly existingConversationId: string | null;
 }
 
+/**
+ * People to start a chat with. Since feature 046 this is people only — the product does not search
+ * message text; the inbox narrows itself by name through `ChatService.searchInbox`.
+ */
 export interface ChatSearchResult {
-  readonly messages: { items: readonly MessageSearchHit[]; totalCount: number };
   readonly people: { items: readonly PersonHit[]; totalCount: number };
 }
 
