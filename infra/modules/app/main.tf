@@ -70,8 +70,11 @@ resource "kubernetes_secret_v1" "app" {
   data = {
     "ConnectionStrings__DefaultConnection" = var.connection_string
     "Jwt__SigningKey"                      = var.jwt_signing_key
-    "Email__Resend__ApiKey"                = var.resend_api_key
-    "Admin__Emails"                        = var.admin_emails
+    # Feature 047 — chat message encryption. The Secret, never the ConfigMap: this IS the thing
+    # that keeps a database copy unreadable, so putting it beside the database would defeat it.
+    "Chat__Encryption__Keys" = var.chat_encryption_keys
+    "Email__Resend__ApiKey"  = var.resend_api_key
+    "Admin__Emails"          = var.admin_emails
     # Feature 035 — carries the storage account key, so it belongs here and not in the ConfigMap.
     "MediaStorage__ConnectionString" = var.media_storage_connection_string
   }
@@ -114,6 +117,94 @@ resource "kubernetes_secret_v1" "ghcr" {
   }
 }
 
+# --- PostgreSQL TLS (feature 047 / #223) ------------------------------------
+# The backend connects with `SSL Mode=VerifyFull`, so the database needs a certificate and the
+# backend needs the authority that signed it. cert-manager is already installed by the platform
+# module and already mints the public ingress certificate; an internal CA is the right trust anchor
+# here because the database is not publicly resolvable and ACME could never validate it.
+#
+# Three objects: a self-signed issuer to bootstrap, a CA certificate it signs, and a CA issuer that
+# signs the server certificate.
+#
+# NOTE the same two-phase-apply constraint the ClusterIssuers carry: kubernetes_manifest resolves
+# the CRD schema at PLAN time, so on a fresh cluster cert-manager must be applied first. See
+# infra/README.md.
+resource "kubernetes_manifest" "postgres_selfsigned_issuer" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Issuer"
+    metadata = {
+      name      = "postgres-selfsigned"
+      namespace = kubernetes_namespace_v1.app.metadata[0].name
+    }
+    spec = { selfSigned = {} }
+  }
+}
+
+resource "kubernetes_manifest" "postgres_ca_certificate" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+    metadata = {
+      name      = "postgres-ca"
+      namespace = kubernetes_namespace_v1.app.metadata[0].name
+    }
+    spec = {
+      isCA       = true
+      commonName = "juggerhub-postgres-ca"
+      secretName = "postgres-ca"
+      privateKey = { algorithm = "RSA", size = 4096 }
+      issuerRef = {
+        name  = kubernetes_manifest.postgres_selfsigned_issuer.manifest.metadata.name
+        kind  = "Issuer"
+        group = "cert-manager.io"
+      }
+    }
+  }
+}
+
+resource "kubernetes_manifest" "postgres_ca_issuer" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Issuer"
+    metadata = {
+      name      = "postgres-ca-issuer"
+      namespace = kubernetes_namespace_v1.app.metadata[0].name
+    }
+    spec = { ca = { secretName = "postgres-ca" } }
+  }
+  depends_on = [kubernetes_manifest.postgres_ca_certificate]
+}
+
+resource "kubernetes_manifest" "postgres_server_certificate" {
+  manifest = {
+    apiVersion = "cert-manager.io/v1"
+    kind       = "Certificate"
+    metadata = {
+      name      = "postgres-tls"
+      namespace = kubernetes_namespace_v1.app.metadata[0].name
+    }
+    spec = {
+      secretName = "postgres-tls"
+      # `postgres` — the bare service name — is LOAD-BEARING and must stay first: the connection
+      # string says Host=postgres, and VerifyFull matches the host string as written, not the name
+      # it resolves to. Dropping it here breaks the backend with a hostname-mismatch error that
+      # reads nothing like a missing SAN.
+      dnsNames = [
+        "postgres",
+        "postgres.${kubernetes_namespace_v1.app.metadata[0].name}.svc",
+        "postgres.${kubernetes_namespace_v1.app.metadata[0].name}.svc.cluster.local",
+      ]
+      usages = ["server auth"]
+      issuerRef = {
+        name  = kubernetes_manifest.postgres_ca_issuer.manifest.metadata.name
+        kind  = "Issuer"
+        group = "cert-manager.io"
+      }
+    }
+  }
+}
+
 # --- PostgreSQL (in-cluster, never exposed beyond ClusterIP) ----------------
 resource "kubernetes_service_v1" "postgres" {
   metadata {
@@ -147,9 +238,29 @@ resource "kubernetes_stateful_set_v1" "postgres" {
         labels = { app = "postgres" }
       }
       spec {
+        # fs_group 70 is the `postgres` uid/gid inside postgres:18.3-alpine (verified against the
+        # image, not assumed). Together with default_mode 0640 on the certificate volume below it
+        # satisfies PostgreSQL's key-file rule — which is NOT simply "0600": a key owned by the
+        # database user may have no group or world bits at all, while a root-owned key may be
+        # group-readable. A Kubernetes secret volume produces root-owned files, so 0640 + this
+        # group is accepted. 0644 is not, and fails as a crash loop whose message says nothing
+        # about TLS.
+        security_context {
+          fs_group = 70
+        }
         container {
           name  = "postgres"
           image = "postgres:18.3-alpine"
+          # TLS on (feature 047). This ENABLES encryption; it does not refuse plaintext clients —
+          # forcing that means replacing pg_hba.conf on an already-initialised volume, which is a
+          # plausible way to break the database for a gain only against our own misconfiguration.
+          # Every client we ship asks for TLS and the backend additionally verifies. Recorded as a
+          # residual in specs/047-chat-message-encryption/research.md §8.
+          args = [
+            "-c", "ssl=on",
+            "-c", "ssl_cert_file=/etc/postgres-certs/tls.crt",
+            "-c", "ssl_key_file=/etc/postgres-certs/tls.key",
+          ]
           port {
             container_port = 5432
           }
@@ -164,12 +275,24 @@ resource "kubernetes_stateful_set_v1" "postgres" {
             name       = "data"
             mount_path = "/var/lib/postgresql"
           }
+          volume_mount {
+            name       = "tls"
+            mount_path = "/etc/postgres-certs"
+            read_only  = true
+          }
           readiness_probe {
             exec {
               command = ["pg_isready", "-U", var.postgres_user, "-d", var.postgres_db]
             }
             initial_delay_seconds = 10
             period_seconds        = 10
+          }
+        }
+        volume {
+          name = "tls"
+          secret {
+            secret_name  = "postgres-tls" # written by cert-manager
+            default_mode = "0640"
           }
         }
       }
@@ -237,6 +360,14 @@ resource "kubernetes_deployment_v1" "backend" {
               name = kubernetes_secret_v1.app.metadata[0].name
             }
           }
+          # The authority that signed the database's certificate (feature 047). Mounted at the same
+          # path docker-compose uses, so the connection string is character-identical in every
+          # environment (Principle V).
+          volume_mount {
+            name       = "postgres-ca"
+            mount_path = "/etc/juggerhub/certs"
+            read_only  = true
+          }
           readiness_probe {
             http_get {
               path = "/api/v1/health"
@@ -254,9 +385,20 @@ resource "kubernetes_deployment_v1" "backend" {
             period_seconds        = 15
           }
         }
+        volume {
+          name = "postgres-ca"
+          secret {
+            secret_name = "postgres-ca" # written by cert-manager; only ca.crt is projected
+            items {
+              key  = "ca.crt"
+              path = "ca.crt"
+            }
+          }
+        }
       }
     }
   }
+  depends_on = [kubernetes_manifest.postgres_server_certificate]
 }
 
 resource "kubernetes_service_v1" "backend" {

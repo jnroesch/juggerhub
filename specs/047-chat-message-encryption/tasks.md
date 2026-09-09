@@ -122,15 +122,15 @@ placeholder bubble. Quickstart §3.
 **Independent test**: `pg_stat_ssl` shows the backend connected over TLS; pointing at the
 wrong CA or a name not in the SAN fails. Quickstart §4.
 
-- [ ] T036 [US2] `docker-compose.yml` — the `database` service gains the certificate mount and the `command` wrapper that copies the key inside the container (`install -o postgres -g postgres -m 600 …`, then `exec docker-entrypoint.sh postgres -c ssl=on …`). The re-entry through `docker-entrypoint.sh postgres` is load-bearing; research §6 explains why
-- [ ] T037 [US2] `docker-compose.yml` — the `backend` service mounts `./certs/local/ca.crt` read-only at `/etc/juggerhub/certs/ca.crt`, and its `ConnectionStrings__DefaultConnection` gains `;SSL Mode=VerifyFull;Root Certificate=/etc/juggerhub/certs/ca.crt`. **`Trust Server Certificate` must appear nowhere**
-- [ ] T038 [US2] `docker-compose.yml` — append `?sslmode=require` to Umami's `DATABASE_URL` (research §8). Leave the `psql` helper containers alone; they negotiate on their own
-- [ ] T039 [US2] `infra/modules/app/main.tf` — three cert-manager manifests: a self-signed `Issuer`, a CA `Certificate` into `postgres-ca`, and a CA `Issuer` issuing a server `Certificate` into `postgres-tls` with `dnsNames = ["postgres", "postgres.<ns>.svc", "postgres.<ns>.svc.cluster.local"]`. **`postgres` (the short name in the connection string) must be present** or `VerifyFull` fails. `depends_on = [helm_release.cert_manager]`, same two-phase-apply constraint as the existing ClusterIssuers
-- [ ] T040 [US2] `infra/modules/app/main.tf` — the Postgres StatefulSet mounts `postgres-tls` at `default_mode = "0640"` with `security_context { fs_group = 70 }` (verified: `postgres:18.3-alpine` runs uid/gid 70) and starts with `-c ssl=on -c ssl_cert_file=… -c ssl_key_file=…`. **`0644` crash-loops the database** with a permissions error that mentions nothing about TLS — research §6
-- [ ] T041 [US2] `infra/modules/app/main.tf` — the backend Deployment mounts `postgres-ca`'s `ca.crt` read-only at `/etc/juggerhub/certs/`, the same path compose uses, so the connection string is character-identical across environments (Principle V)
-- [ ] T042 [US2] `infra/locals.tf` — append `;SSL Mode=VerifyFull;Root Certificate=/etc/juggerhub/certs/ca.crt` to `connection_string`. No tfvars change, no new sensitive value in state
-- [ ] T043 [US2] `infra/modules/app/analytics.tf` — append `?sslmode=require` to Umami's `DATABASE_URL`
-- [ ] T044 [US2] Run `terraform -chdir=infra fmt -check`, `init -backend=false`, `validate` — the 015 CI gates
+- [X] T036 [US2] `docker-compose.yml` — the `database` service gains the certificate mount and the `command` wrapper that copies the key inside the container (`install -o postgres -g postgres -m 600 …`, then `exec docker-entrypoint.sh postgres -c ssl=on …`). The re-entry through `docker-entrypoint.sh postgres` is load-bearing; research §6 explains why
+- [X] T037 [US2] `docker-compose.yml` — the `backend` service mounts `./certs/local/ca.crt` read-only at `/etc/juggerhub/certs/ca.crt`, and its `ConnectionStrings__DefaultConnection` gains `;SSL Mode=VerifyFull;Root Certificate=/etc/juggerhub/certs/ca.crt`. **`Trust Server Certificate` must appear nowhere**
+- [X] T038 [US2] `docker-compose.yml` — append `?sslmode=require` to Umami's `DATABASE_URL` (research §8). Leave the `psql` helper containers alone; they negotiate on their own
+- [X] T039 [US2] `infra/modules/app/main.tf` — three cert-manager manifests: a self-signed `Issuer`, a CA `Certificate` into `postgres-ca`, and a CA `Issuer` issuing a server `Certificate` into `postgres-tls` with `dnsNames = ["postgres", "postgres.<ns>.svc", "postgres.<ns>.svc.cluster.local"]`. **`postgres` (the short name in the connection string) must be present** or `VerifyFull` fails. `depends_on = [helm_release.cert_manager]`, same two-phase-apply constraint as the existing ClusterIssuers
+- [X] T040 [US2] `infra/modules/app/main.tf` — the Postgres StatefulSet mounts `postgres-tls` at `default_mode = "0640"` with `security_context { fs_group = 70 }` (verified: `postgres:18.3-alpine` runs uid/gid 70) and starts with `-c ssl=on -c ssl_cert_file=… -c ssl_key_file=…`. **`0644` crash-loops the database** with a permissions error that mentions nothing about TLS — research §6
+- [X] T041 [US2] `infra/modules/app/main.tf` — the backend Deployment mounts `postgres-ca`'s `ca.crt` read-only at `/etc/juggerhub/certs/`, the same path compose uses, so the connection string is character-identical across environments (Principle V)
+- [X] T042 [US2] `infra/locals.tf` — append `;SSL Mode=VerifyFull;Root Certificate=/etc/juggerhub/certs/ca.crt` to `connection_string`. No tfvars change, no new sensitive value in state
+- [X] T043 [US2] `infra/modules/app/analytics.tf` — append `?sslmode=require` to Umami's `DATABASE_URL`
+- [X] T044 [US2] Run `terraform -chdir=infra fmt -check`, `init -backend=false`, `validate` — the 015 CI gates
 - [ ] T045 [US2] Work through quickstart §4 by hand against local compose, including **all three** negative checks (wrong CA, hostname not in SAN, and grepping that `Trust Server Certificate` appears nowhere). This is the section with no automated equivalent — the Testcontainers database is deliberately certificate-free (research §8)
 
 **Checkpoint**: `docker compose up` connects with `VerifyFull`; `pg_stat_ssl` shows TLS 1.3; Terraform validates; SC-003 and SC-004 met.
@@ -142,11 +142,11 @@ wrong CA or a name not in the SAN fails. Quickstart §4.
 **Purpose**: the key has to reach Dev and Prod, and someone restoring a database has to know
 it exists.
 
-- [ ] T046 [P] `infra/variables.tf` and `infra/modules/app/variables.tf` — `chat_encryption_keys`, `sensitive = true`, no default
-- [ ] T047 `infra/modules/app/main.tf` — `"Chat__Encryption__Keys" = var.chat_encryption_keys` in `kubernetes_secret_v1.app`, beside `Jwt__SigningKey`. **Not** the ConfigMap
-- [ ] T048 `infra/main.tf` — pass the variable through to the app module
-- [ ] T049 `.github/workflows/deploy.yml` — `TF_VAR_chat_encryption_keys: ${{ secrets.CHAT_ENCRYPTION_KEYS }}` in the dev job **and** in the commented-out prod block, so re-enabling prod does not start life missing a secret
-- [ ] T050 `infra/README.md` — a short "chat message encryption key" section: the format, that it is generated once per environment, that it lives only in GitHub Environments, and — the part that matters (FR-024) — **a restored database without its key contains no readable messages**. This goes where a restore is performed, not only in a spec
+- [X] T046 [P] `infra/variables.tf` and `infra/modules/app/variables.tf` — `chat_encryption_keys`, `sensitive = true`, no default
+- [X] T047 `infra/modules/app/main.tf` — `"Chat__Encryption__Keys" = var.chat_encryption_keys` in `kubernetes_secret_v1.app`, beside `Jwt__SigningKey`. **Not** the ConfigMap
+- [X] T048 `infra/main.tf` — pass the variable through to the app module
+- [X] T049 `.github/workflows/deploy.yml` — `TF_VAR_chat_encryption_keys: ${{ secrets.CHAT_ENCRYPTION_KEYS }}` in the dev job **and** in the commented-out prod block, so re-enabling prod does not start life missing a secret
+- [X] T050 `infra/README.md` — a short "chat message encryption key" section: the format, that it is generated once per environment, that it lives only in GitHub Environments, and — the part that matters (FR-024) — **a restored database without its key contains no readable messages**. This goes where a restore is performed, not only in a spec
 
 **Checkpoint**: `terraform validate` green; deliberately removing the key from `.env` fails startup (SC-005).
 

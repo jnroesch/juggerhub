@@ -234,6 +234,27 @@ variable "jwt_signing_key" {
   }
 }
 
+variable "chat_encryption_keys" {
+  description = <<-EOT
+    Chat message encryption keys (feature 047 / #223), as `version:base64key` entries separated
+    by `;`. THE FIRST ENTRY IS THE WRITE KEY; the rest exist only so messages written under an
+    older version stay readable. Each key is exactly 32 bytes, base64-encoded.
+
+    Rotating is "prepend a new key" — one edit to one secret, no migration and no code change.
+
+    LOSING THIS DESTROYS EVERY STORED MESSAGE. It is deliberately not in the database, so a
+    database backup restored without it contains no readable chat history.
+  EOT
+  type        = string
+  sensitive   = true
+  validation {
+    # Shape only. The backend parses it properly and refuses to start on anything malformed;
+    # this catches an empty or obviously wrong secret at plan time instead of at rollout.
+    condition     = can(regex("^[0-9]+:[A-Za-z0-9+/=]{44}(;[0-9]+:[A-Za-z0-9+/=]{44})*$", var.chat_encryption_keys))
+    error_message = "chat_encryption_keys must be one or more 'version:base64key' entries separated by ';', each key 32 bytes base64-encoded."
+  }
+}
+
 variable "resend_api_key" {
   type      = string
   sensitive = true
