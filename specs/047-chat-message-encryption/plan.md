@@ -234,6 +234,21 @@ is asserted directly, and writing them against a finished, unused component is w
 - **Umami's hop is encrypted but not verified** (`sslmode=require`). It carries analytics, not
   messages, and giving Prisma the internal CA is disproportionate.
 
+## What changed during implementation
+
+Recorded rather than quietly absorbed. None of it changes a requirement; all of it is the plan
+meeting the code.
+
+| Planned | Built | Why |
+|---|---|---|
+| `ChatEncryptionOptions` in `Services/Chat/Encryption/` | `backend/Common/ChatEncryptionOptions.cs` | Every other options class lives in `Common/`. Following the existing convention beats matching a file tree drawn before looking |
+| Keys parsed **at registration**, beside the Redis guard | Parsed when the singleton is **constructed**, forced by `app.Services.ValidateChatMessageEncryption()` right after `builder.Build()` | `Program.cs` already documents that a test host layers configuration in *after* composition — a value read during registration never sees it, which broke every integration test at once. Validation still happens at startup, and now **before** the migrations: refusing to start on a missing key should not first alter anyone's schema |
+| — | `backend/Data/DesignTimeDbContextFactory.cs` | The startup guard also blocked `dotnet ef migrations add`. Scoping the fix to the tools beats relaxing the guard: an escape hatch inside the guard is a code path that starts the application without encryption, and something would eventually take it |
+| — | `IChatMessageCipher.VersionOf` | The decrypt-failure log needs the key version — the one actionable fact in a failed row — without the call site indexing into the envelope |
+| — | `ChatMessageSeed` test helper; `ChatEncryptionStartupTests` | Tests that seed rows directly can no longer assign a string. The startup suite is SC-005, which had no home in the original task list |
+| `Row` unchanged apart from the body | `Row` gained `ConversationId` | The warning log names the conversation as well as the message; `ProjectOneAsync` had no other way to know it |
+| Link card left alone | Suppressed when `isUnavailable` | A card beside a placeholder would advertise the content of the message we are telling the reader we cannot show |
+
 ## Out of scope (restated so it is not re-litigated at implementation)
 
 End-to-end encryption (#223 option 3, declined by the owner); encrypting any other text

@@ -34,7 +34,10 @@ Rules:
 
 - `isUnavailable` and `isDeleted` are **never both true** — a deleted row holds no ciphertext
   to fail on.
-- When either is true, `body` is `""` and `linkCard` is `null`.
+- When either is true, `body` is `""` and `linkCard` is `null`. For the unavailable case this is
+  suppression, not absence: the link columns survive the failure, and resolving a card beside a
+  placeholder would advertise the content of the very message the reader is being told cannot be
+  shown.
 - `isUnavailable` is `false` for every `Kind = System` line: system lines carry no text.
 
 Appears on every response that already carries a `MessageDto`:

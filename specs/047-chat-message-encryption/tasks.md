@@ -131,7 +131,7 @@ wrong CA or a name not in the SAN fails. Quickstart §4.
 - [X] T042 [US2] `infra/locals.tf` — append `;SSL Mode=VerifyFull;Root Certificate=/etc/juggerhub/certs/ca.crt` to `connection_string`. No tfvars change, no new sensitive value in state
 - [X] T043 [US2] `infra/modules/app/analytics.tf` — append `?sslmode=require` to Umami's `DATABASE_URL`
 - [X] T044 [US2] Run `terraform -chdir=infra fmt -check`, `init -backend=false`, `validate` — the 015 CI gates
-- [ ] T045 [US2] Work through quickstart §4 by hand against local compose, including **all three** negative checks (wrong CA, hostname not in SAN, and grepping that `Trust Server Certificate` appears nowhere). This is the section with no automated equivalent — the Testcontainers database is deliberately certificate-free (research §8)
+- [X] T045 [US2] Work through quickstart §4 by hand against local compose, including **all three** negative checks (wrong CA, hostname not in SAN, and grepping that `Trust Server Certificate` appears nowhere). This is the section with no automated equivalent — the Testcontainers database is deliberately certificate-free (research §8)
 
 **Checkpoint**: `docker compose up` connects with `VerifyFull`; `pg_stat_ssl` shows TLS 1.3; Terraform validates; SC-003 and SC-004 met.
 
@@ -160,11 +160,11 @@ translations of it.
 **Independent test**: read the messages paragraph in all three languages against
 research §11's table. Quickstart §5.
 
-- [ ] T051 [US3] `frontend/apps/web/public/i18n/legal/de.json` L129 — rewrite the messages paragraph. It **may** say the text is encrypted where it is stored and that the database connection is encrypted; it **must** say plainly that JuggerHub holds the key and can therefore read messages; it **must not** claim or let a reader conclude end-to-end encryption, and must not claim protection for hops that lack it (the backplane, research §9). Keep the existing sentence about a conversation outliving its team or event
-- [ ] T052 [US3] `frontend/apps/web/public/i18n/legal/en.json` L129 — translate the German
-- [ ] T053 [US3] `frontend/apps/web/public/i18n/legal/es.json` L129 — translate the German
-- [ ] T054 [P] [US3] Re-run the FR-023 sweep: `grep -rn "encrypt\|verschlüssel\|cifrad" -i frontend/apps/web/public/i18n/` — confirm L129 in the three legal catalogues is still the **only** place the product describes how message text is protected, and that nothing else went stale
-- [ ] T055 [US3] Run `legal-catalog.spec.ts` — its DM-1 key-parity guard turns red if the three files drift
+- [X] T051 [US3] `frontend/apps/web/public/i18n/legal/de.json` L129 — rewrite the messages paragraph. It **may** say the text is encrypted where it is stored and that the database connection is encrypted; it **must** say plainly that JuggerHub holds the key and can therefore read messages; it **must not** claim or let a reader conclude end-to-end encryption, and must not claim protection for hops that lack it (the backplane, research §9). Keep the existing sentence about a conversation outliving its team or event
+- [X] T052 [US3] `frontend/apps/web/public/i18n/legal/en.json` L129 — translate the German
+- [X] T053 [US3] `frontend/apps/web/public/i18n/legal/es.json` L129 — translate the German
+- [X] T054 [P] [US3] Re-run the FR-023 sweep: `grep -rn "encrypt\|verschlüssel\|cifrad" -i frontend/apps/web/public/i18n/` — confirm L129 in the three legal catalogues is still the **only** place the product describes how message text is protected, and that nothing else went stale
+- [X] T055 [US3] Run `legal-catalog.spec.ts` — its DM-1 key-parity guard turns red if the three files drift
 
 **Checkpoint**: all three read as the same document; SC-008 met.
 
@@ -172,11 +172,11 @@ research §11's table. Quickstart §5.
 
 ## Phase 9: Polish & gates
 
-- [ ] T056 Instantiate `specs/047-chat-message-encryption/checklists/ui-review.md` from `.specify/templates/ui-review-checklist-template.md` and verify each item against the diff — the placeholder bubble and the legal prose are the surfaces. DESIGN.md wins on any conflict (Gate 7)
-- [ ] T057 [P] Full verification: `dotnet test`, `npm --prefix frontend test`, `npx nx lint web`, `npx nx build web`, `terraform fmt -check`/`validate`. Report what ran and what failed — never claim a check that was not run
-- [ ] T058 [P] Comment on GH **#219** recording FR-019: whoever deploys Redis must give it TLS and AUTH, because the backplane carries message DTOs that this feature does **not** protect
-- [ ] T059 Update GH **#223** with what shipped, what was declined (option 3), and the recorded residuals: `pg_hba` untouched so the server still accepts a plaintext client; the test harness is certificate-free; the inbox preview does not distinguish unavailable from deleted; Umami is encrypted but unverified
-- [ ] T060 Re-read [plan.md](./plan.md)'s "Spec drift and residuals" against what was actually built and correct it if implementation diverged. Drift is reported, not silently absorbed
+- [X] T056 Instantiate `specs/047-chat-message-encryption/checklists/ui-review.md` from `.specify/templates/ui-review-checklist-template.md` and verify each item against the diff — the placeholder bubble and the legal prose are the surfaces. DESIGN.md wins on any conflict (Gate 7)
+- [X] T057 [P] Full verification: `dotnet test`, `npm --prefix frontend test`, `npx nx lint web`, `npx nx build web`, `terraform fmt -check`/`validate`. Report what ran and what failed — never claim a check that was not run
+- [X] T058 [P] Comment on GH **#219** recording FR-019: whoever deploys Redis must give it TLS and AUTH, because the backplane carries message DTOs that this feature does **not** protect
+- [X] T059 Update GH **#223** with what shipped, what was declined (option 3), and the recorded residuals: `pg_hba` untouched so the server still accepts a plaintext client; the test harness is certificate-free; the inbox preview does not distinguish unavailable from deleted; Umami is encrypted but unverified
+- [X] T060 Re-read [plan.md](./plan.md)'s "Spec drift and residuals" against what was actually built and correct it if implementation diverged. Drift is reported, not silently absorbed
 
 ---
 

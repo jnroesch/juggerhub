@@ -112,6 +112,31 @@ Select-String -Path docker-compose.yml,infra/locals.tf,.env.sample -Pattern "Tru
 > configuration and every line of new *code* is covered by the suite. Run this section by
 > hand when the connection string or the certificates change (research §8).
 
+### Run this section. It has already caught one real defect.
+
+The first version of the compose `command:` used a YAML folded scalar with the `-c` flags
+indented to line up under `postgres`. A folded scalar joins lines with spaces **only while they
+share the block's indentation** — a more-indented line keeps its newline verbatim. So the shell
+saw `exec docker-entrypoint.sh postgres`, terminated the command there, and dropped every flag.
+
+The failure mode is the reason this check exists: **Postgres started perfectly, reported healthy,
+and served the application — with `ssl` still off.** No error, no warning, nothing in any log. The
+certificates were mounted, the key was copied with the right ownership, the container was green.
+Only `SHOW ssl;` said otherwise.
+
+Verified results, 2026-09-09, against local compose:
+
+| Check | Result |
+|---|---|
+| `SHOW ssl;` | `on` |
+| Backend's pooled connection in `pg_stat_ssl` | `t`, TLSv1.3, `TLS_AES_256_GCM_SHA384` |
+| `sslmode=verify-full` with the real CA | connects |
+| `sslmode=verify-full` with a non-CA as root | `SSL error: certificate verify failed` |
+| `host=juggerhub-database` (not in the SAN), `verify-full` | `server certificate for "database" (and 2 other names) does not match host name` |
+| the same host with `verify-ca` | connects — proving it is specifically the **hostname** check that fires, which is the whole difference between `VerifyFull` and the weaker modes |
+| `Trust Server Certificate` anywhere in config | absent (only the comments warning against it) |
+| `ChatMessages` schema after migration | `Body` gone; `BodyCipher` `bytea` |
+
 ---
 
 ## 5 — SC-008: the privacy paragraph

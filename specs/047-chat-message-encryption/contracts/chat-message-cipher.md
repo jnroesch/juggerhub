@@ -18,8 +18,20 @@ public interface IChatMessageCipher
     /// unconfigured key version, or fails authentication.
     /// </summary>
     bool TryUnprotect(byte[] cipher, Guid messageId, out string plaintext);
+
+    /// <summary>
+    /// The key version a stored envelope names, or null when it is too short to say. Operator
+    /// diagnostics only — it reads one plaintext byte and proves nothing about decryptability.
+    /// </summary>
+    byte? VersionOf(byte[] cipher);
 }
 ```
+
+> `VersionOf` was added during implementation. The decrypt-failure log line (FR-010) has to be
+> useful without being dangerous, and the version is the one genuinely actionable fact in a failed
+> row — it tells an operator whether they retired a key that rows still depend on. Reading it
+> through the cipher rather than indexing `cipher[0]` at the call site keeps the envelope layout in
+> one file.
 
 ## Behaviour
 
