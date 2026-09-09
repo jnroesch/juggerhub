@@ -165,7 +165,42 @@ self-signed `Issuer` bootstraps an internal CA (`postgres-ca`), which signs the 
   the verification this exists for.
 
 Locally the equivalent is `./scripts/dev-postgres-certs.ps1`, which writes a CA and server
-certificate into the gitignored `certs/local/`.
+certificate into the gitignored `certs/local/`. It is idempotent and normally runs itself — the
+Claude Code `SessionStart` hook generates the material when it is missing, and the `WorktreeCreate`
+hook copies it into a new worktree alongside `.env`. Run the script by hand only on a plain
+checkout that has neither.
+
+#### Certificate lifetimes and how to rotate — read before shortening anything
+
+Both certificates carry **explicit long durations**: the CA 10 years (renewed a year out), the
+server certificate 5 years (renewed 30 days out, matching what the local script issues).
+
+That is a deliberate deferral, not a default anyone forgot to change. cert-manager renews on its
+own, but **PostgreSQL does not re-read `ssl_cert_file` by itself** — it is a `SIGHUP`-context
+setting and nothing here sends a reload. With cert-manager's usual 90-day cadence, Postgres would
+keep serving the *old* certificate after a renewal, silently self-heal if the pod happened to
+restart inside the 30-day overlap, and otherwise start refusing connections about three months
+after an apply with nothing in the diff to explain it. Tracked as **GH #239**; until that lands,
+shortening these durations re-arms that failure.
+
+**To rotate deliberately** (a suspected key compromise, or the five years running out):
+
+```powershell
+# 1. Delete the Secret; cert-manager re-issues from the Certificate resource within seconds.
+kubectl -n juggerhub delete secret postgres-tls
+
+# 2. Postgres will NOT pick it up on its own. Reload it — this re-reads the certificate
+#    without dropping the database (a restart also works and is more disruptive).
+kubectl -n juggerhub exec statefulset/postgres -- psql -U <user> -d <db> -c "SELECT pg_reload_conf();"
+
+# 3. Verify what the SERVER now presents, not what the Secret contains.
+kubectl -n juggerhub exec deployment/backend -- \
+  openssl s_client -starttls postgres -connect postgres:5432 -showcerts </dev/null
+```
+
+Rotating the **CA** additionally requires deleting `postgres-ca`, letting the server certificate
+re-issue beneath it, and restarting the backend so it picks up the new `ca.crt` — do that one in a
+maintenance window, since it briefly invalidates the trust chain in both directions.
 
 ### Two-phase apply caveat (first run only)
 

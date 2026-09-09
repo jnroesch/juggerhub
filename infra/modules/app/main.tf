@@ -126,6 +126,26 @@ resource "kubernetes_secret_v1" "ghcr" {
 # Three objects: a self-signed issuer to bootstrap, a CA certificate it signs, and a CA issuer that
 # signs the server certificate.
 #
+# ⚠ BOTH CERTIFICATES SET AN EXPLICIT LONG `duration`, AND THAT IS DELIBERATE.
+#
+# cert-manager's default is 90 days, renewed when 30 days remain — correct for the public ingress
+# certificate, and a scheduled outage here. The reason is downstream: **PostgreSQL does not re-read
+# `ssl_cert_file` by itself.** It is a SIGHUP-context setting, so a reload would pick up a renewed
+# certificate, but nothing in this deployment sends one. cert-manager would rotate the Secret, the
+# kubelet would update the file in the pod, and Postgres would carry on serving the OLD certificate
+# until the pod happened to restart. Inside the 30-day overlap that self-heals invisibly; past it
+# the served certificate expires, `VerifyFull` starts refusing, and the backend loses the database
+# roughly three months after an apply with nothing in the diff to point at.
+#
+# Short-lived certificates buy a smaller compromise window, which is worth real operational cost
+# for a certificate the public presents to. This is a private CA on a hop only the backend can
+# reach, so the trade runs the other way: rotation becomes a deliberate operator action (see
+# infra/README.md) instead of a timer nobody set.
+#
+# Revisiting this properly — automatic rotation with something that reloads Postgres when the
+# Secret changes — is tracked as GH #239. Until that lands, do NOT shorten these durations: doing
+# so re-arms exactly the failure above.
+#
 # NOTE the same two-phase-apply constraint the ClusterIssuers carry: kubernetes_manifest resolves
 # the CRD schema at PLAN time, so on a fresh cluster cert-manager must be applied first. See
 # infra/README.md.
@@ -153,7 +173,11 @@ resource "kubernetes_manifest" "postgres_ca_certificate" {
       isCA       = true
       commonName = "juggerhub-postgres-ca"
       secretName = "postgres-ca"
-      privateKey = { algorithm = "RSA", size = 4096 }
+      # 10 years, renewed a year out — it must comfortably outlive every certificate it signs, or
+      # leaves would be chaining to an authority that expires before they do.
+      duration    = "87600h"
+      renewBefore = "8760h"
+      privateKey  = { algorithm = "RSA", size = 4096 }
       issuerRef = {
         name  = kubernetes_manifest.postgres_selfsigned_issuer.manifest.metadata.name
         kind  = "Issuer"
@@ -186,6 +210,12 @@ resource "kubernetes_manifest" "postgres_server_certificate" {
     }
     spec = {
       secretName = "postgres-tls"
+      # 5 years, matching what scripts/dev-postgres-certs.ps1 issues locally so the two environments
+      # age the same way. renewBefore is set SMALL and explicitly: left unset it defaults to a third
+      # of the duration, which would schedule the first automatic renewal — and the silent
+      # stale-certificate problem above — about twenty months from now rather than in five years.
+      duration    = "43800h"
+      renewBefore = "720h"
       # `postgres` — the bare service name — is LOAD-BEARING and must stay first: the connection
       # string says Host=postgres, and VerifyFull matches the host string as written, not the name
       # it resolves to. Dropping it here breaks the backend with a hostname-mismatch error that
