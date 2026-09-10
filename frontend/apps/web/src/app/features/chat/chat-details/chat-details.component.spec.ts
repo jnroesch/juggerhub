@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { ChatService } from '../../../core/services/chat.service';
 import { ChatMember, ConversationDetail } from '../../../core/models/chat.models';
@@ -42,8 +42,8 @@ const chat = {
   loadInbox: jest.fn(),
 };
 
-function create(members: ChatMember[]) {
-  chat.getDetail.mockReturnValue(of(detail));
+function create(members: ChatMember[], over: Partial<ConversationDetail> = {}) {
+  chat.getDetail.mockReturnValue(of({ ...detail, ...over }));
   chat.getMembers.mockReturnValue(of({ items: members, totalCount: members.length, skip: 0, take: 20 }));
 
   TestBed.configureTestingModule({
@@ -111,5 +111,55 @@ describe('ChatDetailsComponent (issue #68)', () => {
     expect(bobImg).not.toBeNull();
     expect(bobImg?.getAttribute('src')).toBe('/api/v1/profiles/bob/avatar');
     expect(ann.querySelector('img')).toBeNull();
+  });
+
+  /**
+   * Hiding is an archive, so it is reversible (feature 048, GH #222). The control is a two-state
+   * toggle like mute — and the two directions are deliberately asymmetric (FR-004).
+   */
+  describe('hide toggle (feature 048)', () => {
+    const toggle = (fixture: ReturnType<typeof create>) =>
+      fixture.nativeElement.querySelector('[data-testid="toggle-hide"]') as HTMLButtonElement;
+
+    it('offers Hide while the conversation is visible', () => {
+      const fixture = create([], { isHidden: false });
+
+      expect(toggle(fixture).textContent).toContain('Hide from my messages');
+    });
+
+    it('offers the way back once the conversation is hidden', () => {
+      const fixture = create([], { isHidden: true });
+
+      expect(toggle(fixture).textContent).toContain('Show in my messages again');
+      expect(toggle(fixture).textContent).not.toContain('Hide from my messages');
+    });
+
+    it('un-hides without navigating away, and updates the label in place', () => {
+      chat.setState.mockReturnValue(of(void 0));
+      const fixture = create([], { isHidden: true });
+      const router = TestBed.inject(Router);
+      const navigate = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      toggle(fixture).click();
+      fixture.detectChanges();
+
+      expect(chat.setState).toHaveBeenCalledWith('c-1', { isHidden: false });
+      // You have just asked to see more of this conversation — being thrown back to the inbox
+      // would be perverse (FR-004).
+      expect(navigate).not.toHaveBeenCalled();
+      expect(toggle(fixture).textContent).toContain('Hide from my messages');
+    });
+
+    it('still returns you to the inbox when you hide', () => {
+      chat.setState.mockReturnValue(of(void 0));
+      const fixture = create([], { isHidden: false });
+      const router = TestBed.inject(Router);
+      const navigate = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+      toggle(fixture).click();
+
+      expect(chat.setState).toHaveBeenCalledWith('c-1', { isHidden: true });
+      expect(navigate).toHaveBeenCalledWith(['/chat']);
+    });
   });
 });

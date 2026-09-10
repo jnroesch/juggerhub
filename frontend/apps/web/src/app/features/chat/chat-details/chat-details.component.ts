@@ -83,15 +83,30 @@ export class ChatDetailsComponent implements OnChanges {
     });
   }
 
-  protected hide(): void {
+  /**
+   * Hide ↔ show in the inbox (feature 048, FR-002/FR-004). Hiding is an *archive*, not a leave, so it
+   * is reversible — and the two directions are deliberately not symmetric: hiding takes you back to
+   * the inbox, because you have just said you want this out of your list, while un-hiding leaves you
+   * on the conversation you have just asked to see more of.
+   */
+  protected toggleHide(): void {
     const d = this.detail();
     if (!d) {
       return;
     }
 
+    const next = !d.isHidden;
     this.busy.set(true);
-    this.chat.setState(d.id, { isHidden: true }).subscribe({
-      next: () => void this.router.navigate(['/chat']),
+    this.chat.setState(d.id, { isHidden: next }).subscribe({
+      next: () => {
+        if (next) {
+          void this.router.navigate(['/chat']);
+          return;
+        }
+
+        this.detail.update((x) => (x ? { ...x, isHidden: false } : x));
+        this.busy.set(false);
+      },
       error: () => this.busy.set(false),
     });
   }

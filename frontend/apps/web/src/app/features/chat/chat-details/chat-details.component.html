@@ -127,15 +127,29 @@
 
       <button
         type="button"
-        (click)="hide()"
+        (click)="toggleHide()"
         [disabled]="busy()"
         class="flex min-h-11 w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body transition-colors duration-fast hover:bg-surface-sunken disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-        data-testid="hide-chat"
+        data-testid="toggle-hide"
       >
-        <span>{{ 'chat.details.hide' | transloco }}</span>
-        <svg class="size-5 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M9.9 4.2A9 9 0 0 1 12 4c7 0 10 8 10 8a18 18 0 0 1-2.2 3.2M6.6 6.6A18 18 0 0 0 2 12s3 8 10 8a9 9 0 0 0 5.4-1.6M2 2l20 20M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-        </svg>
+        <!--
+          text-left because this label is the one that actually wraps: the German
+          "Wieder in meinen Nachrichten anzeigen" needs two lines at 375px. The panel header
+          centres its text, and a shrink-to-fit single-line span hides that — but a wrapped
+          span fills the row and the centring becomes visible, leaving this control's text
+          starting in a different place from the mute row directly above it.
+        -->
+        <span class="text-left">{{ (d.isHidden ? 'chat.details.unhide' : 'chat.details.hide') | transloco }}</span>
+        @if (d.isHidden) {
+          <svg class="size-5 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M2 12s3-8 10-8 10 8 10 8-3 8-10 8-10-8-10-8Z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        } @else {
+          <svg class="size-5 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9.9 4.2A9 9 0 0 1 12 4c7 0 10 8 10 8a18 18 0 0 1-2.2 3.2M6.6 6.6A18 18 0 0 0 2 12s3 8 10 8a9 9 0 0 0 5.4-1.6M2 2l20 20M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+          </svg>
+        }
       </button>
 
       <!--

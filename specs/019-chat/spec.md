@@ -29,6 +29,19 @@
 > (FR-049), blocked players excluded (FR-033). User Story 6, FR-034, FR-035, FR-036, FR-050c's
 > search clause and SC-006 are superseded. See `specs/046-chat-inbox-search/`.
 
+> **Amended by feature 048 (2026-09-09) — hiding a conversation is reversible.** Hide is
+> an **archive** ("tidy away until something happens"); **mute** is "don't bother me". Each
+> control has exactly one job. Hiding can now be undone from the conversation's details panel,
+> where the control is a two-state toggle like mute; and a **message written by a member**
+> returns an archived conversation to the inbox of everyone who had hidden it, the **sender
+> included**, before any unread total is recomputed. A **system line** — someone joining or
+> leaving, a chat becoming archived — does **not** bring a conversation back. FR-026's premise
+> is rejected: leaving the team leaves its chat (FR-025), so hide was never needed as a
+> substitute for leave, and **mute** is what stands in for it. FR-026 and FR-029 are amended
+> below; FR-018 is unchanged — what "hidden" means to the badge is the same, only *when* a
+> conversation stops being hidden is new. A "Hidden chats" inbox list remains unbuilt.
+> See `specs/048-chat-unhide/`.
+
 ## Clarifications
 
 ### Session 2026-07-16
@@ -284,13 +297,13 @@ A player on a wide screen sees the inbox become a left rail with every conversat
 
 - **FR-024**: The system MUST maintain exactly one chat per team and one per event party, created without any user action, including for teams and parties that already exist when the feature ships.
 - **FR-025**: Membership of a team or party chat MUST mirror the underlying roster: joining the roster grants access, leaving or being removed from it revokes access.
-- **FR-026**: A member MUST NOT be able to leave a team or party chat independently of the roster, nor add or remove its participants directly; mute and hide MUST be offered in place of leave.
+- **FR-026**: A member MUST NOT be able to leave a team or party chat independently of the roster, nor add or remove its participants directly; **mute** MUST be offered in place of leave. *(Amended by feature 048: this originally said "mute and hide". Hide is an archive, available on every kind, and was never needed as a leave substitute — leaving the team leaves its chat, FR-025.)*
 - **FR-027**: When a party disbands or a team is deleted, its chat MUST become archived — readable by its members, closed to new messages and to live events, and marked as such.
 
 **Control & safety**
 
 - **FR-028**: A player MUST be able to mute any conversation, which stops it contributing to the navigation unread total while leaving it in the inbox.
-- **FR-029**: A player MUST be able to hide a conversation from their inbox.
+- **FR-029**: A player MUST be able to hide a conversation from their inbox, and hiding MUST be reversible — both by the player, through a control on the conversation itself, and automatically, when a member writes a message into it. *(Amended by feature 048; hide means archive, not leave.)*
 - **FR-030**: A player MUST be able to block another player, and to unblock them; unblocking MUST restore direct messaging with the prior history intact.
 - **FR-031**: A block MUST prevent the blocked player from starting or continuing a direct conversation with the blocker, enforced server-side on every send and start, and MUST hide that direct conversation from the blocker's inbox.
 - **FR-032**: A block MUST NOT affect either player's participation in any group, team or party conversation they both belong to.

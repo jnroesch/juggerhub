@@ -530,6 +530,7 @@
       "mute": "Diesen Chat stummschalten",
       "unmute": "Stummschaltung aufheben",
       "hide": "Aus meinen Nachrichten ausblenden",
+      "unhide": "Wieder in meinen Nachrichten anzeigen",
       "leaveConfirm": "„{{name}}“ verlassen? Die Gruppe macht ohne dich weiter.",
       "leaveChat": "Chat verlassen",
       "blockConfirm": "{{name}} blockieren? Diese Person kann dir dann keine Nachrichten mehr senden, und dieser Chat verlässt deinen Posteingang. Ihr nehmt beide weiterhin an gemeinsamen Gruppen teil.",

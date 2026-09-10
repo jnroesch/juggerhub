@@ -131,6 +131,8 @@ public sealed class ChatMessageService : IChatMessageService
 
         await _db.SaveChangesAsync(ct);
 
+        await ReturnToArchiversInboxesAsync(conversationId, ct);
+
         var dto = await ProjectOneAsync(message.Id, callerId, ct);
         if (dto is null)
         {
@@ -141,6 +143,45 @@ public sealed class ChatMessageService : IChatMessageService
 
         return ChatResult<MessageDto>.Ok(dto);
     }
+
+    /// <summary>
+    /// Clear the hidden flag for everyone who had archived this conversation, so a new message brings
+    /// it back to their inbox (feature 048, FR-007/FR-012).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Hiding means <em>archive</em> — "tidy away until something happens" — and a member writing is
+    /// what "something happens" means. It clears for the <b>sender</b> too: reaching a conversation you
+    /// hid by its direct link and posting into it used to leave the message invisible in your own inbox.
+    /// </para>
+    /// <para>
+    /// <b>Called from <see cref="SendAsync"/> only, and deliberately not shared with
+    /// <see cref="WriteSystemMessageAsync"/>.</b> A system line — joined, left, archived — does not
+    /// return an archived conversation (FR-011), just as it already neither pushes realtime nor bumps
+    /// <c>LastMessageDate</c>. Folding the two together would repeal that silently; the guard is
+    /// <c>ChatHideTests.A_system_line_leaves_a_hidden_conversation_hidden</c>.
+    /// </para>
+    /// <para>
+    /// <b>Ordering is load-bearing</b>: this runs before <see cref="PushMessageToOthersAsync"/>, which
+    /// recomputes each recipient's badge through <see cref="UnreadTotalAsync"/> — and that total
+    /// excludes hidden conversations. Clear the flag afterwards and the conversation reappears in the
+    /// inbox carrying unread messages the navigation badge does not count (FR-009).
+    /// </para>
+    /// <para>
+    /// <c>IsHidden</c> narrows the update to the rows that actually carry the flag — participant state
+    /// rows are created lazily, so this matches no rows at all in the common case. <c>LeftDate == null</c>
+    /// spares a group's leaver, whose row is kept so their past messages stay attributable: clearing it
+    /// would silently un-archive the conversation for them if they rejoined.
+    /// </para>
+    /// </remarks>
+    private Task ReturnToArchiversInboxesAsync(Guid conversationId, CancellationToken ct) =>
+        _db.ConversationParticipants
+            .Where(p => p.ConversationId == conversationId && p.IsHidden && p.LeftDate == null)
+            // ExecuteUpdateAsync bypasses the change tracker, so AuditFieldsInterceptor does not run
+            // and ModifiedDate has to be set here (constitution Principle III).
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.IsHidden, false)
+                .SetProperty(p => p.ModifiedDate, DateTime.UtcNow), ct);
 
     /// <summary>
     /// Fan a new message out to the conversation's other members, and refresh each one's unread total.
