@@ -530,6 +530,7 @@
       "mute": "Silenciar este chat",
       "unmute": "Reactivar el sonido",
       "hide": "Ocultar de mis mensajes",
+      "unhide": "Mostrar de nuevo en mis mensajes",
       "leaveConfirm": "¿Salir de «{{name}}»? El grupo continúa sin ti.",
       "leaveChat": "Salir del chat",
       "blockConfirm": "¿Bloquear a {{name}}? No podrá enviarte mensajes y este chat saldrá de tu bandeja. Ambos seguiréis participando en cualquier grupo que compartáis.",

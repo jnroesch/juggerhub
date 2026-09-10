@@ -526,6 +526,7 @@
       "mute": "Mute this chat",
       "unmute": "Unmute this chat",
       "hide": "Hide from my messages",
+      "unhide": "Show in my messages again",
       "leaveConfirm": "Leave “{{name}}”? The group carries on without you.",
       "leaveChat": "Leave chat",
       "blockConfirm": "Block {{name}}? They won't be able to message you, and this chat leaves your inbox. You'll both still take part in any group you share.",

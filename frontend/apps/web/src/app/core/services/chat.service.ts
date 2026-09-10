@@ -203,9 +203,21 @@ export class ChatService {
   setState(conversationId: string, patch: { isMuted?: boolean; isHidden?: boolean }): Observable<void> {
     return this.http.patch<void>(`${this.base}/conversations/${conversationId}/state`, patch).pipe(
       tap(() => {
-        if (patch.isHidden) {
+        // Explicit comparisons, and independent branches: `if (patch.isHidden)` treated an un-hide
+        // ({ isHidden: false }) as "nothing to do" and fell through to the mute branch, which is also
+        // undefined — so the conversation stayed absent from the inbox until a full reload (feature
+        // 048, FR-003). The `else if` had the same shape of bug for a patch carrying both flags.
+        if (patch.isHidden === true) {
           this._conversations.update((cs) => cs.filter((c) => c.id !== conversationId));
-        } else if (patch.isMuted !== undefined) {
+        }
+
+        if (patch.isHidden === false) {
+          // The row isn't held anywhere on the client while hidden, and its preview, position and
+          // unread count are the inbox projection's to decide — so re-seed rather than invent a row.
+          this.loadInbox().subscribe({ error: () => undefined });
+        }
+
+        if (patch.isMuted !== undefined) {
           this.patchConversation(conversationId, { isMuted: patch.isMuted });
         }
       }),

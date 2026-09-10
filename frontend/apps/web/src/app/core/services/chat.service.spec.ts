@@ -297,6 +297,47 @@ describe('ChatService', () => {
     expect(service.conversations()).toEqual([]);
   });
 
+  it('re-seeds the inbox when a conversation is un-hidden (feature 048)', () => {
+    TestBed.tick();
+    flushInitialUnread();
+
+    service.loadInbox().subscribe();
+    httpMock
+      .expectOne('/api/v1/chat/conversations?skip=0&take=20')
+      .flush({ items: [], totalCount: 0, skip: 0, take: 20 });
+
+    service.setState('c1', { isHidden: false }).subscribe();
+    httpMock.expectOne('/api/v1/chat/conversations/c1/state').flush(null);
+
+    // The row is not held anywhere on the client while hidden, so the inbox is re-fetched rather
+    // than reconstructed — and it must happen without a page reload (FR-003).
+    httpMock
+      .expectOne('/api/v1/chat/conversations?skip=0&take=20')
+      .flush({ items: [conversation({ id: 'c1' })], totalCount: 1, skip: 0, take: 20 });
+
+    expect(service.conversations().map((c) => c.id)).toEqual(['c1']);
+  });
+
+  it('applies both flags when a state patch carries hide and mute together', () => {
+    TestBed.tick();
+    flushInitialUnread();
+
+    service.loadInbox().subscribe();
+    httpMock
+      .expectOne('/api/v1/chat/conversations?skip=0&take=20')
+      .flush({ items: [conversation({ id: 'c1' })], totalCount: 1, skip: 0, take: 20 });
+
+    service.setState('c1', { isHidden: false, isMuted: true }).subscribe();
+    httpMock.expectOne('/api/v1/chat/conversations/c1/state').flush(null);
+    httpMock
+      .expectOne('/api/v1/chat/conversations?skip=0&take=20')
+      .flush({ items: [conversation({ id: 'c1', isMuted: true })], totalCount: 1, skip: 0, take: 20 });
+    httpMock.match('/api/v1/chat/conversations/unread-count').forEach((r) => r.flush({ unreadCount: 0 }));
+
+    // The old `if/else if` would have dropped one of the two silently.
+    expect(service.conversations()[0].isMuted).toBe(true);
+  });
+
   it('keeps a muted conversation listed', () => {
     TestBed.tick();
     flushInitialUnread();
