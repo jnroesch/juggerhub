@@ -130,6 +130,15 @@ this is what stands in for "leave" there (FR-026).
 
 `204`. Creates the lazy participant-state row for `Team`/`Party` if absent (data-model R7).
 
+> **Amended by 048 (2026-09-09):** the shape is unchanged, but both directions are now exercised.
+> `"isHidden": false` **un-hides** — the server has always applied it; until 048 nothing in the
+> product ever sent it, which is why hiding had no way back. Hiding is an **archive**, so **mute**
+> — not hide — is what stands in for "leave" on a `Team`/`Party` chat (FR-026 as amended).
+> Separately, `POST .../messages` now clears the hidden flag for every member of the conversation
+> who had set it, the **sender included**, before any unread total is recomputed; a system line
+> does not. No endpoint, field or event was added. See
+> `specs/048-chat-unhide/contracts/chat-hide-state.md`.
+
 ### `POST /api/v1/chat/conversations/{id}/read`
 
 Mark read up to a message. Converges the badge across the player's other sessions (FR-016) by
