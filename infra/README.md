@@ -218,9 +218,12 @@ that looks like something else:
   Ingress is **default-deny**: a new pod receives no traffic until a policy admits it, and a new
   caller of Postgres must be added to the Postgres policy's list — otherwise it times out as if the
   database were down. Redis (#219) will need its own policy admitting the backend.
-- **Pod Security Admission** on the namespace: `baseline` is enforced (privileged pods, host
-  mounts and added capabilities are rejected at admission); `restricted` is warned and audited.
-  To see what would fail under `restricted` without changing anything:
+- **Pod Security Admission** on the namespace enforces **`restricted`**: a pod that runs as root,
+  keeps capabilities, allows privilege escalation or lacks a seccomp profile is **rejected at
+  admission** — the Deployment shows no new pods and `kubectl describe replicaset` names the rule.
+  This also applies to cert-manager's HTTP-01 solver pods, so after upgrading cert-manager, confirm
+  a renewal still completes (a rejected solver leaves the Challenge pending). To see what existing
+  pods would violate a label change without applying it:
 
   ```powershell
   kubectl label --dry-run=server --overwrite ns juggerhub pod-security.kubernetes.io/enforce=restricted
