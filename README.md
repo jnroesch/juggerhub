@@ -119,11 +119,45 @@ Architecture, security, and convention rules live in the project
 
 ## Quick start
 
-Everything runs in containers — **you only need [Docker](https://www.docker.com/)
-and Docker Compose**. No host-level .NET or Node runtime is required.
+### Start here: open `project.code-workspace` in VS Code
+
+**The starting point for working on JuggerHub is [`project.code-workspace`](project.code-workspace)**,
+not the repository folder. We **highly recommend [VS Code](https://code.visualstudio.com/)
+with the workspace's suggested extensions** — it is the setup the project is built and
+maintained with.
 
 ```bash
 git clone https://github.com/jnroesch/juggerhub.git
+code juggerhub/project.code-workspace   # or: File → Open Workspace from File…
+```
+
+When the workspace opens, VS Code offers to install its **recommended extensions** — accept.
+If you dismissed the prompt, run **Extensions: Show Recommended Extensions** from the command
+palette. They cover every part of the stack: C# Dev Kit, the Angular language service,
+Nx Console, Tailwind CSS, ESLint, Prettier, Playwright, Docker, PostgreSQL, Terraform,
+Kubernetes, GitHub Actions, and Claude Code.
+
+The workspace file is where the project's editor setup lives — there is no `.vscode/` folder —
+so opening the plain folder instead loses all of it:
+
+- **Tasks** (*Terminal → Run Task*) for the whole Docker lifecycle — compose up / debug / down,
+  drop the database volume — and every test suite, including the CI-parity lint.
+- **Terminal profiles** that start the stack (plain, debug, with analytics, with spam scoring)
+  and port-forward to the Dev database.
+- **Debug configurations**, including **Full Stack Debug**, which attaches to the backend and
+  frontend containers and launches Chrome.
+- **Worktree setup** — git worktrees created from the workspace get `.env` and
+  `.claude/settings.local.json` copied in automatically.
+
+Other editors work — everything below runs through Docker — but nothing is set up for them.
+
+### Run the stack
+
+Everything runs in containers — **the only runtime you need is [Docker](https://www.docker.com/)
+and Docker Compose**. No host-level .NET or Node runtime is required. From VS Code, run the
+**Docker Compose Up** task (after creating `.env`), or from a terminal:
+
+```bash
 cd juggerhub
 
 cp .env.sample .env            # PowerShell: Copy-Item .env.sample .env
@@ -187,6 +221,7 @@ the local or pipeline build. Keep that file empty — see the note in `docker-co
 ## Project structure
 
 ```
+├── project.code-workspace  # VS Code workspace — the starting point (tasks, debug, extensions)
 ├── backend/              # .NET 10 API (Controllers/Services/Entities/Data/Dtos), tests/, Dockerfile
 ├── frontend/             # Nx + Angular workspace (apps/web, apps/web-e2e), Dockerfile
 ├── specs/                # Spec-Kit feature specs, plans, and tasks
