@@ -26,6 +26,7 @@ using JuggerHub.Security.PlatformAdmin;
 using JuggerHub.Security.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -96,6 +97,22 @@ builder.Services
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders()
     .AddTokenProvider<ResetPasswordTokenProvider<User>>("ResetPasswordProvider");
+
+// --- Data Protection key ring (GH #250) --------------------------------------
+// The token providers above are Data Protection payloads: every email-verification and
+// password-reset link is only as durable as the key ring that signed it. The framework default is a
+// directory inside the container — generated per pod and lost on restart — so with more than one
+// replica a link minted on one pod FAILS on another (email links open in a fresh browser, so no
+// affinity can help), and every deploy invalidated every outstanding link.
+//
+// Postgres is shared by all replicas and survives restarts. The application name is pinned because
+// the key ring is isolated per app name, and the default derives from the content root path.
+//
+// Keys are stored UNENCRYPTED (owner decision, #250) — see AppDbContext.DataProtectionKeys for the
+// recorded consequence. The framework logs "No XML encryptor configured" at startup because of it.
+builder.Services.AddDataProtection()
+    .SetApplicationName("JuggerHub")
+    .PersistKeysToDbContext<AppDbContext>();
 
 // Replace Identity's default PBKDF2 hasher with argon2id (constitution IV).
 builder.Services.AddSingleton<IPasswordHasher<User>, Argon2PasswordHasher>();

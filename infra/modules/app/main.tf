@@ -514,16 +514,12 @@ resource "kubernetes_deployment_v1" "backend" {
             mount_path = "/etc/juggerhub/certs"
             read_only  = true
           }
-          # The only writable paths under the read-only root (mirrored as tmpfs in
-          # docker-compose.yml). .aspnet holds Data Protection's default key ring — per-pod and
-          # ephemeral, exactly as before this change; making it shared and durable is #250.
+          # The only writable path under the read-only root (mirrored as tmpfs in
+          # docker-compose.yml). The Data Protection key ring is in Postgres (#250), so nothing
+          # else here writes to disk.
           volume_mount {
             name       = "tmp"
             mount_path = "/tmp"
-          }
-          volume_mount {
-            name       = "aspnet"
-            mount_path = "/home/app/.aspnet"
           }
           readiness_probe {
             http_get {
@@ -569,12 +565,6 @@ resource "kubernetes_deployment_v1" "backend" {
           name = "tmp"
           empty_dir {
             size_limit = "256Mi"
-          }
-        }
-        volume {
-          name = "aspnet"
-          empty_dir {
-            size_limit = "16Mi"
           }
         }
       }
