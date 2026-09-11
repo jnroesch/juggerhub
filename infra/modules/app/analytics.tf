@@ -98,11 +98,19 @@ locals {
   # those characters routinely, and the failure would look like a networking problem rather than a
   # quoting one. Only the URL needs this: psql receives the password through PGPASSWORD and -v,
   # both of which take it literally.
-  # sslmode=require (feature 047): the database now presents a certificate, and Prisma's default
-  # `prefer` would negotiate TLS anyway — this makes it explicit rather than incidental. Umami is
-  # deliberately NOT given the internal CA: it carries analytics, not messages, so its hop is
-  # encrypted but unverified. Recorded as a residual in the 047 research.
-  umami_database_url = "postgresql://umami:${urlencode(var.umami_db_password)}@postgres:5432/umami?sslmode=require"
+  # TLS, VERIFIED (#256). `verify-full` against the internal CA, mounted into the pod below at the
+  # same path the backend uses — the same guarantee the backend's `SSL Mode=VerifyFull` gives.
+  #
+  # ⚠ Do NOT "simplify" this back to `sslmode=require`. Umami 3 queries through node-postgres
+  # (Prisma 7 + adapter-pg), whose connection-string parser treats `require` as an ALIAS for
+  # `verify-full` — and with no CA it rejects the private certificate, so Umami crash-loops at
+  # startup. 047 wrote `require` meaning libpq's "encrypted, unverified"; that is what took
+  # analytics down on Dev. `sslrootcert` is read by node-postgres at runtime and the same URL also
+  # satisfies `prisma migrate deploy` (all 20 migrations proven locally against a private-CA TLS
+  # Postgres before this went in).
+  #
+  # `postgres` — the host as written — is in the server certificate's SAN list (main.tf).
+  umami_database_url = "postgresql://umami:${urlencode(var.umami_db_password)}@postgres:5432/umami?sslmode=verify-full&sslrootcert=/etc/juggerhub/certs/ca.crt"
 
   # The post-deploy Job is named after a digest of everything that decides what it DOES. A
   # Kubernetes Job's pod spec is immutable, so a Job that already exists is never re-run and a
@@ -261,6 +269,13 @@ resource "kubernetes_deployment_v1" "umami" {
               name = kubernetes_secret_v1.umami.metadata[0].name
             }
           }
+          # The CA that signed the database's certificate (#256), referenced by sslrootcert in
+          # DATABASE_URL. Same path as the backend and as docker-compose.
+          volume_mount {
+            name       = "postgres-ca"
+            mount_path = "/etc/juggerhub/certs"
+            read_only  = true
+          }
 
           # /api/heartbeat, established by probing the running image (T003): /api/health and
           # /heartbeat both 404, so a guessed path would have failed every pod indefinitely.
@@ -302,11 +317,21 @@ resource "kubernetes_deployment_v1" "umami" {
             name = kubernetes_config_map_v1.umami_sql.metadata[0].name
           }
         }
+        volume {
+          name = "postgres-ca"
+          secret {
+            secret_name = "postgres-ca" # written by cert-manager; only the public ca.crt is projected
+            items {
+              key  = "ca.crt"
+              path = "ca.crt"
+            }
+          }
+        }
       }
     }
   }
 
-  depends_on = [kubernetes_stateful_set_v1.postgres]
+  depends_on = [kubernetes_stateful_set_v1.postgres, kubernetes_manifest.postgres_server_certificate]
 }
 
 # Held separately from umami-secrets because the db-init initContainer needs the password on its

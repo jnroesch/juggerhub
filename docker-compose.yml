@@ -332,10 +332,10 @@ services:
       # 3001 because the frontend already owns 3000 on the host.
       - "3001:3000"
     environment:
-      # sslmode=require (feature 047): Prisma defaults to `prefer`, which would negotiate TLS
-      # anyway but leaves it incidental. Umami carries analytics, not messages, so it is not given
-      # the internal CA — encrypted, deliberately not verified. Recorded in research §8.
-      - DATABASE_URL=postgresql://umami:${UMAMI_DB_PASSWORD:-umami}@database:5432/umami?sslmode=require
+      # TLS, VERIFIED against the local CA (#256) — identical in shape to the deployed URL in
+      # infra/modules/app/analytics.tf. NOT `sslmode=require`: Umami queries through node-postgres,
+      # which treats `require` as verify-full, and without the CA it crash-loops at startup.
+      - DATABASE_URL=postgresql://umami:${UMAMI_DB_PASSWORD:-umami}@database:5432/umami?sslmode=verify-full&sslrootcert=/etc/juggerhub/certs/ca.crt
       # A local default rather than the `:?` required-variable guard used for
       # JWT_SIGNING_KEY: compose interpolates the WHOLE file regardless of profiles, so `:?`
       # here would abort a plain `docker compose up` for anyone whose .env predates this
@@ -354,6 +354,9 @@ services:
       # No outbound call-home, no update checks: the version is pinned by us (FR-009).
       - DISABLE_TELEMETRY=1
       - DISABLE_UPDATES=1
+    volumes:
+      # The local CA, for sslrootcert in DATABASE_URL (#256). Same file and path as the backend.
+      - ./certs/local/ca.crt:/etc/juggerhub/certs/ca.crt:ro
     networks:
       - juggerhub-network
     depends_on:
