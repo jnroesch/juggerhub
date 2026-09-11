@@ -5,7 +5,11 @@
     <title>JuggerHub</title>
     <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <!-- The same mark as juggerhub.com. SVG for every browser that supports it; the .ico (16/32/48,
+         rasterised from the SVG) is the fallback. sizes="32x32" keeps Chrome from preferring the
+         .ico over the SVG. -->
+    <link rel="icon" href="favicon.ico" sizes="32x32" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   </head>
   <body>
     <jh-root></jh-root>
