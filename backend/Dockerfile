@@ -57,4 +57,9 @@ COPY --from=build /app/publish .
 
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
+
+# Non-root (#252). The base image ships an unprivileged `app` user (APP_UID=1654) for exactly this;
+# 8080 needs no privilege to bind. Numeric, so Kubernetes' runAsNonRoot can verify it. The published
+# files above stay root-owned and read-only to this user, which is the point.
+USER $APP_UID
 ENTRYPOINT ["dotnet", "JuggerHub.Api.dll"]

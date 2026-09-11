@@ -46,7 +46,7 @@ services:
       secrets:
         - proxy_ca
     environment:
-      - BASE_URL=http://frontend:80
+      - BASE_URL=http://frontend:8080
       # The auth journey reads verification/reset links from the Mailpit API.
       - MAILPIT_URL=http://mailpit:8025
     depends_on:

@@ -203,6 +203,18 @@ resource "kubernetes_deployment_v1" "umami" {
         labels = { app = "umami" }
       }
       spec {
+        # #252. 1001:65533 is the image's `nextjs` user. The image names it rather than numbering
+        # it, and runAsNonRoot cannot verify a name, so the numbers are stated here.
+        security_context {
+          run_as_user     = 1001
+          run_as_group    = 65533
+          run_as_non_root = true
+          seccomp_profile {
+            type = "RuntimeDefault"
+          }
+        }
+        automount_service_account_token = false
+
         # Creates the `umami` role and database and revokes its access to the application database,
         # before Umami starts — Prisma's migrations fail against a database that does not exist.
         #
@@ -213,6 +225,17 @@ resource "kubernetes_deployment_v1" "umami" {
         init_container {
           name  = "db-init"
           image = "postgres:18.3-alpine" # same image as the StatefulSet
+          # psql only. 70 is the image's own `postgres` user — psql looks the running uid up in
+          # /etc/passwd, so Umami's 1001 (absent from this image) would not do.
+          security_context {
+            run_as_user                = 70
+            run_as_group               = 70
+            allow_privilege_escalation = false
+            read_only_root_filesystem  = true
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
 
           # Inline shell in a container command, not a .sh file (constitution VI) — the same shape
           # as the pg_isready exec probes already in this module. The wait matters on a cold
@@ -256,6 +279,14 @@ resource "kubernetes_deployment_v1" "umami" {
         container {
           name  = "umami"
           image = local.umami_image
+          # Root filesystem stays WRITABLE: at start the image rewrites its own tracker script in
+          # place (COLLECT_API_ENDPOINT, above) and Next.js keeps a runtime cache under /app.
+          security_context {
+            allow_privilege_escalation = false
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
           port {
             container_port = 3000
           }
@@ -381,9 +412,26 @@ resource "kubernetes_job_v1" "umami_post_deploy" {
       }
       spec {
         restart_policy = "OnFailure"
+        # #252. psql + busybox wget only; 70 is the image's `postgres` user.
+        security_context {
+          run_as_user     = 70
+          run_as_group    = 70
+          run_as_non_root = true
+          seccomp_profile {
+            type = "RuntimeDefault"
+          }
+        }
+        automount_service_account_token = false
         container {
           name  = "provision"
           image = "postgres:18.3-alpine"
+          security_context {
+            allow_privilege_escalation = false
+            read_only_root_filesystem  = true
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
           command = [
             "sh", "-c",
             join(" ", [
@@ -507,9 +555,26 @@ resource "kubernetes_cron_job_v1" "umami_replay_retention" {
           }
           spec {
             restart_policy = "OnFailure"
+            # #252. psql only; 70 is the image's `postgres` user.
+            security_context {
+              run_as_user     = 70
+              run_as_group    = 70
+              run_as_non_root = true
+              seccomp_profile {
+                type = "RuntimeDefault"
+              }
+            }
+            automount_service_account_token = false
             container {
               name  = "retention"
               image = "postgres:18.3-alpine" # same image as the StatefulSet
+              security_context {
+                allow_privilege_escalation = false
+                read_only_root_filesystem  = true
+                capabilities {
+                  drop = ["ALL"]
+                }
+              }
               command = [
                 "sh", "-c",
                 join(" ", [
