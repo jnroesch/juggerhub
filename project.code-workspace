@@ -1,8 +1,20 @@
 {
+  // One Explorer root per area. "Repo" holds everything else at the repository root: root files
+  // (README, CLAUDE.md, DESIGN.md, compose files, …) plus the rarely touched tooling folders
+  // (.claude, .github, .specify, scripts, wireframes, …). The areas below are hidden inside it by
+  // `files.exclude` further down, so nothing is listed twice.
+  //
+  // Keep "Repo" FIRST. Tools that are not multi-root aware fall back to the first folder, and they
+  // expect the repository root — e.g. `nxConsole.nxWorkspacePath: "frontend"` below is resolved
+  // against it. Everything in this file that needs a path names its folder explicitly
+  // (`${workspaceFolder:Repo}`): a bare `${workspaceFolder}` cannot be resolved in a multi-root
+  // workspace and fails the launch config or task that uses it.
   "folders": [
-    {
-      "path": "."
-    }
+    { "name": "Repo", "path": "." },
+    { "name": "Backend", "path": "backend" },
+    { "name": "Frontend", "path": "frontend" },
+    { "name": "Infra", "path": "infra" },
+    { "name": "Specs", "path": "specs" }
   ],
   "extensions": {
     "recommendations": [
@@ -37,7 +49,20 @@
     ]
   },
   "settings": {
+    // Hides the areas that have their own root from "Repo" (which is rooted at "."). Patterns are
+    // relative to EACH folder, so these only match at the repository root — none of the areas has a
+    // top-level folder with one of these names; if one ever does, it disappears too. Search and
+    // Quick Open inherit this list, so their results are not duplicated either.
+    "files.exclude": {
+      "backend": true,
+      "frontend": true,
+      "infra": true,
+      "specs": true
+    },
     "terminal.integrated.defaultProfile.windows": "PowerShell",
+    // The profiles below that run repo-level commands (compose files, graphify-out) `Set-Location`
+    // to the repository root first: in a multi-root workspace a new terminal opens in whichever
+    // folder you pick, and `-f docker-compose.debug.yml` is resolved against that.
     "terminal.integrated.profiles.windows": {
       "PowerShell": {
         "source": "PowerShell",
@@ -45,19 +70,19 @@
       },
       "Docker Compose Up": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "docker compose up --build -d; docker compose logs -f"],
+        "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder:Repo}'; docker compose up --build -d; docker compose logs -f"],
         "icon": "play",
         "color": "terminal.ansiGreen"
       },
       "Docker Compose Debug": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "docker compose -f docker-compose.yml -f docker-compose.debug.yml up --build -d; docker compose -f docker-compose.yml -f docker-compose.debug.yml logs -f"],
+        "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder:Repo}'; docker compose -f docker-compose.yml -f docker-compose.debug.yml up --build -d; docker compose -f docker-compose.yml -f docker-compose.debug.yml logs -f"],
         "icon": "debug-alt",
         "color": "terminal.ansiYellow"
       },
       "Docker Compose + Spam Scoring": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "docker compose --profile spam up --build -d; docker compose --profile spam logs -f"],
+        "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder:Repo}'; docker compose --profile spam up --build -d; docker compose --profile spam logs -f"],
         "icon": "mail",
         "color": "terminal.ansiMagenta"
       },
@@ -75,7 +100,7 @@
       // website row itself — so there is nothing to create in the dashboard and nothing to copy.
       "Docker Compose + Analytics": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "$env:UMAMI_WEBSITE_ID='a1b2c3d4-0000-4000-8000-000000000033'; docker compose --profile analytics up --build -d; docker compose --profile analytics logs -f"],
+        "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder:Repo}'; $env:UMAMI_WEBSITE_ID='a1b2c3d4-0000-4000-8000-000000000033'; docker compose --profile analytics up --build -d; docker compose --profile analytics logs -f"],
         "icon": "pulse",
         "color": "terminal.ansiBlue"
       },
@@ -85,7 +110,7 @@
       // working when the next profile is added, instead of silently orphaning it too.
       "Docker Compose Down": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "docker compose --profile \"*\" down"],
+        "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder:Repo}'; docker compose --profile \"*\" down"],
         "icon": "debug-stop",
         "color": "terminal.ansiRed"
       },
@@ -108,13 +133,13 @@
       },
       "Graphify: View Graph": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "Start-Process \"$PWD/graphify-out/graph.html\""],
+        "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder:Repo}'; Start-Process \"$PWD/graphify-out/graph.html\""],
         "icon": "graph",
         "color": "terminal.ansiGreen"
       },
       "Graphify: Rebuild + View": {
         "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "graphify update .; Start-Process \"$PWD/graphify-out/graph.html\""],
+        "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder:Repo}'; graphify update .; Start-Process \"$PWD/graphify-out/graph.html\""],
         "icon": "sync",
         "color": "terminal.ansiGreen"
       }
@@ -146,11 +171,11 @@
           "pipeProgram": "docker",
           "pipeArgs": ["exec", "-i", "juggerhub-backend"],
           "debuggerPath": "/remote_debugger/vsdbg",
-          "pipeCwd": "${workspaceFolder}",
+          "pipeCwd": "${workspaceFolder:Repo}",
           "quoteArgs": false
         },
         "sourceFileMap": {
-          "/src": "${workspaceFolder}/backend"
+          "/src": "${workspaceFolder:Backend}"
         }
       },
       {
@@ -159,7 +184,7 @@
         "request": "attach",
         "port": 9229,
         "address": "localhost",
-        "localRoot": "${workspaceFolder}/frontend",
+        "localRoot": "${workspaceFolder:Frontend}",
         "remoteRoot": "/app",
         "sourceMaps": true,
         "restart": true
@@ -169,7 +194,7 @@
         "type": "chrome",
         "request": "launch",
         "url": "http://localhost:3000",
-        "webRoot": "${workspaceFolder}/frontend"
+        "webRoot": "${workspaceFolder:Frontend}"
       }
     ],
     "compounds": [
@@ -181,6 +206,9 @@
   },
   "tasks": {
     "version": "2.0.0",
+    // Every task below runs repo-level commands (compose files, graphify), so they all run from
+    // the repository root rather than whichever folder a workspace-level task would default to.
+    "options": { "cwd": "${workspaceFolder:Repo}" },
     "tasks": [
       {
         "label": "Docker Compose Up",
@@ -308,12 +336,12 @@
         "label": "🕸️ Graphify: View Graph",
         "detail": "Open the interactive knowledge graph (graphify-out/graph.html) in your browser",
         "type": "shell",
-        "command": "xdg-open \"${workspaceFolder}/graphify-out/graph.html\"",
+        "command": "xdg-open \"${workspaceFolder:Repo}/graphify-out/graph.html\"",
         "windows": {
-          "command": "Start-Process \"${workspaceFolder}/graphify-out/graph.html\""
+          "command": "Start-Process \"${workspaceFolder:Repo}/graphify-out/graph.html\""
         },
         "osx": {
-          "command": "open \"${workspaceFolder}/graphify-out/graph.html\""
+          "command": "open \"${workspaceFolder:Repo}/graphify-out/graph.html\""
         },
         "icon": { "id": "graph", "color": "terminal.ansiGreen" },
         "problemMatcher": [],
@@ -323,12 +351,12 @@
         "label": "🕸️ Graphify: Rebuild + View Graph",
         "detail": "Run `graphify update .` (fast, no-LLM) then open the refreshed graph",
         "type": "shell",
-        "command": "graphify update . ; xdg-open \"${workspaceFolder}/graphify-out/graph.html\"",
+        "command": "graphify update . ; xdg-open \"${workspaceFolder:Repo}/graphify-out/graph.html\"",
         "windows": {
-          "command": "graphify update . ; Start-Process \"${workspaceFolder}/graphify-out/graph.html\""
+          "command": "graphify update . ; Start-Process \"${workspaceFolder:Repo}/graphify-out/graph.html\""
         },
         "osx": {
-          "command": "graphify update . ; open \"${workspaceFolder}/graphify-out/graph.html\""
+          "command": "graphify update . ; open \"${workspaceFolder:Repo}/graphify-out/graph.html\""
         },
         "icon": { "id": "sync", "color": "terminal.ansiGreen" },
         "problemMatcher": [],
