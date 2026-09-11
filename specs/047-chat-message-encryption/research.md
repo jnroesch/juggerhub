@@ -264,7 +264,7 @@ against a *misconfigured client of our own*.
 | Client | Change |
 |---|---|
 | Backend | `SSL Mode=VerifyFull` + CA path — verified (FR-016) |
-| Umami (compose + `analytics.tf`) | `?sslmode=require` appended to `DATABASE_URL`; Prisma's default is `prefer`, so this makes the encryption explicit rather than incidental. No CA needed — Umami carries analytics, not messages |
+| Umami (compose + `analytics.tf`) | ~~`?sslmode=require` appended to `DATABASE_URL`; Prisma's default is `prefer`, so this makes the encryption explicit rather than incidental. No CA needed — Umami carries analytics, not messages~~ **Superseded by GH #256**: `sslmode=verify-full&sslrootcert=<CA>`, verified like the backend. The premise was wrong — Umami 3 queries through node-postgres, which treats `require` as `verify-full`, so without the CA it crash-looped and analytics went down on Dev |
 | compose `psql` helper containers | none; `psql` defaults to `sslmode=prefer` and upgrades on its own |
 | Integration tests (Testcontainers) | **none — deliberately exempt** |
 
