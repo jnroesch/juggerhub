@@ -330,7 +330,13 @@ resource "kubernetes_stateful_set_v1" "postgres" {
         container {
           name  = "postgres"
           image = "postgres:18.3-alpine"
+          # run_as_non_root is repeated on EVERY container block in this module, and that is not
+          # redundancy: the kubernetes provider sends `runAsNonRoot: false` for a container
+          # security_context that omits it, and a container-level value OVERRIDES the pod-level
+          # `true`. Drop it and the kubelet stops enforcing non-root and Pod Security `restricted`
+          # fails — observed on Dev after #252 shipped without it.
           security_context {
+            run_as_non_root            = true
             allow_privilege_escalation = false
             read_only_root_filesystem  = true
             capabilities {
@@ -480,6 +486,7 @@ resource "kubernetes_deployment_v1" "backend" {
           name  = "backend"
           image = local.backend_image
           security_context {
+            run_as_non_root            = true
             allow_privilege_escalation = false
             read_only_root_filesystem  = true
             capabilities {
@@ -627,6 +634,7 @@ resource "kubernetes_deployment_v1" "frontend" {
           name  = "frontend"
           image = local.frontend_image
           security_context {
+            run_as_non_root            = true
             allow_privilege_escalation = false
             read_only_root_filesystem  = true
             capabilities {

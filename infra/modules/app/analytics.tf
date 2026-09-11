@@ -230,6 +230,7 @@ resource "kubernetes_deployment_v1" "umami" {
           security_context {
             run_as_user                = 70
             run_as_group               = 70
+            run_as_non_root            = true
             allow_privilege_escalation = false
             read_only_root_filesystem  = true
             capabilities {
@@ -282,6 +283,7 @@ resource "kubernetes_deployment_v1" "umami" {
           # Root filesystem stays WRITABLE: at start the image rewrites its own tracker script in
           # place (COLLECT_API_ENDPOINT, above) and Next.js keeps a runtime cache under /app.
           security_context {
+            run_as_non_root            = true
             allow_privilege_escalation = false
             capabilities {
               drop = ["ALL"]
@@ -426,6 +428,7 @@ resource "kubernetes_job_v1" "umami_post_deploy" {
           name  = "provision"
           image = "postgres:18.3-alpine"
           security_context {
+            run_as_non_root            = true
             allow_privilege_escalation = false
             read_only_root_filesystem  = true
             capabilities {
@@ -569,6 +572,7 @@ resource "kubernetes_cron_job_v1" "umami_replay_retention" {
               name  = "retention"
               image = "postgres:18.3-alpine" # same image as the StatefulSet
               security_context {
+                run_as_non_root            = true
                 allow_privilege_escalation = false
                 read_only_root_filesystem  = true
                 capabilities {
