@@ -104,6 +104,40 @@ variable "backend_hpa_cpu_target" {
   default = 70
 }
 
+# --- Workload resources (#254) -----------------------------------------------
+# The HPA's CPU target is a percentage OF backend_cpu_request — without a request the HPA reports
+# <unknown> and never scales. Defaults are sized from Dev measurements (idle backend ~7m CPU /
+# 160Mi, Postgres ~3m / 30Mi) with headroom for real traffic; re-measure before changing them.
+variable "backend_cpu_request" {
+  type    = string
+  default = "250m"
+}
+
+variable "backend_memory_request" {
+  type    = string
+  default = "384Mi"
+}
+
+variable "backend_memory_limit" {
+  type    = string
+  default = "1Gi"
+}
+
+variable "postgres_cpu_request" {
+  type    = string
+  default = "100m"
+}
+
+variable "postgres_memory_request" {
+  type    = string
+  default = "256Mi"
+}
+
+variable "postgres_memory_limit" {
+  type    = string
+  default = "1Gi"
+}
+
 # --- Postgres (in-cluster) --------------------------------------------------
 variable "postgres_storage_gb" {
   type    = number
