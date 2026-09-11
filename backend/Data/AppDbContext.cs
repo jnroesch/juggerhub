@@ -1,5 +1,6 @@
 using JuggerHub.Entities;
 using JuggerHub.Services.Media;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ namespace JuggerHub.Data;
 /// automatically. The initial migration creates the Identity schema; future
 /// domain entities derive from <see cref="BaseEntity"/>.
 /// </remarks>
-public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
+public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, IDataProtectionKeyContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
@@ -126,6 +127,24 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
 
     // Feature 030 (R8) — bundled GeoNames cities500 reference dataset (city-picker search source).
     public DbSet<CityReference> CityReferences => Set<CityReference>();
+
+    /// <summary>
+    /// The ASP.NET Core Data Protection key ring (GH #250) — the keys that protect every
+    /// email-verification and password-reset token. Shared here so all replicas validate each
+    /// other's tokens and a restart does not invalidate every outstanding link.
+    /// </summary>
+    /// <remarks>
+    /// A deliberate exception to Principle III: <see cref="DataProtectionKey"/> is the framework's
+    /// type (int key, no audit fields) and is written only by the framework's own repository, so
+    /// it does not derive from <see cref="BaseEntity"/>.
+    /// <para>
+    /// The key XML is stored <b>unencrypted</b> — an owner decision (#250). Consequence, recorded
+    /// rather than hidden: read access to this table, or to a backup containing it, is enough to
+    /// forge a password-reset token for any account. Adding <c>ProtectKeysWith…</c> later needs no
+    /// data migration — new keys are written encrypted and old ones stay readable.
+    /// </para>
+    /// </remarks>
+    public DbSet<DataProtectionKey> DataProtectionKeys => Set<DataProtectionKey>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -63,16 +63,13 @@ services:
     # The same container hardening the AKS Deployment applies (#252), so local runs — and the e2e
     # suite — exercise the locked-down container rather than discovering its limits after deploy:
     # non-root (the image's USER), no capabilities, no privilege escalation, read-only root.
-    # The two writable paths match the emptyDirs in infra/modules/app/main.tf. mode=1777 is
-    # REQUIRED: Docker creates a tmpfs root-owned and not world-writable, so the non-root process
-    # could not write to it — Kubernetes emptyDirs are world-writable by default, so this only
-    # bites locally.
+    # The one writable path matches the emptyDir in infra/modules/app/main.tf (the Data Protection
+    # key ring is in Postgres since #250). mode=1777 is REQUIRED: Docker creates a tmpfs root-owned
+    # and not world-writable, so the non-root process could not write to it — Kubernetes emptyDirs
+    # are world-writable by default, so this only bites locally.
     read_only: true
     tmpfs:
       - /tmp:mode=1777
-      # Data Protection's default key ring (see #250) — per-container and ephemeral, exactly as it
-      # was before the root filesystem went read-only.
-      - /home/app/.aspnet:mode=1777
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     networks:
