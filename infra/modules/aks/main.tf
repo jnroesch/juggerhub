@@ -46,10 +46,21 @@ resource "azurerm_kubernetes_cluster" "this" {
   network_profile {
     network_plugin      = "azure"
     network_plugin_mode = "overlay"
-    load_balancer_sku   = "standard"
-    pod_cidr            = "10.244.0.0/16"
-    service_cidr        = "10.0.0.0/16"
-    dns_service_ip      = "10.0.0.10"
+    # A network-policy ENGINE (#253). Without one the API server accepts NetworkPolicy objects and
+    # nothing enforces them — the app module's policies would apply cleanly and do nothing.
+    # Cilium is AKS's recommended engine for overlay clusters; the dataplane and the policy engine
+    # must both say cilium.
+    #
+    # Verified against Dev state before this went in: plans as an IN-PLACE update, not a
+    # replacement. AKS applies it by REIMAGING every node at once, so the one apply that switches
+    # an existing cluster over takes the environment down for several minutes. A new cluster gets
+    # it from creation.
+    network_data_plane = "cilium"
+    network_policy     = "cilium"
+    load_balancer_sku  = "standard"
+    pod_cidr           = "10.244.0.0/16"
+    service_cidr       = "10.0.0.0/16"
+    dns_service_ip     = "10.0.0.10"
   }
 
   dynamic "api_server_access_profile" {

@@ -2,6 +2,11 @@ variable "namespace" {
   type = string
 }
 
+variable "ingress_namespace" {
+  type        = string
+  description = "Namespace of the ingress controller — the only source the NetworkPolicies admit from outside the app namespace."
+}
+
 variable "ingress_class_name" {
   type = string
 }
