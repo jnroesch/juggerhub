@@ -39,6 +39,10 @@ server {
 
     # Real-time notifications hub (feature 010) — same backend, but the SignalR
     # WebSocket handshake needs the Upgrade/Connection headers to switch protocols.
+    #
+    # Serves docker-compose only. In AKS the ingress routes /hubs straight to the backend Service
+    # (#249), because SignalR needs negotiate and connect on the SAME backend pod and only the
+    # ingress can pin one; this plain proxy_pass to the backend ClusterIP picks a pod per connection.
     location /hubs/ {
         proxy_pass http://backend:8080;
         proxy_http_version 1.1;

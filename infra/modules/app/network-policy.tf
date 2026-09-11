@@ -4,6 +4,7 @@
 # whom, so the file reads as the traffic diagram:
 #
 #   ingress controller ─▶ frontend:8080        umami:3000 (dashboard host)      acme solver:8089
+#   ingress controller ─▶ backend:8080         (/hubs only — #249, affinity to a backend pod)
 #   frontend ──────────▶ backend:8080          umami:3000 (same-origin analytics proxy)
 #   umami-post-deploy ─▶ umami:3000            (waits for Umami's heartbeat before provisioning)
 #   backend, umami, umami-post-deploy, umami-replay-retention ─▶ postgres:5432
@@ -74,13 +75,18 @@ resource "kubernetes_network_policy_v1" "backend" {
     pod_selector {
       match_labels = { app = "backend" }
     }
-    # The frontend nginx is the backend's ONLY client: /api/ and /hubs/ are both proxied through it.
-    # If #249 is fixed by routing /hubs from the ingress straight to the backend, the ingress
-    # namespace must be admitted here too — otherwise every realtime connection is refused.
+    # Two clients: the frontend nginx proxies /api/, and the ingress controller sends /hubs straight
+    # here (#249 — that is what lets its affinity cookie pin a backend pod). Drop the ingress rule
+    # and every realtime connection is refused while the rest of the site keeps working.
     ingress {
       from {
         pod_selector {
           match_labels = { app = "frontend" }
+        }
+      }
+      from {
+        namespace_selector {
+          match_labels = local.ingress_ns_selector
         }
       }
       ports {

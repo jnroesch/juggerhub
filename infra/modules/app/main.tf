@@ -16,24 +16,35 @@ locals {
     {
       "nginx.ingress.kubernetes.io/ssl-redirect"         = tostring(var.enable_tls)
       "nginx.ingress.kubernetes.io/from-to-www-redirect" = tostring(var.enable_www_redirect)
-      # SignalR /hubs are long-lived WebSockets — keep the upstream sockets open.
-      "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600"
-      "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600"
-      # Cookie affinity pins a client to one backend pod for the life of the session (feature 019).
-      # The SignalR backplane (Redis) fans messages ACROSS pods, but it does not fix the negotiate
-      # handshake: /hubs/negotiate returns a connection token bound to the pod that answered, and a
-      # follow-up request round-robined to a different pod is rejected. With backend_replicas > 1
-      # (prod runs 2, HPA to 6) both ChatHub (019) and NotificationHub (010) need this to connect at
-      # all. Deliberately cookie affinity rather than skipNegotiation: skipNegotiation forfeits
-      # SignalR's transport fallback on restrictive networks. See specs/019-chat/research.md §10.
-      "nginx.ingress.kubernetes.io/affinity"               = "cookie"
-      "nginx.ingress.kubernetes.io/affinity-mode"          = "persistent"
-      "nginx.ingress.kubernetes.io/session-cookie-name"    = "jugger-affinity"
-      "nginx.ingress.kubernetes.io/session-cookie-expires" = "3600"
-      "nginx.ingress.kubernetes.io/session-cookie-max-age" = "3600"
     },
     var.enable_tls ? { "cert-manager.io/cluster-issuer" = var.cluster_issuer } : {},
   )
+
+  # The realtime Ingress (#249). NO cert-manager annotation: the main Ingress owns the certificate
+  # for this host, and a second annotated Ingress would have cert-manager mint a duplicate.
+  hubs_ingress_annotations = {
+    "nginx.ingress.kubernetes.io/ssl-redirect" = tostring(var.enable_tls)
+    # SignalR /hubs are long-lived WebSockets — keep the upstream sockets open.
+    "nginx.ingress.kubernetes.io/proxy-read-timeout" = "3600"
+    "nginx.ingress.kubernetes.io/proxy-send-timeout" = "3600"
+    # Cookie affinity pins a client to one BACKEND pod for the life of the session (feature 019).
+    # The SignalR backplane (Redis) fans messages ACROSS pods, but it does not fix the negotiate
+    # handshake: /hubs/.../negotiate returns a connection token bound to the pod that answered, and
+    # a follow-up request landing on a different pod is rejected. With backend_replicas > 1 (prod
+    # runs 2, HPA to 6) both ChatHub (019) and NotificationHub (010) need this to connect reliably.
+    # Deliberately cookie affinity rather than skipNegotiation: skipNegotiation forfeits SignalR's
+    # transport fallback on restrictive networks. See specs/019-chat/research.md §10.
+    #
+    # ⚠ Affinity only works on the Ingress whose backend IS the backend Service: ingress-nginx
+    # pins the pods of the Service it routes to. Until #249 these annotations sat on the main
+    # Ingress, whose backend is the FRONTEND Service — so they pinned frontend nginx pods, and
+    # nginx's plain proxy_pass to the backend ClusterIP picked a backend pod per connection.
+    "nginx.ingress.kubernetes.io/affinity"               = "cookie"
+    "nginx.ingress.kubernetes.io/affinity-mode"          = "persistent"
+    "nginx.ingress.kubernetes.io/session-cookie-name"    = "jugger-affinity"
+    "nginx.ingress.kubernetes.io/session-cookie-expires" = "3600"
+    "nginx.ingress.kubernetes.io/session-cookie-max-age" = "3600"
+  }
 }
 
 resource "kubernetes_namespace_v1" "app" {
@@ -787,6 +798,53 @@ resource "kubernetes_ingress_v1" "app" {
       }
     }
   }
+}
+
+# --- Realtime Ingress: /hubs straight to the backend (#249) -------------------
+# Same host as the main Ingress; ingress-nginx merges them, and the longer `/hubs` prefix wins over
+# `/`. Routing the hubs to the BACKEND Service here — instead of through the frontend nginx — is
+# what lets the affinity cookie pin a backend pod (see hubs_ingress_annotations). The frontend
+# nginx still has a /hubs/ location; it serves docker-compose, which has one backend.
+#
+# The backend's NetworkPolicy admits the ingress namespace on 8080 for exactly this path.
+resource "kubernetes_ingress_v1" "hubs" {
+  metadata {
+    name        = "juggerhub-hubs"
+    namespace   = kubernetes_namespace_v1.app.metadata[0].name
+    annotations = local.hubs_ingress_annotations
+  }
+  spec {
+    ingress_class_name = var.ingress_class_name
+    rule {
+      host = var.app_hostname
+      http {
+        path {
+          path      = "/hubs"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = kubernetes_service_v1.backend.metadata[0].name
+              port {
+                number = 8080
+              }
+            }
+          }
+        }
+      }
+    }
+    # The certificate the main Ingress requests, reused — not a second one.
+    dynamic "tls" {
+      for_each = var.enable_tls ? [1] : []
+      content {
+        hosts       = [var.app_hostname]
+        secret_name = "${replace(var.app_hostname, ".", "-")}-tls"
+      }
+    }
+  }
+
+  # Admit the ingress at the backend BEFORE routing /hubs to it, so no apply opens a window in which
+  # realtime connections are routed somewhere the network policy refuses them.
+  depends_on = [kubernetes_network_policy_v1.backend]
 }
 
 # --- Backend HPA (prod) -----------------------------------------------------
