@@ -44,13 +44,13 @@ resource "kubernetes_namespace_v1" "app" {
       # Pod Security Admission (#252) makes the hardening structural: a future workload that runs
       # privileged or mounts the host is REJECTED at admission instead of relying on review.
       #
-      # ENFORCE is `baseline`, not `restricted`, deliberately. Every workload in this module now
-      # meets `restricted`, but cert-manager also creates short-lived HTTP-01 solver pods in this
-      # namespace to renew the public certificates. If one of those were rejected, renewal would
-      # fail silently and TLS would expire weeks later. `restricted` is warned + audited here, so
-      # any violation is loud; promote enforce to `restricted` once a renewal has been observed
-      # passing under it (a server-side dry run of the label shows violations without applying).
-      "pod-security.kubernetes.io/enforce" = "baseline"
+      # ENFORCE is `restricted`, the strictest profile. It was `baseline` first because cert-manager
+      # also creates short-lived HTTP-01 solver pods in this namespace, and a rejected solver would
+      # fail certificate RENEWAL silently, weeks later. Promoted after a server-side dry run showed
+      # no violations and a real Let's Encrypt renewal passed on Dev. After ANY cert-manager
+      # upgrade, check a renewal still passes: a solver rejected here surfaces only as a Challenge
+      # stuck pending, never as a failed deploy.
+      "pod-security.kubernetes.io/enforce" = "restricted"
       "pod-security.kubernetes.io/warn"    = "restricted"
       "pod-security.kubernetes.io/audit"   = "restricted"
     }
