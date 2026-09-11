@@ -26,6 +26,36 @@ public sealed class RegisterVerifyTests
     }
 
     [Fact]
+    public async Task Verification_email_greets_the_player_by_handle_not_email_prefix()
+    {
+        var client = _factory.CreateClient();
+        var email = AuthTestHelpers.NewEmail();
+        var handle = AuthTestHelpers.NewHandle();
+
+        await AuthTestHelpers.RegisterAsync(client, email, handle: handle);
+
+        // The address itself is in the body too, so assert on the greeting, not on absence.
+        var html = _factory.EmailSender.LatestFor(email)!.HtmlBody;
+        Assert.Contains($"Almost there, {handle}.", html);
+        Assert.DoesNotContain($"Almost there, {email.Split('@')[0]}.", html);
+    }
+
+    [Fact]
+    public async Task Welcome_email_greets_the_player_by_handle_not_email_prefix()
+    {
+        // Verification reloads the account by id, so unlike registration the profile is not in
+        // memory — this covers the lookup path.
+        var client = _factory.CreateClient();
+        var handle = AuthTestHelpers.NewHandle();
+
+        var (_, email) = await AuthTestHelpers.RegisterAndVerifyAsync(client, _factory, handle: handle);
+
+        var html = _factory.EmailSender.LatestFor(email)!.HtmlBody;
+        Assert.Contains($"in, {handle}.", html);
+        Assert.DoesNotContain($"in, {email.Split('@')[0]}.", html);
+    }
+
+    [Fact]
     public async Task Register_existing_email_returns_identical_neutral_response()
     {
         var client = _factory.CreateClient();

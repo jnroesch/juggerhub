@@ -1,3 +1,4 @@
+using JuggerHub.Data;
 using JuggerHub.Entities;
 using JuggerHub.Services.Localization;
 
@@ -19,17 +20,20 @@ public sealed class AccountEmailService
     private readonly IEmailSender _sender;
     private readonly IRecipientCultureResolver _culture;
     private readonly IEmailLocalizer _localizer;
+    private readonly AppDbContext _db;
 
     public AccountEmailService(
         IEmailTemplateService templates,
         IEmailSender sender,
         IRecipientCultureResolver culture,
-        IEmailLocalizer localizer)
+        IEmailLocalizer localizer,
+        AppDbContext db)
     {
         _templates = templates;
         _sender = sender;
         _culture = culture;
         _localizer = localizer;
+        _db = db;
     }
 
     /// <summary>
@@ -45,12 +49,11 @@ public sealed class AccountEmailService
         }
 
         var culture = _culture.Resolve(user);
+        // Read while the profile still exists: the caller sends this before the erasure runs.
+        var name = await EmailRecipientName.ForAsync(_db, user, ct);
         var html = await _templates.GenerateAccountDeletedEmailAsync(
-            DisplayName(user), address, DateTime.UtcNow, culture);
+            name, address, DateTime.UtcNow, culture);
 
         await _sender.SendAsync(address, _localizer.Get("subject.accountDeleted", culture), html, ct);
     }
-
-    private static string DisplayName(User user) =>
-        user.Email is { Length: > 0 } email ? email.Split('@')[0] : "there";
 }
