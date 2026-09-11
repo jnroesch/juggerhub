@@ -27,6 +27,7 @@ using JuggerHub.Security.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -415,6 +416,32 @@ builder.Services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime, Ju
 // would silently multiply every limit by the replica count (specs/019-chat/research.md §11).
 builder.Services.AddJuggerHubRateLimiting(builder.Configuration.GetConnectionString("Redis"));
 
+// --- Client address behind the proxies (GH #244) -----------------------------
+// Deployed, the TCP peer is never the browser: Cloudflare -> ingress-nginx -> frontend nginx -> here
+// (or ingress-nginx -> here for /hubs). Without this, RemoteIpAddress is a pod IP, so the stored
+// login IP, the password-changed email and the anonymous media-read rate limit all see the proxy.
+//
+// Forwarded headers are honoured ONLY from ForwardedHeaders:KnownNetworks (the pod CIDR deployed, the
+// compose subnets locally); from anyone else they are ignored, so a client cannot claim an address.
+// Each proxy hop has already validated the one before it (Cloudflare ranges at the ingress, the
+// pod CIDR at the frontend nginx), and the hop in front of us sends ONE clean X-Forwarded-For value —
+// hence ForwardLimit = 1. Missing configuration trusts nothing, never everything.
+//
+// Bound lazily from IConfiguration (not read here at registration) so a test host's configuration
+// applies, and validated at startup so a malformed CIDR stops the deploy instead of failing requests.
+builder.Services.AddOptions<ForwardedHeadersOptions>()
+    .Configure<IConfiguration>((options, configuration) =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.ForwardLimit = 1;
+        var networks = configuration["ForwardedHeaders:KnownNetworks"] ?? string.Empty;
+        foreach (var cidr in networks.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse(cidr));
+        }
+    })
+    .ValidateOnStart();
+
 // --- Structured locations (feature 030, research R8) -----------------------
 // City search + selection resolve against a bundled, seeded GeoNames cities500 reference table —
 // a local SQL query, NOT an external geocoder. No HTTP client, no resilience pipeline, no API key,
@@ -535,6 +562,10 @@ using (var adminSyncScope = app.Services.CreateScope())
 }
 
 // --- Middleware pipeline ----------------------------------------------------
+// Resolve the real client address and scheme before anything reads them (#244) — including the
+// exception handler's logging and every rate-limit partition.
+app.UseForwardedHeaders();
+
 // Exception handler is registered first so it wraps the whole pipeline.
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

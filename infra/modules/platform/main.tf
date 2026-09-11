@@ -23,12 +23,43 @@ resource "helm_release" "ingress_nginx" {
       name  = "controller.ingressClassResource.name"
       value = var.ingress_class_name
     },
-    # Preserve the client source IP.
+    # Preserve the connecting peer's IP (Cloudflare's edge when proxied — see below).
     {
       name  = "controller.service.externalTrafficPolicy"
       value = "Local"
     },
   ]
+
+  # --- Behind Cloudflare (#244) --------------------------------------------------
+  # When the hostnames are proxied, every connection arrives from a Cloudflare edge IP and the
+  # visitor's address is in CF-Connecting-IP. Two things, and both only for Cloudflare's ranges:
+  #
+  #   1. real_ip: take the client address from CF-Connecting-IP when — and only when — the peer
+  #      is a Cloudflare IP. The ingress then passes that address on as X-Real-IP /
+  #      X-Forwarded-For, which the frontend nginx and the backend trust from the pod network.
+  #   2. loadBalancerSourceRanges: the origin accepts connections from Cloudflare only (AKS writes
+  #      the NSG rules). Without it the origin IP is reachable directly, bypassing Cloudflare's
+  #      filtering — and (1) is the only thing standing between a direct caller and a forged
+  #      address. Owner decision, #244.
+  #
+  # Consequence of (2): if Cloudflare proxying is switched off for a hostname, that hostname is
+  # UNREACHABLE until `cloudflare_proxied` is flipped for the environment. Let's Encrypt still works:
+  # it validates through the proxied hostname, i.e. through Cloudflare.
+  #
+  # `values` rather than `set`: proxy-real-ip-cidr is a comma-separated string, and `set` splits
+  # values on commas.
+  values = length(var.cloudflare_ipv4_ranges) == 0 ? [] : [yamlencode({
+    controller = {
+      config = {
+        "enable-real-ip"       = "true"
+        "forwarded-for-header" = "CF-Connecting-IP"
+        "proxy-real-ip-cidr"   = join(",", var.cloudflare_ipv4_ranges)
+      }
+      service = {
+        loadBalancerSourceRanges = var.cloudflare_ipv4_ranges
+      }
+    }
+  })]
 }
 
 resource "helm_release" "cert_manager" {

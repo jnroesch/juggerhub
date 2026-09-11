@@ -25,6 +25,12 @@ variable "subnet_cidr" {
   default = "10.60.0.0/24"
 }
 
+variable "cloudflare_proxied" {
+  type        = bool
+  description = "The environment's hostnames are proxied through Cloudflare. True: the ingress trusts CF-Connecting-IP from Cloudflare's ranges only AND accepts connections from Cloudflare only (#244). Flip to false before turning Cloudflare proxying off for a hostname, or it becomes unreachable."
+  default     = false
+}
+
 variable "api_authorized_ip_ranges" {
   type        = list(string)
   description = "CIDRs allowed to reach the AKS API server (CI egress + operators). Empty = open."

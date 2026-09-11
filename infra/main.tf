@@ -72,6 +72,7 @@ module "platform" {
   public_ip_address           = module.network.public_ip_address
   public_ip_resource_group    = module.network.public_ip_resource_group
   acme_email                  = var.acme_email
+  cloudflare_ipv4_ranges      = var.cloudflare_proxied ? local.cloudflare_ipv4_ranges : []
 
   depends_on = [module.aks, azurerm_role_assignment.aks_ingress_ip]
 }
@@ -82,6 +83,7 @@ module "app" {
   namespace          = local.namespace
   ingress_class_name = module.platform.ingress_class_name
   ingress_namespace  = module.platform.ingress_namespace
+  pod_cidr           = module.aks.pod_cidr
 
   # routing / TLS
   app_hostname        = var.app_hostname

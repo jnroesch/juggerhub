@@ -36,6 +36,11 @@ acme_email             = "admin@juggerhub.com"
 
 api_authorized_ip_ranges = []
 
+# Prod is proxied through Cloudflare like Dev (owner decision, #244): create juggerhub.com,
+# www.juggerhub.com and analytics.juggerhub.com as PROXIED records. The origin accepts connections
+# from Cloudflare only, so a DNS-only (grey-cloud) record would make that host unreachable.
+cloudflare_proxied = true
+
 # Analytics (feature 033). REQUIRES a DNS A record for analytics_hostname pointing at the static
 # public IP BEFORE the first apply — cert-manager issues automatically, DNS does not.
 #

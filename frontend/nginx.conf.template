@@ -15,6 +15,14 @@
 # variable ($host, $uri, $scheme, ...) and silently corrupt this file. The prefix makes
 # that impossible rather than merely unlikely.
 
+# The scheme the CLIENT used (#244). In AKS the ingress terminates TLS and tells us in
+# X-Forwarded-Proto; $scheme here is always http. Only the ingress can reach this pod (NetworkPolicy),
+# so its header is trusted; with no proxy in front (compose) it is absent and $scheme is right.
+map $http_x_forwarded_proto $jh_forwarded_proto {
+    default $http_x_forwarded_proto;
+    ""      $scheme;
+}
+
 server {
     # 8080, not 80: the image runs unprivileged (#252) and cannot bind a port below 1024. The
     # Kubernetes Service still exposes 80, so the ingress and every URL are unchanged.
@@ -27,14 +35,27 @@ server {
     # Don't leak the nginx version in error pages / headers.
     server_tokens off;
 
+    # --- The client's address (#244) -------------------------------------------
+    # Deployed, our TCP peer is the ingress controller, never the browser. Take the address from
+    # X-Forwarded-For ONLY when the peer is in JH_TRUSTED_PROXY_CIDR (the pod network in AKS — and
+    # the ingress has itself taken it from CF-Connecting-IP only for Cloudflare peers). From any other
+    # peer the header is ignored, so nobody can claim an address. Locally the frontend IS the edge:
+    # compose sets loopback, i.e. trust nobody.
+    #
+    # After this, $remote_addr IS the client, and every location below forwards exactly that one
+    # value — never $proxy_add_x_forwarded_for, which would pass along whatever the client sent.
+    set_real_ip_from ${JH_TRUSTED_PROXY_CIDR};
+    real_ip_header X-Forwarded-For;
+    real_ip_recursive on;
+
     # Proxy API calls to the backend service on the compose network.
     location /api/ {
         proxy_pass http://backend:8080;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $jh_forwarded_proto;
     }
 
     # Real-time notifications hub (feature 010) — same backend, but the SignalR
@@ -50,8 +71,8 @@ server {
         proxy_set_header Connection "upgrade";
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $jh_forwarded_proto;
         # Long-lived connection: don't cut idle sockets early.
         proxy_read_timeout 3600s;
         proxy_send_timeout 3600s;
@@ -115,8 +136,13 @@ server {
         # without this every visit looks like it came from the nginx pod. It does not
         # store the address itself (FR-005, verified in T037).
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $jh_forwarded_proto;
+        # ⚠ Umami reads True-Client-IP, then CF-Connecting-IP, BEFORE X-Real-IP (verified in the
+        # 3.2.0 bundle, #244). Both would otherwise pass through untouched — a client-supplied one
+        # decided the visitor's country and session. Pin both to the address validated above.
+        proxy_set_header True-Client-IP "";
+        proxy_set_header CF-Connecting-IP $remote_addr;
         proxy_connect_timeout 2s;
         proxy_send_timeout 3s;
         proxy_read_timeout 3s;
@@ -167,10 +193,13 @@ server {
         proxy_set_header Host $host;
         proxy_set_header Cookie "";
         # Umami derives country and its rotating session hash from the client address, exactly as
-        # for /jh-insights/e. It does not store the address itself.
+        # for /jh-insights/e — including pinning the two headers Umami prefers over X-Real-IP.
+        # It does not store the address itself.
         proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $jh_forwarded_proto;
+        proxy_set_header True-Client-IP "";
+        proxy_set_header CF-Connecting-IP $remote_addr;
         # The recorder fragments its payload at ~500 KB — under nginx's 1 MB default, but not by
         # enough that the default should be the thing standing between a recording and a silent
         # 413 on a fire-and-forget POST.

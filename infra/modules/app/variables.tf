@@ -7,6 +7,11 @@ variable "ingress_namespace" {
   description = "Namespace of the ingress controller — the only source the NetworkPolicies admit from outside the app namespace."
 }
 
+variable "pod_cidr" {
+  type        = string
+  description = "The cluster's pod network. The only peers whose X-Forwarded-For the frontend nginx and the backend believe (#244)."
+}
+
 variable "ingress_class_name" {
   type = string
 }

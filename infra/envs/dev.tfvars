@@ -34,6 +34,11 @@ acme_email             = "admin@juggerhub.com"
 # Lock the API server to your CI + operator IPs (fill in real CIDRs), or leave [] open.
 api_authorized_ip_ranges = []
 
+# dev.juggerhub.com and analytics-dev.juggerhub.com are proxied through Cloudflare (#244). The ingress
+# takes the client IP from CF-Connecting-IP and ACCEPTS CONNECTIONS FROM CLOUDFLARE ONLY — set this
+# to false BEFORE turning Cloudflare proxying off for either hostname, or it becomes unreachable.
+cloudflare_proxied = true
+
 # Analytics (feature 033). REQUIRES a DNS A record for analytics_hostname pointing at the static
 # public IP BEFORE the first apply — cert-manager issues automatically, DNS does not.
 #
