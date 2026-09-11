@@ -38,8 +38,22 @@ locals {
 
 resource "kubernetes_namespace_v1" "app" {
   metadata {
-    name   = var.namespace
-    labels = { app = "juggerhub" }
+    name = var.namespace
+    labels = {
+      app = "juggerhub"
+      # Pod Security Admission (#252) makes the hardening structural: a future workload that runs
+      # privileged or mounts the host is REJECTED at admission instead of relying on review.
+      #
+      # ENFORCE is `baseline`, not `restricted`, deliberately. Every workload in this module now
+      # meets `restricted`, but cert-manager also creates short-lived HTTP-01 solver pods in this
+      # namespace to renew the public certificates. If one of those were rejected, renewal would
+      # fail silently and TLS would expire weeks later. `restricted` is warned + audited here, so
+      # any violation is loud; promote enforce to `restricted` once a renewal has been observed
+      # passing under it (a server-side dry run of the label shows violations without applying).
+      "pod-security.kubernetes.io/enforce" = "baseline"
+      "pod-security.kubernetes.io/warn"    = "restricted"
+      "pod-security.kubernetes.io/audit"   = "restricted"
+    }
   }
 }
 
@@ -297,12 +311,32 @@ resource "kubernetes_stateful_set_v1" "postgres" {
         # group-readable. A Kubernetes secret volume produces root-owned files, so 0640 + this
         # group is accepted. 0644 is not, and fails as a crash loop whose message says nothing
         # about TLS.
+        #
+        # run_as_user 70 (#252): the image's entrypoint normally starts as root and drops to
+        # `postgres` itself; started as 70 it skips that step and needs no capabilities at all. Safe
+        # on Dev's existing volume (PGDATA is already owned by 70) and on a fresh one (fs_group
+        # makes the mount group-writable, so initdb can create PGDATA as 70). Both proven locally
+        # against postgres:18.3-alpine before this went in.
         security_context {
-          fs_group = 70
+          fs_group        = 70
+          run_as_user     = 70
+          run_as_group    = 70
+          run_as_non_root = true
+          seccomp_profile {
+            type = "RuntimeDefault"
+          }
         }
+        automount_service_account_token = false
         container {
           name  = "postgres"
           image = "postgres:18.3-alpine"
+          security_context {
+            allow_privilege_escalation = false
+            read_only_root_filesystem  = true
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
           # TLS on (feature 047). This ENABLES encryption; it does not refuse plaintext clients —
           # forcing that means replacing pg_hba.conf on an already-initialised volume, which is a
           # plausible way to break the database for a gain only against our own misconfiguration.
@@ -332,6 +366,16 @@ resource "kubernetes_stateful_set_v1" "postgres" {
             mount_path = "/etc/postgres-certs"
             read_only  = true
           }
+          # The only paths Postgres writes outside PGDATA, with the root filesystem read-only: the
+          # Unix socket + lock file (pg_isready below connects through it) and scratch space.
+          volume_mount {
+            name       = "run"
+            mount_path = "/var/run/postgresql"
+          }
+          volume_mount {
+            name       = "tmp"
+            mount_path = "/tmp"
+          }
           readiness_probe {
             exec {
               command = ["pg_isready", "-U", var.postgres_user, "-d", var.postgres_db]
@@ -357,6 +401,18 @@ resource "kubernetes_stateful_set_v1" "postgres" {
           secret {
             secret_name  = "postgres-tls" # written by cert-manager
             default_mode = "0640"
+          }
+        }
+        volume {
+          name = "run"
+          empty_dir {
+            size_limit = "16Mi"
+          }
+        }
+        volume {
+          name = "tmp"
+          empty_dir {
+            size_limit = "256Mi"
           }
         }
       }
@@ -408,9 +464,28 @@ resource "kubernetes_deployment_v1" "backend" {
             name = kubernetes_secret_v1.ghcr[0].metadata[0].name
           }
         }
+        # #252. 1654 is the aspnet base image's `app` user, which the Dockerfile now runs as; stated
+        # numerically so runAsNonRoot can verify it. The backend never talks to the Kubernetes API,
+        # so it gets no service-account token to steal.
+        security_context {
+          run_as_user     = 1654
+          run_as_group    = 1654
+          run_as_non_root = true
+          seccomp_profile {
+            type = "RuntimeDefault"
+          }
+        }
+        automount_service_account_token = false
         container {
           name  = "backend"
           image = local.backend_image
+          security_context {
+            allow_privilege_escalation = false
+            read_only_root_filesystem  = true
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
           port {
             container_port = 8080
           }
@@ -431,6 +506,17 @@ resource "kubernetes_deployment_v1" "backend" {
             name       = "postgres-ca"
             mount_path = "/etc/juggerhub/certs"
             read_only  = true
+          }
+          # The only writable paths under the read-only root (mirrored as tmpfs in
+          # docker-compose.yml). .aspnet holds Data Protection's default key ring — per-pod and
+          # ephemeral, exactly as before this change; making it shared and durable is #250.
+          volume_mount {
+            name       = "tmp"
+            mount_path = "/tmp"
+          }
+          volume_mount {
+            name       = "aspnet"
+            mount_path = "/home/app/.aspnet"
           }
           readiness_probe {
             http_get {
@@ -470,6 +556,18 @@ resource "kubernetes_deployment_v1" "backend" {
               key  = "ca.crt"
               path = "ca.crt"
             }
+          }
+        }
+        volume {
+          name = "tmp"
+          empty_dir {
+            size_limit = "256Mi"
+          }
+        }
+        volume {
+          name = "aspnet"
+          empty_dir {
+            size_limit = "16Mi"
           }
         }
       }
@@ -515,11 +613,41 @@ resource "kubernetes_deployment_v1" "frontend" {
             name = kubernetes_secret_v1.ghcr[0].metadata[0].name
           }
         }
+        # #252. 101 is the `nginx` user of nginx-unprivileged, which the image runs as.
+        security_context {
+          run_as_user     = 101
+          run_as_group    = 101
+          run_as_non_root = true
+          seccomp_profile {
+            type = "RuntimeDefault"
+          }
+        }
+        automount_service_account_token = false
         container {
           name  = "frontend"
           image = local.frontend_image
+          security_context {
+            allow_privilege_escalation = false
+            read_only_root_filesystem  = true
+            capabilities {
+              drop = ["ALL"]
+            }
+          }
+          # 8080: unprivileged nginx cannot bind 80. The Service below still listens on 80, so the
+          # ingress is untouched.
           port {
-            container_port = 80
+            container_port = 8080
+          }
+          # The image's envsubst entrypoint renders the config TEMPLATE into conf.d at start, so it
+          # must be writable; the pid file and every nginx temp path are under /tmp. Mirrored as
+          # tmpfs in docker-compose.yml.
+          volume_mount {
+            name       = "conf"
+            mount_path = "/etc/nginx/conf.d"
+          }
+          volume_mount {
+            name       = "tmp"
+            mount_path = "/tmp"
           }
 
           # Analytics config reaches the ALREADY-BUILT image at container start: the nginx image's
@@ -578,7 +706,7 @@ resource "kubernetes_deployment_v1" "frontend" {
           readiness_probe {
             http_get {
               path = "/"
-              port = 80
+              port = 8080
             }
             initial_delay_seconds = 5
             period_seconds        = 10
@@ -592,6 +720,20 @@ resource "kubernetes_deployment_v1" "frontend" {
             limits = {
               memory = "128Mi"
             }
+          }
+        }
+        volume {
+          name = "conf"
+          empty_dir {
+            size_limit = "1Mi"
+          }
+        }
+        volume {
+          name = "tmp"
+          empty_dir {
+            # Generous on purpose: nginx spills proxied responses (media) and request bodies (the
+            # 2m recorder payload) to /tmp, and exceeding an emptyDir limit EVICTS the pod.
+            size_limit = "256Mi"
           }
         }
       }
@@ -608,7 +750,7 @@ resource "kubernetes_service_v1" "frontend" {
     selector = { app = "frontend" }
     port {
       port        = 80
-      target_port = 80
+      target_port = 8080
     }
   }
 }
