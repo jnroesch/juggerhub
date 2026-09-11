@@ -99,6 +99,12 @@ module "app" {
   enable_backend_hpa       = var.enable_backend_hpa
   backend_hpa_max_replicas = var.backend_hpa_max_replicas
   backend_hpa_cpu_target   = var.backend_hpa_cpu_target
+  backend_cpu_request      = var.backend_cpu_request
+  backend_memory_request   = var.backend_memory_request
+  backend_memory_limit     = var.backend_memory_limit
+  postgres_cpu_request     = var.postgres_cpu_request
+  postgres_memory_request  = var.postgres_memory_request
+  postgres_memory_limit    = var.postgres_memory_limit
 
   # postgres
   postgres_storage_gb    = var.postgres_storage_gb

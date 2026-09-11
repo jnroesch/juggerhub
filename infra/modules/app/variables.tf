@@ -57,6 +57,30 @@ variable "backend_hpa_cpu_target" {
   type = number
 }
 
+variable "backend_cpu_request" {
+  type = string
+}
+
+variable "backend_memory_request" {
+  type = string
+}
+
+variable "backend_memory_limit" {
+  type = string
+}
+
+variable "postgres_cpu_request" {
+  type = string
+}
+
+variable "postgres_memory_request" {
+  type = string
+}
+
+variable "postgres_memory_limit" {
+  type = string
+}
+
 # --- postgres ---------------------------------------------------------------
 variable "postgres_storage_gb" {
   type = number

@@ -43,6 +43,28 @@ resource "kubernetes_namespace_v1" "app" {
   }
 }
 
+# Defaults for any container in the namespace that declares no resources of its own (#254) — the
+# short-lived psql Jobs and initContainers today, and whatever is added next. Without it such a
+# container is unbounded and invisible to the scheduler. Workloads that matter set their own.
+resource "kubernetes_limit_range_v1" "app" {
+  metadata {
+    name      = "defaults"
+    namespace = kubernetes_namespace_v1.app.metadata[0].name
+  }
+  spec {
+    limit {
+      type = "Container"
+      default_request = {
+        cpu    = "10m"
+        memory = "32Mi"
+      }
+      default = {
+        memory = "256Mi"
+      }
+    }
+  }
+}
+
 # --- Config & secrets -------------------------------------------------------
 resource "kubernetes_config_map_v1" "app" {
   metadata {
@@ -317,6 +339,18 @@ resource "kubernetes_stateful_set_v1" "postgres" {
             initial_delay_seconds = 10
             period_seconds        = 10
           }
+          # #254. The memory limit is set well clear of normal use on purpose: hitting it OOM-kills
+          # the only database replica, which is an outage, not a slowdown. No CPU limit — throttling
+          # a database stalls every query behind it.
+          resources {
+            requests = {
+              cpu    = var.postgres_cpu_request
+              memory = var.postgres_memory_request
+            }
+            limits = {
+              memory = var.postgres_memory_limit
+            }
+          }
         }
         volume {
           name = "tls"
@@ -413,6 +447,19 @@ resource "kubernetes_deployment_v1" "backend" {
             }
             initial_delay_seconds = 30
             period_seconds        = 15
+          }
+          # #254. The CPU REQUEST is load-bearing beyond scheduling: the HPA below measures
+          # utilisation as a percentage of it, and with no request it reports <unknown> and never
+          # scales. No CPU limit — throttling hurts request latency more than it protects the node.
+          # The memory limit also sizes the .NET GC, which reads the container limit for its heap.
+          resources {
+            requests = {
+              cpu    = var.backend_cpu_request
+              memory = var.backend_memory_request
+            }
+            limits = {
+              memory = var.backend_memory_limit
+            }
           }
         }
         volume {
@@ -536,6 +583,16 @@ resource "kubernetes_deployment_v1" "frontend" {
             initial_delay_seconds = 5
             period_seconds        = 10
           }
+          # #254. nginx serving static files and proxying: a few MiB at idle on Dev.
+          resources {
+            requests = {
+              cpu    = "10m"
+              memory = "32Mi"
+            }
+            limits = {
+              memory = "128Mi"
+            }
+          }
         }
       }
     }
@@ -593,6 +650,8 @@ resource "kubernetes_ingress_v1" "app" {
 }
 
 # --- Backend HPA (prod) -----------------------------------------------------
+# Utilization is measured against the backend container's CPU REQUEST (backend_cpu_request). Remove
+# that request and this HPA silently stops scaling — it shows <unknown> and holds min_replicas.
 resource "kubernetes_horizontal_pod_autoscaler_v2" "backend" {
   count = var.enable_backend_hpa ? 1 : 0
 

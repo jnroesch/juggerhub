@@ -283,9 +283,8 @@ resource "kubernetes_deployment_v1" "umami" {
             period_seconds        = 15
           }
 
-          # Bounded on purpose, unlike the first-party workloads in main.tf. Analytics is a
-          # third-party workload on a shared node, and it must not be able to starve the
-          # application it is measuring (constitution VII).
+          # Bounded on purpose. Analytics is a third-party workload on a shared node, and it must
+          # not be able to starve the application it is measuring (constitution VII).
           resources {
             requests = {
               cpu    = "50m"
