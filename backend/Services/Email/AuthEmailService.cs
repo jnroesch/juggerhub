@@ -1,4 +1,5 @@
 using JuggerHub.Common;
+using JuggerHub.Data;
 using JuggerHub.Entities;
 using JuggerHub.Services;
 using JuggerHub.Services.Localization;
@@ -25,19 +26,22 @@ public sealed class AuthEmailService
     private readonly EmailOptions _options;
     private readonly IRecipientCultureResolver _culture;
     private readonly IEmailLocalizer _localizer;
+    private readonly AppDbContext _db;
 
     public AuthEmailService(
         IEmailTemplateService templates,
         IEmailSender sender,
         IOptions<EmailOptions> options,
         IRecipientCultureResolver culture,
-        IEmailLocalizer localizer)
+        IEmailLocalizer localizer,
+        AppDbContext db)
     {
         _templates = templates;
         _sender = sender;
         _options = options.Value;
         _culture = culture;
         _localizer = localizer;
+        _db = db;
     }
 
     public async Task SendVerificationEmailAsync(User user, string token, CancellationToken ct = default)
@@ -45,7 +49,8 @@ public sealed class AuthEmailService
         // Pre-account: the caller's effective language rode in on Accept-Language (FR-012a).
         var culture = _culture.Resolve(user);
         var url = BuildLink("verify-email", user.Id, token);
-        var html = await _templates.GenerateEmailVerificationEmailAsync(DisplayName(user), user.Email!, url, culture);
+        var name = await EmailRecipientName.ForAsync(_db, user, ct);
+        var html = await _templates.GenerateEmailVerificationEmailAsync(name, user.Email!, url, culture);
         await _sender.SendAsync(user.Email!, _localizer.Get("subject.verification", culture), html, ct);
     }
 
@@ -60,15 +65,17 @@ public sealed class AuthEmailService
     public async Task SendPasswordChangedNotificationAsync(User user, string ipAddress, CancellationToken ct = default)
     {
         var culture = _culture.Resolve(user);
+        var name = await EmailRecipientName.ForAsync(_db, user, ct);
         var html = await _templates.GeneratePasswordChangeNotificationEmailAsync(
-            DisplayName(user), user.Email!, DateTime.UtcNow, ipAddress, culture);
+            name, user.Email!, DateTime.UtcNow, ipAddress, culture);
         await _sender.SendAsync(user.Email!, _localizer.Get("subject.passwordChanged", culture), html, ct);
     }
 
     public async Task SendWelcomeEmailAsync(User user, CancellationToken ct = default)
     {
         var culture = _culture.Resolve(user);
-        var html = await _templates.GenerateWelcomeEmailAsync(DisplayName(user), user.Email!, "JuggerHub", DateTime.UtcNow, culture);
+        var name = await EmailRecipientName.ForAsync(_db, user, ct);
+        var html = await _templates.GenerateWelcomeEmailAsync(name, user.Email!, "JuggerHub", DateTime.UtcNow, culture);
         await _sender.SendAsync(user.Email!, _localizer.Get("subject.welcome", culture), html, ct);
     }
 
@@ -78,7 +85,4 @@ public sealed class AuthEmailService
         var encodedToken = Uri.EscapeDataString(token);
         return $"{baseUrl}/{path}?userId={userId}&token={encodedToken}";
     }
-
-    private static string DisplayName(User user) =>
-        user.Email is { Length: > 0 } email ? email.Split('@')[0] : "there";
 }
