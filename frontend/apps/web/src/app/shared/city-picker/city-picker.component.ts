@@ -1,8 +1,8 @@
-import { Component, DestroyRef, EventEmitter, Input, OnInit, Output, inject, signal } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnInit, Output, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormsModule } from '@angular/forms';
-import { Subject, debounceTime, distinctUntilChanged, switchMap, of, catchError } from 'rxjs';
+import { Subject, debounceTime, switchMap, of, catchError } from 'rxjs';
 import { CityService } from '../../core/services/city.service';
 import { CityOption, Location } from '../../core/models/city.models';
 import { IconComponent } from '../ui';
@@ -46,6 +46,26 @@ export class CityPickerComponent implements OnInit {
   /** True once a non-empty search returned no matches (distinct from "haven't searched"). */
   protected readonly searched = signal(false);
 
+  /** What is in the field right now (trimmed), updated on every keystroke — before the debounce. */
+  private readonly typed = signal('');
+  /** The query whose answer (options, no match, or unavailable) is what the picker is showing. */
+  private readonly answered = signal('');
+
+  /**
+   * True from the keystroke until that query's suggestions arrive, so an owning form can hold its
+   * primary action rather than let the player move on before they could pick (onboarding does).
+   * Starts BEFORE the debounce on purpose: `searching` only turns on once the request leaves, and
+   * the 250ms before that is part of the wait the player sees.
+   *
+   * It always settles. Every query is answered — a failure lands in `unavailable`, and the HTTP
+   * layer time-limits the request — which is also why the pipeline has no `distinctUntilChanged`:
+   * a query it swallowed (retyping the text searched before a clear) would never be answered.
+   */
+  readonly pending = computed(() => {
+    const typed = this.typed();
+    return typed.length >= 2 && typed !== this.answered();
+  });
+
   ngOnInit(): void {
     // Prefill the confirmed-selection chip from an existing location, so editing shows the current
     // city without re-searching. There is no CityOption for it (it came from the read model), so the
@@ -55,7 +75,6 @@ export class CityPickerComponent implements OnInit {
     this.queryInput
       .pipe(
         debounceTime(250),
-        distinctUntilChanged(),
         switchMap((q) => {
           const trimmed = q.trim();
           this.query.set(trimmed);
@@ -81,10 +100,12 @@ export class CityPickerComponent implements OnInit {
         this.searching.set(false);
         this.searched.set(this.query().length >= 2 && !this.unavailable());
         this.results.set(options);
+        this.answered.set(this.query());
       });
   }
 
   protected onQuery(value: string): void {
+    this.typed.set(value.trim());
     this.queryInput.next(value);
   }
 
@@ -93,6 +114,8 @@ export class CityPickerComponent implements OnInit {
     this.selectedLabel.set(option.label);
     this.results.set([]);
     this.query.set('');
+    this.typed.set('');
+    this.answered.set('');
     this.searched.set(false);
     this.selectedChange.emit(option);
   }
@@ -102,6 +125,8 @@ export class CityPickerComponent implements OnInit {
     this.selectedLabel.set(null);
     this.results.set([]);
     this.query.set('');
+    this.typed.set('');
+    this.answered.set('');
     this.searched.set(false);
     this.selectedChange.emit(null);
   }

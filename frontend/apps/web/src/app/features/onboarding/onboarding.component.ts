@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { NgTemplateOutlet } from '@angular/common';
@@ -83,6 +83,14 @@ export class OnboardingComponent implements OnInit, OnDestroy {
    * derives the home city server-side, so it must exist on the profile before "near you" can work.
    */
   protected readonly homeCityPersisted = signal(false);
+  /** The city step's picker; undefined on every other step. */
+  private readonly cityPicker = viewChild(CityPickerComponent);
+  /**
+   * Holds the city step's Continue while suggestions for the typed text are still on their way —
+   * otherwise the player moves on before the city they meant could be picked, and it is silently
+   * left unset. Skip stays live: that is an explicit "not now", and the step must never trap anyone.
+   */
+  protected readonly cityPending = computed(() => this.cityPicker()?.pending() ?? false);
   protected readonly description = signal('');
   protected readonly selectedPompfen = signal<Pompfe[]>([]);
   protected readonly avatarFile = signal<File | null>(null);

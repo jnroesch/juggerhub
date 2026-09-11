@@ -183,6 +183,36 @@ describe('OnboardingComponent', () => {
     expect(button.disabled).toBe(true);
   });
 
+  it('holds the city step Continue while suggestions load — and never holds Skip', () => {
+    const fixture = createComponent();
+    const comp = api(fixture);
+    comp.next(); // welcome → name
+    comp.next(); // name → city
+    fixture.detectChanges();
+
+    const button = (testid: string) =>
+      fixture.nativeElement.querySelector(`[data-testid="${testid}"]`) as HTMLButtonElement;
+    expect(button('onboarding-continue').disabled).toBe(false);
+
+    const cityInput = fixture.nativeElement.querySelector(
+      '[data-testid="city-picker-input"]',
+    ) as HTMLInputElement;
+    cityInput.value = 'Ham';
+    cityInput.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(button('onboarding-continue').disabled).toBe(true); // already during the debounce
+    expect(button('onboarding-skip').disabled).toBe(false);
+
+    jest.advanceTimersByTime(300);
+    const search = httpMock.expectOne((r) => r.url === '/api/v1/cities/search');
+    fixture.detectChanges();
+    expect(button('onboarding-continue').disabled).toBe(true);
+
+    search.flush([{ ...HAMBURG_LOC, latitude: 53.55, longitude: 9.99 }]);
+    fixture.detectChanges();
+    expect(button('onboarding-continue').disabled).toBe(false);
+  });
+
   it('finish() sends one profile update then marks onboarding complete (no avatar)', () => {
     const fixture = createComponent();
     const comp = api(fixture);

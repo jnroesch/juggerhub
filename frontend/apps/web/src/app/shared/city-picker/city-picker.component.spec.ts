@@ -102,6 +102,59 @@ describe('CityPickerComponent', () => {
     expect(input()).toBeTruthy(); // search field is back
   });
 
+  describe('pending', () => {
+    function keystroke(value: string): void {
+      const el = input();
+      el.value = value;
+      el.dispatchEvent(new Event('input'));
+    }
+
+    it('is true from the keystroke — before the debounce — until the suggestions arrive', () => {
+      const picker = fixture.componentInstance;
+      expect(picker.pending()).toBe(false);
+
+      keystroke('ber');
+      expect(picker.pending()).toBe(true); // the 250ms wait counts too
+
+      jest.advanceTimersByTime(300);
+      const req = search();
+      expect(picker.pending()).toBe(true); // request in flight
+
+      req.flush([BERLIN]);
+      expect(picker.pending()).toBe(false);
+    });
+
+    it('is never true for text too short to search', () => {
+      keystroke('b');
+      expect(fixture.componentInstance.pending()).toBe(false);
+      jest.advanceTimersByTime(300);
+      httpMock.expectNone((r) => r.url === '/api/v1/cities/search');
+    });
+
+    it('settles when the search fails, so nothing waiting on it is stuck', () => {
+      type('ber');
+      search().flush('unavailable', { status: 503, statusText: 'Service Unavailable' });
+      expect(fixture.componentInstance.pending()).toBe(false);
+    });
+
+    it('searches again, and settles, when the same text is retyped after a clear', () => {
+      // A swallowed repeat query would leave pending true for good — the reason the pipeline
+      // does not use distinctUntilChanged.
+      type('ber');
+      search().flush([BERLIN]);
+      fixture.detectChanges();
+      options()[0].click();
+      fixture.detectChanges();
+      fixture.nativeElement.querySelector('[aria-label="Clear city"]').click();
+      fixture.detectChanges();
+
+      type('ber');
+      expect(fixture.componentInstance.pending()).toBe(true);
+      search().flush([BERLIN]);
+      expect(fixture.componentInstance.pending()).toBe(false);
+    });
+  });
+
   it('shows a retryable transient state when the geocoder is unavailable (503)', () => {
     type('ber');
     search().flush('unavailable', { status: 503, statusText: 'Service Unavailable' });
