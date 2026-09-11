@@ -75,6 +75,10 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
                 ["Jwt:Audience"] = "juggerhub-tests",
                 ["Jwt:SigningKey"] = "integration-tests-signing-key-at-least-32-bytes-long!!",
                 ["Jwt:AccessTokenLifetimeMinutes"] = "15",
+                // The test server is plain http://localhost, exactly like docker-compose — and a
+                // Secure cookie is never sent back over http, so every session-carrying test would
+                // lose its session. Secure-by-default itself is covered by SecureCookieTests (#246).
+                ["Auth:Cookies:Secure"] = "false",
                 // Email: provider is irrelevant (sender is replaced below), but the
                 // template links need a base URL the tests can parse.
                 ["Email:Provider"] = "Smtp",

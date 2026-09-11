@@ -30,6 +30,10 @@ services:
       - Jwt__Audience=${JWT_AUDIENCE:-juggerhub}
       - Jwt__SigningKey=${JWT_SIGNING_KEY:?JWT_SIGNING_KEY must be set in .env}
       - Jwt__AccessTokenLifetimeMinutes=${JWT_ACCESS_TOKEN_LIFETIME_MINUTES:-15}
+      # #246 — the local stack is plain http://localhost, where a Secure cookie would never be sent
+      # back and nobody could stay signed in. The ONLY place this is false: the backend defaults to
+      # Secure, so every deployed environment gets it without any setting.
+      - Auth__Cookies__Secure=false
       - Email__Provider=${EMAIL_PROVIDER:-Smtp}
       - Email__SmtpHost=mailpit
       - Email__SmtpPort=1025

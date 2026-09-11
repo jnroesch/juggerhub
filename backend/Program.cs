@@ -123,6 +123,9 @@ builder.Services.AddSingleton<IPasswordHasher<User>, Argon2PasswordHasher>();
 // (honours config layered in after composition, e.g. by the test host).
 builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection(JwtOptions.SectionName));
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+// The cookie's Secure attribute is configuration, defaulting to true (#246) — see AuthCookieOptions
+// for why it is no longer derived from the environment name.
+builder.Services.Configure<AuthCookieOptions>(builder.Configuration.GetSection(AuthCookieOptions.SectionName));
 
 // AddIdentity (above) points the default authenticate/challenge schemes at the
 // Identity cookie. Override them back to JwtBearer so a bare [Authorize] endpoint

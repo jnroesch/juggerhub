@@ -7,6 +7,7 @@ using JuggerHub.Services.Account;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Controllers;
 
@@ -23,11 +24,13 @@ public sealed class AccountController : ControllerBase
 {
     private readonly ILanguagePreferenceService _language;
     private readonly IAccountDeletionService _deletion;
+    private readonly AuthCookieOptions _cookies;
 
-    public AccountController(ILanguagePreferenceService language, IAccountDeletionService deletion)
+    public AccountController(ILanguagePreferenceService language, IAccountDeletionService deletion, IOptions<AuthCookieOptions> cookies)
     {
         _language = language;
         _deletion = deletion;
+        _cookies = cookies.Value;
     }
 
     /// <summary>
@@ -97,9 +100,10 @@ public sealed class AccountController : ControllerBase
         switch (result.Outcome)
         {
             case AccountDeletionOutcome.Done:
-                // The session must not outlive the account it belonged to.
-                Response.Cookies.Delete(AuthCookieDefaults.AccessTokenCookie);
-                Response.Cookies.Delete(AuthCookieDefaults.RefreshTokenCookie);
+                // The session must not outlive the account it belonged to. Through the shared helper:
+                // a bare Delete() uses path "/", which does not match the refresh cookie's path, so
+                // the browser kept it (dead — erasure deletes its server-side row — but kept).
+                AuthCookieDefaults.ClearAuthCookies(Response, _cookies.Secure);
                 return NoContent();
 
             case AccountDeletionOutcome.ConfirmationMismatch:
