@@ -209,6 +209,27 @@ Rotating the **CA** additionally requires deleting `postgres-ca`, letting the se
 re-issue beneath it, and restarting the backend so it picks up the new `ca.crt` — do that one in a
 maintenance window, since it briefly invalidates the trust chain in both directions.
 
+### Workload isolation — read this before adding a workload (GH #252, #253)
+
+The app namespace is locked down in three ways, and each one makes a new workload fail in a way
+that looks like something else:
+
+- **Network policy** (`modules/app/network-policy.tf`, enforced by the cluster's Cilium engine).
+  Ingress is **default-deny**: a new pod receives no traffic until a policy admits it, and a new
+  caller of Postgres must be added to the Postgres policy's list — otherwise it times out as if the
+  database were down. Redis (#219) will need its own policy admitting the backend.
+- **Pod Security Admission** on the namespace: `baseline` is enforced (privileged pods, host
+  mounts and added capabilities are rejected at admission); `restricted` is warned and audited.
+  To see what would fail under `restricted` without changing anything:
+
+  ```powershell
+  kubectl label --dry-run=server --overwrite ns juggerhub pod-security.kubernetes.io/enforce=restricted
+  ```
+
+- **Container hardening**: every workload runs non-root, with no capabilities and no privilege
+  escalation, and first-party containers have a read-only root filesystem. A new container that
+  writes to disk needs an `emptyDir` at that path (see the backend's `/tmp`).
+
 ### Two-phase apply caveat (first run only)
 
 The `kubernetes` and `helm` providers are configured from the AKS cluster's outputs,

@@ -81,6 +81,7 @@ module "app" {
 
   namespace          = local.namespace
   ingress_class_name = module.platform.ingress_class_name
+  ingress_namespace  = module.platform.ingress_namespace
 
   # routing / TLS
   app_hostname        = var.app_hostname
