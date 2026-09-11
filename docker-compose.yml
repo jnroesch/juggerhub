@@ -55,6 +55,9 @@ services:
       - Resilience__Outbound__MediaStore__TotalTimeoutSeconds=${RESILIENCE_MEDIA_TOTAL_TIMEOUT_SECONDS:-15}
       - Resilience__Outbound__MediaStore__MaxRetryAttempts=${RESILIENCE_MEDIA_MAX_RETRY_ATTEMPTS:-2}
       - Resilience__Outbound__MediaStore__BreakerMinimumThroughput=${RESILIENCE_MEDIA_BREAKER_MIN_THROUGHPUT:-10}
+      # #244 — the proxies whose X-Forwarded-For the backend believes: here the frontend nginx
+      # container, somewhere in Docker's default bridge address pools. Deployed, the pod CIDR.
+      - ForwardedHeaders__KnownNetworks=${FORWARDED_HEADERS_KNOWN_NETWORKS:-172.16.0.0/12,192.168.0.0/16}
     volumes:
       # The CA that signed the database's certificate (feature 047). Same path as the deployed
       # environments mount it at, so the connection string above is character-identical everywhere.
@@ -163,6 +166,10 @@ services:
       # resolves them per request instead of at startup — otherwise the frontend could not
       # boot at all with the analytics profile off, since `umami` would not exist.
       - JH_ANALYTICS_RESOLVER=${JH_ANALYTICS_RESOLVER:-127.0.0.11}
+      # #244 — whose X-Forwarded-For nginx believes. Locally the frontend IS the edge (browsers
+      # connect straight to it), so trust nobody but loopback: a client-sent X-Forwarded-For is
+      # ignored. In AKS this is the pod network, where the ingress controller lives.
+      - JH_TRUSTED_PROXY_CIDR=${JH_TRUSTED_PROXY_CIDR:-127.0.0.1/32}
     networks:
       - juggerhub-network
     depends_on:

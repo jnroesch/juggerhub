@@ -106,6 +106,9 @@ resource "kubernetes_config_map_v1" "app" {
     # Feature 035 — media object storage. Only the container name is non-sensitive; the
     # connection string carries the account key and lives in the Secret below.
     "MediaStorage__ContainerName" = var.media_storage_container_name
+    # #244 — the backend believes X-Forwarded-For only from the pod network: the frontend nginx
+    # (/api) and the ingress controller (/hubs) both live there. Anyone else's header is ignored.
+    "ForwardedHeaders__KnownNetworks" = var.pod_cidr
   }
 }
 
@@ -699,6 +702,12 @@ resource "kubernetes_deployment_v1" "frontend" {
             # service names natively. That difference is why this passed every local test and
             # failed on the first deploy.
             value = "http://${kubernetes_service_v1.umami.metadata[0].name}.${kubernetes_service_v1.umami.metadata[0].namespace}.svc.cluster.local:3000"
+          }
+          env {
+            # #244 — the frontend nginx believes X-Forwarded-For only from the pod network, where
+            # the ingress controller lives (and the NetworkPolicy lets only the ingress reach it).
+            name  = "JH_TRUSTED_PROXY_CIDR"
+            value = var.pod_cidr
           }
           env {
             name = "JH_ANALYTICS_RESOLVER"

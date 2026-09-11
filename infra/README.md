@@ -233,6 +233,26 @@ that looks like something else:
   escalation, and first-party containers have a read-only root filesystem. A new container that
   writes to disk needs an `emptyDir` at that path (see the backend's `/tmp`).
 
+### Behind Cloudflare — the origin accepts Cloudflare only (GH #244)
+
+Dev's and Prod's hostnames are **proxied through Cloudflare** (`cloudflare_proxied = true` in both
+tfvars). That has three consequences an operator needs to know:
+
+- **Direct access to the origin IP is refused.** The ingress LoadBalancer accepts connections from
+  Cloudflare's IPv4 ranges only (`loadBalancerSourceRanges`; AKS writes the NSG rules). Reach the
+  environment through its hostname, or use `kubectl` — `curl --resolve <host>:443:<ingress-ip>`
+  from your machine times out, by design.
+- **Every DNS record for the environment must be proxied** (orange cloud). A DNS-only record points
+  browsers straight at the origin, which refuses them. Turning proxying off for a hostname means
+  setting `cloudflare_proxied = false` for that environment **first**.
+- **The client's address** is taken from `CF-Connecting-IP`, and only when the connecting peer is a
+  Cloudflare IP; each hop behind it (frontend nginx, backend) believes forwarded headers from the pod
+  network only. The Cloudflare list is hardcoded in `locals.tf` — if Cloudflare adds a range, visitors
+  routed through it are refused until the list is updated.
+
+Browsers are served Cloudflare's edge certificate; the Let's Encrypt certificates cert-manager
+renews secure the Cloudflare → origin hop (HTTP-01 validation goes through Cloudflare too).
+
 ### Two-phase apply caveat (first run only)
 
 The `kubernetes` and `helm` providers are configured from the AKS cluster's outputs,
