@@ -20,9 +20,20 @@ public static class AuthCookieDefaults
     public const string RefreshTokenPath = "/api/v1/auth";
 
     /// <summary>
-    /// Builds the access-cookie options. <paramref name="secure"/> is driven by
-    /// environment (false on local HTTP, true on HTTPS Dev/Prod). The app and API
-    /// are same-origin via the nginx /api proxy, so <c>SameSite=Strict</c> holds.
+    /// Clears both auth cookies. Deletion must repeat each cookie's path — a delete with the default
+    /// path "/" does not match the refresh cookie (scoped to <see cref="RefreshTokenPath"/>), so the
+    /// browser would keep it. Every sign-out path goes through here for that reason.
+    /// </summary>
+    public static void ClearAuthCookies(HttpResponse response, bool secure)
+    {
+        response.Cookies.Delete(AccessTokenCookie, BuildDeletionOptions(secure, "/"));
+        response.Cookies.Delete(RefreshTokenCookie, BuildDeletionOptions(secure, RefreshTokenPath));
+    }
+
+    /// <summary>
+    /// Builds the access-cookie options. <paramref name="secure"/> comes from
+    /// <see cref="AuthCookieOptions.Secure"/> (true unless a plain-HTTP local stack turns it off —
+    /// #246). The app and API are same-origin via the nginx /api proxy, so <c>SameSite=Strict</c> holds.
     /// When <paramref name="persistent"/> is false the cookie is session-scoped
     /// (cleared on browser close); the access JWT's own short lifetime is the real bound.
     /// </summary>

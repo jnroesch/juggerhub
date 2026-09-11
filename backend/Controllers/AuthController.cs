@@ -9,6 +9,7 @@ using JuggerHub.Services.Profile;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Controllers;
 
@@ -29,13 +30,13 @@ public sealed class AuthController : ControllerBase
 
     private readonly IAuthService _auth;
     private readonly IProfileService _profiles;
-    private readonly IWebHostEnvironment _env;
+    private readonly AuthCookieOptions _cookies;
 
-    public AuthController(IAuthService auth, IProfileService profiles, IWebHostEnvironment env)
+    public AuthController(IAuthService auth, IProfileService profiles, IOptions<AuthCookieOptions> cookies)
     {
         _auth = auth;
         _profiles = profiles;
-        _env = env;
+        _cookies = cookies.Value;
     }
 
     [HttpPost("register")]
@@ -189,23 +190,13 @@ public sealed class AuthController : ControllerBase
 
     private void SetAuthCookies(IssuedTokens tokens)
     {
-        var secure = !_env.IsDevelopment();
         Response.Cookies.Append(
             AuthCookieDefaults.AccessTokenCookie, tokens.AccessToken,
-            AuthCookieDefaults.BuildAccessTokenCookieOptions(secure, tokens.AccessExpires, tokens.IsPersistent));
+            AuthCookieDefaults.BuildAccessTokenCookieOptions(_cookies.Secure, tokens.AccessExpires, tokens.IsPersistent));
         Response.Cookies.Append(
             AuthCookieDefaults.RefreshTokenCookie, tokens.RefreshToken,
-            AuthCookieDefaults.BuildRefreshTokenCookieOptions(secure, tokens.RefreshExpires, tokens.IsPersistent));
+            AuthCookieDefaults.BuildRefreshTokenCookieOptions(_cookies.Secure, tokens.RefreshExpires, tokens.IsPersistent));
     }
 
-    private void ClearAuthCookies()
-    {
-        var secure = !_env.IsDevelopment();
-        Response.Cookies.Delete(
-            AuthCookieDefaults.AccessTokenCookie,
-            AuthCookieDefaults.BuildDeletionOptions(secure, "/"));
-        Response.Cookies.Delete(
-            AuthCookieDefaults.RefreshTokenCookie,
-            AuthCookieDefaults.BuildDeletionOptions(secure, AuthCookieDefaults.RefreshTokenPath));
-    }
+    private void ClearAuthCookies() => AuthCookieDefaults.ClearAuthCookies(Response, _cookies.Secure);
 }

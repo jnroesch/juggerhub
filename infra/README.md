@@ -8,8 +8,12 @@ architecturally identical and differ only in sizing/config.
 See the design docs in [`../specs/015-hosting/`](../specs/015-hosting/): `plan.md`,
 `research.md`, `data-model.md`, `contracts/`, `quickstart.md`.
 
-> **Status**: authored, **not yet applied**. Nothing here has been run against a live
-> subscription. `terraform init/validate/plan` and the smoke checks are pending.
+> **How this is applied**: every merge to `main` runs `terraform apply` against **Dev**
+> automatically — the Deploy workflow (`.github/workflows/deploy.yml`), after Build and E2E pass
+> for that commit, with **no plan review**. Check a risky change with a read-only
+> `terraform plan -lock=false` against the `dev` workspace *before* merging. The Prod job exists
+> in the same workflow but is commented out; whether it is enabled is that file's to say, not
+> this README's.
 
 ---
 
