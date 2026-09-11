@@ -12,8 +12,9 @@ public interface IRefreshTokenService
     /// continue a rotation chain, or null to start a new family (fresh login).</summary>
     Task<IssuedRefreshToken> IssueAsync(Guid userId, bool isPersistent, string? ip, Guid? familyId = null, CancellationToken ct = default);
 
-    /// <summary>Validate and rotate the presented raw token (single-use). On reuse of a
-    /// rotated/expired token, revokes the whole family.</summary>
+    /// <summary>Validate and rotate the presented raw token (single-use, enforced atomically). A
+    /// token rotated moments ago by a concurrent request is <see cref="RotateStatus.AlreadyRotated"/>;
+    /// any other reuse of a rotated/expired token revokes the whole family.</summary>
     Task<RotateResult> RotateAsync(string rawToken, string? ip, CancellationToken ct = default);
 
     /// <summary>Revoke the single token matching the raw value (e.g. logout). No-op if not found.</summary>
@@ -31,6 +32,13 @@ public enum RotateStatus
     Success,
     Invalid,
     ReuseDetected,
+
+    /// <summary>
+    /// The token was rotated moments ago by a concurrent request that presented the same cookie —
+    /// another tab. Not theft: the caller issues an access token only (no refresh token), and the
+    /// family stays valid (GH #247).
+    /// </summary>
+    AlreadyRotated,
 }
 
 /// <summary>Outcome of a rotation attempt.</summary>
@@ -40,8 +48,14 @@ public sealed class RotateResult
     public Guid UserId { get; init; }
     public IssuedRefreshToken? Issued { get; init; }
 
+    /// <summary>For <see cref="RotateStatus.AlreadyRotated"/>: whether the session is remember-me,
+    /// so the access-only cookie keeps the same lifetime as the one the winning response sets.</summary>
+    public bool IsPersistent { get; init; }
+
     public static RotateResult Invalid() => new() { Status = RotateStatus.Invalid };
     public static RotateResult Reuse() => new() { Status = RotateStatus.ReuseDetected };
     public static RotateResult Success(Guid userId, IssuedRefreshToken issued) =>
         new() { Status = RotateStatus.Success, UserId = userId, Issued = issued };
+    public static RotateResult AlreadyRotated(Guid userId, bool isPersistent) =>
+        new() { Status = RotateStatus.AlreadyRotated, UserId = userId, IsPersistent = isPersistent };
 }

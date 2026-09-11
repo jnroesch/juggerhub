@@ -291,7 +291,8 @@ public sealed class AuthService : IAuthService
         }
 
         var rotate = await _refreshTokens.RotateAsync(rawRefreshToken, ip, ct);
-        if (rotate.Status != RotateStatus.Success || rotate.Issued is null)
+        var rotated = rotate.Status == RotateStatus.Success && rotate.Issued is not null;
+        if (!rotated && rotate.Status != RotateStatus.AlreadyRotated)
         {
             return RefreshResult.Rejected();
         }
@@ -305,10 +306,14 @@ public sealed class AuthService : IAuthService
         }
 
         var (accessToken, accessExpires) = _jwt.CreateAccessToken(user);
-        var issued = rotate.Issued.Value;
-        var tokens = new IssuedTokens(
-            accessToken, accessExpires,
-            issued.RawToken, ToUtcOffset(issued.ExpiresAt), issued.IsPersistent);
+        var tokens = rotated
+            ? new IssuedTokens(
+                accessToken, accessExpires,
+                rotate.Issued!.Value.RawToken, ToUtcOffset(rotate.Issued.Value.ExpiresAt), rotate.Issued.Value.IsPersistent)
+            // Lost a rotation race to another tab (GH #247): a fresh ACCESS token only, so this tab's
+            // retried request succeeds whichever response reaches the browser first. The refresh
+            // cookie is left alone — the winning response sets the family's one successor.
+            : new IssuedTokens(accessToken, accessExpires, null, default, rotate.IsPersistent);
         return RefreshResult.Success(await ToAuthUserDtoAsync(user, ct), tokens);
     }
 

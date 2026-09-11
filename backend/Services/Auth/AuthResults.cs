@@ -57,11 +57,16 @@ public enum RefreshStatus
     Rejected,
 }
 
-/// <summary>Tokens issued by login/refresh, for the controller to set as cookies. No token is ever returned in a response body.</summary>
+/// <summary>
+/// Tokens issued by login/refresh, for the controller to set as cookies. No token is ever returned in
+/// a response body. A null <see cref="RefreshToken"/> means access-only: the request lost a rotation
+/// race to another tab (GH #247), whose response carries the family's one successor — the refresh
+/// cookie is left for that response to set.
+/// </summary>
 public readonly record struct IssuedTokens(
     string AccessToken,
     DateTimeOffset AccessExpires,
-    string RefreshToken,
+    string? RefreshToken,
     DateTimeOffset RefreshExpires,
     bool IsPersistent);
 

@@ -193,9 +193,14 @@ public sealed class AuthController : ControllerBase
         Response.Cookies.Append(
             AuthCookieDefaults.AccessTokenCookie, tokens.AccessToken,
             AuthCookieDefaults.BuildAccessTokenCookieOptions(_cookies.Secure, tokens.AccessExpires, tokens.IsPersistent));
-        Response.Cookies.Append(
-            AuthCookieDefaults.RefreshTokenCookie, tokens.RefreshToken,
-            AuthCookieDefaults.BuildRefreshTokenCookieOptions(_cookies.Secure, tokens.RefreshExpires, tokens.IsPersistent));
+        // Null when this request lost a rotation race to another tab (GH #247): the winning response
+        // sets the refresh cookie, and overwriting it here would put a superseded token back.
+        if (tokens.RefreshToken is not null)
+        {
+            Response.Cookies.Append(
+                AuthCookieDefaults.RefreshTokenCookie, tokens.RefreshToken,
+                AuthCookieDefaults.BuildRefreshTokenCookieOptions(_cookies.Secure, tokens.RefreshExpires, tokens.IsPersistent));
+        }
     }
 
     private void ClearAuthCookies() => AuthCookieDefaults.ClearAuthCookies(Response, _cookies.Secure);
