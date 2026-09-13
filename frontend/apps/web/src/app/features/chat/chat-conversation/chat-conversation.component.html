@@ -144,7 +144,7 @@
                               [href]="attachmentUrl(a.id)"
                               target="_blank"
                               rel="noopener"
-                              class="block overflow-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                              class="block overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                               [attr.aria-label]="'chat.conversation.openImage' | transloco: { name: a.fileName }"
                             >
                               <img
@@ -166,7 +166,7 @@
                               class="flex min-h-11 items-center gap-sm rounded-md border px-sm py-xs transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                               [class]="
                                 m.isOwn
-                                  ? 'border-white/30 hover:bg-white/10'
+                                  ? 'border-on-accent/30 hover:bg-on-accent/10'
                                   : 'border-border-default hover:bg-surface-sunken'
                               "
                               [attr.aria-label]="'chat.conversation.downloadFile' | transloco: { name: a.fileName }"
@@ -187,7 +187,7 @@
                               </svg>
                               <span class="min-w-0 flex-1">
                                 <span class="block truncate text-body-sm font-medium">{{ a.fileName }}</span>
-                                <span class="block text-caption opacity-70">{{ formatSize(a.sizeBytes) }}</span>
+                                <span class="block font-mono text-caption opacity-70">{{ formatSize(a.sizeBytes) }}</span>
                               </span>
                             </a>
                           }
@@ -284,17 +284,30 @@
         </p>
       }
 
+      <!--
+        FR-007: an upload can take a noticeable moment on a phone, and a composer that simply went
+        quiet would invite a second press. The send button is disabled while this shows, so the two
+        together are the whole answer to "did that work?".
+      -->
+      @if (sending() && pending().length) {
+        <p class="mb-xs text-body-sm text-muted" role="status" data-testid="sending">
+          {{ 'chat.compose.sending' | transloco }}
+        </p>
+      }
+
       <!-- Files chosen but not yet sent. Each removable on its own, so one wrong pick does not
            cost the whole selection (spec FR-003). -->
       @if (pending().length) {
         <ul class="mb-xs flex flex-wrap gap-xs" [attr.aria-label]="'chat.compose.attachedFiles' | transloco" data-testid="pending-files">
           @for (f of pending(); track f.name + f.size + $index) {
-            <li class="flex items-center gap-xs rounded-pill border border-border-default bg-surface-muted py-0.5 pl-sm pr-0.5 text-body-sm">
+            <li class="flex items-center gap-xs rounded-pill border border-border-default bg-surface-muted pl-sm text-body-sm">
               <span class="max-w-40 truncate">{{ f.name }}</span>
+              <!-- min-h-11/min-w-11: a 44px touch target (CHK011). The chip takes its height from
+                   this rather than the button being shrunk to fit the chip. -->
               <button
                 type="button"
                 (click)="removePending($index)"
-                class="inline-flex size-8 items-center justify-center rounded-pill text-subtle transition-colors duration-fast hover:text-danger-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-pill text-subtle transition-colors duration-fast hover:text-danger-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 [attr.aria-label]="'chat.compose.removeFile' | transloco: { name: f.name }"
                 data-testid="remove-file"
               >
@@ -328,7 +341,7 @@
           type="button"
           (click)="openFilePicker()"
           [disabled]="isArchived() || sending() || pending().length >= maxFiles"
-          class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border-strong bg-surface-card text-body transition-colors duration-fast hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border-strong bg-surface-card text-body transition-colors duration-fast hover:bg-surface-muted active:translate-y-px active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           [attr.aria-label]="'chat.compose.attachFiles' | transloco"
           data-testid="attach"
         >

@@ -529,6 +529,12 @@ export class ChatService {
           senderName: message.senderName,
           isOwn: message.isOwn,
           isSystem: message.kind === 'System',
+          // Carried through so a message that is only files shows its label the moment it lands,
+          // rather than an empty line that reads as "deleted" until the next inbox load.
+          attachmentCount: message.isDeleted ? 0 : message.attachments.length,
+          attachmentsAreImages:
+            message.attachments.length > 0 &&
+            message.attachments.every((a) => a.contentType.startsWith('image/')),
         },
         // An open conversation is being read as it arrives, so it never accrues a badge.
         unreadCount: isOpen || message.isOwn ? found.unreadCount : found.unreadCount + 1,

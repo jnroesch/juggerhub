@@ -187,15 +187,15 @@ activating it opens a larger view.
 - [X] T025 [P] [US2] Test: an uploaded JPEG carrying **EXIF GPS and a rotation flag** is stored
       with **no** EXIF/GPS/ICC and already upright; the stored type is `image/webp`; `Width`/
       `Height` are populated. Assert against the **stored bytes**, not the code path (SC-003)
-- [ ] T026 [P] [US2] Test: an **animated GIF** is stored as a single frame (FR-017), which the
+- [X] T026 [P] [US2] Test: an **animated GIF** is stored as a single frame (FR-017), which the
       existing pipeline already does — the test pins it
 - [X] T027 [US2] Render image attachments as an inline preview, sized from `Width`/`Height` so
       the thread reserves space and does not jump as the image arrives
-- [ ] T028 [US2] Multi-image layout: a group that stays within the thread at 375 px. A panorama
+- [X] T028 [US2] Multi-image layout: a group that stays within the thread at 375 px. A panorama
       and ten files on one message must not scroll the page horizontally (SC-009)
-- [ ] T029 [US2] A larger view on activation, keyboard-dismissable, focus returned to the
+- [X] T029 [US2] A larger view on activation, keyboard-dismissable, focus returned to the
       trigger
-- [ ] T030 [US2] An attachment whose object cannot be read renders an **unavailable placeholder
+- [X] T030 [US2] An attachment whose object cannot be read renders an **unavailable placeholder
       for that attachment alone**, leaving the rest of the conversation intact (FR-028) —
       mirroring how a missing avatar and an undecryptable message already behave
 - [X] T031 [P] [US2] Jest for T027–T030
@@ -221,7 +221,7 @@ and an eleventh file; each is refused and the conversation is unchanged.
 - [X] T035 [US3] Frontend: map each code to its catalogue string, show it against the offending
       file in the tray, and leave the other selected files intact (FR-003). Client-side checks
       are for convenience only — the server is the boundary (Principle I)
-- [ ] T036 [US3] Guard against the double-send: while an upload is in flight the same
+- [X] T036 [US3] Guard against the double-send: while an upload is in flight the same
       composition cannot be submitted again (FR-007). A failed send leaves the tray populated so
       the member can retry without re-picking
 
@@ -253,7 +253,7 @@ the file is unretrievable by everyone including a member who had the thread open
       `EraseOwnedDataAsync`: attachments ride their messages, which survive. If a future reader
       thinks this is an oversight, the reasoning is in FR-031 and in feature 037's
       `RetainedCategories`
-- [ ] T041 [US4] Confirm `MediaReconciliationService` sweeps the `chat-attachments/` prefix — it
+- [X] T041 [US4] Confirm `MediaReconciliationService` sweeps the `chat-attachments/` prefix — it
       lists the whole container, so verify rather than assume, and extend if it is prefix-scoped
 
 **Checkpoint**: withdrawal and erasure both remove bytes, verified against the store.
@@ -262,28 +262,28 @@ the file is unretrievable by everyone including a member who had the thread open
 
 ## Phase 7: Copy, law and the design gate
 
-- [ ] T042 Correct the privacy policy in **all three** locales,
+- [X] T042 Correct the privacy policy in **all three** locales,
       `frontend/apps/web/public/i18n/legal/{en,de,es}.json`, **German authoritative**: members
       can now upload files into conversations — what is stored, that it is encrypted at rest,
       how long it is kept, and who can reach it. The existing uploaded-content paragraphs
       (de L51/L57/L128) name profile pictures and text; they now understate what is uploaded.
       `legal-catalog.spec.ts` enforces key parity
-- [ ] T043 [P] Re-read feature 038's session-recording disclosure against inline image previews
+- [X] T043 [P] Re-read feature 038's session-recording disclosure against inline image previews
       (FR-042): `maskLevel: moderate` masks **inputs**, not rendered content, so shared photos
       **are** captured in replays. Either the disclosure is widened or a `blockSelector` is
       applied to the thread — record which, and why, in this feature's residuals
-- [ ] T044 Add the attachment marker to `LastMessageDto` and render the inbox label from the
+- [X] T044 Add the attachment marker to `LastMessageDto` and render the inbox label from the
       **client's** catalogues (research R11). Do **not** compose the prose server-side, and do
       **not** add a per-row attachment lookup to the inbox query — it is the hottest read in
       chat (data-model, "Where attachments are read")
-- [ ] T045 Instantiate Gate 7: copy `.specify/templates/ui-review-checklist-template.md` to
+- [X] T045 Instantiate Gate 7: copy `.specify/templates/ui-review-checklist-template.md` to
       `specs/049-chat-attachments/checklists/ui-review.md` and verify **every** item against the
       diff, recording `file:line` for anything that fails. Feature-specific items to append:
       the `+` is not a second coral CTA (CHK002); the tray, preview, lightbox and file row all
       work at 375 px; image previews and file rows carry an accessible name (FR-044); the
       lightbox is keyboard-dismissable and returns focus. **DESIGN.md wins on any conflict** —
       report, do not silently resolve
-- [ ] T046 Amend `specs/019-chat/` the way 022, 046 and 048 did: an "Amended by feature 049"
+- [X] T046 Amend `specs/019-chat/` the way 022, 046 and 048 did: an "Amended by feature 049"
       callout, and a pointer from `contracts/chat-api.md` to
       [contracts/chat-attachments-api.md](./contracts/chat-attachments-api.md). Leave 019's
       message-body requirements alone — what a message *is* has widened, but nothing 019 said

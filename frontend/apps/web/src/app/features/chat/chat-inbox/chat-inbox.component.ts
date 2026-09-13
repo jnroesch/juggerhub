@@ -5,7 +5,7 @@ import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ChatService } from '../../../core/services/chat.service';
-import { Conversation } from '../../../core/models/chat.models';
+import { Conversation, LastMessage } from '../../../core/models/chat.models';
 import { injectLocale } from '../../../core/i18n/locale-format';
 
 /**
@@ -142,6 +142,20 @@ export class ChatInboxComponent implements OnInit {
 
   protected badge(count: number): string {
     return count > 9 ? '9+' : String(count);
+  }
+
+  /**
+   * What an inbox row says for a message that is only files (feature 049). One file gets named by
+   * kind — "Photo" reads better than "1 file" for the commonest case — and several are counted.
+   */
+  protected attachmentLabel(last: LastMessage): string {
+    if (last.attachmentCount > 1) {
+      return this.t.translate('chat.inbox.attachmentSeveral', { count: last.attachmentCount });
+    }
+
+    return this.t.translate(
+      last.attachmentsAreImages ? 'chat.inbox.attachmentPhoto' : 'chat.inbox.attachmentFile',
+    );
   }
 
   /** Compact, human time for a row: today → time, this week → weekday, older → date. */

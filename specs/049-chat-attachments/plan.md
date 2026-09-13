@@ -307,3 +307,73 @@ make the surviving thread misleading. So they survive, and the policy text cover
    issue, not this feature.
 7. **An attachment-only message counts as unread exactly like any other** — no change, stated so
    it is not mistaken for an oversight.
+
+---
+
+## Implementation notes — what the build changed about this plan
+
+Recorded after the fact, per CLAUDE.md's "report spec drift". Five things the plan did not
+anticipate, four of them found by the code rather than by reasoning.
+
+### N1 — The sweep would have deleted every attachment (found by T041, fixed, tested)
+
+`MediaReconciliationService` enumerates the **whole container** and deletes any object it cannot
+match to a descriptor row — and its referenced-key set was built from three tables. Chat
+attachments were a fourth, so every one of them would have been reclaimed one grace period after it
+was sent. Silent, irreversible, and an hour late.
+
+The task said "verify rather than assume", and verifying is what found it. Fixed by adding
+`ChatAttachments` to the set, guarded by `Sweep_never_reclaims_a_chat_attachment`, and **confirmed
+by removing the fix and watching the test fail**. The comment above the set now says explicitly
+that a missing table is not a coverage gap but a table whose objects get destroyed.
+
+### N2 — FR-031 was wrong as written, and was corrected rather than implemented
+
+The spec said account erasure should reclaim attachments. Feature 037 tells members **in three
+languages** that their chat messages survive erasure, and its retention rationale is that other
+people's conversations stay coherent. An attachment is part of a message, not a separate
+possession. Deleting them would have left surviving threads half-gone.
+
+So `AccountDeletionService` is **untouched**, and FR-031 now says so with its reasoning. The
+erased sender still renders as "A former player"; their profile picture is still erased, which 037
+already covers.
+
+### N3 — Routing on the image processor's failure does not work
+
+The plan assumed `IImageProcessor` could serve as the image detector. It cannot: ImageSharp raises
+`ImageFormatException` for **any** unrecognised format, which the processor maps to `Unreadable`,
+while its `UnsupportedType` means a format it *does* recognise but the allow-list excludes. A PDF
+and a truncated PNG therefore arrive identically, and every document would have been refused as a
+damaged image.
+
+`AttachmentContentType` now sniffs signatures first and routes; the validator still decides whether
+the file is any good. The reasoning is written where the next reader will hit it.
+
+### N4 — `MediaObjectKey.Create` hardcoded `.webp`
+
+Fair when every object was a normalized image; misleading the moment a PDF is stored. An extension
+overload was added, derived from the **stored content type** and rejecting anything but 1–8 ASCII
+alphanumerics — never from a supplied file name.
+
+### N5 — Two surfaces treated "no text" as "withdrawn"
+
+- The **inbox row** rendered "Message deleted" whenever the preview was empty, so a shared photo
+  would have read as a message someone took back. Now it checks the attachment count first
+  (five tests).
+- The **live inbox bump** built a `LastMessage` without the new fields, so a photo arriving over
+  SignalR would have shown the same wrong label until the next reload. Caught by the compiler
+  during the production build, not by a test — worth noting, because the type system was the only
+  thing standing between this and a bug nobody would have reproduced locally.
+
+### N6 — Gate 7 found four real failures
+
+Not drift, but worth recording as evidence the gate earns its place: a 32px touch target, an
+upload that showed nothing in flight, `md` radius on media where DESIGN.md specifies `xl`, and an
+ad-hoc `border-white/30` with no precedent. All four fixed; see `checklists/ui-review.md`.
+
+### Residual added to the list above
+
+7. **The session-recording disclosure was widened, not just re-read.** FR-042 asked for a check;
+   the check found that paragraph 6 of the analytics section said "including what the other person
+   wrote" — text only. Inline image previews are rendered content and are captured, so all three
+   locales now say so. The `blockSelector` lever remains available if that is judged too wide.

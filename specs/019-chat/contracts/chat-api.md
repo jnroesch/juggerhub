@@ -10,6 +10,12 @@ Phase 1 for [plan.md](../plan.md). REST base `/api/v1/chat`. All endpoints requi
 a message id in a conversation the caller cannot see. Bodies carry only the generic problem shape from
 the existing global exception middleware; no stack traces, no internals.
 
+**Amended by feature 049 (chat attachments).** The send endpoint below also accepts
+`multipart/form-data` so a message can carry files, `MessageDto` gained an `attachments` array, and
+`GET /chat/attachments/{id}` was added. The JSON send documented here is unchanged and still the
+path for a text-only message. See
+[`../../049-chat-attachments/contracts/chat-attachments-api.md`](../../049-chat-attachments/contracts/chat-attachments-api.md).
+
 ---
 
 ## Conversations

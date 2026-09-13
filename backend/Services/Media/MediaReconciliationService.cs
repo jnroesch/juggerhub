@@ -55,10 +55,15 @@ public sealed class MediaReconciliationService
     /// <summary>Delete every stored object no descriptor references and old enough to be safe.</summary>
     public async Task<MediaReconciliationResult> SweepAsync(CancellationToken ct = default)
     {
-        // Referenced keys are read up front, across all three descriptor tables. IgnoreQueryFilters
+        // Referenced keys are read up front, across EVERY descriptor table. IgnoreQueryFilters
         // is essential: the ProfileAvatars ban filter would otherwise hide a banned member's row,
         // the sweep would see their object as unreferenced, and it would delete media belonging to
         // an account that is suspended rather than gone — irreversibly, and exactly the wrong call.
+        //
+        // ⚠ THIS LIST MUST GROW WITH EVERY NEW KIND OF STORED MEDIA. The sweep enumerates the whole
+        // container and deletes whatever it cannot account for, so a descriptor table missing from
+        // here is not a gap in coverage — it is a table whose objects get deleted. Feature 049
+        // added chat attachments; the next kind must be added too, and MediaKind is the checklist.
         var referenced = new HashSet<string>(StringComparer.Ordinal);
         foreach (var key in await _db.ProfileAvatars.IgnoreQueryFilters().Select(a => a.ObjectKey).ToListAsync(ct))
         {
@@ -71,6 +76,14 @@ public sealed class MediaReconciliationService
         }
 
         foreach (var key in await _db.AchievementIcons.IgnoreQueryFilters().Select(i => i.ObjectKey).ToListAsync(ct))
+        {
+            referenced.Add(key);
+        }
+
+        // Feature 049. Without this every chat attachment would look unreferenced and be deleted
+        // one grace period after it was sent — the sweep is the one component that treats "I don't
+        // know about this object" as "destroy it".
+        foreach (var key in await _db.ChatAttachments.IgnoreQueryFilters().Select(a => a.ObjectKey).ToListAsync(ct))
         {
             referenced.Add(key);
         }

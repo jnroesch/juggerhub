@@ -29,12 +29,23 @@ export interface ConversationAvatar {
 }
 
 export interface LastMessage {
-  /** Empty when the newest message was deleted — a tombstone shows no preview. */
+  /**
+   * Empty when the newest message was deleted — a tombstone shows no preview — and also when it
+   * carries only files. Check `attachmentCount` before concluding it was withdrawn.
+   */
   readonly preview: string;
   readonly at: string;
   readonly senderName: string | null;
   readonly isOwn: boolean;
   readonly isSystem: boolean;
+  /**
+   * How many files the newest message carries (feature 049). Zero for a text-only message and for
+   * a withdrawn one. A number rather than a phrase on purpose: the label lives in this app's own
+   * catalogues so it is rendered in the reader's language.
+   */
+  readonly attachmentCount: number;
+  /** Whether every one of those files is an image, so the label can say "Photo" rather than "File". */
+  readonly attachmentsAreImages: boolean;
 }
 
 export interface Conversation {

@@ -9,12 +9,23 @@ namespace JuggerHub.Dtos.Chat;
 public sealed record ConversationAvatarDto(string Kind, Guid? UserId, Guid? TeamId, string? Url);
 
 /// <summary>The inbox row's last-line preview. Empty text when the newest message was deleted.</summary>
+/// <remarks>
+/// <b><see cref="AttachmentCount"/> exists so the client can say something for a message that is
+/// files alone</b> (feature 049). Such a message has no text, so <see cref="Preview"/> is empty and
+/// the row would otherwise show a blank line. The count is a <em>number</em> and not a phrase on
+/// purpose: the label ("Photo", "3 files") lives in the frontend catalogues, where the parity guard
+/// can see it and where it is rendered in the reader's own language. Server-assembled prose has no
+/// key to be missing (GH #141), which is the same reason feature 047's "message unavailable"
+/// placeholder is not in C# either.
+/// </remarks>
 public sealed record LastMessageDto(
     string Preview,
     DateTime At,
     string? SenderName,
     bool IsOwn,
-    bool IsSystem);
+    bool IsSystem,
+    int AttachmentCount,
+    bool AttachmentsAreImages);
 
 /// <summary>One inbox row.</summary>
 public sealed record ConversationSummaryDto(

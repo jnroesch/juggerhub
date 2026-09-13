@@ -111,7 +111,12 @@
                     <em>{{ 'chat.inbox.systemJoined' | transloco }}</em>
                   } @else {
                     @if (last.isOwn) {<span>{{ 'chat.inbox.youPrefix' | transloco }} </span>} @else if (last.senderName && c.kind !== 'Direct') {<span>{{ last.senderName }}: </span>}
-                    @if (last.preview) {{{ last.preview }}} @else {<em class="text-subtle">{{ 'chat.inbox.messageDeleted' | transloco }}</em>}
+                    <!--
+                      An empty preview means one of TWO things now (feature 049): withdrawn, or a
+                      message that is only files. Checking the count before falling through to
+                      "deleted" is what stops a shared photo reading as a message someone took back.
+                    -->
+                    @if (last.preview) {{{ last.preview }}} @else if (last.attachmentCount > 0) {<span data-testid="row-attachment">{{ attachmentLabel(last) }}</span>} @else {<em class="text-subtle">{{ 'chat.inbox.messageDeleted' | transloco }}</em>}
                   }
                 </span>
               } @else {
