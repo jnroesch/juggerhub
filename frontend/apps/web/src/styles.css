@@ -201,6 +201,16 @@
 @tailwind utilities;
 
 @layer base {
+  /* Mona Sans declares an underline thickness of 0.32em in its font file. Firefox honours the
+     font's value for `auto`, drawing a bar that sits on the glyphs, and skip-ink then shreds it
+     into dashes (GH #277). 0.1em is what Chromium already draws for `auto`, so Chrome and Safari
+     are unchanged. Set on every element because the property is not inherited. */
+  *,
+  ::before,
+  ::after {
+    text-decoration-thickness: 0.1em;
+  }
+
   html,
   body {
     height: 100%;

@@ -298,7 +298,8 @@
             margin: 0;
             line-height: 1.6;
         }
-        .footer-reason a { color: #82725B; text-decoration: underline; }
+        /* Explicit thickness: Mona Sans declares 0.32em, which Gecko clients honour (GH #277). */
+        .footer-reason a { color: #82725B; text-decoration: underline; text-decoration-thickness: 0.1em; }
 
         /* ---------------- Responsive ---------------- */
         @media (max-width: 600px) {
