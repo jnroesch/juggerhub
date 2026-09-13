@@ -113,13 +113,13 @@ recipient, named as it was on the device, and that what downloads is what was se
 
 ### Tests for User Story 1
 
-- [ ] T011 [P] [US1] Create
+- [X] T011 [P] [US1] Create
       `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatAttachmentTests.cs` following the
       neighbouring suites' shape (`ChatTestSupport` fixtures, `FakeChatRealtime`): a message with
       one file round-trips; **a message with files and no text is accepted** (FR-004, the
       collision at plan F1); text and files arrive as **one** message; several files keep the
       sender's order; a non-member gets **404** from the download endpoint
-- [ ] T012 [P] [US1] Add to the same suite: the stored object for a document is **byte-identical**
+- [X] T012 [P] [US1] Add to the same suite: the stored object for a document is **byte-identical**
       to what was uploaded after decryption, and the row's `BodyCipher` for an attachment-only
       message is **zero-length** — never `Protect("")` (research R5)
 
@@ -159,18 +159,18 @@ recipient, named as it was on the device, and that what downloads is what was se
       `backend/Dtos/Chat/ChatDtos.cs`; project attachments in `ChatMessageService`'s existing
       message projections, ordered by `Ordinal`. **No URL, no object key** in the DTO — the
       client derives the path from the id
-- [ ] T021 [US1] `frontend/apps/web/src/app/core/services/chat.service.ts` — send as
+- [X] T021 [US1] `frontend/apps/web/src/app/core/services/chat.service.ts` — send as
       `FormData` when files are present. **Never auto-retry** this call: it is a mutation on the
       browser hop (Principle VII, research R7)
-- [ ] T022 [US1] Composer in
+- [X] T022 [US1] Composer in
       `frontend/apps/web/src/app/features/chat/chat-conversation/chat-conversation.component.{html,ts}`
       — a `+` button opening a hidden `<input type="file" multiple>`, copying the established
       pattern from `profile-owner.component.html:67`. **Neutral/ghost styling, not coral**: the
       send button is the one brand CTA in this view and the template says so (plan F12). Tray
       state is **signals** — the app is zoneless (plan F13)
-- [ ] T023 [US1] Render non-image attachments as a named file row (name, size, download action)
+- [X] T023 [US1] Render non-image attachments as a named file row (name, size, download action)
       in the message bubble
-- [ ] T024 [P] [US1] Jest: the `+` opens the picker, a selected file appears in the tray and is
+- [X] T024 [P] [US1] Jest: the `+` opens the picker, a selected file appears in the tray and is
       individually removable, and send is possible with files and no text
 
 **Checkpoint**: a PDF can be sent and downloaded by another member; a non-member gets 404.
@@ -184,12 +184,12 @@ recipient, named as it was on the device, and that what downloads is what was se
 **Independent test**: send a JPEG; the thread shows the picture, legible at 375 px, and
 activating it opens a larger view.
 
-- [ ] T025 [P] [US2] Test: an uploaded JPEG carrying **EXIF GPS and a rotation flag** is stored
+- [X] T025 [P] [US2] Test: an uploaded JPEG carrying **EXIF GPS and a rotation flag** is stored
       with **no** EXIF/GPS/ICC and already upright; the stored type is `image/webp`; `Width`/
       `Height` are populated. Assert against the **stored bytes**, not the code path (SC-003)
 - [ ] T026 [P] [US2] Test: an **animated GIF** is stored as a single frame (FR-017), which the
       existing pipeline already does — the test pins it
-- [ ] T027 [US2] Render image attachments as an inline preview, sized from `Width`/`Height` so
+- [X] T027 [US2] Render image attachments as an inline preview, sized from `Width`/`Height` so
       the thread reserves space and does not jump as the image arrives
 - [ ] T028 [US2] Multi-image layout: a group that stays within the thread at 375 px. A panorama
       and ten files on one message must not scroll the page horizontally (SC-009)
@@ -198,7 +198,7 @@ activating it opens a larger view.
 - [ ] T030 [US2] An attachment whose object cannot be read renders an **unavailable placeholder
       for that attachment alone**, leaving the rest of the conversation intact (FR-028) —
       mirroring how a missing avatar and an undecryptable message already behave
-- [ ] T031 [P] [US2] Jest for T027–T030
+- [X] T031 [P] [US2] Jest for T027–T030
 
 **Checkpoint**: photos render inline; a corrupt attachment does not break the thread.
 
@@ -211,14 +211,14 @@ activating it opens a larger view.
 **Independent test**: attempt an oversized file, a disallowed type, a file whose extension lies,
 and an eleventh file; each is refused and the conversation is unchanged.
 
-- [ ] T032 [P] [US3] Tests, one per refusal class: over 10 MB; an eleventh file; a disallowed
+- [X] T032 [P] [US3] Tests, one per refusal class: over 10 MB; an eleventh file; a disallowed
       type; **a ZIP renamed `.docx`** (the OOXML trap, research R2); **an executable renamed
       `.jpg`**; a truncated image; an empty submission with neither text nor files
-- [ ] T033 [P] [US3] Test SC-006 explicitly: after each refusal above there is **no message row,
+- [X] T033 [P] [US3] Test SC-006 explicitly: after each refusal above there is **no message row,
       no attachment row and no stored object** — assert against the store, not just the API
-- [ ] T034 [US3] Return stable refusal codes per the contract; the response prose is the English
+- [X] T034 [US3] Return stable refusal codes per the contract; the response prose is the English
       fallback, not what the member is shown
-- [ ] T035 [US3] Frontend: map each code to its catalogue string, show it against the offending
+- [X] T035 [US3] Frontend: map each code to its catalogue string, show it against the offending
       file in the tray, and leave the other selected files intact (FR-003). Client-side checks
       are for convenience only — the server is the boundary (Principle I)
 - [ ] T036 [US3] Guard against the double-send: while an upload is in flight the same
@@ -236,10 +236,10 @@ and an eleventh file; each is refused and the conversation is unchanged.
 **Independent test**: send a file, withdraw the message, confirm the usual tombstone and that
 the file is unretrievable by everyone including a member who had the thread open.
 
-- [ ] T037 [P] [US4] Tests: after withdrawal the download endpoint returns **404** for every
+- [X] T037 [P] [US4] Tests: after withdrawal the download endpoint returns **404** for every
       member; the attachment rows are gone; **the objects are gone from the store**; the thread
       shows the standard tombstone with **no file names or counts** left behind (FR-030)
-- [ ] T038 [P] [US4] Test: erasing an account **leaves** the attachments it sent in place, with the
+- [X] T038 [P] [US4] Test: erasing an account **leaves** the attachments it sent in place, with the
       sender rendering as "A former player" — the corrected FR-031. Feature 037 promises members in
       three languages that their chat messages survive erasure, and an attachment is part of a
       message; deleting them would make other people's conversations half-gone. Their profile

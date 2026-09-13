@@ -7,6 +7,20 @@ import { ChatService } from '../../../core/services/chat.service';
 import { ChatMessage, ConversationDetail } from '../../../core/models/chat.models';
 import { injectLocale } from '../../../core/i18n/locale-format';
 
+/** Mirrors the server's limits (feature 049). Client-side checks are UX; the server decides. */
+const MAX_FILES = 10;
+const MAX_FILE_BYTES = 10 * 1024 * 1024;
+
+/**
+ * What the OS picker offers by default. A hint, never a control: someone can always choose "all
+ * files", which is exactly why the server validates the real content of everything it receives.
+ */
+const ACCEPTED_FILE_TYPES =
+  'image/png,image/jpeg,image/webp,image/gif,application/pdf,text/plain,' +
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document,' +
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,' +
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation';
+
 /**
  * One open conversation (feature 019, wireframe 9b/9c): the thread, the composer, live delivery,
  * typing, read receipts, and the "new messages" divider with its jump-to-latest pill.
@@ -30,6 +44,7 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
   private readonly locale = injectLocale();
 
   @ViewChild('scroller') private scroller?: ElementRef<HTMLElement>;
+  @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
 
   protected readonly messages = this.chat.messages;
   protected readonly hasMoreHistory = this.chat.hasMoreHistory;
@@ -48,8 +63,46 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
   /** The id the "new messages" divider sits above, frozen when the reader was last at the bottom. */
   protected readonly dividerBeforeId = signal<string | null>(null);
 
+  /**
+   * Files picked but not yet sent (feature 049). A signal, not a plain array: the app is zoneless,
+   * so a plain property would never re-render the tray.
+   */
+  protected readonly pending = signal<readonly File[]>([]);
+
+  /** Which picked file the client itself refused, and why — keyed by index into `pending`. */
+  protected readonly pendingError = signal<string | null>(null);
+
+  protected readonly maxFiles = MAX_FILES;
+  protected readonly acceptedFileTypes = ACCEPTED_FILE_TYPES;
+
+  /** A size a person can read, for the file row. */
+  protected formatSize(bytes: number): string {
+    if (bytes < 1024) {
+      return `${bytes} B`;
+    }
+
+    const kb = bytes / 1024;
+    return kb < 1024 ? `${Math.round(kb)} KB` : `${(kb / 1024).toFixed(1)} MB`;
+  }
+
+  /** Images render in the thread; everything else is a named row with a download. */
+  protected isImage(contentType: string): boolean {
+    return contentType.startsWith('image/');
+  }
+
+  protected attachmentUrl(attachmentId: string): string {
+    return `/api/v1/chat/attachments/${attachmentId}`;
+  }
+
+  /**
+   * A message needs text OR at least one file. A photo is a perfectly good thing to say on its
+   * own, which is why this is not `&&` (spec FR-004).
+   */
   protected readonly canSend = computed(
-    () => this.draft().trim().length > 0 && !this.sending() && this.detail()?.state !== 'Archived',
+    () =>
+      (this.draft().trim().length > 0 || this.pending().length > 0) &&
+      !this.sending() &&
+      this.detail()?.state !== 'Archived',
   );
 
   protected readonly isArchived = computed(() => this.detail()?.state === 'Archived');
@@ -208,20 +261,72 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
     }
 
     const body = this.draft().trim();
+    const files = this.pending();
     this.sending.set(true);
     this.sendError.set(null);
 
-    this.chat.send(this.conversationId(), body).subscribe({
+    this.chat.send(this.conversationId(), body, files).subscribe({
       next: () => {
         this.draft.set('');
+        this.pending.set([]);
+        this.pendingError.set(null);
         this.sending.set(false);
         this.pendingScrollToBottom = true;
       },
       error: (e: { error?: { detail?: string } }) => {
         this.sending.set(false);
-        this.sendError.set(e.error?.detail ?? "That message couldn't be sent.");
+        // The draft and the picked files are deliberately KEPT: a failed send must not cost
+        // someone the files they just chose, which is the moment they would least forgive it.
+        this.sendError.set(e.error?.detail ?? this.t.translate('chat.compose.attachmentErrors.uploadFailed'));
       },
     });
+  }
+
+  /** Open the OS file picker. The input is hidden; this button is what people see. */
+  protected openFilePicker(): void {
+    this.fileInput?.nativeElement.click();
+  }
+
+  protected onFilesPicked(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const picked = Array.from(input.files ?? []);
+
+    // Reset immediately so picking the same file twice in a row still raises a change event.
+    input.value = '';
+
+    if (picked.length === 0) {
+      return;
+    }
+
+    this.pendingError.set(null);
+    const room = MAX_FILES - this.pending().length;
+
+    if (picked.length > room) {
+      this.pendingError.set(this.t.translate('chat.compose.attachmentErrors.tooManyFiles'));
+    }
+
+    const accepted: File[] = [];
+    for (const file of picked.slice(0, Math.max(room, 0))) {
+      // A convenience check only — the server is the boundary and re-checks every one of these
+      // against the file's real content (constitution Principle I).
+      if (file.size > MAX_FILE_BYTES) {
+        this.pendingError.set(
+          this.t.translate('chat.compose.attachmentErrors.fileTooLarge', { name: file.name }),
+        );
+        continue;
+      }
+
+      accepted.push(file);
+    }
+
+    if (accepted.length > 0) {
+      this.pending.update((current) => [...current, ...accepted]);
+    }
+  }
+
+  protected removePending(index: number): void {
+    this.pending.update((current) => current.filter((_, i) => i !== index));
+    this.pendingError.set(null);
   }
 
   protected deleteMessage(messageId: string): void {

@@ -46,6 +46,7 @@ describe('ChatService', () => {
     systemEvent: null,
     systemSubjectName: null,
     linkCard: null,
+    attachments: [],
     ...over,
   });
 

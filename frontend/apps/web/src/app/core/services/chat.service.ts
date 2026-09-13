@@ -290,9 +290,29 @@ export class ChatService {
     });
   }
 
-  send(conversationId: string, body: string): Observable<ChatMessage> {
+  /**
+   * Send a message: text, files, or both (feature 049).
+   *
+   * With files this posts `multipart/form-data`; without them it stays the JSON call it always
+   * was, so the plain-text path is byte-identical to before attachments existed.
+   *
+   * **Never retried automatically.** It is a mutation on the browser hop: a send that timed out
+   * may already have posted, and the client cannot tell (constitution Principle VII). A member
+   * retries deliberately, from a composer that kept their files.
+   */
+  send(conversationId: string, body: string, files: readonly File[] = []): Observable<ChatMessage> {
+    const url = `${this.base}/conversations/${conversationId}/messages`;
+
+    const payload: FormData | { body: string } = files.length > 0 ? new FormData() : { body };
+    if (payload instanceof FormData) {
+      payload.append('body', body);
+      for (const file of files) {
+        payload.append('files', file, file.name);
+      }
+    }
+
     return this.http
-      .post<ChatMessage>(`${this.base}/conversations/${conversationId}/messages`, { body })
+      .post<ChatMessage>(url, payload)
       .pipe(
         tap((message) => {
           if (this._openId() === conversationId) {

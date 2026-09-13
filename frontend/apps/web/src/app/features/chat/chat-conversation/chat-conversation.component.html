@@ -122,7 +122,79 @@
                   }}</span>
                 } @else {
                   <!-- Bound as TEXT, never HTML: user content is never markup (FR-014) -->
-                  <span class="whitespace-pre-wrap break-words">{{ m.body }}</span>
+                  @if (m.body) {
+                    <span class="whitespace-pre-wrap break-words">{{ m.body }}</span>
+                  }
+
+                  <!--
+                    Feature 049. An empty body is NOT an empty message: it may be files alone, so
+                    this renders on `attachments` independently of `body` rather than as an else.
+                  -->
+                  @if (m.attachments.length) {
+                    <ul class="flex flex-col gap-xs" [class.mt-xs]="m.body" data-testid="attachments">
+                      @for (a of m.attachments; track a.id) {
+                        <li>
+                          @if (isImage(a.contentType)) {
+                            <!--
+                              width/height come from the row so the thread reserves the right space
+                              and does not jump as the picture arrives. max-w-full keeps a panorama
+                              inside the bubble at 375px rather than scrolling the page.
+                            -->
+                            <a
+                              [href]="attachmentUrl(a.id)"
+                              target="_blank"
+                              rel="noopener"
+                              class="block overflow-hidden rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                              [attr.aria-label]="'chat.conversation.openImage' | transloco: { name: a.fileName }"
+                            >
+                              <img
+                                [src]="attachmentUrl(a.id)"
+                                [attr.width]="a.width"
+                                [attr.height]="a.height"
+                                [alt]="a.fileName"
+                                loading="lazy"
+                                class="h-auto max-h-80 w-full max-w-full object-cover"
+                              />
+                            </a>
+                          } @else {
+                            <!--
+                              A download, never an inline render: the server sends these with
+                              Content-Disposition: attachment, and the app has no CSP header.
+                            -->
+                            <a
+                              [href]="attachmentUrl(a.id)"
+                              class="flex min-h-11 items-center gap-sm rounded-md border px-sm py-xs transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                              [class]="
+                                m.isOwn
+                                  ? 'border-white/30 hover:bg-white/10'
+                                  : 'border-border-default hover:bg-surface-sunken'
+                              "
+                              [attr.aria-label]="'chat.conversation.downloadFile' | transloco: { name: a.fileName }"
+                              data-testid="attachment-file"
+                            >
+                              <svg
+                                class="size-5 shrink-0 opacity-70"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                aria-hidden="true"
+                              >
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <path d="M14 2v6h6" />
+                              </svg>
+                              <span class="min-w-0 flex-1">
+                                <span class="block truncate text-body-sm font-medium">{{ a.fileName }}</span>
+                                <span class="block text-caption opacity-70">{{ formatSize(a.sizeBytes) }}</span>
+                              </span>
+                            </a>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  }
                 }
               </div>
 
@@ -206,7 +278,65 @@
         </p>
       }
 
+      @if (pendingError(); as err) {
+        <p class="mb-xs rounded-md border border-warning-border bg-warning-bg px-sm py-xs text-body-sm text-warning-fg" role="alert">
+          {{ err }}
+        </p>
+      }
+
+      <!-- Files chosen but not yet sent. Each removable on its own, so one wrong pick does not
+           cost the whole selection (spec FR-003). -->
+      @if (pending().length) {
+        <ul class="mb-xs flex flex-wrap gap-xs" [attr.aria-label]="'chat.compose.attachedFiles' | transloco" data-testid="pending-files">
+          @for (f of pending(); track f.name + f.size + $index) {
+            <li class="flex items-center gap-xs rounded-pill border border-border-default bg-surface-muted py-0.5 pl-sm pr-0.5 text-body-sm">
+              <span class="max-w-40 truncate">{{ f.name }}</span>
+              <button
+                type="button"
+                (click)="removePending($index)"
+                class="inline-flex size-8 items-center justify-center rounded-pill text-subtle transition-colors duration-fast hover:text-danger-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                [attr.aria-label]="'chat.compose.removeFile' | transloco: { name: f.name }"
+                data-testid="remove-file"
+              >
+                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                  <path d="M18 6 6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+
       <form (ngSubmit)="send()" class="flex items-end gap-sm">
+        <!-- The picker itself stays hidden; the + button below is the visible control. Same
+             pattern as the avatar and catalogue-icon uploads. -->
+        <input
+          #fileInput
+          type="file"
+          multiple
+          [attr.accept]="acceptedFileTypes"
+          class="hidden"
+          (change)="onFilesPicked($event)"
+          data-testid="attachment-input"
+        />
+
+        <!--
+          Neutral, NOT coral: the send button is the one brand CTA in this view (CHK002/CHK034),
+          and a second one would compete with it.
+        -->
+        <button
+          type="button"
+          (click)="openFilePicker()"
+          [disabled]="isArchived() || sending() || pending().length >= maxFiles"
+          class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md border border-border-strong bg-surface-card text-body transition-colors duration-fast hover:bg-surface-muted disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          [attr.aria-label]="'chat.compose.attachFiles' | transloco"
+          data-testid="attach"
+        >
+          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </button>
+
         <label class="min-w-0 flex-1">
           <span class="sr-only">{{ 'chat.compose.messageSr' | transloco }}</span>
           <input

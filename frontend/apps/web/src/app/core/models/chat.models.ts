@@ -108,6 +108,28 @@ export interface ChatMessage {
   readonly systemEvent: ChatSystemEvent | null;
   readonly systemSubjectName: string | null;
   readonly linkCard: LinkCard | null;
+  /**
+   * Files sent with this message (feature 049), in the order the sender chose. Empty for a
+   * text-only message, and empty for a withdrawn one — file names are content too.
+   *
+   * An empty `body` does NOT mean an empty message: render on this as well, or an
+   * attachment-only message shows as a blank bubble.
+   */
+  readonly attachments: readonly ChatAttachment[];
+}
+
+/** One file on a message (feature 049). */
+export interface ChatAttachment {
+  readonly id: string;
+  /** The name it had on the sender's device. Display only — never a path. */
+  readonly fileName: string;
+  /** The type of the STORED object: `image/webp` for every image, whatever was uploaded. */
+  readonly contentType: string;
+  /** Size of the stored object, which is what a download costs. */
+  readonly sizeBytes: number;
+  /** Set for images only, so the thread can reserve space before the picture loads. */
+  readonly width: number | null;
+  readonly height: number | null;
 }
 
 /** A keyset page. `nextBefore` is the cursor for the next page back; null when history is exhausted. */
