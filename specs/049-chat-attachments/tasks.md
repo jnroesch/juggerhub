@@ -36,7 +36,7 @@ If a task below seems to need one, stop and re-read [research.md](./research.md)
 
 ## Phase 1: Setup
 
-- [ ] T001 Confirm the working tree is on the feature branch and `docker compose up -d` brings
+- [X] T001 Confirm the working tree is on the feature branch and `docker compose up -d` brings
       up postgres, redis and **azurite** (media fails closed without it; chat fails closed
       without redis). Run the baselines green before changing anything:
       `dotnet test backend/tests/JuggerHub.Api.IntegrationTests --filter "FullyQualifiedName~IntegrationTests.Chat"`,
@@ -288,7 +288,7 @@ the file is unretrievable by everyone including a member who had the thread open
       [contracts/chat-attachments-api.md](./contracts/chat-attachments-api.md). Leave 019's
       message-body requirements alone — what a message *is* has widened, but nothing 019 said
       about text has changed
-- [ ] T047 Full verification: `dotnet test backend/tests/JuggerHub.Api.IntegrationTests`,
+- [X] T047 Full verification: `dotnet test backend/tests/JuggerHub.Api.IntegrationTests`,
       `cd frontend; npx nx test web --watch=false`, `npx nx lint web`, `npx nx build web`,
       `dotnet build`. Report anything skipped or failing — never claim a gate passed unrun
 
