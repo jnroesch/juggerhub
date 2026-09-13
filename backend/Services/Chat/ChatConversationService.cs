@@ -192,7 +192,7 @@ public sealed class ChatConversationService : IChatConversationService
         }
 
         var conversationId = ensured.Value;
-        var sent = await _messages.SendAsync(callerId, conversationId, body, ct);
+        var sent = await _messages.SendAsync(callerId, conversationId, body, ct: ct);
         if (!sent.IsOk)
         {
             return ChatResult<DirectMessageSentDto>.Fail(sent.Outcome, sent.Error);
@@ -271,7 +271,7 @@ public sealed class ChatConversationService : IChatConversationService
 
         var conversationId = await EnsureInquiryAsync(callerId, kind, targetId, ct);
 
-        var sent = await _messages.SendAsync(callerId, conversationId, body, ct);
+        var sent = await _messages.SendAsync(callerId, conversationId, body, ct: ct);
         if (!sent.IsOk)
         {
             return ChatResult<InquiryMessageSentDto>.Fail(sent.Outcome, sent.Error);

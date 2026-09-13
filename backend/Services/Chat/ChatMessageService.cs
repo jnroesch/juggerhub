@@ -23,6 +23,7 @@ public sealed class ChatMessageService : IChatMessageService
     private readonly IReadOnlyCollection<string> _allowedHosts;
     private readonly Localization.IRecipientCultureResolver _culture;
     private readonly Encryption.IChatMessageCipher _cipher;
+    private readonly Attachments.IChatAttachmentService _attachments;
     private readonly ILogger<ChatMessageService> _logger;
 
     /// <summary>Localized neutral stand-in for a sender whose profile is gone or hidden.</summary>
@@ -36,6 +37,7 @@ public sealed class ChatMessageService : IChatMessageService
         IConfiguration configuration,
         Localization.IRecipientCultureResolver culture,
         Encryption.IChatMessageCipher cipher,
+        Attachments.IChatAttachmentService attachments,
         ILogger<ChatMessageService> logger)
     {
         _db = db;
@@ -44,6 +46,7 @@ public sealed class ChatMessageService : IChatMessageService
         _links = links;
         _culture = culture;
         _cipher = cipher;
+        _attachments = attachments;
         _logger = logger;
 
         // Which hosts count as "us" for unfurl. Derived from the frontend base URL the email templates
@@ -64,8 +67,11 @@ public sealed class ChatMessageService : IChatMessageService
         Guid callerId,
         Guid conversationId,
         string body,
+        IReadOnlyList<Attachments.ChatUploadFile>? files = null,
         CancellationToken ct = default)
     {
+        var uploads = files ?? [];
+
         var access = await _guard.ResolveAsync(conversationId, callerId, ct);
         if (access is not { } a)
         {
@@ -78,7 +84,12 @@ public sealed class ChatMessageService : IChatMessageService
         }
 
         var trimmed = body?.Trim() ?? string.Empty;
-        if (trimmed.Length == 0)
+
+        // "Nothing to send" now means no text AND no files (feature 049, FR-004). Before
+        // attachments existed this was simply "no text", and leaving it that way is what would
+        // make an attachment-only message impossible — the rest of this method is otherwise
+        // indifferent to whether any files came with it.
+        if (trimmed.Length == 0 && uploads.Count == 0)
         {
             return ChatResult<MessageDto>.Fail(ChatOutcome.Invalid, "Write a message first.");
         }
@@ -120,16 +131,58 @@ public sealed class ChatMessageService : IChatMessageService
         // it only exists once the object does (feature 047, research §3). Note the ordering with
         // the link parse above — unfurl reads the text the player typed, before it becomes bytes,
         // which is the only moment it is available (FR-012).
-        message.BodyCipher = _cipher.Protect(trimmed, message.Id);
+        //
+        // A message that is only attachments stores a ZERO-LENGTH body, never Protect(""), which
+        // throws by design: an envelope around the empty string is indistinguishable from a short
+        // message (feature 047). ReadBody already maps zero-length to empty-text-not-unavailable,
+        // so this needs no counterpart on the read side.
+        message.BodyCipher = trimmed.Length == 0 ? [] : _cipher.Protect(trimmed, message.Id);
+
+        // Files are validated, normalized, encrypted and STORED before anything is committed. A
+        // refusal here means nothing is written at all — no message, no row, no object — which is
+        // what makes "no partial message" a property of the transaction rather than a cleanup path
+        // (feature 049, FR-008).
+        IReadOnlyList<ChatAttachment> attachments = [];
+        if (uploads.Count > 0)
+        {
+            var accepted = await _attachments.AcceptAsync(uploads, ct);
+            if (!accepted.IsOk)
+            {
+                return ChatResult<MessageDto>.Fail(ChatOutcome.Invalid, DescribeRejection(accepted));
+            }
+
+            attachments = accepted.Attachments;
+            foreach (var attachment in attachments)
+            {
+                attachment.ChatMessageId = message.Id;
+            }
+        }
 
         _db.ChatMessages.Add(message);
+        if (attachments.Count > 0)
+        {
+            _db.ChatAttachments.AddRange(attachments);
+        }
 
         // Denormalised so the inbox can order without a correlated subquery. Uses the entity's own
         // CreatedDate once the interceptor has stamped it.
         var conversation = await _db.Conversations.FirstAsync(c => c.Id == conversationId, ct);
         conversation.LastMessageDate = DateTime.UtcNow;
 
-        await _db.SaveChangesAsync(ct);
+        try
+        {
+            // ONE save for the message and every one of its attachments, so a message can never be
+            // committed holding only some of them (FR-008).
+            await _db.SaveChangesAsync(ct);
+        }
+        catch when (attachments.Count > 0)
+        {
+            // The objects are already in the store and the rows that would have referenced them
+            // never landed. Clear them now rather than waiting for the sweep — the sweep is the
+            // backstop for a crash, not the plan for a failure we are standing right next to.
+            await _attachments.ReclaimAsync(attachments.Select(x => x.ObjectKey), CancellationToken.None);
+            throw;
+        }
 
         await ReturnToArchiversInboxesAsync(conversationId, ct);
 
@@ -174,6 +227,26 @@ public sealed class ChatMessageService : IChatMessageService
     /// would silently un-archive the conversation for them if they rejoined.
     /// </para>
     /// </remarks>
+    /// <summary>
+    /// The English fallback text for a refused upload (feature 049).
+    /// </summary>
+    /// <remarks>
+    /// <b>This is not what a member reads.</b> The client renders the refusal from its own
+    /// catalogues, keyed by a stable code, so the reason arrives in the reader's language — the
+    /// same reasoning that put feature 047's "message unavailable" placeholder in the frontend
+    /// rather than in C#: server-assembled prose has no key and no parity guard (GH #141).
+    /// </remarks>
+    private static string DescribeRejection(Attachments.AttachmentAcceptResult result) => result.Rejection switch
+    {
+        Attachments.AttachmentRejection.TooManyFiles =>
+            $"You can send up to {ChatConstants.MaxAttachmentsPerMessage} files at once.",
+        Attachments.AttachmentRejection.FileTooLarge =>
+            $"{result.FileName} is too large. Files can be up to {ChatConstants.MaxAttachmentBytes / (1024 * 1024)} MB.",
+        Attachments.AttachmentRejection.UnsupportedType =>
+            $"{result.FileName} isn't a kind of file you can send.",
+        _ => $"{result.FileName} couldn't be read.",
+    };
+
     private Task ReturnToArchiversInboxesAsync(Guid conversationId, CancellationToken ct) =>
         _db.ConversationParticipants
             .Where(p => p.ConversationId == conversationId && p.IsHidden && p.LeftDate == null)
@@ -344,7 +417,12 @@ public sealed class ChatMessageService : IChatMessageService
                 m.SystemEvent,
                 m.SystemSubjectUserId,
                 m.LinkKind,
-                m.LinkTargetId))
+                m.LinkTargetId,
+                m.Attachments
+                    .OrderBy(x => x.Ordinal)
+                    .Select(x => new AttachmentDto(
+                        x.Id, x.FileName, x.ContentType, x.SizeBytes, x.Width, x.Height))
+                    .ToList()))
             .ToListAsync(ct);
 
         Guid? nextBefore = null;
@@ -399,7 +477,12 @@ public sealed class ChatMessageService : IChatMessageService
                 m.SystemEvent,
                 m.SystemSubjectUserId,
                 m.LinkKind,
-                m.LinkTargetId))
+                m.LinkTargetId,
+                m.Attachments
+                    .OrderBy(x => x.Ordinal)
+                    .Select(x => new AttachmentDto(
+                        x.Id, x.FileName, x.ContentType, x.SizeBytes, x.Width, x.Height))
+                    .ToList()))
             .FirstOrDefaultAsync(ct);
 
         if (row is null)
@@ -511,7 +594,11 @@ public sealed class ChatMessageService : IChatMessageService
             // target that no longer exists (FR-041). A message whose text could not be decrypted
             // gets no card either — a card beside a placeholder would advertise the content of a
             // message we are telling the reader we cannot show them.
-            isUnavailable ? null : cards.GetValueOrDefault(r.Id));
+            isUnavailable ? null : cards.GetValueOrDefault(r.Id),
+            // A withdrawn message keeps no attachment metadata either: file names and counts are
+            // content, and leaving them would make "deleted" mean "unlisted" (feature 049, FR-030).
+            // The rows are gone by then, so this is belt and braces against a stale projection.
+            r.IsDeleted ? [] : r.Attachments);
     }
 
     // --- Delete -----------------------------------------------------------------
@@ -562,7 +649,30 @@ public sealed class ChatMessageService : IChatMessageService
         message.LinkKind = ChatLinkKind.None;
         message.LinkTargetId = null;
 
+        // Attachments are content, and "deleted" has to mean the same thing for them as it does
+        // for the text: gone, not unlisted. The rows go with the message row in this save; the
+        // stored objects are not in the transaction, so they are deleted after it commits
+        // (feature 049, FR-029). Removing the rows also takes the file NAMES with them, which are
+        // content too (FR-030).
+        var attachmentKeys = await _db.ChatAttachments
+            .Where(a => a.ChatMessageId == messageId)
+            .Select(a => a.ObjectKey)
+            .ToListAsync(ct);
+
+        if (attachmentKeys.Count > 0)
+        {
+            await _db.ChatAttachments.Where(a => a.ChatMessageId == messageId).ExecuteDeleteAsync(ct);
+        }
+
         await _db.SaveChangesAsync(ct);
+
+        // After the commit, never before: an object deleted ahead of a save that then failed would
+        // leave a row pointing at nothing, which is the one outcome worse than an orphaned object.
+        // A failure here logs and leaves the object to the reconciliation sweep.
+        if (attachmentKeys.Count > 0)
+        {
+            await _attachments.ReclaimAsync(attachmentKeys, CancellationToken.None);
+        }
 
         // Everyone, including the sender: their other tabs must swap the bubble for a tombstone too.
         var recipients = await _guard.ResolveParticipantUserIdsAsync(message.ConversationId, ct);
@@ -611,5 +721,9 @@ public sealed class ChatMessageService : IChatMessageService
         ChatSystemEvent? SystemEvent,
         Guid? SystemSubjectUserId,
         ChatLinkKind LinkKind,
-        Guid? LinkTargetId);
+        Guid? LinkTargetId,
+        // Projected with the message rather than fetched per row: capped at ten by FR-012, so this
+        // is a bounded join, and a second query per message would put an N+1 on the thread's only
+        // read path.
+        IReadOnlyList<AttachmentDto> Attachments);
 }

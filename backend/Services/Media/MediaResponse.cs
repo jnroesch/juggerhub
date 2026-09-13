@@ -40,7 +40,35 @@ public static class MediaResponse
     public static IActionResult File(
         ControllerBase controller,
         MediaContent media,
-        MediaStorageOptions options)
+        MediaStorageOptions options) =>
+        File(controller, media, options, downloadFileName: null);
+
+    /// <summary>
+    /// As <see cref="File(ControllerBase, MediaContent, MediaStorageOptions)"/>, and when
+    /// <paramref name="downloadFileName"/> is given, tells the browser to <b>save</b> the bytes
+    /// rather than render them (feature 049 / #282).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>This is a security control, not a convenience.</b> Avatars and catalogue icons are
+    /// images the platform produced, so rendering them inline is correct. Chat attachments are
+    /// files a member supplied, served from the application's own origin — and the application has
+    /// <b>no Content-Security-Policy header</b> (a known gap, recorded in feature 033). Anything
+    /// that is not a normalized image must therefore arrive as a download, so that a file which
+    /// somehow got past the allow-list is saved rather than executed in our origin.
+    /// </para>
+    /// <para>
+    /// The name is written twice, per RFC 6266: a plain <c>filename</c> for old clients, and an
+    /// RFC 5987 <c>filename*</c> carrying the real value percent-encoded. <c>ContentDisposition</c>
+    /// does that encoding, which is what stops a file called <c>"; evil.exe</c> from injecting a
+    /// header — the one place a member-supplied name reaches a response.
+    /// </para>
+    /// </remarks>
+    public static IActionResult File(
+        ControllerBase controller,
+        MediaContent media,
+        MediaStorageOptions options,
+        string? downloadFileName)
     {
         var etag = new EntityTagHeaderValue($"\"{Fingerprint(media.ObjectKey)}\"");
         var headers = controller.Response.GetTypedHeaders();
@@ -59,6 +87,14 @@ public static class MediaResponse
             // carries no body — and answer without transferring anything.
             media.Content.Dispose();
             return controller.StatusCode(StatusCodes.Status304NotModified);
+        }
+
+        if (downloadFileName is not null)
+        {
+            headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
+            {
+                FileNameStar = downloadFileName,
+            };
         }
 
         return controller.File(media.Content, media.ContentType);

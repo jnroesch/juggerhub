@@ -125,37 +125,37 @@ recipient, named as it was on the device, and that what downloads is what was se
 
 ### Implementation for User Story 1
 
-- [ ] T013 [US1] Create `backend/Services/Chat/ChatAttachmentService.cs` + interface. Accept
+- [X] T013 [US1] Create `backend/Services/Chat/ChatAttachmentService.cs` + interface. Accept
       path: enforce **count** then **per-file size** before reading bytes; detect content per
       research R2 (images via `IImageProcessor`; PDF/text/OOXML via magic bytes, and **OOXML
       must check the `[Content_Types].xml` part** or any renamed ZIP passes); normalize images
       through the `ChatImage` profile; mint one key per file; encrypt with `IChatBlobCipher`;
       `PutAsync` each object. Returns the descriptors for the caller to commit — **this service
       never calls `SaveChangesAsync`**
-- [ ] T014 [US1] Sanitise `FileName` on accept: trim, cap 255, strip control characters and both
+- [X] T014 [US1] Sanitise `FileName` on accept: trim, cap 255, strip control characters and both
       path separators, fall back to a generic name if nothing survives (data-model D4)
-- [ ] T015 [US1] **`ChatMessageService.SendAsync`** — change the empty-body refusal at L81 to
+- [X] T015 [US1] **`ChatMessageService.SendAsync`** — change the empty-body refusal at L81 to
       consider attachments: refuse only when there is **no text and no files** (plan F1, the
       single most likely thing to be missed). Keep `Protect` unreachable for empty text — no
       text means `BodyCipher = []`, matching what the delete path and system lines already do
-- [ ] T016 [US1] `SendAsync` — build the `ChatMessage` **and** its `ChatAttachment` rows and
+- [X] T016 [US1] `SendAsync` — build the `ChatMessage` **and** its `ChatAttachment` rows and
       commit them in **one `SaveChangesAsync`**, so a message can never be committed holding
       half its attachments (research R6). Objects are written **before** the commit; a failure
       leaves them unreferenced for the existing sweep, which is the harmless direction
-- [ ] T017 [US1] `backend/Controllers/ChatMessagesController.cs` — accept `multipart/form-data`
+- [X] T017 [US1] `backend/Controllers/ChatMessagesController.cs` — accept `multipart/form-data`
       on the existing send route (`body` 0..1, `files` 0..10) while **still accepting JSON** for
       a text-only send so existing callers are unaffected. Set `[RequestSizeLimit]` for
       10 × 10 MB plus overhead. Controller stays thin: bind, forward, shape (Gate 1)
-- [ ] T018 [US1] Add the `Content-Disposition` overload to
+- [X] T018 [US1] Add the `Content-Disposition` overload to
       `backend/Services/Media/MediaResponse.cs` taking the download file name, RFC 5987
       `filename*`-encoded. **The existing signature must keep behaving identically** — avatars
       and catalogue icons are untouched (research R9)
-- [ ] T019 [US1] Add `GET /chat/attachments/{id}` to the controller and its service method:
+- [X] T019 [US1] Add `GET /chat/attachments/{id}` to the controller and its service method:
       read the row → resolve membership via the existing `ChatGuard` → **only then** open,
       decrypt and return (contract). **404 for every refusal** — not-found, not-permitted and
       unreadable are deliberately indistinguishable. `[EnableRateLimiting(MediaRead)]`.
       Disposition for everything that is not `image/webp`
-- [ ] T020 [US1] Add `AttachmentDto` and `MessageDto.Attachments` to
+- [X] T020 [US1] Add `AttachmentDto` and `MessageDto.Attachments` to
       `backend/Dtos/Chat/ChatDtos.cs`; project attachments in `ChatMessageService`'s existing
       message projections, ordered by `Ordinal`. **No URL, no object key** in the DTO — the
       client derives the path from the id
@@ -239,14 +239,20 @@ the file is unretrievable by everyone including a member who had the thread open
 - [ ] T037 [P] [US4] Tests: after withdrawal the download endpoint returns **404** for every
       member; the attachment rows are gone; **the objects are gone from the store**; the thread
       shows the standard tombstone with **no file names or counts** left behind (FR-030)
-- [ ] T038 [P] [US4] Test: erasing an account reclaims the attachment objects that account sent
-- [ ] T039 [US4] `ChatMessageService.DeleteAsync` — extend the existing clearing block (L557-563,
+- [ ] T038 [P] [US4] Test: erasing an account **leaves** the attachments it sent in place, with the
+      sender rendering as "A former player" — the corrected FR-031. Feature 037 promises members in
+      three languages that their chat messages survive erasure, and an attachment is part of a
+      message; deleting them would make other people's conversations half-gone. Their profile
+      picture is still erased, which 037 already covers
+- [X] T039 [US4] `ChatMessageService.DeleteAsync` — extend the existing clearing block (L557-563,
       which already clears `BodyCipher`, `LinkKind`, `LinkTargetId`) to delete the attachment
       rows **and** their objects. `PushMessageDeletedAsync` already fans the tombstone out to
       every member including the sender's other tabs — **no new realtime event** (plan F10)
-- [ ] T040 [US4] `backend/Services/Account/AccountDeletionService.cs` — reclaim the sender's
-      attachment objects, mirroring `ReclaimAvatarObjectAsync` (L390): log and leave to the sweep
-      on failure rather than failing the erasure
+- [X] T040 [US4] `backend/Services/Account/AccountDeletionService.cs` — **no change**, and that is
+      the deliberate outcome of the FR-031 correction above. Add nothing to
+      `EraseOwnedDataAsync`: attachments ride their messages, which survive. If a future reader
+      thinks this is an oversight, the reasoning is in FR-031 and in feature 037's
+      `RetainedCategories`
 - [ ] T041 [US4] Confirm `MediaReconciliationService` sweeps the `chat-attachments/` prefix — it
       lists the whole container, so verify rather than assume, and extend if it is prefix-scoped
 

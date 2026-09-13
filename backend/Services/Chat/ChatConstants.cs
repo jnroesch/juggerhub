@@ -38,4 +38,30 @@ public static class ChatConstants
 
     /// <summary>Minimum search term length, so a one-character query cannot scan every message a player can see.</summary>
     public const int MinSearchTermLength = 2;
+
+    /// <summary>
+    /// How many files may ride on one message (feature 049). Enough for a set of photos from a
+    /// training session; low enough that the per-message fan-out, the thread layout and the
+    /// transport cap all stay predictable.
+    /// </summary>
+    public const int MaxAttachmentsPerMessage = 10;
+
+    /// <summary>
+    /// Largest single upload, in bytes (feature 049). Comfortably covers a phone photo and a
+    /// tournament PDF without inviting video, and matches the generous-input posture of the
+    /// avatar endpoint.
+    /// </summary>
+    /// <remarks>
+    /// Enforced against the <em>input</em>, before any processing — an image's stored size is much
+    /// smaller after normalization, so checking the output would let a 40 MB upload through on the
+    /// strength of what it shrank to, having already been decoded.
+    /// </remarks>
+    public const int MaxAttachmentBytes = 10 * 1024 * 1024;
+
+    /// <summary>
+    /// Longest file name retained for display, in characters. A name longer than this is truncated
+    /// rather than refused: the name is decoration, and refusing a perfectly good file over it
+    /// would be a baffling failure.
+    /// </summary>
+    public const int MaxAttachmentFileNameLength = 255;
 }

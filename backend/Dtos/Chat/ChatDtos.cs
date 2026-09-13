@@ -66,12 +66,47 @@ public sealed record LinkCardDto(
     string Href,
     string? AvatarUrl);
 
+/// <summary>One file sent with a message (feature 049 / #282).</summary>
+/// <remarks>
+/// <para>
+/// <b>There is no URL here, and no object key.</b> The client builds
+/// <c>/api/v1/chat/attachments/{id}</c> from <see cref="Id"/> — the same "flag plus a path the
+/// client assembles" convention the rest of the product uses for avatars. The stored object's
+/// location never appears in a DTO, a header, or a link (spec FR-023); the id is a UUIDv7 and the
+/// endpoint behind it re-applies membership on every fetch, so it is a request to be authorized
+/// rather than a capability to hold.
+/// </para>
+/// <para>
+/// <see cref="ContentType"/> is the type of the <em>stored</em> object, which for every image is
+/// <c>image/webp</c> whatever arrived. That is also how a client tells an image from a document:
+/// an image renders inline, anything else renders as a file row.
+/// </para>
+/// <para>
+/// <see cref="Width"/> and <see cref="Height"/> are present so a thread can reserve the right
+/// space before an image arrives rather than reflowing as it loads. Null for a document.
+/// </para>
+/// </remarks>
+public sealed record AttachmentDto(
+    Guid Id,
+    string FileName,
+    string ContentType,
+    int SizeBytes,
+    int? Width,
+    int? Height);
+
 /// <summary>One message in a thread.</summary>
 /// <remarks>
+/// <para>
 /// <c>IsUnavailable</c> means the stored text could not be decrypted (feature 047 FR-009) — a
 /// retired key, or a corrupted row. <c>Body</c> is then empty and the client renders a neutral
 /// placeholder for that one message; the rest of the conversation is unaffected. It is never true
 /// together with <c>IsDeleted</c>, because a deleted row holds no ciphertext to fail on.
+/// </para>
+/// <para>
+/// <b>An empty <c>Body</c> does not mean the message is empty</b> (feature 049): a message may be
+/// files alone. Render on <c>Attachments</c> as well as <c>Body</c>, or an attachment-only message
+/// shows as a blank bubble.
+/// </para>
 /// </remarks>
 public sealed record MessageDto(
     Guid Id,
@@ -86,7 +121,8 @@ public sealed record MessageDto(
     string? ReadState,
     ChatSystemEvent? SystemEvent,
     string? SystemSubjectName,
-    LinkCardDto? LinkCard);
+    LinkCardDto? LinkCard,
+    IReadOnlyList<AttachmentDto> Attachments);
 
 /// <summary>
 /// A keyset page of history, newest first. <see cref="NextBefore"/> is the cursor for the next page

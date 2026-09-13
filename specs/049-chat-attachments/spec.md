@@ -170,8 +170,9 @@ member who had the conversation open.
    attachments become unretrievable for every member.
 2. **Given** a withdrawn message, **When** the thread renders, **Then** it shows the same
    neutral tombstone as a withdrawn text message, with no file names left behind.
-3. **Given** a player erases their account, **When** the erasure completes, **Then** the
-   files they sent are reclaimed along with the rest of their owned data.
+3. **Given** a player erases their account, **When** the erasure completes, **Then** the files
+   they sent remain in the conversations they sent them to — attributed to "A former player",
+   exactly as their messages already are (see the correction on FR-031).
 
 ---
 
@@ -280,7 +281,14 @@ member who had the conversation open.
   genuinely gone rather than hidden.
 - **FR-030**: A withdrawn message MUST leave no attachment metadata visible — no file names,
   no counts.
-- **FR-031**: Erasing an account MUST reclaim the attachments that account sent.
+- **FR-031**: Erasing an account MUST leave the attachments that account sent in place, exactly as
+  it already leaves their messages. **Corrected during implementation**: this requirement
+  originally said "reclaim", which contradicts a promise feature 037 already makes to members in
+  three languages — that their chat messages survive erasure — and which the retention rationale
+  rests on (other people's conversations must stay coherent). An attachment is part of a message,
+  not a separate possession: the member chose to put it into a shared record. The erased sender
+  still renders as "A former player", so nothing identifies them. What IS erased is their profile
+  picture, which 037 already covers.
 - **FR-032**: Stored objects left without a referent MUST be reclaimable by the existing
   maintenance sweep rather than by a new mechanism.
 - **FR-033**: The specification MUST state whether attachments survive a conversation
