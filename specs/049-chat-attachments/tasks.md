@@ -71,7 +71,7 @@ until these land.
       `IChatMessageCipher`: its empty-string rule is a text contract and must not govern files
       (research R5). Register it alongside the message cipher in
       `ChatEncryptionServiceCollectionExtensions.cs`
-- [ ] T005 [P] Unit tests for T004 in `backend/tests/JuggerHub.Api.IntegrationTests/Chat/`:
+- [X] T005 [P] Unit tests for T004 in `backend/tests/JuggerHub.Api.IntegrationTests/Chat/`:
       round-trip under the write key; a ciphertext produced for attachment A **fails to
       authenticate** against attachment B's id; a truncated envelope returns `false` rather than
       throwing; an envelope naming an unconfigured key version returns `false`
@@ -91,7 +91,7 @@ until these land.
 - [X] T009 Generate **one** migration into `backend/Data/Migrations/`. Create-table only — **no
       backfill, nothing dropped, no `ALTER` against `ChatMessages`**. Verify it applies and
       reverts cleanly. A second migration means something went wrong
-- [ ] T010 [P] Add the attachment i18n keys to **all three** catalogues in one change —
+- [X] T010 [P] Add the attachment i18n keys to **all three** catalogues in one change —
       `frontend/apps/web/public/i18n/{en,de,es}.json`: the `+` control's accessible name, the
       tray heading, remove-file, per-refusal reasons (`file_too_large`, `too_many_files`,
       `unsupported_type`, `unreadable_file`), the file-row download action, the unavailable-

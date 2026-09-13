@@ -485,7 +485,10 @@
       "typingSeveral": "Varias personas están escribiendo…",
       "tagTeam": "Equipo",
       "tagParty": "Party",
-      "tagAdmins": "Administradores"
+      "tagAdmins": "Administradores",
+      "attachmentPhoto": "Foto",
+      "attachmentFile": "Archivo",
+      "attachmentSeveral": "{{count}} archivos"
     },
     "compose": {
       "backToMessages": "Volver a los mensajes",
@@ -496,7 +499,18 @@
       "messageSr": "Mensaje",
       "them": "esta persona",
       "placeholder": "Mensaje para {{name}}…",
-      "sendMessage": "Enviar mensaje"
+      "sendMessage": "Enviar mensaje",
+      "attachFiles": "Adjuntar archivos",
+      "attachedFiles": "Archivos por enviar",
+      "removeFile": "Quitar {{name}}",
+      "sending": "Enviando…",
+      "attachmentErrors": {
+        "fileTooLarge": "{{name}} es demasiado grande. Los archivos pueden pesar hasta 10 MB.",
+        "tooManyFiles": "Puedes enviar como máximo 10 archivos a la vez.",
+        "unsupportedType": "{{name}} no es un tipo de archivo que puedas enviar. Prueba con una imagen, un PDF o un documento.",
+        "unreadableFile": "No se pudo leer {{name}}. Puede que esté dañado.",
+        "uploadFailed": "Tu mensaje no se envió. Inténtalo de nuevo."
+      }
     },
     "conversation": {
       "directMessage": "Mensaje directo",
@@ -513,7 +527,11 @@
       "systemLeft": "{{name}} salió del chat",
       "systemRemoved": "{{name}} fue eliminado",
       "systemGroupCreated": "{{name}} creó este grupo",
-      "messageUnavailable": "Este mensaje no se puede mostrar."
+      "messageUnavailable": "Este mensaje no se puede mostrar.",
+      "attachmentUnavailable": "Este archivo no se puede abrir.",
+      "downloadFile": "Descargar {{name}}",
+      "openImage": "Abrir {{name}}",
+      "closeImage": "Cerrar"
     },
     "details": {
       "backToChat": "Volver al chat",

@@ -485,7 +485,10 @@
       "typingSeveral": "Mehrere Personen schreiben…",
       "tagTeam": "Team",
       "tagParty": "Party",
-      "tagAdmins": "Admins"
+      "tagAdmins": "Admins",
+      "attachmentPhoto": "Foto",
+      "attachmentFile": "Datei",
+      "attachmentSeveral": "{{count}} Dateien"
     },
     "compose": {
       "backToMessages": "Zurück zu den Nachrichten",
@@ -496,7 +499,18 @@
       "messageSr": "Nachricht",
       "them": "ihm/ihr",
       "placeholder": "Nachricht an {{name}}…",
-      "sendMessage": "Nachricht senden"
+      "sendMessage": "Nachricht senden",
+      "attachFiles": "Dateien anhängen",
+      "attachedFiles": "Dateien zum Senden",
+      "removeFile": "{{name}} entfernen",
+      "sending": "Wird gesendet…",
+      "attachmentErrors": {
+        "fileTooLarge": "{{name}} ist zu groß. Dateien dürfen bis zu 10 MB haben.",
+        "tooManyFiles": "Du kannst höchstens 10 Dateien auf einmal senden.",
+        "unsupportedType": "{{name}} ist keine Datei, die du senden kannst. Versuch ein Bild, ein PDF oder ein Dokument.",
+        "unreadableFile": "{{name}} konnte nicht gelesen werden. Die Datei ist vielleicht beschädigt.",
+        "uploadFailed": "Deine Nachricht wurde nicht gesendet. Versuch es noch einmal."
+      }
     },
     "conversation": {
       "directMessage": "Direktnachricht",
@@ -513,7 +527,11 @@
       "systemLeft": "{{name}} hat den Chat verlassen",
       "systemRemoved": "{{name}} wurde entfernt",
       "systemGroupCreated": "{{name}} hat diese Gruppe erstellt",
-      "messageUnavailable": "Diese Nachricht kann nicht angezeigt werden."
+      "messageUnavailable": "Diese Nachricht kann nicht angezeigt werden.",
+      "attachmentUnavailable": "Diese Datei kann nicht geöffnet werden.",
+      "downloadFile": "{{name}} herunterladen",
+      "openImage": "{{name}} öffnen",
+      "closeImage": "Schließen"
     },
     "details": {
       "backToChat": "Zurück zum Chat",
