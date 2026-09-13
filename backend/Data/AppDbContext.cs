@@ -118,6 +118,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
 
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
 
+    public DbSet<ChatAttachment> ChatAttachments => Set<ChatAttachment>();
+
     public DbSet<UserBlock> UserBlocks => Set<UserBlock>();
 
     // Feature 030 — canonical cities + precomputed city-to-city distance cache.
@@ -1056,6 +1058,27 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
                 .WithMany()
                 .HasForeignKey(m => m.SenderId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<ChatAttachment>(entity =>
+        {
+            entity.Property(a => a.ObjectKey).IsRequired().HasMaxLength(MediaObjectKey.MaxLength);
+            entity.Property(a => a.ContentType).IsRequired().HasMaxLength(128);
+            entity.Property(a => a.FileName).IsRequired().HasMaxLength(255);
+
+            // The only access pattern: the attachments of a message, in the sender's order. The
+            // message page reads them for a whole keyset page at once, so the composite is what
+            // keeps that one index scan rather than a sort per message.
+            entity.HasIndex(a => new { a.ChatMessageId, a.Ordinal });
+
+            // Cascade, unlike ChatMessage's Restrict to its sender: an attachment has no meaning
+            // apart from its message, so no row may outlive one. This covers rows only — the
+            // stored objects are not in the transaction and are deleted explicitly by the delete
+            // path, with MediaReconciliationService as the backstop (feature 049, data-model D1).
+            entity.HasOne(a => a.Message)
+                .WithMany(m => m.Attachments)
+                .HasForeignKey(a => a.ChatMessageId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         builder.Entity<UserBlock>(entity =>

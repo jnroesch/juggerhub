@@ -50,19 +50,19 @@ If a task below seems to need one, stop and re-read [research.md](./research.md)
 **Purpose**: the storage seam, the cipher seam and the entity. Nothing in Phases 3–7 can start
 until these land.
 
-- [ ] T002 [P] Add `ChatAttachment` to `MediaKind` in `backend/Services/Media/MediaObjectKey.cs`
+- [X] T002 [P] Add `ChatAttachment` to `MediaKind` in `backend/Services/Media/MediaObjectKey.cs`
       and its prefix `chat-attachments` to `Prefix`. The switch's
       `_ => throw new ArgumentOutOfRangeException(...)` arm means the prefix cannot be forgotten.
       **Keys stay UUIDv4** — the type's own doc explains why and asks not to be "corrected" to v7
       (research R10)
-- [ ] T003 [P] Add `image/gif` to `ImageProcessingOptions.AllowedContentTypes` in
+- [X] T003 [P] Add `image/gif` to `ImageProcessingOptions.AllowedContentTypes` in
       `backend/Common/ImageProcessingOptions.cs`, and add the `ChatImage` profile beside
       `Avatar` and `Icon`: `ResizeMode.Fit`, `MaxDimension 1600`, `Quality 82`,
       `MaxOutputBytes 1_500_000`. **`Fit`, never `SquareCrop`** — cropping a shared photo cuts
       people out of it (research R3). Document on the property that the shared allowlist now
       admits GIF avatars too, which is deliberate and harmless because every image is re-encoded
       to a still WebP (research R4)
-- [ ] T004 Create `backend/Services/Chat/Encryption/IChatBlobCipher.cs` and
+- [X] T004 Create `backend/Services/Chat/Encryption/IChatBlobCipher.cs` and
       `AesGcmChatBlobCipher.cs`: `byte[] Protect(byte[] plaintext, Guid attachmentId)` and
       `bool TryUnprotect(byte[] cipher, Guid attachmentId, out byte[] plaintext)`. Reuse
       `ChatEncryptionOptions` — **the same key set, the same envelope**
@@ -75,20 +75,20 @@ until these land.
       round-trip under the write key; a ciphertext produced for attachment A **fails to
       authenticate** against attachment B's id; a truncated envelope returns `false` rather than
       throwing; an envelope naming an unconfigured key version returns `false`
-- [ ] T006 Create `backend/Entities/ChatAttachment.cs` per [data-model.md](./data-model.md):
+- [X] T006 Create `backend/Entities/ChatAttachment.cs` per [data-model.md](./data-model.md):
       `ChatMessageId`, `ObjectKey`, `ContentType`, `SizeBytes`, `FileName`, `Ordinal`,
       `Width?`, `Height?`. **No `IsImage` column** — it is derived from `ContentType` (D3).
       XML-doc that `ObjectKey` never leaves the backend and that `FileName` is display data that
       never reaches a path
-- [ ] T007 Add `ICollection<ChatAttachment> Attachments` to `backend/Entities/ChatMessage.cs`,
+- [X] T007 Add `ICollection<ChatAttachment> Attachments` to `backend/Entities/ChatMessage.cs`,
       and **amend the `BodyCipher` XML doc**: a zero-length array now has a **third** legitimate
       meaning — a member message carrying only attachments — beside a system line and a deleted
       message. Without this the next reader concludes such a row is corrupt (data-model D6).
       Do **not** change `ReadBody`
-- [ ] T008 Configure `ChatAttachment` in `backend/Data/AppDbContext.cs` (fluent, beside the
+- [X] T008 Configure `ChatAttachment` in `backend/Data/AppDbContext.cs` (fluent, beside the
       `ChatMessage` block at ~L1032): `DbSet`, cascade FK to `ChatMessages`, column widths per
       the data model, index `(ChatMessageId, Ordinal)`
-- [ ] T009 Generate **one** migration into `backend/Data/Migrations/`. Create-table only — **no
+- [X] T009 Generate **one** migration into `backend/Data/Migrations/`. Create-table only — **no
       backfill, nothing dropped, no `ALTER` against `ChatMessages`**. Verify it applies and
       reverts cleanly. A second migration means something went wrong
 - [ ] T010 [P] Add the attachment i18n keys to **all three** catalogues in one change —

@@ -49,7 +49,17 @@ public sealed class ImageProcessingOptions
 
     /// <summary>Accepted input types. The declared content type is never trusted — the type
     /// detected from the bytes must be in this list.</summary>
-    public string[] AllowedContentTypes { get; set; } = ["image/png", "image/jpeg", "image/webp"];
+    /// <remarks>
+    /// <b>One list for every profile, and feature 049 widened it.</b> Chat attachments accept GIF,
+    /// and because this list is shared that also admits a GIF avatar or catalogue icon. The
+    /// decision was deliberate rather than incidental: every accepted image is re-encoded to a
+    /// still WebP regardless of what arrived, and the processor already flattens animation to the
+    /// first frame, so GIF reaches storage as exactly the same kind of object PNG and JPEG do.
+    /// Giving each profile its own list would be tidier but would change avatar and icon
+    /// validation for the sake of one file type.
+    /// </remarks>
+    public string[] AllowedContentTypes { get; set; } =
+        ["image/png", "image/jpeg", "image/webp", "image/gif"];
 
     /// <summary>The avatar upload context profile (center square-crop).</summary>
     public ImageProcessingProfile Avatar { get; set; } = new();
@@ -66,5 +76,32 @@ public sealed class ImageProcessingOptions
         MaxDimension = 256,
         Quality = 80,
         MaxOutputBytes = 128 * 1024,
+    };
+
+    /// <summary>
+    /// The chat-attachment context profile (feature 049 / #282) — a photo shared into a
+    /// conversation.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b><see cref="ImageResizeMode.Fit"/>, never square-crop, and that is the whole reason this
+    /// profile exists.</b> <see cref="Avatar"/> centre-crops because an avatar is rendered in a
+    /// circle and the subject is one face. Applying that to a team photo would cut the people at
+    /// the edges out of the picture the sender chose to share — silently, with no way to get them
+    /// back, because the original is discarded.
+    /// </para>
+    /// <para>
+    /// 1600 px is sized to be legible full-screen on a phone and comfortable on a laptop without
+    /// storing a print master. The output ceiling is generous by comparison with avatars and icons
+    /// because a photo of a pitch full of people carries far more detail than a face or a glyph,
+    /// and a ceiling that rejects ordinary phone photos would read as an arbitrary failure.
+    /// </para>
+    /// </remarks>
+    public ImageProcessingProfile ChatImage { get; set; } = new()
+    {
+        ResizeMode = ImageResizeMode.Fit,
+        MaxDimension = 1600,
+        Quality = 82,
+        MaxOutputBytes = 1_500_000,
     };
 }

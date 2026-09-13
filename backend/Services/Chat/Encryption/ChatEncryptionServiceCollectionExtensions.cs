@@ -29,6 +29,21 @@ public static class ChatEncryptionServiceCollectionExtensions
             return new AesGcmChatMessageCipher(options.Parse());
         });
 
+        // Attachments (feature 049) read the SAME configured keys through their own seam. Each
+        // cipher parses independently rather than sharing a resolved key list: the parsed keys are
+        // raw AES material, and making them a resolvable service would put them one
+        // GetRequiredService call away from anything in the container. Parsing twice at startup
+        // costs nothing and keeps the only references inside the two ciphers that need them.
+        services.AddSingleton<IChatBlobCipher>(sp =>
+        {
+            var options = new ChatEncryptionOptions();
+            sp.GetRequiredService<IConfiguration>()
+                .GetSection(ChatEncryptionOptions.SectionName)
+                .Bind(options);
+
+            return new AesGcmChatBlobCipher(options.Parse());
+        });
+
         return services;
     }
 
@@ -43,6 +58,13 @@ public static class ChatEncryptionServiceCollectionExtensions
     /// exists to remove. Same reasoning as the Redis backplane guard.
     /// </remarks>
     /// <exception cref="InvalidOperationException">No usable key is configured.</exception>
-    public static void ValidateChatMessageEncryption(this IServiceProvider services) =>
+    public static void ValidateChatMessageEncryption(this IServiceProvider services)
+    {
         services.GetRequiredService<IChatMessageCipher>();
+
+        // Both ciphers, because both parse configuration on construction. Forcing only one would
+        // leave the other's identical failure to surface on the first attachment instead of at
+        // startup — which is the invisible degradation this guard exists to prevent.
+        services.GetRequiredService<IChatBlobCipher>();
+    }
 }
