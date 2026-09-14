@@ -74,6 +74,29 @@ public sealed class MediaReconciliationTests : IClassFixture<JuggerHubApiFactory
     }
 
     /// <summary>
+    /// Feature 049. The sweep enumerates the WHOLE container and deletes anything it cannot
+    /// account for, so a descriptor table missing from its referenced-key set is not a coverage
+    /// gap — it is a table whose objects get destroyed, silently, one grace period after they were
+    /// written. Chat attachments were the fourth kind of media; this pins that they are accounted
+    /// for, and it is the test to copy when a fifth is added.
+    /// </summary>
+    [Fact]
+    public async Task Sweep_never_reclaims_a_chat_attachment()
+    {
+        var key = MediaObjectKey.Create(MediaKind.ChatAttachment, "pdf");
+        await Store.PutAsync(key, new MemoryStream(Encoding.UTF8.GetBytes("shared file")), "application/pdf");
+        var attachmentId = await SeedChatAttachmentAsync(key);
+
+        await SweepAsync(graceMinutes: 0);
+
+        Assert.True(await Store.ExistsAsync(key), "the sweep deleted a chat attachment a message still references");
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.True(await db.ChatAttachments.AnyAsync(a => a.Id == attachmentId));
+    }
+
+    /// <summary>
     /// Run a sweep, optionally overriding the grace period for this call only.
     /// </summary>
     private async Task<MediaReconciliationResult> SweepAsync(int? graceMinutes = null)
@@ -118,6 +141,46 @@ public sealed class MediaReconciliationTests : IClassFixture<JuggerHubApiFactory
         await db.SaveChangesAsync();
 
         return definition.Id;
+    }
+
+    /// <summary>
+    /// A conversation, a message and one attachment pointing at <paramref name="objectKey"/>.
+    /// Written straight to the database: the sweep cares about descriptor rows, not how they got
+    /// there, and going through the API would drag the whole send path into a storage test.
+    /// </summary>
+    private async Task<Guid> SeedChatAttachmentAsync(string objectKey)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var conversation = new JuggerHub.Entities.Conversation
+        {
+            Kind = JuggerHub.Entities.ConversationKind.Group,
+            Name = $"Sweep fixture {Guid.NewGuid():n}"[..40],
+        };
+        db.Conversations.Add(conversation);
+
+        var message = new JuggerHub.Entities.ChatMessage
+        {
+            ConversationId = conversation.Id,
+            Kind = JuggerHub.Entities.ChatMessageKind.Member,
+            BodyCipher = [],
+        };
+        db.ChatMessages.Add(message);
+
+        var attachment = new JuggerHub.Entities.ChatAttachment
+        {
+            ChatMessageId = message.Id,
+            ObjectKey = objectKey,
+            ContentType = "application/pdf",
+            FileName = "fixture.pdf",
+            SizeBytes = 11,
+            Ordinal = 0,
+        };
+        db.ChatAttachments.Add(attachment);
+        await db.SaveChangesAsync();
+
+        return attachment.Id;
     }
 
     private sealed class TestOptions<T> : Microsoft.Extensions.Options.IOptions<T> where T : class

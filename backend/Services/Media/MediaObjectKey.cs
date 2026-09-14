@@ -11,6 +11,9 @@ public enum MediaKind
 
     /// <summary>An achievement definition's catalogue icon.</summary>
     AchievementIcon,
+
+    /// <summary>A file a member attached to a chat message (feature 049 / #282).</summary>
+    ChatAttachment,
 }
 
 /// <summary>
@@ -48,8 +51,43 @@ public static class MediaObjectKey
     /// Create a fresh, unguessable key for <paramref name="kind"/>. Called once per upload, before
     /// the first store attempt, so a retried write overwrites the same object.
     /// </summary>
-    public static string Create(MediaKind kind) =>
-        $"{Prefix(kind)}/{Guid.NewGuid():n}.webp";
+    public static string Create(MediaKind kind) => Create(kind, "webp");
+
+    /// <summary>
+    /// Create a fresh, unguessable key carrying <paramref name="extension"/> (feature 049).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The extension is <b>cosmetic</b> — operator legibility only, exactly like the prefix. The
+    /// type a request is served with comes from the descriptor row, never from the key, so a
+    /// mismatch here cannot change how anything is interpreted. It exists so that someone looking
+    /// at the container can tell a PDF from a photo; before attachments every object was a WebP
+    /// and the question did not arise.
+    /// </para>
+    /// <para>
+    /// <b>It must never be derived from a file name the sender supplied.</b> Callers pass an
+    /// extension for the <em>stored</em> content type — a value from a closed allow-list they have
+    /// already validated — and this method rejects anything that is not a short run of ASCII
+    /// letters and digits. That is what keeps a key a key: no dots, no separators, nothing that
+    /// could make one object's key reach another's.
+    /// </para>
+    /// </remarks>
+    /// <exception cref="ArgumentException"><paramref name="extension"/> is empty, longer than
+    /// eight characters, or contains anything but ASCII letters and digits.</exception>
+    public static string Create(MediaKind kind, string extension)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(extension);
+
+        if (extension.Length > 8 || !extension.All(char.IsAsciiLetterOrDigit))
+        {
+            throw new ArgumentException(
+                "An object-key extension must be 1-8 ASCII letters or digits. It is derived from the " +
+                "stored content type, never from a supplied file name.",
+                nameof(extension));
+        }
+
+        return $"{Prefix(kind)}/{Guid.NewGuid():n}.{extension.ToLowerInvariant()}";
+    }
 
     /// <summary>The key prefix (folder) for a media kind.</summary>
     public static string Prefix(MediaKind kind) => kind switch
@@ -57,6 +95,7 @@ public static class MediaObjectKey
         MediaKind.Avatar => "avatars",
         MediaKind.BadgeIcon => "badge-icons",
         MediaKind.AchievementIcon => "achievement-icons",
+        MediaKind.ChatAttachment => "chat-attachments",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown media kind."),
     };
 }

@@ -190,3 +190,54 @@ describe('ChatInboxComponent search (feature 046)', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="conversation-c-2"]')).not.toBeNull();
   });
 });
+
+/**
+ * An attachment-only message has no text (feature 049), so its inbox preview is empty — exactly
+ * like a withdrawn message's. The row has to tell them apart, or sharing a photo would read as
+ * having taken a message back.
+ */
+describe('ChatInboxComponent — a message that is only files', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const withLast = (over: Partial<Conversation['lastMessage'] & object>): Conversation => ({
+    ...conversation('Direct', null),
+    lastMessage: {
+      preview: '',
+      at: '2026-09-13T19:38:00Z',
+      senderName: 'Bob',
+      isOwn: false,
+      isSystem: false,
+      attachmentCount: 0,
+      attachmentsAreImages: false,
+      ...over,
+    },
+  });
+
+  const rowText = (): string =>
+    (create().nativeElement as HTMLElement).querySelector('[data-testid="conversation-c-1"]')?.textContent ?? '';
+
+  it('names a single photo rather than calling it deleted', () => {
+    chat.conversations.set([withLast({ attachmentCount: 1, attachmentsAreImages: true })]);
+    expect(rowText()).toContain('Photo');
+  });
+
+  it('names a single document', () => {
+    chat.conversations.set([withLast({ attachmentCount: 1, attachmentsAreImages: false })]);
+    expect(rowText()).toContain('File');
+  });
+
+  it('counts several files', () => {
+    chat.conversations.set([withLast({ attachmentCount: 3, attachmentsAreImages: true })]);
+    expect(rowText()).toContain('3 files');
+  });
+
+  it('still reads as deleted when there is no text AND no files', () => {
+    chat.conversations.set([withLast({ attachmentCount: 0 })]);
+    expect(rowText()).toContain('Message deleted');
+  });
+
+  it('prefers the text when there is any', () => {
+    chat.conversations.set([withLast({ preview: 'here you go', attachmentCount: 1 })]);
+    expect(rowText()).toContain('here you go');
+  });
+});

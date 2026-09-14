@@ -42,6 +42,23 @@
 > conversation stops being hidden is new. A "Hidden chats" inbox list remains unbuilt.
 > See `specs/048-chat-unhide/`.
 
+> **Amended by feature 049 (2026-09-13) — a message can carry files.** A member can attach
+> images and documents to a message from the OS file picker, and a message may now consist of
+> **files alone, with no text at all**. Images render inline in the thread; everything else
+> renders as a named row that downloads. What may be sent is an **allow-list** decided from the
+> file's detected content, never its name or declared type — images plus PDF, plain text and the
+> OOXML document formats — capped at 10 MB per file and 10 files per message, enforced
+> server-side. Attachment bytes are encrypted at rest with the same mechanism feature 047 gave
+> message text, and images are normalized first, so no embedded location data travels with a
+> shared photo. A file belongs to its message: **withdrawing a message removes its files**, their
+> names and their stored bytes, extending FR-050's "the content is genuinely gone" to them.
+> FR-014's rule that a chat is the natural home for stored XSS is what makes the allow-list and
+> the download disposition load-bearing rather than hygiene. **Unfurl is unchanged**: an
+> attachment is not a link card, and the platform still never fetches an external URL (FR-042).
+> Message-text search stays removed (feature 046) and file names are **not** searchable.
+> See `specs/049-chat-attachments/` and its
+> [`contracts/chat-attachments-api.md`](../049-chat-attachments/contracts/chat-attachments-api.md).
+
 ## Clarifications
 
 ### Session 2026-07-16

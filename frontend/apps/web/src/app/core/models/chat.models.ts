@@ -29,12 +29,23 @@ export interface ConversationAvatar {
 }
 
 export interface LastMessage {
-  /** Empty when the newest message was deleted — a tombstone shows no preview. */
+  /**
+   * Empty when the newest message was deleted — a tombstone shows no preview — and also when it
+   * carries only files. Check `attachmentCount` before concluding it was withdrawn.
+   */
   readonly preview: string;
   readonly at: string;
   readonly senderName: string | null;
   readonly isOwn: boolean;
   readonly isSystem: boolean;
+  /**
+   * How many files the newest message carries (feature 049). Zero for a text-only message and for
+   * a withdrawn one. A number rather than a phrase on purpose: the label lives in this app's own
+   * catalogues so it is rendered in the reader's language.
+   */
+  readonly attachmentCount: number;
+  /** Whether every one of those files is an image, so the label can say "Photo" rather than "File". */
+  readonly attachmentsAreImages: boolean;
 }
 
 export interface Conversation {
@@ -108,6 +119,28 @@ export interface ChatMessage {
   readonly systemEvent: ChatSystemEvent | null;
   readonly systemSubjectName: string | null;
   readonly linkCard: LinkCard | null;
+  /**
+   * Files sent with this message (feature 049), in the order the sender chose. Empty for a
+   * text-only message, and empty for a withdrawn one — file names are content too.
+   *
+   * An empty `body` does NOT mean an empty message: render on this as well, or an
+   * attachment-only message shows as a blank bubble.
+   */
+  readonly attachments: readonly ChatAttachment[];
+}
+
+/** One file on a message (feature 049). */
+export interface ChatAttachment {
+  readonly id: string;
+  /** The name it had on the sender's device. Display only — never a path. */
+  readonly fileName: string;
+  /** The type of the STORED object: `image/webp` for every image, whatever was uploaded. */
+  readonly contentType: string;
+  /** Size of the stored object, which is what a download costs. */
+  readonly sizeBytes: number;
+  /** Set for images only, so the thread can reserve space before the picture loads. */
+  readonly width: number | null;
+  readonly height: number | null;
 }
 
 /** A keyset page. `nextBefore` is the cursor for the next page back; null when history is exhausted. */

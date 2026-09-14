@@ -32,6 +32,7 @@ describe('ChatConversationComponent — an undecryptable message', () => {
     systemEvent: null,
     systemSubjectName: null,
     linkCard: null,
+    attachments: [],
     ...over,
   });
 

@@ -410,6 +410,9 @@ builder.Services.AddScoped<JuggerHub.Services.Chat.ChatLinkResolver>();
 builder.Services.AddScoped<JuggerHub.Services.Chat.IChatConversationService, JuggerHub.Services.Chat.ChatConversationService>();
 builder.Services.AddScoped<JuggerHub.Services.Chat.IChatMessageService, JuggerHub.Services.Chat.ChatMessageService>();
 builder.Services.AddScoped<JuggerHub.Services.Chat.IChatSearchService, JuggerHub.Services.Chat.ChatSearchService>();
+// Accepts, normalizes, encrypts and stores files sent with a message (feature 049 / #282). It
+// never saves: the rows it returns are committed with the message itself, in one transaction.
+builder.Services.AddScoped<JuggerHub.Services.Chat.Attachments.IChatAttachmentService, JuggerHub.Services.Chat.Attachments.ChatAttachmentService>();
 builder.Services.AddScoped<JuggerHub.Services.Chat.IChatBlockService, JuggerHub.Services.Chat.ChatBlockService>();
 // The realtime seam is a singleton over IHubContext, mirroring feature 010's registration.
 builder.Services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime, JuggerHub.Services.Chat.Realtime.SignalRChatRealtime>();

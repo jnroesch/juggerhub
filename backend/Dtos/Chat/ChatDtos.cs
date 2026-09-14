@@ -9,12 +9,23 @@ namespace JuggerHub.Dtos.Chat;
 public sealed record ConversationAvatarDto(string Kind, Guid? UserId, Guid? TeamId, string? Url);
 
 /// <summary>The inbox row's last-line preview. Empty text when the newest message was deleted.</summary>
+/// <remarks>
+/// <b><see cref="AttachmentCount"/> exists so the client can say something for a message that is
+/// files alone</b> (feature 049). Such a message has no text, so <see cref="Preview"/> is empty and
+/// the row would otherwise show a blank line. The count is a <em>number</em> and not a phrase on
+/// purpose: the label ("Photo", "3 files") lives in the frontend catalogues, where the parity guard
+/// can see it and where it is rendered in the reader's own language. Server-assembled prose has no
+/// key to be missing (GH #141), which is the same reason feature 047's "message unavailable"
+/// placeholder is not in C# either.
+/// </remarks>
 public sealed record LastMessageDto(
     string Preview,
     DateTime At,
     string? SenderName,
     bool IsOwn,
-    bool IsSystem);
+    bool IsSystem,
+    int AttachmentCount,
+    bool AttachmentsAreImages);
 
 /// <summary>One inbox row.</summary>
 public sealed record ConversationSummaryDto(
@@ -66,12 +77,47 @@ public sealed record LinkCardDto(
     string Href,
     string? AvatarUrl);
 
+/// <summary>One file sent with a message (feature 049 / #282).</summary>
+/// <remarks>
+/// <para>
+/// <b>There is no URL here, and no object key.</b> The client builds
+/// <c>/api/v1/chat/attachments/{id}</c> from <see cref="Id"/> — the same "flag plus a path the
+/// client assembles" convention the rest of the product uses for avatars. The stored object's
+/// location never appears in a DTO, a header, or a link (spec FR-023); the id is a UUIDv7 and the
+/// endpoint behind it re-applies membership on every fetch, so it is a request to be authorized
+/// rather than a capability to hold.
+/// </para>
+/// <para>
+/// <see cref="ContentType"/> is the type of the <em>stored</em> object, which for every image is
+/// <c>image/webp</c> whatever arrived. That is also how a client tells an image from a document:
+/// an image renders inline, anything else renders as a file row.
+/// </para>
+/// <para>
+/// <see cref="Width"/> and <see cref="Height"/> are present so a thread can reserve the right
+/// space before an image arrives rather than reflowing as it loads. Null for a document.
+/// </para>
+/// </remarks>
+public sealed record AttachmentDto(
+    Guid Id,
+    string FileName,
+    string ContentType,
+    int SizeBytes,
+    int? Width,
+    int? Height);
+
 /// <summary>One message in a thread.</summary>
 /// <remarks>
+/// <para>
 /// <c>IsUnavailable</c> means the stored text could not be decrypted (feature 047 FR-009) — a
 /// retired key, or a corrupted row. <c>Body</c> is then empty and the client renders a neutral
 /// placeholder for that one message; the rest of the conversation is unaffected. It is never true
 /// together with <c>IsDeleted</c>, because a deleted row holds no ciphertext to fail on.
+/// </para>
+/// <para>
+/// <b>An empty <c>Body</c> does not mean the message is empty</b> (feature 049): a message may be
+/// files alone. Render on <c>Attachments</c> as well as <c>Body</c>, or an attachment-only message
+/// shows as a blank bubble.
+/// </para>
 /// </remarks>
 public sealed record MessageDto(
     Guid Id,
@@ -86,7 +132,8 @@ public sealed record MessageDto(
     string? ReadState,
     ChatSystemEvent? SystemEvent,
     string? SystemSubjectName,
-    LinkCardDto? LinkCard);
+    LinkCardDto? LinkCard,
+    IReadOnlyList<AttachmentDto> Attachments);
 
 /// <summary>
 /// A keyset page of history, newest first. <see cref="NextBefore"/> is the cursor for the next page

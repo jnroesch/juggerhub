@@ -8,11 +8,19 @@ namespace JuggerHub.Services.Chat;
 /// </summary>
 public interface IChatMessageService
 {
-    /// <summary>Send a text message to a conversation the caller is a member of.</summary>
+    /// <summary>
+    /// Send a message to a conversation the caller is a member of: text, files, or both.
+    /// </summary>
+    /// <remarks>
+    /// <paramref name="files"/> defaults to none, so every existing text-only caller is unchanged.
+    /// A message needs text <em>or</em> at least one file — but not both, because a photo is a
+    /// perfectly good thing to say on its own (feature 049, spec FR-004).
+    /// </remarks>
     Task<ChatResult<MessageDto>> SendAsync(
         Guid callerId,
         Guid conversationId,
         string body,
+        IReadOnlyList<Attachments.ChatUploadFile>? files = null,
         CancellationToken ct = default);
 
     /// <summary>

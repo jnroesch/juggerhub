@@ -481,7 +481,10 @@
       "typingSeveral": "Several people are typing…",
       "tagTeam": "Team",
       "tagParty": "Party",
-      "tagAdmins": "Admins"
+      "tagAdmins": "Admins",
+      "attachmentPhoto": "Photo",
+      "attachmentFile": "File",
+      "attachmentSeveral": "{{count}} files"
     },
     "compose": {
       "backToMessages": "Back to messages",
@@ -492,7 +495,18 @@
       "messageSr": "Message",
       "them": "them",
       "placeholder": "Message {{name}}…",
-      "sendMessage": "Send message"
+      "sendMessage": "Send message",
+      "attachFiles": "Attach files",
+      "attachedFiles": "Files to send",
+      "removeFile": "Remove {{name}}",
+      "sending": "Sending…",
+      "attachmentErrors": {
+        "fileTooLarge": "{{name}} is too large. Files can be up to 10 MB.",
+        "tooManyFiles": "You can send up to 10 files at once.",
+        "unsupportedType": "{{name}} isn't a kind of file you can send. Try an image, a PDF, or a document.",
+        "unreadableFile": "{{name}} couldn't be read. It may be damaged.",
+        "uploadFailed": "Your message wasn't sent. Try again."
+      }
     },
     "conversation": {
       "directMessage": "Direct message",
@@ -509,7 +523,11 @@
       "systemLeft": "{{name}} left the chat",
       "systemRemoved": "{{name}} was removed",
       "systemGroupCreated": "{{name}} started this group",
-      "messageUnavailable": "This message can’t be displayed."
+      "messageUnavailable": "This message can’t be displayed.",
+      "attachmentUnavailable": "This file can’t be opened.",
+      "downloadFile": "Download {{name}}",
+      "openImage": "Open {{name}}",
+      "closeImage": "Close"
     },
     "details": {
       "backToChat": "Back to the chat",

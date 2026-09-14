@@ -192,7 +192,7 @@ public sealed class ChatConversationService : IChatConversationService
         }
 
         var conversationId = ensured.Value;
-        var sent = await _messages.SendAsync(callerId, conversationId, body, ct);
+        var sent = await _messages.SendAsync(callerId, conversationId, body, ct: ct);
         if (!sent.IsOk)
         {
             return ChatResult<DirectMessageSentDto>.Fail(sent.Outcome, sent.Error);
@@ -271,7 +271,7 @@ public sealed class ChatConversationService : IChatConversationService
 
         var conversationId = await EnsureInquiryAsync(callerId, kind, targetId, ct);
 
-        var sent = await _messages.SendAsync(callerId, conversationId, body, ct);
+        var sent = await _messages.SendAsync(callerId, conversationId, body, ct: ct);
         if (!sent.IsOk)
         {
             return ChatResult<InquiryMessageSentDto>.Fail(sent.Outcome, sent.Error);
@@ -462,6 +462,10 @@ public sealed class ChatConversationService : IChatConversationService
                         m.IsDeleted,
                         m.Kind,
                         SenderName = m.Sender!.Profile!.DisplayName,
+                        // Counted, never fetched: the inbox is chat's hottest read and a per-row
+                        // lookup into a second table would undo the single-query shape 046 kept.
+                        AttachmentCount = m.Attachments.Count,
+                        AllImages = m.Attachments.All(a => a.ContentType == "image/webp"),
                     })
                     .FirstOrDefault(),
             })
@@ -510,7 +514,11 @@ public sealed class ChatConversationService : IChatConversationService
                         last.CreatedDate,
                         last.SenderId == callerId ? null : last.SenderName ?? placeholder,
                         last.SenderId == callerId,
-                        last.Kind == ChatMessageKind.System),
+                        last.Kind == ChatMessageKind.System,
+                        // A withdrawn message surrenders its file count along with its preview:
+                        // "3 files" is content too (feature 049, FR-030).
+                        last.IsDeleted ? 0 : last.AttachmentCount,
+                        last.AllImages),
                 unread,
                 r.Me?.IsMuted ?? false,
                 r.State,

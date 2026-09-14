@@ -49,11 +49,31 @@ public sealed class ChatMessage : BaseEntity
     /// The message text (≤ 2000 characters) as an encryption envelope — see the remarks above.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// <b>A zero-length array means the row holds no text</b>, and that is never the encryption of
-    /// an empty string: a system line has nothing to say, and a deleted message's content is
-    /// genuinely gone. Encrypting <c>""</c> would produce 29 bytes indistinguishable from a short
+    /// an empty string. Encrypting <c>""</c> would produce 29 bytes indistinguishable from a short
     /// message, and "the content is gone from the row" would stop being something anyone could
     /// observe. <c>IChatMessageCipher.Protect</c> throws on empty input for exactly this reason.
+    /// </para>
+    /// <para>
+    /// <b>Three different rows legitimately hold no text</b>, and only the first two were possible
+    /// before feature 049:
+    /// </para>
+    /// <list type="number">
+    /// <item>a <see cref="ChatMessageKind.System"/> line, which has nothing to say — the client
+    /// renders it from <see cref="SystemEvent"/> and the subject's name;</item>
+    /// <item>a message whose sender withdrew it, whose content is genuinely gone;</item>
+    /// <item><b>a member message carrying only attachments</b> (feature 049 / #282) — a real
+    /// message, from a real sender, that is a photo or a file and no words.</item>
+    /// </list>
+    /// <para>
+    /// The third is worth stating because it is the one that looks wrong: a <c>Member</c>-kind row
+    /// with a live sender and an empty body reads as corruption unless you know
+    /// <see cref="Attachments"/> is where its content is. It is not an error state and must not be
+    /// "repaired". <c>ChatMessageService.ReadBody</c> already maps every zero-length body to empty
+    /// text — <em>not</em> to unavailable — so all three cases render correctly through one path
+    /// and none of them needs a branch of its own.
+    /// </para>
     /// </remarks>
     public byte[] BodyCipher { get; set; } = [];
 
@@ -85,6 +105,12 @@ public sealed class ChatMessage : BaseEntity
     /// to be resolved against each <em>viewer's</em> permissions at read time (spec FR-040).
     /// </summary>
     public Guid? LinkTargetId { get; set; }
+
+    /// <summary>
+    /// Files sent with this message (feature 049), in the sender's chosen order. Empty for a
+    /// message that is only text, which is most of them.
+    /// </summary>
+    public ICollection<ChatAttachment> Attachments { get; set; } = [];
 
     public Conversation Conversation { get; set; } = null!;
 
