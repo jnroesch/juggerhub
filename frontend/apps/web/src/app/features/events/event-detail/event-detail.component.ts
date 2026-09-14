@@ -7,7 +7,7 @@ import { forkJoin } from 'rxjs';
 import { EventContact, EventDetail, EventNews, Signup } from '../../../core/models/event.models';
 import { PartyContext } from '../../../core/models/party.models';
 import { EventService } from '../../../core/services/event.service';
-import { BrowseReturnService } from '../../../core/services/browse-return.service';
+import { BrowseReturnService, RESTORE_BROWSE_SEARCH } from '../../../core/services/browse-return.service';
 import { PartyService } from '../../../core/services/party.service';
 import { problemDetail } from '../../../core/utils/problem';
 import { EventContactsListComponent } from './components/contacts-list.component';
@@ -54,6 +54,7 @@ export class EventDetailComponent implements OnInit {
    * a parent link and not `Location.back()`.
    */
   protected readonly eventsQuery = computed(() => this.browseReturns.queryParams('/browse/events'));
+  protected readonly restoreSearch = RESTORE_BROWSE_SEARCH;
 
   protected readonly detail = signal<EventDetail | null>(null);
   protected readonly joined = signal<Signup[]>([]);

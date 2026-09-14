@@ -5,7 +5,7 @@
     <jh-empty-state [heading]="'trainings.session.notFound' | transloco">{{ 'trainings.session.notFoundBody' | transloco }}</jh-empty-state>
   } @else if (session(); as s) {
     @if (back(); as b) {
-      <a [routerLink]="b.link" [queryParams]="b.queryParams" class="text-body-sm text-subtle hover:text-text" data-testid="session-back">{{ 'trainings.backTrainings' | transloco }}</a>
+      <a [routerLink]="b.link" [queryParams]="b.queryParams" [state]="b.state" class="text-body-sm text-subtle hover:text-text" data-testid="session-back">{{ 'trainings.backTrainings' | transloco }}</a>
     }
 
     <!-- Hero: chips, title, icon meta list -->

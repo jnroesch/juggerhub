@@ -84,12 +84,12 @@ describe('TrainingSessionComponent — back link', () => {
     expect(backHref(mount({ ...SESSION, viewerIsGuest: true }))).toBe('/browse/trainings');
   });
 
-  it('reopens the public list with the search and filters the guest left it with', () => {
-    TestBed.inject(BrowseReturnService).remember('/browse/trainings', { city: ['Köln'], q: ['open'] });
-    const href = backHref(mount({ ...SESSION, viewerIsGuest: true }));
+  it('reopens the public list with the filters the guest left it with — but never puts the search in the address', () => {
+    // The typed search is restored through navigation state, not the query string: session
+    // recording keeps the query string, and the privacy policy promises typed input stays on the
+    // device.
+    TestBed.inject(BrowseReturnService).remember('/browse/trainings', { city: ['Köln'] }, 'open mat');
 
-    expect(href).toContain('/browse/trainings?');
-    expect(href).toContain('city=K%C3%B6ln');
-    expect(href).toContain('q=open');
+    expect(backHref(mount({ ...SESSION, viewerIsGuest: true }))).toBe('/browse/trainings?city=K%C3%B6ln');
   });
 });

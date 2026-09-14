@@ -342,10 +342,15 @@ never say where it goes.
   picks by audience. A training session's parent is the team's Trainings tab for
   a member and the public trainings list for everyone else; linking a guest to
   the team tab sends them to a page that refuses them.
-- **A list comes back as the viewer left it.** Browse lists keep their search,
-  filters and sort in the URL (only non-default values, replacing the history
-  entry rather than adding one), and a back link to a list reopens it with those.
-  The destination never changes, only its query string.
+- **A list comes back as the viewer left it.** Browse lists keep their filters
+  and sort in the URL (only non-default values, replacing the history entry
+  rather than adding one), and a back link to a list reopens it with those and
+  with the typed search. The destination never changes, only its state.
+- **Typed text never goes in the URL.** Session recording keeps the query string
+  while masking every input, and the privacy policy promises typed text stays on
+  the device. The search is remembered in memory and restored when the viewer
+  returns to the list (a back link, or the browser's back button), never on an
+  ordinary visit — and never after a reload or in a new tab.
 - **The nav marks where the viewer is, not what the URL resembles.** "My team"
   is active on the viewer's own teams only; on another team's page no
   destination is.

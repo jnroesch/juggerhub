@@ -1,28 +1,39 @@
 import { DestroyRef, inject } from '@angular/core';
-import { ActivatedRoute, ParamMap, Params, Router } from '@angular/router';
-import { BrowseReturnService } from '../../core/services/browse-return.service';
+import { ActivatedRoute, Navigation, ParamMap, Params, Router } from '@angular/router';
+import { BrowseReturnService, RESTORE_BROWSE_SEARCH_KEY } from '../../core/services/browse-return.service';
 
 /** A query string with every value as a list — the one shape both directions compare in. */
 type Normalized = Record<string, string[]>;
 
 /**
- * Keeps a browse page's applied search, filters and sort in its query string (GH #279). Before
- * this they lived only in the component, so every way of coming back to a list — the browser's
- * back button, a reload, a shared link, a detail page's "‹ Trainings" link — rebuilt it from the
- * defaults and the viewer's search was gone.
+ * Keeps a browse page's applied filters and sort in its query string (GH #279). Before this they
+ * lived only in the component, so every way of coming back to a list — the browser's back button,
+ * a reload, a shared link, a detail page's "‹ Trainings" link — rebuilt it from the defaults.
  *
  * Only non-default values are written, so an untouched list keeps a bare URL. Writes REPLACE the
- * current history entry: a filter change is not a place, and one entry per search keystroke would
- * make the back button replay every search before leaving the page.
+ * current history entry: a filter change is not a place, and one entry per change would make the
+ * back button replay every filter before leaving the page.
  *
- * Each write is also handed to {@link BrowseReturnService}, which is how a detail page reopens the
- * list as the viewer left it.
+ * ⚠ The typed SEARCH is never written to the URL. See {@link BrowseReturnService}: session recording
+ * keeps the query string, while the privacy policy promises typed input never leaves the device. The
+ * search is remembered in memory instead, and restored when the viewer returns to the list — by a
+ * back link passing `RESTORE_BROWSE_SEARCH`, or by the browser's back button — never on a visit.
  */
 export class BrowseUrl {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly returns = inject(BrowseReturnService);
   private readonly destroyRef = inject(DestroyRef);
+
+  /**
+   * Whether the navigation that opened this page returns to the list rather than visiting it: a
+   * back link asking for it, or the browser's back/forward buttons. Either way the viewer expects
+   * the list as they left it, search included. An ordinary visit (a tab, the nav) starts clean.
+   *
+   * Read at construction, because a routed component is constructed while its navigation is still
+   * current; by `ngOnInit` in a zoneless app it may already have ended.
+   */
+  private readonly restoreSearch = returnsToList(this.router.currentNavigation());
 
   /** The query string the URL holds right now, so the page's own writes are not applied twice. */
   private current: string | null = null;
@@ -36,25 +47,31 @@ export class BrowseUrl {
    * to the bare path on the SAME component instance — and must reset the list rather than leave it
    * filtered behind a clean URL.
    *
-   * `apply` sets the page's state from the params and reloads; it must reset every field the
-   * params do not mention, since an absent param means "default".
+   * `apply` sets the page's state and reloads; it must reset every field the params do not mention,
+   * since an absent param means "default". `search` is the remembered search on a back link's
+   * arrival, and empty otherwise.
    */
-  connect(apply: (params: ParamMap) => void): void {
+  connect(apply: (params: ParamMap, search: string) => void): void {
+    let first = true;
     const sub = this.route.queryParamMap.subscribe((params) => {
       const key = serialize(fromParamMap(params));
       if (key === this.current) {
         return; // the echo of our own write
       }
       this.current = key;
-      apply(params);
+      apply(params, first && this.restoreSearch ? this.returns.search(this.path) : '');
+      first = false;
     });
     this.destroyRef.onDestroy(() => sub.unsubscribe());
   }
 
-  /** Records the applied state. Empty, null and undefined values are dropped — they are defaults. */
-  write(params: Params): void {
+  /**
+   * Records the applied state. Empty, null and undefined values are dropped — they are defaults.
+   * `search` is remembered for a back link and deliberately kept out of `params`.
+   */
+  write(params: Params, search: string): void {
     const clean = compact(params);
-    this.returns.remember(this.path, clean);
+    this.returns.remember(this.path, clean, search);
     const key = serialize(clean);
     if (key === this.current) {
       return;
@@ -68,6 +85,10 @@ export class BrowseUrl {
 export function dateParam(params: ParamMap, key: string): string {
   const value = params.get(key) ?? '';
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
+}
+
+function returnsToList(navigation: Navigation | null): boolean {
+  return navigation?.trigger === 'popstate' || navigation?.extras.state?.[RESTORE_BROWSE_SEARCH_KEY] === true;
 }
 
 function compact(params: Params): Normalized {

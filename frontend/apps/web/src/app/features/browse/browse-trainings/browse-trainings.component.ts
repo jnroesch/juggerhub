@@ -155,8 +155,8 @@ export class BrowseTrainingsComponent implements OnInit, OnDestroy {
       },
       error: () => this.hasHomeCity.set(false),
     });
-    this.url.connect((params) => {
-      this.query.set(params.get('q') ?? '');
+    this.url.connect((params, search) => {
+      this.query.set(search);
       this.hidePast.set(params.get('hidePast') !== 'false');
       this.from.set(dateParam(params, 'from'));
       this.to.set(dateParam(params, 'to'));
@@ -333,15 +333,18 @@ export class BrowseTrainingsComponent implements OnInit, OnDestroy {
         Boolean(this.country().trim()),
     );
     this.list.reload();
-    this.url.write({
-      q: this.query(),
-      hidePast: this.hidePast() ? null : 'false',
-      from: this.from(),
-      to: this.to(),
-      city: this.city().trim(),
-      country: this.country().trim(),
-      sort: this.sort() === 'Proximity' ? 'Proximity' : null,
-    });
+    // The typed search is passed separately and never enters the URL — see BrowseUrl.
+    this.url.write(
+      {
+        hidePast: this.hidePast() ? null : 'false',
+        from: this.from(),
+        to: this.to(),
+        city: this.city().trim(),
+        country: this.country().trim(),
+        sort: this.sort() === 'Proximity' ? 'Proximity' : null,
+      },
+      this.query(),
+    );
   }
 
   private refreshPendingCount(): void {

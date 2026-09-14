@@ -125,9 +125,9 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
       },
       error: () => this.hasHomeCity.set(false),
     });
-    this.url.connect((params) => {
+    this.url.connect((params, search) => {
       const type = params.get('type') as EventType | null;
-      this.query.set(params.get('q') ?? '');
+      this.query.set(search);
       this.hidePast.set(params.get('hidePast') !== 'false');
       this.from.set(dateParam(params, 'from'));
       this.to.set(dateParam(params, 'to'));
@@ -260,15 +260,18 @@ export class BrowseEventsComponent implements OnInit, OnDestroy {
     );
     this.list.reload();
     // `city` holds a COUNTRY (it is sent as `country`), so it travels under that name in the URL too.
-    this.url.write({
-      q: this.query(),
-      hidePast: this.hidePast() ? null : 'false',
-      from: this.from(),
-      to: this.to(),
-      type: this.type(),
-      country: this.city().trim(),
-      sort: this.sort() === 'Proximity' ? 'Proximity' : null,
-    });
+    // The typed search is passed separately and never enters the URL — see BrowseUrl.
+    this.url.write(
+      {
+        hidePast: this.hidePast() ? null : 'false',
+        from: this.from(),
+        to: this.to(),
+        type: this.type(),
+        country: this.city().trim(),
+        sort: this.sort() === 'Proximity' ? 'Proximity' : null,
+      },
+      this.query(),
+    );
   }
 
   private refreshPendingCount(): void {

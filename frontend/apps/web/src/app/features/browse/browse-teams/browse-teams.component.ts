@@ -114,8 +114,8 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
       },
       error: () => this.hasHomeCity.set(false),
     });
-    this.url.connect((params) => {
-      this.query.set(params.get('q') ?? '');
+    this.url.connect((params, search) => {
+      this.query.set(search);
       this.activeOnly.set(params.get('activeOnly') !== 'false');
       this.beginners.set(params.get('beginnersWelcome') === 'true');
       this.city.set(params.get('country') ?? '');
@@ -214,13 +214,16 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.list.filtered.set(Boolean(this.query().trim()) || this.beginners() || Boolean(this.city().trim()));
     this.list.reload();
     // `city` holds a COUNTRY (it is sent as `country`), so it travels under that name in the URL too.
-    this.url.write({
-      q: this.query(),
-      activeOnly: this.activeOnly() ? null : 'false',
-      beginnersWelcome: this.beginners() ? 'true' : null,
-      country: this.city().trim(),
-      sort: this.sort() === 'Proximity' ? 'Proximity' : null,
-    });
+    // The typed search is passed separately and never enters the URL — see BrowseUrl.
+    this.url.write(
+      {
+        activeOnly: this.activeOnly() ? null : 'false',
+        beginnersWelcome: this.beginners() ? 'true' : null,
+        country: this.city().trim(),
+        sort: this.sort() === 'Proximity' ? 'Proximity' : null,
+      },
+      this.query(),
+    );
   }
 
   private refreshPendingCount(): void {

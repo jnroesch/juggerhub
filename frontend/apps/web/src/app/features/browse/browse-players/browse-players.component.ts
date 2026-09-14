@@ -113,9 +113,9 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
       },
       error: () => this.hasHomeCity.set(false),
     });
-    this.url.connect((params) => {
+    this.url.connect((params, search) => {
       const known = new Set<string>(POMPFEN_CATALOG.map((p) => p.value));
-      this.query.set(params.get('q') ?? '');
+      this.query.set(search);
       this.positions.set(params.getAll('position').filter((p): p is Pompfe => known.has(p)));
       this.city.set(params.get('country') ?? '');
       this.wantsProximity = params.get('sort') === 'Proximity';
@@ -213,12 +213,15 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
     this.list.filtered.set(Boolean(this.query().trim()) || this.positions().length > 0 || Boolean(this.city().trim()));
     this.list.reload();
     // `city` holds a COUNTRY (it is sent as `country`), so it travels under that name in the URL too.
-    this.url.write({
-      q: this.query(),
-      position: this.positions(),
-      country: this.city().trim(),
-      sort: this.sort() === 'Proximity' ? 'Proximity' : null,
-    });
+    // The typed search is passed separately and never enters the URL — see BrowseUrl.
+    this.url.write(
+      {
+        position: this.positions(),
+        country: this.city().trim(),
+        sort: this.sort() === 'Proximity' ? 'Proximity' : null,
+      },
+      this.query(),
+    );
   }
 
   private refreshPendingCount(): void {

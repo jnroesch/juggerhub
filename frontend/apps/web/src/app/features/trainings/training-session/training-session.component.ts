@@ -4,7 +4,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
-import { BrowseReturnService } from '../../../core/services/browse-return.service';
+import { BrowseReturnService, RESTORE_BROWSE_SEARCH } from '../../../core/services/browse-return.service';
 import { TrainingInterval, TrainingRsvp, TrainingSessionDetail } from '../../../core/models/trainings.models';
 import { problemDetail } from '../../../core/utils/problem';
 import { injectDateFormats } from '../../../core/i18n/locale-format';
@@ -61,8 +61,12 @@ export class TrainingSessionComponent {
       return null;
     }
     return s.viewerIsGuest
-      ? { link: ['/browse/trainings'], queryParams: this.browseReturns.queryParams('/browse/trainings') }
-      : { link: ['/t', s.teamSlug, 'trainings'], queryParams: {} };
+      ? {
+          link: ['/browse/trainings'],
+          queryParams: this.browseReturns.queryParams('/browse/trainings'),
+          state: RESTORE_BROWSE_SEARCH,
+        }
+      : { link: ['/t', s.teamSlug, 'trainings'], queryParams: {}, state: undefined };
   });
 
   constructor() {
