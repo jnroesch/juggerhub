@@ -1,1 +1,1 @@
-<p class="text-body-sm text-muted" [class.text-center]="align() === 'center'" role="status">{{ currentLabel() }}</p>
+<p class="text-body-sm text-muted" [class.text-center]="align() === 'center'" role="status">{{ customLabel() ?? (defaultKey() | transloco) }}</p>
