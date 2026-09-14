@@ -1,6 +1,7 @@
 <jh-browse-shell
   [title]="'browse.tabTeams' | transloco"
   [searchPlaceholder]="'browse.teams.searchPlaceholder' | transloco"
+  [searchValue]="query()"
   [sortOptions]="sortOptions()"
   [activeSort]="sort()"
   (sortChange)="onSortChange($event)"

@@ -4,7 +4,9 @@
   } @else if (notFound()) {
     <jh-empty-state [heading]="'trainings.session.notFound' | transloco">{{ 'trainings.session.notFoundBody' | transloco }}</jh-empty-state>
   } @else if (session(); as s) {
-    <a [routerLink]="['/t', s.teamSlug, 'trainings']" class="text-body-sm text-subtle hover:text-text">{{ 'trainings.backTrainings' | transloco }}</a>
+    @if (back(); as b) {
+      <a [routerLink]="b.link" [queryParams]="b.queryParams" [state]="b.state" class="text-body-sm text-subtle hover:text-text" data-testid="session-back">{{ 'trainings.backTrainings' | transloco }}</a>
+    }
 
     <!-- Hero: chips, title, icon meta list -->
     <div class="mt-sm flex flex-wrap items-center gap-xs">

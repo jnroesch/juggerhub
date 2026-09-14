@@ -1,7 +1,19 @@
-import { DestroyRef, Component, HostListener, computed, inject, input, output, signal } from '@angular/core';
+import {
+  DestroyRef,
+  Component,
+  ElementRef,
+  HostListener,
+  afterRenderEffect,
+  computed,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, debounceTime, filter, map } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { BrowseState, FilterChip, SortOption } from '../../../core/models/search.models';
 import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
@@ -67,10 +79,42 @@ export class BrowseShellComponent {
     return (opts.find((o) => o.value === this.activeSort()) ?? opts[0])?.label ?? '';
   });
 
+  /**
+   * The page's applied search (GH #279) — restored from the URL, or emptied by "Clear all". Shown
+   * in the box whenever it differs from what the box last reported.
+   *
+   * ⚠ Deliberately NOT a `[value]` binding. The page receives the search 250ms late and trimmed, so
+   * binding it back would overwrite whatever was typed during the debounce, and strip a trailing
+   * space mid-word. The box is written only when the page's value is news to it.
+   */
+  readonly searchValue = input('');
+
+  private readonly searchBox = viewChild.required<ElementRef<HTMLInputElement>>('searchBox');
+  /** What the box and the page last agreed the search is. */
+  private agreed = '';
+
   constructor() {
+    // Compared against `agreed`, not `distinctUntilChanged()`: after "Clear all" empties the box,
+    // retyping the previous search must still be reported.
     this.queryInput
-      .pipe(debounceTime(250), distinctUntilChanged(), takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => this.query.emit(value.trim()));
+      .pipe(
+        debounceTime(250),
+        map((value) => value.trim()),
+        filter((value) => value !== this.agreed),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((value) => {
+        this.agreed = value;
+        this.query.emit(value);
+      });
+
+    afterRenderEffect(() => {
+      const value = this.searchValue();
+      if (value !== this.agreed) {
+        this.agreed = value;
+        this.searchBox().nativeElement.value = value;
+      }
+    });
   }
 
   protected onSearchInput(event: Event): void {

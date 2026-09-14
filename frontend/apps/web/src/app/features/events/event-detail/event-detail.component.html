@@ -8,7 +8,7 @@
       <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand">{{ 'events.detail.goHome' | transloco }}</a>
     </div>
   } @else if (detail(); as d) {
-    <a routerLink="/" class="text-body-sm text-subtle hover:text-text">{{ 'events.detail.backHome' | transloco }}</a>
+    <a routerLink="/browse/events" [queryParams]="eventsQuery()" [state]="restoreSearch" class="text-body-sm text-subtle hover:text-text" data-testid="event-back">{{ 'events.detail.backEvents' | transloco }}</a>
 
     <!-- Hero: cover, title, meta, occupancy -->
     <div class="relative mt-sm flex h-28 items-end overflow-hidden rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-sm">

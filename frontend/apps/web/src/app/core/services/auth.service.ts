@@ -13,6 +13,7 @@ import {
   VerifyEmailRequest,
 } from '../models/auth.models';
 import { WizardDraftStore } from '../drafts/wizard-draft.store';
+import { BrowseReturnService } from './browse-return.service';
 
 /**
  * Real client-side auth state + API. The server is the security boundary (tokens
@@ -32,6 +33,8 @@ export class AuthService {
    * half-filled event including the previous person's fee recipient and account number.
    */
   private readonly drafts = inject(WizardDraftStore);
+  /** The remembered browse searches (GH #279) end with the session for the same reason. */
+  private readonly browseReturns = inject(BrowseReturnService);
   private readonly base = '/api/v1/auth';
 
   private readonly user = signal<AuthUser | null | undefined>(undefined);
@@ -69,6 +72,7 @@ export class AuthService {
       tap(() => {
         this.user.set(null);
         this.drafts.clearAll();
+        this.browseReturns.clear();
       }),
     );
   }
@@ -124,6 +128,7 @@ export class AuthService {
   clearSession(): void {
     this.user.set(null);
     this.drafts.clearAll();
+    this.browseReturns.clear();
   }
 
   /**

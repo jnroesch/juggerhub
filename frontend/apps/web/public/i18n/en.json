@@ -202,6 +202,7 @@
       "notFoundBody": "This event doesn't exist or the link is wrong.",
       "goHome": "Go home",
       "backHome": "‹ Home",
+      "backEvents": "‹ Events",
       "cancelled": "Cancelled by the organiser. No new sign-ups are being accepted.",
       "online": "Online",
       "teamsOnly": "Teams only",

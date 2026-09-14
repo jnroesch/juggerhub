@@ -328,6 +328,33 @@ usage. Fonts are GitHub's open-source Mona Sans / Hubot Sans (shipped via
   general-purpose step: if a gap is being tuned by 2px, the wrong step was
   chosen.
 
+## Navigation: back links
+
+The small `‹ Parent` link above a page title means **up, not back**. The browser
+and the phone already provide *back*, the historical control; an in-page copy of
+it breaks exactly where it is needed. On a page opened from an alert or a shared
+link it leaves the app, after an edit-and-save it returns to the form, and it can
+never say where it goes.
+
+- **It leads to the page's parent, and says which one** — `‹ Trainings`, never a
+  bare `‹ Back`. Never `Location.back()`.
+- **The parent is the one this viewer can open.** A page with several parents
+  picks by audience. A training session's parent is the team's Trainings tab for
+  a member and the public trainings list for everyone else; linking a guest to
+  the team tab sends them to a page that refuses them.
+- **A list comes back as the viewer left it.** Browse lists keep their filters
+  and sort in the URL (only non-default values, replacing the history entry
+  rather than adding one), and a back link to a list reopens it with those and
+  with the typed search. The destination never changes, only its state.
+- **Typed text never goes in the URL.** Session recording keeps the query string
+  while masking every input, and the privacy policy promises typed text stays on
+  the device. The search is remembered in memory and restored when the viewer
+  returns to the list (a back link, or the browser's back button), never on an
+  ordinary visit — and never after a reload or in a new tab.
+- **The nav marks where the viewer is, not what the URL resembles.** "My team"
+  is active on the viewer's own teams only; on another team's page no
+  destination is.
+
 ## Elevation & depth
 
 Shadows are **warm-tinted and soft** — `rgba(64, 46, 24, …)`, never pure black,

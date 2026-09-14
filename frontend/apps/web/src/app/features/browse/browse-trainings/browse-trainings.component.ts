@@ -8,8 +8,9 @@ import { injectDateFormats } from '../../../core/i18n/locale-format';
 import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { FilterChip, SortOption, TrainingBrowseParams, TrainingCard } from '../../../core/models/search.models';
-import { CityOption } from '../../../core/models/city.models';
+import { CityOption, Location } from '../../../core/models/city.models';
 import { BrowseList } from '../browse-list';
+import { BrowseUrl, dateParam } from '../browse-url';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
 import { FilterToggleComponent } from '../filter-panel/filter-toggle.component';
@@ -103,6 +104,18 @@ export class BrowseTrainingsComponent implements OnInit, OnDestroy {
     this.search.browseTrainings({ ...this.appliedParams(), skip, take }),
   );
 
+  private readonly url = new BrowseUrl('/browse/trainings');
+  /**
+   * The city chip the picker opens with when the list was restored from the URL. The picker reads
+   * its `initial` once, on init, and this page creates it on init — so it is set before that.
+   */
+  protected readonly initialCity = signal<Location | null>(null);
+  /**
+   * The URL asked for nearest-first, which the server refuses without a home city — and whether
+   * the viewer has one is only known once their profile arrives. Held until then, not dropped.
+   */
+  private wantsProximity = false;
+
   protected readonly activeFilterCount = computed(
     () =>
       (this.hidePast() ? 1 : 0) +
@@ -130,10 +143,32 @@ export class BrowseTrainingsComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.reload();
+    // Profile first: when it is cached it answers synchronously, so a restored nearest-first sort
+    // is applied on the first load instead of a second one.
     this.profiles.getMineCached().subscribe({
-      next: (p) => this.hasHomeCity.set(p.location != null),
+      next: (p) => {
+        this.hasHomeCity.set(p.location != null);
+        if (this.wantsProximity && this.hasHomeCity() && this.sort() !== 'Proximity') {
+          this.sort.set('Proximity');
+          this.reload();
+        }
+      },
       error: () => this.hasHomeCity.set(false),
+    });
+    this.url.connect((params, search) => {
+      this.query.set(search);
+      this.hidePast.set(params.get('hidePast') !== 'false');
+      this.from.set(dateParam(params, 'from'));
+      this.to.set(dateParam(params, 'to'));
+      this.city.set(params.get('city') ?? '');
+      this.country.set(params.get('country') ?? '');
+      this.wantsProximity = params.get('sort') === 'Proximity';
+      this.sort.set(this.wantsProximity && this.hasHomeCity() ? 'Proximity' : 'SessionDateAsc');
+      const city = this.city().trim();
+      this.initialCity.set(
+        city ? { externalId: '', name: city, region: null, countryName: '', countryCode: null, label: city } : null,
+      );
+      this.reload();
     });
   }
 
@@ -185,6 +220,7 @@ export class BrowseTrainingsComponent implements OnInit, OnDestroy {
    * range stays entirely the viewer's to set.
    */
   protected onSortChange(value: string): void {
+    this.wantsProximity = false;
     this.sort.set(value === 'Proximity' && this.hasHomeCity() ? 'Proximity' : 'SessionDateAsc');
     this.reload();
   }
@@ -210,6 +246,7 @@ export class BrowseTrainingsComponent implements OnInit, OnDestroy {
     this.to.set('');
     this.city.set('');
     this.country.set('');
+    this.wantsProximity = false;
     this.sort.set('SessionDateAsc');
     this.reload();
   }
@@ -296,6 +333,18 @@ export class BrowseTrainingsComponent implements OnInit, OnDestroy {
         Boolean(this.country().trim()),
     );
     this.list.reload();
+    // The typed search is passed separately and never enters the URL — see BrowseUrl.
+    this.url.write(
+      {
+        hidePast: this.hidePast() ? null : 'false',
+        from: this.from(),
+        to: this.to(),
+        city: this.city().trim(),
+        country: this.country().trim(),
+        sort: this.sort() === 'Proximity' ? 'Proximity' : null,
+      },
+      this.query(),
+    );
   }
 
   private refreshPendingCount(): void {

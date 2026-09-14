@@ -8,6 +8,7 @@ import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { FilterChip, SortOption, TeamBrowseParams, TeamCard } from '../../../core/models/search.models';
 import { BrowseList } from '../browse-list';
+import { BrowseUrl } from '../browse-url';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
 import { FilterToggleComponent } from '../filter-panel/filter-toggle.component';
@@ -76,6 +77,11 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.search.browseTeams({ ...this.appliedParams(), skip, take }),
   );
 
+  /** Search, filters and sort live in the query string (GH #279) — see {@link BrowseUrl}. */
+  private readonly url = new BrowseUrl('/browse/teams');
+  /** A restored nearest-first sort, held until the profile says whether it is allowed. See browse-trainings. */
+  private wantsProximity = false;
+
   protected readonly activeFilterCount = computed(
     () => (this.activeOnly() ? 1 : 0) + (this.beginners() ? 1 : 0) + (this.city().trim() ? 1 : 0),
   );
@@ -97,11 +103,25 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.reload();
     // Offer "Near me" only when the player has a home city to measure from.
     this.profiles.getMineCached().subscribe({
-      next: (p) => this.hasHomeCity.set(p.location != null),
+      next: (p) => {
+        this.hasHomeCity.set(p.location != null);
+        if (this.wantsProximity && this.hasHomeCity() && this.sort() !== 'Proximity') {
+          this.sort.set('Proximity');
+          this.reload();
+        }
+      },
       error: () => this.hasHomeCity.set(false),
+    });
+    this.url.connect((params, search) => {
+      this.query.set(search);
+      this.activeOnly.set(params.get('activeOnly') !== 'false');
+      this.beginners.set(params.get('beginnersWelcome') === 'true');
+      this.city.set(params.get('country') ?? '');
+      this.wantsProximity = params.get('sort') === 'Proximity';
+      this.sort.set(this.wantsProximity && this.hasHomeCity() ? 'Proximity' : 'NameAsc');
+      this.reload();
     });
   }
 
@@ -139,6 +159,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
 
   /** The Sort menu picked a new ordering — applies instantly. */
   protected onSortChange(value: string): void {
+    this.wantsProximity = false;
     this.sort.set(value === 'Proximity' && this.hasHomeCity() ? 'Proximity' : 'NameAsc');
     this.reload();
   }
@@ -159,6 +180,7 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
     this.activeOnly.set(true);
     this.beginners.set(false);
     this.city.set('');
+    this.wantsProximity = false;
     this.sort.set('NameAsc');
     this.reload();
   }
@@ -191,6 +213,17 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
   private reload(): void {
     this.list.filtered.set(Boolean(this.query().trim()) || this.beginners() || Boolean(this.city().trim()));
     this.list.reload();
+    // `city` holds a COUNTRY (it is sent as `country`), so it travels under that name in the URL too.
+    // The typed search is passed separately and never enters the URL — see BrowseUrl.
+    this.url.write(
+      {
+        activeOnly: this.activeOnly() ? null : 'false',
+        beginnersWelcome: this.beginners() ? 'true' : null,
+        country: this.city().trim(),
+        sort: this.sort() === 'Proximity' ? 'Proximity' : null,
+      },
+      this.query(),
+    );
   }
 
   private refreshPendingCount(): void {

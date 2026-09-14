@@ -9,6 +9,7 @@ import { ProfileService } from '../../../core/services/profile.service';
 import { FilterChip, PlayerBrowseParams, PlayerCard, SortOption } from '../../../core/models/search.models';
 import { POMPFEN_CATALOG, Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import { BrowseList } from '../browse-list';
+import { BrowseUrl } from '../browse-url';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
 import { CountryPickerComponent } from '../../../shared/country-picker/country-picker.component';
@@ -85,6 +86,11 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
     this.search.browsePlayers({ ...this.appliedParams(), skip, take }),
   );
 
+  /** Search, filters and sort live in the query string (GH #279) — see {@link BrowseUrl}. */
+  private readonly url = new BrowseUrl('/browse/players');
+  /** A restored nearest-first sort, held until the profile says whether it is allowed. See browse-trainings. */
+  private wantsProximity = false;
+
   protected readonly activeFilterCount = computed(() => this.positions().length + (this.city().trim() ? 1 : 0));
 
   protected readonly chips = computed<FilterChip[]>(() => {
@@ -96,11 +102,25 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit(): void {
-    this.reload();
     // Offer "Nearest first" only when the viewer has a home city to measure from.
     this.profiles.getMineCached().subscribe({
-      next: (p) => this.hasHomeCity.set(p.location != null),
+      next: (p) => {
+        this.hasHomeCity.set(p.location != null);
+        if (this.wantsProximity && this.hasHomeCity() && this.sort() !== 'Proximity') {
+          this.sort.set('Proximity');
+          this.reload();
+        }
+      },
       error: () => this.hasHomeCity.set(false),
+    });
+    this.url.connect((params, search) => {
+      const known = new Set<string>(POMPFEN_CATALOG.map((p) => p.value));
+      this.query.set(search);
+      this.positions.set(params.getAll('position').filter((p): p is Pompfe => known.has(p)));
+      this.city.set(params.get('country') ?? '');
+      this.wantsProximity = params.get('sort') === 'Proximity';
+      this.sort.set(this.wantsProximity && this.hasHomeCity() ? 'Proximity' : 'DisplayNameAsc');
+      this.reload();
     });
   }
 
@@ -140,6 +160,7 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
 
   /** The Sort menu picked a new ordering — applies instantly. */
   protected onSortChange(value: string): void {
+    this.wantsProximity = false;
     this.sort.set(value === 'Proximity' && this.hasHomeCity() ? 'Proximity' : 'DisplayNameAsc');
     this.reload();
   }
@@ -158,6 +179,7 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
     this.query.set('');
     this.positions.set([]);
     this.city.set('');
+    this.wantsProximity = false;
     this.sort.set('DisplayNameAsc');
     this.reload();
   }
@@ -190,6 +212,16 @@ export class BrowsePlayersComponent implements OnInit, OnDestroy {
   private reload(): void {
     this.list.filtered.set(Boolean(this.query().trim()) || this.positions().length > 0 || Boolean(this.city().trim()));
     this.list.reload();
+    // `city` holds a COUNTRY (it is sent as `country`), so it travels under that name in the URL too.
+    // The typed search is passed separately and never enters the URL — see BrowseUrl.
+    this.url.write(
+      {
+        position: this.positions(),
+        country: this.city().trim(),
+        sort: this.sort() === 'Proximity' ? 'Proximity' : null,
+      },
+      this.query(),
+    );
   }
 
   private refreshPendingCount(): void {

@@ -4,6 +4,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
+import { BrowseReturnService, RESTORE_BROWSE_SEARCH } from '../../../core/services/browse-return.service';
 import { TrainingInterval, TrainingRsvp, TrainingSessionDetail } from '../../../core/models/trainings.models';
 import { problemDetail } from '../../../core/utils/problem';
 import { injectDateFormats } from '../../../core/i18n/locale-format';
@@ -25,6 +26,7 @@ export class TrainingSessionComponent {
   private readonly transloco = inject(TranslocoService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly browseReturns = inject(BrowseReturnService);
   private readonly fmt = injectDateFormats();
 
   protected readonly sessionId = signal('');
@@ -40,6 +42,32 @@ export class TrainingSessionComponent {
     return !!s && !s.isPast && s.status === 'Scheduled';
   });
   protected readonly isCancelled = computed(() => this.session()?.status === 'Cancelled');
+
+  /**
+   * Where "‹ Trainings" leads — the session's parent FOR THIS VIEWER (GH #279).
+   *
+   * A session has two parents. A member's is their team's Trainings tab. An outsider's is the
+   * public trainings list: the team tab 404s for them, so linking there sent every guest to a dead
+   * end while the nav lit up "My team" for a team they are not on.
+   *
+   * Hierarchical on purpose, never `Location.back()`: this page is opened from alerts, shared links
+   * and after an edit-and-save, where the previous history entry is another app, a form, or
+   * nothing. The public list does come back as the viewer left it (search and filters intact), via
+   * {@link BrowseReturnService}.
+   */
+  protected readonly back = computed(() => {
+    const s = this.session();
+    if (!s) {
+      return null;
+    }
+    return s.viewerIsGuest
+      ? {
+          link: ['/browse/trainings'],
+          queryParams: this.browseReturns.queryParams('/browse/trainings'),
+          state: RESTORE_BROWSE_SEARCH,
+        }
+      : { link: ['/t', s.teamSlug, 'trainings'], queryParams: {}, state: undefined };
+  });
 
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((pm) => {
