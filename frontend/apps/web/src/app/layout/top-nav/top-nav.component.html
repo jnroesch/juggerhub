@@ -2,7 +2,7 @@
   class="sticky top-0 z-30 flex h-14 items-center gap-sm border-b border-border bg-surface px-md"
 >
   <!-- Brand -->
-  <a routerLink="/" class="flex items-center gap-xs" aria-label="JuggerHub home">
+  <a routerLink="/" class="flex items-center gap-xs" [attr.aria-label]="'nav.brandHome' | transloco">
     <span class="grid h-7 w-7 place-items-center rounded-md bg-brand-gradient shadow-sm" aria-hidden="true">
       <span class="h-1.5 w-1.5 rounded-full bg-highlight"></span>
     </span>
@@ -10,7 +10,7 @@
   </a>
 
   <!-- Desktop: primary destinations -->
-  <nav class="ml-lg hidden items-center gap-xs md:flex" aria-label="Primary">
+  <nav class="ml-lg hidden items-center gap-xs md:flex" [attr.aria-label]="'nav.primary' | transloco">
     <a
       routerLink="/"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
@@ -46,7 +46,7 @@
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
       [class]="chatActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-text hover:bg-surface-sunken'"
       [attr.aria-current]="chatActive() ? 'page' : null"
-      [attr.aria-label]="chatBadge() ? ('nav.chat' | transloco) + ', ' + chatBadge() + ' unread' : ('nav.chat' | transloco)"
+      [attr.aria-label]="chatBadge() ? ('nav.unreadLabel' | transloco: { label: ('nav.chat' | transloco), count: chatBadge() }) : ('nav.chat' | transloco)"
       data-testid="nav-chat"
     >
       <span class="relative">
@@ -70,7 +70,7 @@
       class="relative hidden h-9 w-9 place-items-center rounded-md transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus md:grid"
       [class]="alertsActive() ? 'bg-surface-accent-soft text-brand-active' : 'text-text hover:bg-surface-sunken'"
       [attr.aria-current]="alertsActive() ? 'page' : null"
-      [attr.aria-label]="alertsBadge() ? ('nav.alerts' | transloco) + ', ' + alertsBadge() + ' unread' : ('nav.alerts' | transloco)"
+      [attr.aria-label]="alertsBadge() ? ('nav.unreadLabel' | transloco: { label: ('nav.alerts' | transloco), count: alertsBadge() }) : ('nav.alerts' | transloco)"
       data-testid="nav-alerts-bell"
     >
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 6 2.5 7 2.5 7h-17S6 14 6 8"/><path d="M10.5 20a2 2 0 0 0 3 0"/></svg>

@@ -1,6 +1,6 @@
 <nav
   class="bottom-nav fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t border-border bg-surface md:hidden"
-  aria-label="Primary"
+  [attr.aria-label]="'nav.primary' | transloco"
   data-testid="bottom-nav"
 >
   <a
@@ -45,7 +45,7 @@
       @if (chatBadge(); as badge) {
         <span
           class="absolute -right-2 -top-1 grid h-4 min-w-4 place-items-center rounded-pill bg-brand px-1 font-mono text-[10px] font-bold leading-none text-on-accent"
-          [attr.aria-label]="badge + ' unread messages'"
+          [attr.aria-label]="'nav.unreadMessages' | transloco: { count: badge }"
           data-testid="tab-chat-badge"
         >{{ badge }}</span>
       }
