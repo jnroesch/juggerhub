@@ -2,6 +2,7 @@ import { Component, ElementRef, HostListener, computed, effect, inject, signal }
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { MembershipService } from '../../core/services/membership.service';
+import { ProfileService } from '../../core/services/profile.service';
 import { RecognitionAdminService } from '../../core/services/recognition-admin.service';
 
 /**
@@ -20,14 +21,31 @@ export class AvatarMenuComponent {
   private readonly router = inject(Router);
   private readonly membership = inject(MembershipService);
   private readonly admin = inject(RecognitionAdminService);
+  private readonly profiles = inject(ProfileService);
   private readonly host = inject(ElementRef<HTMLElement>);
 
   protected readonly open = signal(false);
   protected readonly user = this.auth.currentUser;
   /** Whether to show the (server-enforced) Admin panel entry. UX gating only. */
   protected readonly isAdmin = this.admin.isAdmin;
-  /** A single letter for the avatar circle (from the signed-in email). */
+  /** A single letter for the avatar circle (from the signed-in email) — shown when there's no image. */
   protected readonly initial = computed(() => (this.user()?.email ?? '?').charAt(0).toUpperCase());
+
+  /** The last avatar URL that failed to load; the initial stands in for it until the URL changes. */
+  private readonly failedAvatarUrl = signal<string | null>(null);
+
+  /**
+   * The player's own avatar, the same image their profile shows (GH #283). Cache-busted by the
+   * session's upload revision, so a new upload replaces it here without a reload.
+   */
+  protected readonly avatarUrl = computed(() => {
+    const user = this.user();
+    if (!user?.hasAvatar) {
+      return null;
+    }
+    const url = this.profiles.ownAvatarUrl(user.handle);
+    return url === this.failedAvatarUrl() ? null : url;
+  });
 
   constructor() {
     // Probe admin access once the user is known (authed users only; result is cached).
@@ -44,6 +62,11 @@ export class AvatarMenuComponent {
 
   close(): void {
     this.open.set(false);
+  }
+
+  /** An avatar that can't be served (e.g. a storage outage) falls back to the initial, not a broken image. */
+  protected onAvatarError(url: string): void {
+    this.failedAvatarUrl.set(url);
   }
 
   signOut(): void {

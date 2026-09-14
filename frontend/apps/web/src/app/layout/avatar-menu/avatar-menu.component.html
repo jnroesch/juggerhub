@@ -1,14 +1,18 @@
 <div class="relative">
   <button
     type="button"
-    class="grid h-9 w-9 place-items-center rounded-pill bg-surface-inverse text-body-sm font-semibold text-on-inverse transition-shadow duration-fast hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+    class="grid h-9 w-9 place-items-center overflow-hidden rounded-pill bg-surface-inverse text-body-sm font-semibold text-on-inverse transition-shadow duration-fast hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
     [attr.aria-expanded]="open()"
     aria-haspopup="menu"
     aria-label="Account menu"
     data-testid="avatar-menu-button"
     (click)="toggle()"
   >
-    {{ initial() }}
+    @if (avatarUrl(); as url) {
+      <img [src]="url" alt="" class="h-full w-full object-cover" data-testid="avatar-menu-image" (error)="onAvatarError(url)" />
+    } @else {
+      {{ initial() }}
+    }
   </button>
 
   @if (open()) {

@@ -164,4 +164,16 @@ describe('ProfileService', () => {
   it('avatarUrl builds the canonical avatar URL', () => {
     expect(service.avatarUrl('nik-berlin')).toBe('/api/v1/profiles/nik-berlin/avatar');
   });
+
+  it('ownAvatarUrl changes only after a successful upload (GH #283)', () => {
+    expect(service.ownAvatarUrl('nik-berlin')).toBe('/api/v1/profiles/nik-berlin/avatar?v=0');
+
+    service.uploadAvatar(new File(['x'], 'a.png', { type: 'image/png' })).subscribe({ error: () => undefined });
+    httpMock.expectOne('/api/v1/profiles/me/avatar').flush('nope', { status: 400, statusText: 'Bad Request' });
+    expect(service.ownAvatarUrl('nik-berlin')).toBe('/api/v1/profiles/nik-berlin/avatar?v=0');
+
+    service.uploadAvatar(new File(['x'], 'a.png', { type: 'image/png' })).subscribe();
+    httpMock.expectOne('/api/v1/profiles/me/avatar').flush(null);
+    expect(service.ownAvatarUrl('nik-berlin')).toBe('/api/v1/profiles/nik-berlin/avatar?v=1');
+  });
 });

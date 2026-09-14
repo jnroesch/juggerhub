@@ -18,6 +18,11 @@ export interface AuthUser {
    */
   handle: string;
   /**
+   * Whether the user has uploaded an avatar (GH #283). Decides between the avatar image and the
+   * initial in the top nav; kept current in-session by `ProfileService.uploadAvatar`.
+   */
+  hasAvatar: boolean;
+  /**
    * The user's chosen interface language (feature 031): `"en" | "de" | "es"`, or `null` when they
    * haven't chosen one (the client then resolves a language by local/browser detection). Top of the
    * language precedence when set.

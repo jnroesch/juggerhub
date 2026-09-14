@@ -136,4 +136,15 @@ export class AuthService {
       this.user.set({ ...current, preferredLanguage: language });
     }
   }
+
+  /**
+   * Reflect a just-uploaded avatar into the cached session (GH #283) so the top nav swaps the
+   * initial for the image without waiting for the next `/auth/me`.
+   */
+  markAvatarUploaded(): void {
+    const current = this.user();
+    if (current && !current.hasAvatar) {
+      this.user.set({ ...current, hasAvatar: true });
+    }
+  }
 }
