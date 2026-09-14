@@ -30,8 +30,10 @@ public sealed record AccountSuspendedResponse(string Status, string Message)
 /// The authenticated user. Never contains token material. <see cref="OnboardingCompleted"/>
 /// is server-derived (<c>PlayerProfile.OnboardingCompletedAt != null</c>) and is a UX
 /// routing hint only — never the authority for gating the onboarding flow (SC-008).
+/// <see cref="HasAvatar"/> tells the top nav whether to render the player's own avatar image
+/// or their initial (GH #283); the image itself is loaded from the avatar endpoint as usual.
 /// </summary>
-public sealed record AuthUserDto(Guid Id, string Email, bool EmailConfirmed, bool OnboardingCompleted, string Handle, string? PreferredLanguage = null);
+public sealed record AuthUserDto(Guid Id, string Email, bool EmailConfirmed, bool OnboardingCompleted, string Handle, bool HasAvatar, string? PreferredLanguage = null);
 
 /// <summary>The published password policy, rendered live by the frontend.</summary>
 public sealed record PasswordPolicyDto(

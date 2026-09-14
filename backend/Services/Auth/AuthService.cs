@@ -399,9 +399,9 @@ public sealed class AuthService : IAuthService
     }
 
     /// <summary>
-    /// Map a user to <see cref="AuthUserDto"/> and fill the onboarding flag and handle
-    /// from the profile. The UserManager lookups don't eager-load the Profile nav, so
-    /// those two fields are resolved by lightweight profile lookups (research §3).
+    /// Map a user to <see cref="AuthUserDto"/> and fill the onboarding flag, handle and avatar
+    /// flag from the profile. The UserManager lookups don't eager-load the Profile nav, so
+    /// those fields are resolved by lightweight profile lookups (research §3).
     /// </summary>
     private async Task<AuthUserDto> ToAuthUserDtoAsync(User user, CancellationToken ct) =>
         new(
@@ -411,6 +411,8 @@ public sealed class AuthService : IAuthService
             await _profiles.HasCompletedOnboardingAsync(user.Id, ct),
             // The handle (profile slug) powers the frontend's own-profile link + owner detection (feature 026).
             await _profiles.GetHandleAsync(user.Id, ct) ?? string.Empty,
+            // Lets the top nav show the player's own avatar instead of their initial (GH #283).
+            await _profiles.HasAvatarAsync(user.Id, ct),
             user.PreferredLanguage);
 
     private async Task<IssuedTokens> IssueTokensAsync(User user, bool rememberMe, string? ip, Guid? familyId, CancellationToken ct)

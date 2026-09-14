@@ -28,14 +28,14 @@ describe('ProfileOwnerComponent — visibility toggle (feature 026)', () => {
   let profiles: {
     getMine: jest.Mock;
     updateMine: jest.Mock;
-    avatarUrl: jest.Mock;
+    ownAvatarUrl: jest.Mock;
   };
 
   beforeEach(() => {
     profiles = {
       getMine: jest.fn().mockReturnValue(of(OWNER)),
       updateMine: jest.fn().mockReturnValue(of({ ...OWNER, isPublic: true })),
-      avatarUrl: jest.fn().mockReturnValue('/api/v1/profiles/nik-berlin/avatar'),
+      ownAvatarUrl: jest.fn().mockReturnValue('/api/v1/profiles/nik-berlin/avatar?v=0'),
     };
 
     TestBed.configureTestingModule({

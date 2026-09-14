@@ -1,5 +1,5 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, signal } from '@angular/core';
 import { Observable, shareReplay, tap } from 'rxjs';
 import {
   ActivityItem,
@@ -10,6 +10,7 @@ import {
   UpdateProfileRequest,
 } from '../models/profile.models';
 import { LocationSelection } from '../models/city.models';
+import { AuthService } from './auth.service';
 
 /**
  * Profile API client. Owner calls carry the session cookie (via the auth
@@ -19,8 +20,11 @@ import { LocationSelection } from '../models/city.models';
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
   private readonly http = inject(HttpClient);
+  private readonly auth = inject(AuthService);
   private readonly base = '/api/v1/profiles';
   private readonly authBase = '/api/v1/auth';
+  /** Bumped on every successful own-avatar upload; see `ownAvatarUrl`. */
+  private readonly ownAvatarRevision = signal(0);
 
   // --- Owner ---------------------------------------------------------------
 
@@ -76,7 +80,13 @@ export class ProfileService {
   uploadAvatar(file: File): Observable<void> {
     const form = new FormData();
     form.append('file', file);
-    return this.http.put<void>(`${this.base}/me/avatar`, form).pipe(tap(() => this.invalidateMine()));
+    return this.http.put<void>(`${this.base}/me/avatar`, form).pipe(
+      tap(() => {
+        this.invalidateMine();
+        this.ownAvatarRevision.update((v) => v + 1);
+        this.auth.markAvatarUploaded();
+      }),
+    );
   }
 
   /**
@@ -104,6 +114,17 @@ export class ProfileService {
   /** Canonical URL the browser uses to render an avatar (adds a cache-buster hook if needed). */
   avatarUrl(handle: string): string {
     return `${this.base}/${encodeURIComponent(handle)}/avatar`;
+  }
+
+  /**
+   * The signed-in player's own avatar URL, cache-busted by this session's upload count (GH #283).
+   * The URL alone never changes on upload, so an `<img>` already showing it keeps the old picture
+   * from the browser's image cache; the revision makes every surface showing the player's own
+   * avatar (top nav, owner profile) re-fetch together. Reads a signal, so a `computed` calling it
+   * recomputes after an upload.
+   */
+  ownAvatarUrl(handle: string): string {
+    return `${this.avatarUrl(handle)}?v=${this.ownAvatarRevision()}`;
   }
 
   // --- Handle (registration UX aid) ---------------------------------------

@@ -128,6 +128,13 @@ public sealed class ProfileService : IProfileService
             .Select(p => p.Handle)
             .FirstOrDefaultAsync(ct);
 
+    public async Task<bool> HasAvatarAsync(Guid userId, CancellationToken ct = default) =>
+        await _db.PlayerProfiles
+            .AsNoTracking()
+            .Where(p => p.UserId == userId)
+            .Select(p => p.Avatar != null)
+            .FirstOrDefaultAsync(ct);
+
     public async Task<Guid?> GetHomeCityIdAsync(Guid userId, CancellationToken ct = default) =>
         await _db.PlayerProfiles
             .AsNoTracking()

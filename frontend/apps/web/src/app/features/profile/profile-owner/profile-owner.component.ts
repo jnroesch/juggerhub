@@ -37,7 +37,6 @@ export class ProfileOwnerComponent {
   protected readonly selectedPompfen = signal<Pompfe[]>([]);
   // Feature 026 — the visibility toggle saves on its own (instant), independently of the edit form.
   protected readonly visibilitySaving = signal(false);
-  private readonly avatarVersion = signal(0);
 
   // Feature 030 — structured home city, held outside the reactive form (the picker emits a
   // CityOption, not a form value). `initialLocation` prefills the picker; `cityTouched` distinguishes
@@ -58,7 +57,7 @@ export class ProfileOwnerComponent {
     if (!p?.hasAvatar) {
       return null;
     }
-    return `${this.profiles.avatarUrl(p.handle)}?v=${this.avatarVersion()}`;
+    return this.profiles.ownAvatarUrl(p.handle);
   });
 
   /** Map the owner DTO to the shared, read-only view model — the same one other players render. */
@@ -149,9 +148,8 @@ export class ProfileOwnerComponent {
     this.error.set(null);
     this.profiles.uploadAvatar(file).subscribe({
       next: () => {
-        // Force the <img> to re-fetch the new bytes.
+        // The upload bumped the shared own-avatar revision, so `avatarUrl` re-fetches the new bytes.
         this.profile.update((p) => (p ? { ...p, hasAvatar: true } : p));
-        this.avatarVersion.update((v) => v + 1);
         input.value = '';
       },
       error: (err) => this.error.set(problemDetail(err)),
