@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, computed, input, signal } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 /** How long a load may run before the line switches to patient copy (DESIGN.md). */
 export const PATIENT_THRESHOLD_MS = 2_000;
@@ -20,26 +21,34 @@ export const PATIENT_THRESHOLD_MS = 2_000;
  * slow background request would make every loading line on the page announce itself. It is
  * also more honest this way — a genuinely slow first attempt and a silently retried one
  * look identical to the person waiting, and both deserve the same reassurance.
+ *
+ * The defaults are translation keys, not English strings (GH #290): most call sites render a
+ * bare `<jh-loading />`, so a hardcoded default put "Loading…" on every German and Spanish page.
  */
 @Component({
   selector: 'jh-loading',
+  imports: [TranslocoPipe],
   templateUrl: './loading.component.html',
   styleUrl: './loading.component.css',
 })
 export class LoadingComponent implements OnInit, OnDestroy {
-  /** The line of copy. Contextual variants are allowed. */
-  readonly label = input('Loading…');
+  /** The line of copy, already translated. Contextual variants are allowed; omit for `common.loading`. */
+  readonly label = input<string>();
   /** Left-aligned by default; centered for standalone/full-width states. */
   readonly align = input<'left' | 'center'>('left');
-  /** Replaces {@link label} once the load has run past the threshold. */
-  readonly patientLabel = input('Still loading…');
+  /** Replaces {@link label} once the load has run past the threshold; omit for `common.stillLoading`. */
+  readonly patientLabel = input<string>();
 
   private readonly patient = signal(false);
   private timer?: ReturnType<typeof setTimeout>;
 
   /** Swaps the copy in place — same element, same classes, so nothing shifts. */
-  protected readonly currentLabel = computed(() =>
+  protected readonly customLabel = computed(() =>
     this.patient() ? this.patientLabel() : this.label(),
+  );
+  /** What renders when the caller supplied no copy for the current phase. */
+  protected readonly defaultKey = computed(() =>
+    this.patient() ? 'common.stillLoading' : 'common.loading',
   );
 
   ngOnInit(): void {
