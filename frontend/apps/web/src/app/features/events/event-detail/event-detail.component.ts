@@ -7,6 +7,7 @@ import { forkJoin } from 'rxjs';
 import { EventContact, EventDetail, EventNews, Signup } from '../../../core/models/event.models';
 import { PartyContext } from '../../../core/models/party.models';
 import { EventService } from '../../../core/services/event.service';
+import { BrowseReturnService } from '../../../core/services/browse-return.service';
 import { PartyService } from '../../../core/services/party.service';
 import { problemDetail } from '../../../core/utils/problem';
 import { EventContactsListComponent } from './components/contacts-list.component';
@@ -44,6 +45,15 @@ export class EventDetailComponent implements OnInit {
   private readonly parties = inject(PartyService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly browseReturns = inject(BrowseReturnService);
+
+  /**
+   * "‹ Events" leads to the events list — the event's parent, for every viewer, since every event
+   * that is not cancelled is listed there (GH #279). It used to lead home whichever list the viewer
+   * came from. Reopens the list as they left it; see {@link BrowseReturnService} for why this is
+   * a parent link and not `Location.back()`.
+   */
+  protected readonly eventsQuery = computed(() => this.browseReturns.queryParams('/browse/events'));
 
   protected readonly detail = signal<EventDetail | null>(null);
   protected readonly joined = signal<Signup[]>([]);

@@ -206,6 +206,7 @@
       "notFoundBody": "Dieses Event existiert nicht oder der Link ist falsch.",
       "goHome": "Zur Startseite",
       "backHome": "‹ Startseite",
+      "backEvents": "‹ Events",
       "cancelled": "Vom Veranstalter abgesagt. Es werden keine neuen Anmeldungen angenommen.",
       "online": "Online",
       "teamsOnly": "Nur Teams",
