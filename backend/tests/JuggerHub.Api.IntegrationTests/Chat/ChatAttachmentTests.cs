@@ -345,6 +345,98 @@ public sealed class ChatAttachmentTests : ChatTestSupport
         await AssertNothingWasStoredAsync(ada, conversationId);
     }
 
+    // --- The extension is the part that does something -------------------------
+
+    /// <summary>
+    /// Every operating system opens a downloaded file by its extension, so serving the sender's
+    /// name unchanged would leave the thing that decides which application runs attacker-controlled
+    /// — and free to disagree with the content we validated. Validating bytes and then handing over
+    /// a contradictory name gives away most of what the allow-list is for.
+    /// </summary>
+    [Theory]
+    [InlineData("payload.exe")]
+    [InlineData("payload.docm")]
+    [InlineData("payload")]
+    public async Task The_served_name_takes_its_extension_from_what_the_file_actually_is(string sent)
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (_, benId, _) = await NewUserAsync();
+        var conversationId = await StartDirectAsync(ada, benId);
+
+        await SendWithFilesAsync(ada, conversationId, null, (WordDocument(), sent));
+
+        var attachment = (await MessagesAsync(ada, conversationId))[0]
+            .GetProperty("attachments").EnumerateArray().Single();
+
+        Assert.Equal("payload.docx", attachment.GetProperty("fileName").GetString());
+
+        var download = await ada.GetAsync($"/api/v1/chat/attachments/{attachment.GetProperty("id").GetGuid()}");
+        Assert.Equal("payload.docx", download.Content.Headers.ContentDisposition?.FileNameStar);
+    }
+
+    /// <summary>An image is re-encoded, so `.jpg` really is a `.webp` afterwards — say so.</summary>
+    [Fact]
+    public async Task A_normalized_image_is_served_under_its_real_extension()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (_, benId, _) = await NewUserAsync();
+        var conversationId = await StartDirectAsync(ada, benId);
+
+        using var image = new Image<Rgba32>(8, 8, new Rgba32(10, 120, 200));
+        await SendWithFilesAsync(ada, conversationId, null, (Encode(image, new JpegEncoder()), "holiday.jpg"));
+
+        var attachment = (await MessagesAsync(ada, conversationId))[0]
+            .GetProperty("attachments").EnumerateArray().Single();
+
+        Assert.Equal("holiday.webp", attachment.GetProperty("fileName").GetString());
+    }
+
+    /// <summary>
+    /// A macro-enabled Office file declares its main part as the macroEnabled type, which the
+    /// allow-list does not contain — so a genuine .docm is refused on its content, not its name.
+    /// </summary>
+    [Fact]
+    public async Task A_macro_enabled_document_is_refused()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (_, benId, _) = await NewUserAsync();
+        var conversationId = await StartDirectAsync(ada, benId);
+
+        var docm = OpenXml(
+            "application/vnd.ms-word.document.macroEnabled.main+xml",
+            ("word/vbaProject.bin", "MACRO"));
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            (await PostFilesAsync(ada, conversationId, null, (docm, "notes.docm"))).StatusCode);
+
+        await AssertNothingWasStoredAsync(ada, conversationId);
+    }
+
+    /// <summary>
+    /// The bypass the manifest check alone allows: an archive that declares the macro-FREE override
+    /// — satisfying a substring test — while still carrying a macro project. Whether Word would
+    /// honour it depends on the extension and the declared part, and "probably not exploitable" is
+    /// not a control. A real .docx never contains this part.
+    /// </summary>
+    [Fact]
+    public async Task A_document_carrying_a_macro_project_is_refused_however_it_declares_itself()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (_, benId, _) = await NewUserAsync();
+        var conversationId = await StartDirectAsync(ada, benId);
+
+        var hybrid = OpenXml(
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
+            ("word/vbaProject.bin", "MACRO"));
+
+        Assert.Equal(
+            HttpStatusCode.BadRequest,
+            (await PostFilesAsync(ada, conversationId, null, (hybrid, "invoice.docx"))).StatusCode);
+
+        await AssertNothingWasStoredAsync(ada, conversationId);
+    }
+
     // --- US4: withdrawal -------------------------------------------------------
 
     /// <summary>
@@ -446,6 +538,28 @@ public sealed class ChatAttachmentTests : ChatTestSupport
         {
             using var entry = archive.CreateEntry(entryName).Open();
             entry.Write("not a document"u8);
+        }
+
+        return ms.ToArray();
+    }
+
+    /// <summary>An OOXML archive declaring <paramref name="mainPartType"/>, plus any extra parts.</summary>
+    private static byte[] OpenXml(string mainPartType, params (string Name, string Content)[] extras)
+    {
+        using var ms = new MemoryStream();
+        using (var archive = new System.IO.Compression.ZipArchive(ms, System.IO.Compression.ZipArchiveMode.Create, true))
+        {
+            using (var entry = archive.CreateEntry("[Content_Types].xml").Open())
+            {
+                entry.Write(System.Text.Encoding.UTF8.GetBytes(
+                    $"""<?xml version="1.0"?><Types><Override PartName="/word/document.xml" ContentType="{mainPartType}"/></Types>"""));
+            }
+
+            foreach (var (name, content) in extras)
+            {
+                using var entry = archive.CreateEntry(name).Open();
+                entry.Write(System.Text.Encoding.UTF8.GetBytes(content));
+            }
         }
 
         return ms.ToArray();

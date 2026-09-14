@@ -57,6 +57,47 @@ public static class AttachmentFileName
     }
 
     /// <summary>
+    /// Force the name's extension to agree with what the file was actually detected to be
+    /// (feature 049).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>The extension is the only part of a file name that does something.</b> Every operating
+    /// system opens a downloaded file by extension, so serving the sender's name unchanged means
+    /// the thing that decides which application runs is attacker-controlled — and can disagree with
+    /// the content we validated. An archive that satisfies the OOXML check can arrive named
+    /// <c>invoice.docm</c> or <c>invoice.exe</c>, and we would hand the recipient exactly that.
+    /// Validating content and then serving a contradictory name gives away most of what the
+    /// allow-list was for.
+    /// </para>
+    /// <para>
+    /// So the stem is kept — it is the sender's, it is meaningful, and it is only ever displayed —
+    /// and the extension is replaced with the canonical one for the type we detected. A file we
+    /// decided is a Word document is served as <c>.docx</c>; an image is served as <c>.webp</c>,
+    /// which is additionally honest because normalization really did re-encode it.
+    /// </para>
+    /// </remarks>
+    public static string WithExtensionFor(string sanitizedName, string contentType)
+    {
+        var extension = AttachmentContentType.ExtensionFor(contentType);
+        var dot = sanitizedName.LastIndexOf('.');
+
+        // No extension, or something too long to be one: append rather than cut into the name.
+        var stem = dot > 0 && sanitizedName.Length - dot <= 16 ? sanitizedName[..dot] : sanitizedName;
+
+        if (stem.Length == 0)
+        {
+            stem = "file";
+        }
+
+        var result = $"{stem}.{extension}";
+
+        return result.Length > ChatConstants.MaxAttachmentFileNameLength
+            ? $"{stem[..(ChatConstants.MaxAttachmentFileNameLength - extension.Length - 1)]}.{extension}"
+            : result;
+    }
+
+    /// <summary>
     /// Shortens an over-long name while keeping its extension, so a truncated file still looks
     /// like the kind of file it is.
     /// </summary>

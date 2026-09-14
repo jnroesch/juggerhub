@@ -298,7 +298,12 @@ make the surviving thread misleading. So they survive, and the policy text cover
 1. **No range requests** (F7) — a consequence of encrypting at rest, accepted with the decision.
 2. **No cumulative storage quota** — limits are per file and per message; growth over time is
    real and unaddressed. Follow-up.
-3. **No malware scanning** — the allowlist is the chosen control.
+3. **No malware scanning** — the allowlist is the chosen control, and what it rules out is
+   now verified by test rather than asserted (macro-enabled Office refused, embedded image
+   payloads destroyed by re-encoding, served extension forced to match detected content).
+   What remains is a hostile PDF or a macro-free-but-nasty document. Tracked as **#284**,
+   which also records the question that must be answered first: what happens when the
+   scanner is down — fail open makes it decorative, fail closed takes out file sending.
 4. **Normalization is lossy** — a screenshot re-encoded to WebP loses some fidelity; the sender
    is not warned. The alternative doubles objects and keeps EXIF alive.
 5. **Session replay captures inline previews** (038, `maskLevel: moderate`). FR-042 requires the

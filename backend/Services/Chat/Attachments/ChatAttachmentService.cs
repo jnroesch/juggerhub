@@ -297,6 +297,10 @@ public sealed class ChatAttachmentService : IChatAttachmentService
                 attachment.SizeBytes = processed.Bytes!.Length;
                 attachment.Width = processed.Width;
                 attachment.Height = processed.Height;
+                // The name's extension follows what we detected, never what the sender claimed —
+                // see AttachmentFileName.WithExtensionFor. For an image it is also simply true:
+                // normalization re-encoded the bytes, so a `.jpg` really is a `.webp` now.
+                attachment.FileName = AttachmentFileName.WithExtensionFor(attachment.FileName, attachment.ContentType);
                 attachment.ObjectKey = MediaObjectKey.Create(
                     MediaKind.ChatAttachment,
                     AttachmentContentType.ExtensionFor(attachment.ContentType));
@@ -308,6 +312,7 @@ public sealed class ChatAttachmentService : IChatAttachmentService
             {
                 attachment.ContentType = documentType!;
                 attachment.SizeBytes = file.Content.Length;
+                attachment.FileName = AttachmentFileName.WithExtensionFor(attachment.FileName, documentType!);
                 attachment.ObjectKey = MediaObjectKey.Create(
                     MediaKind.ChatAttachment,
                     AttachmentContentType.ExtensionFor(documentType!));

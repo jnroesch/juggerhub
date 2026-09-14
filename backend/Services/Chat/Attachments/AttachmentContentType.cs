@@ -168,6 +168,20 @@ public static class AttachmentContentType
                 return null;
             }
 
+            // A macro project in the archive disqualifies it, whatever the manifest claims.
+            //
+            // The manifest check below is a substring test, so a crafted archive can declare the
+            // macro-free override — satisfying it — while still carrying `word/vbaProject.bin`.
+            // Word decides what to honour from the extension and the declared part, so whether it
+            // would actually run is uncertain; "probably not exploitable" is not a control. A
+            // genuine .docx never contains this part, so refusing it costs real documents nothing.
+            if (archive.Entries.Any(e =>
+                    e.FullName.EndsWith("vbaProject.bin", StringComparison.OrdinalIgnoreCase)
+                    || e.FullName.EndsWith("vbaData.xml", StringComparison.OrdinalIgnoreCase)))
+            {
+                return null;
+            }
+
             using var reader = new StreamReader(entry.Open(), Encoding.UTF8);
             var manifest = reader.ReadToEnd();
 
