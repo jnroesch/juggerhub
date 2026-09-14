@@ -1,6 +1,7 @@
 <jh-browse-shell
   [title]="'browse.tabTrainings' | transloco"
   [searchPlaceholder]="'browse.trainings.searchPlaceholder' | transloco"
+  [searchValue]="query()"
   [note]="'browse.trainings.note' | transloco"
   [sortOptions]="sortOptions()"
   [activeSort]="sort()"
@@ -105,6 +106,7 @@
   <div class="flex flex-col gap-xs">
     <span class="text-eyebrow uppercase text-faint">{{ 'browse.trainings.city' | transloco }}</span>
     <jh-city-picker
+      [initial]="initialCity()"
       [placeholder]="'browse.trainings.cityPlaceholder' | transloco"
       (selectedChange)="onPendingCity($event)"
     />

@@ -1,8 +1,9 @@
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting, TestRequest } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 import { PagedResult, TrainingCard } from '../../../core/models/search.models';
+import { BrowseReturnService } from '../../../core/services/browse-return.service';
 import { BrowseTrainingsComponent } from './browse-trainings.component';
 import { translocoLocaleTestingProviders, translocoTestingModule } from '../../../../testing/transloco-testing';
 
@@ -175,6 +176,79 @@ describe('BrowseTrainingsComponent', () => {
       expect(chip.label.trim()).not.toBe('');
     }
     expect(chips.find((c) => c.key === 'hidePast')?.label).toBe('Upcoming');
+  });
+
+  describe('search and filters in the URL (GH #279)', () => {
+    type Filterable = {
+      pendingCity: { set(v: string): void };
+      applyFilters(): void;
+      clearAll(): void;
+      query(): string;
+      city(): string;
+      hidePast(): boolean;
+      initialCity(): { label: string } | null;
+    };
+
+    it('opens the list the URL describes — search, filters and the city chip', async () => {
+      await TestBed.inject(Router).navigateByUrl('/?q=open&city=K%C3%B6ln&hidePast=false&from=2026-10-01&to=nonsense');
+      const f = TestBed.createComponent(BrowseTrainingsComponent);
+      f.detectChanges();
+      const request = listRequest();
+      const params = request.request.params;
+
+      expect(params.get('q')).toBe('open');
+      expect(params.get('city')).toBe('Köln');
+      expect(params.get('hidePast')).toBe('false');
+      expect(params.get('from')).toBe('2026-10-01');
+      // A hand-edited value that is not a date never reaches the API.
+      expect(params.get('to')).toBeNull();
+
+      request.flush(page([card()]));
+      httpMock.match((r) => r.url.includes('/api/v1/profiles')).forEach((r) => r.flush({ location: null }));
+      httpMock.match((r) => r.url.includes('/api/v1/cities/countries')).forEach((r) => r.flush([]));
+      f.detectChanges();
+
+      const component = f.componentInstance as unknown as Filterable;
+      expect(component.initialCity()?.label).toBe('Köln');
+      const box = f.nativeElement.querySelector('[data-testid="browse-search"]') as HTMLInputElement;
+      expect(box.value).toBe('open');
+    });
+
+    it('writes applied filters back to the URL and remembers them for the session page', async () => {
+      const f = mount([card()]);
+      const component = f.componentInstance as unknown as Filterable;
+
+      component.pendingCity.set('Hamburg');
+      component.applyFilters();
+      listRequest().flush(page([]));
+      await f.whenStable();
+
+      expect(TestBed.inject(Router).url).toBe('/?city=Hamburg');
+      expect(TestBed.inject(BrowseReturnService).queryParams('/browse/trainings')).toEqual({ city: ['Hamburg'] });
+    });
+
+    it('keeps an untouched list on a bare URL — defaults are never written', async () => {
+      const f = mount([card()]);
+      await f.whenStable();
+      expect(TestBed.inject(Router).url).toBe('/');
+    });
+
+    it('resets the list when the URL is emptied under it, e.g. by re-clicking its tab', async () => {
+      const router = TestBed.inject(Router);
+      await router.navigateByUrl('/?city=Hamburg');
+      const f = mount([card()]);
+      const component = f.componentInstance as unknown as Filterable;
+      expect(component.city()).toBe('Hamburg');
+
+      await router.navigateByUrl('/');
+      f.detectChanges();
+
+      expect(component.city()).toBe('');
+      expect(component.hidePast()).toBe(true);
+      const request = listRequest();
+      expect(request.request.params.get('city')).toBeNull();
+      request.flush(page([]));
+    });
   });
 
   it('distinguishes the empty state from no-results', () => {
