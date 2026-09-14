@@ -45,6 +45,17 @@ locals {
     "nginx.ingress.kubernetes.io/session-cookie-expires" = "3600"
     "nginx.ingress.kubernetes.io/session-cookie-max-age" = "3600"
   }
+
+  # The chat-upload Ingress (feature 049 / #282). ingress-nginx refuses any body over 1 MB by
+  # default, which fails a message carrying files before the frontend nginx or the backend sees it.
+  # The ceiling mirrors the backend action's [RequestSizeLimit] (10 x 10 MB + 4 MB framing).
+  # Buffering is OFF so the controller streams the body on instead of spilling it to its own disk.
+  # NO cert-manager annotation, for the same reason as the hubs Ingress.
+  upload_ingress_annotations = {
+    "nginx.ingress.kubernetes.io/ssl-redirect"            = tostring(var.enable_tls)
+    "nginx.ingress.kubernetes.io/proxy-body-size"         = "104m"
+    "nginx.ingress.kubernetes.io/proxy-request-buffering" = "off"
+  }
 }
 
 resource "kubernetes_namespace_v1" "app" {
@@ -529,8 +540,9 @@ resource "kubernetes_deployment_v1" "backend" {
             read_only  = true
           }
           # The only writable path under the read-only root (mirrored as tmpfs in
-          # docker-compose.yml). The Data Protection key ring is in Postgres (#250), so nothing
-          # else here writes to disk.
+          # docker-compose.yml). The Data Protection key ring is in Postgres (#250); what does land
+          # here is ASP.NET Core spilling multipart uploads over 64 KB to disk (chat attachments,
+          # feature 049) — sized on the volume below.
           volume_mount {
             name       = "tmp"
             mount_path = "/tmp"
@@ -578,7 +590,10 @@ resource "kubernetes_deployment_v1" "backend" {
         volume {
           name = "tmp"
           empty_dir {
-            size_limit = "256Mi"
+            # A chat send carrying files (feature 049) buffers up to ~104 MB here for the life of
+            # the request, and exceeding an emptyDir limit EVICTS the pod — at 256Mi, three
+            # concurrent maximum-size sends would do it. 1Gi puts the memory limit, not this, first.
+            size_limit = "1Gi"
           }
         }
       }
@@ -854,6 +869,49 @@ resource "kubernetes_ingress_v1" "hubs" {
   # Admit the ingress at the backend BEFORE routing /hubs to it, so no apply opens a window in which
   # realtime connections are routed somewhere the network policy refuses them.
   depends_on = [kubernetes_network_policy_v1.backend]
+}
+
+# --- Chat-upload Ingress: larger bodies for conversation routes (#282) --------
+# Same host, merged like the hubs Ingress; the longer prefix wins over `/`. Routes to the FRONTEND
+# Service like the main Ingress, so the path to the backend and its client-IP handling are unchanged.
+#
+# The prefix covers every conversation route, not only the send: exact matching would need
+# `use-regex`, which ingress-nginx then applies to EVERY path on the host. The precise scoping lives
+# one hop in, in the frontend nginx, which keeps its 1 MB default on all of these except the send.
+resource "kubernetes_ingress_v1" "chat_upload" {
+  metadata {
+    name        = "juggerhub-chat-upload"
+    namespace   = kubernetes_namespace_v1.app.metadata[0].name
+    annotations = local.upload_ingress_annotations
+  }
+  spec {
+    ingress_class_name = var.ingress_class_name
+    rule {
+      host = var.app_hostname
+      http {
+        path {
+          path      = "/api/v1/chat/conversations"
+          path_type = "Prefix"
+          backend {
+            service {
+              name = kubernetes_service_v1.frontend.metadata[0].name
+              port {
+                number = 80
+              }
+            }
+          }
+        }
+      }
+    }
+    # The certificate the main Ingress requests, reused — not a second one.
+    dynamic "tls" {
+      for_each = var.enable_tls ? [1] : []
+      content {
+        hosts       = [var.app_hostname]
+        secret_name = "${replace(var.app_hostname, ".", "-")}-tls"
+      }
+    }
+  }
 }
 
 # --- Backend HPA (prod) -----------------------------------------------------
