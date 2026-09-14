@@ -22,17 +22,28 @@ export const NAV_DESTINATIONS: readonly NavDestination[] = [
   { id: 'alerts', label: 'Alerts', path: '/alerts' },
 ];
 
-/** Whether a destination is the active one for the current URL. */
-export function isActiveDestination(id: NavId, url: string): boolean {
+/**
+ * Whether a destination is the active one for the current URL.
+ *
+ * @param myTeamSlugs The viewer's own teams. "My team" lights up only inside one of them (GH #279):
+ * every team lives under `/t/:slug`, and lighting it for any of those told a visitor that someone
+ * else's team was theirs. On another team's page no destination is active — the viewer is not in
+ * any of them.
+ */
+export function isActiveDestination(id: NavId, url: string, myTeamSlugs: readonly string[] = []): boolean {
   const path = url.split('?')[0].split('#')[0];
   switch (id) {
     case 'home':
       return path === '/' || path === '';
     case 'browse':
       return path.startsWith('/browse');
-    case 'my-team':
-      // A team space (/t/:slug) and the multi-team chooser both light up "My team".
-      return path.startsWith('/t/') || path.startsWith('/my-team');
+    case 'my-team': {
+      if (path.startsWith('/my-team')) {
+        return true;
+      }
+      const team = /^\/t\/([^/]+)/.exec(path)?.[1];
+      return team !== undefined && myTeamSlugs.includes(decodeURIComponent(team));
+    }
     case 'chat':
       // The inbox and any open conversation (/chat/:id) both light up "Chat".
       return path.startsWith('/chat');

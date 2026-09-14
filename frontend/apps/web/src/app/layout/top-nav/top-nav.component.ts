@@ -45,8 +45,10 @@ export class TopNavComponent {
   protected readonly myTeamHref = this.membership.myTeamTarget;
 
   protected active(id: NavId): boolean {
-    return isActiveDestination(id, this.url());
+    return isActiveDestination(id, this.url(), this.mySlugs());
   }
+
+  private readonly mySlugs = computed(() => this.membership.teams().map((t) => t.slug));
 
   protected readonly homeActive = computed(() => this.active('home'));
   protected readonly browseActive = computed(() => this.active('browse'));

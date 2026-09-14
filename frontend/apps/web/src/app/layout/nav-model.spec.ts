@@ -18,10 +18,21 @@ describe('nav-model', () => {
       expect(isActiveDestination('browse', '/')).toBe(false);
     });
 
-    it('marks My team active on a team space or the chooser', () => {
-      expect(isActiveDestination('my-team', '/t/bloodhounds')).toBe(true);
+    it('marks My team active on one of the viewer\'s own teams or the chooser', () => {
+      expect(isActiveDestination('my-team', '/t/bloodhounds', ['bloodhounds'])).toBe(true);
+      expect(isActiveDestination('my-team', '/t/bloodhounds/trainings', ['bloodhounds'])).toBe(true);
       expect(isActiveDestination('my-team', '/my-team')).toBe(true);
-      expect(isActiveDestination('my-team', '/browse')).toBe(false);
+      expect(isActiveDestination('my-team', '/browse', ['bloodhounds'])).toBe(false);
+    });
+
+    it('does not mark My team active on a team the viewer is not on (GH #279)', () => {
+      // Every team lives under /t/:slug. Lighting "My team" for any of them told a guest who had
+      // opened another team's trainings that the team was theirs.
+      expect(isActiveDestination('my-team', '/t/kiel-krakens', ['bloodhounds'])).toBe(false);
+      expect(isActiveDestination('my-team', '/t/kiel-krakens/trainings', ['bloodhounds'])).toBe(false);
+      expect(isActiveDestination('my-team', '/t/bloodhounds')).toBe(false); // memberships not loaded yet
+      // A prefix is not a match.
+      expect(isActiveDestination('my-team', '/t/bloodhounds-b', ['bloodhounds'])).toBe(false);
     });
 
     it('marks Alerts active on /alerts', () => {
