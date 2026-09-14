@@ -70,6 +70,20 @@ server {
             client_max_body_size 104m;
             proxy_request_buffering off;
         }
+
+        # The three image uploads (#101, avatars) are the other routes whose body outgrows nginx's
+        # 1 MB default: all three carry the raw image and the backend accepts up to its
+        # [RequestSizeLimit] of 8 MB, which is also the limit the upload dialogs state to the user.
+        # Without this a 1-8 MB image is refused out here, before the backend ever sees it, and the
+        # browser gets an HTML error page from nginx or the edge instead of a ProblemDetails the app
+        # can translate (#293). 9m = 8 MB + framing (the avatar route is multipart).
+        #
+        # Buffering stays ON, unlike the chat send above: 8 MB does not threaten the 256Mi /tmp.
+        # proxy_set_header is inherited; proxy_pass is not.
+        location ~ ^/api/v1/(profiles/me/avatar|admin/(badges|achievements)/[0-9a-fA-F-]+/icon)$ {
+            proxy_pass http://backend:8080;
+            client_max_body_size 9m;
+        }
     }
 
     # Real-time notifications hub (feature 010) — same backend, but the SignalR

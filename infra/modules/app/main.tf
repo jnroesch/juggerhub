@@ -56,6 +56,16 @@ locals {
     "nginx.ingress.kubernetes.io/proxy-body-size"         = "104m"
     "nginx.ingress.kubernetes.io/proxy-request-buffering" = "off"
   }
+
+  # The image-upload Ingress (#293). Same 1 MB default, same failure: an avatar or a badge/
+  # achievement icon between 1 MB and the backend's 8 MB [RequestSizeLimit] — the limit the upload
+  # dialogs state to the user — was refused at the edge, and the browser was handed an HTML error
+  # page no part of the app can translate. Buffering stays ON: 8 MB is nothing like the chat send's
+  # 104 MB, so there is no reason to give up the controller's shielding of the origin.
+  media_upload_ingress_annotations = {
+    "nginx.ingress.kubernetes.io/ssl-redirect"    = tostring(var.enable_tls)
+    "nginx.ingress.kubernetes.io/proxy-body-size" = "9m"
+  }
 }
 
 resource "kubernetes_namespace_v1" "app" {
@@ -897,6 +907,62 @@ resource "kubernetes_ingress_v1" "chat_upload" {
               name = kubernetes_service_v1.frontend.metadata[0].name
               port {
                 number = 80
+              }
+            }
+          }
+        }
+      }
+    }
+    # The certificate the main Ingress requests, reused — not a second one.
+    dynamic "tls" {
+      for_each = var.enable_tls ? [1] : []
+      content {
+        hosts       = [var.app_hostname]
+        secret_name = "${replace(var.app_hostname, ".", "-")}-tls"
+      }
+    }
+  }
+}
+
+# --- Image-upload Ingress: larger bodies for the three image routes (#293) ----
+# Same host, merged like the hubs and chat-upload Ingresses, and routed to the FRONTEND Service so
+# the path to the backend and its client-IP handling are unchanged.
+#
+# The two icon routes carry a definition id in the middle, so all three are matched by prefix. That
+# also raises the ceiling on the rest of the admin badge/achievement routes, which is harmless (small
+# JSON bodies behind the PlatformAdmin policy) and is the same trade the chat-upload Ingress makes:
+# exact matching would need `use-regex`, which ingress-nginx then applies to EVERY path on the host.
+# The precise scoping lives one hop in, in the frontend nginx, which keeps its 1 MB default on all of
+# these except the three uploads themselves.
+resource "kubernetes_ingress_v1" "media_upload" {
+  metadata {
+    name        = "juggerhub-media-upload"
+    namespace   = kubernetes_namespace_v1.app.metadata[0].name
+    annotations = local.media_upload_ingress_annotations
+  }
+  spec {
+    ingress_class_name = var.ingress_class_name
+    rule {
+      host = var.app_hostname
+      http {
+        # `iterator` because the default one would be named after the block and shadow Terraform's
+        # built-in `path` object inside it.
+        dynamic "path" {
+          for_each = [
+            "/api/v1/profiles/me/avatar",
+            "/api/v1/admin/badges",
+            "/api/v1/admin/achievements",
+          ]
+          iterator = route
+          content {
+            path      = route.value
+            path_type = "Prefix"
+            backend {
+              service {
+                name = kubernetes_service_v1.frontend.metadata[0].name
+                port {
+                  number = 80
+                }
               }
             }
           }
