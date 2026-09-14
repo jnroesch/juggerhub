@@ -92,6 +92,9 @@ public interface IProfileService
     /// <summary>The user's immutable handle (their profile slug), or null if they have no profile.</summary>
     Task<string?> GetHandleAsync(Guid userId, CancellationToken ct = default);
 
+    /// <summary>True iff the user's profile has an avatar; false if none or no profile.</summary>
+    Task<bool> HasAvatarAsync(Guid userId, CancellationToken ct = default);
+
     /// <summary>The user's structured home city id (feature 030), or null if unset/no profile.
     /// Used to anchor "near you" proximity ordering server-side.</summary>
     Task<Guid?> GetHomeCityIdAsync(Guid userId, CancellationToken ct = default);

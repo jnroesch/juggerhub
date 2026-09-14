@@ -326,6 +326,23 @@ public sealed class ProfileTests
         Assert.Equal(before, after);
     }
 
+    [Fact]
+    public async Task Session_user_reports_whether_the_player_has_an_avatar()
+    {
+        // GH #283: the top nav decides between the avatar image and the initial from /auth/me.
+        var (client, _, _) = await RegisterVerifyLoginAsync();
+
+        var fresh = await client.GetFromJsonAsync<JsonElement>("/api/v1/auth/me");
+        Assert.False(fresh.GetProperty("hasAvatar").GetBoolean());
+
+        using var content = new MultipartFormDataContent();
+        content.Add(new ByteArrayContent(MinimalPng()), "file", "avatar.png");
+        (await client.PutAsync("/api/v1/profiles/me/avatar", content)).EnsureSuccessStatusCode();
+
+        var uploaded = await client.GetFromJsonAsync<JsonElement>("/api/v1/auth/me");
+        Assert.True(uploaded.GetProperty("hasAvatar").GetBoolean());
+    }
+
     // --- US4: recent activity -------------------------------------------------
 
     [Fact]
