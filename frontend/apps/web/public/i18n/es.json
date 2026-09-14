@@ -760,7 +760,20 @@
     "browse": "Explorar",
     "myTeam": "Mi equipo",
     "chat": "Chat",
-    "alerts": "Notificaciones"
+    "alerts": "Notificaciones",
+    "primary": "Navegación principal",
+    "unreadLabel": "{{label}}, {{count}} sin leer",
+    "unreadMessages": "{{count}} mensajes sin leer",
+    "accountMenu": "Menú de la cuenta",
+    "account": "Cuenta",
+    "create": "Crear",
+    "createEvent": "Crear evento",
+    "createTeam": "Crear equipo",
+    "profile": "Perfil",
+    "notificationSettings": "Ajustes de notificaciones",
+    "sendFeedback": "Enviar comentarios",
+    "adminPanel": "Administración",
+    "signOut": "Cerrar sesión"
   },
   "legal": {
     "footerLabel": "Información legal y del sitio",

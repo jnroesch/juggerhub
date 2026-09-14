@@ -1,5 +1,6 @@
 import { Component, ElementRef, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 import { MembershipService } from '../../core/services/membership.service';
 import { ProfileService } from '../../core/services/profile.service';
@@ -12,7 +13,7 @@ import { RecognitionAdminService } from '../../core/services/recognition-admin.s
  */
 @Component({
   selector: 'jh-avatar-menu',
-  imports: [RouterLink],
+  imports: [RouterLink, TranslocoPipe],
   templateUrl: './avatar-menu.component.html',
   styleUrl: './avatar-menu.component.css',
 })

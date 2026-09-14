@@ -760,7 +760,20 @@
     "browse": "Entdecken",
     "myTeam": "Mein Team",
     "chat": "Chat",
-    "alerts": "Meldungen"
+    "alerts": "Meldungen",
+    "primary": "Hauptnavigation",
+    "unreadLabel": "{{label}}, {{count}} ungelesen",
+    "unreadMessages": "{{count}} ungelesene Nachrichten",
+    "accountMenu": "Kontomenü",
+    "account": "Konto",
+    "create": "Erstellen",
+    "createEvent": "Event erstellen",
+    "createTeam": "Team erstellen",
+    "profile": "Profil",
+    "notificationSettings": "Meldungseinstellungen",
+    "sendFeedback": "Feedback senden",
+    "adminPanel": "Adminbereich",
+    "signOut": "Abmelden"
   },
   "legal": {
     "footerLabel": "Rechtliches und Seiteninformationen",

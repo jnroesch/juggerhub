@@ -3,12 +3,18 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { computed } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { Translation, TranslocoService } from '@jsverse/transloco';
 import { of } from 'rxjs';
+import { translocoTestingModule } from '../../../testing/transloco-testing';
 import { AuthUser } from '../../core/models/auth.models';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { RecognitionAdminService } from '../../core/services/recognition-admin.service';
 import { AvatarMenuComponent } from './avatar-menu.component';
+
+// JSON via require: a default import resolves to `undefined` under this Jest config (see transloco-testing).
+const en: Translation = require('../../../../public/i18n/en.json');
+const de: Translation = require('../../../../public/i18n/de.json');
 
 const USER: AuthUser = {
   id: 'u1',
@@ -52,7 +58,7 @@ describe('AvatarMenuComponent — own avatar (GH #283)', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [AvatarMenuComponent],
+      imports: [AvatarMenuComponent, translocoTestingModule()],
       providers: [
         provideRouter([]),
         provideHttpClient(withXhr()),
@@ -122,5 +128,59 @@ describe('AvatarMenuComponent — own avatar (GH #283)', () => {
     fixture.detectChanges();
 
     expect(image(fixture)).toBeNull();
+  });
+});
+
+/**
+ * GH #287 — the menu was hard-coded in English, so it stayed English under German or Spanish.
+ * Renders it in German and checks every label against the catalogue, admin entry included.
+ */
+describe('AvatarMenuComponent — translated (GH #287)', () => {
+  const MENU_KEYS = [
+    'create',
+    'createEvent',
+    'createTeam',
+    'profile',
+    'account',
+    'notificationSettings',
+    'sendFeedback',
+    'adminPanel',
+    'signOut',
+  ];
+  const nav = (catalog: Translation, key: string): string => (catalog['nav'] as Translation)[key] as string;
+
+  it('renders every label and aria-label in the active language', () => {
+    TestBed.configureTestingModule({
+      imports: [AvatarMenuComponent, translocoTestingModule({ en, de })],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(withXhr()),
+        provideHttpClientTesting(),
+        {
+          provide: RecognitionAdminService,
+          useValue: { isAdmin: computed(() => true), checkAccess: () => of(true) },
+        },
+      ],
+    });
+    TestBed.inject(TranslocoService).setActiveLang('de');
+    const httpMock = TestBed.inject(HttpTestingController);
+    TestBed.inject(AuthService).loadSession().subscribe();
+    httpMock.expectOne('/api/v1/auth/me').flush(USER);
+
+    const fixture = TestBed.createComponent(AvatarMenuComponent);
+    fixture.detectChanges();
+    const button: HTMLElement = fixture.nativeElement.querySelector('[data-testid="avatar-menu-button"]');
+    button.click();
+    fixture.detectChanges();
+
+    const menu: HTMLElement = fixture.nativeElement.querySelector('[data-testid="avatar-menu"]');
+    expect(button.getAttribute('aria-label')).toBe(nav(de, 'accountMenu'));
+    expect(menu.getAttribute('aria-label')).toBe(nav(de, 'account'));
+    const text = menu.textContent ?? '';
+    for (const key of MENU_KEYS) {
+      expect(text).toContain(nav(de, key));
+      expect(text).not.toContain(nav(en, key));
+    }
+    httpMock.verify();
   });
 });

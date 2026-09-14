@@ -756,7 +756,20 @@
     "browse": "Browse",
     "myTeam": "My team",
     "chat": "Chat",
-    "alerts": "Alerts"
+    "alerts": "Alerts",
+    "primary": "Primary",
+    "unreadLabel": "{{label}}, {{count}} unread",
+    "unreadMessages": "{{count}} unread messages",
+    "accountMenu": "Account menu",
+    "account": "Account",
+    "create": "Create",
+    "createEvent": "Create event",
+    "createTeam": "Create team",
+    "profile": "Profile",
+    "notificationSettings": "Notification settings",
+    "sendFeedback": "Send feedback",
+    "adminPanel": "Admin panel",
+    "signOut": "Sign out"
   },
   "legal": {
     "footerLabel": "Legal and site information",
