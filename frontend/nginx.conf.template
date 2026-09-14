@@ -56,6 +56,20 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto $jh_forwarded_proto;
+
+        # Chat send (feature 049 / #282) is the one API route whose body can exceed nginx's 1 MB
+        # default: a message may carry 10 files of 10 MB each. The ceiling mirrors the backend
+        # action's [RequestSizeLimit] (10 x 10 MB + 4 MB framing), which stays the real check.
+        # Scoped to this route so every other endpoint keeps the 1 MB guard.
+        #
+        # Request buffering is OFF so the body streams to the backend instead of spilling to /tmp:
+        # in AKS /tmp is a 256Mi emptyDir, and exceeding it EVICTS the pod — a few concurrent
+        # maximum-size sends would do it. proxy_set_header is inherited; proxy_pass is not.
+        location ~ ^/api/v1/chat/conversations/[0-9a-fA-F-]+/messages$ {
+            proxy_pass http://backend:8080;
+            client_max_body_size 104m;
+            proxy_request_buffering off;
+        }
     }
 
     # Real-time notifications hub (feature 010) — same backend, but the SignalR
