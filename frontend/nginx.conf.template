@@ -239,6 +239,18 @@ server {
         proxy_next_upstream off;
     }
 
+    # Translation catalogues (feature 031), the legal ones included, are fetched at fixed,
+    # unversioned URLs (/i18n/en.json) — unlike the hashed bundles that use them. With a
+    # Last-Modified and no Cache-Control, a browser may reuse its copy without asking, for about a
+    # tenth of the file's age. After a deploy the NEW bundle then runs against the OLD catalogue and
+    # every string added since renders as its raw key ("events.results.treeView"). no-cache keeps
+    # the copy but makes the browser ask first; the ETag turns that into a 304. A missing catalogue
+    # is a 404, never the SPA's index.html served as JSON.
+    location /i18n/ {
+        add_header Cache-Control "no-cache" always;
+        try_files $uri =404;
+    }
+
     # SPA fallback: serve index.html for client-side routes.
     location / {
         try_files $uri $uri/ /index.html;
