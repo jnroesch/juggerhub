@@ -144,6 +144,13 @@ export const appRoutes: Route[] = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/events/event-admins/event-admins.component').then((m) => m.EventAdminsComponent),
       },
+      // Tournament results (feature 050) — the event admins' results page: ranking, Tugeny link/import, team list.
+      {
+        path: 'events/:id/results',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/events/event-results/event-results.component').then((m) => m.EventResultsPageComponent),
+      },
       // Event parties (feature 016) — form from an event; the crew is managed under /parties/:id.
       {
         path: 'events/:id/enter-party',

@@ -1,0 +1,149 @@
+<section class="mx-auto max-w-container-md px-md py-lg lg:max-w-container-lg" data-testid="event-results-page">
+  @if (loading()) {
+    <jh-loading />
+  } @else if (forbidden()) {
+    <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center" data-testid="results-not-admin">
+      <p class="text-body-lg font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-subtle">{{ 'events.results.notAdmin' | transloco }}</p>
+    </div>
+  } @else if (loadError()) {
+    <jh-alert tone="danger">{{ 'events.results.loadError' | transloco }}</jh-alert>
+    <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
+  } @else if (editor(); as e) {
+    <a [routerLink]="['/events', e.eventId]" class="text-body-sm text-subtle hover:text-text" data-testid="results-back">‹ {{ e.eventName }}</a>
+    <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'events.results.title' | transloco }}</h1>
+    <p class="text-body-sm text-subtle">{{ e.eventName }}</p>
+
+    @if (!e.isTournament) {
+      <div class="mt-lg">
+        <jh-empty-state>{{ 'events.results.notATournament' | transloco }}</jh-empty-state>
+      </div>
+    } @else {
+      <div class="mt-lg space-y-md lg:grid lg:grid-cols-3 lg:items-start lg:gap-lg lg:space-y-0">
+        <!-- The ranking (US1, US2) -->
+        <jh-card class="p-md lg:col-span-2" data-testid="ranking-editor">
+          <h2 class="text-body-lg font-semibold text-heading">{{ 'events.results.editor.title' | transloco }}</h2>
+
+          @if (e.isCancelled) {
+            <div class="mt-sm"><jh-empty-state inline>{{ 'events.results.cancelled' | transloco }}</jh-empty-state></div>
+          } @else if (!e.hasStarted) {
+            <div class="mt-sm"><jh-empty-state inline>{{ 'events.results.notStarted' | transloco }}</jh-empty-state></div>
+          } @else {
+            <p class="mt-xs text-body-sm text-body">{{ 'events.results.editor.hint' | transloco }}</p>
+            @if (e.source === 'TugenyImport' && e.importedAt; as importedAt) {
+              <p class="mt-xs text-caption text-subtle" data-testid="editor-imported">
+                {{ 'events.results.importedOn' | transloco: { date: (importedAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' }) } }}@if (e.editedSinceImport) {<span> · {{ 'events.results.editedSince' | transloco }}</span>}
+              </p>
+            }
+
+            <!-- Paste from Tugeny -->
+            @if (pasteOpen()) {
+              <div class="mt-md rounded-md border border-border bg-surface-sunken p-sm" data-testid="paste-panel">
+                <label for="tugeny-paste" class="text-body-sm font-semibold text-heading">{{ 'events.results.paste.title' | transloco }}</label>
+                <p class="mt-2xs text-caption text-subtle">{{ 'events.results.paste.hint' | transloco }}</p>
+                <textarea id="tugeny-paste" rows="6" spellcheck="false"
+                  class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm font-mono text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+                  [value]="pasteText()" (input)="pasteText.set($any($event.target).value)" data-testid="paste-text"></textarea>
+                @if (pasteError()) {
+                  <div class="mt-xs"><jh-alert tone="danger">{{ 'events.results.paste.unreadable' | transloco }}</jh-alert></div>
+                }
+                <div class="mt-sm flex flex-wrap gap-xs">
+                  <button type="button" jhButton variant="secondary" size="sm" (click)="readPaste()" data-testid="paste-read">{{ 'events.results.paste.read' | transloco }}</button>
+                  <button type="button" jhButton variant="ghost" size="sm" (click)="closePaste()">{{ 'common.cancel' | transloco }}</button>
+                </div>
+              </div>
+            }
+            @if (draftFromPaste()) {
+              <div class="mt-sm"><jh-alert tone="info">{{ 'events.results.paste.draftLoaded' | transloco }}</jh-alert></div>
+            }
+
+            <!-- Rows -->
+            <ol class="mt-md flex flex-col gap-xs" data-testid="ranking-rows">
+              @for (row of rows(); track row.key; let i = $index) {
+                <li class="flex flex-wrap items-start gap-sm rounded-md border border-border bg-surface-card p-sm" data-testid="ranking-row">
+                  <label class="sr-only" [for]="'pos-' + row.key">{{ 'events.results.editor.position' | transloco }}</label>
+                  <input [id]="'pos-' + row.key" type="number" min="1" max="999" inputmode="numeric"
+                    class="h-11 w-16 shrink-0 rounded-md border border-border-strong bg-surface-card px-xs text-center font-mono text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+                    [value]="row.position" (input)="setPosition(row.key, $any($event.target).value)" data-testid="row-position" />
+
+                  @if (row.locked; as locked) {
+                    <div class="min-w-0 flex-1 py-xs" data-testid="row-locked">
+                      <p class="break-words text-body-md font-semibold text-heading">{{ locked.teamName }}</p>
+                      <p class="text-caption text-subtle">{{ 'events.results.editor.connectedByAdmin' | transloco }}</p>
+                    </div>
+                  } @else {
+                    <div class="flex min-w-0 flex-1 flex-col gap-xs">
+                      @if (signedUpTeams().length > 0) {
+                        <label class="sr-only" [for]="'team-' + row.key">{{ 'events.results.editor.teamSelect' | transloco }}</label>
+                        <select [id]="'team-' + row.key"
+                          class="h-11 w-full rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+                          (change)="setTeam(row.key, $any($event.target).value)" data-testid="row-team">
+                          <option value="" [selected]="!row.teamId">{{ 'events.results.editor.typeName' | transloco }}</option>
+                          @for (t of signedUpTeams(); track t.teamId) {
+                            <option [value]="t.teamId" [selected]="row.teamId === t.teamId" [disabled]="takenTeams().has(t.teamId) && row.teamId !== t.teamId">{{ t.teamName }}</option>
+                          }
+                        </select>
+                      }
+                      @if (!row.teamId) {
+                        <label class="sr-only" [for]="'name-' + row.key">{{ 'events.results.editor.freeName' | transloco }}</label>
+                        <input [id]="'name-' + row.key" type="text" [maxLength]="maxName"
+                          class="h-11 w-full rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+                          [placeholder]="'events.results.editor.freeNamePlaceholder' | transloco"
+                          [value]="row.name" (input)="setName(row.key, $any($event.target).value)" data-testid="row-name" />
+                      }
+                    </div>
+                  }
+
+                  <button type="button" jhButton variant="ghost" size="sm" (click)="removeRow(row.key)"
+                    [attr.aria-label]="'events.results.editor.removeRow' | transloco: { row: i + 1 }" data-testid="row-remove">
+                    {{ 'events.results.editor.remove' | transloco }}
+                  </button>
+                </li>
+              }
+            </ol>
+
+            <div class="mt-sm flex flex-wrap gap-xs">
+              <button type="button" jhButton variant="ghost" size="sm" (click)="addRow()" [disabled]="!canAddRow()" data-testid="row-add">{{ 'events.results.editor.addRow' | transloco }}</button>
+              @if (!pasteOpen()) {
+                <button type="button" jhButton variant="secondary" size="sm" (click)="openPaste()" data-testid="paste-open">{{ 'events.results.paste.open' | transloco }}</button>
+              }
+            </div>
+
+            @if (saveError(); as message) {
+              <div class="mt-md"><jh-alert tone="danger">{{ message }}</jh-alert></div>
+            }
+            @if (saved()) {
+              <div class="mt-md"><jh-alert tone="success">{{ 'events.results.editor.saved' | transloco }}</jh-alert></div>
+            }
+            @if (confirmReplace()) {
+              <div class="mt-md"><jh-alert tone="warning">{{ 'events.results.replaceWarning' | transloco }}</jh-alert></div>
+            }
+
+            <div class="mt-md flex flex-wrap items-center gap-sm border-t border-border pt-md">
+              <button type="button" jhButton (click)="save()" [disabled]="saving() || rows().length === 0" data-testid="ranking-save">
+                {{ (confirmReplace() ? 'events.results.replaceConfirm' : 'events.results.editor.save') | transloco }}
+              </button>
+              @if (savedCount() > 0) {
+                @if (confirmClear()) {
+                  <span class="text-body-sm text-body">{{ 'events.results.editor.clearConfirm' | transloco }}</span>
+                  <button type="button" jhButton variant="danger" size="sm" (click)="clear()" [disabled]="saving()" data-testid="ranking-clear-confirm">{{ 'events.results.editor.clear' | transloco }}</button>
+                  <button type="button" jhButton variant="ghost" size="sm" (click)="confirmClear.set(false)">{{ 'common.cancel' | transloco }}</button>
+                } @else {
+                  <button type="button" jhButton variant="ghost" size="sm" (click)="clear()" [disabled]="saving()" data-testid="ranking-clear">{{ 'events.results.editor.clear' | transloco }}</button>
+                }
+              }
+            </div>
+          }
+        </jh-card>
+
+        <!-- Tugeny: link + import (US4), and the team list for its import dialog (US3) -->
+        <div class="space-y-md lg:col-span-1">
+          <jh-tugeny-link-card [editor]="e" (changed)="reloadAfterWrite()" />
+          @if (e.participantMode === 'Teams') {
+            <jh-tugeny-team-list-card [eventId]="e.eventId" />
+          }
+        </div>
+      </div>
+    }
+  }
+</section>

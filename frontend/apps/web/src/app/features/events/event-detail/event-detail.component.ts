@@ -14,6 +14,7 @@ import { EventContactsListComponent } from './components/contacts-list.component
 import { EventJoinActionsComponent } from './components/join-actions.component';
 import { EventNewsFeedComponent } from './components/news-feed.component';
 import { EventParticipantGroupsComponent } from './components/participant-groups.component';
+import { EventResultsComponent } from './components/event-results.component';
 import { MarketBoardComponent } from '../../marketplace/market-board/market-board.component';
 
 /**
@@ -33,6 +34,7 @@ import { MarketBoardComponent } from '../../marketplace/market-board/market-boar
     EventNewsFeedComponent,
     EventContactsListComponent,
     EventJoinActionsComponent,
+    EventResultsComponent,
     MarketBoardComponent,
     LoadingComponent,
     TranslocoPipe,

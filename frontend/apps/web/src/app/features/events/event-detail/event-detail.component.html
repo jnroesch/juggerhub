@@ -60,6 +60,11 @@
     <div class="mt-lg lg:grid lg:grid-cols-3 lg:gap-lg">
       <!-- Main column -->
       <div class="space-y-md lg:col-span-2">
+        <!-- Results (feature 050 — tournaments only): first, because after a tournament it is what people come for -->
+        @if (d.type === 'Tournament') {
+          <jh-event-results [eventId]="d.id" [endsAt]="d.endsAt" />
+        }
+
         <!-- Details -->
         <div class="rounded-lg border border-border bg-surface-card p-md">
           <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.about' | transloco }}</h2>
@@ -113,6 +118,9 @@
               @if (menuOpen()) {
                 <div class="mb-xs overflow-hidden rounded-md border border-border bg-surface-card" data-testid="manage-menu-panel">
                   <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.manageParticipants' | transloco }}</a>
+                  @if (d.type === 'Tournament') {
+                    <a [routerLink]="['/events', d.id, 'results']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken" data-testid="manage-results">{{ 'events.detail.manageResults' | transloco }}</a>
+                  }
                   <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.editDetails' | transloco }}</a>
                   <a [routerLink]="['/events', d.id, 'contacts']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.manageContacts' | transloco }}</a>
                   <a [routerLink]="['/events', d.id, 'admins']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.inviteCoAdmins' | transloco }}</a>
