@@ -1,0 +1,50 @@
+<!-- Bottom sheet on mobile, centered dialog on desktop. Host renders this while open. -->
+<div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-md" role="presentation">
+  <div
+    class="flex max-h-[90vh] w-full max-w-container-sm flex-col overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'admin.results.pickTeam' | transloco"
+    data-testid="team-picker"
+  >
+    <div class="flex items-center justify-between gap-sm border-b border-border-muted px-md py-sm">
+      <h3 class="min-w-0 break-words text-body-lg font-semibold text-heading">{{ 'admin.results.pickTeamFor' | transloco: { name: subjectLabel() } }}</h3>
+      <button type="button" (click)="close()" class="shrink-0 text-muted hover:text-body" [attr.aria-label]="'admin.assign.close' | transloco">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M18 6 6 18M6 6l12 12" /></svg>
+      </button>
+    </div>
+
+    <div class="border-b border-border-muted p-md">
+      <label for="team-picker-search" class="sr-only">{{ 'admin.results.searchTeams' | transloco }}</label>
+      <input id="team-picker-search" type="search" autocomplete="off"
+        class="h-11 w-full rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+        [placeholder]="'admin.results.searchTeams' | transloco" [value]="q()" (input)="onType($any($event.target).value)"
+        data-testid="team-picker-search" />
+    </div>
+
+    <div class="min-h-0 flex-1 overflow-y-auto p-md">
+      @if (loading()) {
+        <jh-loading />
+      } @else if (error()) {
+        <p class="text-body-sm text-danger-fg" role="alert">{{ error() }}</p>
+      } @else if (items().length === 0) {
+        <p class="text-body-sm text-faint">{{ 'admin.results.noTeamsFound' | transloco }}</p>
+      } @else {
+        <ul class="flex flex-col gap-xs">
+          @for (t of items(); track t.slug) {
+            <li>
+              <button type="button" (click)="pick(t)" [attr.data-testid]="'pick-team-' + t.slug"
+                class="flex min-h-11 w-full items-center justify-between gap-sm rounded-md border border-border-muted px-md py-xs text-left hover:bg-surface-sunken">
+                <span class="min-w-0">
+                  <span class="block break-words text-body-md font-semibold text-heading">{{ t.name }}</span>
+                  @if (t.location) { <span class="block text-caption text-subtle">{{ t.location }}</span> }
+                </span>
+                <span class="shrink-0 font-mono text-caption text-subtle">/t/{{ t.slug }}</span>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  </div>
+</div>

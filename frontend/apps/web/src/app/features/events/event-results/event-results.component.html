@@ -63,7 +63,7 @@
                 <li class="flex flex-wrap items-start gap-sm rounded-md border border-border bg-surface-card p-sm" data-testid="ranking-row">
                   <label class="sr-only" [for]="'pos-' + row.key">{{ 'events.results.editor.position' | transloco }}</label>
                   <input [id]="'pos-' + row.key" type="number" min="1" max="999" inputmode="numeric"
-                    class="h-11 w-16 shrink-0 rounded-md border border-border-strong bg-surface-card px-xs text-center font-mono text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+                    class="h-11 w-14 shrink-0 rounded-md border border-border-strong bg-surface-card px-xs text-center font-mono text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
                     [value]="row.position" (input)="setPosition(row.key, $any($event.target).value)" data-testid="row-position" />
 
                   @if (row.locked; as locked) {
@@ -76,7 +76,7 @@
                       @if (signedUpTeams().length > 0) {
                         <label class="sr-only" [for]="'team-' + row.key">{{ 'events.results.editor.teamSelect' | transloco }}</label>
                         <select [id]="'team-' + row.key"
-                          class="h-11 w-full rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+                          class="h-11 w-full rounded-md border border-border-strong bg-surface-card pl-sm pr-xs text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
                           (change)="setTeam(row.key, $any($event.target).value)" data-testid="row-team">
                           <option value="" [selected]="!row.teamId">{{ 'events.results.editor.typeName' | transloco }}</option>
                           @for (t of signedUpTeams(); track t.teamId) {
@@ -94,9 +94,12 @@
                     </div>
                   }
 
-                  <button type="button" jhButton variant="ghost" size="sm" (click)="removeRow(row.key)"
-                    [attr.aria-label]="'events.results.editor.removeRow' | transloco: { row: i + 1 }" data-testid="row-remove">
-                    {{ 'events.results.editor.remove' | transloco }}
+                  <!-- Icon-only so the team control keeps its width at 375px; named for screen readers and on hover. -->
+                  <button type="button" (click)="removeRow(row.key)"
+                    class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                    [attr.aria-label]="'events.results.editor.removeRow' | transloco: { row: i + 1 }"
+                    [attr.title]="'events.results.editor.remove' | transloco" data-testid="row-remove">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
                   </button>
                 </li>
               }
@@ -139,7 +142,8 @@
         <!-- Tugeny: link + import (US4), and the team list for its import dialog (US3) -->
         <div class="space-y-md lg:col-span-1">
           <jh-tugeny-link-card [editor]="e" (changed)="reloadAfterWrite()" />
-          @if (e.participantMode === 'Teams') {
+          <!-- The team list is for setting up the bracket — pointless once the tournament is over. -->
+          @if (e.participantMode === 'Teams' && !e.hasEnded) {
             <jh-tugeny-team-list-card [eventId]="e.eventId" />
           }
         </div>

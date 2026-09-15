@@ -52,6 +52,16 @@
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>
       {{ 'admin.nav.catalogue' | transloco }}
     </a>
+    <a
+      routerLink="/admin/results"
+      class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
+      [class]="resultsActive() ? 'bg-surface-accent-soft text-brand-active font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [attr.aria-current]="resultsActive() ? 'page' : null"
+      data-testid="admin-nav-results"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+      {{ 'admin.nav.results' | transloco }}
+    </a>
   </nav>
 
   <main class="min-w-0 flex-1">
@@ -104,5 +114,15 @@
   >
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>
     {{ 'admin.nav.catalogue' | transloco }}
+  </a>
+  <a
+    routerLink="/admin/results"
+    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast"
+    [class]="resultsActive() ? 'text-brand-active font-semibold' : 'text-subtle'"
+    [attr.aria-current]="resultsActive() ? 'page' : null"
+    data-testid="admin-nav-results"
+  >
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+    {{ 'admin.nav.results' | transloco }}
   </a>
 </nav>

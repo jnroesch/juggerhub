@@ -19,6 +19,7 @@ import { PartyRequestCard } from '../../../core/models/party.models';
 import { problemDetail } from '../../../core/utils/problem';
 import { RecognitionDisplayComponent } from '../../profile/components/recognition-display/recognition-display.component';
 import { TeamHappeningsComponent } from './happenings/team-happenings.component';
+import { TeamPlacementsComponent } from './placements/team-placements.component';
 
 /**
  * The team page (feature 009). Public to everyone: overview, roster (names + positions),
@@ -28,7 +29,7 @@ import { TeamHappeningsComponent } from './happenings/team-happenings.component'
  */
 @Component({
   selector: 'jh-team-detail',
-  imports: [RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, ButtonDirective, EmptyStateComponent, CardComponent, TranslocoPipe],
+  imports: [RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, ButtonDirective, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './team-detail.component.html',
   styleUrl: './team-detail.component.css',
 })

@@ -7,8 +7,9 @@ import { filter, map } from 'rxjs';
 /**
  * The admin area shell (feature 013, wireframe 1a/1b): its own shield header with a
  * clear "Back to app", a sidebar on desktop and a bottom tab bar on mobile
- * (Overview · Users · Catalogue), and the routed admin pages inside. Rendering is
- * UX only — every admin operation is enforced server-side by the PlatformAdmin policy.
+ * (Overview · Users · Teams · Catalogue · Results), and the routed admin pages inside.
+ * Rendering is UX only — every admin operation is enforced server-side by the
+ * PlatformAdmin policy.
  */
 @Component({
   selector: 'jh-admin-shell',
@@ -37,4 +38,6 @@ export class AdminShellComponent {
   protected readonly teamsActive = computed(() => this.url().split('?')[0].startsWith('/admin/teams'));
 
   protected readonly catalogueActive = computed(() => this.url().split('?')[0].startsWith('/admin/catalogue'));
+
+  protected readonly resultsActive = computed(() => this.url().split('?')[0].startsWith('/admin/results'));
 }

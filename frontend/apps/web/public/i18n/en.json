@@ -195,6 +195,13 @@
       "teamTools": "Team tools",
       "invites": "Invites",
       "settings": "Settings"
+    },
+    "placements": {
+      "title": "Tournament results",
+      "place": "Place {{position}} of {{count}}",
+      "empty": "No tournament results recorded for this team yet.",
+      "loadMore": "Show older results",
+      "loadError": "We couldn't load the tournament results just now."
     }
   },
   "events": {
@@ -245,7 +252,8 @@
       "joinWaitlist": "Join the waiting list",
       "statusJoined": "You're in",
       "statusAwaiting": "Awaiting approval — pay to confirm your spot",
-      "statusWaitlisted": "On the waiting list — you're not charged unless a spot opens"
+      "statusWaitlisted": "On the waiting list — you're not charged unless a spot opens",
+      "eventOver": "This event is over."
     },
     "participants": {
       "heading": "Who's taking part",
@@ -428,7 +436,7 @@
         "position": "Place",
         "connectedByAdmin": "Linked to this team by a JuggerHub admin",
         "teamSelect": "Team",
-        "typeName": "Type a team name instead",
+        "typeName": "Type a name",
         "freeName": "Team name",
         "freeNamePlaceholder": "Team name",
         "remove": "Remove",
@@ -1022,7 +1030,8 @@
       "overview": "Overview",
       "users": "Users",
       "teams": "Teams",
-      "catalogue": "Catalogue"
+      "catalogue": "Catalogue",
+      "results": "Results"
     },
     "common": {
       "prev": "‹ Prev",
@@ -1264,6 +1273,31 @@
       "retireConfirm": "Retire type",
       "retireError": "Could not retire that type.",
       "reinstateError": "Could not reinstate that type."
+    },
+    "results": {
+      "title": "Tournament results",
+      "lead": "Connect each placement to the team it was, once you've checked it really played. Teams can't do this themselves, and each placement is connected on its own.",
+      "filterLabel": "Which placements",
+      "unconnected": "Not connected",
+      "connected": "Connected",
+      "search": "Search by team name",
+      "empty": "Every placement is connected. Nothing to check right now.",
+      "emptyConnected": "No placement is connected yet.",
+      "place": "Place {{position}} of {{count}}",
+      "fromTugeny": "Imported from Tugeny",
+      "connect": "Connect to a team",
+      "connectedTo": "Connected to",
+      "connectedBy": "by {{name}} on {{date}}",
+      "disconnect": "Disconnect",
+      "disconnectConfirm": "Yes, disconnect",
+      "loading": "Loading placements…",
+      "loadError": "We couldn't load the placements just now.",
+      "alreadyPlaced": "That team already holds a placement in this tournament.",
+      "actionFailed": "That didn't work — try again.",
+      "pickTeam": "Pick a team",
+      "pickTeamFor": "Which team is “{{name}}”?",
+      "searchTeams": "Search teams",
+      "noTeamsFound": "No team matches that search."
     }
   },
   "alerts": {

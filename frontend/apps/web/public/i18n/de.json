@@ -199,6 +199,13 @@
       "teamTools": "Team-Tools",
       "invites": "Einladungen",
       "settings": "Einstellungen"
+    },
+    "placements": {
+      "title": "Turnierergebnisse",
+      "place": "Platz {{position}} von {{count}}",
+      "empty": "Für dieses Team sind noch keine Turnierergebnisse eingetragen.",
+      "loadMore": "Ältere Ergebnisse anzeigen",
+      "loadError": "Wir konnten die Turnierergebnisse gerade nicht laden."
     }
   },
   "events": {
@@ -249,7 +256,8 @@
       "joinWaitlist": "Auf die Warteliste",
       "statusJoined": "Du bist dabei",
       "statusAwaiting": "Wartet auf Bestätigung — zahle, um deinen Platz zu sichern",
-      "statusWaitlisted": "Auf der Warteliste — Kosten entstehen erst, wenn ein Platz frei wird"
+      "statusWaitlisted": "Auf der Warteliste — Kosten entstehen erst, wenn ein Platz frei wird",
+      "eventOver": "Dieses Event ist vorbei."
     },
     "participants": {
       "heading": "Wer dabei ist",
@@ -432,7 +440,7 @@
         "position": "Platz",
         "connectedByAdmin": "Von einem JuggerHub-Admin mit diesem Team verknüpft",
         "teamSelect": "Team",
-        "typeName": "Stattdessen einen Teamnamen eingeben",
+        "typeName": "Name eingeben",
         "freeName": "Teamname",
         "freeNamePlaceholder": "Teamname",
         "remove": "Entfernen",
@@ -1026,7 +1034,8 @@
       "overview": "Übersicht",
       "users": "Nutzer",
       "teams": "Teams",
-      "catalogue": "Katalog"
+      "catalogue": "Katalog",
+      "results": "Ergebnisse"
     },
     "common": {
       "prev": "‹ Zurück",
@@ -1268,6 +1277,31 @@
       "retireConfirm": "Typ stilllegen",
       "retireError": "Dieser Typ konnte nicht stillgelegt werden.",
       "reinstateError": "Dieser Typ konnte nicht reaktiviert werden."
+    },
+    "results": {
+      "title": "Turnierergebnisse",
+      "lead": "Verknüpf jede Platzierung mit dem Team, das es war – nachdem du geprüft hast, dass es wirklich gespielt hat. Teams können das nicht selbst, und jede Platzierung wird einzeln verknüpft.",
+      "filterLabel": "Welche Platzierungen",
+      "unconnected": "Nicht verknüpft",
+      "connected": "Verknüpft",
+      "search": "Nach Teamnamen suchen",
+      "empty": "Alle Platzierungen sind verknüpft. Gerade gibt es nichts zu prüfen.",
+      "emptyConnected": "Noch ist keine Platzierung verknüpft.",
+      "place": "Platz {{position}} von {{count}}",
+      "fromTugeny": "Von Tugeny übernommen",
+      "connect": "Mit einem Team verknüpfen",
+      "connectedTo": "Verknüpft mit",
+      "connectedBy": "von {{name}} am {{date}}",
+      "disconnect": "Verknüpfung lösen",
+      "disconnectConfirm": "Ja, lösen",
+      "loading": "Platzierungen werden geladen …",
+      "loadError": "Wir konnten die Platzierungen gerade nicht laden.",
+      "alreadyPlaced": "Dieses Team hat in diesem Turnier schon eine Platzierung.",
+      "actionFailed": "Das hat nicht geklappt – versuch es noch einmal.",
+      "pickTeam": "Team auswählen",
+      "pickTeamFor": "Welches Team ist „{{name}}“?",
+      "searchTeams": "Teams suchen",
+      "noTeamsFound": "Kein Team passt zu dieser Suche."
     }
   },
   "alerts": {

@@ -44,6 +44,12 @@ export class EventJoinActionsComponent {
   protected readonly canFormParty = computed(() => this.partyContext()?.teams.some((t) => t.canForm) ?? false);
 
   protected readonly cancelled = computed(() => this.detail().status === 'Cancelled');
+  /**
+   * The event is over. Signing up, joining the waiting list and forming a party are all refused
+   * server-side from here on, so none of them is offered — a past-dated tournament (feature 050)
+   * would otherwise show buttons that always fail. The server stays the boundary.
+   */
+  protected readonly ended = computed(() => new Date(this.detail().endsAt).getTime() < Date.now());
   protected readonly canJoin = computed(() => {
     const d = this.detail();
     return d.status === 'Published' && d.viewer.isAuthenticated && !d.viewer.isAdmin && d.viewer.mySignupStatus === null;

@@ -153,7 +153,7 @@ description: "Task list for feature 050 — Tournament results"
   - **Clear results** is secondary, with a confirm step
   - inline `jh-alert` for 400/422 problem details, naming the row
 - [X] T022 [P] [US1] Add `events.results.*` keys for the card and editor (heading, winner, sharedFirst, teamsRanked, lastChanged, notStarted, cancelled, notATournament, notAdmin, addRow, removeRow, teamSelect, freeName, connectedByAdmin, save, saved, clear, clearConfirm, loadError, retry, emptyEditor, validation messages) and `events.detail.manageResults` to en/de/es in one task. Keep the voice warm and in sentence case (DESIGN.md "Voice & content")
-- [ ] T023 [P] [US1] Write `event-results.component.spec.ts`:
+- [X] T023 [P] [US1] Write `event-results.component.spec.ts`:
   - winner, shared first, ties render as `1,2,2,4`
   - hidden when empty
   - error shows `jh-alert` and retry, not empty
@@ -374,14 +374,14 @@ description: "Task list for feature 050 — Tournament results"
   - not finalized → a message pointing to paste and hand entry
   - 503 → an inline `jh-alert` with retry
   - 429 from our own limiter → a "please wait a moment" message, never retried
-- [ ] T048 [US4] Extend `features/events/event-detail/components/event-results.component.{ts,html,css}` with:
+- [X] T048 [US4] Extend `features/events/event-detail/components/event-results.component.{ts,html,css}` with:
   - **Matches**: grouped by `stage` in order, with null under one "Knockout" heading
   - each row shows both sides (linked when connected), scores in the mono face as `5 : 3` per set, and the winner emphasised; draws labelled
   - load more through `getMatches`, 50 per page (the `news-page.component.ts` pattern)
   - **Provenance**: "Results from Tugeny · {date}" linking `tugeny.tournamentUrl`, plus "edited since" when `editedSinceImport`
   - **Live link**: in `event-detail.component.html`, a "Live on Tugeny" secondary link to `tugeny.liveUrl` while `endsAt` is in the future and a link exists
 - [X] T049 [P] [US4] Add `events.results.tugeny.*` and `events.results.matches.*` keys (link, address, linked, linkedElsewhere, removeLink, import, preview, connectPrompt, replaceWarning, notFinalized, unreachable, slowDown, provenance, editedSince, liveView, knockout, draw, loadMore) to en/de/es in one task
-- [ ] T050 [P] [US4] Write component specs in the two `event-results.component.spec.ts` files:
+- [X] T050 [P] [US4] Write component specs in the two `event-results.component.spec.ts` files:
   - in `features/events/event-results/event-results.component.spec.ts`: Tugeny card states (unlinked, linked, linked elsewhere, not finalized, unreachable), and the import preview has **no** preselected team
   - in `features/events/event-detail/components/event-results.component.spec.ts`: matches group by stage with Knockout last, a draw shows the draw label, and the provenance line appears for imports
 
@@ -410,13 +410,13 @@ description: "Task list for feature 050 — Tournament results"
 
 - [X] T052 [US5] Create `backend/Services/Results/ITeamPlacementService.cs` and `TeamPlacementService.cs`: `GetForTeamAsync(slug, PaginationRequest)`. It is an `AsNoTracking` projection, `CountAsync`, then order by `Event.StartsAt` descending then `EventId`, then `Skip`/`Take`, returning `PagedResult<TeamPlacementDto>` (`TeamActivityService.GetForTeamAsync` pattern). Register it in `Program.cs`
 - [X] T053 [US5] Add `GET {slug}/placements` to `backend/Controllers/TeamsController.cs` (`[FromQuery] PaginationRequest`, 404 for an unknown team). Make T051 pass
-- [ ] T054 [US5] Add `getTeamPlacements(slug, skip, take)` to `core/services/results.service.ts`, and create `features/teams/team-detail/placements/team-placements.component.{ts,html,css}` (selector `jh-team-placements`), rendered in `features/teams/team-detail/team-detail.component.html` right **after** the "Recent events" `data-testid="activity"` card. It shows:
+- [X] T054 [US5] Add `getTeamPlacements(slug, skip, take)` to `core/services/results.service.ts`, and create `features/teams/team-detail/placements/team-placements.component.{ts,html,css}` (selector `jh-team-placements`), rendered in `features/teams/team-detail/team-detail.component.html` right **after** the "Recent events" `data-testid="activity"` card. It shows:
   - `<jh-card data-testid="placements">`
   - rows with the event name linking `/events/{id}`, the date via `translocoDate`, and "{position}. of {rankedCount}" with numbers in the mono face
   - load more (the `news-page.component.ts` pattern)
   - `jh-empty-state` (inline) when empty; `jh-alert` plus retry on error
-- [ ] T055 [P] [US5] Add `teams.placements.*` keys (title, place with `{{position}}`/`{{count}}` params, empty, loadMore, loadError) to en/de/es in one task
-- [ ] T056 [P] [US5] Write `features/teams/team-detail/placements/team-placements.component.spec.ts`: rows, empty vs error, load more appends
+- [X] T055 [P] [US5] Add `teams.placements.*` keys (title, place with `{{position}}`/`{{count}}` params, empty, loadMore, loadError) to en/de/es in one task
+- [X] T056 [P] [US5] Write `features/teams/team-detail/placements/team-placements.component.spec.ts`: rows, empty vs error, load more appends
 
 **Checkpoint**: Recorded results show on team pages.
 
@@ -448,24 +448,24 @@ description: "Task list for feature 050 — Tournament results"
   - **`DisconnectAsync(placementId)`**
 - [X] T061 [US6] Create `backend/Controllers/Admin/AdminResultsController.cs`: route `api/v{version:apiVersion}/admin/results`, `[Authorize(Policy = PlatformAdminPolicy.Name)]`, derived from `AdminControllerBase`, with `GET placements`, `PUT placements/{id:guid}/team` and `DELETE placements/{id:guid}/team`. Make T057 pass
 - [X] T062 [US6] In `backend/Services/Parties/PartyService.cs`, change the party-context `CanForm` (currently `t.IsAdmin && t.Party is null`) to also require that the event is open, using the same rule as `PartyAccess.IsEventOpen`. Make T058 pass
-- [ ] T063 [US6] In `features/events/event-detail/components/join-actions.component.ts` (and its `.html`), hide the join and enter-party actions once `endsAt` has passed. The server stays the boundary. Update `join-actions.component.spec.ts` with an ended-event case
-- [ ] T064 [US6] Add `listPlacements(connected, q, skip, take)`, `connectPlacement(id, teamSlug)` and `disconnectPlacement(id)` to `core/services/admin.service.ts`
-- [ ] T065 [US6] Create `features/admin/shared/team-picker.component.{ts,html,css}` (selector `jh-admin-team-picker`, output `picked: {slug, name}`, `closed`). Build it from `features/admin/teams/admin-teams.component.ts` (250 ms debounced `AdminService.searchTeams`) and the modal behaviour of `features/admin/shared/assign-picker.component.ts` (Esc closes, errors via `problemDetail`)
-- [ ] T066 [US6] Create `features/admin/results/admin-results.component.{ts,html,css}`:
+- [X] T063 [US6] In `features/events/event-detail/components/join-actions.component.ts` (and its `.html`), hide the join and enter-party actions once `endsAt` has passed. The server stays the boundary. Update `join-actions.component.spec.ts` with an ended-event case
+- [X] T064 [US6] Add `listPlacements(connected, q, skip, take)`, `connectPlacement(id, teamSlug)` and `disconnectPlacement(id)` to `core/services/admin.service.ts`
+- [X] T065 [US6] Create `features/admin/shared/team-picker.component.{ts,html,css}` (selector `jh-admin-team-picker`, output `picked: {slug, name}`, `closed`). Build it from `features/admin/teams/admin-teams.component.ts` (250 ms debounced `AdminService.searchTeams`) and the modal behaviour of `features/admin/shared/assign-picker.component.ts` (Esc closes, errors via `problemDetail`)
+- [X] T066 [US6] Create `features/admin/results/admin-results.component.{ts,html,css}`:
   - a work-queue list (unconnected by default, with a connected toggle and search)
   - each row shows the event name and date, the position of `rankedCount`, `sourceName`, the connected team, and connected-by/at
   - Connect opens `jh-admin-team-picker`; Disconnect has a confirm step
   - load more
   - the responsive list follows the existing admin pages (e2e memory: desktop and mobile variants must not duplicate testids in a way that breaks strict mode)
-- [ ] T067 [US6] Add the admin navigation in `app.routes.ts` and `features/admin/shell/admin-shell.component.{ts,html}`:
+- [X] T067 [US6] Add the admin navigation in `app.routes.ts` and `features/admin/shell/admin-shell.component.{ts,html}`:
   - an `admin` child route `results` in `app.routes.ts`
   - a `resultsActive` computed in `features/admin/shell/admin-shell.component.ts`
   - a "Results" link in **both** the desktop sidebar and the `data-testid="admin-bottom-nav"` bar in `admin-shell.component.html`, with `data-testid="admin-nav-results"`
   - fix the stale doc comment in the shell's `.ts`
 
   If five tabs do not fit at 375 px in German, DESIGN.md wins: move the queue under the Teams section as a sub-view instead, and record the decision in `checklists/ui-review.md` (research R15)
-- [ ] T068 [P] [US6] Add `admin.nav.results` and `admin.results.*` keys (title, intro, unconnectedOnly, showConnected, search, sourceName, connectedTo, connectedBy, connect, disconnect, disconnectConfirm, pickTeam, alreadyPlaced, empty, loadMore, loadError) to en/de/es in one task
-- [ ] T069 [P] [US6] Write `features/admin/results/admin-results.component.spec.ts` (queue rows; connect calls the service once with one placement id; disconnect confirms) and `features/admin/shared/team-picker.component.spec.ts` (debounce, pick, Esc)
+- [X] T068 [P] [US6] Add `admin.nav.results` and `admin.results.*` keys (title, intro, unconnectedOnly, showConnected, search, sourceName, connectedTo, connectedBy, connect, disconnect, disconnectConfirm, pickTeam, alreadyPlaced, empty, loadMore, loadError) to en/de/es in one task
+- [X] T069 [P] [US6] Write `features/admin/results/admin-results.component.spec.ts` (queue rows; connect calls the service once with one placement id; disconnect confirms) and `features/admin/shared/team-picker.component.spec.ts` (debounce, pick, Esc)
 
 **Checkpoint**: All six stories are functional.
 
@@ -473,17 +473,22 @@ description: "Task list for feature 050 — Tournament results"
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T070 [P] In `infra/modules/app/network-policy.tf`, extend the backend egress comment ("The backend calls Resend and Azure Blob by hostname") with tugeny.org. This is a comment only; no rule changes
-- [ ] T071 Run the full verification (`backend/tests/JuggerHub.Api.IntegrationTests`, `frontend/`) and fix anything red:
+- [X] T070 [P] In `infra/modules/app/network-policy.tf`, extend the backend egress comment ("The backend calls Resend and Azure Blob by hostname") with tugeny.org. This is a comment only; no rule changes
+- [X] T071 Run the full verification (`backend/tests/JuggerHub.Api.IntegrationTests`, `frontend/`) and fix anything red:
   - `dotnet test backend/tests/JuggerHub.Api.IntegrationTests`, including `ApiDocsTests` and every `Results`, `Resilience`, `Parties` and `Events` test
   - in `frontend/`: `npx nx test web --watch=false`, including `catalog-parity.spec.ts`
   - `npm run lint`
   - `npm run build`
 
   If `node_modules` looks stale, run `npm ci` first (memory: stale node_modules faked a broken main)
-- [ ] T072 Gate 7: copy `.specify/templates/ui-review-checklist-template.md` to `specs/050-tournament-results/checklists/ui-review.md` and verify every item against the diff (DESIGN.md wins). Include research R15: one coral CTA per view, mono scores and ordinals, error vs empty, sentence case, touch targets ≥ 44 px, the fifth admin tab
-- [ ] T073 Browser walk (owner rule). Use a real browser, **German**, at **375 px and desktop**, and take the screenshots listed in [quickstart.md](./quickstart.md) § Browser walk. Read the driver's output; a shared Playwright context and a stale backend image have each produced a false pass before
+- [X] T072 Gate 7: copy `.specify/templates/ui-review-checklist-template.md` to `specs/050-tournament-results/checklists/ui-review.md` and verify every item against the diff (DESIGN.md wins). Include research R15: one coral CTA per view, mono scores and ordinals, error vs empty, sentence case, touch targets ≥ 44 px, the fifth admin tab
+- [X] T073 Browser walk (owner rule). Use a real browser, **German**, at **375 px and desktop**, and take the screenshots listed in [quickstart.md](./quickstart.md) § Browser walk. Read the driver's output; a shared Playwright context and a stale backend image have each produced a false pass before
 - [ ] T074 Run [quickstart.md](./quickstart.md) manual scenarios 1–7. Scenario 6 needs internet access to tugeny.org and uses `25-deutsche-meisterschaft` and `26-deutsche-meisterschaft`. Record the results and any failures in `checklists/ui-review.md` or the PR description
+
+  **Status 2026-09-15 (partial)**:
+  - **Done in the browser walk** on the rebuilt stack: scenario 1 (hand entry, ties); scenario 2 (junk paste refused); scenario 4 (past tournament, platform-admin connect, ended-event actions hidden); scenario 6 steps 1–2 against the **real** tugeny.org (20 placements, 78 matches, 9 draws, provenance line).
+  - **Covered by automated tests only**: scenario 5 (authorization) and scenario 7 (unreachable → 503, breaker opening), in `TugenyLinkTests`, `TugenyImportTests` and `TugenyResilienceTests`.
+  - **Still manual**: scenario 2 step 1 (a real export, which is T028); scenario 3's paste into Tugeny desktop's *Import Team Names*; scenario 6 steps 3–4 (hand edit after import, and `26-deutsche-meisterschaft` → not finalized; both are covered by tests).
 - [ ] T075 Post a progress comment on GH #295 with a `--body-file`, never an inline PowerShell here-string (memory). List the spec drift recorded in `plan.md` § Spec drift, and whether T028 (the real export fixture) is still open
 
 ---

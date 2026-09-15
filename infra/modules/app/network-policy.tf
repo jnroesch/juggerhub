@@ -17,8 +17,9 @@
 # object below is accepted by the API server and silently ignored.
 #
 # Deliberately NOT restricted:
-#   - Egress. The backend calls Resend and Azure Blob by hostname, which a plain NetworkPolicy
-#     cannot express; FQDN egress rules are a Cilium-specific follow-up.
+#   - Egress. The backend calls Resend, Azure Blob and tugeny.org (feature 050, tournament
+#     results import) by hostname, which a plain NetworkPolicy cannot express; FQDN egress rules
+#     are a Cilium-specific follow-up.
 #   - Kubelet health probes. They originate from the node, which Cilium admits to local pods
 #     regardless of policy.
 #

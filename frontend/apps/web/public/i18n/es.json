@@ -199,6 +199,13 @@
       "teamTools": "Herramientas del equipo",
       "invites": "Invitaciones",
       "settings": "Ajustes"
+    },
+    "placements": {
+      "title": "Resultados en torneos",
+      "place": "Puesto {{position}} de {{count}}",
+      "empty": "Todavía no hay resultados de torneos para este equipo.",
+      "loadMore": "Ver resultados anteriores",
+      "loadError": "No pudimos cargar los resultados de torneos ahora mismo."
     }
   },
   "events": {
@@ -249,7 +256,8 @@
       "joinWaitlist": "Unirse a la lista de espera",
       "statusJoined": "Estás dentro",
       "statusAwaiting": "Pendiente de aprobación — paga para confirmar tu plaza",
-      "statusWaitlisted": "En la lista de espera — no se te cobra a menos que se libere una plaza"
+      "statusWaitlisted": "En la lista de espera — no se te cobra a menos que se libere una plaza",
+      "eventOver": "Este evento ya ha terminado."
     },
     "participants": {
       "heading": "Quién participa",
@@ -432,7 +440,7 @@
         "position": "Puesto",
         "connectedByAdmin": "Vinculado a este equipo por un administrador de JuggerHub",
         "teamSelect": "Equipo",
-        "typeName": "Escribir un nombre de equipo",
+        "typeName": "Escribir nombre",
         "freeName": "Nombre del equipo",
         "freeNamePlaceholder": "Nombre del equipo",
         "remove": "Quitar",
@@ -1026,7 +1034,8 @@
       "overview": "Resumen",
       "users": "Usuarios",
       "teams": "Equipos",
-      "catalogue": "Catálogo"
+      "catalogue": "Catálogo",
+      "results": "Resultados"
     },
     "common": {
       "prev": "‹ Anterior",
@@ -1268,6 +1277,31 @@
       "retireConfirm": "Retirar tipo",
       "retireError": "No se pudo retirar ese tipo.",
       "reinstateError": "No se pudo reactivar ese tipo."
+    },
+    "results": {
+      "title": "Resultados de torneos",
+      "lead": "Vincula cada puesto con el equipo que fue, después de comprobar que de verdad jugó. Los equipos no pueden hacerlo por sí mismos y cada puesto se vincula por separado.",
+      "filterLabel": "Qué puestos",
+      "unconnected": "Sin vincular",
+      "connected": "Vinculados",
+      "search": "Buscar por nombre de equipo",
+      "empty": "Todos los puestos están vinculados. No hay nada que revisar ahora.",
+      "emptyConnected": "Todavía no hay ningún puesto vinculado.",
+      "place": "Puesto {{position}} de {{count}}",
+      "fromTugeny": "Importado de Tugeny",
+      "connect": "Vincular con un equipo",
+      "connectedTo": "Vinculado con",
+      "connectedBy": "por {{name}} el {{date}}",
+      "disconnect": "Desvincular",
+      "disconnectConfirm": "Sí, desvincular",
+      "loading": "Cargando puestos…",
+      "loadError": "No pudimos cargar los puestos ahora mismo.",
+      "alreadyPlaced": "Ese equipo ya tiene un puesto en este torneo.",
+      "actionFailed": "No ha funcionado; inténtalo de nuevo.",
+      "pickTeam": "Elegir un equipo",
+      "pickTeamFor": "¿Qué equipo es «{{name}}»?",
+      "searchTeams": "Buscar equipos",
+      "noTeamsFound": "Ningún equipo coincide con esa búsqueda."
     }
   },
   "alerts": {

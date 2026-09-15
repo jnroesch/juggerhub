@@ -1,6 +1,6 @@
 <div data-testid="join-actions" class="space-y-sm">
   @if (!cancelled()) {
-    @if (canJoin() && detail().isFull) {
+    @if (canJoin() && !ended() && detail().isFull) {
       <div class="rounded-md border border-dashed border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg">
         {{ 'events.join.fullWaitlistNote' | transloco }}
       </div>
@@ -36,7 +36,11 @@
             </a>
           </div>
         }
-        @if (canFormParty()) {
+        @if (ended()) {
+          @if (!partyCards().length) {
+            <p class="rounded-md bg-surface-sunken px-md py-sm text-center text-body-sm text-subtle" data-testid="event-over">{{ 'events.join.eventOver' | transloco }}</p>
+          }
+        } @else if (canFormParty()) {
           <a [routerLink]="['/events', detail().id, 'enter-party']" data-testid="enter-party"
             class="block w-full rounded-md px-lg py-md text-center text-body-md font-semibold transition-all duration-fast"
             [class]="partyCards().length ? 'border border-border-strong text-body hover:bg-surface-sunken' : 'bg-brand text-on-accent hover:bg-brand-hover hover:shadow-coral'">
@@ -48,6 +52,8 @@
         } @else if (!partyCards().length) {
           <p class="rounded-md bg-surface-sunken px-md py-sm text-center text-body-sm text-subtle">{{ 'events.join.adminsCanEnter' | transloco }}</p>
         }
+      } @else if (ended()) {
+        <p class="rounded-md bg-surface-sunken px-md py-sm text-center text-body-sm text-subtle" data-testid="event-over">{{ 'events.join.eventOver' | transloco }}</p>
       } @else {
         <button type="button" (click)="emitJoin()" [disabled]="acting()" data-testid="join"
           jhButton full>

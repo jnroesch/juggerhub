@@ -10,6 +10,7 @@ import {
   AdminUserListItem,
 } from '../models/admin.models';
 import { PagedResult } from '../models/profile.models';
+import { AdminPlacement } from '../models/results.models';
 
 /**
  * The platform admin area API (feature 013): overview, user search, the per-player
@@ -59,6 +60,24 @@ export class AdminService {
 
   getTeamDetail(slug: string): Observable<AdminTeamDetail> {
     return this.http.get<AdminTeamDetail>(`${this.base}/teams/${encodeURIComponent(slug)}`);
+  }
+
+  // --- Tournament placements (feature 050): connect results to teams, one at a time ------------
+
+  listPlacements(connected: boolean, q: string, skip: number, take: number): Observable<PagedResult<AdminPlacement>> {
+    let params = new HttpParams().set('connected', connected).set('skip', skip).set('take', take);
+    if (q.trim()) {
+      params = params.set('q', q.trim());
+    }
+    return this.http.get<PagedResult<AdminPlacement>>(`${this.base}/results/placements`, { params });
+  }
+
+  connectPlacement(id: string, teamSlug: string): Observable<AdminPlacement> {
+    return this.http.put<AdminPlacement>(`${this.base}/results/placements/${encodeURIComponent(id)}/team`, { teamSlug });
+  }
+
+  disconnectPlacement(id: string): Observable<AdminPlacement> {
+    return this.http.delete<AdminPlacement>(`${this.base}/results/placements/${encodeURIComponent(id)}/team`);
   }
 
   suspend(handle: string): Observable<void> {

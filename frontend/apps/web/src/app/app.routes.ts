@@ -310,6 +310,12 @@ export const appRoutes: Route[] = [
         loadComponent: () =>
           import('./features/admin/catalogue/admin-catalogue.component').then((m) => m.AdminCatalogueComponent),
       },
+      // Feature 050 — connect tournament placements to teams, one at a time.
+      {
+        path: 'results',
+        loadComponent: () =>
+          import('./features/admin/results/admin-results.component').then((m) => m.AdminResultsComponent),
+      },
     ],
   },
   // Invite accept — full-screen, outside the shell; preview is anonymous, accept needs auth.

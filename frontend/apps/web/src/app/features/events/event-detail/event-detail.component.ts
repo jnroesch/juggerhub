@@ -77,6 +77,14 @@ export class EventDetailComponent implements OnInit {
   private id = '';
 
   protected readonly cancelled = computed(() => this.detail()?.status === 'Cancelled');
+  /**
+   * The event is over. The mercenary board is closed server-side from here on, so it is not shown —
+   * a past-dated tournament (feature 050, FR-023) opens no board.
+   */
+  protected readonly ended = computed(() => {
+    const d = this.detail();
+    return !!d && new Date(d.endsAt).getTime() < Date.now();
+  });
   /** Feature 027: a signed-in non-admin may contact the event's admins, unless the event is cancelled. */
   protected readonly canContactAdmins = computed(() => {
     const d = this.detail();
