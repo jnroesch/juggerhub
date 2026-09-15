@@ -489,7 +489,7 @@ description: "Task list for feature 050 — Tournament results"
   - **Done in the browser walk** on the rebuilt stack: scenario 1 (hand entry, ties); scenario 2 (junk paste refused); scenario 4 (past tournament, platform-admin connect, ended-event actions hidden); scenario 6 steps 1–2 against the **real** tugeny.org (20 placements, 78 matches, 9 draws, provenance line).
   - **Covered by automated tests only**: scenario 5 (authorization) and scenario 7 (unreachable → 503, breaker opening), in `TugenyLinkTests`, `TugenyImportTests` and `TugenyResilienceTests`.
   - **Still manual**: scenario 2 step 1 (a real export, which is T028); scenario 3's paste into Tugeny desktop's *Import Team Names*; scenario 6 steps 3–4 (hand edit after import, and `26-deutsche-meisterschaft` → not finalized; both are covered by tests).
-- [ ] T075 Post a progress comment on GH #295 with a `--body-file`, never an inline PowerShell here-string (memory). List the spec drift recorded in `plan.md` § Spec drift, and whether T028 (the real export fixture) is still open
+- [X] T075 Post a progress comment on GH #295 with a `--body-file`, never an inline PowerShell here-string (memory). List the spec drift recorded in `plan.md` § Spec drift, and whether T028 (the real export fixture) is still open
 
 ---
 
