@@ -63,6 +63,23 @@ public static class RateLimitPolicies
     /// </summary>
     internal const int MediaReadPerMinute = 300;
 
+    /// <summary>
+    /// Actions that make the server contact Tugeny: linking a tournament and previewing or committing
+    /// an import (feature 050).
+    /// </summary>
+    /// <remarks>
+    /// Two opposite meanings of <c>429</c> meet here (constitution Principle VII). A <c>429</c> this
+    /// policy returns is <b>our own</b> fail-closed limit: the browser never retries it (the retry
+    /// interceptor skips 429) and the page asks the admin to wait. A <c>429</c> <b>Tugeny</b> returns to
+    /// us is the provider throttling us, and the shared outbound pipeline retries it with backoff,
+    /// honouring <c>Retry-After</c>. This limit keeps one admin from hammering Tugeny through us; the
+    /// outbound circuit breaker caps what reaches Tugeny across all admins.
+    /// </remarks>
+    public const string Tugeny = "tugeny";
+
+    /// <summary>10/min: an import session is one link, one preview and one commit; ten leaves room for a retry or a wrong address.</summary>
+    internal const int TugenyPerMinute = 10;
+
     public static IServiceCollection AddJuggerHubRateLimiting(
         this IServiceCollection services,
         string? redisConnection)
@@ -83,6 +100,7 @@ public static class RateLimitPolicies
             options.AddPolicy(ChatSend, PartitionByUser(ChatSend, ChatSendPerMinute));
             options.AddPolicy(ChatTyping, PartitionByUser(ChatTyping, ChatTypingPerMinute));
             options.AddPolicy(MediaRead, PartitionByCaller(MediaRead, MediaReadPerMinute));
+            options.AddPolicy(Tugeny, PartitionByUser(Tugeny, TugenyPerMinute));
         });
 
         return services;

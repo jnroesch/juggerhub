@@ -1,0 +1,91 @@
+<div class="flex flex-wrap items-baseline justify-between gap-sm">
+  <h1 class="text-h3 font-bold text-heading">{{ 'admin.results.title' | transloco }}</h1>
+  <span class="font-mono text-body-sm text-muted" data-testid="admin-results-total">{{ total() }}</span>
+</div>
+<p class="mt-xs text-body-md text-muted">{{ 'admin.results.lead' | transloco }}</p>
+
+<!-- Unconnected (the work queue) / connected -->
+<div class="mt-md inline-flex rounded-pill bg-surface-sunken p-1" role="group" [attr.aria-label]="'admin.results.filterLabel' | transloco">
+  <button type="button" class="rounded-pill px-md py-1.5 text-body-sm font-semibold transition-colors duration-fast"
+    [class]="!connected() ? 'bg-surface-card text-heading shadow-sm' : 'text-muted'" [attr.aria-pressed]="!connected()"
+    (click)="show(false)" data-testid="admin-results-unconnected">{{ 'admin.results.unconnected' | transloco }}</button>
+  <button type="button" class="rounded-pill px-md py-1.5 text-body-sm font-semibold transition-colors duration-fast"
+    [class]="connected() ? 'bg-surface-card text-heading shadow-sm' : 'text-muted'" [attr.aria-pressed]="connected()"
+    (click)="show(true)" data-testid="admin-results-connected">{{ 'admin.results.connected' | transloco }}</button>
+</div>
+
+<div class="mt-sm">
+  <label class="relative block">
+    <span class="sr-only">{{ 'admin.results.search' | transloco }}</span>
+    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+    <input type="search" [placeholder]="'admin.results.search' | transloco"
+      class="h-11 w-full rounded-md border border-border-strong bg-surface-card pl-9 pr-md text-body-md text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      [value]="q()" (input)="onType($any($event.target).value)" data-testid="admin-results-search" />
+  </label>
+</div>
+
+@if (actionError(); as message) {
+  <div class="mt-md"><jh-alert tone="danger">{{ message }}</jh-alert></div>
+}
+
+@if (error(); as message) {
+  <div class="mt-md"><jh-alert tone="danger">{{ message }}</jh-alert></div>
+  <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="reload()">{{ 'common.tryAgain' | transloco }}</button>
+} @else if (!loading() && items().length === 0) {
+  <jh-empty-state class="mt-lg" data-testid="admin-results-empty">
+    <p class="text-body-md text-body">{{ (connected() ? 'admin.results.emptyConnected' : 'admin.results.empty') | transloco }}</p>
+  </jh-empty-state>
+} @else {
+  <ul class="mt-md flex flex-col gap-sm" data-testid="admin-results-list">
+    @for (p of items(); track p.id) {
+      <li class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="admin-results-row">
+        <div class="flex flex-wrap items-start justify-between gap-sm">
+          <div class="min-w-0">
+            <p class="break-words text-body-md font-semibold text-heading">{{ p.sourceName }}</p>
+            <p class="text-body-sm text-muted">
+              <span class="tabular-nums">{{ 'admin.results.place' | transloco: { position: p.position, count: p.rankedCount } }}</span> ·
+              <a [routerLink]="['/events', p.eventId]" class="hover:text-link">{{ p.eventName }}</a> ·
+              {{ p.eventDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}
+            </p>
+            @if (p.fromTugeny) {
+              <p class="text-caption text-subtle">{{ 'admin.results.fromTugeny' | transloco }}</p>
+            }
+          </div>
+
+          <div class="flex shrink-0 flex-wrap items-center gap-xs">
+            @if (p.team; as team) {
+              @if (confirmingDisconnect() === p.id) {
+                <button type="button" jhButton variant="danger" size="sm" (click)="disconnect(p)" [disabled]="busyId() === p.id" data-testid="admin-results-disconnect-confirm">{{ 'admin.results.disconnectConfirm' | transloco }}</button>
+                <button type="button" jhButton variant="ghost" size="sm" (click)="confirmingDisconnect.set(null)">{{ 'common.cancel' | transloco }}</button>
+              } @else {
+                <button type="button" jhButton variant="ghost" size="sm" (click)="disconnect(p)" [disabled]="busyId() === p.id" data-testid="admin-results-disconnect">{{ 'admin.results.disconnect' | transloco }}</button>
+              }
+            } @else {
+              <button type="button" jhButton variant="secondary" size="sm" (click)="picking.set(p)" [disabled]="busyId() === p.id" data-testid="admin-results-connect">{{ 'admin.results.connect' | transloco }}</button>
+            }
+          </div>
+        </div>
+
+        @if (p.team; as team) {
+          <p class="mt-xs text-body-sm text-body" data-testid="admin-results-connected-to">
+            {{ 'admin.results.connectedTo' | transloco }}
+            <a [routerLink]="['/t', team.slug]" class="font-semibold hover:text-link">{{ team.name }}</a>
+            @if (p.connectedAt; as at) {
+              <span class="block text-caption text-subtle">{{ 'admin.results.connectedBy' | transloco: { name: p.connectedBy ?? '', date: (at | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' }) } }}</span>
+            }
+          </p>
+        }
+      </li>
+    }
+  </ul>
+
+  @if (loading()) {
+    <jh-loading [label]="'admin.results.loading' | transloco" />
+  } @else if (hasMore()) {
+    <button type="button" jhButton variant="secondary" size="sm" class="mt-md" (click)="loadMore()" data-testid="admin-results-more">{{ 'home.loadMore' | transloco }}</button>
+  }
+}
+
+@if (picking(); as p) {
+  <jh-admin-team-picker [subjectLabel]="p.sourceName" [initialQuery]="p.sourceName" (picked)="connect($event)" (closed)="picking.set(null)" />
+}

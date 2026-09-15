@@ -115,6 +115,14 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
                 ["Resilience:Outbound:MediaStore:TotalTimeoutSeconds"] = "6",
                 ["Resilience:Outbound:MediaStore:MaxRetryAttempts"] = "1",
                 ["Resilience:Outbound:MediaStore:BaseDelaySeconds"] = "1",
+                // Feature 050 — Tugeny. A host that does not exist: a test that forgets to fake
+                // Tugeny fails fast instead of reaching the real site. Tests that exercise Tugeny
+                // swap the named client's primary handler for a scripted one serving the committed
+                // samples. Fast pipeline values, like the store's.
+                ["Tugeny:BaseUrl"] = "http://tugeny.invalid/",
+                ["Resilience:Outbound:Tugeny:AttemptTimeoutSeconds"] = "2",
+                ["Resilience:Outbound:Tugeny:TotalTimeoutSeconds"] = "6",
+                ["Resilience:Outbound:Tugeny:BaseDelaySeconds"] = "0.01",
             });
         });
 

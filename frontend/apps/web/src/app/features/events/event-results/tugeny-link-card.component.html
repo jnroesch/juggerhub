@@ -1,0 +1,81 @@
+<jh-card class="p-md" data-testid="tugeny-card">
+  <h2 class="text-body-lg font-semibold text-heading">{{ 'events.results.tugeny.title' | transloco }}</h2>
+
+  @if (link(); as l) {
+    <div class="mt-sm rounded-md bg-surface-sunken px-md py-sm" data-testid="tugeny-linked">
+      <p class="text-caption text-muted">{{ 'events.results.tugeny.linked' | transloco }}</p>
+      <p class="break-words text-body-md font-semibold text-heading">{{ l.name }}</p>
+      @if (l.startDate) {
+        <p class="text-body-sm text-subtle">{{ l.startDate | translocoDate: { year: 'numeric', month: 'long', day: 'numeric' } }}</p>
+      }
+      <a [href]="l.tournamentUrl" target="_blank" rel="noopener" class="mt-xs inline-block text-body-sm font-semibold text-link underline">{{ 'events.results.tugeny.openOnTugeny' | transloco }}</a>
+    </div>
+    @if (editor().linkedElsewhere) {
+      <div class="mt-sm" data-testid="tugeny-linked-elsewhere"><jh-alert tone="warning">{{ 'events.results.tugeny.linkedElsewhere' | transloco }}</jh-alert></div>
+    }
+
+    @if (preview(); as p) {
+      <!-- Import draft: nothing is saved until the admin confirms -->
+      <div class="mt-md border-t border-border pt-md" data-testid="tugeny-preview">
+        <p class="text-body-sm font-semibold text-heading">{{ 'events.results.tugeny.previewTitle' | transloco: { teams: p.placements.length, matches: p.matchCount } }}</p>
+        @if (p.signedUpTeams.length > 0) {
+          <p class="mt-2xs text-caption text-subtle">{{ 'events.results.tugeny.connectPrompt' | transloco }}</p>
+        }
+        <ol class="mt-sm flex flex-col gap-xs">
+          @for (row of p.placements; track row.tugenyTeamId) {
+            <li class="flex flex-wrap items-center gap-sm" data-testid="preview-row">
+              <span class="inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-pill bg-surface-sunken px-xs font-mono text-body-sm font-semibold text-heading">{{ row.position }}</span>
+              <span class="min-w-0 flex-1 break-words text-body-sm text-body">{{ row.name }}</span>
+              @if (p.signedUpTeams.length > 0) {
+                <label class="sr-only" [for]="'import-' + row.tugenyTeamId">{{ 'events.results.editor.teamSelect' | transloco }}</label>
+                <select [id]="'import-' + row.tugenyTeamId"
+                  class="h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus sm:w-auto"
+                  (change)="choose(row.tugenyTeamId, $any($event.target).value)" data-testid="preview-team">
+                  <option value="" selected>{{ 'events.results.tugeny.keepName' | transloco }}</option>
+                  @for (t of p.signedUpTeams; track t.teamId) {
+                    <option [value]="t.teamId" [disabled]="chosen().has(t.teamId) && choices().get(row.tugenyTeamId) !== t.teamId">{{ t.teamName }}</option>
+                  }
+                </select>
+              }
+            </li>
+          }
+        </ol>
+        @if (p.replacesExisting) {
+          <div class="mt-sm"><jh-alert tone="warning">{{ 'events.results.replaceWarning' | transloco }}</jh-alert></div>
+        }
+        <div class="mt-sm flex flex-wrap gap-xs">
+          <button type="button" jhButton variant="secondary" size="sm" (click)="commitImport()" [disabled]="busy()" data-testid="tugeny-import-confirm">{{ 'events.results.tugeny.importConfirm' | transloco }}</button>
+          <button type="button" jhButton variant="ghost" size="sm" (click)="cancelImport()" [disabled]="busy()">{{ 'common.cancel' | transloco }}</button>
+        </div>
+      </div>
+    } @else {
+      <div class="mt-sm flex flex-wrap gap-xs">
+        @if (canImport()) {
+          <button type="button" jhButton variant="secondary" size="sm" (click)="openImport()" [disabled]="busy()" data-testid="tugeny-import">{{ 'events.results.tugeny.import' | transloco }}</button>
+        }
+        <button type="button" jhButton variant="ghost" size="sm" (click)="removeLink()" [disabled]="busy()" data-testid="tugeny-unlink">{{ 'events.results.tugeny.removeLink' | transloco }}</button>
+      </div>
+      @if (!editor().hasStarted) {
+        <p class="mt-xs text-caption text-subtle">{{ 'events.results.tugeny.importLater' | transloco }}</p>
+      }
+    }
+  } @else {
+    <p class="mt-xs text-body-sm text-body">{{ 'events.results.tugeny.hint' | transloco }}</p>
+    <label for="tugeny-address" class="mt-sm block text-body-sm font-semibold text-heading">{{ 'events.results.tugeny.address' | transloco }}</label>
+    <input id="tugeny-address" type="url" inputmode="url" autocomplete="off" maxlength="500"
+      class="mt-xs h-11 w-full rounded-md border border-border-strong bg-surface-card px-md text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+      placeholder="https://tugeny.org/tournaments/…" [value]="address()" (input)="address.set($any($event.target).value)"
+      (keydown.enter)="connectLink()" data-testid="tugeny-address" />
+    <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="connectLink()" [disabled]="busy() || !address().trim()" data-testid="tugeny-link">{{ 'events.results.tugeny.link' | transloco }}</button>
+  }
+
+  @if (busy()) {
+    <div class="mt-sm"><jh-loading /></div>
+  }
+  @if (notFinalized()) {
+    <div class="mt-sm" data-testid="tugeny-not-finalized"><jh-alert tone="info">{{ 'events.results.tugeny.notFinalized' | transloco }}</jh-alert></div>
+  }
+  @if (error(); as message) {
+    <div class="mt-sm" data-testid="tugeny-error"><jh-alert tone="danger">{{ message }}</jh-alert></div>
+  }
+</jh-card>

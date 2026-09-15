@@ -93,6 +93,28 @@ public sealed class PartyTests : PartyTestSupport
     }
 
     [Fact]
+    public async Task Party_context_does_not_offer_a_party_once_the_event_is_over()
+    {
+        // Feature 050: a past-dated tournament must not show an "Enter party" button that forming
+        // then refuses — the offer follows the same open-event rule the form endpoint enforces.
+        var (admin, _, _, _) = await NewUserAsync();
+        await CreateTeamAsync(admin);
+        var eventId = await CreateTeamsEventAsync(admin);
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            await db.Events.Where(e => e.Id == eventId).ExecuteUpdateAsync(s => s
+                .SetProperty(e => e.StartsAt, DateTime.UtcNow.AddDays(-3))
+                .SetProperty(e => e.EndsAt, DateTime.UtcNow.AddDays(-2))
+                .SetProperty(e => e.ModifiedDate, DateTime.UtcNow));
+        }
+
+        var ctx = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/events/{eventId}/party-context");
+
+        Assert.False(ctx.GetProperty("teams")[0].GetProperty("canForm").GetBoolean());
+    }
+
+    [Fact]
     public async Task Party_context_shows_existing_party_to_a_plain_member()
     {
         var (admin, _, _, _) = await NewUserAsync();

@@ -188,12 +188,17 @@ public sealed class PartyService : IPartyService
     {
         var ev = await _db.Events.AsNoTracking()
             .Where(e => e.Id == eventId)
-            .Select(e => new { e.ParticipantMode, e.RosterCap })
+            .Select(e => new { e.ParticipantMode, e.RosterCap, e.Status, e.EndsAt })
             .FirstOrDefaultAsync(ct);
         if (ev is null)
         {
             return null;
         }
+
+        // Forming a party is refused once the event is cancelled or over (FormAsync checks the same
+        // rule), so the page must not offer it — a past-dated tournament (feature 050) would otherwise
+        // show an "Enter party" button that always fails. Same rule as PartyAccess.IsEventOpen.
+        var eventOpen = ev.Status != EventStatus.Cancelled && ev.EndsAt >= DateTime.UtcNow;
 
         if (ev.ParticipantMode != ParticipantMode.Teams)
         {
@@ -234,7 +239,7 @@ public sealed class PartyService : IPartyService
                 t.Slug,
                 t.IsAdmin,
                 t.Party?.Id,
-                CanForm: t.IsAdmin && t.Party is null,
+                CanForm: eventOpen && t.IsAdmin && t.Party is null,
                 MyState: t.Party is null
                     ? PartyViewerState.None
                     : ResolveState(t.Party.MyRole, t.Party.MyStatus, isTeamMember: true),

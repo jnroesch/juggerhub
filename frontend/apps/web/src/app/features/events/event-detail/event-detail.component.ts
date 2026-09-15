@@ -14,6 +14,7 @@ import { EventContactsListComponent } from './components/contacts-list.component
 import { EventJoinActionsComponent } from './components/join-actions.component';
 import { EventNewsFeedComponent } from './components/news-feed.component';
 import { EventParticipantGroupsComponent } from './components/participant-groups.component';
+import { EventResultsComponent } from './components/event-results.component';
 import { MarketBoardComponent } from '../../marketplace/market-board/market-board.component';
 
 /**
@@ -33,6 +34,7 @@ import { MarketBoardComponent } from '../../marketplace/market-board/market-boar
     EventNewsFeedComponent,
     EventContactsListComponent,
     EventJoinActionsComponent,
+    EventResultsComponent,
     MarketBoardComponent,
     LoadingComponent,
     TranslocoPipe,
@@ -75,6 +77,14 @@ export class EventDetailComponent implements OnInit {
   private id = '';
 
   protected readonly cancelled = computed(() => this.detail()?.status === 'Cancelled');
+  /**
+   * The event is over. The mercenary board is closed server-side from here on, so it is not shown —
+   * a past-dated tournament (feature 050, FR-023) opens no board.
+   */
+  protected readonly ended = computed(() => {
+    const d = this.detail();
+    return !!d && new Date(d.endsAt).getTime() < Date.now();
+  });
   /** Feature 027: a signed-in non-admin may contact the event's admins, unless the event is cancelled. */
   protected readonly canContactAdmins = computed(() => {
     const d = this.detail();

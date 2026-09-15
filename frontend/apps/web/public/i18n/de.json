@@ -199,6 +199,13 @@
       "teamTools": "Team-Tools",
       "invites": "Einladungen",
       "settings": "Einstellungen"
+    },
+    "placements": {
+      "title": "Turnierergebnisse",
+      "place": "Platz {{position}} von {{count}}",
+      "empty": "Für dieses Team sind noch keine Turnierergebnisse eingetragen.",
+      "loadMore": "Ältere Ergebnisse anzeigen",
+      "loadError": "Wir konnten die Turnierergebnisse gerade nicht laden."
     }
   },
   "events": {
@@ -231,7 +238,8 @@
       "payBy": "Zahlen bis {{date}}",
       "payTo": "Zahlen an",
       "iban": "IBAN",
-      "bankTransferNote": "Nur per Überweisung — keine In-App-Zahlung. Ein Admin bestätigt deine Zahlung, um dich zuzulassen."
+      "bankTransferNote": "Nur per Überweisung — keine In-App-Zahlung. Ein Admin bestätigt deine Zahlung, um dich zuzulassen.",
+      "manageResults": "Ergebnisse"
     },
     "join": {
       "fullWaitlistNote": "Dieses Event ist voll. Du kannst dich trotzdem auf die Warteliste setzen — ein Admin rückt Leute manuell nach, wenn Plätze frei werden. Kosten entstehen erst, wenn ein Platz frei wird.",
@@ -248,7 +256,8 @@
       "joinWaitlist": "Auf die Warteliste",
       "statusJoined": "Du bist dabei",
       "statusAwaiting": "Wartet auf Bestätigung — zahle, um deinen Platz zu sichern",
-      "statusWaitlisted": "Auf der Warteliste — Kosten entstehen erst, wenn ein Platz frei wird"
+      "statusWaitlisted": "Auf der Warteliste — Kosten entstehen erst, wenn ein Platz frei wird",
+      "eventOver": "Dieses Event ist vorbei."
     },
     "participants": {
       "heading": "Wer dabei ist",
@@ -398,6 +407,97 @@
       "tournament": "Turnier",
       "workshop": "Workshop",
       "other": "Sonstiges"
+    },
+    "results": {
+      "title": "Ergebnisse",
+      "loadError": "Wir konnten die Ergebnisse gerade nicht laden.",
+      "liveHint": "Das Turnier läuft auf Tugeny – dort siehst du den Turnierbaum und die nächsten Spiele.",
+      "liveView": "Live auf Tugeny verfolgen",
+      "winner": "Turniersieg",
+      "sharedFirst": "Geteilter erster Platz",
+      "teamsRanked": "{{count}} Teams in der Wertung",
+      "lastChanged": "aktualisiert am {{date}}",
+      "provenance": "Ergebnisse von Tugeny",
+      "editedSince": "seitdem bearbeitet",
+      "importedOn": "Am {{date}} von Tugeny übernommen",
+      "notAdmin": "Nur Admins dieses Events können die Ergebnisse eintragen.",
+      "notATournament": "Nur Turniere haben Ergebnisse.",
+      "cancelled": "Dieses Turnier wurde abgesagt, die Ergebnisse lassen sich nicht mehr ändern.",
+      "notStarted": "Du kannst die Ergebnisse eintragen, sobald das Turnier begonnen hat. Mit Tugeny verknüpfen und die Teamliste kopieren geht schon jetzt.",
+      "replaceWarning": "Beim Speichern wird die aktuell gespeicherte Platzierung ersetzt.",
+      "replaceConfirm": "Gespeicherte Platzierung ersetzen",
+      "matches": {
+        "title": "Spiele",
+        "show": "Alle {{count}} Spiele anzeigen",
+        "knockout": "K.-o.-Runde",
+        "draw": "unentschieden",
+        "loadMore": "Weitere Spiele laden",
+        "loadError": "Wir konnten die Spiele gerade nicht laden."
+      },
+      "editor": {
+        "title": "Endplatzierung",
+        "hint": "Trag für jedes Team seinen Endplatz ein. Teams mit geteiltem Platz bekommen dieselbe Zahl – der nächste Platz wird automatisch übersprungen.",
+        "position": "Platz",
+        "connectedByAdmin": "Von einem JuggerHub-Admin mit diesem Team verknüpft",
+        "teamSelect": "Team",
+        "typeName": "Name eingeben",
+        "freeName": "Teamname",
+        "freeNamePlaceholder": "Teamname",
+        "remove": "Entfernen",
+        "removeRow": "Zeile {{row}} entfernen",
+        "addRow": "Platz hinzufügen",
+        "save": "Platzierung speichern",
+        "saved": "Platzierung gespeichert.",
+        "clear": "Ergebnisse löschen",
+        "clearConfirm": "Platzierung und alle Spiele löschen?",
+        "invalid": "Etwas an der Platzierung stimmt nicht – prüf die Plätze und Namen.",
+        "invalidRow": "Zeile {{row}} stimmt nicht – prüf Platz und Namen.",
+        "notOpen": "Die Ergebnisse lassen sich gerade nicht ändern – das Turnier hat noch nicht begonnen oder wurde abgesagt.",
+        "teamNotAllowed": "Zeile {{row}}: Du kannst nur Teams mit bestätigter Anmeldung für dieses Event auswählen. Jedes andere Team kann ein JuggerHub-Admin verknüpfen.",
+        "teamNotAllowedShort": "Du kannst nur Teams mit bestätigter Anmeldung für dieses Event auswählen.",
+        "saveFailed": "Das konnten wir gerade nicht speichern – versuch es noch einmal."
+      },
+      "paste": {
+        "open": "Aus Tugeny einfügen",
+        "title": "Platzierungs-Export aus Tugeny einfügen",
+        "hint": "Wähle in der Tugeny-App Export → Export Ranking for JTR und füge den Text hier ein.",
+        "read": "Platzierung übernehmen",
+        "unreadable": "Das konnten wir nicht als Platzierungs-Export von Tugeny lesen. Es wurde nichts geändert.",
+        "draftLoaded": "Die Platzierung ist aus Tugeny übernommen. Wähl die passenden Teams aus, sofern sie hier angemeldet waren, und speichere dann."
+      },
+      "teamList": {
+        "title": "Teamliste für Tugeny",
+        "hint": "Kopier das in den Dialog „Import Team Names“ in Tugeny – ein Team pro Zeile, nur bestätigte Teams.",
+        "loadError": "Wir konnten die Teamliste gerade nicht laden.",
+        "empty": "Noch hat kein Team einen bestätigten Platz.",
+        "duplicatesWarning": "Tugeny akzeptiert keine zwei Teams mit demselben Namen: {{names}}. Benenn sie nach dem Import in Tugeny um.",
+        "copy": "Teamliste kopieren",
+        "copied": "Kopiert."
+      },
+      "tugeny": {
+        "title": "Tugeny",
+        "hint": "Läuft das Turnier in Tugeny? Verknüpf es hier, damit alle es live verfolgen können und du die Ergebnisse danach übernehmen kannst.",
+        "address": "Adresse des Tugeny-Turniers",
+        "link": "Turnier verknüpfen",
+        "linked": "Verknüpftes Tugeny-Turnier",
+        "openOnTugeny": "Auf Tugeny öffnen",
+        "linkedElsewhere": "Dieses Tugeny-Turnier ist auch mit einem anderen Event verknüpft. Meist ist das ein doppelt angelegtes Event.",
+        "removeLink": "Verknüpfung entfernen",
+        "import": "Ergebnisse von Tugeny übernehmen",
+        "importLater": "Du kannst die Ergebnisse übernehmen, sobald das Turnier begonnen hat.",
+        "previewTitle": "Tugeny hat {{teams}} Teams und {{matches}} Spiele.",
+        "connectPrompt": "Wähl für Teams, die hier angemeldet waren, das passende Team aus. Alle anderen behalten ihren Namen aus Tugeny.",
+        "keepName": "Namen aus Tugeny behalten",
+        "importConfirm": "Diese Ergebnisse übernehmen",
+        "notFinalized": "Tugeny teilt Ergebnisse erst, wenn die Orga das Turnier dort abgeschlossen hat. Bis dahin füg den Platzierungs-Export ein oder trag die Platzierung von Hand ein.",
+        "badAddress": "Das ist keine Turnier-Adresse von tugeny.org.",
+        "unknownTournament": "Tugeny kennt dieses Turnier nicht. Prüf die Adresse.",
+        "slowDown": "Das waren gerade viele Anfragen – warte einen Moment und versuch es dann noch einmal.",
+        "unreachable": "Tugeny ist gerade nicht erreichbar – versuch es in ein paar Minuten noch einmal.",
+        "failed": "Das hat nicht geklappt – versuch es noch einmal."
+      },
+      "treeHint": "Den ganzen Turnierbaum und alle Spiele findest du auf Tugeny.",
+      "treeView": "Turnierbaum auf Tugeny ansehen"
     }
   },
   "profile": {
@@ -936,7 +1036,8 @@
       "overview": "Übersicht",
       "users": "Nutzer",
       "teams": "Teams",
-      "catalogue": "Katalog"
+      "catalogue": "Katalog",
+      "results": "Ergebnisse"
     },
     "common": {
       "prev": "‹ Zurück",
@@ -1178,6 +1279,31 @@
       "retireConfirm": "Typ stilllegen",
       "retireError": "Dieser Typ konnte nicht stillgelegt werden.",
       "reinstateError": "Dieser Typ konnte nicht reaktiviert werden."
+    },
+    "results": {
+      "title": "Turnierergebnisse",
+      "lead": "Verknüpf jede Platzierung mit dem Team, das es war – nachdem du geprüft hast, dass es wirklich gespielt hat. Teams können das nicht selbst, und jede Platzierung wird einzeln verknüpft.",
+      "filterLabel": "Welche Platzierungen",
+      "unconnected": "Nicht verknüpft",
+      "connected": "Verknüpft",
+      "search": "Nach Teamnamen suchen",
+      "empty": "Alle Platzierungen sind verknüpft. Gerade gibt es nichts zu prüfen.",
+      "emptyConnected": "Noch ist keine Platzierung verknüpft.",
+      "place": "Platz {{position}} von {{count}}",
+      "fromTugeny": "Von Tugeny übernommen",
+      "connect": "Mit einem Team verknüpfen",
+      "connectedTo": "Verknüpft mit",
+      "connectedBy": "von {{name}} am {{date}}",
+      "disconnect": "Verknüpfung lösen",
+      "disconnectConfirm": "Ja, lösen",
+      "loading": "Platzierungen werden geladen …",
+      "loadError": "Wir konnten die Platzierungen gerade nicht laden.",
+      "alreadyPlaced": "Dieses Team hat in diesem Turnier schon eine Platzierung.",
+      "actionFailed": "Das hat nicht geklappt – versuch es noch einmal.",
+      "pickTeam": "Team auswählen",
+      "pickTeamFor": "Welches Team ist „{{name}}“?",
+      "searchTeams": "Teams suchen",
+      "noTeamsFound": "Kein Team passt zu dieser Suche."
     }
   },
   "alerts": {

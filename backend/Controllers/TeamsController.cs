@@ -371,6 +371,21 @@ public sealed class TeamsController : ControllerBase
         return items is null ? TeamNotFound() : Ok(items);
     }
 
+    /// <summary>
+    /// The team's tournament placements (feature 050), newest tournament first. Visible to every
+    /// signed-in player, like the team page. Only placements connected to this team count.
+    /// </summary>
+    [HttpGet("{slug}/placements")]
+    public async Task<ActionResult<PagedResult<JuggerHub.Dtos.Results.TeamPlacementDto>>> GetPlacements(
+        string slug,
+        [FromQuery] PaginationRequest pagination,
+        [FromServices] JuggerHub.Services.Results.ITeamPlacementService placements,
+        CancellationToken ct)
+    {
+        var page = await placements.GetForTeamAsync(slug, pagination, ct);
+        return page is null ? TeamNotFound() : Ok(page);
+    }
+
     [HttpGet("{slug}/news")]
     public async Task<ActionResult<PagedResult<TeamNewsDto>>> GetNews(
         string slug, [FromQuery] PaginationRequest pagination, CancellationToken ct)

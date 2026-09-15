@@ -17,7 +17,7 @@ namespace JuggerHub.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.11")
+                .HasAnnotation("ProductVersion", "10.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -1836,6 +1836,185 @@ namespace JuggerHub.Data.Migrations
                     b.ToTable("TermsAcceptances");
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.TournamentMatch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid?>("FirstPlacementId")
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<int[]>("FirstScores")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("SecondName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid?>("SecondPlacementId")
+                        .HasColumnType("uuid");
+
+                    b.PrimitiveCollection<int[]>("SecondScores")
+                        .IsRequired()
+                        .HasColumnType("integer[]");
+
+                    b.Property<int>("SortIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Stage")
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid>("TournamentResultId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Winner")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FirstPlacementId");
+
+                    b.HasIndex("SecondPlacementId");
+
+                    b.HasIndex("TournamentResultId", "SortIndex");
+
+                    b.ToTable("TournamentMatches");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TournamentPlacement", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ConnectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ConnectedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SortIndex")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SourceName")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid?>("TeamId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("TournamentResultId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("TugenyTeamId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConnectedByUserId");
+
+                    b.HasIndex("TeamId");
+
+                    b.HasIndex("TournamentResultId", "TeamId")
+                        .IsUnique()
+                        .HasFilter("\"TeamId\" IS NOT NULL");
+
+                    b.HasIndex("TournamentResultId", "Position", "SortIndex");
+
+                    b.ToTable("TournamentPlacements");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TournamentResult", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("EditedSinceImport")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ImportedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("LastChangedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ResultsChangedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Source")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TugenyName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TugenySlug")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateOnly?>("TugenyStartDate")
+                        .HasColumnType("date");
+
+                    b.Property<int?>("TugenyTournamentId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventId")
+                        .IsUnique();
+
+                    b.HasIndex("LastChangedByUserId");
+
+                    b.HasIndex("TugenyTournamentId");
+
+                    b.ToTable("TournamentResults");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.Training", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2951,6 +3130,74 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("JuggerHub.Entities.TournamentMatch", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.TournamentPlacement", "FirstPlacement")
+                        .WithMany()
+                        .HasForeignKey("FirstPlacementId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("JuggerHub.Entities.TournamentPlacement", "SecondPlacement")
+                        .WithMany()
+                        .HasForeignKey("SecondPlacementId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("JuggerHub.Entities.TournamentResult", "TournamentResult")
+                        .WithMany("Matches")
+                        .HasForeignKey("TournamentResultId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("FirstPlacement");
+
+                    b.Navigation("SecondPlacement");
+
+                    b.Navigation("TournamentResult");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TournamentPlacement", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.User", "ConnectedBy")
+                        .WithMany()
+                        .HasForeignKey("ConnectedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("JuggerHub.Entities.Team", "Team")
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("JuggerHub.Entities.TournamentResult", "TournamentResult")
+                        .WithMany("Placements")
+                        .HasForeignKey("TournamentResultId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ConnectedBy");
+
+                    b.Navigation("Team");
+
+                    b.Navigation("TournamentResult");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TournamentResult", b =>
+                {
+                    b.HasOne("JuggerHub.Entities.Event", "Event")
+                        .WithOne()
+                        .HasForeignKey("JuggerHub.Entities.TournamentResult", "EventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("JuggerHub.Entities.User", "LastChangedBy")
+                        .WithMany()
+                        .HasForeignKey("LastChangedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Event");
+
+                    b.Navigation("LastChangedBy");
+                });
+
             modelBuilder.Entity("JuggerHub.Entities.Training", b =>
                 {
                     b.HasOne("JuggerHub.Entities.City", "City")
@@ -3152,6 +3399,13 @@ namespace JuggerHub.Data.Migrations
                     b.Navigation("Memberships");
 
                     b.Navigation("News");
+                });
+
+            modelBuilder.Entity("JuggerHub.Entities.TournamentResult", b =>
+                {
+                    b.Navigation("Matches");
+
+                    b.Navigation("Placements");
                 });
 
             modelBuilder.Entity("JuggerHub.Entities.Training", b =>

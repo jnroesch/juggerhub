@@ -1,0 +1,30 @@
+<jh-card class="p-md" data-testid="placements">
+  <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.placements.title' | transloco }}</h2>
+
+  @if (items().length > 0) {
+    <ul class="flex flex-col gap-xs">
+      @for (p of items(); track p.eventId) {
+        <li class="flex items-baseline justify-between gap-sm" data-testid="placement-row">
+          <span class="min-w-0 text-body-sm text-body">
+            <a [routerLink]="['/events', p.eventId]" class="hover:text-link">{{ p.eventName }}</a>
+            <span class="block text-caption text-subtle">{{ p.date | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
+          </span>
+          <span class="shrink-0 text-body-sm font-semibold tabular-nums text-heading">{{ 'teams.placements.place' | transloco: { position: p.position, count: p.rankedCount } }}</span>
+        </li>
+      }
+    </ul>
+  } @else if (!loading() && !loadError()) {
+    <jh-empty-state inline>{{ 'teams.placements.empty' | transloco }}</jh-empty-state>
+  }
+
+  @if (loadError()) {
+    <div class="mt-sm"><jh-alert tone="danger">{{ 'teams.placements.loadError' | transloco }}</jh-alert></div>
+  }
+  @if (loading()) {
+    <jh-loading />
+  } @else if (hasMore() || loadError()) {
+    <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="loadMore()" data-testid="placements-more">
+      {{ (loadError() ? 'common.tryAgain' : 'teams.placements.loadMore') | transloco }}
+    </button>
+  }
+</jh-card>

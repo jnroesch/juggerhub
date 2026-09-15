@@ -1,0 +1,135 @@
+@if (loadError()) {
+  <jh-card class="p-md" data-testid="results">
+    <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.results.title' | transloco }}</h2>
+    <div class="mt-sm">
+      <jh-alert tone="danger">{{ 'events.results.loadError' | transloco }}</jh-alert>
+    </div>
+    <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="load()" data-testid="results-retry">
+      {{ 'common.tryAgain' | transloco }}
+    </button>
+  </jh-card>
+} @else if (result(); as r) {
+  @if (hasResults() || r.tugeny) {
+    <jh-card class="p-md" data-testid="results">
+      <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.results.title' | transloco }}</h2>
+
+      @if (!ended() && r.tugeny; as link) {
+        <p class="mt-xs text-body-sm text-body">{{ 'events.results.liveHint' | transloco }}</p>
+        <a jhButton variant="secondary" size="sm" class="mt-sm" [href]="link.liveUrl" target="_blank" rel="noopener" data-testid="tugeny-live">
+          {{ 'events.results.liveView' | transloco }}
+        </a>
+      }
+
+      @if (hasResults()) {
+        <!-- Winner callout: two or more names when the admins recorded a shared first place -->
+        <div class="mt-sm rounded-md bg-surface-sunken px-md py-sm" data-testid="results-winner">
+          <p class="text-caption text-muted">{{ (winners().length > 1 ? 'events.results.sharedFirst' : 'events.results.winner') | transloco }}</p>
+          <p class="text-body-lg font-bold text-heading">
+            @for (w of winners(); track w.id; let last = $last) {
+              @if (w.teamSlug) {
+                <a [routerLink]="['/t', w.teamSlug]" class="hover:text-link">{{ w.name }}</a>
+              } @else {
+                <span>{{ w.name }}</span>
+              }
+              @if (!last) {<span class="text-muted"> · </span>}
+            }
+          </p>
+        </div>
+
+        <ol class="mt-md flex flex-col gap-xs" data-testid="results-ranking">
+          @for (p of placements(); track p.id) {
+            <li class="flex items-center gap-sm" [attr.data-position]="p.position">
+              <span class="inline-flex h-7 min-w-7 shrink-0 items-center justify-center rounded-pill bg-surface-sunken px-xs font-mono text-body-sm font-semibold text-heading">{{ p.position }}</span>
+              <span class="min-w-0 flex-1 break-words text-body-md text-body">
+                @if (p.teamSlug) {
+                  <a [routerLink]="['/t', p.teamSlug]" class="hover:text-link">{{ p.name }}</a>
+                } @else {
+                  {{ p.name }}
+                }
+              </span>
+            </li>
+          }
+        </ol>
+
+        <p class="mt-md text-caption text-subtle" data-testid="results-meta">
+          {{ 'events.results.teamsRanked' | transloco: { count: r.rankedCount } }}
+          @if (r.resultsChangedAt) {
+            <span> · {{ 'events.results.lastChanged' | transloco: { date: (r.resultsChangedAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' }) } }}</span>
+          }
+        </p>
+
+        @if (imported() && r.tugeny; as link) {
+          <p class="mt-xs text-caption text-subtle" data-testid="results-provenance">
+            <a [href]="link.tournamentUrl" target="_blank" rel="noopener" class="underline hover:text-link">{{ 'events.results.provenance' | transloco }}</a>
+            @if (r.editedSinceImport) {<span> · {{ 'events.results.editedSince' | transloco }}</span>}
+          </p>
+        }
+      }
+
+      <!-- Once it is over, the bracket stays one tap away — finalized on Tugeny or not -->
+      @if (ended() && r.tugeny; as link) {
+        @if (!hasResults()) {
+          <p class="mt-xs text-body-sm text-body">{{ 'events.results.treeHint' | transloco }}</p>
+        }
+        <a jhButton variant="secondary" size="sm" class="mt-sm" [href]="link.treeUrl" target="_blank" rel="noopener" data-testid="tugeny-tree">
+          {{ 'events.results.treeView' | transloco }}
+        </a>
+      }
+
+      @if (hasResults()) {
+        @if (r.matchCount > 0) {
+          <hr class="my-md border-t border-border" />
+          <h3 class="text-body-md font-semibold text-heading">{{ 'events.results.matches.title' | transloco }}</h3>
+
+          @if (!matchesOpen()) {
+            <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="openMatches()" data-testid="results-show-matches">
+              {{ 'events.results.matches.show' | transloco: { count: r.matchCount } }}
+            </button>
+          } @else {
+            @for (g of matchGroups(); track g.stage) {
+              <h4 class="mt-md text-body-sm font-semibold text-heading" data-testid="match-stage">{{ g.stage ?? ('events.results.matches.knockout' | transloco) }}</h4>
+              <ul class="mt-xs divide-y divide-border">
+                @for (m of g.matches; track m.id) {
+                  <li class="py-xs" data-testid="result-match" [attr.data-winner]="m.winner">
+                    <p class="text-caption text-subtle">
+                      {{ m.name }}@if (m.winner === 'Draw') {<span> · {{ 'events.results.matches.draw' | transloco }}</span>}
+                    </p>
+                    <div class="flex items-center gap-sm text-body-sm">
+                      <span class="min-w-0 flex-1 truncate" [class.font-semibold]="m.winner === 'First'" [class.text-heading]="m.winner === 'First'">
+                        @if (m.first.teamSlug) { <a [routerLink]="['/t', m.first.teamSlug]" class="hover:text-link">{{ m.first.name }}</a> } @else { {{ m.first.name }} }
+                      </span>
+                      <span class="shrink-0 font-mono tabular-nums">
+                        @for (s of m.firstScores; track $index) {<span class="inline-block w-6 text-right">{{ s }}</span>}
+                      </span>
+                    </div>
+                    <div class="flex items-center gap-sm text-body-sm">
+                      <span class="min-w-0 flex-1 truncate" [class.font-semibold]="m.winner === 'Second'" [class.text-heading]="m.winner === 'Second'">
+                        @if (m.second.teamSlug) { <a [routerLink]="['/t', m.second.teamSlug]" class="hover:text-link">{{ m.second.name }}</a> } @else { {{ m.second.name }} }
+                      </span>
+                      <span class="shrink-0 font-mono tabular-nums">
+                        @for (s of m.secondScores; track $index) {<span class="inline-block w-6 text-right">{{ s }}</span>}
+                      </span>
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+
+            @if (matchesError()) {
+              <div class="mt-sm">
+                <jh-alert tone="danger">{{ 'events.results.matches.loadError' | transloco }}</jh-alert>
+              </div>
+            }
+            @if (matchesLoading()) {
+              <jh-loading />
+            } @else if (hasMoreMatches() || matchesError()) {
+              <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="loadMoreMatches()" data-testid="results-more-matches">
+                {{ (matchesError() ? 'common.tryAgain' : 'events.results.matches.loadMore') | transloco }}
+              </button>
+            }
+          }
+        }
+      }
+    </jh-card>
+  }
+}

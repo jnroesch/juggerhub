@@ -1,0 +1,31 @@
+<jh-card class="p-md" data-testid="tugeny-team-list">
+  <h2 class="text-body-lg font-semibold text-heading">{{ 'events.results.teamList.title' | transloco }}</h2>
+  <p class="mt-xs text-body-sm text-body">{{ 'events.results.teamList.hint' | transloco }}</p>
+
+  @if (loadError()) {
+    <div class="mt-sm"><jh-alert tone="danger">{{ 'events.results.teamList.loadError' | transloco }}</jh-alert></div>
+    <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
+  } @else if (list(); as l) {
+    @if (l.names.length === 0) {
+      <div class="mt-sm"><jh-empty-state inline>{{ 'events.results.teamList.empty' | transloco }}</jh-empty-state></div>
+    } @else {
+      @if (l.duplicates.length > 0) {
+        <div class="mt-sm" data-testid="team-list-duplicates">
+          <jh-alert tone="warning">{{ 'events.results.teamList.duplicatesWarning' | transloco: { names: l.duplicates.join(', ') } }}</jh-alert>
+        </div>
+      }
+      <label for="tugeny-team-list" class="sr-only">{{ 'events.results.teamList.title' | transloco }}</label>
+      <textarea #box id="tugeny-team-list" readonly [rows]="l.names.length > 8 ? 8 : l.names.length"
+        class="mt-sm w-full rounded-md border border-border-strong bg-surface-sunken px-md py-sm font-mono text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+        [value]="l.text" data-testid="team-list-text"></textarea>
+      <div class="mt-xs flex flex-wrap items-center gap-sm">
+        <button type="button" jhButton variant="secondary" size="sm" (click)="copy(l.text, box)" data-testid="team-list-copy">{{ 'events.results.teamList.copy' | transloco }}</button>
+        @if (copied()) {
+          <span class="text-body-sm text-success-fg" role="status">{{ 'events.results.teamList.copied' | transloco }}</span>
+        }
+      </div>
+    }
+  } @else {
+    <jh-loading />
+  }
+</jh-card>
