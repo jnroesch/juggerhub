@@ -30,6 +30,8 @@ export interface TugenyLink {
   startDate: string | null;
   liveUrl: string;
   tournamentUrl: string;
+  /** Tugeny's full bracket — offered for good once the tournament is over. */
+  treeUrl: string;
 }
 
 export interface Placement {

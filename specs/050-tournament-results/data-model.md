@@ -23,7 +23,7 @@ The results of one tournament event, plus its Tugeny link. It is created by the 
 | `LastChangedByUserId` | `Guid?` | FK → `User`, **`Restrict`** (R10). Null only while `Source == None` |
 | `ResultsChangedAt` | `DateTime?` (UTC) | When the ranking or matches last changed, shown on the event (FR-007). Distinct from `ModifiedDate`, which linking also touches |
 | `TugenyTournamentId` | `int?` | Tugeny's id; null when unlinked. Indexed (non-unique) for the "linked elsewhere" check |
-| `TugenySlug` | `string?` (150) | Used for the live link and the provenance link |
+| `TugenySlug` | `string?` (150) | Used for the live view, bracket and provenance links |
 | `TugenyName` | `string?` (200) | Shown to confirm the link (FR-014) |
 | `TugenyStartDate` | `DateOnly?` | Shown to confirm the link |
 | `Placements` | nav | `Cascade` |

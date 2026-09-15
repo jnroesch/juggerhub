@@ -16,10 +16,10 @@ const MATCH_PAGE = 50;
 
 /**
  * The results of a tournament event (feature 050): the ranking with its winner, where the results
- * came from, the matches of an imported tournament, and — while the tournament is on — a link to
- * follow it live on Tugeny.
+ * came from, the matches of an imported tournament, and the linked Tugeny tournament — its live view
+ * while the tournament is on, its full bracket for good once it is over.
  *
- * Renders nothing until there is something to show: no results and no live link means no card.
+ * Renders nothing until there is something to show: no results and no Tugeny link means no card.
  * A failed load is not "nothing recorded" — it shows an error with a retry, never the empty look
  * (DESIGN.md "Error vs. empty").
  *
@@ -36,7 +36,7 @@ export class EventResultsComponent implements OnInit {
   private readonly api = inject(ResultsService);
 
   readonly eventId = input.required<string>();
-  /** When the event ends — the live link is offered until then. */
+  /** When the event ends — the live view is offered until then, the bracket afterwards. */
   readonly endsAt = input.required<string>();
 
   protected readonly result = signal<TournamentResult | null>(null);
@@ -54,10 +54,7 @@ export class EventResultsComponent implements OnInit {
   /** Everyone at first place — two or more when the admins recorded a shared first place. */
   protected readonly winners = computed(() => this.placements().filter((p) => p.position === 1));
 
-  protected readonly showLive = computed(() => {
-    const r = this.result();
-    return !!r?.tugeny && new Date(this.endsAt()).getTime() > Date.now();
-  });
+  protected readonly ended = computed(() => new Date(this.endsAt()).getTime() <= Date.now());
 
   protected readonly imported = computed(() => this.result()?.source === 'TugenyImport');
 

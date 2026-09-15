@@ -495,7 +495,9 @@
         "slowDown": "Han sido muchas solicitudes en poco tiempo; espera un momento y vuelve a intentarlo.",
         "unreachable": "No se puede acceder a Tugeny ahora mismo; inténtalo de nuevo en unos minutos.",
         "failed": "No ha funcionado; inténtalo de nuevo."
-      }
+      },
+      "treeHint": "El cuadro completo y todos los partidos están en Tugeny.",
+      "treeView": "Ver el cuadro en Tugeny"
     }
   },
   "profile": {

@@ -44,6 +44,7 @@ public sealed class TugenyLinkTests : ResultsTestSupport
         var result = await ReadJsonAsync(await admin.GetAsync(EventResults(eventId)));
         var tugeny = result.GetProperty("tugeny");
         Assert.EndsWith("/tournaments/25-deutsche-meisterschaft/live-view", tugeny.GetProperty("liveUrl").GetString());
+        Assert.EndsWith("/tournaments/25-deutsche-meisterschaft/tournament-tree", tugeny.GetProperty("treeUrl").GetString());
         Assert.Equal("None", result.GetProperty("source").GetString());
     }
 

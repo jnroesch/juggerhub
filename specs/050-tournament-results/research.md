@@ -148,7 +148,7 @@ All three were surveyed across **every** finalized tournament (46, on 2026-09-15
 
 The link stores Tugeny's `id`, `slug`, `name` and `startdate`. The same Tugeny id linked to another event returns `linkedElsewhere: true`; the link is saved regardless (spec edge case: "allowed but warned").
 
-**Live link (FR-015)**: `https://tugeny.org/tournaments/{slug}/live-view`, built from the stored slug and never from input. It is shown until the event ends. Afterwards the provenance line links the tournament instead.
+**Live link (FR-015)**: `https://tugeny.org/tournaments/{slug}/live-view`, built from the stored slug and never from input. It is shown until the event ends. Afterwards the event page links `/tournament-tree` instead, for good (owner decision 2026-09-15: people should still be able to look at the whole bracket). Tugeny serves that page for finished tournaments whether finalized or not, so the link never depends on the import. The provenance line of imported results keeps linking `/all-teams`.
 
 ---
 

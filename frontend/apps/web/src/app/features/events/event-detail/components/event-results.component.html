@@ -9,11 +9,11 @@
     </button>
   </jh-card>
 } @else if (result(); as r) {
-  @if (hasResults() || showLive()) {
+  @if (hasResults() || r.tugeny) {
     <jh-card class="p-md" data-testid="results">
       <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.results.title' | transloco }}</h2>
 
-      @if (showLive() && r.tugeny; as link) {
+      @if (!ended() && r.tugeny; as link) {
         <p class="mt-xs text-body-sm text-body">{{ 'events.results.liveHint' | transloco }}</p>
         <a jhButton variant="secondary" size="sm" class="mt-sm" [href]="link.liveUrl" target="_blank" rel="noopener" data-testid="tugeny-live">
           {{ 'events.results.liveView' | transloco }}
@@ -64,7 +64,19 @@
             @if (r.editedSinceImport) {<span> · {{ 'events.results.editedSince' | transloco }}</span>}
           </p>
         }
+      }
 
+      <!-- Once it is over, the bracket stays one tap away — finalized on Tugeny or not -->
+      @if (ended() && r.tugeny; as link) {
+        @if (!hasResults()) {
+          <p class="mt-xs text-body-sm text-body">{{ 'events.results.treeHint' | transloco }}</p>
+        }
+        <a jhButton variant="secondary" size="sm" class="mt-sm" [href]="link.treeUrl" target="_blank" rel="noopener" data-testid="tugeny-tree">
+          {{ 'events.results.treeView' | transloco }}
+        </a>
+      }
+
+      @if (hasResults()) {
         @if (r.matchCount > 0) {
           <hr class="my-md border-t border-border" />
           <h3 class="text-body-md font-semibold text-heading">{{ 'events.results.matches.title' | transloco }}</h3>

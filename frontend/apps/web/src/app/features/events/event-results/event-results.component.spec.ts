@@ -157,7 +157,7 @@ describe('EventResultsPageComponent (the results page)', () => {
     const f = mount(
       editor({
         linkedElsewhere: true,
-        tugeny: { tournamentId: 200, slug: 'x', name: '25. Deutsche Meisterschaft', startDate: '2024-09-21', liveUrl: 'l', tournamentUrl: 't' },
+        tugeny: { tournamentId: 200, slug: 'x', name: '25. Deutsche Meisterschaft', startDate: '2024-09-21', liveUrl: 'l', tournamentUrl: 't', treeUrl: 'b' },
       }),
     );
 
@@ -166,7 +166,7 @@ describe('EventResultsPageComponent (the results page)', () => {
   });
 
   it('explains when Tugeny has no final results yet', () => {
-    const f = mount(editor({ tugeny: { tournamentId: 303, slug: 'y', name: 'Y', startDate: null, liveUrl: 'l', tournamentUrl: 't' } }));
+    const f = mount(editor({ tugeny: { tournamentId: 303, slug: 'y', name: 'Y', startDate: null, liveUrl: 'l', tournamentUrl: 't', treeUrl: 'b' } }));
 
     q(f, 'tugeny-import')!.click();
     http
@@ -178,7 +178,7 @@ describe('EventResultsPageComponent (the results page)', () => {
   });
 
   it('never preselects a team in the import draft', () => {
-    const f = mount(editor({ tugeny: { tournamentId: 200, slug: 'x', name: 'X', startDate: null, liveUrl: 'l', tournamentUrl: 't' } }));
+    const f = mount(editor({ tugeny: { tournamentId: 200, slug: 'x', name: 'X', startDate: null, liveUrl: 'l', tournamentUrl: 't', treeUrl: 'b' } }));
 
     q(f, 'tugeny-import')!.click();
     http.expectOne('/api/v1/events/e1/results/tugeny-import').flush({

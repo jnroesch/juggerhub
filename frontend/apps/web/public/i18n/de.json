@@ -495,7 +495,9 @@
         "slowDown": "Das waren gerade viele Anfragen – warte einen Moment und versuch es dann noch einmal.",
         "unreachable": "Tugeny ist gerade nicht erreichbar – versuch es in ein paar Minuten noch einmal.",
         "failed": "Das hat nicht geklappt – versuch es noch einmal."
-      }
+      },
+      "treeHint": "Den ganzen Turnierbaum und alle Spiele findest du auf Tugeny.",
+      "treeView": "Turnierbaum auf Tugeny ansehen"
     }
   },
   "profile": {

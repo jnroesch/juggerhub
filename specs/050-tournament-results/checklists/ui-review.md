@@ -85,6 +85,7 @@
 - [x] CHK033 **Two teams with the same name** are told apart by address in the picker (`/t/rigor-…` vs `/t/rigor2-…`, shot `10`). That is exactly why a name is never matched automatically.
 - [x] CHK034 Imported data is shown as Tugeny has it: stage names ("Group 1") stay in Tugeny's language inside the German page. That is data, not UI copy, and "K.-o.-Runde" is our own heading. The Tugeny menu item "Export Ranking for JTR" is quoted verbatim in the paste hint so organizers can find it.
 - [x] CHK035 Scores: one row per side with its per-set points, which stays readable at 375 px (shot `32-matches-final-375`). Rows with fewer sets right-align rather than column-align across rows; accepted.
+- [x] CHK036 **The Tugeny link outlives the tournament** (FR-015, owner decision 2026-09-15). Once the event has ended the card links the bracket instead of the live view: "Turnierbaum auf Tugeny ansehen" as a secondary button, the same weight as the live-view one. With no results yet it keeps the card alive with one hint line ("Den ganzen Turnierbaum und alle Spiele findest du auf Tugeny."); with results it sits after the provenance line, before the matches. Both fit on one line at 375 px in German (shots `50-tree-no-results-375`, `51-tree-with-results-375`, and the desktop pair).
 
 ## Fixed during the walk
 

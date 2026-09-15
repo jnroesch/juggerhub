@@ -22,14 +22,19 @@ public sealed record TournamentResultDto(
     int MatchCount,
     ResultViewerDto Viewer);
 
-/// <summary>A linked Tugeny tournament, with the links JuggerHub builds from its slug.</summary>
+/// <summary>
+/// A linked Tugeny tournament, with the links JuggerHub builds from its slug: the live view while it
+/// runs, the full bracket (<see cref="TreeUrl"/>) for good once it is over, and the tournament's
+/// overview for crediting imported results.
+/// </summary>
 public sealed record TugenyLinkDto(
     int TournamentId,
     string Slug,
     string Name,
     DateOnly? StartDate,
     string LiveUrl,
-    string TournamentUrl);
+    string TournamentUrl,
+    string TreeUrl);
 
 /// <summary>One placement as everyone sees it. Connection attribution is for admins only.</summary>
 public sealed record PlacementDto(Guid Id, int Position, string Name, string? TeamSlug);

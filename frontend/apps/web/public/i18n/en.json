@@ -491,7 +491,9 @@
         "slowDown": "That was a lot of requests in a short time — wait a moment and try again.",
         "unreachable": "Tugeny can't be reached right now — try again in a few minutes.",
         "failed": "That didn't work — try again."
-      }
+      },
+      "treeHint": "The full bracket and every match are on Tugeny.",
+      "treeView": "See the bracket on Tugeny"
     }
   },
   "profile": {

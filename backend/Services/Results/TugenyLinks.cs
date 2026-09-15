@@ -24,6 +24,8 @@ public static class TugenyLinks
             name ?? slug,
             startDate,
             new Uri(tournament, "live-view").ToString(),
-            new Uri(tournament, "all-teams").ToString());
+            new Uri(tournament, "all-teams").ToString(),
+            // Tugeny keeps the bracket page for finished tournaments, finalized or not.
+            new Uri(tournament, "tournament-tree").ToString());
     }
 }

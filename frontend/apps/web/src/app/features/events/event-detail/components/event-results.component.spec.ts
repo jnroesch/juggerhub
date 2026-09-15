@@ -116,18 +116,37 @@ describe('EventResultsComponent (the results card on the event page)', () => {
     expect(q(f, 'results-winner')).not.toBeNull();
   });
 
+  const tugeny = {
+    tournamentId: 200,
+    slug: 'x',
+    name: 'X',
+    startDate: null,
+    liveUrl: 'https://tugeny.org/tournaments/x/live-view',
+    tournamentUrl: 'https://tugeny.org/tournaments/x/all-teams',
+    treeUrl: 'https://tugeny.org/tournaments/x/tournament-tree',
+  };
+
   it('offers the live view on Tugeny while the tournament is still on', () => {
-    const tugeny = {
-      tournamentId: 200,
-      slug: 'x',
-      name: 'X',
-      startDate: null,
-      liveUrl: 'https://tugeny.org/tournaments/x/live-view',
-      tournamentUrl: 'https://tugeny.org/tournaments/x/all-teams',
-    };
     const f = mount(result({ source: 'None', placements: [], rankedCount: 0, tugeny }), '2999-01-01T00:00:00Z');
 
     expect(q(f, 'tugeny-live')?.getAttribute('href')).toBe(tugeny.liveUrl);
+    expect(q(f, 'tugeny-tree')).toBeNull();
+  });
+
+  it('keeps linking to the bracket on Tugeny once it is over, even with nothing recorded yet', () => {
+    const f = mount(result({ source: 'None', placements: [], rankedCount: 0, tugeny }));
+
+    expect(q(f, 'tugeny-tree')?.getAttribute('href')).toBe(tugeny.treeUrl);
+    expect(q(f, 'results')?.textContent).toContain('The full bracket and every match are on Tugeny.');
+    expect(q(f, 'tugeny-live')).toBeNull();
+  });
+
+  it('links the bracket below a recorded ranking once it is over', () => {
+    const f = mount(result({ tugeny }));
+
+    expect(q(f, 'results-winner')).not.toBeNull();
+    expect(q(f, 'tugeny-tree')?.getAttribute('href')).toBe(tugeny.treeUrl);
+    expect(q(f, 'results')?.textContent).not.toContain('The full bracket and every match are on Tugeny.');
   });
 
   it('credits Tugeny for imported results, and says when they were edited since', () => {
@@ -135,7 +154,7 @@ describe('EventResultsComponent (the results card on the event page)', () => {
       result({
         source: 'TugenyImport',
         editedSinceImport: true,
-        tugeny: { tournamentId: 200, slug: 'x', name: 'X', startDate: null, liveUrl: 'l', tournamentUrl: 'https://tugeny.org/t' },
+        tugeny: { ...tugeny, tournamentUrl: 'https://tugeny.org/t' },
       }),
     );
 

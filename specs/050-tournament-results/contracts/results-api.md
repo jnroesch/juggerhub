@@ -10,7 +10,7 @@ Legend: **EA** = admin of this event (`EventAdminGuard`) · **PA** = platform ad
 
 ### `GET /events/{eventId}/results` → `200 TournamentResultDto`
 
-Any signed-in user. `404` if the event does not exist. Returns an **empty result** (not 404) when nothing is recorded, so the page can still show a link or a live link.
+Any signed-in user. `404` if the event does not exist. Returns an **empty result** (not 404) when nothing is recorded, so the page can still show the Tugeny link (live view before the end, bracket after it).
 
 ```jsonc
 {
@@ -22,7 +22,8 @@ Any signed-in user. `404` if the event does not exist. Returns an **empty result
     "tournamentId": 200, "slug": "25-deutsche-meisterschaft",
     "name": "25. Deutsche Meisterschaft", "startDate": "2024-09-21",
     "liveUrl": "https://tugeny.org/tournaments/25-deutsche-meisterschaft/live-view",
-    "tournamentUrl": "https://tugeny.org/tournaments/25-deutsche-meisterschaft/all-teams"
+    "tournamentUrl": "https://tugeny.org/tournaments/25-deutsche-meisterschaft/all-teams",
+    "treeUrl": "https://tugeny.org/tournaments/25-deutsche-meisterschaft/tournament-tree"
   },
   "placements": [                                          // ≤ 128, ordered position, sortIndex (R8)
     { "id": "…", "position": 1, "name": "Seven Sins", "teamSlug": "seven-sins" | null }

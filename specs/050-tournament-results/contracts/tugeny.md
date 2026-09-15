@@ -69,4 +69,5 @@ Munich Monks
 | Link | Shown |
 |---|---|
 | `https://tugeny.org/tournaments/{slug}/live-view` | On the event page while the event has not ended (FR-015) |
+| `https://tugeny.org/tournaments/{slug}/tournament-tree` | On the event page once the event has ended, with or without results (FR-015). Verified 2026-09-15: served for finalized and unfinalized tournaments alike |
 | `https://tugeny.org/tournaments/{slug}/all-teams` | The provenance line of imported results (R14 attribution) |
