@@ -120,6 +120,13 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
 
     public DbSet<ChatAttachment> ChatAttachments => Set<ChatAttachment>();
 
+    // Feature 050 — tournament results: a ranking per tournament event, imported matches.
+    public DbSet<TournamentResult> TournamentResults => Set<TournamentResult>();
+
+    public DbSet<TournamentPlacement> TournamentPlacements => Set<TournamentPlacement>();
+
+    public DbSet<TournamentMatch> TournamentMatches => Set<TournamentMatch>();
+
     public DbSet<UserBlock> UserBlocks => Set<UserBlock>();
 
     // Feature 030 — canonical cities + precomputed city-to-city distance cache.
@@ -1152,6 +1159,91 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
             // in-memory-cached table is already fast, so a simple index on AsciiName suffices.
             entity.HasIndex(r => r.AsciiName);
             entity.HasIndex(r => r.CountryCode);
+        });
+
+        // ---- Feature 050: Tournament results ----
+
+        builder.Entity<TournamentResult>(entity =>
+        {
+            entity.Property(r => r.TugenySlug).HasMaxLength(150);
+            entity.Property(r => r.TugenyName).HasMaxLength(200);
+
+            // One result per tournament event. Cascade: events are never hard-deleted (cancel is a
+            // status), so this only matters for test teardown.
+            entity.HasIndex(r => r.EventId).IsUnique();
+            entity.HasOne(r => r.Event)
+                .WithOne()
+                .HasForeignKey<TournamentResult>(r => r.EventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // "Is this Tugeny tournament already linked to another event?" (a warning, not a rule).
+            entity.HasIndex(r => r.TugenyTournamentId);
+
+            // Restrict, like award grantors: account erasure (037) neutralises the user row rather
+            // than deleting it, so the actor survives and projects to a placeholder.
+            entity.HasOne(r => r.LastChangedBy)
+                .WithMany()
+                .HasForeignKey(r => r.LastChangedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TournamentPlacement>(entity =>
+        {
+            entity.Property(p => p.SourceName).HasMaxLength(80).IsRequired();
+            entity.Property(p => p.Name).HasMaxLength(80).IsRequired();
+
+            // Ranking order, and the ties within a placement.
+            entity.HasIndex(p => new { p.TournamentResultId, p.Position, p.SortIndex });
+            // A team holds at most one placement per ranking (FR-005); plain names are unconstrained.
+            entity.HasIndex(p => new { p.TournamentResultId, p.TeamId })
+                .IsUnique()
+                .HasFilter("\"TeamId\" IS NOT NULL");
+
+            entity.HasOne(p => p.TournamentResult)
+                .WithMany(r => r.Placements)
+                .HasForeignKey(p => p.TournamentResultId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // SetNull, the EventParticipation precedent: deleting a team keeps the result readable
+            // under the name it had (Name is a snapshot) and only drops the link.
+            entity.HasOne(p => p.Team)
+                .WithMany()
+                .HasForeignKey(p => p.TeamId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasIndex(p => p.TeamId);
+
+            // Restrict, like award grantors (see TournamentResult.LastChangedBy above).
+            entity.HasOne(p => p.ConnectedBy)
+                .WithMany()
+                .HasForeignKey(p => p.ConnectedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TournamentMatch>(entity =>
+        {
+            entity.Property(m => m.Stage).HasMaxLength(80);
+            entity.Property(m => m.Name).HasMaxLength(120).IsRequired();
+            entity.Property(m => m.FirstName).HasMaxLength(80).IsRequired();
+            entity.Property(m => m.SecondName).HasMaxLength(80).IsRequired();
+
+            // The only access pattern: a result's matches, paged in import order.
+            entity.HasIndex(m => new { m.TournamentResultId, m.SortIndex });
+
+            entity.HasOne(m => m.TournamentResult)
+                .WithMany(r => r.Matches)
+                .HasForeignKey(m => m.TournamentResultId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // SetNull: a hand edit that removes a placement keeps the match readable by its name
+            // snapshot and only drops the link.
+            entity.HasOne(m => m.FirstPlacement)
+                .WithMany()
+                .HasForeignKey(m => m.FirstPlacementId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(m => m.SecondPlacement)
+                .WithMany()
+                .HasForeignKey(m => m.SecondPlacementId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

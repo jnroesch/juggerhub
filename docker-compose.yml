@@ -59,6 +59,12 @@ services:
       - Resilience__Outbound__MediaStore__TotalTimeoutSeconds=${RESILIENCE_MEDIA_TOTAL_TIMEOUT_SECONDS:-15}
       - Resilience__Outbound__MediaStore__MaxRetryAttempts=${RESILIENCE_MEDIA_MAX_RETRY_ATTEMPTS:-2}
       - Resilience__Outbound__MediaStore__BreakerMinimumThroughput=${RESILIENCE_MEDIA_BREAKER_MIN_THROUGHPUT:-10}
+      # Feature 050 — Tugeny's public data interface (tournament results import). No credentials.
+      - Tugeny__BaseUrl=${TUGENY_BASE_URL:-https://tugeny.org/}
+      - Resilience__Outbound__Tugeny__AttemptTimeoutSeconds=${RESILIENCE_TUGENY_ATTEMPT_TIMEOUT_SECONDS:-10}
+      - Resilience__Outbound__Tugeny__TotalTimeoutSeconds=${RESILIENCE_TUGENY_TOTAL_TIMEOUT_SECONDS:-30}
+      - Resilience__Outbound__Tugeny__MaxRetryAttempts=${RESILIENCE_TUGENY_MAX_RETRY_ATTEMPTS:-2}
+      - Resilience__Outbound__Tugeny__BreakerMinimumThroughput=${RESILIENCE_TUGENY_BREAKER_MIN_THROUGHPUT:-4}
       # #244 — the proxies whose X-Forwarded-For the backend believes: here the frontend nginx
       # container, somewhere in Docker's default bridge address pools. Deployed, the pod CIDR.
       - ForwardedHeaders__KnownNetworks=${FORWARDED_HEADERS_KNOWN_NETWORKS:-172.16.0.0/12,192.168.0.0/16}

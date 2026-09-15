@@ -35,8 +35,8 @@ description: "Task list for feature 050 — Tournament results"
 
 **Purpose**: Fixtures and shared enums.
 
-- [ ] T001 Copy the seven files from `specs/050-tournament-results/contracts/tugeny-samples/` into `backend/tests/JuggerHub.Api.IntegrationTests/Results/Fixtures/`, keeping the same file names. Add `<None Include="Results\Fixtures\*.json" CopyToOutputDirectory="PreserveNewest" />` to `backend/tests/JuggerHub.Api.IntegrationTests/JuggerHub.Api.IntegrationTests.csproj`, so tests can read them from `AppContext.BaseDirectory` (the `TemplateParityTests` precedent)
-- [ ] T002 [P] Create `backend/Entities/ResultEnums.cs` with `ResultSource { None = 0, Manual = 1, TugenyImport = 2 }` and `MatchWinner { First = 0, Second = 1, Draw = 2 }` (data-model.md), each with an XML doc line
+- [X] T001 Copy the seven files from `specs/050-tournament-results/contracts/tugeny-samples/` into `backend/tests/JuggerHub.Api.IntegrationTests/Results/Fixtures/`, keeping the same file names. Add `<None Include="Results\Fixtures\*.json" CopyToOutputDirectory="PreserveNewest" />` to `backend/tests/JuggerHub.Api.IntegrationTests/JuggerHub.Api.IntegrationTests.csproj`, so tests can read them from `AppContext.BaseDirectory` (the `TemplateParityTests` precedent)
+- [X] T002 [P] Create `backend/Entities/ResultEnums.cs` with `ResultSource { None = 0, Manual = 1, TugenyImport = 2 }` and `MatchWinner { First = 0, Second = 1, Draw = 2 }` (data-model.md), each with an XML doc line
 
 ---
 
@@ -46,10 +46,10 @@ description: "Task list for feature 050 — Tournament results"
 
 **⚠️ CRITICAL**: No user story starts before this phase is complete.
 
-- [ ] T003 [P] Create `backend/Entities/TournamentResult.cs` (`: BaseEntity`) with every field and navigation in data-model.md § TournamentResult, and an XML summary stating the lifecycle: created by the first link, save or import; never deleted; clear keeps the row
-- [ ] T004 [P] Create `backend/Entities/TournamentPlacement.cs` (`: BaseEntity`) per data-model.md § TournamentPlacement. The XML doc must state the four invariants, and that `TugenyTeamId` is per-commit and never read across results (FR-025)
-- [ ] T005 [P] Create `backend/Entities/TournamentMatch.cs` (`: BaseEntity`) per data-model.md § TournamentMatch, with `FirstScores`/`SecondScores` as `int[]`
-- [ ] T006 Configure the three entities in `backend/Data/AppDbContext.cs`: `DbSet`s plus a `// ---- Feature 050: Tournament results ----` block in `OnModelCreating`:
+- [X] T003 [P] Create `backend/Entities/TournamentResult.cs` (`: BaseEntity`) with every field and navigation in data-model.md § TournamentResult, and an XML summary stating the lifecycle: created by the first link, save or import; never deleted; clear keeps the row
+- [X] T004 [P] Create `backend/Entities/TournamentPlacement.cs` (`: BaseEntity`) per data-model.md § TournamentPlacement. The XML doc must state the four invariants, and that `TugenyTeamId` is per-commit and never read across results (FR-025)
+- [X] T005 [P] Create `backend/Entities/TournamentMatch.cs` (`: BaseEntity`) per data-model.md § TournamentMatch, with `FirstScores`/`SecondScores` as `int[]`
+- [X] T006 Configure the three entities in `backend/Data/AppDbContext.cs`: `DbSet`s plus a `// ---- Feature 050: Tournament results ----` block in `OnModelCreating`:
   - **Unique** `EventId`, FK to `Event` with `Cascade`
   - `Placements` and `Matches` with `Cascade`
   - `TournamentPlacement.TeamId`: `SetNull` (comment: the EventParticipation precedent, history survives team delete)
@@ -59,8 +59,8 @@ description: "Task list for feature 050 — Tournament results"
   - Indexes: `(TournamentResultId, Position, SortIndex)`, unique `(TournamentResultId, TeamId)` filtered `"TeamId" IS NOT NULL`, `(TeamId)`, `(TugenyTournamentId)`, `(TournamentResultId, SortIndex)` on matches
 
   (depends on T002–T005)
-- [ ] T007 Generate the migration with `dotnet ef migrations add AddTournamentResults`, run from `backend/`. Read the generated `Up`/`Down`: it must contain **only** `CreateTable` × 3, `CreateIndex` and `AddForeignKey`, and must **not** touch any existing table. Apply it with `dotnet ef database update` (depends on T006)
-- [ ] T008 [P] Create `backend/Dtos/Results/ResultDtos.cs` with every event and team DTO and request record in `contracts/results-api.md`:
+- [X] T007 Generate the migration with `dotnet ef migrations add AddTournamentResults`, run from `backend/`. Read the generated `Up`/`Down`: it must contain **only** `CreateTable` × 3, `CreateIndex` and `AddForeignKey`, and must **not** touch any existing table. Apply it with `dotnet ef database update` (depends on T006)
+- [X] T008 [P] Create `backend/Dtos/Results/ResultDtos.cs` with every event and team DTO and request record in `contracts/results-api.md`:
   - `TournamentResultDto`, `PlacementDto`, `ResultViewerDto`, `TugenyLinkDto`
   - `TournamentMatchDto`, `MatchSideDto`
   - `ResultEditorDto`, `EditorPlacementDto`, `SignedUpTeamDto`
@@ -68,7 +68,7 @@ description: "Task list for feature 050 — Tournament results"
   - `LinkTugenyRequest`, `TugenyImportPreviewDto`, `ImportCommitRequest`/`ImportConnectionRequest`, `TeamPlacementDto`
 
   Do **not** put an XML doc comment on any `PagedResult<T>` usage type; it crashes the OpenAPI generator (`Common/Pagination.cs` note)
-- [ ] T009 [P] Create `backend/tests/JuggerHub.Api.IntegrationTests/Results/ResultsTestSupport.cs`:
+- [X] T009 [P] Create `backend/tests/JuggerHub.Api.IntegrationTests/Results/ResultsTestSupport.cs`:
   - `[CollectionDefinition("Results")] ResultsCollection : ICollectionFixture<JuggerHubApiFactory>`
   - an abstract `ResultsTestSupport : PartyTestSupport` (from `Parties/PartyTestSupport.cs`)
   - `CreateTournamentAsync(client, participantMode)`, which creates a Teams/Individuals `Tournament` via `POST /api/v1/events`
@@ -76,8 +76,8 @@ description: "Task list for feature 050 — Tournament results"
   - `SeedSignupAsync(eventId, teamId, SignupStatus)`, which inserts an `EventSignup` row directly through `AppDbContext`. The signed-up rule reads only that row, so no party dance is needed.
   - `PlatformAdminClientAsync()`, wrapping `Admin/AdminAreaTestSupport.AdminClientAsync`
   - `LoadFixture(name)`, which reads `Results/Fixtures/{name}` from `AppContext.BaseDirectory`
-- [ ] T010 [P] Create `core/models/results.models.ts` with TypeScript interfaces mirroring every DTO in `contracts/results-api.md`, including `signedUpTeams`, `winner: 'First' | 'Second' | 'Draw'` and `source: 'None' | 'Manual' | 'TugenyImport'`. Reuse the existing `PagedResult<T>` from `core/models/home.models.ts`; don't add a third copy
-- [ ] T011 [P] Create `core/services/results.service.ts` (`providedIn: 'root'`, `HttpClient`, base `/api/v1/events`) with `getResults(eventId)` and `getMatches(eventId, skip = 0, take = 50)`. Later stories add their own methods
+- [X] T010 [P] Create `core/models/results.models.ts` with TypeScript interfaces mirroring every DTO in `contracts/results-api.md`, including `signedUpTeams`, `winner: 'First' | 'Second' | 'Draw'` and `source: 'None' | 'Manual' | 'TugenyImport'`. Reuse the existing `PagedResult<T>` from `core/models/home.models.ts`; don't add a third copy
+- [X] T011 [P] Create `core/services/results.service.ts` (`providedIn: 'root'`, `HttpClient`, base `/api/v1/events`) with `getResults(eventId)` and `getMatches(eventId, skip = 0, take = 50)`. Later stories add their own methods
 
 **Checkpoint**: The schema is migrated and the shared contracts compile. Stories can start.
 
@@ -91,13 +91,13 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Tests for User Story 1
 
-- [ ] T012 [P] [US1] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/TournamentRankingTests.cs`: pure xUnit facts for `TournamentRanking.Normalize`:
+- [X] T012 [P] [US1] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/TournamentRankingTests.cs`: pure xUnit facts for `TournamentRanking.Normalize`:
   - submitted `1,2,3,3,4` → stored `1,2,3,3,5`
   - all tied → all `1`
   - gaps collapse (`1,5,9` → `1,2,3`)
   - order within a tie keeps submission order (`SortIndex`)
   - one row → `1`
-- [ ] T013 [P] [US1] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/RankingTests.cs` (`[Collection("Results")]`). It must cover:
+- [X] T013 [P] [US1] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/RankingTests.cs` (`[Collection("Results")]`). It must cover:
   - **FR-001**: 409 when not started, cancelled, or the event is a Workshop
   - 403 for a non-admin, 404 for an unknown event
   - **400** for: an empty name, 81 characters, 129 rows, position 0 or 1000, the same team twice
@@ -108,7 +108,7 @@ description: "Task list for feature 050 — Tournament results"
   - `DELETE …/ranking` clears placements, keeps the row, and sets `source = None`
   - an Individuals-mode tournament accepts plain names and has an empty `signedUpTeams`
   - `GET …/editor` gives 403 for non-admins and lists only `Joined` teams in `signedUpTeams`
-- [ ] T014 [P] [US1] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/ConnectionPreservationTests.cs` (research R8), after seeding through `AppDbContext` a placement connected by a platform admin to a team with **no** signup:
+- [X] T014 [P] [US1] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/ConnectionPreservationTests.cs` (research R8), after seeding through `AppDbContext` a placement connected by a platform admin to a team with **no** signup:
   - an event admin re-saving the ranking with the same row `id` and the same `teamId` → 200, connection and `ConnectedByUserId` unchanged
   - the same `teamId` on a **different** row → 422
   - the row omitted → deleted
@@ -116,15 +116,15 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Implementation for User Story 1
 
-- [ ] T015 [US1] Create `backend/Services/Results/TournamentRanking.cs`: a pure `static` normaliser to standard competition ranking over `(submittedPosition, submissionIndex)` → `(Position, SortIndex)` (research R8). Make T012 pass
-- [ ] T016 [US1] Create `backend/Services/Results/ITournamentResultService.cs` and `TournamentResultService.cs`, with outcome enums following `EventService`'s result pattern. Methods:
+- [X] T015 [US1] Create `backend/Services/Results/TournamentRanking.cs`: a pure `static` normaliser to standard competition ranking over `(submittedPosition, submissionIndex)` → `(Position, SortIndex)` (research R8). Make T012 pass
+- [X] T016 [US1] Create `backend/Services/Results/ITournamentResultService.cs` and `TournamentResultService.cs`, with outcome enums following `EventService`'s result pattern. Methods:
   - **`GetAsync(eventId, viewerId)`**: an `AsNoTracking` projection. It computes `viewer.canEdit` as event admin ∧ Tournament ∧ ¬Cancelled ∧ `StartsAt <= UtcNow`, and `teamSlug` via the team navigation.
   - **`GetMatchesAsync(eventId, PaginationRequest)`**: ordered by `SortIndex`.
   - **`GetEditorAsync(eventId, userId)`**: includes `signedUpTeams` (`Joined` only), `sourceName`, and connection attribution. The display name uses `MemberPlaceholder.For(culture)` when the profile is gone, following `TeamNewsService.cs:55-66`.
   - **`ReplaceRankingAsync(eventId, userId, rows)`**, implementing research R8 exactly. It uses a guard via `EventAdminGuard.ResolveAsync`, the FR-001 gates, the 128 cap, and the signed-up-or-unchanged-connection rule. It keeps attribution only for unchanged connections, sets `Name = team.Name` when connected (otherwise `SourceName`), and creates the result row on first save. `Source`, `EditedSinceImport`, `ResultsChangedAt` and `LastChangedByUserId` follow the data-model state diagram. It does one tracked load and one `SaveChanges`.
   - **`ClearAsync`**.
-- [ ] T017 [US1] Create `backend/Controllers/EventResultsController.cs` (`[ApiController]`, `[ApiVersion("1.0")]`, route `api/v{version:apiVersion}/events/{eventId:guid}/results`, class-level `[Authorize]` as `EventsController`). Add `GET ""`, `GET matches`, `GET editor`, `PUT ranking` and `DELETE ranking`, mapping outcomes to the statuses in `contracts/results-api.md` with generic problem details. Register the service in `backend/Program.cs` next to the other `AddScoped` service registrations. Make T013 and T014 pass
-- [ ] T018 [P] [US1] Create `features/events/event-detail/components/event-results.component.{ts,html,css}` (selector `jh-event-results`, input `eventId`):
+- [X] T017 [US1] Create `backend/Controllers/EventResultsController.cs` (`[ApiController]`, `[ApiVersion("1.0")]`, route `api/v{version:apiVersion}/events/{eventId:guid}/results`, class-level `[Authorize]` as `EventsController`). Add `GET ""`, `GET matches`, `GET editor`, `PUT ranking` and `DELETE ranking`, mapping outcomes to the statuses in `contracts/results-api.md` with generic problem details. Register the service in `backend/Program.cs` next to the other `AddScoped` service registrations. Make T013 and T014 pass
+- [X] T018 [P] [US1] Create `features/events/event-detail/components/event-results.component.{ts,html,css}` (selector `jh-event-results`, input `eventId`):
   - loads `getResults`
   - renders nothing when there are no placements
   - a winner callout that handles a shared first place ("Shared first place: A and B")
@@ -132,11 +132,11 @@ description: "Task list for feature 050 — Tournament results"
   - "N teams ranked" and "last changed"
   - failure → `jh-alert tone="danger"` with a "Try again" secondary button, never an empty state (DESIGN.md "Error vs. empty")
   - loading via `jh-loading`
-- [ ] T019 [US1] Edit `features/events/event-detail/event-detail.component.{html,ts}`:
+- [X] T019 [US1] Edit `features/events/event-detail/event-detail.component.{html,ts}`:
   - render `<jh-event-results>` first in the main column when `type === 'Tournament'`
   - in the admin manage menu (the `manage-menu-panel` block), add a "Results" link to `['/events', d.id, 'results']` for tournaments only, with `data-testid="manage-results"`
-- [ ] T020 [US1] Add `getEditor(eventId)`, `saveRanking(eventId, rows)` and `clearRanking(eventId)` to `core/services/results.service.ts`
-- [ ] T021 [US1] Create the results page `features/events/event-results/event-results.component.{ts,html,css}` and its lazy route `events/:id/results` with `canActivate: [authGuard]` in `app.routes.ts`, next to the other `events/:id/*` routes.
+- [X] T020 [US1] Add `getEditor(eventId)`, `saveRanking(eventId, rows)` and `clearRanking(eventId)` to `core/services/results.service.ts`
+- [X] T021 [US1] Create the results page `features/events/event-results/event-results.component.{ts,html,css}` and its lazy route `events/:id/results` with `canActivate: [authGuard]` in `app.routes.ts`, next to the other `events/:id/*` routes.
 
   **Page states**:
   - a back link `‹ {event name}` to the event (DESIGN.md "Navigation: back links": up, never `Location.back()`)
@@ -152,7 +152,7 @@ description: "Task list for feature 050 — Tournament results"
   - **Save ranking** is the single coral primary (DESIGN.md "one coral CTA per view")
   - **Clear results** is secondary, with a confirm step
   - inline `jh-alert` for 400/422 problem details, naming the row
-- [ ] T022 [P] [US1] Add `events.results.*` keys for the card and editor (heading, winner, sharedFirst, teamsRanked, lastChanged, notStarted, cancelled, notATournament, notAdmin, addRow, removeRow, teamSelect, freeName, connectedByAdmin, save, saved, clear, clearConfirm, loadError, retry, emptyEditor, validation messages) and `events.detail.manageResults` to en/de/es in one task. Keep the voice warm and in sentence case (DESIGN.md "Voice & content")
+- [X] T022 [P] [US1] Add `events.results.*` keys for the card and editor (heading, winner, sharedFirst, teamsRanked, lastChanged, notStarted, cancelled, notATournament, notAdmin, addRow, removeRow, teamSelect, freeName, connectedByAdmin, save, saved, clear, clearConfirm, loadError, retry, emptyEditor, validation messages) and `events.detail.manageResults` to en/de/es in one task. Keep the voice warm and in sentence case (DESIGN.md "Voice & content")
 - [ ] T023 [P] [US1] Write `event-results.component.spec.ts`:
   - winner, shared first, ties render as `1,2,2,4`
   - hidden when empty
@@ -176,7 +176,7 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Tests for User Story 2
 
-- [ ] T024 [P] [US2] Write `features/events/event-results/tugeny-export.parser.spec.ts` against `contracts/tugeny.md` §2.
+- [X] T024 [P] [US2] Write `features/events/event-results/tugeny-export.parser.spec.ts` against `contracts/tugeny.md` §2.
 
   **Accepted**:
   - compact `[{"name":"A","position":1}]`
@@ -196,15 +196,15 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Implementation for User Story 2
 
-- [ ] T025 [US2] Create `features/events/event-results/tugeny-export.parser.ts`: a pure `parseTugenyRankingExport(text): { rows } | { error }` per `contracts/tugeny.md` §2. It does no network and no DOM access. Make T024 pass
-- [ ] T026 [US2] Add a "Paste from Tugeny" dialog to `features/events/event-results/event-results.component.{ts,html}`:
+- [X] T025 [US2] Create `features/events/event-results/tugeny-export.parser.ts`: a pure `parseTugenyRankingExport(text): { rows } | { error }` per `contracts/tugeny.md` §2. It does no network and no DOM access. Make T024 pass
+- [X] T026 [US2] Add a "Paste from Tugeny" dialog to `features/events/event-results/event-results.component.{ts,html}`:
   - a textarea, and Read → parse
   - on success, replace the editor's draft rows with **unconnected** rows (FR-011: nothing preselected)
   - on failure, show an inline message and leave the draft and the saved ranking untouched (FR-010)
   - show a replace warning when a saved ranking exists before the draft can be saved (FR-012)
   - it saves through the existing `saveRanking` (the server re-validates)
   - the button is secondary
-- [ ] T027 [P] [US2] Add `events.results.paste.*` keys (open, title, hint pointing to Tugeny's *Export → Export Ranking for JTR*, read, cancel, unreadable, replaceWarning, draftLoaded) to en/de/es in one task
+- [X] T027 [P] [US2] Add `events.results.paste.*` keys (open, title, hint pointing to Tugeny's *Export → Export Ranking for JTR*, read, cancel, unreadable, replaceWarning, draftLoaded) to en/de/es in one task
 - [ ] T028 [US2] **Manual, owner or anyone with Windows**: in Tugeny 2.4 for Windows, open the bundled `WCC_2020+_finished.tur` and choose *Export → Export Ranking for JTR*. Commit the text as `features/events/event-results/fixtures/tugeny-export.wcc2020.json`, and add a parser spec case asserting it parses. If the real shape differs from research R1, update the parser, `contracts/tugeny.md` §2 and research R1 in the same change
 
 **Checkpoint**: US1 + US2 work. A paste fills the editor, and the save follows US1's rules.
@@ -219,7 +219,7 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Tests for User Story 3
 
-- [ ] T029 [P] [US3] Write `features/events/event-results/tugeny-team-list.spec.ts`:
+- [X] T029 [P] [US3] Write `features/events/event-results/tugeny-team-list.spec.ts`:
   - joined teams only, in `joinedAt` order
   - one name per line, no trailing newline
   - duplicates detected case-insensitively after trimming, and listed
@@ -228,15 +228,15 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Implementation for User Story 3
 
-- [ ] T030 [US3] Create `features/events/event-results/tugeny-team-list.ts`: a pure `buildTugenyTeamList(signups: Signup[]): { text, duplicates: string[] }` per `contracts/tugeny.md` §3. Make T029 pass
-- [ ] T031 [US3] Add a "Team list for Tugeny" card to `features/events/event-results/event-results.component.{ts,html}`:
+- [X] T030 [US3] Create `features/events/event-results/tugeny-team-list.ts`: a pure `buildTugenyTeamList(signups: Signup[]): { text, duplicates: string[] }` per `contracts/tugeny.md` §3. Make T029 pass
+- [X] T031 [US3] Add a "Team list for Tugeny" card to `features/events/event-results/event-results.component.{ts,html}`:
   - it loads **every** page of `EventService.getParticipants(id, 'joined', skip, take)` (`core/services/event.service.ts`)
   - it shows a read-only textarea with the text, and a Copy button using `navigator.clipboard.writeText`. The textarea stays selectable as the fallback where the Clipboard API is blocked.
   - duplicates are listed with a warning that Tugeny refuses them
   - an empty state when no team is confirmed
   - not rendered for Individuals-mode events
   - it is available **before** the start (FR-001 gates only the ranking)
-- [ ] T032 [P] [US3] Add `events.results.teamList.*` keys (title, hint naming Tugeny's *Import Team Names*, copy, copied, duplicatesWarning, empty) to en/de/es in one task
+- [X] T032 [P] [US3] Add `events.results.teamList.*` keys (title, hint naming Tugeny's *Import Team Names*, copy, copied, duplicatesWarning, empty) to en/de/es in one task
 
 **Checkpoint**: US1–US3 work without any outbound call.
 
@@ -250,7 +250,7 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Tests for User Story 4
 
-- [ ] T033 [P] [US4] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/TugenyLinkParserTests.cs` (pure, research R6).
+- [X] T033 [P] [US4] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/TugenyLinkParserTests.cs` (pure, research R6).
 
   **Accepted** (all → `25-deutsche-meisterschaft`):
   - `https://tugeny.org/tournaments/25-deutsche-meisterschaft`
@@ -265,7 +265,7 @@ description: "Task list for feature 050 — Tournament results"
   - `javascript:`
   - slugs with `_`, `%`, uppercase, a leading or trailing `-`, or longer than 150 characters
   - empty
-- [ ] T034 [P] [US4] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/TugenyLinkTests.cs`. Tugeny is faked with `Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddHttpClient("Tugeny").ConfigurePrimaryHttpMessageHandler(() => scripted)))`, where `scripted` serves the fixtures by path. It must cover:
+- [X] T034 [P] [US4] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/TugenyLinkTests.cs`. Tugeny is faked with `Factory.WithWebHostBuilder(b => b.ConfigureTestServices(s => s.AddHttpClient("Tugeny").ConfigurePrimaryHttpMessageHandler(() => scripted)))`, where `scripted` serves the fixtures by path. It must cover:
   - link OK → stores id, slug, name and date; the response carries them
   - `tournament-by-slug.unknown.json` (`null`) → 404
   - 500 / timeout → 503, nothing stored
@@ -274,7 +274,7 @@ description: "Task list for feature 050 — Tournament results"
   - the same Tugeny id already linked on another event → `linkedElsewhere: true`, and saved anyway
   - `DELETE` link → the four `Tugeny*` columns are null and results untouched
   - 403 for a non-admin
-- [ ] T035 [P] [US4] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/TugenyImportTests.cs`.
+- [X] T035 [P] [US4] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/TugenyImportTests.cs`.
 
   **Preview** (finalized fixtures): 20 placements, `matchCount` 78, nothing saved, every row unconnected.
 
@@ -299,7 +299,7 @@ description: "Task list for feature 050 — Tournament results"
   - a later hand save → `editedSinceImport = true`
 
   **Also**: `GET matches?take=50` pages.
-- [ ] T036 [P] [US4] Write `backend/tests/JuggerHub.Api.IntegrationTests/Resilience/TugenyResilienceTests.cs`. Mirror `CircuitBreakerTests.cs`, `OutboundEmailResilienceTests.cs` and `MediaStoreTests.cs:143-161`, using a harness that registers the named `"Tugeny"` client with `AddJuggerHubResilience(configuration, "Tugeny")` and a `ScriptedHandler` that can return a JSON body. It must cover:
+- [X] T036 [P] [US4] Write `backend/tests/JuggerHub.Api.IntegrationTests/Resilience/TugenyResilienceTests.cs`. Mirror `CircuitBreakerTests.cs`, `OutboundEmailResilienceTests.cs` and `MediaStoreTests.cs:143-161`, using a harness that registers the named `"Tugeny"` client with `AddJuggerHubResilience(configuration, "Tugeny")` and a `ScriptedHandler` that can return a JSON body. It must cover:
   - `client.Timeout == Timeout.InfiniteTimeSpan`, and the base address comes from `Tugeny:BaseUrl`
   - 500/502/503/504/408/429 are retried (3 transport calls); 400/404 are not (1)
   - with R5's values the breaker opens at 4 failed attempts
@@ -308,26 +308,26 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Implementation for User Story 4
 
-- [ ] T037 [P] [US4] Create `backend/Common/TugenyOptions.cs` (`SectionName = "Tugeny"`, `BaseUrl = "https://tugeny.org/"`, `const ResilienceName = "Tugeny"`, `MaxResponseBytes = 4 * 1024 * 1024`). Add a `Normalize()` that falls back to the safe defaults, never to "unlimited" (Principle VII)
-- [ ] T038 [P] [US4] Create `backend/Resilience/ResponseSizeLimitHandler.cs` (`DelegatingHandler`, constructor `maxBytes`) and `TugenyResponseTooLargeException : Exception`, **not** `HttpRequestException`. It:
+- [X] T037 [P] [US4] Create `backend/Common/TugenyOptions.cs` (`SectionName = "Tugeny"`, `BaseUrl = "https://tugeny.org/"`, `const ResilienceName = "Tugeny"`, `MaxResponseBytes = 4 * 1024 * 1024`). Add a `Normalize()` that falls back to the safe defaults, never to "unlimited" (Principle VII)
+- [X] T038 [P] [US4] Create `backend/Resilience/ResponseSizeLimitHandler.cs` (`DelegatingHandler`, constructor `maxBytes`) and `TugenyResponseTooLargeException : Exception`, **not** `HttpRequestException`. It:
   - rejects when `Content-Length > maxBytes`
   - otherwise reads at most `maxBytes + 1` bytes of the body inside `SendAsync`, so within the attempt timeout
   - throws on overflow
   - swaps in a `ByteArrayContent` carrying the original content headers
 
   The XML doc explains why it exists: `MaxResponseContentBufferSize` throws `HttpRequestException`, which the shared retry treats as transient (research R5)
-- [ ] T039 [US4] Wire the client in `backend/Program.cs`, next to the `MediaStore` named client:
+- [X] T039 [US4] Wire the client in `backend/Program.cs`, next to the `MediaStore` named client:
   - bind `TugenyOptions`
   - `builder.Services.AddHttpClient(TugenyOptions.ResilienceName, (sp, c) => c.BaseAddress = new Uri(options.BaseUrl)).AddJuggerHubResilience(builder.Configuration, TugenyOptions.ResilienceName).AddHttpMessageHandler(() => new ResponseSizeLimitHandler(options.MaxResponseBytes))`
 
   Add a comment stating: GET-only, so idempotent; Tugeny's 429 is retried (the provider throttling us), while our own `tugeny` policy's 429 is never retried by the browser. Register `ITugenyClient` and `ITugenyImportService` as scoped (depends on T037, T038)
-- [ ] T040 [P] [US4] Add configuration parity (Principle V) with the R5 values in `backend/appsettings.json`, `.env.sample`, `docker-compose.yml` and `JuggerHubApiFactory.cs`:
+- [X] T040 [P] [US4] Add configuration parity (Principle V) with the R5 values in `backend/appsettings.json`, `.env.sample`, `docker-compose.yml` and `JuggerHubApiFactory.cs`:
   - `backend/appsettings.json`: `"Tugeny": { "BaseUrl": "https://tugeny.org/" }` and `Resilience:Outbound:Tugeny` (all 8 keys)
   - `.env.sample`: a `RESILIENCE_TUGENY_*` block (the same 4 keys as Resend/MediaStore) and `TUGENY_BASE_URL`
   - `docker-compose.yml`: `Resilience__Outbound__Tugeny__*=${RESILIENCE_TUGENY_*:-default}` and `Tugeny__BaseUrl=${TUGENY_BASE_URL:-https://tugeny.org/}`
   - `backend/tests/JuggerHub.Api.IntegrationTests/JuggerHubApiFactory.cs`: fast test values next to the MediaStore ones
-- [ ] T041 [US4] Create `backend/Services/Results/TugenyLinkParser.cs`: a pure `static bool TryParseSlug(string input, out string slug)` per research R6. Make T033 pass
-- [ ] T042 [US4] Create `backend/Services/Results/ITugenyClient.cs` and `TugenyClient.cs`, the only code that talks to Tugeny. It uses `IHttpClientFactory.CreateClient(TugenyOptions.ResilienceName)`, and every slug or id is path-encoded. Methods:
+- [X] T041 [US4] Create `backend/Services/Results/TugenyLinkParser.cs`: a pure `static bool TryParseSlug(string input, out string slug)` per research R6. Make T033 pass
+- [X] T042 [US4] Create `backend/Services/Results/ITugenyClient.cs` and `TugenyClient.cs`, the only code that talks to Tugeny. It uses `IHttpClientFactory.CreateClient(TugenyOptions.ResilienceName)`, and every slug or id is path-encoded. Methods:
   - `GetTournamentBySlugAsync`: a literal `null` body → NotFound
   - `GetRankingAsync`: `rankings` as an object `"1".."N"`, or `[]` → not finalized
   - `GetMatchesAsync`
@@ -338,7 +338,7 @@ description: "Task list for feature 050 — Tournament results"
   - an unparseable `score_total` → empty arrays
 
   **Errors**: exceptions, non-success status and the size exception become a typed `Unavailable`/`Unusable` result. Log the endpoint name, status and length at Warning, **never** the body
-- [ ] T043 [US4] Create `backend/Services/Results/ITugenyImportService.cs` and `TugenyImportService.cs`. Every write gets the same guard and the FR-001 gates as `TournamentResultService`; linking before the start is allowed. Methods:
+- [X] T043 [US4] Create `backend/Services/Results/ITugenyImportService.cs` and `TugenyImportService.cs`. Every write gets the same guard and the FR-001 gates as `TournamentResultService`; linking before the start is allowed. Methods:
   - **`LinkAsync`**: parse, fetch, store the link, compute `linkedElsewhere`.
   - **`UnlinkAsync`**.
   - **`PreviewAsync`**: returns `signedUpTeams` and `replacesExisting`.
@@ -349,16 +349,16 @@ description: "Task list for feature 050 — Tournament results"
     - build matches: sort by `(timestamp, response index)` → `SortIndex`; sides resolved through `TugenyTeamId` to the new placements; `Winner` from `victorious_team_id`, null → Draw
     - replace the old placements and matches in **one** `SaveChanges`
     - set `Source = TugenyImport`, `ImportedAt`, `EditedSinceImport = false`, `ResultsChangedAt`, `LastChangedByUserId`
-- [ ] T044 [US4] Add a `Tugeny = "tugeny"` policy (10 per minute, `PartitionByUser`) to `backend/Security/RateLimitPolicies.cs`. Its comment names the two meanings of 429 (constitution Principle VII)
-- [ ] T045 [US4] Add `PUT tugeny-link`, `DELETE tugeny-link`, `GET tugeny-import` and `POST tugeny-import` to `backend/Controllers/EventResultsController.cs`:
+- [X] T044 [US4] Add a `Tugeny = "tugeny"` policy (10 per minute, `PartitionByUser`) to `backend/Security/RateLimitPolicies.cs`. Its comment names the two meanings of 429 (constitution Principle VII)
+- [X] T045 [US4] Add `PUT tugeny-link`, `DELETE tugeny-link`, `GET tugeny-import` and `POST tugeny-import` to `backend/Controllers/EventResultsController.cs`:
   - `[EnableRateLimiting(RateLimitPolicies.Tugeny)]` on the three that cause outbound calls
   - statuses per `contracts/results-api.md`
   - 503 with the problem detail "Tugeny can't be reached right now — try again in a few minutes."
   - a 422 problem `type` ending in `not-finalized`
 
   Make T034 and T035 pass
-- [ ] T046 [US4] Add `linkTugeny`, `unlinkTugeny`, `previewTugenyImport` and `commitTugenyImport` to `core/services/results.service.ts`
-- [ ] T047 [US4] Add a "Tugeny" card to `features/events/event-results/event-results.component.{ts,html}`.
+- [X] T046 [US4] Add `linkTugeny`, `unlinkTugeny`, `previewTugenyImport` and `commitTugenyImport` to `core/services/results.service.ts`
+- [X] T047 [US4] Add a "Tugeny" card to `features/events/event-results/event-results.component.{ts,html}`.
 
   **Linking**:
   - an address input and Link (secondary)
@@ -380,7 +380,7 @@ description: "Task list for feature 050 — Tournament results"
   - load more through `getMatches`, 50 per page (the `news-page.component.ts` pattern)
   - **Provenance**: "Results from Tugeny · {date}" linking `tugeny.tournamentUrl`, plus "edited since" when `editedSinceImport`
   - **Live link**: in `event-detail.component.html`, a "Live on Tugeny" secondary link to `tugeny.liveUrl` while `endsAt` is in the future and a link exists
-- [ ] T049 [P] [US4] Add `events.results.tugeny.*` and `events.results.matches.*` keys (link, address, linked, linkedElsewhere, removeLink, import, preview, connectPrompt, replaceWarning, notFinalized, unreachable, slowDown, provenance, editedSince, liveView, knockout, draw, loadMore) to en/de/es in one task
+- [X] T049 [P] [US4] Add `events.results.tugeny.*` and `events.results.matches.*` keys (link, address, linked, linkedElsewhere, removeLink, import, preview, connectPrompt, replaceWarning, notFinalized, unreachable, slowDown, provenance, editedSince, liveView, knockout, draw, loadMore) to en/de/es in one task
 - [ ] T050 [P] [US4] Write component specs in the two `event-results.component.spec.ts` files:
   - in `features/events/event-results/event-results.component.spec.ts`: Tugeny card states (unlinked, linked, linked elsewhere, not finalized, unreachable), and the import preview has **no** preselected team
   - in `features/events/event-detail/components/event-results.component.spec.ts`: matches group by stage with Knockout last, a draw shows the draw label, and the provenance line appears for imports
@@ -397,7 +397,7 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Tests for User Story 5
 
-- [ ] T051 [P] [US5] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/TeamPlacementHistoryTests.cs`:
+- [X] T051 [P] [US5] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/TeamPlacementHistoryTests.cs`:
   - only connected placements
   - newest tournament first
   - `rankedCount` counts every placement in that ranking
@@ -408,8 +408,8 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Implementation for User Story 5
 
-- [ ] T052 [US5] Create `backend/Services/Results/ITeamPlacementService.cs` and `TeamPlacementService.cs`: `GetForTeamAsync(slug, PaginationRequest)`. It is an `AsNoTracking` projection, `CountAsync`, then order by `Event.StartsAt` descending then `EventId`, then `Skip`/`Take`, returning `PagedResult<TeamPlacementDto>` (`TeamActivityService.GetForTeamAsync` pattern). Register it in `Program.cs`
-- [ ] T053 [US5] Add `GET {slug}/placements` to `backend/Controllers/TeamsController.cs` (`[FromQuery] PaginationRequest`, 404 for an unknown team). Make T051 pass
+- [X] T052 [US5] Create `backend/Services/Results/ITeamPlacementService.cs` and `TeamPlacementService.cs`: `GetForTeamAsync(slug, PaginationRequest)`. It is an `AsNoTracking` projection, `CountAsync`, then order by `Event.StartsAt` descending then `EventId`, then `Skip`/`Take`, returning `PagedResult<TeamPlacementDto>` (`TeamActivityService.GetForTeamAsync` pattern). Register it in `Program.cs`
+- [X] T053 [US5] Add `GET {slug}/placements` to `backend/Controllers/TeamsController.cs` (`[FromQuery] PaginationRequest`, 404 for an unknown team). Make T051 pass
 - [ ] T054 [US5] Add `getTeamPlacements(slug, skip, take)` to `core/services/results.service.ts`, and create `features/teams/team-detail/placements/team-placements.component.{ts,html,css}` (selector `jh-team-placements`), rendered in `features/teams/team-detail/team-detail.component.html` right **after** the "Recent events" `data-testid="activity"` card. It shows:
   - `<jh-card data-testid="placements">`
   - rows with the event name linking `/events/{id}`, the date via `translocoDate`, and "{position}. of {rankedCount}" with numbers in the mono face
@@ -430,24 +430,24 @@ description: "Task list for feature 050 — Tournament results"
 
 ### Tests for User Story 6
 
-- [ ] T057 [P] [US6] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/AdminPlacementTests.cs`:
+- [X] T057 [P] [US6] Write `backend/tests/JuggerHub.Api.IntegrationTests/Results/AdminPlacementTests.cs`:
   - **Access**: 403 for a normal user and for a team admin
   - **Queue**: defaults to unconnected, newest tournament first, `q` matches `sourceName` and `name` accent-insensitively, `connected=true` lists connected rows
   - **Connect**: sets `TeamId`, `Name = team name`, `ConnectedByUserId` and `ConnectedAt`; **exactly one row changes** even when another event has a placement with the same `sourceName` (SC-007, FR-025)
   - **Errors**: 409 when the team is already placed in that ranking; 404 for an unknown placement or team
   - **Disconnect**: restores `Name = sourceName` and clears attribution; repeating it is idempotent
   - **Erased connector**: after erasing the connecting admin's account (`AccountDeletion/AccountDeletionTestSupport.cs`), `connectedBy` shows the placeholder
-- [ ] T058 [P] [US6] Add a test in `backend/tests/JuggerHub.Api.IntegrationTests/Parties/` to the party-context tests: on an event whose `EndsAt` has passed, `GET /api/v1/events/{id}/party-context` reports `canForm: false` for a team admin (research R12)
+- [X] T058 [P] [US6] Add a test in `backend/tests/JuggerHub.Api.IntegrationTests/Parties/` to the party-context tests: on an event whose `EndsAt` has passed, `GET /api/v1/events/{id}/party-context` reports `canForm: false` for a team admin (research R12)
 
 ### Implementation for User Story 6
 
-- [ ] T059 [P] [US6] Create `backend/Dtos/Admin/AdminResultDtos.cs` with `AdminPlacementDto` and `ConnectTeamRequest(string TeamSlug)` per `contracts/results-api.md`
-- [ ] T060 [US6] Create `backend/Services/Admin/IAdminPlacementService.cs` and `AdminPlacementService.cs`, and register them in `Program.cs`. Methods:
+- [X] T059 [P] [US6] Create `backend/Dtos/Admin/AdminResultDtos.cs` with `AdminPlacementDto` and `ConnectTeamRequest(string TeamSlug)` per `contracts/results-api.md`
+- [X] T060 [US6] Create `backend/Services/Admin/IAdminPlacementService.cs` and `AdminPlacementService.cs`, and register them in `Program.cs`. Methods:
   - **`ListAsync(connected, q, PaginationRequest)`**, following the `AdminTeamService.SearchAsync` pattern: `SearchQuery.Normalize`, `ILike` + `AppDbContext.Unaccent`, count, then order by `Event.StartsAt` descending then `Position`, paged
   - **`ConnectAsync(placementId, teamSlug, actorId)`**: one tracked row; the FR-005 check within the same result; sets `Name`, `ConnectedByUserId`, `ConnectedAt` and the result's `ResultsChangedAt`
   - **`DisconnectAsync(placementId)`**
-- [ ] T061 [US6] Create `backend/Controllers/Admin/AdminResultsController.cs`: route `api/v{version:apiVersion}/admin/results`, `[Authorize(Policy = PlatformAdminPolicy.Name)]`, derived from `AdminControllerBase`, with `GET placements`, `PUT placements/{id:guid}/team` and `DELETE placements/{id:guid}/team`. Make T057 pass
-- [ ] T062 [US6] In `backend/Services/Parties/PartyService.cs`, change the party-context `CanForm` (currently `t.IsAdmin && t.Party is null`) to also require that the event is open, using the same rule as `PartyAccess.IsEventOpen`. Make T058 pass
+- [X] T061 [US6] Create `backend/Controllers/Admin/AdminResultsController.cs`: route `api/v{version:apiVersion}/admin/results`, `[Authorize(Policy = PlatformAdminPolicy.Name)]`, derived from `AdminControllerBase`, with `GET placements`, `PUT placements/{id:guid}/team` and `DELETE placements/{id:guid}/team`. Make T057 pass
+- [X] T062 [US6] In `backend/Services/Parties/PartyService.cs`, change the party-context `CanForm` (currently `t.IsAdmin && t.Party is null`) to also require that the event is open, using the same rule as `PartyAccess.IsEventOpen`. Make T058 pass
 - [ ] T063 [US6] In `features/events/event-detail/components/join-actions.component.ts` (and its `.html`), hide the join and enter-party actions once `endsAt` has passed. The server stays the boundary. Update `join-actions.component.spec.ts` with an ended-event case
 - [ ] T064 [US6] Add `listPlacements(connected, q, skip, take)`, `connectPlacement(id, teamSlug)` and `disconnectPlacement(id)` to `core/services/admin.service.ts`
 - [ ] T065 [US6] Create `features/admin/shared/team-picker.component.{ts,html,css}` (selector `jh-admin-team-picker`, output `picked: {slug, name}`, `closed`). Build it from `features/admin/teams/admin-teams.component.ts` (250 ms debounced `AdminService.searchTeams`) and the modal behaviour of `features/admin/shared/assign-picker.component.ts` (Esc closes, errors via `problemDetail`)

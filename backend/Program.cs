@@ -19,6 +19,7 @@ using JuggerHub.Services.Media;
 using JuggerHub.Services.Notifications;
 using JuggerHub.Services.Notifications.Realtime;
 using JuggerHub.Services.Profile;
+using JuggerHub.Services.Results;
 using JuggerHub.Services.Search;
 using JuggerHub.Services.Security;
 using JuggerHub.Services.Teams;
@@ -368,6 +369,15 @@ builder.Services.AddScoped<IEventAdminService, EventAdminService>();
 builder.Services.AddScoped<IEventInvitationService, EventInvitationService>();
 builder.Services.AddScoped<EventEmailService>();
 
+// --- Tournament results (feature 050) --------------------------------------
+builder.Services.AddScoped<ITournamentResultService, TournamentResultService>();
+// Tugeny's public data interface — the feature's one outbound integration (Principle VII). The
+// named client, its shared resilience pipeline and its size guard: see AddTugenyClient.
+builder.Services.AddTugenyClient(builder.Configuration);
+builder.Services.AddScoped<ITugenyImportService, TugenyImportService>();
+builder.Services.AddScoped<ITeamPlacementService, TeamPlacementService>();
+builder.Services.AddScoped<JuggerHub.Services.Admin.IAdminPlacementService, JuggerHub.Services.Admin.AdminPlacementService>();
+
 // --- Parties (feature 016) -------------------------------------------------
 // Shared guard/capacity/email registered here; the four story services are registered as their
 // implementations land per user story (see specs/016-event-parties/tasks.md).
@@ -565,6 +575,16 @@ if (builder.Configuration.GetValue("Seeding:CityReferences", true))
 using (var adminSyncScope = app.Services.CreateScope())
 {
     await adminSyncScope.ServiceProvider.GetRequiredService<PlatformAdminRoleSync>().SyncAsync();
+}
+
+// Tugeny settings (feature 050) are repaired to safe defaults when invalid; say so once, at startup.
+{
+    var tugenyConfig = new TugenyOptions();
+    app.Configuration.GetSection(TugenyOptions.SectionName).Bind(tugenyConfig);
+    foreach (var problem in tugenyConfig.Normalize())
+    {
+        app.Logger.LogWarning("Tugeny configuration was invalid and has been corrected: {Problem}", problem);
+    }
 }
 
 // --- Middleware pipeline ----------------------------------------------------

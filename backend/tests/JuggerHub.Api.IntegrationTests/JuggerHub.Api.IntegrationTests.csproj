@@ -30,4 +30,11 @@
     <ProjectReference Include="..\..\JuggerHub.Api.csproj" />
   </ItemGroup>
 
+  <!-- Feature 050: real Tugeny responses (MIT-licensed open data, captured 2026-09-15; the same
+       files as specs/050-tournament-results/contracts/tugeny-samples). Tests serve them from a
+       scripted handler — no test ever calls the real tugeny.org. -->
+  <ItemGroup>
+    <None Include="Results\Fixtures\*.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
