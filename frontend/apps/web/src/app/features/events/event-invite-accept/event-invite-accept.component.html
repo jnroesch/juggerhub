@@ -3,7 +3,7 @@
     @if (loading()) {
       <jh-loading />
     } @else if (notFound() || !preview()) {
-      <p class="text-heading-sm font-bold text-ink">{{ 'events.inviteAccept.notFoundTitle' | transloco }}</p>
+      <p class="text-body-lg font-bold text-ink">{{ 'events.inviteAccept.notFoundTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-subtle">{{ 'events.inviteAccept.notFoundBody' | transloco }}</p>
     } @else if (preview(); as p) {
       <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand">{{ 'events.inviteAccept.coAdminInvite' | transloco }}</span>
