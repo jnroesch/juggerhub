@@ -19,7 +19,7 @@
 } @else if (detail(); as player) {
   <!-- Header: who this is + status -->
   <div class="mt-sm flex flex-wrap items-center gap-sm">
-    <h1 class="text-h3 font-bold text-heading">{{ player.displayName }}</h1>
+    <h1 class="text-h3">{{ player.displayName }}</h1>
     <span
       class="rounded-pill px-sm py-0.5 text-caption font-medium"
       [class]="player.status === 'Active' ? 'bg-success-bg text-success-fg' : player.status === 'Suspended' ? 'bg-warning-bg text-warning-fg' : 'bg-danger-bg text-danger-fg'"

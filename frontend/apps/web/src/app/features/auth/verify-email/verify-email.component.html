@@ -2,11 +2,11 @@
   <jh-card accent class="w-full max-w-md text-center" data-testid="verify-email">
     @switch (state()) {
       @case ('verifying') {
-        <h1 class="text-heading-md font-semibold text-ink">{{ 'auth.verify.verifyingTitle' | transloco }}</h1>
+        <h1 class="text-h2">{{ 'auth.verify.verifyingTitle' | transloco }}</h1>
         <p class="mt-sm text-body-md text-muted">{{ 'auth.verify.verifyingBody' | transloco }}</p>
       }
       @case ('success') {
-        <h1 class="text-heading-md font-semibold text-ink">{{ 'auth.verify.successTitle' | transloco }}</h1>
+        <h1 class="text-h2">{{ 'auth.verify.successTitle' | transloco }}</h1>
         <p class="mt-sm text-body-md text-muted">
           {{ 'auth.verify.successBody' | transloco }}
         </p>
@@ -19,7 +19,7 @@
         </a>
       }
       @case ('failed') {
-        <h1 class="text-heading-md font-semibold text-ink">{{ 'auth.verify.failedTitle' | transloco }}</h1>
+        <h1 class="text-h2">{{ 'auth.verify.failedTitle' | transloco }}</h1>
         <p class="mt-sm text-body-md text-muted">
           {{ 'auth.verify.failedBody' | transloco }}
         </p>

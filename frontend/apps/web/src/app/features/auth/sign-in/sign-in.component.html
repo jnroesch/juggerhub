@@ -6,8 +6,8 @@
       <jh-language-switcher />
     </div>
     <jh-card accent class="w-full" data-testid="sign-in">
-    <h1 class="text-heading-md text-ink">{{ 'auth.signIn.title' | transloco }}</h1>
-    <p class="mt-xs text-body-sm text-subtle">{{ 'auth.signIn.subtitle' | transloco }}</p>
+    <h1 class="text-h2">{{ 'auth.signIn.title' | transloco }}</h1>
+    <p class="mt-xs text-lead text-muted">{{ 'auth.signIn.subtitle' | transloco }}</p>
 
     <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="submit()">
       <div>

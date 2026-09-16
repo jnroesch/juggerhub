@@ -15,8 +15,8 @@
     <!-- Greeting -->
     <header data-testid="home-greeting">
       @if (hasTeam()) {
-        <h1 class="text-h3 text-heading">{{ 'home.greetingHi' | transloco:{ name: home.viewer.displayName } }}</h1>
-        <p class="mt-xs text-body-sm text-muted">
+        <h1 class="text-h2">{{ 'home.greetingHi' | transloco:{ name: home.viewer.displayName } }}</h1>
+        <p class="mt-xs text-lead text-muted">
           @if (home.needsYou.length > 0) {
             {{ (home.needsYou.length === 1 ? 'home.needsYouOne' : 'home.needsYouMany') | transloco:{ count: home.needsYou.length } }}
           } @else if (home.upNext.length > 0) {
@@ -26,8 +26,8 @@
           }
         </p>
       } @else {
-        <h1 class="text-h3 text-heading">{{ 'home.greetingWelcome' | transloco:{ name: home.viewer.displayName } }}</h1>
-        <p class="mt-xs text-body-sm text-muted">{{ 'home.findCrew' | transloco }}</p>
+        <h1 class="text-h2">{{ 'home.greetingWelcome' | transloco:{ name: home.viewer.displayName } }}</h1>
+        <p class="mt-xs text-lead text-muted">{{ 'home.findCrew' | transloco }}</p>
       }
     </header>
 

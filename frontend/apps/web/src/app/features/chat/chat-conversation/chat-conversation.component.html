@@ -19,7 +19,7 @@
 
     <span class="min-w-0 flex-1">
       <span class="flex items-center gap-xs">
-        <h1 class="truncate text-body-lg font-semibold text-heading">{{ detail()?.name ?? '…' }}</h1>
+        <h1 class="truncate text-body-lg font-semibold">{{ detail()?.name ?? '…' }}</h1>
         @if (detail()?.kind === 'Team') {
           <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-muted">{{ 'chat.inbox.tagTeam' | transloco }}</span>
         } @else if (detail()?.kind === 'Party') {

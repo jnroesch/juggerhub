@@ -18,8 +18,11 @@ import { join } from 'node:path';
  *   produces the utility `text-text-muted`, so the obvious spelling matched nothing and all of it
  *   rendered as body text.
  *
- * The naming is what hides it: `text-heading` is a colour, `text-heading-lg` is a size,
- * `text-heading-xl` is nothing, and all three look like one family in review.
+ * The naming is what hid it: `text-heading` was a colour, `text-heading-lg` a size and
+ * `text-heading-xl` nothing at all, and all three looked like one family in review. GH #299
+ * has since retired the `heading-lg` / `heading-md` sizes — they were aliases of `h3` and
+ * `h4` — so `text-heading` is now unambiguously the colour and this guard is what makes the
+ * retirement stick: any `text-heading-*` size written from here on is an undefined key.
  *
  * This walks the app source and fails on any of those utilities whose key is not in the *resolved*
  * Tailwind scale — resolved from the config, not a hardcoded list, so the guard cannot drift.

@@ -28,7 +28,7 @@
         </span>
       }
       <div class="min-w-0 flex-1">
-        <h1 class="text-h3 text-heading">{{ team.name }}</h1>
+        <h1 class="text-h3">{{ team.name }}</h1>
         <p class="mt-1 flex flex-wrap items-center gap-xs text-body-sm text-muted">
           <span>{{ team.type === 'CityTeam' ? (team.location?.label || ('teams.create.cityTeam' | transloco)) : ('teams.create.mixteam' | transloco) }}</span>
           <span aria-hidden="true">·</span>

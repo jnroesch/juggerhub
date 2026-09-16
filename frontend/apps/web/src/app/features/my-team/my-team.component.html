@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-container-md px-md py-2xl">
   @if (teams().length > 0) {
-    <h1 class="text-h3 text-heading">{{ 'myTeam.yourTeams' | transloco }}</h1>
+    <h1 class="text-h3">{{ 'myTeam.yourTeams' | transloco }}</h1>
     <p class="mt-xs text-body-sm text-muted">{{ 'myTeam.yourTeamsSub' | transloco }}</p>
 
     <ul class="mt-lg flex flex-col gap-sm">
@@ -33,7 +33,7 @@
     </ul>
   } @else if (loaded()) {
     <!-- Teamless home / empty state (feature 023). -->
-    <h1 class="text-h3 text-heading">{{ 'myTeam.title' | transloco }}</h1>
+    <h1 class="text-h3">{{ 'myTeam.title' | transloco }}</h1>
     <p class="mt-xs text-body-sm text-muted">{{ 'myTeam.emptySub' | transloco }}</p>
 
     @if (notice(); as msg) {

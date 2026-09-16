@@ -1,6 +1,6 @@
 <main class="mx-auto max-w-container-md px-md py-lg">
   <a [routerLink]="['/parties', id]" class="text-body-sm text-subtle transition-colors hover:text-body">{{ 'parties.backToParty' | transloco }}</a>
-  <h1 class="mt-xs text-h3 text-heading">{{ 'parties.news.title' | transloco }}</h1>
+  <h1 class="mt-xs text-h3">{{ 'parties.news.title' | transloco }}</h1>
   <p class="mt-xs text-body-sm text-subtle">{{ 'parties.news.hint' | transloco }}</p>
 
   @if (isAdmin()) {

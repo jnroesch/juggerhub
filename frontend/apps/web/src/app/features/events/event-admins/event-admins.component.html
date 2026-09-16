@@ -8,7 +8,7 @@
     </div>
   } @else if (detail(); as d) {
     <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">{{ 'events.manage.back' | transloco }}</a>
-    <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'events.admins.title' | transloco }}</h1>
+    <h1 class="mt-md text-h3">{{ 'events.admins.title' | transloco }}</h1>
     <p class="text-body-sm text-subtle">{{ 'events.admins.subtitle' | transloco }}</p>
 
     @if (error()) { <jh-alert class="mt-sm">{{ error() }}</jh-alert> }

@@ -7,7 +7,7 @@
     </div>
     <jh-card accent class="w-full" data-testid="register">
     @if (sent()) {
-      <h1 class="text-heading-md font-semibold text-ink">{{ 'auth.register.checkEmailTitle' | transloco }}</h1>
+      <h1 class="text-h2">{{ 'auth.register.checkEmailTitle' | transloco }}</h1>
       <p class="mt-sm text-body-md text-muted">
         {{ 'auth.register.checkEmailBody' | transloco }}
       </p>
@@ -19,8 +19,8 @@
         {{ 'auth.register.backToSignIn' | transloco }}
       </a>
     } @else {
-      <h1 class="text-heading-md font-semibold text-ink">{{ 'auth.register.title' | transloco }}</h1>
-      <p class="mt-xs text-body-sm text-subtle">{{ 'auth.register.subtitle' | transloco }}</p>
+      <h1 class="text-h2">{{ 'auth.register.title' | transloco }}</h1>
+      <p class="mt-xs text-lead text-muted">{{ 'auth.register.subtitle' | transloco }}</p>
 
       <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="submit()">
         <div>

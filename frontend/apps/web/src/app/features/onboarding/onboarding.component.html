@@ -12,8 +12,8 @@
         >
           J
         </div>
-        <h1 class="mt-lg text-heading-lg font-semibold text-ink">{{ 'onboarding.welcome.title' | transloco }}</h1>
-        <p class="mt-xs max-w-xs text-body-md text-subtle">
+        <h1 class="mt-lg text-h1">{{ 'onboarding.welcome.title' | transloco }}</h1>
+        <p class="mt-xs max-w-xs text-lead text-muted">
           {{ 'onboarding.welcome.subtitle' | transloco }}
         </p>
       </div>
@@ -42,8 +42,8 @@
     @case ('name') {
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
-        <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.name.title' | transloco }}</h1>
-        <p class="mt-xs text-body-md text-subtle">{{ 'onboarding.name.subtitle' | transloco }}</p>
+        <h1 class="text-h2">{{ 'onboarding.name.title' | transloco }}</h1>
+        <p class="mt-xs text-lead text-muted">{{ 'onboarding.name.subtitle' | transloco }}</p>
         <input
           type="text"
           data-testid="onboarding-name"
@@ -72,8 +72,8 @@
     @case ('city') {
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
-        <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.city.title' | transloco }}</h1>
-        <p class="mt-xs text-body-md text-subtle">{{ 'onboarding.city.subtitle' | transloco }}</p>
+        <h1 class="text-h2">{{ 'onboarding.city.title' | transloco }}</h1>
+        <p class="mt-xs text-lead text-muted">{{ 'onboarding.city.subtitle' | transloco }}</p>
         <div class="mt-lg" data-testid="onboarding-city">
           <jh-city-picker
             [initial]="initialLocation()"
@@ -101,8 +101,8 @@
     @case ('pompfen') {
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
-        <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.pompfen.title' | transloco }}</h1>
-        <p class="mt-xs text-body-md text-subtle">{{ 'onboarding.pompfen.subtitle' | transloco }}</p>
+        <h1 class="text-h2">{{ 'onboarding.pompfen.title' | transloco }}</h1>
+        <p class="mt-xs text-lead text-muted">{{ 'onboarding.pompfen.subtitle' | transloco }}</p>
         <div class="mt-lg">
           <jh-pompfe-selector
             [selected]="selectedPompfen()"
@@ -132,8 +132,8 @@
     @case ('team') {
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
-        <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.team.title' | transloco }}</h1>
-        <p class="mt-xs text-body-md text-subtle">
+        <h1 class="text-h2">{{ 'onboarding.team.title' | transloco }}</h1>
+        <p class="mt-xs text-lead text-muted">
           @if (homeCityPersisted()) {
             {{ 'onboarding.team.introNear' | transloco }}
           } @else {
@@ -277,8 +277,8 @@
         <button type="button" (click)="back()" class="text-body-sm text-subtle hover:text-text">{{ 'common.back' | transloco }}</button>
       </div>
       <div class="mt-lg flex-1">
-        <h1 class="text-heading-lg font-semibold text-ink">{{ 'onboarding.photo.title' | transloco }}</h1>
-        <p class="mt-xs text-body-md text-subtle">{{ 'onboarding.photo.subtitle' | transloco }}</p>
+        <h1 class="text-h2">{{ 'onboarding.photo.title' | transloco }}</h1>
+        <p class="mt-xs text-lead text-muted">{{ 'onboarding.photo.subtitle' | transloco }}</p>
 
         <div class="mt-lg flex flex-col items-center">
           <label
@@ -346,8 +346,8 @@
             <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
         </div>
-        <h1 class="mt-lg text-heading-lg font-semibold text-ink">{{ 'onboarding.done.title' | transloco }}</h1>
-        <p class="mt-xs text-body-md text-subtle">{{ 'onboarding.done.subtitle' | transloco }}</p>
+        <h1 class="mt-lg text-h2">{{ 'onboarding.done.title' | transloco }}</h1>
+        <p class="mt-xs text-lead text-muted">{{ 'onboarding.done.subtitle' | transloco }}</p>
       </div>
       <button
         type="button"

@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-container-sm px-md py-lg lg:max-w-container-lg" data-testid="team-invitations">
   <a [routerLink]="['/t', slug()]" class="text-body-sm text-subtle hover:text-text">{{ 'teams.invitations.backMembers' | transloco }}</a>
-  <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'teams.invitations.title' | transloco }}</h1>
+  <h1 class="mt-md text-h3">{{ 'teams.invitations.title' | transloco }}</h1>
 
   @if (loading()) {
     <jh-loading />

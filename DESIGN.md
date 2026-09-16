@@ -337,10 +337,39 @@ small screens).
 - **Mona Sans** — **body** and all UI text; honest, legible, friendly.
 - **Mona Sans Mono** — scores, stats, times, counts (tabular, sporty).
 
-Body is 16px (`body-md`); nothing meaningful drops below 12px (`caption`). The
-`eyebrow` step (`0.8125rem`, uppercase, `0.06em` tracking) is the only uppercase
-usage. Fonts are GitHub's open-source Mona Sans / Hubot Sans (shipped via
-`@fontsource`); the stacks fall back to `system-ui` if a face is unavailable.
+Nothing meaningful drops below 12px (`caption`). The `eyebrow` step
+(`0.8125rem`, uppercase, `0.06em` tracking) is the only uppercase usage. Fonts
+are GitHub's open-source Mona Sans / Hubot Sans (shipped via `@fontsource`); the
+stacks fall back to `system-ui` if a face is unavailable.
+
+### What each step is for
+
+A scale is a set of jobs, not a set of sizes. Pick the step by the job:
+
+| Step | Desktop / mobile | Job |
+|------|------------------|-----|
+| `display` | 64 / 44 | The brand mark's letter. Not a text step. |
+| `h1` | 48 / 34 | **The hero.** One screen in the product earns it: the onboarding welcome. |
+| `h2` | 36 / 26 | **A focal page title** — one card and nothing around it: sign in, register, an invite landing, "no such player". Plus the dashboard greeting, which is the front door. |
+| `h3` | 28 / 22 | **Every other page title.** |
+| `h4` | 22 / 19 | A section heading inside a card. |
+| `lead` | 20 | The deck: one sentence under a focal title, introducing the page. Never under an `h3` — 20 under 22 is not a step. |
+| `body-lg` | 18 | A bar title (the name in the chat header), and long-form prose. |
+| `body-md` | 16 | **Prose** — anything written to be read: a description, an empty state, a paragraph of explanation. |
+| `body-sm` | 14 | **The interface** — labels, nav, buttons, table cells, list rows, validation, secondary lines. |
+| `caption` | 12 | Metadata under something else: a timestamp, a count, a role. |
+| `eyebrow` | 13 | The one uppercase label. |
+
+`body-md` and `body-sm` are two jobs, not a default and an exception. Prose the
+reader came for is 16px; the interface around it is 14px. The app is mostly
+interface, so `body-sm` is the more common of the two — that is the shape of the
+product, not a drift to correct.
+
+**A title carries a step and nothing else.** Weight belongs to the step, and the
+display face and heading colour come from the base layer, so `font-bold` on a
+heading is either a no-op or a silent override of the scale. Both were live
+before GH #299 — 81 titles written 18 ways — and `heading-roles.spec.ts` now
+rejects the whole class.
 
 ## Layout
 

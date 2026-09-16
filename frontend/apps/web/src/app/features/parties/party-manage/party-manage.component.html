@@ -6,7 +6,7 @@
   } @else if (party(); as p) {
     <a [routerLink]="['/t', p.teamSlug]" class="text-body-sm text-subtle transition-colors hover:text-body">‹ {{ p.teamName }}</a>
     <div class="mt-xs flex flex-wrap items-center justify-between gap-sm">
-      <h1 class="text-h3 text-heading">{{ p.teamName }} @ {{ p.eventName }}</h1>
+      <h1 class="text-h3">{{ p.teamName }} @ {{ p.eventName }}</h1>
       <span class="font-mono text-body-sm text-muted">{{ p.inCount }} / {{ p.rosterCap }} {{ 'parties.manage.inSuffix' | transloco }}</span>
     </div>
     <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | translocoDate: { dateStyle: 'medium' } }}
