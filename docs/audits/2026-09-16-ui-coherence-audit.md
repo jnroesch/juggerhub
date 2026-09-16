@@ -286,7 +286,8 @@ report's first sentence.
 "_meta": { "status": "draft", "review": "Machine/AI draft — native-speaker review pending (see #77)" }
 ```
 
-The reporter read the German. #77 is open. Anything below about copy "feel" in German is
+The reporter read the German. The pointer is stale — #77 (the i18n feature) is closed; the live
+native-speaker review issue is **#84**, still open. Anything above about copy "feel" in German is
 partly this.
 
 **F4 — Repetition beyond the dash:** 20 strings open "We couldn't…", 15 "Could not…",
@@ -324,20 +325,20 @@ to "why does this feel samey", and they are worth a deliberate call rather than 
 
 ## Part 3 — Suggested follow-ups, by leverage
 
-Ordered by (visible improvement) ÷ (effort). Each is a candidate issue; none is filed yet.
+Ordered by (visible improvement) ÷ (effort). All eight are filed as #297–#304.
 
-| # | Work | Why first | Size |
+| Issue | Work | Why first | Size |
 | --- | --- | --- | --- |
-| 1 | Guard `text-*` and `tracking-*` the way `spacing-scale.spec.ts` guards spacing; fix the 17 dead classes it finds (A1–A3) | Two page titles currently render at body size. A test makes it impossible to reintroduce | S |
-| 2 | Contrast pass: retire `text-subtle`/`faint` as they stand or darken sand-4/5; darken the primary button background; give the focus ring its coral border. Add a token-level contrast test (C1–C5) | Fixes the literal cause of "washed out", and the accessibility failures are real independent of #278 | M |
-| 3 | Typographic hierarchy: introduce the page-title and lead steps and apply them to the 81 `<h1>`s (D) | Biggest single change to "every page looks the same", and it is markup only | M |
-| 4 | Icon consolidation: grow `jh-icon`'s set to the icons `DESIGN.md` names, replace the 99 inline SVGs and the 6 text-glyph markers (Part 1, E) | Closes the reporter's screenshot #1 and unifies stroke weight | M–L |
-| 5 | Chip/pill primitive (`jh-chip`) with one padding; adopt it at the ~84 chip sites; give interactive chips a 44px target (B2, B6, Part 1) | Closes the reporter's screenshot #2 | M |
-| 6 | Card padding decision (16 or 24) written into `jh-card` itself rather than each caller; adopt the primitive at the 59 hand-rolled surfaces; enable `[interactive]` (B4, B5) | Removes the largest remaining source of per-screen variance | M |
-| 7 | Copy pass on the 101 ` — ` strings; fix the German dash to `–` throughout; unify the three error voices (F1, F2, F4) | Directly what the reporter named; pairs naturally with #77 | S–M |
-| 8 | Identity decision: put the pompfen mark in the product, and decide whether anything gets drawn (G) | Needs the owner, not a patch | — |
+| [#297](https://github.com/jnroesch/juggerhub/issues/297) | Guard `text-*` and `tracking-*` the way `spacing-scale.spec.ts` guards spacing; fix the 17 dead classes it finds (A1–A3) | Two page titles currently render at body size. A test makes it impossible to reintroduce | S |
+| [#298](https://github.com/jnroesch/juggerhub/issues/298) | Contrast pass: retire `text-subtle`/`faint` as they stand or darken sand-4/5; darken the primary button background; give the focus ring its coral border. Add a token-level contrast test (C1–C5) | Fixes the literal cause of "washed out", and the accessibility failures are real independent of #278 | M |
+| [#299](https://github.com/jnroesch/juggerhub/issues/299) | Typographic hierarchy: introduce the page-title and lead steps and apply them to the 81 `<h1>`s (D) | Biggest single change to "every page looks the same", and it is markup only | M |
+| [#300](https://github.com/jnroesch/juggerhub/issues/300) | Icon consolidation: grow `jh-icon`'s set to the icons `DESIGN.md` names, replace the 99 inline SVGs and the 6 text-glyph markers (Part 1, E) | Closes the reporter's screenshot #1 and unifies stroke weight | M–L |
+| [#301](https://github.com/jnroesch/juggerhub/issues/301) | Chip/pill primitive (`jh-chip`) with one padding; adopt it at the ~84 chip sites; give interactive chips a 44px target (B2, B6, Part 1) | Closes the reporter's screenshot #2 | M |
+| [#302](https://github.com/jnroesch/juggerhub/issues/302) | Card padding decision (16 or 24) written into `jh-card` itself rather than each caller; adopt the primitive at the 59 hand-rolled surfaces; enable `[interactive]` (B4, B5) | Removes the largest remaining source of per-screen variance | M |
+| [#303](https://github.com/jnroesch/juggerhub/issues/303) | Copy pass on the 101 ` — ` strings; fix the German dash to `–` throughout; unify the three error voices (F1, F2, F4) | Directly what the reporter named; pairs naturally with #84 | S–M |
+| [#304](https://github.com/jnroesch/juggerhub/issues/304) | Identity decision: put the pompfen mark in the product, and decide whether anything gets drawn (G) | Needs the owner, not a patch | — |
 
-Items 1–7 are mechanical and verifiable. Item 8 is a product decision.
+#297–#303 are mechanical and verifiable. #304 is a product decision.
 
 ---
 
