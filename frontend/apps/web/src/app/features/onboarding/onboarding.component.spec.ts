@@ -51,6 +51,7 @@ const BERLIN: TeamCard = {
   playerCount: 24,
   beginnersWelcome: true,
   logoInitial: 'B',
+  hasLogo: false,
 };
 
 /** Deliberately NOT beginners-welcome — only reachable by searching (FR-003). */
@@ -61,6 +62,7 @@ const HAMBURG: TeamCard = {
   playerCount: 18,
   beginnersWelcome: false,
   logoInitial: 'H',
+  hasLogo: true,
 };
 
 function page(items: TeamCard[]): PagedResult<TeamCard> {

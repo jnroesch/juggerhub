@@ -17,7 +17,11 @@ public sealed record TeamCardDto(
     LocationDto? Location,
     int PlayerCount,
     bool BeginnersWelcome,
-    string LogoInitial);
+    // The first letter of the name, and still the FALLBACK rather than a competitor: it is what
+    // a team without a logo renders, so it is computed for every row (feature 051).
+    string LogoInitial,
+    // Feature 051 — whether the team has a logo; the client builds the URL from the slug.
+    bool HasLogo);
 
 /// <summary>Team browse filters + sort (bound from the query string).</summary>
 public sealed record TeamBrowseQuery

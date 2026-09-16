@@ -12,9 +12,21 @@
   } @else if (pub(); as team) {
     <!-- Header -->
     <header class="flex flex-wrap items-start gap-md">
-      <span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-brand-gradient text-h4 font-bold text-on-accent" aria-hidden="true">
-        {{ initial(team.name) }}
-      </span>
+      <!-- Feature 051 — the team's logo, falling back to the letter tile it has always shown. -->
+      @if (team.hasLogo) {
+        <!-- alt="" on purpose: the team's name is the <h1> immediately beside it, so a described
+             logo would make a screen reader announce the name twice. -->
+        <img
+          [src]="logoUrl(team.slug)"
+          alt=""
+          class="h-14 w-14 shrink-0 rounded-lg border border-border object-cover"
+          data-testid="team-logo"
+        />
+      } @else {
+        <span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-brand-gradient text-h4 font-bold text-on-accent" aria-hidden="true">
+          {{ initial(team.name) }}
+        </span>
+      }
       <div class="min-w-0 flex-1">
         <h1 class="text-h3 text-heading">{{ team.name }}</h1>
         <p class="mt-1 flex flex-wrap items-center gap-xs text-body-sm text-muted">

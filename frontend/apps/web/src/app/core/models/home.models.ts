@@ -28,6 +28,8 @@ export interface MyTeam {
   slug: string;
   name: string;
   role: TeamRole;
+  /** Feature 051 — whether the team has a logo; the URL is built from the slug. */
+  hasLogo: boolean;
 }
 
 export interface TeamGoing {

@@ -1,7 +1,7 @@
 import { NAV_DESTINATIONS, badgeText, isActiveDestination, myTeamTarget } from './nav-model';
 import { MyTeam } from '../core/models/home.models';
 
-const team = (slug: string): MyTeam => ({ slug, name: slug, role: 'Member' });
+const team = (slug: string): MyTeam => ({ slug, name: slug, role: 'Member', hasLogo: false });
 
 describe('nav-model', () => {
   describe('isActiveDestination', () => {

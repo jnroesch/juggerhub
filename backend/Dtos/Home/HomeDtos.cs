@@ -25,7 +25,7 @@ public sealed record HomeDto(
 public sealed record ViewerSummaryDto(string DisplayName, string Handle, bool HasAvatar);
 
 /// <summary>One of the caller's team memberships. Also the payload of GET /profiles/me/teams.</summary>
-public sealed record MyTeamDto(string Slug, string Name, TeamRole Role);
+public sealed record MyTeamDto(string Slug, string Name, TeamRole Role, bool HasLogo);
 
 // ---- Needs you (actionable) ------------------------------------------------
 

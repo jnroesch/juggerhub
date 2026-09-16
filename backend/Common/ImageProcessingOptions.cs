@@ -79,6 +79,33 @@ public sealed class ImageProcessingOptions
     };
 
     /// <summary>
+    /// The team-logo context profile (feature 051 / #305) — a team's identity mark.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b><see cref="ImageResizeMode.SquareCrop"/>, and that is an owner decision rather than a
+    /// copy-paste from <see cref="Avatar"/>.</b> A logo is artwork, which is the argument
+    /// <see cref="Icon"/> uses for fitting rather than cropping — but every one of the six
+    /// surfaces that pictures a team renders into a square or circular tile, and a fitted image
+    /// would sit letterboxed inside a coloured tile on all of them. The owner chose the filled
+    /// tile and accepted the consequence: a wide wordmark loses its ends, irreversibly, because
+    /// the original upload is discarded. Please do not "correct" this to Fit.
+    /// </para>
+    /// <para>
+    /// 512 px matches <see cref="Avatar"/>: the largest rendering is a 56 px header tile, so this
+    /// is generous for high-DPI displays while keeping the stored object small enough to sit in a
+    /// browse list twenty rows at a time.
+    /// </para>
+    /// </remarks>
+    public ImageProcessingProfile TeamLogo { get; set; } = new()
+    {
+        ResizeMode = ImageResizeMode.SquareCrop,
+        MaxDimension = 512,
+        Quality = 80,
+        MaxOutputBytes = 512 * 1024,
+    };
+
+    /// <summary>
     /// The chat-attachment context profile (feature 049 / #282) — a photo shared into a
     /// conversation.
     /// </summary>

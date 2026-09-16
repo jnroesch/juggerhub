@@ -5,6 +5,7 @@ import { merge } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchService } from '../../../core/services/search.service';
+import { TeamService } from '../../../core/services/team.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { FilterChip, SortOption, TeamBrowseParams, TeamCard } from '../../../core/models/search.models';
 import { BrowseList } from '../browse-list';
@@ -27,6 +28,7 @@ import { CountryPickerComponent } from '../../../shared/country-picker/country-p
 })
 export class BrowseTeamsComponent implements OnInit, OnDestroy {
   private readonly search = inject(SearchService);
+  private readonly teams = inject(TeamService);
   private readonly profiles = inject(ProfileService);
   private readonly t = inject(TranslocoService);
   // Recompute translated labels (sort/chips/count) on a language change (feature 031) AND when a
@@ -127,6 +129,11 @@ export class BrowseTeamsComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.list.destroy();
+  }
+
+  /** Feature 051 — the row's logo URL, via the service so an admin's own upload busts the cache. */
+  protected logoUrl(slug: string): string {
+    return this.teams.logoUrl(slug);
   }
 
   protected onQuery(q: string): void {

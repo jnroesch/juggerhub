@@ -48,6 +48,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
 
     public DbSet<Team> Teams => Set<Team>();
 
+    public DbSet<TeamLogo> TeamLogos => Set<TeamLogo>();
+
     public DbSet<TeamMembership> TeamMemberships => Set<TeamMembership>();
 
     public DbSet<TeamInvitation> TeamInvitations => Set<TeamInvitation>();
@@ -427,6 +429,28 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
                 .WithMany()
                 .HasForeignKey(t => t.CityId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Feature 051 — the team's logo descriptor. Cascade removes the row inside PostgreSQL
+            // with no application code running, which strands the stored object; TeamService's
+            // delete path deletes the object explicitly for exactly that reason, and the
+            // reconciliation sweep is the backstop.
+            entity.HasOne(t => t.Logo)
+                .WithOne(l => l.Team)
+                .HasForeignKey<TeamLogo>(l => l.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TeamLogo>(entity =>
+        {
+            // NO query filter, and deliberately so. ProfileAvatar carries one because a banned
+            // player's picture must stop being served everywhere at once; a team has no account
+            // standing to hide it by, and anything a signed-in player may see of a team they may
+            // see the logo of (feature 051 FR-012). The catalogue icon tables have none either.
+            // Do not add one here by analogy with the avatar.
+            entity.Property(l => l.ContentType).HasMaxLength(64).IsRequired();
+            entity.Property(l => l.ObjectKey).HasMaxLength(MediaObjectKey.MaxLength).IsRequired();
+            entity.HasIndex(l => l.TeamId).IsUnique();
+            entity.HasIndex(l => l.ObjectKey).IsUnique();
         });
 
         builder.Entity<TeamMembership>(entity =>

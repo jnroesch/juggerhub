@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Injectable, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Injectable, inject, signal } from '@angular/core';
+import { Observable, tap } from 'rxjs';
 import {
   AcceptInviteResult,
   ActivityItem,
@@ -31,6 +31,18 @@ export class TeamService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1/teams';
   private readonly invites = '/api/v1/invitations';
+
+  /**
+   * Per-slug upload counter for this session, read by `logoUrl` (feature 051, the lesson of
+   * GH #283). A logo's address does not change when its image does, so an `<img>` already in the
+   * page keeps rendering the browser's cached copy after a replace — the swap is invisible at the
+   * DOM level, not at the HTTP level (the server already answers `no-cache`, so a *new* request
+   * revalidates correctly). Bumping a slug's revision changes the URL and forces that re-fetch.
+   *
+   * Per slug rather than one global counter so uploading one team's logo does not make every
+   * other logo on a browse page re-fetch.
+   */
+  private readonly logoRevisions = signal<Record<string, number>>({});
 
   // --- Create & identity ---------------------------------------------------
 
@@ -88,6 +100,39 @@ export class TeamService {
   /** Feature 007 — admin-only: set the beginners-welcome recruitment flag. */
   updateSettings(slug: string, beginnersWelcome: boolean): Observable<void> {
     return this.http.patch<void>(`${this.base}/${encodeURIComponent(slug)}`, { beginnersWelcome });
+  }
+
+  // --- Logo (feature 051) --------------------------------------------------
+
+  /**
+   * The URL every surface renders a team's logo from. Cache-busted for a slug this session has
+   * uploaded to — see `logoRevisions`. Reads a signal, so a `computed` calling it recomputes
+   * after an upload.
+   */
+  logoUrl(slug: string): string {
+    const url = `${this.base}/${encodeURIComponent(slug)}/logo`;
+    const revision = this.logoRevisions()[slug];
+    return revision ? `${url}?v=${revision}` : url;
+  }
+
+  /** Admin-only: set or replace the team's logo. 204 on success. */
+  uploadLogo(slug: string, file: File): Observable<void> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.http
+      .put<void>(`${this.base}/${encodeURIComponent(slug)}/logo`, form)
+      .pipe(tap(() => this.bumpLogo(slug)));
+  }
+
+  /** Admin-only: remove the team's logo, returning it to the letter placeholder. Idempotent. */
+  removeLogo(slug: string): Observable<void> {
+    return this.http
+      .delete<void>(`${this.base}/${encodeURIComponent(slug)}/logo`)
+      .pipe(tap(() => this.bumpLogo(slug)));
+  }
+
+  private bumpLogo(slug: string): void {
+    this.logoRevisions.update((map) => ({ ...map, [slug]: (map[slug] ?? 0) + 1 }));
   }
 
   // --- Tabs ----------------------------------------------------------------

@@ -307,6 +307,11 @@ export class TeamDetailComponent {
     return `/api/v1/profiles/${encodeURIComponent(handle)}/avatar`;
   }
 
+  /** Feature 051 — through the service, so an admin's own upload busts the cached image. */
+  protected logoUrl(slug: string): string {
+    return this.teams.logoUrl(slug);
+  }
+
   /** Public roster rows for the non-member view. */
   protected readonly publicRoster = computed<PublicMember[]>(() => this.pub()?.roster ?? []);
 }

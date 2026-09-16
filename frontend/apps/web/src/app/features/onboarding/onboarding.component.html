@@ -194,10 +194,20 @@
                   class="flex min-h-11 items-center gap-sm rounded-sm border-b border-border px-xs py-sm text-left transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                   [class.bg-surface-sunken]="selectedTeam()?.slug === team.slug"
                 >
-                  <span
-                    class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-dashed border-border-strong bg-surface-subtle text-body-sm font-semibold text-ink"
-                    aria-hidden="true"
-                  >{{ team.logoInitial }}</span>
+                  <!-- Feature 051 — the team's logo, or the letter tile when it has none. -->
+                  @if (team.hasLogo) {
+                    <img
+                      [src]="logoUrl(team.slug)"
+                      alt=""
+                      class="h-8 w-8 shrink-0 rounded-md border border-border object-cover"
+                      data-testid="team-logo"
+                    />
+                  } @else {
+                    <span
+                      class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-dashed border-border-strong bg-surface-subtle text-body-sm font-semibold text-ink"
+                      aria-hidden="true"
+                    >{{ team.logoInitial }}</span>
+                  }
                   <span class="flex flex-1 flex-col">
                     <span class="text-body-md text-ink">{{ team.name }}</span>
                     <span class="text-body-sm text-subtle">

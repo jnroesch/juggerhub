@@ -97,6 +97,50 @@ public sealed class MediaReconciliationTests : IClassFixture<JuggerHubApiFactory
     }
 
     /// <summary>
+    /// Feature 051, and the same hazard as the chat-attachment case above: team logos were the
+    /// fifth kind of stored media, and a kind the sweep does not know about is not merely unswept
+    /// — it is destroyed one grace period after upload. Copy this test when a sixth is added.
+    /// </summary>
+    [Fact]
+    public async Task Sweep_never_reclaims_a_team_logo()
+    {
+        var key = MediaObjectKey.Create(MediaKind.TeamLogo);
+        await Store.PutAsync(key, new MemoryStream(Encoding.UTF8.GetBytes("crest")), "image/webp");
+        var teamId = await SeedTeamWithLogoAsync(key);
+
+        await SweepAsync(graceMinutes: 0);
+
+        Assert.True(await Store.ExistsAsync(key), "the sweep deleted a logo a team still references");
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Assert.True(await db.TeamLogos.AnyAsync(l => l.TeamId == teamId));
+    }
+
+    private async Task<Guid> SeedTeamWithLogoAsync(string objectKey)
+    {
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        var team = new JuggerHub.Entities.Team
+        {
+            Slug = "t" + Guid.NewGuid().ToString("N")[..12],
+            Name = "Sweep fixture",
+            Type = JuggerHub.Entities.TeamType.Mixteam,
+        };
+        db.Teams.Add(team);
+        db.TeamLogos.Add(new JuggerHub.Entities.TeamLogo
+        {
+            TeamId = team.Id,
+            ObjectKey = objectKey,
+            ContentType = "image/webp",
+            SizeBytes = 5,
+        });
+        await db.SaveChangesAsync();
+        return team.Id;
+    }
+
+    /// <summary>
     /// Run a sweep, optionally overriding the grace period for this call only.
     /// </summary>
     private async Task<MediaReconciliationResult> SweepAsync(int? graceMinutes = null)

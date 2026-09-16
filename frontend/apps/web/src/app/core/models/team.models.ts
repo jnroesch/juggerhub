@@ -37,6 +37,8 @@ export interface TeamDetail {
   myRole: TeamRole;
   /** Feature 007 — self-managed recruitment flag surfaced in browse. */
   beginnersWelcome: boolean;
+  /** Feature 051 — whether the team has a logo; the URL is built from the slug. */
+  hasLogo: boolean;
 }
 
 export interface TeamPublic {
@@ -70,6 +72,8 @@ export interface TeamPublicDetail {
   beginnersWelcome: boolean;
   isActive: boolean;
   viewerRelation: TeamViewerRelation;
+  /** Feature 051 — whether the team has a logo; the header renders it instead of the letter. */
+  hasLogo: boolean;
   roster: PublicMember[];
   recentActivity: ActivityItem[];
   /** Feature 012 — the team's earned badges & achievements. */

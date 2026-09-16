@@ -126,7 +126,10 @@ public sealed class TeamSearchService : ITeamSearchService
                 : new LocationDto(
                     t.City.ExternalId, t.City.Name, t.City.Region, t.City.CountryName, t.City.CountryCode,
                     t.City.Name + ", " + t.City.CountryName),
-            t.Memberships.Count, t.BeginnersWelcome, string.Empty);
+            t.Memberships.Count, t.BeginnersWelcome, string.Empty,
+            // Feature 051 — an EXISTS inside the projection that already runs, so a page of 20
+            // rows still costs one query (spec SC-005).
+            t.Logo != null);
 
     private static string LogoInitial(string name)
     {

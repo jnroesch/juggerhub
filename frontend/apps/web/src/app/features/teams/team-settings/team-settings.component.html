@@ -12,6 +12,65 @@
     }
 
     @if (isAdmin()) {
+      <!-- Feature 051 — the team's logo. The picker itself stays hidden; the button below is the
+           visible control, the same pattern the avatar and chat-attachment uploads use. -->
+      <div class="mt-lg">
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.settings.logo' | transloco }}</p>
+        <div class="mt-xs flex items-start gap-md rounded-md border border-border-strong bg-surface-card px-md py-sm">
+          @if (t.hasLogo) {
+            <img
+              [src]="logoUrl()"
+              [alt]="'teams.settings.logoAlt' | transloco: { name: t.name }"
+              class="h-14 w-14 shrink-0 rounded-lg border border-border object-cover"
+              data-testid="team-logo-preview"
+            />
+          } @else {
+            <span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-brand-gradient text-h4 font-bold text-on-accent" aria-hidden="true">
+              {{ initial(t.name) }}
+            </span>
+          }
+          <span class="min-w-0 flex-1">
+            <span class="block text-body-sm text-subtle">{{ 'teams.settings.logoHint' | transloco }}</span>
+            <span class="mt-sm flex flex-wrap items-center gap-sm">
+              <input
+                #logoInput
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/gif"
+                class="hidden"
+                data-testid="team-logo-input"
+                (change)="onLogoSelected($event)"
+              />
+              <button
+                type="button"
+                jhButton
+                variant="secondary"
+                [disabled]="logoBusy()"
+                data-testid="team-logo-pick"
+                (click)="logoInput.click()"
+              >
+                {{ (uploadingLogo() ? 'teams.settings.logoUploading' : t.hasLogo ? 'teams.settings.logoChange' : 'teams.settings.logoUpload') | transloco }}
+              </button>
+              @if (t.hasLogo) {
+                <button
+                  type="button"
+                  jhButton
+                  variant="ghost"
+                  [disabled]="logoBusy()"
+                  data-testid="team-logo-remove"
+                  (click)="removeLogo()"
+                >
+                  {{ (removingLogo() ? 'teams.settings.logoRemoving' : 'teams.settings.logoRemove') | transloco }}
+                </button>
+              } @else {
+                <span class="text-body-sm text-faint">{{ 'teams.settings.logoNone' | transloco }}</span>
+              }
+            </span>
+          </span>
+        </div>
+      </div>
+
+      <hr class="my-lg border-border" />
+
       <div class="mt-lg">
         <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.settings.recruitment' | transloco }}</p>
         <div class="mt-xs flex items-center justify-between gap-sm rounded-md border border-border-strong bg-surface-card px-md py-sm">
