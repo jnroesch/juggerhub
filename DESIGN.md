@@ -272,6 +272,32 @@ new to the sport — never make them feel dumb.
 - **Numbers & scores** — set in the mono typeface for a tidy, sporty, tabular
   feel: "5 : 3", "68%", "14:00".
 
+### Dashes and separators
+
+An em dash is a strong piece of punctuation and reads as one only while it stays
+rare. Used as the house joint for every hint, subtitle and status line, it stops
+marking a turn in the sentence and becomes a rhythm — and a product where every
+line cadences the same way reads as machine-set, however warm the words are.
+
+- **English** — a full stop, a comma or a colon carries almost every hint. Reach
+  for ` — ` only where the sentence genuinely turns: a sharp aside, a reversal,
+  or a parenthetical set off by **two** dashes. A colon introduces a list
+  (*"Your permanent link: letters, numbers, hyphens"*); parentheses carry a
+  qualifier on a label (*"Description (optional)"*); the middot `·` separates a
+  label from its meta (*"New message · @handle"*). If the dash could be a full
+  stop without loss, make it one.
+- **German** — the Gedankenstrich is a **Halbgeviertstrich `–`**, never `—`.
+  Spaced on both sides, and only where the English keeps a dash.
+- **Spanish** — the **raya `—`** encloses an incise with **both** dashes and no
+  space on the inside (*"… a una conversación —imágenes, PDF, documentos— se
+  guardan…"*). A single trailing raya is an English habit; Spanish takes a
+  colon, a comma or a full stop.
+- **Ranges** are a separate character in every language: an en dash, unspaced —
+  "A–Z", "3–5 players", "14:00–16:00".
+
+`catalog-punctuation.spec.ts` enforces the German and Spanish rules and the one
+error voice below. The English restraint is a review question, not a test.
+
 ## Colors
 
 Always use the **semantic aliases** (`surface-card`, `text-body`,
@@ -418,7 +444,7 @@ so they get the same care as the happy path. **Reassure, don't alarm.**
 - **Never colour alone** — every one of these states carries text; tone and icon are
   reinforcement, never the whole message.
 - **Voice** — the same warm, sentence-case "you" voice as everywhere else. *"We couldn't
-  load that just now — give it another go."* Not *"ERROR: Request failed"*, and no emoji.
+  load that just now. Give it another go."* Not *"ERROR: Request failed"*, and no emoji.
 - **Don't** block the whole page for a slow section, stack multiple spinners in one view,
   or replace loaded content with a spinner while refreshing — keep what's there and let
   the quiet line do the talking.

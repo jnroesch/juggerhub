@@ -500,7 +500,7 @@ describe('OnboardingComponent', () => {
       );
       expect(confirmation).toBeTruthy();
       // Pending, never granted — the Done screen can't keep a membership promise.
-      expect(confirmation.textContent).toContain('an admin still has to say yes');
+      expect(confirmation.textContent).toContain('An admin still has to say yes');
       expect(confirmation.textContent).not.toContain('joined');
 
       // The ask action is gone, so the same team cannot be asked twice.

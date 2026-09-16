@@ -24,7 +24,7 @@
         <jh-alert tone="danger" data-testid="legal-error">
           <p class="font-semibold">{{ meta()?.loadErrorTitle ?? "We couldn't load this page" }}</p>
           <p class="mt-xs">
-            {{ meta()?.loadErrorBody ?? 'Something went wrong fetching the text. Give it another go.' }}
+            {{ meta()?.loadErrorBody ?? "We couldn't fetch the text. Give it another go." }}
           </p>
         </jh-alert>
         <button type="button" jhButton variant="secondary" class="mt-md" (click)="retry()" data-testid="legal-retry">

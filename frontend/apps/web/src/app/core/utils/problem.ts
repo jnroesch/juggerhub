@@ -13,7 +13,7 @@ import { HttpErrorResponse } from '@angular/common/http';
  * pages are untranslated, unbounded and say nothing a reader can act on, which is exactly what
  * `fallback` is for.
  */
-export function problemDetail(error: unknown, fallback = 'Something went wrong. Please try again.'): string {
+export function problemDetail(error: unknown, fallback = "We couldn't do that just now. Please try again."): string {
   if (error instanceof HttpErrorResponse) {
     const body = error.error;
     if (body && typeof body === 'object' && typeof body.detail === 'string' && body.detail.trim()) {

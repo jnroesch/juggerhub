@@ -6,7 +6,7 @@
     "authoritativeNotice": "Esta es una traducción de cortesía. La versión alemana es la vinculante: si ambas difieren, prevalece el texto en alemán.",
     "tocLabel": "En esta página",
     "loadErrorTitle": "No pudimos cargar esta página",
-    "loadErrorBody": "Algo falló al recuperar el texto. Vuelve a intentarlo — y si sigue sin funcionar, escríbenos a la dirección del aviso legal y te lo enviamos directamente.",
+    "loadErrorBody": "No hemos podido recuperar el texto. Vuelve a intentarlo y, si sigue sin funcionar, escríbenos a la dirección del aviso legal y te lo enviamos directamente.",
     "retry": "Reintentar"
   },
   "crossLink": {
@@ -22,7 +22,7 @@
     "version": "2026-08-03",
     "lastUpdated": "2026-08-03",
     "intro": [
-      "Este es el acuerdo entre tú y la persona que gestiona JuggerHub. Establece qué puedes esperar de nosotros y qué esperamos de ti — nada más.",
+      "Este es el acuerdo entre tú y la persona que gestiona JuggerHub. Establece qué puedes esperar de nosotros y qué esperamos de ti, nada más.",
       "Hemos intentado escribirlo de forma que se pueda leer de verdad. Si algo no te queda claro, escríbenos a hello@juggerhub.com."
     ],
     "sections": {
@@ -47,10 +47,10 @@
       "behaviour": {
         "heading": "Cómo nos tratamos aquí",
         "body": [
-          "La versión corta: sé decente. Esto es una comunidad pequeña en la que mucha gente se encuentra también fuera de internet — en torneos, en los entrenamientos, en el club. A quien escribes aquí, algún día lo tendrás delante.",
+          "La versión corta: sé decente. Esto es una comunidad pequeña en la que mucha gente se encuentra también fuera de internet: en torneos, en los entrenamientos, en el club. A quien escribes aquí, algún día lo tendrás delante.",
           "La versión más larga. Lo siguiente vale en todos los sitios donde dejas texto o imágenes en JuggerHub: en tu perfil, en las descripciones de equipos, torneos y entrenamientos, en mensajes y chats de grupo, en anuncios del mercado, en las imágenes que subes y en los nombres e identificadores que eliges.",
           "Nada de acoso, insultos, amenazas ni hostigamiento. Criticar una cosa está bien; atacar a una persona no.",
-          "Nada de odio hacia personas o grupos — ni por su origen, color de piel, religión, género, orientación sexual, discapacidad o edad. Tampoco en broma, ni con ironía.",
+          "Nada de odio hacia personas o grupos: ni por su origen, color de piel, religión, género, orientación sexual, discapacidad o edad. Tampoco en broma, ni con ironía.",
           "Nada de datos de otras personas sin su consentimiento: direcciones, números de teléfono, capturas de conversaciones privadas. No son tuyos y no van aquí.",
           "Nada de contenido sexual, representaciones de violencia ni nada que infrinja la ley.",
           "Nada de spam, publicidad ni envíos masivos. El mercado es para quienes se buscan para un torneo, no para ventas ni para ofertas ajenas.",
@@ -63,7 +63,7 @@
         "heading": "Lo que escribes y subes",
         "body": [
           "Lo que escribes y subes sigue siendo tuyo. No reclamamos ninguna propiedad sobre ello y no lo cedemos a nadie.",
-          "Lo que necesitamos es permiso para mostrarlo en JuggerHub: guardarlo, procesarlo técnicamente y enseñárselo a quienes va dirigido — tu perfil a quienes pueden verlo, la descripción de un torneo a quienes participan, un mensaje a sus destinatarios. Nada más, y solo mientras esté aquí.",
+          "Lo que necesitamos es permiso para mostrarlo en JuggerHub: guardarlo, procesarlo técnicamente y enseñárselo a quienes va dirigido. Tu perfil a quienes pueden verlo, la descripción de un torneo a quienes participan, un mensaje a sus destinatarios. Nada más, y solo mientras esté aquí.",
           "Nos aseguras que tienes los derechos sobre lo que subes y que no vulnera los derechos de nadie.",
           "Cuánto tiempo se guarda cada cosa y qué pasa al borrarla está en la política de privacidad. Los dos textos no deberían contradecirse; si ves que alguno lo hace, dínoslo."
         ]
@@ -74,7 +74,7 @@
           "Si algo incumple estas condiciones, podemos retirar contenido, suspender una cuenta temporalmente o bloquearla de forma permanente. Cuál de las tres lo decidimos según el caso: no hay una escala fija de pasos.",
           "Decimos abiertamente cómo funciona: no hay formulario de denuncia, ni instancia revisora, ni plazo de tramitación, ni procedimiento formal de recurso. Hay una persona que lo mira cuando se entera. Es poco, pero es la verdad, y preferimos un «esto funciona así» honesto a un procedimiento que solo afirmamos tener.",
           "Si ves algo, escribe a hello@juggerhub.com. Esa es la vía. Y es la misma vía si quieres reclamar porque hemos retirado algo o bloqueado tu cuenta: escríbenos y lo miramos.",
-          "Un bloqueo no es un borrado. Una cuenta bloqueada sigue existiendo, pero deja de ser visible y no puede iniciar sesión; retirar contenido es una decisión aparte. Que una cuenta haya sido suspendida, bloqueada o restablecida queda registrado — eso también está en la política de privacidad."
+          "Un bloqueo no es un borrado. Una cuenta bloqueada sigue existiendo, pero deja de ser visible y no puede iniciar sesión; retirar contenido es una decisión aparte. Que una cuenta haya sido suspendida, bloqueada o restablecida queda registrado, y eso también está en la política de privacidad."
         ]
       },
       "endingIt": {
@@ -124,9 +124,9 @@
       "whatWeHold": {
         "heading": "Qué guardamos",
         "body": [
-          "Tu cuenta: la dirección de correo y el nombre de usuario con los que te registras, y tu contraseña — que solo guardamos como un hash argon2, así que no puede revertirse a tu contraseña. Cada inicio de sesión queda registrado junto con la dirección IP desde la que se hizo. Es una medida de seguridad: es lo que permite distinguir una sesión real de una robada.",
-          "Todo lo que pones en el sitio: tu perfil, dónde te ubicas, las fotos que subes y cómo participas — equipos, eventos, entrenamientos y aquello en lo que JuggerHub se vaya convirtiendo. Considéralo todo visible para otros miembros, porque para eso está. La excepción es tu perfil: privado por defecto, y público solo si lo cambias, momento en el que cualquiera con el enlace puede leerlo.",
-          "Tus mensajes. Viven en nuestros servidores para que sigan ahí cuando vuelvas. El texto se guarda cifrado, y la conexión entre la aplicación y la base de datos también está cifrada, así que quien solo tuviera acceso a la base de datos no podría leer tus mensajes. Los archivos que envías a una conversación — imágenes, PDF, documentos — se guardan cifrados igual, y solo quienes están en esa conversación pueden descargarlos. En las imágenes eliminamos los datos incrustados al subirlas, incluido el lugar donde se tomó la foto, así que lo que reciben los demás ya no lo lleva. Un archivo pertenece a su mensaje: si retiras el mensaje, el archivo desaparece con él. Lo que esto no es: cifrado de extremo a extremo. La clave la tenemos nosotros, guardada aparte de la base de datos: técnicamente podemos leer tus mensajes, y preferimos decírtelo a que supongas lo contrario. Algo que sorprende a mucha gente: una conversación puede sobrevivir al equipo o evento al que pertenecía, para que quienes participaron conserven su propio historial.",
+          "Tu cuenta: la dirección de correo y el nombre de usuario con los que te registras, y tu contraseña, que solo guardamos como un hash argon2, así que no puede revertirse a tu contraseña. Cada inicio de sesión queda registrado junto con la dirección IP desde la que se hizo. Es una medida de seguridad: es lo que permite distinguir una sesión real de una robada.",
+          "Todo lo que pones en el sitio: tu perfil, dónde te ubicas, las fotos que subes y cómo participas, es decir, equipos, eventos, entrenamientos y aquello en lo que JuggerHub se vaya convirtiendo. Considéralo todo visible para otros miembros, porque para eso está. La excepción es tu perfil: privado por defecto, y público solo si lo cambias, momento en el que cualquiera con el enlace puede leerlo.",
+          "Tus mensajes. Viven en nuestros servidores para que sigan ahí cuando vuelvas. El texto se guarda cifrado, y la conexión entre la aplicación y la base de datos también está cifrada, así que quien solo tuviera acceso a la base de datos no podría leer tus mensajes. Los archivos que envías a una conversación —imágenes, PDF, documentos— se guardan cifrados igual, y solo quienes están en esa conversación pueden descargarlos. En las imágenes eliminamos los datos incrustados al subirlas, incluido el lugar donde se tomó la foto, así que lo que reciben los demás ya no lo lleva. Un archivo pertenece a su mensaje: si retiras el mensaje, el archivo desaparece con él. Lo que esto no es: cifrado de extremo a extremo. La clave la tenemos nosotros, guardada aparte de la base de datos: técnicamente podemos leer tus mensajes, y preferimos decírtelo a que supongas lo contrario. Algo que sorprende a mucha gente: una conversación puede sobrevivir al equipo o evento al que pertenecía, para que quienes participaron conserven su propio historial.",
           "Lo que escribes sobre otras personas: por ejemplo, cuando la organización de un evento indica una persona de contacto. Si figuras en algún sitio y prefieres no hacerlo, díselo a quien lo puso, o escríbenos y lo arreglamos.",
           "Tus ajustes: el idioma en que lees el sitio y qué notificaciones quieres recibir."
         ]
@@ -159,9 +159,9 @@
         "heading": "Por qué aquí no hay aviso de cookies",
         "body": [
           "Se mezclan a menudo dos preguntas, así que aquí están una a una.",
-          "La norma que hace que los sitios pidan permiso trata sobre almacenar cosas en tu dispositivo. No aplica cuando lo almacenado es estrictamente necesario para algo que has pedido de forma expresa — y aquí no hay más que eso: la cookie que te mantiene con la sesión iniciada, tu elección de idioma y lo que llevas escrito de un formulario que estás rellenando. Todo ello se queda en tu dispositivo. No almacenamos nada ahí para reconocerte, seguirte ni mostrarte publicidad, y la medición descrita más arriba tampoco deja nada. Por eso no hay aviso. No es un descuido ni un juego de palabras. Qué hay exactamente en tu navegador está en la sección siguiente.",
+          "La norma que hace que los sitios pidan permiso trata sobre almacenar cosas en tu dispositivo. No aplica cuando lo almacenado es estrictamente necesario para algo que has pedido de forma expresa, y aquí no hay más que eso: la cookie que te mantiene con la sesión iniciada, tu elección de idioma y lo que llevas escrito de un formulario que estás rellenando. Todo ello se queda en tu dispositivo. No almacenamos nada ahí para reconocerte, seguirte ni mostrarte publicidad, y la medición descrita más arriba tampoco deja nada. Por eso no hay aviso. No es un descuido ni un juego de palabras. Qué hay exactamente en tu navegador está en la sección siguiente.",
           "La pregunta distinta es qué habilita la medición y la grabación en sí. La dirección de una página puede nombrar a un miembro o a un equipo, y una grabación de sesión muestra la pantalla, donde casi siempre aparece tu nombre: ambas cosas son datos personales, y necesitan una base digan lo que digan las normas sobre el almacenamiento en el dispositivo. Nos basamos en el interés legítimo (art. 6.1.f RGPD).",
-          "Aquí está la ponderación, para que la juzgues tú en lugar de creernos. Queremos saber qué partes de un sitio gestionado por voluntariado se usan de verdad y dónde se atasca la gente, para que el tiempo limitado vaya donde ayuda. Nada aterriza en tu dispositivo, nada se vincula a tu cuenta ni se convierte en un perfil sobre ti, y nada alimenta una decisión que te afecte. Lo que queda son dos cosas, y es más de lo que decía antes esta página: que una página con tu nombre dentro puede aparecer en una lista de páginas vistas — y que una grabación muestra lo que había en tu pantalla, hasta el historial visible de una conversación. Por eso lo que escribes queda excluido, por eso solo el operador ve las grabaciones, y por eso se borran a los 30 días. Nos parece un trato justo para gestionar bien el sitio — y como es interés legítimo y no consentimiento, puedes oponerte sin más, y lo hemos hecho un solo ajuste en vez de un formulario."
+          "Aquí está la ponderación, para que la juzgues tú en lugar de creernos. Queremos saber qué partes de un sitio gestionado por voluntariado se usan de verdad y dónde se atasca la gente, para que el tiempo limitado vaya donde ayuda. Nada aterriza en tu dispositivo, nada se vincula a tu cuenta ni se convierte en un perfil sobre ti, y nada alimenta una decisión que te afecte. Lo que queda son dos cosas, y es más de lo que decía antes esta página: que una página con tu nombre dentro puede aparecer en una lista de páginas vistas, y que una grabación muestra lo que había en tu pantalla, hasta el historial visible de una conversación. Por eso lo que escribes queda excluido, por eso solo el operador ve las grabaciones, y por eso se borran a los 30 días. Nos parece un trato justo para gestionar bien el sitio y, como es interés legítimo y no consentimiento, puedes oponerte sin más, y lo hemos hecho un solo ajuste en vez de un formulario."
         ]
       },
       "storage": {
@@ -187,7 +187,7 @@
           "Lo que escribes y subes es tuyo hasta que digas lo contrario. Permanece mientras tengas una cuenta, y aquí nada lo hace caducar en silencio a tus espaldas. Elimina tu cuenta y desaparece.",
           "Algo de ello sobrevive a eso porque tiene que ser así. Un mensaje que enviaste forma parte de la conversación de otra persona. Lo que la ley nos obliga a conservar, lo conservamos el tiempo que la ley diga.",
           "Una cosa se va antes, porque es una medida de seguridad y no algo que hayas escrito tú. Cada inicio de sesión queda registrado junto con la dirección IP desde la que se hizo, y ese registro se borra automáticamente como muy tarde treinta días después de que iniciaras sesión. Es lo que permite distinguir una sesión real de una robada mientras la sesión aún merece la pena robarla; pasado ese plazo, no hay motivo para que sigamos guardando una dirección tuya.",
-          "Cuando un administrador ha suspendido, vetado o readmitido a alguien, conservamos un registro de esa acción mientras moderemos este sitio. Tiene menos que ver con la persona afectada — una vez eliminada una cuenta, ese registro ya no señala a nadie — y más con poder responder de lo que hicieron nuestros propios administradores.",
+          "Cuando un administrador ha suspendido, vetado o readmitido a alguien, conservamos un registro de esa acción mientras moderemos este sitio. Tiene menos que ver con la persona afectada —una vez eliminada una cuenta, ese registro ya no señala a nadie— y más con poder responder de lo que hicieron nuestros propios administradores.",
           "Las cifras de medición están limitadas por lo que son, no por un reloj: no hay ningún identificador tuyo en ellas, así que no hay nada ahí que borrar en tu nombre.",
           "Las grabaciones de sesión son otra cosa y por eso tienen un plazo fijo: se borran automáticamente a los 30 días, incluidas las que hubiéramos guardado mientras tanto. Ocurre solo, no porque alguien se acuerde de hacerlo."
         ]
@@ -197,7 +197,7 @@
         "body": [
           "Puedes pedir una copia de lo que guardamos sobre ti (art. 15 RGPD), pedir que lo corrijamos (art. 16), que lo borremos (art. 17), que limitemos su tratamiento (art. 18), obtenerlo en una forma que puedas llevarte a otro sitio (art. 20) y oponerte a todo lo que hagamos sobre la base del interés legítimo (art. 21).",
           "Eliminar tu cuenta es lo que puedes hacer tú, en los ajustes de tu cuenta. Ocurre de inmediato: no hay periodo de espera ni forma de deshacerlo.",
-          "Dos cosas que conviene saber antes. Los mensajes que enviaste y las novedades que escribiste se quedan donde están, mostrados como «Un jugador anterior» en lugar de con tu nombre: esas conversaciones pertenecen a todas las personas que participaron en ellas, no solo a ti. Y tu dirección de correo vuelve a quedar libre, así que puedes registrarte con ella más adelante si quieres — sería una cuenta nueva, sin nada heredado.",
+          "Dos cosas que conviene saber antes. Los mensajes que enviaste y las novedades que escribiste se quedan donde están, mostrados como «Un jugador anterior» en lugar de con tu nombre: esas conversaciones pertenecen a todas las personas que participaron en ellas, no solo a ti. Y tu dirección de correo vuelve a quedar libre, así que puedes registrarte con ella más adelante si quieres: sería una cuenta nueva, sin nada heredado.",
           "Para todo lo demás, escribe a hello@juggerhub.com y lo arreglamos.",
           "La excepción es oponerte a la medición: lleva segundos y puedes hacerlo tú. Va justo aquí debajo.",
           "También puedes reclamar ante una autoridad de protección de datos. La nuestra es Der Hamburgische Beauftragte für Datenschutz und Informationsfreiheit, Ludwig-Erhard-Str. 22, 20459 Hamburgo. La de tu lugar de residencia vale igual."
