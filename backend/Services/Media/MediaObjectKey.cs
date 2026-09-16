@@ -14,6 +14,9 @@ public enum MediaKind
 
     /// <summary>A file a member attached to a chat message (feature 049 / #282).</summary>
     ChatAttachment,
+
+    /// <summary>A team's identity logo (feature 051 / #305).</summary>
+    TeamLogo,
 }
 
 /// <summary>
@@ -96,6 +99,7 @@ public static class MediaObjectKey
         MediaKind.BadgeIcon => "badge-icons",
         MediaKind.AchievementIcon => "achievement-icons",
         MediaKind.ChatAttachment => "chat-attachments",
+        MediaKind.TeamLogo => "team-logos",
         _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, "Unknown media kind."),
     };
 }

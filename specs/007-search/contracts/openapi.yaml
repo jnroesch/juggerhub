@@ -142,7 +142,9 @@ components:
         city: { type: string, nullable: true }
         playerCount: { type: integer }
         beginnersWelcome: { type: boolean }
-        logoInitial: { type: string }
+        logoInitial: { type: string, description: "First letter of the name — the fallback shown when hasLogo is false." }
+        # Feature 051 — whether the team has a logo; the client builds /teams/{slug}/logo from the slug.
+        hasLogo: { type: boolean }
     EventCardDto:
       type: object
       properties:

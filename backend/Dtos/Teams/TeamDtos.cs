@@ -67,7 +67,10 @@ public sealed record TeamDetailDto(
     int MemberCount,
     TeamRole MyRole,
     // Feature 007 — self-managed recruitment flag, editable in team settings.
-    bool BeginnersWelcome = false);
+    bool BeginnersWelcome = false,
+    // Feature 051 — whether a logo exists. A flag, never a URL and never the object key: the
+    // client builds /teams/{slug}/logo from the slug it already has (the browse convention).
+    bool HasLogo = false);
 
 /// <summary>Anonymous public team info. MUST NOT contain roster identities or news.</summary>
 public sealed record TeamPublicDto(
@@ -101,6 +104,8 @@ public sealed record TeamPublicDetailDto(
     bool BeginnersWelcome,
     bool IsActive,
     TeamViewerRelation ViewerRelation,
+    // Feature 051 — whether the team has a logo; the header renders it in place of the letter tile.
+    bool HasLogo,
     IReadOnlyList<PublicMemberDto> Roster,
     IReadOnlyList<JuggerHub.Dtos.Profile.ActivityItemDto> RecentActivity,
     // Feature 012 — the team's earned badges & achievements (active only).

@@ -63,7 +63,8 @@ public sealed class MediaReconciliationService
         // ⚠ THIS LIST MUST GROW WITH EVERY NEW KIND OF STORED MEDIA. The sweep enumerates the whole
         // container and deletes whatever it cannot account for, so a descriptor table missing from
         // here is not a gap in coverage — it is a table whose objects get deleted. Feature 049
-        // added chat attachments; the next kind must be added too, and MediaKind is the checklist.
+        // added chat attachments and feature 051 team logos; the next kind must be added too, and
+        // MediaKind is the checklist.
         var referenced = new HashSet<string>(StringComparer.Ordinal);
         foreach (var key in await _db.ProfileAvatars.IgnoreQueryFilters().Select(a => a.ObjectKey).ToListAsync(ct))
         {
@@ -84,6 +85,13 @@ public sealed class MediaReconciliationService
         // one grace period after it was sent — the sweep is the one component that treats "I don't
         // know about this object" as "destroy it".
         foreach (var key in await _db.ChatAttachments.IgnoreQueryFilters().Select(a => a.ObjectKey).ToListAsync(ct))
+        {
+            referenced.Add(key);
+        }
+
+        // Feature 051. Team logos, for the same reason: omitted from this set, every team's logo
+        // would be destroyed one grace period after it was uploaded.
+        foreach (var key in await _db.TeamLogos.IgnoreQueryFilters().Select(l => l.ObjectKey).ToListAsync(ct))
         {
             referenced.Add(key);
         }

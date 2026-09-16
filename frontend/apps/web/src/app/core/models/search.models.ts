@@ -28,7 +28,10 @@ export interface TeamCard {
   location: Location | null;
   playerCount: number;
   beginnersWelcome: boolean;
+  /** The first letter of the name — the fallback shown when there is no logo. */
   logoInitial: string;
+  /** Feature 051 — whether the team has a logo; the URL is built from the slug. */
+  hasLogo: boolean;
 }
 
 export interface EventCard {

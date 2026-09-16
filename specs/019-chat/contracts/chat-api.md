@@ -16,6 +16,13 @@ the existing global exception middleware; no stack traces, no internals.
 path for a text-only message. See
 [`../../049-chat-attachments/contracts/chat-attachments-api.md`](../../049-chat-attachments/contracts/chat-attachments-api.md).
 
+**Amended by feature 051 (team logos).** `ConversationAvatarDto.url` is no longer always `null` for
+a **Team** conversation, nor for a **TeamInquiry** as seen by the asking player: it now carries
+`/api/v1/teams/{slug}/logo` when the team has a logo, and stays `null` when it does not. Party,
+event and manual group conversations are unchanged and still have no crest. No field was added or
+removed. See
+[`../../051-team-logos/contracts/team-logo-api.md`](../../051-team-logos/contracts/team-logo-api.md).
+
 ---
 
 ## Conversations

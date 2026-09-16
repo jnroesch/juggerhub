@@ -5,12 +5,16 @@ using JuggerHub.Common;
 using JuggerHub.Dtos.Parties;
 using JuggerHub.Dtos.Search;
 using JuggerHub.Dtos.Teams;
+using JuggerHub.Security.RateLimiting;
+using JuggerHub.Services.Media;
 using JuggerHub.Services.Parties;
 using JuggerHub.Services.Search;
 using JuggerHub.Services.Teams;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Controllers;
 
@@ -34,6 +38,8 @@ public sealed class TeamsController : ControllerBase
     private readonly ITeamNewsService _news;
     private readonly ITeamInvitationService _invitations;
     private readonly ITeamSearchService _search;
+    private readonly ITeamLogoService _logos;
+    private readonly IOptions<MediaStorageOptions> _mediaOptions;
     private readonly ITeamJoinRequestService _joinRequests;
     private readonly IPartyService _parties;
     private readonly JuggerHub.Services.Profile.IProfileService _profiles;
@@ -45,9 +51,11 @@ public sealed class TeamsController : ControllerBase
         ITeamNewsService news,
         ITeamInvitationService invitations,
         ITeamSearchService search,
+        ITeamLogoService logos,
         ITeamJoinRequestService joinRequests,
         IPartyService parties,
-        JuggerHub.Services.Profile.IProfileService profiles)
+        JuggerHub.Services.Profile.IProfileService profiles,
+        IOptions<MediaStorageOptions> mediaOptions)
     {
         _teams = teams;
         _activity = activity;
@@ -55,9 +63,11 @@ public sealed class TeamsController : ControllerBase
         _news = news;
         _invitations = invitations;
         _search = search;
+        _logos = logos;
         _joinRequests = joinRequests;
         _parties = parties;
         _profiles = profiles;
+        _mediaOptions = mediaOptions;
     }
 
     /// <summary>The pinned party-request cards a team member can see (feature 016). Member-gated:
@@ -512,6 +522,66 @@ public sealed class TeamsController : ControllerBase
         return MapAdmin(result.Status, () => Ok(result.Page));
     }
 
+    // --- Logo (feature 051 / #305) ---------------------------------------------
+
+    /// <summary>
+    /// Set or replace the team's logo. Admin-only, enforced in the service. The upload is
+    /// normalized server-side (feature 034) and the original is discarded.
+    /// </summary>
+    [HttpPut("{slug}/logo")]
+    [RequestSizeLimit(8 * 1024 * 1024)]
+    public async Task<IActionResult> UploadLogo(string slug, IFormFile file, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        if (file is null || file.Length == 0)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: "No image",
+                detail: "No image was provided.");
+        }
+
+        using var ms = new MemoryStream();
+        await file.CopyToAsync(ms, ct);
+        var result = await _logos.SetAsync(slug, userId, ms.ToArray(), ct);
+        return LogoResult(result);
+    }
+
+    /// <summary>Remove the team's logo, returning it to the letter placeholder. Admin-only,
+    /// idempotent.</summary>
+    [HttpDelete("{slug}/logo")]
+    public async Task<IActionResult> RemoveLogo(string slug, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        return LogoResult(await _logos.RemoveAsync(slug, userId, ct));
+    }
+
+    /// <summary>
+    /// The team's logo image. Authenticated like every team read, but deliberately <b>not</b>
+    /// member-gated: browse lists teams to non-members and those rows carry logos (feature 051
+    /// FR-009/FR-012). A team's mark is no more private than the name, city and size browse
+    /// already shows a non-member.
+    /// </summary>
+    [HttpGet("{slug}/logo")]
+    [EnableRateLimiting(RateLimitPolicies.MediaRead)]
+    public async Task<IActionResult> GetLogo(string slug, CancellationToken ct)
+    {
+        var logo = await _logos.GetAsync(slug, ct);
+
+        // 404 for every refusal — no logo, unknown team, and store-unavailable are deliberately
+        // indistinguishable, so the endpoint never becomes an existence oracle and the client only
+        // ever has to handle "image or no image".
+        return logo is null
+            ? NotFound()
+            : MediaResponse.File(this, logo.Value, _mediaOptions.Value);
+    }
+
     // --- Helpers --------------------------------------------------------------
 
     private IActionResult MapMemberOp(MemberOpResult result, Func<IActionResult> onOk) => result.Status switch
@@ -530,6 +600,15 @@ public sealed class TeamsController : ControllerBase
         InviteAdminStatus.Ok => onOk(),
         InviteAdminStatus.Forbidden => Forbidden("Only admins can manage invitations."),
         _ => TeamNotFound(),
+    };
+
+    private IActionResult LogoResult(TeamLogoResult result) => result.Status switch
+    {
+        TeamLogoStatus.Success => NoContent(),
+        TeamLogoStatus.Forbidden => Forbidden(result.Reason ?? "Only admins can change the team logo."),
+        TeamLogoStatus.NotFoundOrNotMember => TeamNotFound(),
+        _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Invalid image",
+            detail: result.Reason),
     };
 
     private ObjectResult TeamNotFound() => Problem(statusCode: StatusCodes.Status404NotFound,

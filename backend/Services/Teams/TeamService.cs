@@ -5,6 +5,7 @@ using JuggerHub.Dtos.Profile;
 using JuggerHub.Dtos.Teams;
 using JuggerHub.Entities;
 using JuggerHub.Services.Geocoding;
+using JuggerHub.Services.Media;
 using JuggerHub.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -27,6 +28,9 @@ public sealed class TeamService : ITeamService
     private readonly Email.TeamEmailService _email;
     private readonly Recognition.IRecognitionDisplayService _recognitions;
     private readonly ICityService _cities;
+
+    /// <summary>Feature 051: deleting a team must delete its logo object, not just cascade the row.</summary>
+    private readonly IMediaStore _mediaStore;
     private readonly ILogger<TeamService> _logger;
     private readonly TeamOptions _options;
 
@@ -41,6 +45,7 @@ public sealed class TeamService : ITeamService
         Email.TeamEmailService email,
         Recognition.IRecognitionDisplayService recognitions,
         ICityService cities,
+        IMediaStore mediaStore,
         ILogger<TeamService> logger,
         IOptions<TeamOptions> options,
         Chat.IChatConversationService chat)
@@ -50,6 +55,7 @@ public sealed class TeamService : ITeamService
         _chat = chat;
         _recognitions = recognitions;
         _cities = cities;
+        _mediaStore = mediaStore;
         _notifications = notifications;
         _preferences = preferences;
         _email = email;
@@ -139,7 +145,8 @@ public sealed class TeamService : ITeamService
         }
 
         return CreateTeamResult.Ok(new TeamDetailDto(
-            team.Slug, team.Name, team.Type, LocationLabels.ToLocation(resolvedCity), 1, TeamRole.Admin));
+            team.Slug, team.Name, team.Type, LocationLabels.ToLocation(resolvedCity), 1, TeamRole.Admin,
+            BeginnersWelcome: false, HasLogo: false));
     }
 
     public async Task<TeamDetailDto?> GetDetailAsync(string slug, Guid userId, CancellationToken ct = default)
@@ -152,11 +159,22 @@ public sealed class TeamService : ITeamService
 
         var header = await _db.Teams.AsNoTracking()
             .Where(t => t.Id == a.TeamId)
-            .Select(t => new { t.Slug, t.Name, t.Type, t.City, MemberCount = t.Memberships.Count, t.BeginnersWelcome })
+            .Select(t => new
+            {
+                t.Slug,
+                t.Name,
+                t.Type,
+                t.City,
+                MemberCount = t.Memberships.Count,
+                t.BeginnersWelcome,
+                // Feature 051 — presence only; an EXISTS in the query that already runs, never a
+                // second round trip and never the descriptor itself.
+                HasLogo = t.Logo != null,
+            })
             .FirstAsync(ct);
 
         return new TeamDetailDto(header.Slug, header.Name, header.Type, LocationLabels.ToLocation(header.City),
-            header.MemberCount, a.Role!.Value, header.BeginnersWelcome);
+            header.MemberCount, a.Role!.Value, header.BeginnersWelcome, header.HasLogo);
     }
 
     public async Task<TeamPublicDto?> GetPublicAsync(string slug, CancellationToken ct = default)
@@ -189,6 +207,7 @@ public sealed class TeamService : ITeamService
                 t.City,
                 t.BeginnersWelcome,
                 MemberCount = t.Memberships.Count,
+                HasLogo = t.Logo != null, // feature 051
                 // Active = created within 12 months OR a participation within the window (feature 007/008).
                 IsActive = t.CreatedDate >= cutoff
                     || _db.EventParticipations.Any(ep => ep.TeamId == t.Id && ep.Event.StartsAt >= cutoff),
@@ -251,7 +270,7 @@ public sealed class TeamService : ITeamService
         var recognitions = await _recognitions.ForTeamAsync(team.Id, ct);
         return new TeamPublicDetailDto(team.Id, team.Slug, team.Name, team.Type,
             LocationLabels.ToLocation(team.City), team.MemberCount,
-            team.BeginnersWelcome, team.IsActive, relation, roster, activity,
+            team.BeginnersWelcome, team.IsActive, relation, team.HasLogo, roster, activity,
             recognitions.Badges, recognitions.Achievements);
     }
 
@@ -310,9 +329,27 @@ public sealed class TeamService : ITeamService
         // Restrict FK, which would otherwise block this delete outright.
         await _chat.ArchiveForTeamAsync(a.TeamId, ct);
 
+        // Feature 051: read the logo's object key BEFORE the delete. The descriptor row cascades
+        // away inside PostgreSQL with no application code running, so after this statement there
+        // is nothing left that knows where the bytes are — IMediaStore's contract is explicit that
+        // "application code that deletes media must delete the object explicitly", and the
+        // reconciliation sweep is the backstop rather than the plan.
+        var logoKey = await _db.TeamLogos.AsNoTracking()
+            .Where(l => l.TeamId == a.TeamId)
+            .Select(l => l.ObjectKey)
+            .FirstOrDefaultAsync(ct);
+
         // DB-level ON DELETE CASCADE removes memberships/invites/news; participations SET NULL
         // (event history preserved). ExecuteDelete is a single statement.
         await _db.Teams.Where(t => t.Id == a.TeamId).ExecuteDeleteAsync(ct);
+
+        // Object AFTER the row, never before: deleting first and then failing the row delete would
+        // leave a live team whose logo 404s.
+        if (!string.IsNullOrEmpty(logoKey))
+        {
+            await _mediaStore.DeleteAsync(logoKey, ct);
+        }
+
         return DeleteTeamStatus.Deleted;
     }
 

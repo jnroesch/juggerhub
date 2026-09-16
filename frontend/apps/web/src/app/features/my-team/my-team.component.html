@@ -11,9 +11,14 @@
             class="flex items-center gap-sm rounded-lg border border-border-muted bg-surface-card px-md py-sm shadow-sm transition-transform duration-fast hover:-translate-y-0.5 hover:shadow-md"
             [attr.data-testid]="'my-team-' + team.slug"
           >
-            <span class="grid h-10 w-10 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary" aria-hidden="true">
-              {{ team.name.charAt(0) }}
-            </span>
+            <!-- Feature 051 — the team's logo, or the letter disc it has always shown. -->
+            @if (team.hasLogo) {
+              <img [src]="logoUrl(team.slug)" alt="" class="h-10 w-10 shrink-0 rounded-pill object-cover" data-testid="team-logo" />
+            } @else {
+              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary" aria-hidden="true">
+                {{ team.name.charAt(0) }}
+              </span>
+            }
             <span class="min-w-0">
               <span class="block truncate font-semibold text-heading">{{ team.name }}</span>
               <span class="block text-caption text-subtle">{{ (team.role === 'Admin' ? 'myTeam.admin' : 'myTeam.member') | transloco }}</span>

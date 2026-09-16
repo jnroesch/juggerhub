@@ -36,7 +36,8 @@ spec FR-002 and FR-003 both true.
       "city": "Berlin",          // nullable
       "playerCount": 24,
       "beginnersWelcome": true,
-      "logoInitial": "B"
+      "logoInitial": "B",       // the fallback tile, shown when hasLogo is false
+      "hasLogo": false          // feature 051 — the row renders /teams/{slug}/logo when true
     }
   ],
   "totalCount": 1,

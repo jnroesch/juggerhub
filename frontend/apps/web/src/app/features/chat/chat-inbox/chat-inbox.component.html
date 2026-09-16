@@ -70,13 +70,19 @@
             class="flex items-center gap-sm px-md py-sm transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             [attr.data-testid]="'conversation-' + c.id"
           >
-            <!-- Round for a DM, a 2x2 cluster for a group/team/party -->
+            <!-- A round picture wherever one exists — a DM partner's avatar, a team's logo
+                 (feature 051), or the asking player's avatar on an inquiry an admin is reading —
+                 and the 2x2 cluster for the kinds that still have no crest. -->
             @if (c.kind === 'Direct') {
               @if (c.avatar.url; as url) {
                 <img [src]="url" alt="" class="size-11 shrink-0 rounded-pill object-cover" />
               } @else {
                 <span class="size-11 shrink-0 rounded-pill bg-surface-muted" aria-hidden="true"></span>
               }
+            } @else if (c.avatar.url; as url) {
+              <!-- Feature 051 — a team conversation now carries its team's logo. Party, event and
+                   manual group chats still have no crest and fall through to the cluster below. -->
+              <img [src]="url" alt="" class="size-11 shrink-0 rounded-pill object-cover" data-testid="conversation-logo" />
             } @else {
               <span class="grid size-11 shrink-0 grid-cols-2 gap-px overflow-hidden rounded-pill" aria-hidden="true">
                 @for (q of [1, 2, 3, 4]; track q) {

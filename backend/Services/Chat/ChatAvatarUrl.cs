@@ -23,4 +23,19 @@ internal static class ChatAvatarUrl
         hasAvatar && !string.IsNullOrEmpty(handle)
             ? $"/api/v1/profiles/{Uri.EscapeDataString(handle)}/avatar"
             : null;
+
+    /// <summary>
+    /// The logo URL for a team (feature 051 / #305), or <c>null</c> when the team has none — in
+    /// which case the client keeps its cluster placeholder, exactly as it did before team logos
+    /// existed.
+    /// </summary>
+    /// <remarks>
+    /// Same shape and same reasoning as <see cref="ForPlayer"/>: the URL points at the
+    /// slug-keyed endpoint the rest of the app uses (<c>GET /api/v1/teams/{slug}/logo</c>), so the
+    /// read is authorized on the actual byte fetch and this is only ever a pointer.
+    /// </remarks>
+    public static string? ForTeam(string? slug, bool hasLogo) =>
+        hasLogo && !string.IsNullOrEmpty(slug)
+            ? $"/api/v1/teams/{Uri.EscapeDataString(slug)}/logo"
+            : null;
 }

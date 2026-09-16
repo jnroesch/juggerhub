@@ -441,6 +441,10 @@ public sealed class ChatConversationService : IChatConversationService
                 c.EventId,
                 c.RequesterUserId,
                 TeamName = c.Team!.Name,
+                // Feature 051 — the team's logo, for the crest this row renders. Slug because the
+                // logo endpoint is slug-keyed like every other team route.
+                TeamSlug = c.Team!.Slug,
+                TeamHasLogo = c.Team!.Logo != null,
                 EventName = c.Event!.Name,
                 RequesterName = c.Requester!.Profile!.DisplayName,
                 RequesterHandle = c.Requester!.Profile!.Handle,
@@ -497,7 +501,7 @@ public sealed class ChatConversationService : IChatConversationService
                 r.Id,
                 r.Kind,
                 DisplayName(r.Kind, r.Name, r.TeamName, r.Other?.DisplayName, r.EventName, r.RequesterName, isRequester, placeholder),
-                BuildAvatar(r.Kind, r.TeamId, r.Other?.UserId, r.Other?.Handle, r.Other?.HasAvatar ?? false, r.RequesterUserId, r.RequesterHandle, r.RequesterHasAvatar, isRequester),
+                BuildAvatar(r.Kind, r.TeamId, r.TeamSlug, r.TeamHasLogo, r.Other?.UserId, r.Other?.Handle, r.Other?.HasAvatar ?? false, r.RequesterUserId, r.RequesterHandle, r.RequesterHasAvatar, isRequester),
                 last is null
                     ? null
                     : new LastMessageDto(
@@ -673,6 +677,10 @@ public sealed class ChatConversationService : IChatConversationService
                 c.EventId,
                 c.RequesterUserId,
                 TeamName = c.Team!.Name,
+                // Feature 051 — the team's logo, for the crest this row renders. Slug because the
+                // logo endpoint is slug-keyed like every other team route.
+                TeamSlug = c.Team!.Slug,
+                TeamHasLogo = c.Team!.Logo != null,
                 EventName = c.Event!.Name,
                 RequesterName = c.Requester!.Profile!.DisplayName,
                 RequesterHandle = c.Requester!.Profile!.Handle,
@@ -693,7 +701,7 @@ public sealed class ChatConversationService : IChatConversationService
             conversationId,
             row.Kind,
             DisplayName(row.Kind, row.Name, row.TeamName, row.Other?.DisplayName, row.EventName, row.RequesterName, isRequester, placeholder),
-            BuildAvatar(row.Kind, row.TeamId, row.Other?.UserId, row.Other?.Handle, row.Other?.HasAvatar ?? false, row.RequesterUserId, row.RequesterHandle, row.RequesterHasAvatar, isRequester),
+            BuildAvatar(row.Kind, row.TeamId, row.TeamSlug, row.TeamHasLogo, row.Other?.UserId, row.Other?.Handle, row.Other?.HasAvatar ?? false, row.RequesterUserId, row.RequesterHandle, row.RequesterHasAvatar, isRequester),
             row.State,
             row.Me?.IsMuted ?? false,
             row.Me?.IsHidden ?? false,
@@ -1267,12 +1275,15 @@ public sealed class ChatConversationService : IChatConversationService
             _ => placeholder,
         };
 
-    // Team/party/event conversations have no crest image — there is no team-avatar endpoint (issue
-    // #193), so their Url stays null and the client renders its cluster placeholder. Only the player
-    // faces (a DM's partner, and the requester an inquiry admin sees) carry a real avatar URL.
+    // A TEAM conversation carries the team's logo since feature 051 (#305) — until then there was
+    // no team-logo endpoint at all, which is the gap issue #193 recorded and the reason this Url
+    // used to be hard-coded null. PARTY, EVENT and manual GROUP conversations still have no crest
+    // of their own: their Url stays null and the client renders its cluster placeholder, unchanged.
     private static ConversationAvatarDto BuildAvatar(
         ConversationKind kind,
         Guid? teamId,
+        string? teamSlug,
+        bool teamHasLogo,
         Guid? otherUserId,
         string? otherHandle,
         bool otherHasAvatar,
@@ -1284,11 +1295,13 @@ public sealed class ChatConversationService : IChatConversationService
         {
             ConversationKind.Direct => new ConversationAvatarDto(
                 "User", otherUserId, null, ChatAvatarUrl.ForPlayer(otherHandle, otherHasAvatar)),
-            ConversationKind.Team => new ConversationAvatarDto("Team", null, teamId, null),
+            ConversationKind.Team => new ConversationAvatarDto(
+                "Team", null, teamId, ChatAvatarUrl.ForTeam(teamSlug, teamHasLogo)),
             ConversationKind.Party => new ConversationAvatarDto("Party", null, null, null),
             // Requester sees the team/event crest; an admin sees the requester's avatar.
             ConversationKind.TeamInquiry => isRequester
-                ? new ConversationAvatarDto("Team", null, teamId, null)
+                ? new ConversationAvatarDto(
+                    "Team", null, teamId, ChatAvatarUrl.ForTeam(teamSlug, teamHasLogo))
                 : new ConversationAvatarDto(
                     "User", requesterUserId, null, ChatAvatarUrl.ForPlayer(requesterHandle, requesterHasAvatar)),
             ConversationKind.EventInquiry => isRequester

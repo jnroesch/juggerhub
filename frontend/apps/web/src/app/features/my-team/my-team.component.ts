@@ -61,6 +61,11 @@ export class MyTeamComponent implements OnInit {
   }
 
   /** Accept an invitation: join, refresh the nav's team cache, and land in the joined team's space. */
+  /** Feature 051 — the row's logo URL. */
+  protected logoUrl(slug: string): string {
+    return this.teamApi.logoUrl(slug);
+  }
+
   protected accept(inv: MyInvitation): void {
     this.notice.set(null);
     this.teamApi.acceptInvite(inv.token).subscribe({

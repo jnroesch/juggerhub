@@ -13,7 +13,7 @@ import { translocoTestingModule } from '../../../testing/transloco-testing';
 // --- factories -------------------------------------------------------------
 
 function myTeam(slug: string): MyTeam {
-  return { slug, name: slug.toUpperCase(), role: 'Member' };
+  return { slug, name: slug.toUpperCase(), role: 'Member', hasLogo: false };
 }
 
 function invite(slug: string, token = `tok-${slug}`): MyInvitation {

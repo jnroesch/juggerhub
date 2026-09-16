@@ -230,6 +230,11 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     this.teamQueryInput.next(value);
   }
 
+  /** Feature 051 — the suggestion row's logo URL. */
+  protected logoUrl(slug: string): string {
+    return this.teamApi.logoUrl(slug);
+  }
+
   protected selectTeam(team: TeamCard): void {
     this.selectedTeam.set(team);
     this.teamRequestError.set(null);

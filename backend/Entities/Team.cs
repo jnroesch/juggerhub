@@ -35,6 +35,13 @@ public sealed class Team : BaseEntity
     /// </summary>
     public bool BeginnersWelcome { get; set; }
 
+    /// <summary>
+    /// The team's identity logo (feature 051), or null when it has none. A descriptor row, not
+    /// bytes — see <see cref="TeamLogo"/>. Reads that only need to know whether a logo exists
+    /// project <c>Logo != null</c> rather than loading this navigation.
+    /// </summary>
+    public TeamLogo? Logo { get; set; }
+
     public ICollection<TeamMembership> Memberships { get; set; } = [];
 
     public ICollection<TeamInvitation> Invitations { get; set; } = [];

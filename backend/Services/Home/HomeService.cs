@@ -108,7 +108,9 @@ public sealed class HomeService : IHomeService
         _db.TeamMemberships.AsNoTracking()
             .Where(m => m.UserId == userId)
             .OrderByDescending(m => m.JoinedDate).ThenBy(m => m.TeamId)
-            .Select(m => new MyTeamDto(m.Team.Slug, m.Team.Name, m.Role));
+            // Feature 051 — HasLogo is an EXISTS in the same projection; the client builds the
+            // logo URL from the slug.
+            .Select(m => new MyTeamDto(m.Team.Slug, m.Team.Name, m.Role, m.Team.Logo != null));
 
     /// <summary>
     /// "Needs you" — the actionable items awaiting the viewer's response, aggregated from each
