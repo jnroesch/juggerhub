@@ -1,6 +1,6 @@
 @if (hasAny()) {
   <jh-card data-testid="activity">
-    <h2 class="mb-sm text-body-sm font-semibold uppercase tracking-wide text-subtle">{{ 'home.activityTitle' | transloco }}</h2>
+    <h2 class="mb-sm text-body-sm font-semibold uppercase tracking-wide text-muted">{{ 'home.activityTitle' | transloco }}</h2>
     <ul class="flex flex-col gap-xs">
       @for (row of rows(); track $index) {
         <li class="flex items-baseline gap-sm" [attr.data-kind]="row.kind">
@@ -11,7 +11,7 @@
               {{ row.text }}
             }
           </span>
-          <span class="shrink-0 text-caption text-subtle">{{ row.time }}</span>
+          <span class="shrink-0 text-caption text-muted">{{ row.time }}</span>
         </li>
       }
     </ul>

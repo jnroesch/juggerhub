@@ -4,11 +4,11 @@
   } @else if (loadError()) {
     <div jhCard class="text-center">
       <p class="text-body-lg font-bold text-ink">{{ 'events.detail.notFoundTitle' | transloco }}</p>
-      <p class="mt-xs text-body-sm text-subtle">{{ 'events.detail.notFoundBody' | transloco }}</p>
-      <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand">{{ 'events.detail.goHome' | transloco }}</a>
+      <p class="mt-xs text-body-sm text-muted">{{ 'events.detail.notFoundBody' | transloco }}</p>
+      <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand-strong">{{ 'events.detail.goHome' | transloco }}</a>
     </div>
   } @else if (detail(); as d) {
-    <a routerLink="/browse/events" [queryParams]="eventsQuery()" [state]="restoreSearch" class="text-body-sm text-subtle hover:text-text" data-testid="event-back">{{ 'events.detail.backEvents' | transloco }}</a>
+    <a routerLink="/browse/events" [queryParams]="eventsQuery()" [state]="restoreSearch" class="text-body-sm text-muted hover:text-text" data-testid="event-back">{{ 'events.detail.backEvents' | transloco }}</a>
 
     <!-- Hero: cover, title, meta, occupancy -->
     <div class="relative mt-sm flex h-28 items-end overflow-hidden rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
@@ -46,12 +46,12 @@
     <div class="mt-md">
       <div class="flex items-center justify-between text-body-sm">
         <span class="font-semibold text-body">{{ (d.participantMode === 'Teams' ? 'events.detail.teamsIn' : 'events.detail.peopleIn') | transloco }}</span>
-        <span class="text-subtle" data-testid="spots-label">{{ d.occupiedSpots }}/{{ d.participationLimit }}</span>
+        <span class="text-muted" data-testid="spots-label">{{ d.occupiedSpots }}/{{ d.participationLimit }}</span>
       </div>
       <div class="mt-xs h-2 overflow-hidden rounded-pill bg-surface-sunken">
         <div class="h-full rounded-pill bg-brand transition-all duration-fast" [style.width.%]="occupancyPct()"></div>
       </div>
-      <p class="mt-xs text-body-sm text-subtle">
+      <p class="mt-xs text-body-sm text-muted">
         <span class="font-semibold text-body">{{ joined().length }}</span> {{ 'events.detail.confirmed' | transloco }}@if (awaiting().length > 0) { <span> · {{ 'events.detail.pendingPayment' | transloco:{ count: awaiting().length } }}</span> }
       </p>
     </div>
@@ -79,7 +79,7 @@
               {{ d.street }}<br />{{ d.postalCode }} {{ d.location?.name }}<br />{{ d.location?.countryName }}
             </p>
           } @else {
-            <a [href]="d.virtualLink" target="_blank" rel="noopener" class="mt-xs inline-block break-all text-body-md font-semibold text-brand">{{ d.virtualLink }}</a>
+            <a [href]="d.virtualLink" target="_blank" rel="noopener" class="mt-xs inline-block break-all text-body-md font-semibold text-brand-strong">{{ d.virtualLink }}</a>
           }
         </div>
 
@@ -124,7 +124,7 @@
                   <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.editDetails' | transloco }}</a>
                   <a [routerLink]="['/events', d.id, 'contacts']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.manageContacts' | transloco }}</a>
                   <a [routerLink]="['/events', d.id, 'admins']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.inviteCoAdmins' | transloco }}</a>
-                  <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-danger hover:bg-surface-sunken">{{ 'events.detail.cancelEvent' | transloco }}</a>
+                  <a [routerLink]="['/events', d.id, 'edit']" class="block px-md py-sm text-body-sm text-danger-fg hover:bg-surface-sunken">{{ 'events.detail.cancelEvent' | transloco }}</a>
                 </div>
               }
               <button type="button" (click)="menuOpen.set(!menuOpen())" data-testid="manage-menu"
@@ -152,12 +152,12 @@
                 <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.entranceFee' | transloco }}</h2>
                 @if (d.feePaymentDeadline) { <span jhChip>{{ 'events.detail.payBy' | transloco:{ date: (d.feePaymentDeadline | translocoDate: { month: 'short', day: 'numeric' }) } }}</span> }
               </div>
-              <p class="mt-xs text-body-lg font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-subtle">{{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}</span></p>
+              <p class="mt-xs text-body-lg font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-muted">{{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}</span></p>
               <dl class="mt-sm space-y-0.5 text-body-sm">
-                <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">{{ 'events.detail.payTo' | transloco }}</dt><dd class="font-semibold text-body">{{ d.feeRecipientName }}</dd></div>
-                <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">{{ 'events.detail.iban' | transloco }}</dt><dd class="break-all font-mono text-subtle">{{ d.feeIban }}</dd></div>
+                <div class="flex gap-sm"><dt class="w-16 shrink-0 text-muted">{{ 'events.detail.payTo' | transloco }}</dt><dd class="font-semibold text-body">{{ d.feeRecipientName }}</dd></div>
+                <div class="flex gap-sm"><dt class="w-16 shrink-0 text-muted">{{ 'events.detail.iban' | transloco }}</dt><dd class="break-all font-mono text-muted">{{ d.feeIban }}</dd></div>
               </dl>
-              <p class="mt-sm text-body-sm text-faint">{{ 'events.detail.bankTransferNote' | transloco }}</p>
+              <p class="mt-sm text-body-sm text-muted">{{ 'events.detail.bankTransferNote' | transloco }}</p>
             </div>
           }
 

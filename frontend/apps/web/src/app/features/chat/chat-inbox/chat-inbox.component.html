@@ -27,7 +27,7 @@
         (ngModelChange)="onTermChange($event)"
         name="chat-search"
         [placeholder]="'chat.inbox.searchPlaceholder' | transloco"
-        class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card py-xs pl-11 pr-md text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
+        class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card py-xs pl-11 pr-md text-body-md text-body transition-colors duration-fast placeholder:text-muted focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
         data-testid="chat-search"
       />
     </span>
@@ -122,23 +122,23 @@
                       message that is only files. Checking the count before falling through to
                       "deleted" is what stops a shared photo reading as a message someone took back.
                     -->
-                    @if (last.preview) {{{ last.preview }}} @else if (last.attachmentCount > 0) {<span data-testid="row-attachment">{{ attachmentLabel(last) }}</span>} @else {<em class="text-subtle">{{ 'chat.inbox.messageDeleted' | transloco }}</em>}
+                    @if (last.preview) {{{ last.preview }}} @else if (last.attachmentCount > 0) {<span data-testid="row-attachment">{{ attachmentLabel(last) }}</span>} @else {<em class="text-muted">{{ 'chat.inbox.messageDeleted' | transloco }}</em>}
                   }
                 </span>
               } @else {
-                <span class="block text-body-sm text-subtle">{{ 'chat.inbox.noMessagesYet' | transloco }}</span>
+                <span class="block text-body-sm text-muted">{{ 'chat.inbox.noMessagesYet' | transloco }}</span>
               }
             </span>
 
             <span class="flex shrink-0 flex-col items-end gap-xs">
               @if (c.lastMessage; as last) {
                 <!-- Times in the mono face (DESIGN.md: times/counts are tabular) -->
-                <span class="font-mono text-caption text-subtle">{{ rowTime(last.at) }}</span>
+                <span class="font-mono text-caption text-muted">{{ rowTime(last.at) }}</span>
               }
 
               @if (c.unreadCount > 0) {
                 <span
-                  class="inline-flex min-w-5 items-center justify-center rounded-pill bg-brand px-xs font-mono text-caption font-semibold text-on-accent"
+                  class="inline-flex min-w-5 items-center justify-center rounded-pill bg-brand-strong px-xs font-mono text-caption font-semibold text-on-accent"
                   [attr.aria-label]="'chat.inbox.unreadAria' | transloco:{ count: c.unreadCount }"
                 >
                   {{ badge(c.unreadCount) }}
@@ -146,7 +146,7 @@
               }
 
               @if (c.isMuted) {
-                <svg class="size-4 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [attr.aria-label]="'chat.inbox.mutedAria' | transloco">
+                <svg class="size-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" [attr.aria-label]="'chat.inbox.mutedAria' | transloco">
                   <path d="M8.7 3A6 6 0 0 1 18 8c0 2.5.5 4 1 5M6 8a6 6 0 0 0-.4 2c0 4-2 5-2 5h13M9 18a3 3 0 0 0 6 0M2 2l20 20" />
                 </svg>
               }
@@ -170,7 +170,7 @@
       >
         {{ 'chat.inbox.startChat' | transloco }}
       </a>
-      <p class="mt-md text-body-sm text-subtle">
+      <p class="mt-md text-body-sm text-muted">
         {{ 'chat.inbox.teamChatNote' | transloco }}
       </p>
     </div>

@@ -15,7 +15,7 @@
 <div class="mt-sm">
   <label class="relative block">
     <span class="sr-only">{{ 'admin.results.search' | transloco }}</span>
-    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
     <input type="search" [placeholder]="'admin.results.search' | transloco"
       class="h-11 w-full rounded-md border border-border-strong bg-surface-card pl-9 pr-md text-body-md text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       [value]="q()" (input)="onType($any($event.target).value)" data-testid="admin-results-search" />
@@ -46,7 +46,7 @@
               {{ p.eventDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}
             </p>
             @if (p.fromTugeny) {
-              <p class="text-caption text-subtle">{{ 'admin.results.fromTugeny' | transloco }}</p>
+              <p class="text-caption text-muted">{{ 'admin.results.fromTugeny' | transloco }}</p>
             }
           </div>
 
@@ -69,7 +69,7 @@
             {{ 'admin.results.connectedTo' | transloco }}
             <a [routerLink]="['/t', team.slug]" class="font-semibold hover:text-link">{{ team.name }}</a>
             @if (p.connectedAt; as at) {
-              <span class="block text-caption text-subtle">{{ 'admin.results.connectedBy' | transloco: { name: p.connectedBy ?? '', date: (at | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' }) } }}</span>
+              <span class="block text-caption text-muted">{{ 'admin.results.connectedBy' | transloco: { name: p.connectedBy ?? '', date: (at | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' }) } }}</span>
             }
           </p>
         }

@@ -2,7 +2,7 @@
   <div class="flex items-center justify-between gap-sm">
     <div>
       <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'marketplace.board.heading' | transloco }}</h2>
-      <p class="mt-0.5 text-body-sm text-subtle">{{ 'marketplace.board.subtitle' | transloco }}</p>
+      <p class="mt-0.5 text-body-sm text-muted">{{ 'marketplace.board.subtitle' | transloco }}</p>
     </div>
   </div>
 
@@ -14,7 +14,7 @@
         {{ 'marketplace.board.postYourself' | transloco }}
       </button>
     } @else if (m.ineligibleReason) {
-      <p class="mt-sm rounded-md border border-border bg-surface-sunken px-md py-sm text-body-sm text-subtle" data-testid="ineligible">{{ m.ineligibleReason }} {{ 'marketplace.board.stillBrowse' | transloco }}</p>
+      <p class="mt-sm rounded-md border border-border bg-surface-sunken px-md py-sm text-body-sm text-muted" data-testid="ineligible">{{ m.ineligibleReason }} {{ 'marketplace.board.stillBrowse' | transloco }}</p>
     }
 
     <!-- Your market inbox: invites to answer + applications sent -->
@@ -24,7 +24,7 @@
           <p class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.board.invitesToAnswer' | transloco }}</p>
           @for (inv of m.invitesToAnswer; track inv.id) {
             <div class="mt-xs flex items-center justify-between gap-sm">
-              <p class="text-body-sm text-body"><span class="font-semibold">{{ inv.teamName }}</span> {{ 'marketplace.board.wantsYouIn' | transloco }} @if (inv.positions.length) { <span class="text-subtle">{{ 'marketplace.board.at' | transloco }} {{ labelKey(inv.positions[0]) | transloco }}</span> }</p>
+              <p class="text-body-sm text-body"><span class="font-semibold">{{ inv.teamName }}</span> {{ 'marketplace.board.wantsYouIn' | transloco }} @if (inv.positions.length) { <span class="text-muted">{{ 'marketplace.board.at' | transloco }} {{ labelKey(inv.positions[0]) | transloco }}</span> }</p>
               <div class="flex gap-xs">
                 <button type="button" (click)="accept(inv.id)" jhButton size="sm">{{ 'common.accept' | transloco }}</button>
                 <button type="button" (click)="decline(inv.id)" jhButton variant="secondary" size="sm">{{ 'common.decline' | transloco }}</button>
@@ -39,7 +39,7 @@
               <span class="min-w-0">
                 <span class="text-body">{{ app.teamName }}</span>
                 @if (app.positions.length) {
-                  <span class="text-subtle"> · @for (pos of app.positions; track pos; let last = $last) {{{ labelKey(pos) | transloco }}{{ last ? '' : ', ' }}}</span>
+                  <span class="text-muted"> · @for (pos of app.positions; track pos; let last = $last) {{{ labelKey(pos) | transloco }}{{ last ? '' : ', ' }}}</span>
                 }
               </span>
               <span class="shrink-0" jhChip [tone]="app.status === 'Pending' ? 'warning' : 'muted'">{{ (app.status === 'Pending' ? 'marketplace.board.statusPending' : 'marketplace.board.statusDeclined') | transloco }}</span>
@@ -69,7 +69,7 @@
       <div data-testid="parties-column">
         <p class="text-body-sm font-semibold text-body">{{ 'marketplace.board.partiesRecruiting' | transloco }} · <span class="font-mono">{{ partyTotal() }}</span></p>
         @if (parties().length === 0) {
-          <p class="mt-xs text-body-sm text-faint">{{ 'marketplace.board.noCrews' | transloco }}</p>
+          <p class="mt-xs text-body-sm text-muted">{{ 'marketplace.board.noCrews' | transloco }}</p>
         } @else {
           <ul class="mt-xs space-y-sm">
             @for (party of parties(); track party.partyId) {
@@ -79,15 +79,15 @@
                   <div class="min-w-0 flex-1">
                     <div class="flex items-start justify-between gap-xs">
                       <div class="min-w-0">
-                        <a [routerLink]="['/t', party.teamSlug]" class="text-body-md font-semibold text-body hover:text-brand">{{ party.teamName }}</a>
-                        <p class="text-body-sm text-subtle"><span class="font-mono">{{ party.openSpots }}</span> {{ (party.openSpots === 1 ? 'marketplace.board.spotOpenOne' : 'marketplace.board.spotOpenMany') | transloco }}</p>
+                        <a [routerLink]="['/t', party.teamSlug]" class="text-body-md font-semibold text-body hover:text-brand-strong">{{ party.teamName }}</a>
+                        <p class="text-body-sm text-muted"><span class="font-mono">{{ party.openSpots }}</span> {{ (party.openSpots === 1 ? 'marketplace.board.spotOpenOne' : 'marketplace.board.spotOpenMany') | transloco }}</p>
                       </div>
                       <div class="shrink-0">
                         @if (inviteFor(party); as inv) {
                           <div class="flex gap-xs">
                             <button type="button" (click)="accept(inv.id)" jhButton size="sm">{{ 'common.accept' | transloco }}</button>
                             <button type="button" (click)="decline(inv.id)" [attr.aria-label]="'marketplace.board.ariaDeclineInvite' | transloco" [attr.title]="'marketplace.board.titleDecline' | transloco"
-                              class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-subtle hover:bg-surface-sunken hover:text-body">
+                              class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-muted hover:bg-surface-sunken hover:text-body">
                               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                             </button>
                           </div>
@@ -99,7 +99,7 @@
                       </div>
                     </div>
                     @if (party.positionsNeeded.length) {
-                      <p class="mt-1 flex flex-wrap items-center gap-1 text-body-sm text-subtle"><span>{{ 'marketplace.board.needs' | transloco }}</span>@for (pos of party.positionsNeeded; track pos) { <span jhChip tone="secondary">{{ labelKey(pos) | transloco }}</span> }</p>
+                      <p class="mt-1 flex flex-wrap items-center gap-1 text-body-sm text-muted"><span>{{ 'marketplace.board.needs' | transloco }}</span>@for (pos of party.positionsNeeded; track pos) { <span jhChip tone="secondary">{{ labelKey(pos) | transloco }}</span> }</p>
                     }
                     @if (party.blurb) { <p class="mt-xs text-body-sm text-body">“{{ party.blurb }}”</p> }
                   </div>
@@ -114,7 +114,7 @@
       <div data-testid="free-agents-column">
         <p class="text-body-sm font-semibold text-body">{{ 'marketplace.board.freeAgents' | transloco }} · <span class="font-mono">{{ freeAgentTotal() }}</span></p>
         @if (freeAgents().length === 0) {
-          <p class="mt-xs text-body-sm text-faint">{{ 'marketplace.board.noFreeAgents' | transloco }}</p>
+          <p class="mt-xs text-body-sm text-muted">{{ 'marketplace.board.noFreeAgents' | transloco }}</p>
         } @else {
           <ul class="mt-xs space-y-sm">
             @for (fa of freeAgents(); track fa.userId) {
@@ -124,16 +124,16 @@
                   <div class="min-w-0 flex-1">
                     <div class="flex items-start justify-between gap-xs">
                       <p class="min-w-0 text-body-md font-semibold text-body">
-                        <a [routerLink]="['/u', fa.handle]" class="hover:text-brand">{{ fa.displayName }}</a>@if (isMe(fa)) { <span class="font-normal text-subtle"> · {{ 'marketplace.board.you' | transloco }}</span> }
+                        <a [routerLink]="['/u', fa.handle]" class="hover:text-brand-strong">{{ fa.displayName }}</a>@if (isMe(fa)) { <span class="font-normal text-muted"> · {{ 'marketplace.board.you' | transloco }}</span> }
                       </p>
                       @if (isMe(fa)) {
                         <div class="flex shrink-0 gap-xs" data-testid="my-listing-actions">
                           <button type="button" (click)="openPost(true)" [attr.aria-label]="'marketplace.board.ariaEditListing' | transloco" [attr.title]="'marketplace.board.titleEdit' | transloco"
-                            class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-subtle hover:bg-surface-sunken hover:text-body">
+                            class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-muted hover:bg-surface-sunken hover:text-body">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
                           </button>
                           <button type="button" (click)="takeDown()" [disabled]="acting()" [attr.aria-label]="'marketplace.board.ariaTakeDown' | transloco" [attr.title]="'marketplace.board.titleTakeDown' | transloco"
-                            class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-danger hover:bg-danger-bg disabled:opacity-50">
+                            class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-danger-fg hover:bg-danger-bg disabled:opacity-50">
                             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                           </button>
                         </div>
@@ -142,7 +142,7 @@
                       }
                     </div>
                     @if (fa.positions.length) {
-                      <p class="mt-1 flex flex-wrap gap-1 text-body-sm text-subtle">@for (pos of fa.positions; track pos) { <span jhChip tone="secondary">{{ labelKey(pos) | transloco }}</span> }</p>
+                      <p class="mt-1 flex flex-wrap gap-1 text-body-sm text-muted">@for (pos of fa.positions; track pos) { <span jhChip tone="secondary">{{ labelKey(pos) | transloco }}</span> }</p>
                     }
                     <p class="mt-xs text-body-sm text-body">“{{ fa.pitch }}”</p>
                   </div>
@@ -167,7 +167,7 @@
           }
         </h3>
 
-        <p class="mt-xs text-body-sm text-subtle">
+        <p class="mt-xs text-body-sm text-muted">
           @switch (a.kind) {
             @case ('apply') { {{ 'marketplace.board.modalApplyDesc' | transloco }} }
             @case ('invite') { {{ 'marketplace.board.modalInviteDesc' | transloco }} }
@@ -185,7 +185,7 @@
         @if (a.kind === 'post') {
           <p class="mt-md text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.board.yourPitch' | transloco }}</p>
           <textarea [value]="pitch()" (input)="pitch.set($any($event.target).value)" maxlength="280" rows="3"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-sm text-body focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-coral-1"
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-sm text-body focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-focus"
             [placeholder]="'marketplace.board.pitchPlaceholder' | transloco"></textarea>
         }
 

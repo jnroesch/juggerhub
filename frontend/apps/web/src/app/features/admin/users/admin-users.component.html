@@ -7,7 +7,7 @@
 <div class="mt-md flex flex-wrap items-center gap-sm">
   <label class="relative block min-w-0 flex-1 basis-64">
     <span class="sr-only">{{ 'admin.users.searchLabel' | transloco }}</span>
-    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
     <input
       type="search"
       [placeholder]="'admin.users.searchPlaceholder' | transloco"
@@ -69,7 +69,7 @@
   <div jhCard padding="flush" class="mt-md hidden md:block">
     <table class="w-full text-left" data-testid="admin-users-table">
       <thead>
-        <tr class="border-b border-border-muted text-caption text-subtle">
+        <tr class="border-b border-border-muted text-caption text-muted">
           <th class="px-md py-sm font-medium">{{ 'admin.users.colPlayer' | transloco }}</th>
           <th class="px-md py-sm font-medium">{{ 'admin.users.colTeams' | transloco }}</th>
           <th class="px-md py-sm font-medium">{{ 'admin.users.colStatus' | transloco }}</th>
@@ -91,7 +91,7 @@
                   <span jhChip tone="secondary">{{ 'admin.common.adminBadge' | transloco }}</span>
                 }
               </span>
-              <span class="block text-caption text-subtle">&#64;{{ row.handle }}</span>
+              <span class="block text-caption text-muted">&#64;{{ row.handle }}</span>
             </td>
             <td class="px-md py-sm text-body-sm text-muted">
               {{ row.teams.length ? row.teams.join(' · ') : '—' }}
@@ -103,7 +103,7 @@
               >{{ (row.status === 'Active' ? 'admin.common.statusActive' : row.status === 'Suspended' ? 'admin.common.statusSuspended' : 'admin.common.statusBanned') | transloco }}</span>
             </td>
             <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.badgeCount }}</td>
-            <td class="px-md py-sm text-right text-subtle" aria-hidden="true">›</td>
+            <td class="px-md py-sm text-right text-muted" aria-hidden="true">›</td>
           </tr>
         }
       </tbody>
@@ -134,7 +134,7 @@
               [tone]="statusTone(row.status)"
             >{{ (row.status === 'Active' ? 'admin.common.statusActive' : row.status === 'Suspended' ? 'admin.common.statusSuspended' : 'admin.common.statusBanned') | transloco }}</span>
           </span>
-          <span class="mt-1 block truncate text-caption text-subtle">
+          <span class="mt-1 block truncate text-caption text-muted">
             &#64;{{ row.handle }}@if (row.teams.length) { · {{ row.teams.join(' · ') }}}
           </span>
           <span class="mt-1 block font-mono text-caption text-muted">{{ row.badgeCount }} {{ (row.badgeCount === 1 ? 'admin.users.badgeOne' : 'admin.users.badgeMany') | transloco }}</span>
@@ -145,7 +145,7 @@
 
   <!-- Pagination -->
   <div class="mt-md flex items-center justify-between gap-sm">
-    <span class="font-mono text-caption text-subtle" data-testid="admin-users-range">
+    <span class="font-mono text-caption text-muted" data-testid="admin-users-range">
       {{ 'admin.common.showing' | transloco:{ start: rangeStart(), end: rangeEnd(), total: total() } }}
     </span>
     <div class="flex gap-xs">

@@ -14,7 +14,7 @@
         @if (p.location) {
           <span aria-hidden="true">·</span>
           <span class="inline-flex items-center gap-xs">
-            <svg class="h-3.5 w-3.5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{{ p.location.label }}
+            <svg class="h-3.5 w-3.5 text-brand-strong" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>{{ p.location.label }}
           </span>
         }
       </p>
@@ -31,15 +31,15 @@
       <jh-card>
         <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'profile.view.teamsClubs' | transloco }}</h2>
         @if (p.teams.length === 0) {
-          <p class="text-body-sm text-subtle">{{ 'profile.view.noTeams' | transloco }}</p>
+          <p class="text-body-sm text-muted">{{ 'profile.view.noTeams' | transloco }}</p>
         } @else {
           <ul class="flex flex-wrap gap-xs">
             @for (t of p.teams; track t.slug) {
               <li [attr.data-testid]="'profile-team-' + t.slug">
                 <a [routerLink]="['/t', t.slug]" jhChip tone="outline">
                   <span class="font-medium text-heading">{{ t.name }}</span>
-                  @if (t.location) { <span class="text-subtle">· {{ t.location.label }}</span> }
-                  @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand">{{ 'profile.view.admin' | transloco }}</span> }
+                  @if (t.location) { <span class="text-muted">· {{ t.location.label }}</span> }
+                  @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand-strong">{{ 'profile.view.admin' | transloco }}</span> }
                 </a>
               </li>
             }
@@ -51,7 +51,7 @@
       <jh-card>
         <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'profile.view.plays' | transloco }}</h2>
         @if (p.pompfen.length === 0) {
-          <p class="text-body-sm text-subtle">{{ 'profile.view.noFavorites' | transloco }}</p>
+          <p class="text-body-sm text-muted">{{ 'profile.view.noFavorites' | transloco }}</p>
         } @else {
           <div class="flex flex-wrap gap-xs">
             @for (pompfe of p.pompfen; track pompfe) {
@@ -75,15 +75,15 @@
       <jh-card>
         <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.recentEvents' | transloco }}</h2>
         @if (p.recentActivity.length === 0) {
-          <p class="text-body-sm text-subtle" data-testid="profile-activity-empty">{{ 'profile.view.noRecentEvents' | transloco }}</p>
+          <p class="text-body-sm text-muted" data-testid="profile-activity-empty">{{ 'profile.view.noRecentEvents' | transloco }}</p>
         } @else {
           <ul class="divide-y divide-border-muted">
             @for (item of p.recentActivity; track $index) {
               <li class="flex gap-md py-sm first:pt-0 last:pb-0">
-                <span class="w-14 shrink-0 pt-0.5 font-mono text-body-sm text-subtle">{{ item.date }}</span>
+                <span class="w-14 shrink-0 pt-0.5 font-mono text-body-sm text-muted">{{ item.date }}</span>
                 <div>
                   <p class="text-body-md text-body">{{ item.eventName }}</p>
-                  <p class="text-body-sm text-subtle">{{ item.location }} · {{ 'profile.view.withTeam' | transloco:{ team: item.teamLabel } }}</p>
+                  <p class="text-body-sm text-muted">{{ item.location }} · {{ 'profile.view.withTeam' | transloco:{ team: item.teamLabel } }}</p>
                 </div>
               </li>
             }

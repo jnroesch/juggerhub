@@ -1,7 +1,7 @@
 <main class="mx-auto max-w-container-sm px-md py-lg">
-  <button type="button" (click)="cancel()" class="mb-md text-body-sm text-subtle transition-colors hover:text-body">{{ 'common.cancel' | transloco }}</button>
+  <button type="button" (click)="cancel()" class="mb-md text-body-sm text-muted transition-colors hover:text-body">{{ 'common.cancel' | transloco }}</button>
   <h1 class="text-h3">{{ 'parties.create.title' | transloco }}</h1>
-  <p class="mt-xs text-body-sm text-subtle">{{ 'parties.create.subtitle' | transloco }}</p>
+  <p class="mt-xs text-body-sm text-muted">{{ 'parties.create.subtitle' | transloco }}</p>
 
   @if (loading()) {
     <jh-loading />
@@ -19,7 +19,7 @@
           </p>
         } @else {
           <select [(ngModel)]="selectedTeamId" name="team"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus">
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus">
             <option value="" disabled>{{ 'parties.create.pickTeam' | transloco }}</option>
             @for (t of formableTeams(); track t.teamId) {
               <option [value]="t.teamId">{{ t.teamName }}</option>
@@ -31,7 +31,7 @@
       <div>
         <p class="text-eyebrow uppercase text-muted">{{ 'parties.create.partySize' | transloco }}</p>
         <p class="mt-xs rounded-md border border-border-muted bg-surface-sunken px-md py-sm text-body-sm text-muted">
-          {{ 'parties.create.upTo' | transloco:{ cap: context()?.rosterCap ?? 8 } }} <span class="text-subtle">· {{ 'parties.create.setByEvent' | transloco }}</span>
+          {{ 'parties.create.upTo' | transloco:{ cap: context()?.rosterCap ?? 8 } }} <span class="text-muted">· {{ 'parties.create.setByEvent' | transloco }}</span>
         </p>
       </div>
 
@@ -39,7 +39,7 @@
         <p class="text-eyebrow uppercase text-muted">{{ 'parties.create.messageToTeam' | transloco }}</p>
         <textarea [(ngModel)]="message" name="message" rows="3" maxlength="500"
           [placeholder]="'parties.create.messagePlaceholder' | transloco"
-          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"></textarea>
       </div>
 
       <div class="rounded-md border border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg">

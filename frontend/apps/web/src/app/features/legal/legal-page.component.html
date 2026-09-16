@@ -37,7 +37,7 @@
           <h1 class="text-h2">{{ document()!.title }}</h1>
 
           <!-- Meta line: caption step, subtle — present, never competing with the content. -->
-          <p class="mt-xs text-caption text-subtle" data-testid="legal-meta">
+          <p class="mt-xs text-caption text-muted" data-testid="legal-meta">
             @if (versionLine()) {
               <!-- Only the terms of use carries a version: it is the one document that binds,
                    so a reader has to be able to tell which text they agreed to (041 FR-003). -->
@@ -47,7 +47,7 @@
             {{ lastUpdatedLine() }}
           </p>
           @if (showAuthoritativeNotice()) {
-            <p class="mt-xs text-caption text-subtle" data-testid="legal-authoritative-notice">
+            <p class="mt-xs text-caption text-muted" data-testid="legal-authoritative-notice">
               {{ meta()!.authoritativeNotice }}
             </p>
           }

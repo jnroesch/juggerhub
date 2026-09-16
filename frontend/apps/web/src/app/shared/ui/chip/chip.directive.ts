@@ -98,14 +98,14 @@ function isControl(host: HTMLElement): boolean {
 /** Background / text / border per tone, plus the hover a control adds on top of it. */
 const TONES: Record<ChipTone, { rest: string[]; hover: string }> = {
   muted: { rest: ['bg-surface-muted', 'text-muted'], hover: 'hover:bg-surface-sunken' },
-  secondary: { rest: ['bg-surface-secondary-soft', 'text-secondary'], hover: 'hover:bg-teal-1' },
+  secondary: { rest: ['bg-surface-secondary-soft', 'text-secondary-strong'], hover: 'hover:bg-teal-1' },
   accent: {
-    rest: ['border', 'border-brand', 'bg-surface-accent-soft', 'text-brand'],
+    rest: ['border', 'border-brand', 'bg-surface-accent-soft', 'text-brand-strong'],
     hover: 'hover:bg-coral-1',
   },
-  brand: { rest: ['bg-brand', 'text-on-accent'], hover: 'hover:bg-brand-hover' },
+  brand: { rest: ['bg-brand-strong', 'text-on-accent'], hover: 'hover:bg-brand-strong-hover' },
   outline: {
-    rest: ['border', 'border-border-strong', 'text-subtle'],
+    rest: ['border', 'border-border-strong', 'text-muted'],
     hover: 'hover:bg-surface-sunken',
   },
   success: { rest: ['bg-success-bg', 'text-success-fg'], hover: 'hover:bg-success-border' },
@@ -131,6 +131,9 @@ function compose(tone: ChipTone, control: boolean): string[] {
         'focus-visible:outline-none',
         'focus-visible:ring-2',
         'focus-visible:ring-focus',
+        // Offset for the same reason `jhButton` carries one: on the `brand` tone the
+        // ring sits against the chip's own coral-6 fill and would not be seen (GH #298).
+        'focus-visible:ring-offset-2',
         'disabled:opacity-50',
         'disabled:pointer-events-none',
         TONES[tone].hover,

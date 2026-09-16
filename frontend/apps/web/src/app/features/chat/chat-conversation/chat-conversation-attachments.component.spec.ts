@@ -125,8 +125,8 @@ describe('ChatConversationComponent — attachments', () => {
    * beside it would compete with the action people actually came to take.
    */
   it('does not make the attach control a second brand CTA', () => {
-    expect(el('attach')?.className).not.toContain('bg-brand');
-    expect(el('send')?.className).toContain('bg-brand');
+    expect(el('attach')?.className).not.toContain('bg-brand-strong');
+    expect(el('send')?.className).toContain('bg-brand-strong');
   });
 
   // --- The tray --------------------------------------------------------------

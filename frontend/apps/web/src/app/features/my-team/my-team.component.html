@@ -18,15 +18,15 @@
             @if (team.hasLogo) {
               <img [src]="logoUrl(team.slug)" alt="" class="h-10 w-10 shrink-0 rounded-pill object-cover" data-testid="team-logo" />
             } @else {
-              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary" aria-hidden="true">
+              <span class="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary-strong" aria-hidden="true">
                 {{ team.name.charAt(0) }}
               </span>
             }
             <span class="min-w-0">
               <span class="block truncate font-semibold text-heading">{{ team.name }}</span>
-              <span class="block text-caption text-subtle">{{ (team.role === 'Admin' ? 'myTeam.admin' : 'myTeam.member') | transloco }}</span>
+              <span class="block text-caption text-muted">{{ (team.role === 'Admin' ? 'myTeam.admin' : 'myTeam.member') | transloco }}</span>
             </span>
-            <svg class="ml-auto text-subtle" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+            <svg class="ml-auto text-muted" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
           </a>
         </li>
       }
@@ -47,11 +47,11 @@
           @for (inv of invites(); track inv.token) {
             <li jhCard padding="dense" [attr.data-testid]="'invite-' + inv.teamSlug">
               <div class="flex items-start gap-sm">
-                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary" aria-hidden="true">{{ inv.teamName.charAt(0) }}</span>
+                <span class="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary-strong" aria-hidden="true">{{ inv.teamName.charAt(0) }}</span>
                 <div class="min-w-0 flex-1">
                   <span class="block truncate font-semibold text-heading">{{ inv.teamName }}</span>
-                  <span class="block text-caption text-subtle">{{ (inv.teamType === 'CityTeam' ? 'myTeam.cityTeam' : 'myTeam.mixteam') | transloco }}@if (inv.location) { · {{ inv.location }}} · <span class="font-mono">{{ inv.memberCount }}</span> {{ (inv.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}</span>
-                  <span class="mt-0.5 block text-caption text-subtle">{{ 'myTeam.invitedBy' | transloco:{ name: inv.inviterDisplayName } }}</span>
+                  <span class="block text-caption text-muted">{{ (inv.teamType === 'CityTeam' ? 'myTeam.cityTeam' : 'myTeam.mixteam') | transloco }}@if (inv.location) { · {{ inv.location }}} · <span class="font-mono">{{ inv.memberCount }}</span> {{ (inv.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}</span>
+                  <span class="mt-0.5 block text-caption text-muted">{{ 'myTeam.invitedBy' | transloco:{ name: inv.inviterDisplayName } }}</span>
                 </div>
               </div>
               <div class="mt-sm flex gap-sm">

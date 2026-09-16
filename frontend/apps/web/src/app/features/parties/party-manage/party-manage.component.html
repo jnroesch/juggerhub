@@ -4,13 +4,13 @@
   } @else if (notFound()) {
     <jh-empty-state [heading]="'parties.manage.notFoundHeading' | transloco">{{ 'parties.manage.notFoundBody' | transloco }}</jh-empty-state>
   } @else if (party(); as p) {
-    <a [routerLink]="['/t', p.teamSlug]" class="text-body-sm text-subtle transition-colors hover:text-body">‹ {{ p.teamName }}</a>
+    <a [routerLink]="['/t', p.teamSlug]" class="text-body-sm text-muted transition-colors hover:text-body">‹ {{ p.teamName }}</a>
     <div class="mt-xs flex flex-wrap items-center justify-between gap-sm">
       <h1 class="text-h3">{{ p.teamName }} @ {{ p.eventName }}</h1>
       <span class="font-mono text-body-sm text-muted">{{ p.inCount }} / {{ p.rosterCap }} {{ 'parties.manage.inSuffix' | transloco }}</span>
     </div>
-    <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | translocoDate: { dateStyle: 'medium' } }}
-      @if (isApplied()) { · <span class="font-semibold text-success">{{ 'parties.manage.applied' | transloco }} · {{ p.appliedGroup }}</span> }
+    <p class="mt-xs text-body-sm text-muted">{{ p.startsAt | translocoDate: { dateStyle: 'medium' } }}
+      @if (isApplied()) { · <span class="font-semibold text-success-fg">{{ 'parties.manage.applied' | transloco }} · {{ p.appliedGroup }}</span> }
     </p>
 
     <!-- fill bar -->
@@ -67,13 +67,13 @@
     <section class="mt-md">
       <div class="flex gap-xs text-body-sm">
         <button type="button" (click)="loadTab('In')"
-          [class]="activeTab() === 'In' ? 'font-semibold text-heading' : 'text-subtle'"
+          [class]="activeTab() === 'In' ? 'font-semibold text-heading' : 'text-muted'"
           class="rounded-md px-sm py-xs">{{ 'parties.manage.tabIn' | transloco }} · {{ p.inCount }}</button>
         <button type="button" (click)="loadTab('Declined')"
-          [class]="activeTab() === 'Declined' ? 'font-semibold text-heading' : 'text-subtle'"
+          [class]="activeTab() === 'Declined' ? 'font-semibold text-heading' : 'text-muted'"
           class="rounded-md px-sm py-xs">{{ 'parties.manage.tabDeclined' | transloco }} · {{ p.declinedCount }}</button>
         <button type="button" (click)="loadTab('NoResponse')"
-          [class]="activeTab() === 'NoResponse' ? 'font-semibold text-heading' : 'text-subtle'"
+          [class]="activeTab() === 'NoResponse' ? 'font-semibold text-heading' : 'text-muted'"
           class="rounded-md px-sm py-xs">{{ 'parties.manage.tabNoReply' | transloco }} · {{ p.noResponseCount }}</button>
       </div>
 
@@ -83,13 +83,13 @@
             <a [routerLink]="['/u', m.handle]" class="group flex min-w-0 items-center gap-sm">
               <span class="grid h-9 w-9 shrink-0 place-items-center rounded-pill bg-surface-inverse text-body-sm font-semibold text-on-inverse" aria-hidden="true">{{ m.displayName.charAt(0) }}</span>
               <span class="min-w-0">
-                <span class="block truncate text-body-sm font-medium text-body transition-colors group-hover:text-brand">
-                  {{ m.displayName }} @if (m.isYou) { <span class="font-normal text-subtle">· {{ 'parties.manage.you' | transloco }}</span> }
+                <span class="block truncate text-body-sm font-medium text-body transition-colors group-hover:text-brand-strong">
+                  {{ m.displayName }} @if (m.isYou) { <span class="font-normal text-muted">· {{ 'parties.manage.you' | transloco }}</span> }
                   @if (m.role === 'Admin') { <span class="ml-2xs" jhChip>{{ 'parties.manage.admin' | transloco }}</span> }
                   @if (m.viaMarket) { <span class="ml-2xs" jhChip tone="secondary">{{ 'parties.manage.guestViaMarket' | transloco }}</span> }
                 </span>
                 @if (m.pompfen.length) {
-                  <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) }}</span>
+                  <span class="block truncate text-caption text-muted">{{ positions(m.pompfen) }}</span>
                 }
               </span>
             </a>
@@ -117,7 +117,7 @@
           <form jhCard padding="dense" (ngSubmit)="postNews()" class="mt-xs">
             <textarea [(ngModel)]="newsBody" name="newsBody" rows="2" maxlength="1000"
               [placeholder]="'parties.newsPlaceholder' | transloco"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"></textarea>
             <div class="mt-xs text-right">
               <button type="submit" [disabled]="posting()"
                 jhButton size="sm">{{ 'parties.postUpdate' | transloco }}</button>
@@ -128,7 +128,7 @@
           @for (n of news(); track n.id) {
             <li jhCard padding="dense">
               <p class="text-body-sm font-semibold text-heading">{{ n.authorDisplayName }}
-                <span class="ml-1 text-caption font-normal text-subtle">{{ (n.authorRole === 'Admin' ? 'parties.partyAdmin' : 'parties.member') | transloco }} · {{ n.createdDate | translocoDate: { dateStyle: 'short', timeStyle: 'short' } }}</span>
+                <span class="ml-1 text-caption font-normal text-muted">{{ (n.authorRole === 'Admin' ? 'parties.partyAdmin' : 'parties.member') | transloco }} · {{ n.createdDate | translocoDate: { dateStyle: 'short', timeStyle: 'short' } }}</span>
               </p>
               <p class="mt-xs whitespace-pre-line text-body-sm text-body">{{ n.body }}</p>
             </li>
@@ -146,13 +146,13 @@
         <div class="mt-sm grid gap-xs">
           <a [routerLink]="['/parties', id, 'recruiting']" class="rounded-md border border-border-muted px-md py-sm text-body-sm font-medium text-body transition-colors hover:bg-surface-sunken">{{ 'parties.manage.recruitingMarket' | transloco }}</a>
           <a [routerLink]="['/parties', id, 'invitations']" class="rounded-md border border-border-muted px-md py-sm text-body-sm font-medium text-body transition-colors hover:bg-surface-sunken">{{ 'parties.invitations.title' | transloco }}</a>
-          <div class="flex items-center justify-between rounded-md border border-border-muted px-md py-sm text-body-sm text-subtle">{{ 'parties.manage.paymentSplit' | transloco }} <span jhChip>{{ 'parties.manage.later' | transloco }}</span></div>
-          <div class="flex items-center justify-between rounded-md border border-border-muted px-md py-sm text-body-sm text-subtle">{{ 'parties.manage.travelCarpool' | transloco }} <span jhChip>{{ 'parties.manage.later' | transloco }}</span></div>
+          <div class="flex items-center justify-between rounded-md border border-border-muted px-md py-sm text-body-sm text-muted">{{ 'parties.manage.paymentSplit' | transloco }} <span jhChip>{{ 'parties.manage.later' | transloco }}</span></div>
+          <div class="flex items-center justify-between rounded-md border border-border-muted px-md py-sm text-body-sm text-muted">{{ 'parties.manage.travelCarpool' | transloco }} <span jhChip>{{ 'parties.manage.later' | transloco }}</span></div>
         </div>
         <div class="mt-md border-t border-border-muted pt-md">
           <button type="button" (click)="disband()" [disabled]="acting()"
             jhButton variant="danger" class="w-full">{{ 'parties.manage.disband' | transloco }}</button>
-          <p class="mt-xs text-center text-caption text-subtle">{{ 'parties.manage.disbandHint' | transloco }}</p>
+          <p class="mt-xs text-center text-caption text-muted">{{ 'parties.manage.disbandHint' | transloco }}</p>
         </div>
       </jh-card>
     }

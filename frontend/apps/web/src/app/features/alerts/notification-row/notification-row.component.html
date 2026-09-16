@@ -9,10 +9,10 @@
     class="grid h-11 w-11 shrink-0 place-items-center rounded-md"
     [class]="
       kind() === 'TeamInvite'
-        ? 'bg-surface-accent-soft text-brand-active'
+        ? 'bg-surface-accent-soft text-brand-strong'
         : kind() === 'TeamRoleChanged'
           ? 'bg-info-bg text-info-fg'
-          : 'bg-surface-secondary-soft text-secondary'
+          : 'bg-surface-secondary-soft text-secondary-strong'
     "
     aria-hidden="true"
   >
@@ -45,7 +45,7 @@
       <p class="mt-0.5 text-body-sm text-muted">{{ supporting() }}</p>
     }
 
-    <p class="mt-1 text-caption text-subtle">{{ time() }}</p>
+    <p class="mt-1 text-caption text-muted">{{ time() }}</p>
 
     @if (actionable()) {
       <div class="mt-md flex items-center gap-sm">

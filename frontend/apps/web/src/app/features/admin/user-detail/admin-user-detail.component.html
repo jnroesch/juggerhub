@@ -53,7 +53,7 @@
       <h2 class="text-h4 font-bold text-heading">{{ 'admin.userDetail.identityTitle' | transloco }}</h2>
       <dl class="mt-sm grid gap-sm sm:grid-cols-2">
         <div>
-          <dt class="text-caption text-subtle">{{ 'admin.userDetail.teamsClubs' | transloco }}</dt>
+          <dt class="text-caption text-muted">{{ 'admin.userDetail.teamsClubs' | transloco }}</dt>
           <dd class="mt-1 flex flex-wrap gap-xs">
             @if (player.teams.length === 0) {
               <span class="text-body-sm text-muted">—</span>
@@ -64,7 +64,7 @@
           </dd>
         </div>
         <div>
-          <dt class="text-caption text-subtle">{{ 'admin.userDetail.plays' | transloco }}</dt>
+          <dt class="text-caption text-muted">{{ 'admin.userDetail.plays' | transloco }}</dt>
           <dd class="mt-1 flex flex-wrap gap-xs">
             @if (player.pompfen.length === 0) {
               <span class="text-body-sm text-muted">—</span>
@@ -75,11 +75,11 @@
           </dd>
         </div>
         <div>
-          <dt class="text-caption text-subtle">{{ 'admin.userDetail.lastActive' | transloco }}</dt>
+          <dt class="text-caption text-muted">{{ 'admin.userDetail.lastActive' | transloco }}</dt>
           <dd class="mt-1 text-body-sm text-body">{{ player.lastActiveAt ? (player.lastActiveAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' }) : '—' }}</dd>
         </div>
         <div>
-          <dt class="text-caption text-subtle">{{ 'admin.userDetail.playerId' | transloco }}</dt>
+          <dt class="text-caption text-muted">{{ 'admin.userDetail.playerId' | transloco }}</dt>
           <dd class="mt-1 break-all font-mono text-caption text-muted">{{ player.userId }}</dd>
         </div>
       </dl>
@@ -92,7 +92,7 @@
           @for (item of player.recentActivity; track item.title + item.date) {
             <li class="flex items-baseline justify-between gap-sm py-xs">
               <span class="min-w-0 truncate text-body-sm text-body">{{ item.title }}</span>
-              <span class="whitespace-nowrap font-mono text-caption text-subtle">{{ item.date | translocoDate: { year: 'numeric', month: 'short' } }}</span>
+              <span class="whitespace-nowrap font-mono text-caption text-muted">{{ item.date | translocoDate: { year: 'numeric', month: 'short' } }}</span>
             </li>
           }
         </ul>
@@ -155,7 +155,7 @@
           </div>
         }
       </div>
-      <p class="mt-md text-caption text-subtle">{{ 'admin.userDetail.allReversible' | transloco }}</p>
+      <p class="mt-md text-caption text-muted">{{ 'admin.userDetail.allReversible' | transloco }}</p>
     </section>
 
     <!-- Badges & achievements with Assign (wireframe 1d/1e; UI migrated from 012's
@@ -182,7 +182,7 @@
           <section>
             <p class="text-eyebrow uppercase text-muted">{{ 'admin.userDetail.badges' | transloco }}</p>
             @if (held.badges.length === 0) {
-              <p class="mt-xs text-body-sm text-faint">{{ 'admin.userDetail.noneYet' | transloco }}</p>
+              <p class="mt-xs text-body-sm text-muted">{{ 'admin.userDetail.noneYet' | transloco }}</p>
             } @else {
               <ul class="mt-sm flex flex-col gap-xs">
                 @for (a of held.badges; track a.awardId) {
@@ -190,7 +190,7 @@
                     <span class="min-w-0">
                       <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
                       <span class="block text-caption text-muted">{{ 'admin.userDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
-                      @if (a.note) { <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span> }
+                      @if (a.note) { <span class="block truncate text-caption text-muted">“{{ a.note }}”</span> }
                     </span>
                     <button
                       type="button"
@@ -208,7 +208,7 @@
           <section>
             <p class="text-eyebrow uppercase text-muted">{{ 'admin.userDetail.achievements' | transloco }}</p>
             @if (held.achievements.length === 0) {
-              <p class="mt-xs text-body-sm text-faint">{{ 'admin.userDetail.noneYet' | transloco }}</p>
+              <p class="mt-xs text-body-sm text-muted">{{ 'admin.userDetail.noneYet' | transloco }}</p>
             } @else {
               <ul class="mt-sm flex flex-col gap-xs">
                 @for (a of held.achievements; track a.awardId) {
@@ -217,9 +217,9 @@
                       <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
                       <span class="block text-caption text-muted">{{ 'admin.userDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
                       @if (a.contextLabel || a.contextYear) {
-                        <span class="block truncate text-caption text-subtle">{{ a.contextLabel }} {{ a.contextYear }}</span>
+                        <span class="block truncate text-caption text-muted">{{ a.contextLabel }} {{ a.contextYear }}</span>
                       } @else if (a.note) {
-                        <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span>
+                        <span class="block truncate text-caption text-muted">“{{ a.note }}”</span>
                       }
                     </span>
                     <button

@@ -4,13 +4,13 @@
     class="inline-flex max-w-full items-center gap-xs rounded-pill border border-border-strong bg-surface-card py-xs pl-md pr-xs"
     data-testid="city-picker-chip"
   >
-    <jh-icon name="check" [size]="16" class="shrink-0 text-brand" />
+    <jh-icon name="check" [size]="16" class="shrink-0 text-brand-strong" />
     <span class="truncate text-body-md text-ink">{{ label }}</span>
     <button
       type="button"
       (click)="clear()"
       aria-label="Clear city"
-      class="grid h-11 w-11 shrink-0 place-items-center rounded-pill text-subtle transition-colors duration-fast hover:bg-surface-sunken hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      class="grid h-11 w-11 shrink-0 place-items-center rounded-pill text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
     >
       <jh-icon name="x" [size]="16" />
     </button>
@@ -28,11 +28,11 @@
       [attr.aria-expanded]="results().length > 0"
       aria-label="City search"
       data-testid="city-picker-input"
-      class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-focus"
+      class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast placeholder:text-muted focus:border-border-focus focus:ring-2 focus:ring-focus"
     />
 
     @if (searching()) {
-      <p class="text-body-sm text-subtle">Searching…</p>
+      <p class="text-body-sm text-muted">Searching…</p>
     } @else if (unavailable()) {
       <p class="text-body-sm text-danger-fg" role="status" data-testid="city-picker-unavailable">
         City search isn’t available right now. Please try again in a moment.
@@ -58,7 +58,7 @@
         }
       </ul>
     } @else if (searched()) {
-      <p class="text-body-sm text-subtle">No matching city — try a different spelling.</p>
+      <p class="text-body-sm text-muted">No matching city — try a different spelling.</p>
     }
   </div>
 }

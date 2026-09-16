@@ -100,7 +100,7 @@ describe('EventResultsPageComponent (the results page)', () => {
     const f = mount(editor());
 
     const primary = Array.from(f.nativeElement.querySelectorAll('button, a')).filter((el) =>
-      (el as HTMLElement).classList.contains('bg-brand'),
+      (el as HTMLElement).classList.contains('bg-brand-strong'),
     );
     expect(primary).toHaveLength(1);
     expect((primary[0] as HTMLElement).getAttribute('data-testid')).toBe('ranking-save');

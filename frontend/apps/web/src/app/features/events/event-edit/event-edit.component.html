@@ -4,50 +4,50 @@
   } @else if (forbidden()) {
     <div jhCard class="text-center">
       <p class="text-body-lg font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
-      <p class="mt-xs text-body-sm text-subtle">{{ 'events.edit.notAllowedBody' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-muted">{{ 'events.edit.notAllowedBody' | transloco }}</p>
     </div>
   } @else if (detail(); as d) {
-    <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">{{ 'events.manage.back' | transloco }}</a>
+    <a [routerLink]="['/events', d.id]" class="text-body-sm text-muted hover:text-text">{{ 'events.manage.back' | transloco }}</a>
     <h1 class="mt-md text-h3">{{ 'events.edit.title' | transloco }}</h1>
-    <p class="text-body-sm text-subtle">{{ 'events.edit.subtitle' | transloco }}</p>
+    <p class="text-body-sm text-muted">{{ 'events.edit.subtitle' | transloco }}</p>
 
     <!-- Edit details -->
     <form jhCard class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="saveEdit()">
       <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.edit.details' | transloco }}</h2>
       <div>
-        <label for="edit-name" class="text-body-sm text-subtle">{{ 'events.edit.name' | transloco }}</label>
+        <label for="edit-name" class="text-body-sm text-muted">{{ 'events.edit.name' | transloco }}</label>
         <input id="edit-name" type="text" formControlName="name" [placeholder]="'events.edit.namePlaceholder' | transloco" data-testid="edit-name"
-          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
       </div>
       <div>
-        <label for="edit-desc" class="text-body-sm text-subtle">{{ 'events.edit.description' | transloco }}</label>
+        <label for="edit-desc" class="text-body-sm text-muted">{{ 'events.edit.description' | transloco }}</label>
         <textarea id="edit-desc" formControlName="description" rows="3" [placeholder]="'events.edit.description' | transloco"
-          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"></textarea>
       </div>
       <div class="grid grid-cols-1 gap-md sm:grid-cols-2">
         <div>
-          <label for="edit-start" class="text-body-sm text-subtle">{{ 'events.edit.starts' | transloco }}</label>
+          <label for="edit-start" class="text-body-sm text-muted">{{ 'events.edit.starts' | transloco }}</label>
           <input id="edit-start" type="datetime-local" formControlName="startsAt"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
         </div>
         <div>
-          <label for="edit-end" class="text-body-sm text-subtle">{{ 'events.edit.ends' | transloco }}</label>
+          <label for="edit-end" class="text-body-sm text-muted">{{ 'events.edit.ends' | transloco }}</label>
           <input id="edit-end" type="datetime-local" formControlName="endsAt"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
         </div>
       </div>
       <div>
-        <label for="edit-limit" class="text-body-sm text-subtle">{{ 'events.edit.participationLimit' | transloco }}</label>
+        <label for="edit-limit" class="text-body-sm text-muted">{{ 'events.edit.participationLimit' | transloco }}</label>
         <input id="edit-limit" type="number" min="1" formControlName="participationLimit" data-testid="edit-limit"
-          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-        <p class="mt-xs text-body-sm text-faint">{{ 'events.edit.limitHint' | transloco:{ count: d.occupiedSpots } }}</p>
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
+        <p class="mt-xs text-body-sm text-muted">{{ 'events.edit.limitHint' | transloco:{ count: d.occupiedSpots } }}</p>
       </div>
 
       <!-- Where it happens: the address, or the join link. The kind itself isn't editable. -->
       <div data-testid="edit-location">
         <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.edit.location' | transloco }}</h2>
         @if (isInPerson()) {
-          <p class="mt-xs text-body-sm text-faint">{{ 'events.edit.locationHint' | transloco }}</p>
+          <p class="mt-xs text-body-sm text-muted">{{ 'events.edit.locationHint' | transloco }}</p>
           <jh-address-fields
             class="mt-sm"
             testIdPrefix="edit"
@@ -58,20 +58,20 @@
             (cityChange)="onCitySelected($event)"
           />
         } @else {
-          <p class="mt-xs text-body-sm text-faint">{{ 'events.edit.joinLinkHint' | transloco }}</p>
-          <label for="edit-link" class="mt-sm block text-body-sm text-subtle">{{ 'events.edit.joinLink' | transloco }}</label>
+          <p class="mt-xs text-body-sm text-muted">{{ 'events.edit.joinLinkHint' | transloco }}</p>
+          <label for="edit-link" class="mt-sm block text-body-sm text-muted">{{ 'events.edit.joinLink' | transloco }}</label>
           <!-- Plain value/input binding, not ngModel: this input lives inside the reactive
                [formGroup] form, and an ngModel there throws. A signal keeps `locationComplete`
                reactive, which a FormControl read inside a computed() would not be. -->
           <input id="edit-link" type="url" maxlength="500" data-testid="edit-link"
             [value]="virtualLink()" (input)="virtualLink.set($any($event.target).value)"
             [placeholder]="'events.create.linkPlaceholder' | transloco"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
         }
       </div>
 
       @if (editError()) { <jh-alert>{{ editError() }}</jh-alert> }
-      @if (editSaved()) { <p class="text-body-sm text-success" data-testid="edit-saved">{{ 'events.edit.saved' | transloco }}</p> }
+      @if (editSaved()) { <p class="text-body-sm text-success-fg" data-testid="edit-saved">{{ 'events.edit.saved' | transloco }}</p> }
       <button type="submit" [disabled]="form.invalid || !locationComplete() || savingEdit()" data-testid="edit-save"
         jhButton>{{ (savingEdit() ? 'events.edit.saving' : 'events.edit.save') | transloco }}</button>
     </form>
@@ -90,12 +90,12 @@
             <button type="button" (click)="cancelEvent()" [disabled]="cancelling()" data-testid="cancel-confirm"
               class="rounded-md bg-danger px-md py-xs text-body-sm font-semibold text-on-accent hover:opacity-90 disabled:opacity-50">{{ 'events.edit.yesCancel' | transloco }}</button>
             <button type="button" (click)="confirmingCancel.set(false)"
-              class="rounded-md px-md py-xs text-body-sm font-semibold text-subtle hover:text-text">{{ 'events.edit.keepIt' | transloco }}</button>
+              class="rounded-md px-md py-xs text-body-sm font-semibold text-muted hover:text-text">{{ 'events.edit.keepIt' | transloco }}</button>
           </div>
         }
       </section>
     } @else {
-      <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-subtle">{{ 'events.edit.alreadyCancelled' | transloco }}</p>
+      <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-muted">{{ 'events.edit.alreadyCancelled' | transloco }}</p>
     }
   }
 </section>

@@ -36,7 +36,7 @@
         }
         <span class="flex flex-1 flex-col">
           <span class="text-body-md text-ink">{{ player.displayName }}</span>
-          <span class="text-body-sm text-subtle">
+          <span class="text-body-sm text-muted">
             @if (player.location) {
               {{ player.location.label }}
             }
@@ -59,7 +59,7 @@
   (closePanel)="filtersOpen.set(false)"
 >
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.players.position' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.players.position' | transloco }}</span>
     <div class="flex flex-wrap gap-xs">
       @for (entry of catalog; track entry.value) {
         <button
@@ -74,7 +74,7 @@
   </div>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.country' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.country' | transloco }}</span>
     <jh-country-picker [value]="pendingCity()" (valueChange)="onPendingCity($event)" />
   </div>
 </jh-filter-panel>

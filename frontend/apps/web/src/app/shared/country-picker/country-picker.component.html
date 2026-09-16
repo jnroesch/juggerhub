@@ -12,14 +12,14 @@
       aria-label="Country"
       [attr.aria-expanded]="open() && matches().length > 0"
       data-testid="country-picker-input"
-      class="w-full rounded-md border border-border-strong bg-surface-card px-sm py-xs pr-8 text-body-md text-ink outline-none transition-shadow duration-fast placeholder:text-faint focus:border-brand focus:ring-2 focus:ring-focus"
+      class="w-full rounded-md border border-border-strong bg-surface-card px-sm py-xs pr-8 text-body-md text-ink outline-none transition-shadow duration-fast placeholder:text-muted focus:border-border-focus focus:ring-2 focus:ring-focus"
     />
     @if (value()) {
       <button
         type="button"
         (click)="clear()"
         aria-label="Clear country"
-        class="absolute right-1 grid h-8 w-8 place-items-center rounded-md text-subtle transition-colors duration-fast hover:bg-surface-sunken hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        class="absolute right-1 grid h-8 w-8 place-items-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         <jh-icon name="x" [size]="16" />
       </button>
@@ -44,7 +44,7 @@
           >
             <span>{{ country.name }}</span>
             @if (country.code) {
-              <span class="font-mono text-caption text-faint">{{ country.code }}</span>
+              <span class="font-mono text-caption text-muted">{{ country.code }}</span>
             }
           </button>
         </li>

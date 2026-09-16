@@ -65,7 +65,7 @@
           [disabled]="unavailable()"
           [placeholder]="'chat.compose.placeholder' | transloco:{ name: displayName() || ('chat.compose.them' | transloco) }"
           maxlength="2000"
-          class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
+          class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-muted focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-50"
           data-testid="compose-composer"
         />
       </label>
@@ -74,7 +74,7 @@
       <button
         type="submit"
         [disabled]="!canSend()"
-        class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-brand text-on-accent shadow-sm transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-brand-strong text-on-accent shadow-sm transition-all duration-fast hover:bg-brand-strong-hover hover:shadow-coral active:translate-y-px active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         [attr.aria-label]="'chat.compose.sendMessage' | transloco"
         data-testid="compose-send"
       >

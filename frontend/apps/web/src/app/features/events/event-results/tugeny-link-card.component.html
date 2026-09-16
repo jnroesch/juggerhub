@@ -6,7 +6,7 @@
       <p class="text-caption text-muted">{{ 'events.results.tugeny.linked' | transloco }}</p>
       <p class="break-words text-body-md font-semibold text-heading">{{ l.name }}</p>
       @if (l.startDate) {
-        <p class="text-body-sm text-subtle">{{ l.startDate | translocoDate: { year: 'numeric', month: 'long', day: 'numeric' } }}</p>
+        <p class="text-body-sm text-muted">{{ l.startDate | translocoDate: { year: 'numeric', month: 'long', day: 'numeric' } }}</p>
       }
       <a [href]="l.tournamentUrl" target="_blank" rel="noopener" class="mt-xs inline-block text-body-sm font-semibold text-link underline">{{ 'events.results.tugeny.openOnTugeny' | transloco }}</a>
     </div>
@@ -19,7 +19,7 @@
       <div class="mt-md border-t border-border pt-md" data-testid="tugeny-preview">
         <p class="text-body-sm font-semibold text-heading">{{ 'events.results.tugeny.previewTitle' | transloco: { teams: p.placements.length, matches: p.matchCount } }}</p>
         @if (p.signedUpTeams.length > 0) {
-          <p class="mt-2xs text-caption text-subtle">{{ 'events.results.tugeny.connectPrompt' | transloco }}</p>
+          <p class="mt-2xs text-caption text-muted">{{ 'events.results.tugeny.connectPrompt' | transloco }}</p>
         }
         <ol class="mt-sm flex flex-col gap-xs">
           @for (row of p.placements; track row.tugenyTeamId) {
@@ -29,7 +29,7 @@
               @if (p.signedUpTeams.length > 0) {
                 <label class="sr-only" [for]="'import-' + row.tugenyTeamId">{{ 'events.results.editor.teamSelect' | transloco }}</label>
                 <select [id]="'import-' + row.tugenyTeamId"
-                  class="h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus sm:w-auto"
+                  class="h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus sm:w-auto"
                   (change)="choose(row.tugenyTeamId, $any($event.target).value)" data-testid="preview-team">
                   <option value="" selected>{{ 'events.results.tugeny.keepName' | transloco }}</option>
                   @for (t of p.signedUpTeams; track t.teamId) {
@@ -56,14 +56,14 @@
         <button type="button" jhButton variant="ghost" size="sm" (click)="removeLink()" [disabled]="busy()" data-testid="tugeny-unlink">{{ 'events.results.tugeny.removeLink' | transloco }}</button>
       </div>
       @if (!editor().hasStarted) {
-        <p class="mt-xs text-caption text-subtle">{{ 'events.results.tugeny.importLater' | transloco }}</p>
+        <p class="mt-xs text-caption text-muted">{{ 'events.results.tugeny.importLater' | transloco }}</p>
       }
     }
   } @else {
     <p class="mt-xs text-body-sm text-body">{{ 'events.results.tugeny.hint' | transloco }}</p>
     <label for="tugeny-address" class="mt-sm block text-body-sm font-semibold text-heading">{{ 'events.results.tugeny.address' | transloco }}</label>
     <input id="tugeny-address" type="url" inputmode="url" autocomplete="off" maxlength="500"
-      class="mt-xs h-11 w-full rounded-md border border-border-strong bg-surface-card px-md text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+      class="mt-xs h-11 w-full rounded-md border border-border-strong bg-surface-card px-md text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"
       placeholder="https://tugeny.org/tournaments/…" [value]="address()" (input)="address.set($any($event.target).value)"
       (keydown.enter)="connectLink()" data-testid="tugeny-address" />
     <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="connectLink()" [disabled]="busy() || !address().trim()" data-testid="tugeny-link">{{ 'events.results.tugeny.link' | transloco }}</button>

@@ -25,7 +25,7 @@
         </p>
 
         @if (resent()) {
-          <p class="mt-md text-body-sm text-success" data-testid="verify-resent">
+          <p class="mt-md text-body-sm text-success-fg" data-testid="verify-resent">
             {{ 'auth.verify.resent' | transloco }}
           </p>
         } @else {
@@ -36,7 +36,7 @@
               formControlName="email"
               placeholder="you@example.com"
               data-testid="verify-resend-email"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus"
             />
             <button
               type="submit"

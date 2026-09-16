@@ -47,7 +47,7 @@
       </p>
 
       @if (d.state === 'Archived') {
-        <p class="mt-xs text-body-sm text-subtle">{{ 'chat.details.archivedNote' | transloco }}</p>
+        <p class="mt-xs text-body-sm text-muted">{{ 'chat.details.archivedNote' | transloco }}</p>
       }
     </div>
 
@@ -102,10 +102,10 @@
       <span class="min-w-0 flex-1">
         <span class="block truncate text-body-md text-body">
           {{ m.displayName }}
-          @if (m.isYou) {<span class="text-body-sm text-subtle"> · {{ 'chat.details.you' | transloco }}</span>}
+          @if (m.isYou) {<span class="text-body-sm text-muted"> · {{ 'chat.details.you' | transloco }}</span>}
         </span>
         @if (m.viaMarket) {
-          <span class="text-body-sm text-subtle">{{ 'chat.details.guestViaMarket' | transloco }}</span>
+          <span class="text-body-sm text-muted">{{ 'chat.details.guestViaMarket' | transloco }}</span>
         }
       </span>
     </ng-template>

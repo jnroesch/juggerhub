@@ -27,7 +27,7 @@
             >
               {{ 'profile.quickActions.inviteToTeam' | transloco }}
             </button>
-            <span class="text-caption text-subtle" data-testid="qa-invite-reason">
+            <span class="text-caption text-muted" data-testid="qa-invite-reason">
               {{ (adminTeamCount() > 1 ? 'profile.quickActions.alreadyOnTeamMany' : 'profile.quickActions.alreadyOnTeamOne') | transloco }}
             </span>
           </span>
@@ -76,7 +76,7 @@
       <jh-alert data-testid="qa-message-error">{{ messageError() }}</jh-alert>
     }
     @if (invitedTo()) {
-      <p class="text-body-sm text-success" data-testid="qa-invited">{{ 'profile.quickActions.invitedTo' | transloco:{ name: invitedTo() } }}</p>
+      <p class="text-body-sm text-success-fg" data-testid="qa-invited">{{ 'profile.quickActions.invitedTo' | transloco:{ name: invitedTo() } }}</p>
     }
     @if (inviteError()) {
       <jh-alert data-testid="qa-invite-error">{{ inviteError() }}</jh-alert>

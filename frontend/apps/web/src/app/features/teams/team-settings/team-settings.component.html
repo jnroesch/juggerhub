@@ -1,5 +1,5 @@
 <section class="mx-auto max-w-container-sm px-md py-lg" data-testid="team-settings">
-  <a [routerLink]="['/t', slug()]" class="text-body-sm text-subtle hover:text-text">{{ 'common.back' | transloco }}</a>
+  <a [routerLink]="['/t', slug()]" class="text-body-sm text-muted hover:text-text">{{ 'common.back' | transloco }}</a>
   <h1 class="mt-md text-h3">{{ 'teams.settings.title' | transloco }}</h1>
 
   @if (loading()) {
@@ -30,7 +30,7 @@
             </span>
           }
           <span class="min-w-0 flex-1">
-            <span class="block text-body-sm text-subtle">{{ 'teams.settings.logoHint' | transloco }}</span>
+            <span class="block text-body-sm text-muted">{{ 'teams.settings.logoHint' | transloco }}</span>
             <span class="mt-sm flex flex-wrap items-center gap-sm">
               <input
                 #logoInput
@@ -62,7 +62,7 @@
                   {{ (removingLogo() ? 'teams.settings.logoRemoving' : 'teams.settings.logoRemove') | transloco }}
                 </button>
               } @else {
-                <span class="text-body-sm text-faint">{{ 'teams.settings.logoNone' | transloco }}</span>
+                <span class="text-body-sm text-muted">{{ 'teams.settings.logoNone' | transloco }}</span>
               }
             </span>
           </span>
@@ -76,7 +76,7 @@
         <div class="mt-xs flex items-center justify-between gap-sm rounded-md border border-border-strong bg-surface-card px-md py-sm">
           <span class="flex flex-col">
             <span class="text-body-md text-ink">{{ 'teams.settings.beginnersWelcome' | transloco }}</span>
-            <span class="text-body-sm text-subtle">{{ 'teams.settings.beginnersWelcomeHint' | transloco }}</span>
+            <span class="text-body-sm text-muted">{{ 'teams.settings.beginnersWelcomeHint' | transloco }}</span>
           </span>
           <button
             type="button"
@@ -108,7 +108,7 @@
         <button type="button" (click)="stepDown()" [disabled]="soleAdmin() || working()" data-testid="step-down"
           class="mt-xs flex w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-60">
           <span>{{ 'teams.settings.stepDown' | transloco }}</span>
-          <span class="text-subtle">›</span>
+          <span class="text-muted">›</span>
         </button>
         @if (soleAdmin()) {
           <p class="mt-xs rounded-md border border-dashed border-warning-border bg-warning-bg px-md py-sm text-body-sm text-warning-fg" data-testid="sole-admin-warning">
@@ -120,7 +120,7 @@
       <hr class="my-lg border-border" />
 
       <div>
-        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-danger">{{ 'teams.settings.dangerZone' | transloco }}</p>
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-danger-fg">{{ 'teams.settings.dangerZone' | transloco }}</p>
         @if (!confirmingDelete()) {
           <button type="button" (click)="confirmingDelete.set(true)" data-testid="delete-team"
             jhButton variant="danger" class="mt-xs w-full">
@@ -128,10 +128,10 @@
           </button>
         } @else {
           <div class="mt-xs rounded-md border border-danger-border bg-danger-bg p-md">
-            <p class="text-body-sm text-danger">{{ 'teams.settings.deleteConfirm' | transloco:{ name: t.name } }}</p>
+            <p class="text-body-sm text-danger-fg">{{ 'teams.settings.deleteConfirm' | transloco:{ name: t.name } }}</p>
             <div class="mt-sm flex gap-xs">
               <button type="button" (click)="deleteTeam()" [disabled]="working()" data-testid="delete-confirm"
-                class="flex-1 rounded-md bg-danger-fg px-md py-sm text-body-sm font-semibold text-white disabled:opacity-60">
+                class="flex-1 rounded-md bg-danger-fg px-md py-sm text-body-sm font-semibold text-on-accent disabled:opacity-60">
                 {{ (working() ? 'teams.settings.deleting' : 'teams.settings.deleteConfirmYes') | transloco }}
               </button>
               <button type="button" (click)="confirmingDelete.set(false)" [disabled]="working()"
@@ -139,10 +139,10 @@
             </div>
           </div>
         }
-        <p class="mt-xs text-body-sm text-faint">{{ 'teams.settings.deleteHint' | transloco }}</p>
+        <p class="mt-xs text-body-sm text-muted">{{ 'teams.settings.deleteHint' | transloco }}</p>
       </div>
     } @else {
-      <p class="mt-lg text-body-md text-subtle">{{ 'teams.settings.adminsOnly' | transloco }}</p>
+      <p class="mt-lg text-body-md text-muted">{{ 'teams.settings.adminsOnly' | transloco }}</p>
     }
   }
 </section>

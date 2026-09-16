@@ -18,7 +18,7 @@
           autocomplete="email"
           formControlName="email"
           data-testid="sign-in-email"
-          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus"
         />
       </div>
 
@@ -35,7 +35,7 @@
           autocomplete="current-password"
           formControlName="password"
           data-testid="sign-in-password"
-          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus"
         />
       </div>
 
@@ -52,7 +52,7 @@
         <div class="rounded-md border border-warning-border bg-warning-bg p-md text-body-sm text-warning-fg" data-testid="sign-in-verify">
           <p>{{ 'auth.signIn.verifyNotice' | transloco }}</p>
           @if (resent()) {
-            <p class="mt-xs text-success">{{ 'auth.signIn.resent' | transloco }}</p>
+            <p class="mt-xs text-success-fg">{{ 'auth.signIn.resent' | transloco }}</p>
           } @else {
             <button type="button" class="mt-xs font-medium text-link hover:text-link-hover" (click)="resendVerification()">
               {{ 'auth.signIn.resend' | transloco }}
@@ -71,7 +71,7 @@
       </button>
     </form>
 
-    <p class="mt-lg text-center text-body-sm text-subtle">
+    <p class="mt-lg text-center text-body-sm text-muted">
       {{ 'auth.signIn.newHere' | transloco }}
       <a routerLink="/register" [queryParams]="returnUrl() ? { returnUrl: returnUrl() } : {}" class="font-medium text-link hover:text-link-hover">{{ 'auth.signIn.createAccount' | transloco }}</a>
     </p>

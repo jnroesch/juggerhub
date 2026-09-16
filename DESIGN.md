@@ -58,6 +58,7 @@ colors:
   lemon-4: "#E0B211"
   lemon-5: "#B88C05"
   lemon-6: "#8F6B03"
+  lemon-7: "#7D5D02"
   # Semantic status scales
   green-0: "#E6F7ED"
   green-1: "#A7E9C1"
@@ -85,30 +86,30 @@ semantic:
   surface-secondary-soft: "{colors.teal-0}"
   text-heading: "{colors.sand-9}"
   text-body: "{colors.sand-8}"
-  text-muted: "{colors.sand-6}"
-  text-subtle: "{colors.sand-5}"
+  text-muted: "{colors.sand-7}"
   text-on-accent: "{colors.white}"
   text-on-inverse: "{colors.sand-1}"
-  text-link: "{colors.coral-6}"
-  text-link-hover: "{colors.coral-7}"
+  text-link: "{semantic.brand-primary-strong}"
+  text-link-hover: "{semantic.brand-primary-strong-hover}"
   brand-primary: "{colors.coral-4}"
-  brand-primary-hover: "{colors.coral-5}"
-  brand-primary-active: "{colors.coral-6}"
+  brand-primary-strong: "{colors.coral-6}"
+  brand-primary-strong-hover: "{colors.coral-7}"
   brand-secondary: "{colors.teal-4}"
-  brand-secondary-hover: "{colors.teal-5}"
+  brand-secondary-strong: "{colors.teal-6}"
+  brand-secondary-strong-hover: "{colors.teal-7}"
   brand-highlight: "{colors.lemon-2}"
   border-default: "{colors.sand-3}"
   border-muted: "{colors.sand-2}"
-  border-strong: "{colors.sand-4}"
+  border-strong: "{colors.sand-6}"
   border-accent: "{colors.coral-3}"
-  border-focus: "{colors.coral-4}"
+  border-focus: "{colors.coral-5}"
   success-fg: "{colors.green-6}"
   success-bg: "{colors.green-0}"
   success-border: "{colors.green-1}"
   danger-fg: "{colors.red-6}"
   danger-bg: "{colors.red-0}"
   danger-border: "{colors.red-1}"
-  warning-fg: "{colors.lemon-6}"
+  warning-fg: "{colors.lemon-7}"
   warning-bg: "{colors.lemon-0}"
   warning-border: "{colors.lemon-1}"
   info-fg: "{colors.blue-6}"
@@ -188,7 +189,6 @@ shadows:
   xl: "0 24px 56px rgba(64, 46, 24, 0.16)"
   coral: "0 8px 20px rgba(245, 98, 58, 0.28)"
   teal: "0 8px 20px rgba(122, 155, 135, 0.28)"
-  focus-ring: "0 0 0 3px {colors.coral-1}"
 motion:
   duration:
     fast: 120ms
@@ -200,14 +200,15 @@ motion:
     bounce: "cubic-bezier(0.34, 1.56, 0.64, 1)"
 components:
   button:
-    backgroundColor: "{semantic.brand-primary}"
+    backgroundColor: "{semantic.brand-primary-strong}"
     textColor: "{semantic.text-on-accent}"
     typography: "{typography.scale.body-md}"
     fontWeight: 600
     rounded: "{rounded.md}"
     minHeight: 44px
     padding: 12px 20px
-    hover: "background {semantic.brand-primary-hover} + {shadows.coral}"
+    hover: "background {semantic.brand-primary-strong-hover} + {shadows.coral}"
+    focus: "2px {semantic.border-focus} ring, offset 2px"
   button-secondary:
     backgroundColor: "{semantic.surface-card}"
     textColor: "{semantic.text-body}"
@@ -229,7 +230,7 @@ components:
     border: "1px {semantic.border-strong}"
     rounded: "{rounded.md}"
     minHeight: 44px
-    focus: "{semantic.border-focus} border + {shadows.focus-ring}"
+    focus: "{semantic.border-focus} border + a 2px {semantic.border-focus} ring"
 ---
 
 ## Overview
@@ -308,24 +309,36 @@ Always use the **semantic aliases** (`surface-card`, `text-body`,
 - **Sand neutrals** (`sand-0` `#FBF8F3` page → `sand-9` `#241F18` ink) — warm,
   not gray. This is what makes JuggerHub feel welcoming, and the biggest
   departure from cool enterprise grays.
-- **Coral — primary** (`coral-4` `#F5623A`): friendly and energetic. The main
-  CTA, key highlights, and the brand gradient. Used with restraint — **one coral
-  CTA per view**. Hover → `coral-5`, active → `coral-6`.
+- **Coral — primary**, in two roles. `brand-primary` (`coral-4` `#F5623A`) is
+  the identity: the brand gradient, borders, progress fills, the unread dot.
+  `brand-primary-strong` (`coral-6` `#B93A17`) is the one that carries text, in
+  either direction — a filled button, a filled chip, a count badge, coral text,
+  a coral icon. **The identity step is never a label and never sits under one**:
+  white on `coral-4` is 3.14:1 and `coral-4` as text is 3.14:1, both below the
+  4.5:1 floor. Used with restraint either way — **one coral CTA per view**.
+  Hover → `brand-primary-strong-hover` (`coral-7`).
 - **Sage — secondary** (`teal-4` `#7A9B87`): a muted warm green, calm and
   low-contrast on cream. Supporting actions, toggles, position chips, secondary
-  stats. (Kept under the `teal-*` token names.)
+  stats. Split the same way as coral — `brand-secondary-strong` (`teal-6`) is
+  the step that carries text. (Kept under the `teal-*` token names.)
 - **Lemon — highlight** (`lemon-2` `#FFE066`): small playful pops — "New"
   badges, streaks, the mark's center dot. Never large fields.
 - **Status** — success (green), danger (red), warning (lemon/amber), info
   (blue). Each has a soft `*-bg`, a `*-border`, and a readable `*-fg`.
 - **Text ramp** — `text-heading` (`sand-9`) for strong headings, `text-body`
-  (`sand-8`) for copy, `text-muted` (`sand-6`) and `text-subtle` (`sand-5`) for
-  secondary/tertiary text. Links use `text-link` (`coral-6`).
+  (`sand-8`) for copy, and **one** secondary step, `text-muted` (`sand-7`).
+  Links use `text-link` (`coral-6`). There is no third and no fourth: `sand-5`
+  and `sand-4` shipped as `text-subtle` and `faint` at 2.92:1 and 1.97:1, and
+  neither can be darkened into compliance without landing on top of `sand-6`.
+  **Below `text-body`, hierarchy is size and weight — the `caption` and
+  `eyebrow` steps — not paler ink** (GH #298).
 - **Surfaces** — `surface-card`/`surface-raised` (white) for cards and content,
   `surface-sunken` (`sand-1`) for inset panels, `surface-page` (`sand-0`) for
   the canvas, `surface-inverse` (`sand-9`) for dark moments.
 - **Borders** — `border-muted`/`border-default` (light warm sand) for
-  separators, `border-strong` (`sand-4`) for inputs and emphasized edges.
+  decorative separators, where contrast carries no meaning. `border-strong`
+  (`sand-6`) draws an input or a secondary button: that is a UI component
+  boundary, so it clears 3:1 on every light surface.
 
 ## Typography
 
@@ -438,14 +451,17 @@ subtle `ease-bounce` for toggles and playful moments.
 - **Hover** — clickable cards lift 3px + deepen shadow; buttons shift to a darker brand
   step and gain a colored glow; ghost/subtle controls warm their background.
 - **Press** — buttons nudge down 1px and scale to 0.99 (tactile, not jumpy).
-- **Focus** — 2px coral border + soft coral ring (`focus-ring`), always visible.
+- **Focus** — a 2px `border-focus` (`coral-5`) ring, always visible, on every
+  focusable thing in the product. A filled control adds a 2px offset so the ring
+  is not drawn against its own coral fill. It used to be `coral-1` at 1.32:1 —
+  present in the markup, invisible on the screen (GH #298).
 - Prefer fades/slides; no infinite decorative loops in content.
 
 ## Components
 
-- **Button (primary)** — coral `brand-primary` background, white label, `md`
-  radius, ≥44px tall, 600 weight. Hover → `brand-primary-hover` + coral glow;
-  press nudges down 1px. One per view.
+- **Button (primary)** — `brand-primary-strong` background, white label, `md`
+  radius, ≥44px tall, 600 weight. Hover → `brand-primary-strong-hover` + coral
+  glow; press nudges down 1px. One per view.
 - **Button (secondary)** — white `surface-card` background, `text-body` label,
   1px `border-strong` outline; warms on hover.
 - **Card** — white `surface-card`, 1px `border-muted`, `lg` radius, soft `sm`
@@ -463,7 +479,8 @@ subtle `ease-bounce` for toggles and playful moments.
   a deeper shadow under the pointer. A card that merely *contains* links must not
   lift: the movement promises a target the whole box doesn't have.
 - **Input** — white `surface-card`, `text-body` color, 1px `border-strong`, `md`
-  radius, ≥44px tall; focus uses `border-focus` + the coral `focus-ring`.
+  radius, ≥44px tall; focus uses a `border-focus` border and a `border-focus`
+  ring — the same indicator a button gets.
 - **Chips / badges / tags** — the small pill that labels a thing, and on a
   `<button>` / `<a>` the pill that filters a list. A chip is one shape, drawn one
   way, and it is never re-assembled out of utilities: **`pill` radius, 12px of
@@ -531,7 +548,7 @@ treatment, built entirely from the tokens above; nothing new is introduced.
   the navigation for anyone using a screen reader, and a skipped level breaks it
   silently for exactly the readers who most need it to work.
 - **Meta line** — directly under the `h1`, at the `caption` step in
-  `text-subtle`: the "last updated" date, and for translated legal documents a
+  `text-muted`: the "last updated" date, and for translated legal documents a
   note on which language version is authoritative. Present, never competing.
 - **Table of contents** — for a document long enough to need one, anchored `h2`
   links at the top. Section `id`s stay stable so an external deep link keeps
@@ -564,8 +581,13 @@ treatment, built entirely from the tokens above; nothing new is introduced.
 
 ## Do's and don'ts
 
-- **Do** maintain WCAG AA contrast (≥ 4.5:1 for body text). The sand text ramp
-  on light surfaces is tuned for this.
+- **Do** maintain WCAG AA contrast (≥ 4.5:1 for text, 3:1 for a focus ring or
+  an input's edge). Every token above is measured against every surface it is
+  used on by `contrast.spec.ts` — arithmetic over `styles.css`, no browser — so
+  this is a checked claim rather than an aspiration. It was an aspiration until
+  GH #298, when the ramp this file called "tuned for this" turned out to carry a
+  third of the product's text below the floor. **A new colour arrives with its
+  measurement**, and a threshold is never lowered to make one fit.
 - **Do** reserve coral `brand-primary` for the single primary action per view;
   use sage `brand-secondary` for supporting actions.
 - **Do** round everything, keep copy warm and sentence-cased, and build spacing

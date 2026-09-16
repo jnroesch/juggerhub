@@ -54,7 +54,7 @@
       } @else if (confirming()) {
         <span class="inline-flex items-center gap-xs">
           <button type="button" class="rounded-md bg-danger-bg px-sm py-1 text-caption font-semibold text-danger-fg" data-testid="confirm-withdraw" (click)="confirmWithdraw()">{{ 'home.leave' | transloco }}</button>
-          <button type="button" class="rounded-md px-sm py-1 text-caption font-medium text-subtle hover:bg-surface-sunken" (click)="cancelWithdraw()">{{ 'home.keep' | transloco }}</button>
+          <button type="button" class="rounded-md px-sm py-1 text-caption font-medium text-muted hover:bg-surface-sunken" (click)="cancelWithdraw()">{{ 'home.keep' | transloco }}</button>
         </span>
       } @else if (isGoing()) {
         <button

@@ -57,7 +57,7 @@
             {{ 'teams.detail.requested' | transloco }}
           </span>
           <button type="button" [disabled]="requestBusy()" data-testid="cancel-request" (click)="askConfirm('cancel')"
-            class="rounded-md px-md py-xs text-body-sm font-medium text-subtle hover:bg-surface-sunken hover:text-body disabled:opacity-50">{{ 'teams.detail.cancelRequest' | transloco }}</button>
+            class="rounded-md px-md py-xs text-body-sm font-medium text-muted hover:bg-surface-sunken hover:text-body disabled:opacity-50">{{ 'teams.detail.cancelRequest' | transloco }}</button>
         }
       </div>
     </header>
@@ -73,18 +73,18 @@
         @if (isMember() && partyRequests().length > 0) {
           @for (card of partyRequests(); track card.partyId) {
             <section class="rounded-lg border border-border-accent bg-surface-accent-soft p-md" data-testid="party-request">
-              <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand">{{ 'teams.detail.partyRequest' | transloco }}</p>
+              <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand-strong">{{ 'teams.detail.partyRequest' | transloco }}</p>
               <div class="mt-xs flex items-center justify-between gap-sm">
                 <h2 class="text-body-lg font-semibold text-heading">{{ card.eventName }}</h2>
-                <span class="text-body-sm text-subtle">{{ card.inCount }} / {{ card.rosterCap }}</span>
+                <span class="text-body-sm text-muted">{{ card.inCount }} / {{ card.rosterCap }}</span>
               </div>
               @if (card.message) { <p class="mt-xs text-body-sm text-body">“{{ card.message }}”</p> }
               @if (card.myState === 'Admin' || card.status === 'Applied') {
                 <a [routerLink]="['/parties', card.partyId]" jhButton size="sm" class="mt-sm">{{ 'teams.detail.manageParty' | transloco }}</a>
               } @else if (card.myState === 'In') {
-                <p class="mt-sm text-body-sm font-semibold text-body">{{ 'teams.detail.youreInPrefix' | transloco }} <a [routerLink]="['/parties', card.partyId]" class="text-brand">{{ 'teams.detail.openParty' | transloco }}</a></p>
+                <p class="mt-sm text-body-sm font-semibold text-body">{{ 'teams.detail.youreInPrefix' | transloco }} <a [routerLink]="['/parties', card.partyId]" class="text-brand-strong">{{ 'teams.detail.openParty' | transloco }}</a></p>
               } @else if (card.isFull) {
-                <p class="mt-sm text-body-sm text-subtle">{{ 'teams.detail.partyFull' | transloco }}</p>
+                <p class="mt-sm text-body-sm text-muted">{{ 'teams.detail.partyFull' | transloco }}</p>
               } @else {
                 <div class="mt-sm flex gap-sm">
                   <button type="button" (click)="answerParty(card, true)" [disabled]="partyBusy()"
@@ -92,7 +92,7 @@
                   <button type="button" (click)="answerParty(card, false)" [disabled]="partyBusy()"
                     jhButton variant="secondary" size="sm">{{ 'teams.detail.cantMakeIt' | transloco }}</button>
                 </div>
-                @if (card.myState === 'Declined') { <p class="mt-xs text-caption text-subtle">{{ 'teams.detail.declinedNote' | transloco }}</p> }
+                @if (card.myState === 'Declined') { <p class="mt-xs text-caption text-muted">{{ 'teams.detail.declinedNote' | transloco }}</p> }
               }
             </section>
           }
@@ -105,7 +105,7 @@
                 <li class="flex items-center gap-sm rounded-md bg-surface-card px-sm py-xs">
                   <a [routerLink]="['/u', req.handle]" class="min-w-0 flex-1 truncate font-medium text-heading hover:text-link">{{ req.displayName }}</a>
                   <button type="button" jhButton size="sm" data-testid="approve" (click)="approve(req)">{{ 'teams.detail.approve' | transloco }}</button>
-                  <button type="button" class="rounded-md px-md py-1 text-caption font-medium text-subtle hover:bg-surface-sunken" (click)="decline(req)">{{ 'common.decline' | transloco }}</button>
+                  <button type="button" class="rounded-md px-md py-1 text-caption font-medium text-muted hover:bg-surface-sunken" (click)="decline(req)">{{ 'common.decline' | transloco }}</button>
                 </li>
               }
             </ul>
@@ -119,17 +119,17 @@
             <ul class="flex flex-col">
               @for (m of members(); track m.userId) {
                 <li class="flex items-center gap-sm border-b border-border-muted py-xs last:border-0">
-                  <a [routerLink]="['/u', m.handle]" class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary">
+                  <a [routerLink]="['/u', m.handle]" class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary-strong">
                     @if (m.hasAvatar) { <img [src]="avatarUrl(m.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ initial(m.displayName) }} }
                   </a>
                   <span class="min-w-0 flex-1">
                     <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName || m.handle }}</a>
-                    <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) || '—' }}</span>
+                    <span class="block truncate text-caption text-muted">{{ positions(m.pompfen) || '—' }}</span>
                   </span>
                   @if (m.role === 'Admin') { <span jhChip>{{ 'teams.detail.adminBadge' | transloco }}</span> }
                   @if (isAdmin()) {
                     <div class="relative">
-                      <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-subtle hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" (click)="toggleMenu(m.userId)">⋯</button>
+                      <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" (click)="toggleMenu(m.userId)">⋯</button>
                       @if (openMenu() === m.userId) {
                         <div class="absolute right-0 z-10 mt-1 w-40 rounded-md border border-border bg-surface py-xs shadow-md" role="menu">
                           <button type="button" class="block w-full px-md py-xs text-left text-body-sm hover:bg-surface-sunken" (click)="toggleAdmin(m)">{{ (m.role === 'Admin' ? 'teams.detail.makeMember' : 'teams.detail.makeAdmin') | transloco }}</button>
@@ -145,12 +145,12 @@
             <ul class="flex flex-col">
               @for (m of publicRoster(); track m.handle) {
                 <li class="flex items-center gap-sm border-b border-border-muted py-xs last:border-0">
-                  <a [routerLink]="['/u', m.handle]" class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary">
+                  <a [routerLink]="['/u', m.handle]" class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary-strong">
                     @if (m.hasAvatar) { <img [src]="avatarUrl(m.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ initial(m.displayName) }} }
                   </a>
                   <span class="min-w-0 flex-1">
                     <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName || m.handle }}</a>
-                    <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) || '—' }}</span>
+                    <span class="block truncate text-caption text-muted">{{ positions(m.pompfen) || '—' }}</span>
                   </span>
                   @if (m.role === 'Admin') { <span jhChip>{{ 'teams.detail.adminBadge' | transloco }}</span> }
                 </li>
@@ -167,8 +167,8 @@
             <ul class="flex flex-col gap-xs">
               @for (a of team.recentActivity; track $index) {
                 <li class="flex items-baseline justify-between gap-sm">
-                  <span class="min-w-0 truncate text-body-sm text-body">{{ a.eventName }} @if (a.location) { <span class="text-subtle">· {{ a.location }}</span> }</span>
-                  <span class="shrink-0 font-mono text-caption text-subtle">{{ a.date | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
+                  <span class="min-w-0 truncate text-body-sm text-body">{{ a.eventName }} @if (a.location) { <span class="text-muted">· {{ a.location }}</span> }</span>
+                  <span class="shrink-0 font-mono text-caption text-muted">{{ a.date | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
                 </li>
               }
             </ul>
@@ -199,7 +199,7 @@
                   rows="2"
                   maxlength="1000"
                   [placeholder]="'teams.detail.newsPlaceholder' | transloco"
-                  class="w-full resize-y rounded-md border border-border bg-surface-card px-md py-sm text-body-sm text-body placeholder:text-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                  class="w-full resize-y rounded-md border border-border bg-surface-card px-md py-sm text-body-sm text-body placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 ></textarea>
                 <div class="mt-sm flex justify-end">
                   <button
@@ -220,7 +220,7 @@
                 @for (n of news(); track $index) {
                   <li>
                     <p class="text-body-sm text-body">{{ n.body }}</p>
-                    <p class="text-caption text-subtle">{{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</p>
+                    <p class="text-caption text-muted">{{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</p>
                   </li>
                 }
               </ul>
