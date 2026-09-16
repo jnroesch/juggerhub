@@ -1,10 +1,10 @@
 <section class="mt-lg border-t border-border-muted pt-md" data-testid="account-danger-zone">
-  <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-danger">
+  <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-danger-fg">
     {{ 'account.delete.dangerZone' | transloco }}
   </p>
 
   @if (!open()) {
-    <p class="mt-xs text-body-sm text-subtle">{{ 'account.delete.hint' | transloco }}</p>
+    <p class="mt-xs text-body-sm text-muted">{{ 'account.delete.hint' | transloco }}</p>
     <button
       type="button"
       (click)="start()"
@@ -18,7 +18,7 @@
   } @else {
     <div class="mt-sm rounded-md border border-danger-border bg-danger-bg p-md" data-testid="delete-account-panel">
       @if (loading()) {
-        <p class="text-body-sm text-danger">{{ 'account.delete.checking' | transloco }}</p>
+        <p class="text-body-sm text-danger-fg">{{ 'account.delete.checking' | transloco }}</p>
       } @else {
         @if (blockers().length > 0) {
           <!--
@@ -32,7 +32,7 @@
                 <li>
                   <span class="font-medium">{{ blocker.subjectName }}</span>
                   — {{ 'account.delete.blocker.' + blocker.kind | transloco }}
-                  <span class="text-body-sm text-subtle">
+                  <span class="text-body-sm text-muted">
                     {{ 'account.delete.remedy.' + blocker.remedy | transloco }}
                   </span>
                 </li>
@@ -44,7 +44,7 @@
             The disclosure. What goes and, more importantly, what STAYS — a member overwhelmingly
             expects their messages to disappear, and they will not (FR-025/FR-027).
           -->
-          <h2 class="text-body-md font-semibold text-danger">{{ 'account.delete.confirmTitle' | transloco }}</h2>
+          <h2 class="text-body-md font-semibold text-danger-fg">{{ 'account.delete.confirmTitle' | transloco }}</h2>
 
           <p class="mt-xs text-body-sm text-text">{{ 'account.delete.erasedIntro' | transloco }}</p>
           <ul class="mt-xs list-disc space-y-1 pl-md text-body-sm text-text">
@@ -61,7 +61,7 @@
           </ul>
 
           <p class="mt-sm text-body-sm text-text">{{ 'account.delete.ownWords' | transloco }}</p>
-          <p class="mt-sm text-body-sm font-medium text-danger">{{ 'account.delete.permanent' | transloco }}</p>
+          <p class="mt-sm text-body-sm font-medium text-danger-fg">{{ 'account.delete.permanent' | transloco }}</p>
 
           <div class="mt-md space-y-sm">
             <label class="block">
@@ -105,7 +105,7 @@
               type="button"
               (click)="submit()"
               [disabled]="!ready() || working()"
-              class="flex-1 rounded-md bg-danger-fg px-md py-sm text-body-sm font-semibold text-white disabled:opacity-60"
+              class="flex-1 rounded-md bg-danger-fg px-md py-sm text-body-sm font-semibold text-on-accent disabled:opacity-60"
               data-testid="delete-account-confirm"
             >
               {{ (working() ? 'account.delete.deleting' : 'account.delete.confirmAction') | transloco }}

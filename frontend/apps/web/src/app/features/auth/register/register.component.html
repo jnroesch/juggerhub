@@ -31,14 +31,14 @@
             autocomplete="email"
             formControlName="email"
             data-testid="register-email"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus"
           />
         </div>
 
         <div>
           <label for="handle" class="block text-body-sm font-medium text-text">{{ 'auth.handle' | transloco }}</label>
           <div class="mt-xs flex items-center rounded-md border border-border-strong bg-surface-card transition-shadow duration-fast focus-within:border-brand focus-within:ring-2 focus-within:ring-focus">
-            <span class="pl-md text-body-md text-subtle">@</span>
+            <span class="pl-md text-body-md text-muted">@</span>
             <input
               id="handle"
               type="text"
@@ -52,18 +52,18 @@
               class="w-full rounded-md bg-transparent px-xs py-xs text-body-md text-text outline-none"
             />
             @switch (handleState()) {
-              @case ('checking') { <span class="pr-md text-body-sm text-subtle">…</span> }
-              @case ('available') { <span class="pr-md text-body-sm text-success" data-testid="handle-available">✓</span> }
-              @case ('unavailable') { <span class="pr-md text-body-sm text-danger" data-testid="handle-unavailable">✕</span> }
-              @case ('failed') { <span class="pr-md text-body-sm text-danger" data-testid="handle-check-failed">!</span> }
+              @case ('checking') { <span class="pr-md text-body-sm text-muted">…</span> }
+              @case ('available') { <span class="pr-md text-body-sm text-success-fg" data-testid="handle-available">✓</span> }
+              @case ('unavailable') { <span class="pr-md text-body-sm text-danger-fg" data-testid="handle-unavailable">✕</span> }
+              @case ('failed') { <span class="pr-md text-body-sm text-danger-fg" data-testid="handle-check-failed">!</span> }
             }
           </div>
           <!-- break-words: host + handle is one unbreakable token and can exceed a phone's width. -->
-          <p class="mt-xs break-words text-body-sm text-subtle">
+          <p class="mt-xs break-words text-body-sm text-muted">
             {{ 'auth.register.permalinkLabel' | transloco }} <span class="font-medium text-text">{{ appHost }}/u/{{ form.controls.handle.value || 'your-handle' }}</span> {{ 'auth.register.permalinkNote' | transloco }}
           </p>
           <!-- The handle is permanent, so say plainly that the name people read is not. -->
-          <p class="mt-xs text-body-sm text-faint">{{ 'auth.register.displayNameNote' | transloco }}</p>
+          <p class="mt-xs text-body-sm text-muted">{{ 'auth.register.displayNameNote' | transloco }}</p>
           @if (handleState() === 'unavailable' && handleReasonKey(); as reasonKey) {
             <p class="mt-xs text-body-sm text-danger-fg" role="alert">{{ reasonKey | transloco: reasonParams }}</p>
           } @else if (handleState() === 'failed') {
@@ -82,7 +82,7 @@
             autocomplete="new-password"
             formControlName="password"
             data-testid="register-password"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus"
           />
           <jh-password-rules [password]="password()" (validChange)="passwordValid.set($event)" />
         </div>
@@ -95,7 +95,7 @@
             autocomplete="new-password"
             formControlName="confirmPassword"
             data-testid="register-confirm-password"
-            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-brand focus:ring-2 focus:ring-focus"
+            class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus"
           />
           @if (form.hasError('passwordMismatch') && form.controls.confirmPassword.value && form.controls.confirmPassword.touched) {
             <p class="mt-xs text-body-sm text-danger-fg" data-testid="register-mismatch" role="alert">{{ 'auth.register.mismatch' | transloco }}</p>
@@ -160,7 +160,7 @@
         </button>
       </form>
 
-      <p class="mt-lg text-center text-body-sm text-subtle">
+      <p class="mt-lg text-center text-body-sm text-muted">
         {{ 'auth.register.haveAccount' | transloco }}
         <a routerLink="/sign-in" [queryParams]="signInParams" class="font-medium text-link hover:text-link-hover">{{ 'nav.signIn' | transloco }}</a>
       </p>

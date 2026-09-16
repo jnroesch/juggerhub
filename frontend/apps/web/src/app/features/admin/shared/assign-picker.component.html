@@ -19,7 +19,7 @@
         <button
           type="button"
           class="rounded-t-md px-md py-xs text-body-sm font-medium"
-          [class.bg-brand]="tab() === 'badge'"
+          [class.bg-brand-strong]="tab() === 'badge'"
           [class.text-on-accent]="tab() === 'badge'"
           [class.text-muted]="tab() !== 'badge'"
           (click)="switchTab('badge')"
@@ -29,7 +29,7 @@
         <button
           type="button"
           class="rounded-t-md px-md py-xs text-body-sm font-medium"
-          [class.bg-brand]="tab() === 'achievement'"
+          [class.bg-brand-strong]="tab() === 'achievement'"
           [class.text-on-accent]="tab() === 'achievement'"
           [class.text-muted]="tab() !== 'achievement'"
           (click)="switchTab('achievement')"
@@ -41,7 +41,7 @@
 
     <div class="min-h-0 flex-1 overflow-y-auto p-md">
       @if (pickerItems().length === 0) {
-        <p class="text-body-sm text-faint">{{ 'admin.assign.nothingApplies' | transloco }}</p>
+        <p class="text-body-sm text-muted">{{ 'admin.assign.nothingApplies' | transloco }}</p>
       } @else {
         <ul class="grid grid-cols-2 gap-sm sm:grid-cols-3">
           @for (d of pickerItems(); track d.id) {

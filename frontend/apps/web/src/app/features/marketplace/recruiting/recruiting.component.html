@@ -1,19 +1,19 @@
 <section class="mx-auto max-w-container-md px-md py-lg" data-testid="recruiting-page">
-  <a [routerLink]="['/parties', id]" class="text-body-sm text-subtle hover:text-body">{{ 'parties.backToParty' | transloco }}</a>
+  <a [routerLink]="['/parties', id]" class="text-body-sm text-muted hover:text-body">{{ 'parties.backToParty' | transloco }}</a>
 
   @if (loading()) {
     <jh-loading />
   } @else if (forbidden()) {
     <div jhCard class="mt-md text-center">
       <p class="text-body-md font-bold text-ink">{{ 'marketplace.recruiting.adminsOnly' | transloco }}</p>
-      <p class="mt-xs text-body-sm text-subtle">{{ 'marketplace.recruiting.adminsOnlyDesc' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-muted">{{ 'marketplace.recruiting.adminsOnlyDesc' | transloco }}</p>
     </div>
   } @else if (loadError()) {
     <jh-alert class="mt-md">{{ 'marketplace.recruiting.loadError' | transloco }}</jh-alert>
   } @else if (settings(); as s) {
     <div class="mt-sm flex items-baseline justify-between">
       <h1 class="text-h3">{{ 'marketplace.recruiting.title' | transloco }}</h1>
-      <span class="text-body-sm text-subtle"><span class="font-mono">{{ fill() }}</span> {{ 'marketplace.recruiting.inSuffix' | transloco }}</span>
+      <span class="text-body-sm text-muted"><span class="font-mono">{{ fill() }}</span> {{ 'marketplace.recruiting.inSuffix' | transloco }}</span>
     </div>
 
     <!-- Toggle + settings -->
@@ -21,7 +21,7 @@
       <label class="flex cursor-pointer items-center justify-between gap-sm">
         <span>
           <span class="text-body-md font-semibold text-body">{{ 'marketplace.recruiting.lookingForPlayers' | transloco }}</span>
-          <span class="mt-0.5 block text-body-sm text-subtle">{{ 'marketplace.recruiting.lookingDesc' | transloco }}</span>
+          <span class="mt-0.5 block text-body-sm text-muted">{{ 'marketplace.recruiting.lookingDesc' | transloco }}</span>
         </span>
         <input type="checkbox" [checked]="on()" (change)="on.set($any($event.target).checked)"
           class="h-6 w-11 shrink-0 cursor-pointer appearance-none rounded-pill bg-surface-muted transition-colors checked:bg-brand" data-testid="recruiting-toggle" />
@@ -34,7 +34,7 @@
           <button type="button" (click)="changeSpots(-1)" class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-body-md font-semibold text-body hover:bg-surface-sunken">−</button>
           <span class="w-8 text-center font-mono text-body-md">{{ spots() }}</span>
           <button type="button" (click)="changeSpots(1)" class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-body-md font-semibold text-body hover:bg-surface-sunken">+</button>
-          <span class="text-body-sm text-subtle">{{ 'marketplace.recruiting.of' | transloco }} <span class="font-mono">{{ s.rosterCap }}</span> · <span class="font-mono">{{ s.inCount }}</span> {{ 'marketplace.recruiting.inSoFar' | transloco }}</span>
+          <span class="text-body-sm text-muted">{{ 'marketplace.recruiting.of' | transloco }} <span class="font-mono">{{ s.rosterCap }}</span> · <span class="font-mono">{{ s.inCount }}</span> {{ 'marketplace.recruiting.inSoFar' | transloco }}</span>
         </div>
 
         <p class="mt-md text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.positionsNeeded' | transloco }}</p>
@@ -46,7 +46,7 @@
 
         <p class="mt-md text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.shortBlurb' | transloco }}</p>
         <textarea [value]="blurb()" (input)="blurb.set($any($event.target).value)" maxlength="500" rows="2"
-          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-sm text-body focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-coral-1"
+          class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-sm text-body focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-focus"
           [placeholder]="'marketplace.recruiting.blurbPlaceholder' | transloco"></textarea>
       }
 
@@ -61,14 +61,14 @@
     <div jhCard class="mt-md">
       <h2 class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.applicationsToYou' | transloco }} · <span class="font-mono">{{ applications().length }}</span></h2>
       @if (applications().length === 0) {
-        <p class="mt-xs text-body-sm text-subtle">{{ 'marketplace.recruiting.noApplications' | transloco }}</p>
+        <p class="mt-xs text-body-sm text-muted">{{ 'marketplace.recruiting.noApplications' | transloco }}</p>
       } @else {
         <ul class="mt-sm space-y-xs" data-testid="applications">
           @for (app of applications(); track app.id) {
             <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
               <div>
-                <a [routerLink]="['/u', app.handle]" class="text-body-sm font-semibold text-body hover:text-brand">{{ app.displayName }}</a>
-                <p class="text-body-sm text-subtle">@for (pos of app.positions; track pos) { {{ labelKey(pos) | transloco }} }<span class="ml-1">· {{ 'marketplace.applied' | transloco }} {{ rel(app.createdDate) }}</span></p>
+                <a [routerLink]="['/u', app.handle]" class="text-body-sm font-semibold text-body hover:text-brand-strong">{{ app.displayName }}</a>
+                <p class="text-body-sm text-muted">@for (pos of app.positions; track pos) { {{ labelKey(pos) | transloco }} }<span class="ml-1">· {{ 'marketplace.applied' | transloco }} {{ rel(app.createdDate) }}</span></p>
               </div>
               <div class="flex gap-xs">
                 <button type="button" (click)="accept(app.id)" [disabled]="acting()" jhButton size="sm">{{ 'common.accept' | transloco }}</button>
@@ -84,14 +84,14 @@
     <div jhCard class="mt-md">
       <h2 class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.invitesSent' | transloco }} · <span class="font-mono">{{ sentInvites().length }}</span></h2>
       @if (sentInvites().length === 0) {
-        <p class="mt-xs text-body-sm text-subtle">{{ 'marketplace.recruiting.noInvitesOut' | transloco }}</p>
+        <p class="mt-xs text-body-sm text-muted">{{ 'marketplace.recruiting.noInvitesOut' | transloco }}</p>
       } @else {
         <ul class="mt-sm space-y-xs" data-testid="sent-invites">
           @for (inv of sentInvites(); track inv.id) {
             <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
               <div>
                 <span class="text-body-sm font-semibold text-body">{{ inv.displayName }}</span>
-                <p class="text-body-sm text-subtle">{{ (inv.status === 'Declined' ? 'marketplace.recruiting.statusDeclined' : 'marketplace.recruiting.awaitingReply') | transloco }} · {{ 'marketplace.invited' | transloco }} {{ rel(inv.createdDate) }}</p>
+                <p class="text-body-sm text-muted">{{ (inv.status === 'Declined' ? 'marketplace.recruiting.statusDeclined' : 'marketplace.recruiting.awaitingReply') | transloco }} · {{ 'marketplace.invited' | transloco }} {{ rel(inv.createdDate) }}</p>
               </div>
               @if (inv.status === 'Pending') {
                 <button type="button" (click)="revoke(inv.id)" jhButton variant="danger" size="sm">{{ 'marketplace.revoke' | transloco }}</button>
@@ -105,22 +105,22 @@
     <!-- Direct invite -->
     <div jhCard class="mt-md">
       <h2 class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.inviteAnyone' | transloco }}</h2>
-      <p class="mt-0.5 text-body-sm text-subtle">{{ 'marketplace.recruiting.inviteAnyoneDesc' | transloco }}</p>
+      <p class="mt-0.5 text-body-sm text-muted">{{ 'marketplace.recruiting.inviteAnyoneDesc' | transloco }}</p>
       <input type="search" [value]="query()" (input)="onQuery($any($event.target).value)" [placeholder]="'marketplace.recruiting.searchPlayers' | transloco"
-        class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-sm text-body focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-coral-1" data-testid="user-search" />
-      @if (searching()) { <p class="mt-xs text-body-sm text-subtle">{{ 'marketplace.recruiting.searching' | transloco }}</p> }
+        class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-sm text-body focus:border-border-focus focus:outline-none focus:ring-2 focus:ring-focus" data-testid="user-search" />
+      @if (searching()) { <p class="mt-xs text-body-sm text-muted">{{ 'marketplace.recruiting.searching' | transloco }}</p> }
       @if (results().length > 0) {
         <ul class="mt-sm space-y-xs" data-testid="search-results">
           @for (u of results(); track u.userId) {
             <li class="flex items-center justify-between gap-sm rounded-md border border-border-muted px-sm py-xs">
               <div>
                 <span class="text-body-sm font-semibold text-body">{{ u.displayName }}</span>
-                <p class="text-body-sm text-subtle">@{{ u.handle }}@if (u.location) { <span> · {{ u.location }}</span> }</p>
+                <p class="text-body-sm text-muted">@{{ u.handle }}@if (u.location) { <span> · {{ u.location }}</span> }</p>
               </div>
               @switch (u.relation) {
                 @case ('Invitable') { <button type="button" (click)="invite(u)" [disabled]="acting()" jhButton size="sm">{{ 'marketplace.invite' | transloco }}</button> }
-                @case ('Invited') { <span class="text-body-sm text-subtle">{{ 'marketplace.recruiting.relationInvited' | transloco }}</span> }
-                @case ('Ineligible') { <span class="text-body-sm text-subtle">{{ 'marketplace.recruiting.relationInCrew' | transloco }}</span> }
+                @case ('Invited') { <span class="text-body-sm text-muted">{{ 'marketplace.recruiting.relationInvited' | transloco }}</span> }
+                @case ('Ineligible') { <span class="text-body-sm text-muted">{{ 'marketplace.recruiting.relationInCrew' | transloco }}</span> }
               }
             </li>
           }

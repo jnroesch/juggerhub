@@ -3,19 +3,19 @@
   @if (canCompose()) {
     <div class="mt-xs flex gap-xs">
       <input type="text" [ngModel]="body()" (ngModelChange)="body.set($event)" [placeholder]="'events.news.placeholder' | transloco" data-testid="news-input"
-        class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+        class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
       <button type="button" (click)="submit()" [disabled]="posting() || !body().trim()" data-testid="news-post"
         jhButton size="sm">{{ 'events.news.post' | transloco }}</button>
     </div>
   }
   @if (news().length === 0) {
-    <p class="mt-sm text-body-sm text-faint">{{ 'events.news.none' | transloco }}</p>
+    <p class="mt-sm text-body-sm text-muted">{{ 'events.news.none' | transloco }}</p>
   } @else {
     <ul class="mt-sm divide-y divide-border">
       @for (n of news(); track n.id) {
         <li class="py-sm first:pt-0 last:pb-0">
           <p class="text-body-md text-body">{{ n.body }}</p>
-          <p class="mt-xs text-body-sm text-faint">{{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }}</p>
+          <p class="mt-xs text-body-sm text-muted">{{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }}</p>
         </li>
       }
     </ul>

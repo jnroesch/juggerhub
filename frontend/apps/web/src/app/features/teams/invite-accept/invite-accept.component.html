@@ -4,27 +4,27 @@
       <jh-loading [label]="'teams.inviteAccept.loading' | transloco" />
     } @else if (notFound() || preview()?.state === 'Invalid') {
       <div data-testid="invite-invalid">
-        <div class="mx-auto grid h-16 w-16 place-items-center rounded-lg border border-dashed border-border-strong bg-surface-subtle text-h4 text-faint">✕</div>
+        <div class="mx-auto grid h-16 w-16 place-items-center rounded-lg border border-dashed border-border-strong bg-surface-subtle text-h4 text-muted">✕</div>
         <h1 class="mt-md text-h2">{{ 'teams.inviteAccept.invalidTitle' | transloco }}</h1>
-        <p class="mt-sm text-body-md text-subtle">{{ 'teams.inviteAccept.invalidBody' | transloco }}</p>
+        <p class="mt-sm text-body-md text-muted">{{ 'teams.inviteAccept.invalidBody' | transloco }}</p>
         <a routerLink="/" jhButton variant="secondary" class="mt-lg">{{ 'teams.inviteAccept.backToHub' | transloco }}</a>
       </div>
     } @else if (preview()?.state === 'Expired') {
       <div data-testid="invite-expired">
-        <div class="mx-auto grid h-16 w-16 place-items-center rounded-lg border border-dashed border-border-strong bg-surface-subtle text-h4 text-faint">✕</div>
+        <div class="mx-auto grid h-16 w-16 place-items-center rounded-lg border border-dashed border-border-strong bg-surface-subtle text-h4 text-muted">✕</div>
         <h1 class="mt-md text-h2">{{ 'teams.inviteAccept.expiredTitle' | transloco }}</h1>
-        <p class="mt-sm text-body-md text-subtle">{{ 'teams.inviteAccept.expiredBody' | transloco }}</p>
+        <p class="mt-sm text-body-md text-muted">{{ 'teams.inviteAccept.expiredBody' | transloco }}</p>
         <a routerLink="/" jhButton variant="secondary" class="mt-lg">{{ 'teams.inviteAccept.backToHub' | transloco }}</a>
       </div>
     } @else if (preview(); as p) {
       <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.inviteAccept.youreInvited' | transloco }}</p>
-      <div class="mx-auto mt-md grid h-16 w-16 place-items-center rounded-lg border border-border-strong bg-surface-subtle text-body-md font-semibold text-subtle">
+      <div class="mx-auto mt-md grid h-16 w-16 place-items-center rounded-lg border border-border-strong bg-surface-subtle text-body-md font-semibold text-muted">
         {{ p.teamName.slice(0, 2) }}
       </div>
       <h1 class="mt-md text-h2">{{ 'teams.inviteAccept.join' | transloco:{ team: p.teamName } }}</h1>
       <p class="mt-xs inline-flex items-center gap-xs text-body-sm text-muted">
         @if (p.type === 'CityTeam') {
-          <svg class="h-3.5 w-3.5 text-brand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+          <svg class="h-3.5 w-3.5 text-brand-strong" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
           {{ p.location }} ·
         }
         <span class="font-mono">{{ p.memberCount }} {{ (p.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}</span>
@@ -43,7 +43,7 @@
         jhButton variant="secondary" class="mt-xs w-full">
         {{ 'common.decline' | transloco }}
       </button>
-      <p class="mt-sm text-body-sm text-faint">{{ 'teams.inviteAccept.expiresIn' | transloco }}</p>
+      <p class="mt-sm text-body-sm text-muted">{{ 'teams.inviteAccept.expiresIn' | transloco }}</p>
     }
   </div>
 

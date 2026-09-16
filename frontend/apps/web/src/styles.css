@@ -69,6 +69,7 @@
   --lemon-4: #e0b211;
   --lemon-5: #b88c05;
   --lemon-6: #8f6b03;
+  --lemon-7: #7d5d02;
 
   /* Semantic status scales */
   --green-0: #e6f7ed;
@@ -97,27 +98,60 @@
   --surface-accent-soft: var(--coral-0);
   --surface-secondary-soft: var(--teal-0);
 
+  /*
+   * The text ramp. Every step here clears WCAG AA (4.5:1) on every light surface
+   * the app puts text on — white, `surface-page`, `surface-sunken`, `surface-muted`
+   * — not just on white. `contrast.spec.ts` computes it; see GH #298, where the
+   * ramp DESIGN.md called "tuned for this" was measured at 2.92:1 for the step
+   * carrying a third of the product's text.
+   *
+   * There is one secondary text colour, `text-muted`. `text-subtle` (sand-5,
+   * 2.92:1) and `faint` (sand-4, 1.97:1) were the two steps below it and neither
+   * can be made to pass without collapsing onto sand-6/sand-7, so both are
+   * retired: hierarchy below `text-body` is carried by size and weight — the
+   * `caption` and `eyebrow` steps — not by fading the ink.
+   */
   --text-heading: var(--sand-9);
   --text-body: var(--sand-8);
-  --text-muted: var(--sand-6);
-  --text-subtle: var(--sand-5);
+  --text-muted: var(--sand-7);
   --text-on-accent: var(--white);
   --text-on-inverse: var(--sand-1);
-  --text-link: var(--coral-6);
-  --text-link-hover: var(--coral-7);
+  --text-link: var(--brand-primary-strong);
+  --text-link-hover: var(--brand-primary-strong-hover);
 
+  /*
+   * Coral and sage come in two roles, and the split is the whole point.
+   *
+   * `brand-primary` (coral-4) is the **identity** colour: the gradient, the mark,
+   * borders, progress fills, dots. White on it is 3.14:1 and it is 3.14:1 as text,
+   * so it never carries a label and is never a label.
+   *
+   * `brand-primary-strong` (coral-6) is the **legible** step, and it works in both
+   * directions: white on it is 5.71:1, and it on a light surface is 5.71:1. Filled
+   * buttons, filled chips, count badges, coral text and coral icons all use it.
+   * Sage follows the same split.
+   */
   --brand-primary: var(--coral-4);
-  --brand-primary-hover: var(--coral-5);
-  --brand-primary-active: var(--coral-6);
+  --brand-primary-strong: var(--coral-6);
+  --brand-primary-strong-hover: var(--coral-7);
   --brand-secondary: var(--teal-4);
-  --brand-secondary-hover: var(--teal-5);
+  --brand-secondary-strong: var(--teal-6);
+  --brand-secondary-strong-hover: var(--teal-7);
   --brand-highlight: var(--lemon-2);
 
+  /*
+   * `border-muted`/`border-default` are decorative separators and stay soft.
+   * `border-strong` draws the edge of an input or a secondary button — a UI
+   * component boundary, so WCAG 1.4.11 asks 3:1 and sand-4 gave 1.97:1, which is
+   * why forms read as floating grey shapes. `border-focus` is the focus
+   * indicator: coral-5 clears 3:1 on every light surface, where coral-4 (2.72:1
+   * on `surface-sunken`) did not.
+   */
   --border-default: var(--sand-3);
   --border-muted: var(--sand-2);
-  --border-strong: var(--sand-4);
+  --border-strong: var(--sand-6);
   --border-accent: var(--coral-3);
-  --border-focus: var(--coral-4);
+  --border-focus: var(--coral-5);
 
   --success-fg: var(--green-6);
   --success-bg: var(--green-0);
@@ -125,7 +159,7 @@
   --danger-fg: var(--red-6);
   --danger-bg: var(--red-0);
   --danger-border: var(--red-1);
-  --warning-fg: var(--lemon-6);
+  --warning-fg: var(--lemon-7);
   --warning-bg: var(--lemon-0);
   --warning-border: var(--lemon-1);
   --info-fg: var(--blue-6);
@@ -174,7 +208,6 @@
   --shadow-xl: 0 24px 56px rgba(64, 46, 24, 0.16);
   --shadow-coral: 0 8px 20px rgba(245, 98, 58, 0.28);
   --shadow-teal: 0 8px 20px rgba(122, 155, 135, 0.28);
-  --focus-ring: 0 0 0 3px var(--coral-1);
 
   /* ---- Motion -------------------------------------------------------- */
   --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);

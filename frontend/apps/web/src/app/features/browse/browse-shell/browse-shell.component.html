@@ -25,43 +25,43 @@
     <a
       routerLink="/browse/events"
       routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-ink"
       data-testid="browse-tab-events"
     >{{ 'browse.tabEvents' | transloco }}</a>
     <a
       routerLink="/browse/teams"
       routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-ink"
       data-testid="browse-tab-teams"
     >{{ 'browse.tabTeams' | transloco }}</a>
     <a
       routerLink="/browse/trainings"
       routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-ink"
       data-testid="browse-tab-trainings"
     >{{ 'browse.tabTrainings' | transloco }}</a>
     <a
       routerLink="/browse/players"
       routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-subtle transition-colors duration-fast hover:text-ink"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-ink"
       data-testid="browse-tab-players"
     >{{ 'browse.tabPlayers' | transloco }}</a>
   </nav>
 
   @if (note()) {
-    <p class="text-body-sm text-subtle">{{ note() }}</p>
+    <p class="text-body-sm text-muted">{{ note() }}</p>
   }
 
   <!-- Search -->
   <label class="flex items-center gap-xs rounded-md border border-border-strong bg-surface-card px-sm py-xs">
-    <svg class="h-4 w-4 shrink-0 text-subtle" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 16 16" fill="none" aria-hidden="true">
       <circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.6" />
       <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
     </svg>
     <input
       #searchBox
       type="search"
-      class="w-full bg-transparent text-body-md text-ink outline-none placeholder:text-faint"
+      class="w-full bg-transparent text-body-md text-ink outline-none placeholder:text-muted"
       [placeholder]="searchPlaceholder()"
       [attr.aria-label]="searchPlaceholder()"
       (input)="onSearchInput($event)"
@@ -85,7 +85,7 @@
       {{ 'browse.filters' | transloco }}
       @if (activeFilterCount() > 0) {
         <span
-          class="inline-flex min-w-5 items-center justify-center rounded-pill bg-brand px-1 text-caption font-mono text-on-accent"
+          class="inline-flex min-w-5 items-center justify-center rounded-pill bg-brand-strong px-1 text-caption font-mono text-on-accent"
           data-testid="browse-filter-badge"
         >{{ activeFilterCount() }}</span>
       }
@@ -135,7 +135,7 @@
                 [attr.aria-checked]="option.value === activeSort()"
                 (click)="selectSort(option.value)"
                 class="flex items-center justify-between gap-sm rounded-sm px-sm py-xs text-left text-body-sm transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-                [class.text-brand]="option.value === activeSort()"
+                [class.text-brand-strong]="option.value === activeSort()"
                 [class.font-medium]="option.value === activeSort()"
                 [class.text-ink]="option.value !== activeSort()"
                 [attr.data-testid]="'browse-sort-option-' + option.value"
@@ -193,11 +193,11 @@
       </div>
     }
     @case ('empty') {
-      <p class="py-lg text-center text-body-md text-subtle" data-testid="browse-empty">{{ 'browse.empty' | transloco }}</p>
+      <p class="py-lg text-center text-body-md text-muted" data-testid="browse-empty">{{ 'browse.empty' | transloco }}</p>
     }
     @case ('no-results') {
       <div class="flex flex-col items-center gap-sm py-lg text-center" data-testid="browse-no-results">
-        <p class="text-body-md text-subtle">{{ 'browse.noResults' | transloco }}</p>
+        <p class="text-body-md text-muted">{{ 'browse.noResults' | transloco }}</p>
         <button
           type="button"
           class="text-body-sm text-link underline hover:text-link-hover"

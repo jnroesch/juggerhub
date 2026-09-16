@@ -26,7 +26,7 @@
       >
         <span class="flex flex-1 flex-col">
           <span class="text-body-md text-ink">{{ event.name }}</span>
-          <span class="text-body-sm text-subtle">
+          <span class="text-body-sm text-muted">
             {{ event.startsAt | translocoDate: { dateStyle: 'medium' } }}
             @if (event.locationLabel) {
               · {{ event.locationLabel }}
@@ -50,7 +50,7 @@
   (closePanel)="filtersOpen.set(false)"
 >
   <div class="flex flex-col gap-sm">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.showEyebrow' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.showEyebrow' | transloco }}</span>
     <jh-filter-toggle
       [label]="'browse.events.hidePastLabel' | transloco"
       [hint]="'browse.events.hidePastHint' | transloco"
@@ -60,7 +60,7 @@
   </div>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.events.dateRange' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.events.dateRange' | transloco }}</span>
     <div class="flex items-center gap-xs">
       <input
         type="date"
@@ -69,7 +69,7 @@
         [value]="pendingFrom()"
         (input)="onPendingFrom($any($event.target).value)"
       />
-      <span class="text-subtle">–</span>
+      <span class="text-muted">–</span>
       <input
         type="date"
         class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
@@ -81,7 +81,7 @@
   </div>
 
   <label class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.events.type' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.events.type' | transloco }}</span>
     <select
       class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none"
       [value]="pendingType()"
@@ -95,7 +95,7 @@
   </label>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.country' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.country' | transloco }}</span>
     <jh-country-picker [value]="pendingCity()" (valueChange)="onPendingCity($event)" />
   </div>
 </jh-filter-panel>

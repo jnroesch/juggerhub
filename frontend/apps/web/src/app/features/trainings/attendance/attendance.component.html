@@ -9,7 +9,7 @@
     <ul class="mt-md divide-y divide-border-muted">
       @for (e of entries(); track e.userId) {
         <li class="flex items-center gap-sm py-sm">
-          <span class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary">
+          <span class="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary-strong">
             @if (e.hasAvatar) { <img [src]="avatarUrl(e.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ initial(e.displayName) }} }
           </span>
           <div class="min-w-0 flex-1">

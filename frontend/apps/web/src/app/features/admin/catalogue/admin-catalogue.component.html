@@ -37,7 +37,7 @@
 
   <!-- Status filter -->
   <div class="flex items-center gap-sm">
-    <span class="font-mono text-caption text-subtle" data-testid="catalogue-count">
+    <span class="font-mono text-caption text-muted" data-testid="catalogue-count">
       {{ total() }} {{ (total() === 1 ? 'admin.catalogue.typeOne' : 'admin.catalogue.typeMany') | transloco }}@if (retiredCount() > 0) { · {{ retiredCount() }} {{ 'admin.catalogue.retiredLower' | transloco }}}
     </span>
     <div class="flex gap-1" role="group" [attr.aria-label]="'admin.catalogue.filterGroup' | transloco">
@@ -71,7 +71,7 @@
   <div jhCard padding="flush" class="mt-md hidden md:block">
     <table class="w-full text-left" data-testid="catalogue-table">
       <thead>
-        <tr class="border-b border-border-muted text-caption text-subtle">
+        <tr class="border-b border-border-muted text-caption text-muted">
           <th class="px-md py-sm font-medium">{{ 'admin.catalogue.colType' | transloco }}</th>
           <th class="px-md py-sm font-medium">{{ 'admin.catalogue.colAppliesTo' | transloco }}</th>
           <th class="px-md py-sm text-right font-medium">{{ 'admin.catalogue.colGranted' | transloco }}</th>
@@ -153,7 +153,7 @@
               }
             </div>
             <p class="mt-0.5 text-caption text-muted">{{ d.description }}</p>
-            <p class="mt-1 text-caption text-subtle">
+            <p class="mt-1 text-caption text-muted">
               {{ (d.appliesToPlayers && d.appliesToTeams ? 'admin.catalogue.appliesPlayersTeams' : d.appliesToPlayers ? 'admin.catalogue.appliesPlayers' : 'admin.catalogue.appliesTeams') | transloco }}
               · <span class="font-mono">{{ d.grantedCount }}</span> {{ 'admin.catalogue.grantedLower' | transloco }}
             </p>
@@ -207,7 +207,7 @@
               [class]="formKind() === 'achievement' ? 'bg-surface-card text-heading shadow-sm' : 'text-muted'"
               [disabled]="!!editing()" (click)="formKind.set('achievement')" data-testid="catalogue-form-kind-achievement">{{ 'admin.catalogue.formKindAchievement' | transloco }}</button>
           </div>
-          <p class="mt-1 text-caption text-subtle">{{ 'admin.catalogue.formKindHint' | transloco }}</p>
+          <p class="mt-1 text-caption text-muted">{{ 'admin.catalogue.formKindHint' | transloco }}</p>
         </div>
 
         <label class="mt-md block">
@@ -229,20 +229,20 @@
           <div class="mt-xs flex gap-sm">
             <label class="inline-flex items-center gap-xs text-body-sm text-body">
               <input type="checkbox" [ngModel]="formPlayers()" (ngModelChange)="formPlayers.set($event)" data-testid="catalogue-form-players"
-                class="h-4 w-4 rounded border-border-strong text-brand focus-visible:ring-2 focus-visible:ring-focus" />
+                class="h-4 w-4 rounded border-border-strong text-brand-strong focus-visible:ring-2 focus-visible:ring-focus" />
               {{ 'admin.catalogue.formPlayers' | transloco }}
             </label>
             <label class="inline-flex items-center gap-xs text-body-sm text-body">
               <input type="checkbox" [ngModel]="formTeams()" (ngModelChange)="formTeams.set($event)" data-testid="catalogue-form-teams"
-                class="h-4 w-4 rounded border-border-strong text-brand focus-visible:ring-2 focus-visible:ring-focus" />
+                class="h-4 w-4 rounded border-border-strong text-brand-strong focus-visible:ring-2 focus-visible:ring-focus" />
               {{ 'admin.catalogue.formTeams' | transloco }}
             </label>
           </div>
-          <p class="mt-1 text-caption text-subtle">{{ 'admin.catalogue.formAppliesHint' | transloco }}</p>
+          <p class="mt-1 text-caption text-muted">{{ 'admin.catalogue.formAppliesHint' | transloco }}</p>
         </fieldset>
 
         @if (editing(); as e) {
-          <p class="mt-md text-caption text-subtle">
+          <p class="mt-md text-caption text-muted">
             {{ 'admin.catalogue.formGranted' | transloco }} <span class="font-mono">{{ e.grantedCount }}</span> · {{ 'admin.catalogue.formCreated' | transloco }} {{ e.createdAt | translocoDate: { year: 'numeric', month: 'short' } }}
           </p>
         }
@@ -288,7 +288,7 @@
           (dragover)="$event.preventDefault()" (drop)="onIconDrop($event)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-6 w-6 text-muted"><path d="M12 16V4m0 0-4 4m4-4 4 4" /><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /></svg>
           <span class="text-body-sm font-medium text-body">{{ 'admin.catalogue.iconDrop' | transloco }} <span class="text-link">{{ 'admin.catalogue.iconBrowse' | transloco }}</span></span>
-          <span class="text-caption text-subtle">{{ 'admin.catalogue.iconFormats' | transloco }}</span>
+          <span class="text-caption text-muted">{{ 'admin.catalogue.iconFormats' | transloco }}</span>
           <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" (change)="onIconFile($event)" data-testid="catalogue-icon-file" />
         </label>
 
@@ -303,7 +303,7 @@
                     [style.width.px]="size" [style.height.px]="size">
                     <img [src]="preview" alt="Icon preview" class="h-full w-full object-cover" />
                   </span>
-                  <span class="font-mono text-caption text-subtle">{{ size }}</span>
+                  <span class="font-mono text-caption text-muted">{{ size }}</span>
                 </div>
               }
             </div>

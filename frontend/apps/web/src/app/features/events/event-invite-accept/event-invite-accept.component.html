@@ -4,12 +4,12 @@
       <jh-loading />
     } @else if (notFound() || !preview()) {
       <p class="text-body-lg font-bold text-ink">{{ 'events.inviteAccept.notFoundTitle' | transloco }}</p>
-      <p class="mt-xs text-body-sm text-subtle">{{ 'events.inviteAccept.notFoundBody' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-muted">{{ 'events.inviteAccept.notFoundBody' | transloco }}</p>
     } @else if (preview(); as p) {
-      <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand">{{ 'events.inviteAccept.coAdminInvite' | transloco }}</span>
+      <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand-strong">{{ 'events.inviteAccept.coAdminInvite' | transloco }}</span>
       <h1 class="mt-xs text-h2">{{ p.eventName }}</h1>
-      <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }}</p>
-      <p class="mt-xs text-body-sm text-subtle">{{ 'events.inviteAccept.invitedBy' | transloco:{ name: p.inviterDisplayName } }}</p>
+      <p class="mt-xs text-body-sm text-muted">{{ p.startsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }}</p>
+      <p class="mt-xs text-body-sm text-muted">{{ 'events.inviteAccept.invitedBy' | transloco:{ name: p.inviterDisplayName } }}</p>
 
       @switch (p.state) {
         @case ('Usable') {
@@ -17,14 +17,14 @@
             <button type="button" (click)="accept()" [disabled]="acting()" data-testid="invite-accept"
               jhButton class="w-full">{{ 'events.inviteAccept.acceptHelp' | transloco }}</button>
             <button type="button" (click)="decline()" [disabled]="acting()" data-testid="invite-decline"
-              class="w-full rounded-md px-lg py-sm text-body-sm font-semibold text-subtle hover:text-text disabled:opacity-50">{{ 'common.decline' | transloco }}</button>
+              class="w-full rounded-md px-lg py-sm text-body-sm font-semibold text-muted hover:text-text disabled:opacity-50">{{ 'common.decline' | transloco }}</button>
           </div>
         }
         @case ('Expired') {
-          <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-subtle">{{ 'events.inviteAccept.expired' | transloco }}</p>
+          <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-muted">{{ 'events.inviteAccept.expired' | transloco }}</p>
         }
         @default {
-          <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-subtle">{{ 'events.inviteAccept.invalid' | transloco }}</p>
+          <p class="mt-lg rounded-md bg-surface-sunken px-md py-sm text-body-sm text-muted">{{ 'events.inviteAccept.invalid' | transloco }}</p>
         }
       }
     }

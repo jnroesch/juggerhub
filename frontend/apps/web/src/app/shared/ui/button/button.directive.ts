@@ -59,9 +59,20 @@ export class ButtonDirective {
       'duration-fast',
       'ease-standard',
       'active:translate-y-px',
+      /*
+       * The focus indicator. `ring-focus` is `border-focus` (coral-5), the same
+       * token the inputs use, at 3:1 or better on every light surface — it was
+       * coral-1, 1.32:1 against white, i.e. the invisible half of what DESIGN.md
+       * describes (GH #298). `ring-offset-2` is what makes it visible on the
+       * primary variant specifically: the ring would otherwise sit straight
+       * against the button's own coral-6 fill, which it does not contrast with.
+       * The offset is white, so on a card or the cream page the gap reads as
+       * part of the surface and the other variants look unchanged.
+       */
       'focus-visible:outline-none',
       'focus-visible:ring-2',
       'focus-visible:ring-focus',
+      'focus-visible:ring-offset-2',
       'disabled:opacity-50',
       'disabled:pointer-events-none',
     ];
@@ -74,7 +85,14 @@ export class ButtonDirective {
     const width = full ? ['w-full'] : [];
 
     const variants: Record<ButtonVariant, string[]> = {
-      primary: ['bg-brand', 'text-on-accent', 'hover:bg-brand-hover', 'hover:shadow-coral'],
+      // `brand-strong` (coral-6), not `brand` (coral-4): white on the identity coral is
+      // 3.14:1 and this label is 16px semibold, so it needs 4.5:1 (GH #298).
+      primary: [
+        'bg-brand-strong',
+        'text-on-accent',
+        'hover:bg-brand-strong-hover',
+        'hover:shadow-coral',
+      ],
       secondary: [
         'bg-surface-card',
         'text-body',

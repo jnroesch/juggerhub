@@ -16,7 +16,7 @@
       type="button"
       (click)="start()"
       [disabled]="!canStart()"
-      class="min-h-11 rounded-md px-sm text-body-md font-semibold text-link transition-colors duration-fast hover:bg-surface-sunken disabled:cursor-not-allowed disabled:text-subtle disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      class="min-h-11 rounded-md px-sm text-body-md font-semibold text-link transition-colors duration-fast hover:bg-surface-sunken disabled:cursor-not-allowed disabled:text-muted disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       data-testid="start-chat"
     >
       {{ 'chat.new.start' | transloco }}
@@ -40,7 +40,7 @@
         type="text"
         maxlength="120"
         [placeholder]="'chat.new.groupNamePlaceholder' | transloco"
-        class="mt-xs min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
+        class="mt-xs min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-muted focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
         data-testid="group-name"
       />
     </label>
@@ -54,7 +54,7 @@
       (ngModelChange)="onTermChange($event)"
       name="people-search"
       [placeholder]="'chat.new.addPeople' | transloco"
-      class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
+      class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-muted focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
       data-testid="people-search"
     />
   </label>
@@ -101,7 +101,7 @@
           >
             <span
               class="inline-flex size-5 shrink-0 items-center justify-center rounded-xs border"
-              [class]="isSelected(p.userId) ? 'border-brand bg-brand text-on-accent' : 'border-border-strong'"
+              [class]="isSelected(p.userId) ? 'border-brand bg-brand-strong text-on-accent' : 'border-border-strong'"
               aria-hidden="true"
             >
               @if (isSelected(p.userId)) {
@@ -120,7 +120,7 @@
             <span class="min-w-0 flex-1">
               <span class="block truncate text-body-md text-body">{{ p.displayName }}</span>
               @if (p.handle) {
-                <span class="block truncate text-body-sm text-subtle">&#64;{{ p.handle }}</span>
+                <span class="block truncate text-body-sm text-muted">&#64;{{ p.handle }}</span>
               }
             </span>
           </button>

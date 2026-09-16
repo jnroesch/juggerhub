@@ -5,19 +5,19 @@
     <div>
       <p class="text-body-sm font-semibold text-body">{{ group.titleKey | transloco }} · {{ group.items.length }}</p>
       @if (group.items.length === 0) {
-        <p class="mt-xs text-body-sm text-faint">{{ (group.key === 'waitlist' ? 'events.participants.noneWaiting' : 'events.participants.noneYet') | transloco }}</p>
+        <p class="mt-xs text-body-sm text-muted">{{ (group.key === 'waitlist' ? 'events.participants.noneWaiting' : 'events.participants.noneYet') | transloco }}</p>
       } @else {
         <ul class="mt-xs space-y-xs">
           @for (p of group.items; track p.id) {
             <li class="flex items-center gap-sm rounded-md px-1 py-1">
-              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-surface-sunken text-body-sm font-semibold text-subtle">{{ initial(p) }}</span>
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-surface-sunken text-body-sm font-semibold text-muted">{{ initial(p) }}</span>
               <span class="min-w-0 flex-1">
                 @if (p.userHandle) {
-                  <button type="button" (click)="openProfile.emit(p.userHandle)" class="block truncate text-body-sm font-semibold text-body hover:text-brand">{{ label(p) }}</button>
+                  <button type="button" (click)="openProfile.emit(p.userHandle)" class="block truncate text-body-sm font-semibold text-body hover:text-brand-strong">{{ label(p) }}</button>
                 } @else {
                   <span class="block truncate text-body-sm font-semibold text-body">{{ label(p) }}</span>
                 }
-                @if (secondary(p)) { <span class="block truncate text-body-sm text-subtle">{{ secondary(p) }}</span> }
+                @if (secondary(p)) { <span class="block truncate text-body-sm text-muted">{{ secondary(p) }}</span> }
               </span>
               @if (group.pending) {
                 <span class="shrink-0" jhChip tone="info">{{ 'events.participants.pending' | transloco }}</span>

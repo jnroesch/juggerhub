@@ -1,14 +1,14 @@
 <main class="mx-auto max-w-container-md px-md py-lg">
-  <a [routerLink]="['/parties', id]" class="text-body-sm text-subtle transition-colors hover:text-body">{{ 'parties.backToParty' | transloco }}</a>
+  <a [routerLink]="['/parties', id]" class="text-body-sm text-muted transition-colors hover:text-body">{{ 'parties.backToParty' | transloco }}</a>
   <h1 class="mt-xs text-h3">{{ 'parties.invitations.title' | transloco }}</h1>
-  <p class="mt-xs text-body-sm text-subtle">{{ 'parties.invitations.hint' | transloco }}</p>
+  <p class="mt-xs text-body-sm text-muted">{{ 'parties.invitations.hint' | transloco }}</p>
 
   <jh-card class="mt-md">
     <p class="text-eyebrow uppercase text-muted">{{ 'parties.invitations.shareableLink' | transloco }}</p>
     @if (link(); as l) {
       <input readonly [value]="l.url" class="mt-xs w-full rounded-md border border-border-muted bg-surface-sunken px-md py-sm text-caption text-muted" />
     } @else {
-      <p class="mt-xs text-body-sm text-subtle">{{ 'parties.invitations.noActiveLink' | transloco }}</p>
+      <p class="mt-xs text-body-sm text-muted">{{ 'parties.invitations.noActiveLink' | transloco }}</p>
     }
     <button type="button" (click)="rotateLink()" jhButton variant="secondary" size="sm" class="mt-xs">
       {{ (link() ? 'parties.invitations.regenerateLink' : 'parties.invitations.createLink') | transloco }}
@@ -18,15 +18,15 @@
   <jh-card class="mt-md">
     <p class="text-eyebrow uppercase text-muted">{{ 'parties.invitations.inviteMember' | transloco }}</p>
     <input [(ngModel)]="query" (input)="search()" [placeholder]="'parties.invitations.searchMembers' | transloco"
-      class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+      class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
     <ul class="mt-xs divide-y divide-border-muted">
       @for (u of results(); track u.userId) {
         <li class="flex items-center justify-between py-sm">
-          <span class="text-body-sm text-body">{{ u.displayName }} <span class="text-subtle">@{{ u.handle }}</span></span>
+          <span class="text-body-sm text-body">{{ u.displayName }} <span class="text-muted">@{{ u.handle }}</span></span>
           @if (u.relation === 'Invitable') {
             <button type="button" (click)="invite(u)" jhButton size="sm">{{ 'parties.invitations.invite' | transloco }}</button>
           } @else {
-            <span class="text-caption text-subtle">{{ (u.relation === 'Invited' ? 'parties.invitations.invited' : 'parties.invitations.admin') | transloco }}</span>
+            <span class="text-caption text-muted">{{ (u.relation === 'Invited' ? 'parties.invitations.invited' : 'parties.invitations.admin') | transloco }}</span>
           }
         </li>
       }

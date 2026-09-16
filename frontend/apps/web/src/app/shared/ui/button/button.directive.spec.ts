@@ -37,7 +37,7 @@ describe('ButtonDirective (jhButton)', () => {
 
   it('primary uses the coral brand background, on-accent text, hover glow, and press nudge', () => {
     const cls = btn().classList;
-    expect(cls).toContain('bg-brand');
+    expect(cls).toContain('bg-brand-strong');
     expect(cls).toContain('text-on-accent');
     expect(cls).toContain('hover:shadow-coral');
     expect(cls).toContain('active:translate-y-px');
@@ -57,7 +57,7 @@ describe('ButtonDirective (jhButton)', () => {
     fixture.detectChanges();
     const cls = btn().classList;
     expect(cls).toContain('text-danger-fg');
-    expect(cls).not.toContain('bg-brand');
+    expect(cls).not.toContain('bg-brand-strong');
   });
 
   it('sm size drops below the md target for dense/inline use', () => {

@@ -73,7 +73,7 @@
   (closePanel)="filtersOpen.set(false)"
 >
   <div class="flex flex-col gap-sm">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.showEyebrow' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.showEyebrow' | transloco }}</span>
     <jh-filter-toggle
       [label]="'browse.trainings.hidePastLabel' | transloco"
       [hint]="'browse.trainings.hidePastHint' | transloco"
@@ -83,7 +83,7 @@
   </div>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.trainings.dateRange' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.trainings.dateRange' | transloco }}</span>
     <div class="flex items-center gap-xs">
       <input
         type="date"
@@ -92,7 +92,7 @@
         [value]="pendingFrom()"
         (input)="onPendingFrom($any($event.target).value)"
       />
-      <span class="text-subtle">–</span>
+      <span class="text-muted">–</span>
       <input
         type="date"
         class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
@@ -104,7 +104,7 @@
   </div>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.trainings.city' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.trainings.city' | transloco }}</span>
     <jh-city-picker
       [initial]="initialCity()"
       [placeholder]="'browse.trainings.cityPlaceholder' | transloco"
@@ -113,7 +113,7 @@
   </div>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.country' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.country' | transloco }}</span>
     <jh-country-picker [value]="pendingCountry()" (valueChange)="onPendingCountry($event)" />
   </div>
 </jh-filter-panel>

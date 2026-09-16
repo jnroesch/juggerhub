@@ -71,15 +71,31 @@ module.exports = {
           4: 'var(--lemon-4)',
           5: 'var(--lemon-5)',
           6: 'var(--lemon-6)',
+          7: 'var(--lemon-7)',
           DEFAULT: 'var(--lemon-2)',
         },
 
-        /* Semantic — brand */
+        /*
+         * Semantic — brand. Two roles per accent, and the pair is load-bearing
+         * (GH #298): `brand` is coral-4, the identity colour, and it is
+         * decorative — a gradient, a border, a progress fill, a dot. White on it
+         * is 3.14:1 and it is 3.14:1 as text, so it carries no label and is no
+         * label. `brand-strong` is coral-6, legible in both directions at
+         * 5.71:1: filled buttons, filled chips, count badges, coral text, coral
+         * icons. Sage is split the same way.
+         *
+         * `brand-hover` / `brand-active` (coral-5 / coral-6) are gone with the
+         * split — the hover of a coral-4 fill that no longer carries text has no
+         * callers, and coral-6 under a second name was how `bg-brand-active`
+         * came to be a rest state. `scale-keys.spec.ts` fails on either spelling
+         * written from here on.
+         */
         brand: 'var(--brand-primary)',
-        'brand-hover': 'var(--brand-primary-hover)',
-        'brand-active': 'var(--brand-primary-active)',
+        'brand-strong': 'var(--brand-primary-strong)',
+        'brand-strong-hover': 'var(--brand-primary-strong-hover)',
         secondary: 'var(--brand-secondary)',
-        'secondary-hover': 'var(--brand-secondary-hover)',
+        'secondary-strong': 'var(--brand-secondary-strong)',
+        'secondary-strong-hover': 'var(--brand-secondary-strong-hover)',
         highlight: 'var(--brand-highlight)',
 
         /* Semantic — surfaces */
@@ -122,9 +138,7 @@ module.exports = {
 
         /* Legacy aliases — repointed to the warm palette */
         primary: 'var(--brand-primary)',
-        'primary-hover': 'var(--brand-primary-hover)',
         accent: 'var(--brand-secondary)',
-        'accent-hover': 'var(--brand-secondary-hover)',
         info: 'var(--blue-5)',
         'info-strong': 'var(--blue-6)',
         success: 'var(--green-5)',
@@ -142,8 +156,16 @@ module.exports = {
          * name again.
          */
         muted: 'var(--text-muted)',
-        subtle: 'var(--text-subtle)',
-        faint: 'var(--sand-4)',
+        /*
+         * `subtle` (sand-5) and `faint` (sand-4) are retired (GH #298). They were
+         * the app's default secondary text — 305 and 59 elements — at 2.92:1 and
+         * 1.97:1 on white, below the 4.5:1 floor DESIGN.md claims the ramp is
+         * tuned to, and they cannot be darkened into compliance without landing
+         * on top of `muted`. Everything that wore them wears `muted` now, and
+         * removing the keys is what makes the retirement stick: `scale-keys.spec.ts`
+         * fails on a `text-subtle` written tomorrow, the way it does for
+         * `text-heading-lg` (GH #299) and `rounded-full` (GH #301).
+         */
         surface: 'var(--surface-card)',
         'surface-subtle': 'var(--surface-sunken)',
         background: 'var(--surface-page)',
@@ -264,7 +286,13 @@ module.exports = {
         slow: '320ms',
       },
       ringColor: {
-        focus: 'var(--coral-1)',
+        /*
+         * The focus indicator. It was coral-1 — 1.32:1 against white, i.e. very
+         * nearly invisible, against WCAG 2.2's 3:1 for focus indicators (GH #298).
+         * It is `border-focus` now, the same token the inputs put on their focus
+         * border, so every focusable thing in the product focuses one colour.
+         */
+        focus: 'var(--border-focus)',
       },
     },
   },

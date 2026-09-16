@@ -16,7 +16,7 @@
       }
       <label for="tugeny-team-list" class="sr-only">{{ 'events.results.teamList.title' | transloco }}</label>
       <textarea #box id="tugeny-team-list" readonly [rows]="l.names.length > 8 ? 8 : l.names.length"
-        class="mt-sm w-full rounded-md border border-border-strong bg-surface-sunken px-md py-sm font-mono text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+        class="mt-sm w-full rounded-md border border-border-strong bg-surface-sunken px-md py-sm font-mono text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"
         [value]="l.text" data-testid="team-list-text"></textarea>
       <div class="mt-xs flex flex-wrap items-center gap-sm">
         <button type="button" jhButton variant="secondary" size="sm" (click)="copy(l.text, box)" data-testid="team-list-copy">{{ 'events.results.teamList.copy' | transloco }}</button>

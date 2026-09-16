@@ -5,7 +5,7 @@
     <jh-empty-state [heading]="'trainings.session.notFound' | transloco">{{ 'trainings.session.notFoundBody' | transloco }}</jh-empty-state>
   } @else if (session(); as s) {
     @if (back(); as b) {
-      <a [routerLink]="b.link" [queryParams]="b.queryParams" [state]="b.state" class="text-body-sm text-subtle hover:text-text" data-testid="session-back">{{ 'trainings.backTrainings' | transloco }}</a>
+      <a [routerLink]="b.link" [queryParams]="b.queryParams" [state]="b.state" class="text-body-sm text-muted hover:text-text" data-testid="session-back">{{ 'trainings.backTrainings' | transloco }}</a>
     }
 
     <!-- Hero: chips, title, icon meta list -->
@@ -87,7 +87,7 @@
                 <ul class="mt-2xs divide-y divide-border-muted">
                   @for (p of grp.g.people; track p.handle) {
                     <li class="flex items-center gap-sm py-xs">
-                      <span class="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-caption font-semibold text-secondary">
+                      <span class="grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-pill bg-surface-secondary-soft text-caption font-semibold text-secondary-strong">
                         @if (p.hasAvatar) { <img [src]="avatarUrl(p.handle)" alt="" class="h-full w-full object-cover" /> } @else { {{ initial(p.displayName) }} }
                       </span>
                       <a [routerLink]="['/u', p.handle]" class="min-w-0 flex-1 truncate text-body-sm font-medium text-heading hover:text-link">
@@ -181,7 +181,7 @@
                     <button type="button" (click)="skip()" [disabled]="busy()" class="block w-full px-md py-sm text-left text-body-sm text-body hover:bg-surface-sunken disabled:opacity-60">{{ 'trainings.session.skipDate' | transloco }}</button>
                   }
                   @if (canRespond()) {
-                    <button type="button" (click)="cancel()" [disabled]="busy()" class="block w-full px-md py-sm text-left text-body-sm font-medium text-danger hover:bg-surface-sunken disabled:opacity-60">{{ 'trainings.session.cancelSession' | transloco }}</button>
+                    <button type="button" (click)="cancel()" [disabled]="busy()" class="block w-full px-md py-sm text-left text-body-sm font-medium text-danger-fg hover:bg-surface-sunken disabled:opacity-60">{{ 'trainings.session.cancelSession' | transloco }}</button>
                   }
                 </div>
               }

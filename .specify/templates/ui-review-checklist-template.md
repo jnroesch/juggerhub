@@ -52,7 +52,7 @@ DESIGN.md wins and the conflict is reported rather than silently resolved.
 ## Motion & states
 
 - [ ] CHK019 Transitions use the `fast`/`base`/`slow` durations (120/200/320ms) and token easings (`ease-out` entrances, `ease-bounce` for toggles)
-- [ ] CHK020 Focus is always visible: 2px coral border + coral `focus-ring`
+- [ ] CHK020 Focus is always visible: a 2px `border-focus` ring (`ring-focus`), with a 2px offset on a filled control
 - [ ] CHK021 Buttons darken a brand step + gain a colored glow on hover, and nudge down 1px / scale 0.99 on press
 - [ ] CHK022 No infinite decorative animation loops in content
 

@@ -106,7 +106,7 @@
               -->
               <div
                 class="rounded-md px-sm py-xs text-body-md"
-                [class]="m.isOwn ? 'bg-brand-active text-on-accent' : 'bg-surface-muted text-body'"
+                [class]="m.isOwn ? 'bg-brand-strong text-on-accent' : 'bg-surface-muted text-body'"
                 [attr.data-testid]="m.isOwn ? 'own-bubble' : 'their-bubble'"
               >
                 @if (m.isDeleted) {
@@ -203,7 +203,7 @@
                 <button
                   type="button"
                   (click)="deleteMessage(m.id)"
-                  class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-subtle opacity-0 transition-opacity duration-fast hover:text-danger-fg focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus group-hover:opacity-100"
+                  class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted opacity-0 transition-opacity duration-fast hover:text-danger-fg focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus group-hover:opacity-100"
                   [attr.aria-label]="'chat.conversation.deleteYourMessage' | transloco"
                   data-testid="delete-message"
                 >
@@ -215,7 +215,7 @@
             </div>
 
             <!-- Time + receipt. The receipt is TEXT, never colour alone (CHK026/CHK037). -->
-            <span class="mt-xs flex items-center gap-xs px-xs font-mono text-caption text-subtle">
+            <span class="mt-xs flex items-center gap-xs px-xs font-mono text-caption text-muted">
               <span>{{ messageTime(m.sentAt) }}</span>
               @if (m.readState) {
                 <span aria-live="polite">· {{ m.readState }}</span>
@@ -232,7 +232,7 @@
                 class="mt-xs max-w-[85%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 data-testid="link-card"
               >
-                <span class="text-eyebrow uppercase tracking-eyebrow text-subtle">{{ card.kind }}</span>
+                <span class="text-eyebrow uppercase tracking-eyebrow text-muted">{{ card.kind }}</span>
                 <span class="mt-xs block text-body-md font-semibold text-heading">{{ card.title }}</span>
                 @if (card.subtitle) {
                   <span class="block text-body-sm text-muted">{{ card.subtitle }}</span>
@@ -310,7 +310,7 @@
               <button
                 type="button"
                 (click)="removePending($index)"
-                class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-pill text-subtle transition-colors duration-fast hover:text-danger-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-pill text-muted transition-colors duration-fast hover:text-danger-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 [attr.aria-label]="'chat.compose.removeFile' | transloco: { name: f.name }"
                 data-testid="remove-file"
               >
@@ -362,7 +362,7 @@
             type="text"
             [placeholder]="'chat.compose.placeholder' | transloco:{ name: detail()?.name ?? '' }"
             maxlength="2000"
-            class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-subtle focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
+            class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-sm text-body-md text-body transition-colors duration-fast placeholder:text-muted focus:border-focus focus:outline-none focus:ring-2 focus:ring-focus"
             data-testid="composer"
           />
         </label>
@@ -371,7 +371,7 @@
         <button
           type="submit"
           [disabled]="!canSend()"
-          class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-brand text-on-accent shadow-sm transition-all duration-fast hover:bg-brand-hover hover:shadow-coral active:translate-y-px active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md bg-brand-strong text-on-accent shadow-sm transition-all duration-fast hover:bg-brand-strong-hover hover:shadow-coral active:translate-y-px active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
           [attr.aria-label]="'chat.compose.sendMessage' | transloco"
           data-testid="send"
         >

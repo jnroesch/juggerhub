@@ -51,7 +51,7 @@
           }
         </ol>
 
-        <p class="mt-md text-caption text-subtle" data-testid="results-meta">
+        <p class="mt-md text-caption text-muted" data-testid="results-meta">
           {{ 'events.results.teamsRanked' | transloco: { count: r.rankedCount } }}
           @if (r.resultsChangedAt) {
             <span> · {{ 'events.results.lastChanged' | transloco: { date: (r.resultsChangedAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' }) } }}</span>
@@ -59,7 +59,7 @@
         </p>
 
         @if (imported() && r.tugeny; as link) {
-          <p class="mt-xs text-caption text-subtle" data-testid="results-provenance">
+          <p class="mt-xs text-caption text-muted" data-testid="results-provenance">
             <a [href]="link.tournamentUrl" target="_blank" rel="noopener" class="underline hover:text-link">{{ 'events.results.provenance' | transloco }}</a>
             @if (r.editedSinceImport) {<span> · {{ 'events.results.editedSince' | transloco }}</span>}
           </p>
@@ -91,7 +91,7 @@
               <ul class="mt-xs divide-y divide-border">
                 @for (m of g.matches; track m.id) {
                   <li class="py-xs" data-testid="result-match" [attr.data-winner]="m.winner">
-                    <p class="text-caption text-subtle">
+                    <p class="text-caption text-muted">
                       {{ m.name }}@if (m.winner === 'Draw') {<span> · {{ 'events.results.matches.draw' | transloco }}</span>}
                     </p>
                     <div class="flex items-center gap-sm text-body-sm">

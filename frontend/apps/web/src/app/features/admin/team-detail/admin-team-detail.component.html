@@ -52,7 +52,7 @@
         <section>
           <p class="text-eyebrow uppercase text-muted">{{ 'admin.teamDetail.badges' | transloco }}</p>
           @if (held.badges.length === 0) {
-            <p class="mt-xs text-body-sm text-faint">{{ 'admin.teamDetail.noneYet' | transloco }}</p>
+            <p class="mt-xs text-body-sm text-muted">{{ 'admin.teamDetail.noneYet' | transloco }}</p>
           } @else {
             <ul class="mt-sm flex flex-col gap-xs">
               @for (a of held.badges; track a.awardId) {
@@ -60,7 +60,7 @@
                   <span class="min-w-0">
                     <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
                     <span class="block text-caption text-muted">{{ 'admin.teamDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
-                    @if (a.note) { <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span> }
+                    @if (a.note) { <span class="block truncate text-caption text-muted">“{{ a.note }}”</span> }
                   </span>
                   <button type="button" (click)="revoke(a, 'badge')"
                     jhButton variant="danger" size="sm" class="shrink-0">{{ 'admin.common.revoke' | transloco }}</button>
@@ -73,7 +73,7 @@
         <section>
           <p class="text-eyebrow uppercase text-muted">{{ 'admin.teamDetail.achievements' | transloco }}</p>
           @if (held.achievements.length === 0) {
-            <p class="mt-xs text-body-sm text-faint">{{ 'admin.teamDetail.noneYet' | transloco }}</p>
+            <p class="mt-xs text-body-sm text-muted">{{ 'admin.teamDetail.noneYet' | transloco }}</p>
           } @else {
             <ul class="mt-sm flex flex-col gap-xs">
               @for (a of held.achievements; track a.awardId) {
@@ -82,9 +82,9 @@
                     <span class="block truncate text-body-sm font-semibold text-heading">{{ a.name }}</span>
                     <span class="block text-caption text-muted">{{ 'admin.teamDetail.grantedBy' | transloco:{ name: a.grantedByName } }} · {{ a.earnedAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
                     @if (a.contextLabel || a.contextYear) {
-                      <span class="block truncate text-caption text-subtle">{{ a.contextLabel }} {{ a.contextYear }}</span>
+                      <span class="block truncate text-caption text-muted">{{ a.contextLabel }} {{ a.contextYear }}</span>
                     } @else if (a.note) {
-                      <span class="block truncate text-caption text-subtle">“{{ a.note }}”</span>
+                      <span class="block truncate text-caption text-muted">“{{ a.note }}”</span>
                     }
                   </span>
                   <button type="button" (click)="revoke(a, 'achievement')"

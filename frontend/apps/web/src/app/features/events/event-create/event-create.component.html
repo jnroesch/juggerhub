@@ -1,5 +1,5 @@
 <section class="mx-auto max-w-container-md px-md py-lg" data-testid="event-create">
-  <a routerLink="/" class="text-body-sm text-subtle hover:text-text">{{ 'events.detail.backHome' | transloco }}</a>
+  <a routerLink="/" class="text-body-sm text-muted hover:text-text">{{ 'events.detail.backHome' | transloco }}</a>
 
   <!-- Round-knob progress -->
   <div class="mt-md flex items-center gap-xs" aria-hidden="true">
@@ -16,28 +16,28 @@
         <div class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.typeTitle' | transloco }}</h1>
-            <p class="text-body-md text-subtle">{{ 'events.create.typeSubtitle' | transloco }}</p>
+            <p class="text-body-md text-muted">{{ 'events.create.typeSubtitle' | transloco }}</p>
           </div>
           <div class="grid grid-cols-3 gap-xs rounded-md border border-border-strong p-1" role="group" [attr.aria-label]="'events.create.typeTitle' | transloco">
             @for (t of ['Tournament','Workshop','Other']; track t) {
               <button type="button" (click)="type.set($any(t))"
                 class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
-                [class]="type() === t ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ 'events.type.' + t.toLowerCase() | transloco }}</button>
+                [class]="type() === t ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">{{ 'events.type.' + t.toLowerCase() | transloco }}</button>
             }
           </div>
           @if (type() === 'Other') {
             <input type="text" formControlName="customLabel" [placeholder]="'events.create.customPlaceholder' | transloco" data-testid="event-custom-label"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
           }
           <div>
             <label for="ev-name" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.create.eventName' | transloco }}</label>
             <input id="ev-name" type="text" formControlName="name" [placeholder]="'events.create.namePlaceholder' | transloco" data-testid="event-name"
-              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
           </div>
           <div>
             <label for="ev-desc" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.edit.description' | transloco }}</label>
             <textarea id="ev-desc" formControlName="description" rows="4" [placeholder]="'events.create.descPlaceholder' | transloco" data-testid="event-description"
-              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
+              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"></textarea>
           </div>
         </div>
       }
@@ -47,18 +47,18 @@
         <div class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.whenTitle' | transloco }}</h1>
-            <p class="text-body-md text-subtle">{{ 'events.create.whenSubtitle' | transloco }}</p>
+            <p class="text-body-md text-muted">{{ 'events.create.whenSubtitle' | transloco }}</p>
           </div>
           <div class="grid grid-cols-1 gap-md sm:grid-cols-2">
             <div>
               <label for="ev-start" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.edit.starts' | transloco }}</label>
               <input id="ev-start" type="datetime-local" formControlName="startsAt" data-testid="event-starts"
-                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
             </div>
             <div>
               <label for="ev-end" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.edit.ends' | transloco }}</label>
               <input id="ev-end" type="datetime-local" formControlName="endsAt" data-testid="event-ends"
-                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
             </div>
           </div>
           @if (form.getRawValue().startsAt && form.getRawValue().endsAt && !canAdvance()) {
@@ -72,15 +72,15 @@
         <div class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.whereTitle' | transloco }}</h1>
-            <p class="text-body-md text-subtle">{{ 'events.create.whereSubtitle' | transloco }}</p>
+            <p class="text-body-md text-muted">{{ 'events.create.whereSubtitle' | transloco }}</p>
           </div>
           <div class="grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" aria-label="Location kind">
             <button type="button" (click)="locationKind.set('InPerson')" data-testid="loc-inperson"
               class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
-              [class]="locationKind() === 'InPerson' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ 'events.create.inPerson' | transloco }}</button>
+              [class]="locationKind() === 'InPerson' ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">{{ 'events.create.inPerson' | transloco }}</button>
             <button type="button" (click)="locationKind.set('Virtual')" data-testid="loc-virtual"
               class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
-              [class]="locationKind() === 'Virtual' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ 'events.create.virtual' | transloco }}</button>
+              [class]="locationKind() === 'Virtual' ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">{{ 'events.create.virtual' | transloco }}</button>
           </div>
           @if (locationKind() === 'InPerson') {
             <!-- `initialCity` restores a drafted city into the picker's chip (feature 045). It must
@@ -96,7 +96,7 @@
             />
           } @else {
             <input type="text" formControlName="virtualLink" [placeholder]="'events.create.linkPlaceholder' | transloco" data-testid="event-link"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
           }
         </div>
       }
@@ -106,28 +106,28 @@
         <div class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.whoTitle' | transloco }}</h1>
-            <p class="text-body-md text-subtle">{{ 'events.create.whoSubtitle' | transloco }}</p>
+            <p class="text-body-md text-muted">{{ 'events.create.whoSubtitle' | transloco }}</p>
           </div>
           <div class="grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" aria-label="Participant mode">
             <button type="button" (click)="participantMode.set('Teams')" data-testid="mode-teams"
               class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
-              [class]="participantMode() === 'Teams' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ 'events.detail.teamsOnly' | transloco }}</button>
+              [class]="participantMode() === 'Teams' ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">{{ 'events.detail.teamsOnly' | transloco }}</button>
             <button type="button" (click)="participantMode.set('Individuals')" data-testid="mode-individuals"
               class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
-              [class]="participantMode() === 'Individuals' ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ 'events.detail.individualsOnly' | transloco }}</button>
+              [class]="participantMode() === 'Individuals' ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">{{ 'events.detail.individualsOnly' | transloco }}</button>
           </div>
           <div>
             <label for="ev-limit" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.edit.participationLimit' | transloco }}</label>
             <input id="ev-limit" type="number" min="1" formControlName="participationLimit" data-testid="event-limit"
-              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-            <p class="mt-xs text-body-sm text-faint">{{ 'events.create.limitHint' | transloco }}</p>
+              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
+            <p class="mt-xs text-body-sm text-muted">{{ 'events.create.limitHint' | transloco }}</p>
           </div>
           @if (participantMode() === 'Teams') {
             <div>
               <label for="ev-roster-cap" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.create.rosterCap' | transloco }}</label>
               <input id="ev-roster-cap" type="number" min="5" formControlName="rosterCap" data-testid="event-roster-cap"
-                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
-              <p class="mt-xs text-body-sm text-faint">{{ 'events.create.rosterCapHint' | transloco }}</p>
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
+              <p class="mt-xs text-body-sm text-muted">{{ 'events.create.rosterCapHint' | transloco }}</p>
             </div>
           }
         </div>
@@ -138,31 +138,31 @@
         <div class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.feeTitle' | transloco }}</h1>
-            <p class="text-body-md text-subtle">{{ 'events.create.feeSubtitle' | transloco }}</p>
+            <p class="text-body-md text-muted">{{ 'events.create.feeSubtitle' | transloco }}</p>
           </div>
           <div class="grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" aria-label="Fee">
             <button type="button" (click)="isPaid.set(false)" data-testid="fee-free"
               class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
-              [class]="!isPaid() ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ 'events.create.free' | transloco }}</button>
+              [class]="!isPaid() ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">{{ 'events.create.free' | transloco }}</button>
             <button type="button" (click)="isPaid.set(true)" data-testid="fee-paid"
               class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
-              [class]="isPaid() ? 'bg-brand text-on-accent' : 'text-subtle hover:bg-surface-sunken'">{{ 'events.create.paid' | transloco }}</button>
+              [class]="isPaid() ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">{{ 'events.create.paid' | transloco }}</button>
           </div>
           @if (isPaid()) {
             <div class="grid grid-cols-2 gap-md">
               <input type="number" formControlName="feeAmount" [placeholder]="'events.create.amountPlaceholder' | transloco"
-                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
               <input type="text" formControlName="feeCurrency" [placeholder]="'events.create.currencyPlaceholder' | transloco" maxlength="3"
-                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+                class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
             </div>
             <input type="text" formControlName="feeRecipientName" [placeholder]="'events.create.recipientPlaceholder' | transloco" data-testid="fee-recipient"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
             <input type="text" formControlName="feeIban" [placeholder]="'events.create.ibanPlaceholder' | transloco" data-testid="fee-iban"
-              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm font-mono text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+              class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm font-mono text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
             <div>
               <label for="ev-deadline" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.create.deadline' | transloco }}</label>
               <input id="ev-deadline" type="date" formControlName="feePaymentDeadline"
-                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus" />
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus" />
             </div>
           } @else {
             <div class="rounded-md border border-dashed border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg">
@@ -177,15 +177,15 @@
         <div class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.reviewTitle' | transloco }}</h1>
-            <p class="text-body-md text-subtle">{{ 'events.create.reviewSubtitle' | transloco }}</p>
+            <p class="text-body-md text-muted">{{ 'events.create.reviewSubtitle' | transloco }}</p>
           </div>
           <dl class="divide-y divide-border rounded-md border border-border bg-surface-card px-md">
-            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rType' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ type() === 'Other' ? form.getRawValue().customLabel : ('events.type.' + type().toLowerCase() | transloco) }}</dd></div>
-            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rName' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ form.getRawValue().name }}</dd></div>
-            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rWhen' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ form.getRawValue().startsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }} → {{ form.getRawValue().endsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }}</dd></div>
-            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rWhere' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ locationKind() === 'InPerson' ? (selectedCity()?.label ?? '—') : ('events.detail.online' | transloco) }}</dd></div>
-            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rWho' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ participantMode() }} · {{ 'events.create.limitWord' | transloco }} {{ form.getRawValue().participationLimit }}</dd></div>
-            <div class="flex justify-between py-sm"><dt class="text-body-sm text-subtle">{{ 'events.create.rFee' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ isPaid() ? (form.getRawValue().feeAmount ?? '') + ' ' + form.getRawValue().feeCurrency : ('events.create.free' | transloco) }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-muted">{{ 'events.create.rType' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ type() === 'Other' ? form.getRawValue().customLabel : ('events.type.' + type().toLowerCase() | transloco) }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-muted">{{ 'events.create.rName' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ form.getRawValue().name }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-muted">{{ 'events.create.rWhen' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ form.getRawValue().startsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }} → {{ form.getRawValue().endsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-muted">{{ 'events.create.rWhere' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ locationKind() === 'InPerson' ? (selectedCity()?.label ?? '—') : ('events.detail.online' | transloco) }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-muted">{{ 'events.create.rWho' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ participantMode() }} · {{ 'events.create.limitWord' | transloco }} {{ form.getRawValue().participationLimit }}</dd></div>
+            <div class="flex justify-between py-sm"><dt class="text-body-sm text-muted">{{ 'events.create.rFee' | transloco }}</dt><dd class="text-body-sm font-semibold text-body">{{ isPaid() ? (form.getRawValue().feeAmount ?? '') + ' ' + form.getRawValue().feeCurrency : ('events.create.free' | transloco) }}</dd></div>
           </dl>
           @if (error()) {
             <jh-alert data-testid="event-create-error">{{ error() }}</jh-alert>
@@ -197,7 +197,7 @@
     <!-- Navigation -->
     <div class="flex items-center justify-between pt-sm">
       @if (stepIndex() > 0) {
-        <button type="button" (click)="back()" class="text-body-sm font-semibold text-subtle hover:text-text">{{ 'common.back' | transloco }}</button>
+        <button type="button" (click)="back()" class="text-body-sm font-semibold text-muted hover:text-text">{{ 'common.back' | transloco }}</button>
       } @else {
         <span></span>
       }

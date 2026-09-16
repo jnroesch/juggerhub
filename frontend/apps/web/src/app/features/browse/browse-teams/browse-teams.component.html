@@ -40,7 +40,7 @@
         }
         <span class="flex flex-1 flex-col">
           <span class="text-body-md text-ink">{{ team.name }}</span>
-          <span class="text-body-sm text-subtle">
+          <span class="text-body-sm text-muted">
             @if (team.location) {
               {{ team.location.label }} ·
             }
@@ -64,7 +64,7 @@
   (closePanel)="filtersOpen.set(false)"
 >
   <div class="flex flex-col gap-sm">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.showEyebrow' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.showEyebrow' | transloco }}</span>
     <jh-filter-toggle
       [label]="'browse.teams.activeLabel' | transloco"
       [hint]="'browse.teams.activeHint' | transloco"
@@ -80,7 +80,7 @@
   </div>
 
   <div class="flex flex-col gap-xs">
-    <span class="text-eyebrow uppercase text-faint">{{ 'browse.country' | transloco }}</span>
+    <span class="text-eyebrow uppercase text-muted">{{ 'browse.country' | transloco }}</span>
     <jh-country-picker [value]="pendingCity()" (valueChange)="onPendingCity($event)" />
   </div>
 </jh-filter-panel>

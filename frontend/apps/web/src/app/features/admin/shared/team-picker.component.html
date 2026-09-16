@@ -17,7 +17,7 @@
     <div class="border-b border-border-muted p-md">
       <label for="team-picker-search" class="sr-only">{{ 'admin.results.searchTeams' | transloco }}</label>
       <input id="team-picker-search" type="search" autocomplete="off"
-        class="h-11 w-full rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"
+        class="h-11 w-full rounded-md border border-border-strong bg-surface-card px-md text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"
         [placeholder]="'admin.results.searchTeams' | transloco" [value]="q()" (input)="onType($any($event.target).value)"
         data-testid="team-picker-search" />
     </div>
@@ -28,7 +28,7 @@
       } @else if (error()) {
         <p class="text-body-sm text-danger-fg" role="alert">{{ error() }}</p>
       } @else if (items().length === 0) {
-        <p class="text-body-sm text-faint">{{ 'admin.results.noTeamsFound' | transloco }}</p>
+        <p class="text-body-sm text-muted">{{ 'admin.results.noTeamsFound' | transloco }}</p>
       } @else {
         <ul class="flex flex-col gap-xs">
           @for (t of items(); track t.slug) {
@@ -37,9 +37,9 @@
                 class="flex min-h-11 w-full items-center justify-between gap-sm rounded-md border border-border-muted px-md py-xs text-left hover:bg-surface-sunken">
                 <span class="min-w-0">
                   <span class="block break-words text-body-md font-semibold text-heading">{{ t.name }}</span>
-                  @if (t.location) { <span class="block text-caption text-subtle">{{ t.location }}</span> }
+                  @if (t.location) { <span class="block text-caption text-muted">{{ t.location }}</span> }
                 </span>
-                <span class="shrink-0 font-mono text-caption text-subtle">/t/{{ t.slug }}</span>
+                <span class="shrink-0 font-mono text-caption text-muted">/t/{{ t.slug }}</span>
               </button>
             </li>
           }

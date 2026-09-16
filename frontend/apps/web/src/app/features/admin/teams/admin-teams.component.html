@@ -8,7 +8,7 @@
 <div class="mt-md">
   <label class="relative block">
     <span class="sr-only">{{ 'admin.teams.searchLabel' | transloco }}</span>
-    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
     <input
       type="search"
       [placeholder]="'admin.teams.searchPlaceholder' | transloco"
@@ -38,7 +38,7 @@
   <div jhCard padding="flush" class="mt-md hidden md:block">
     <table class="w-full text-left" data-testid="admin-teams-table">
       <thead>
-        <tr class="border-b border-border-muted text-caption text-subtle">
+        <tr class="border-b border-border-muted text-caption text-muted">
           <th class="px-md py-sm font-medium">{{ 'admin.teams.colTeam' | transloco }}</th>
           <th class="px-md py-sm font-medium">{{ 'admin.teams.colCity' | transloco }}</th>
           <th class="px-md py-sm text-right font-medium">{{ 'admin.teams.colMembers' | transloco }}</th>
@@ -55,12 +55,12 @@
           >
             <td class="px-md py-sm">
               <span class="block text-body-sm font-medium text-body">{{ row.name }}</span>
-              <span class="block text-caption text-subtle">{{ (row.type === 'CityTeam' ? 'admin.teams.cityTeam' : 'admin.teams.mixteam') | transloco }}</span>
+              <span class="block text-caption text-muted">{{ (row.type === 'CityTeam' ? 'admin.teams.cityTeam' : 'admin.teams.mixteam') | transloco }}</span>
             </td>
             <td class="px-md py-sm text-body-sm text-muted">{{ row.location || '—' }}</td>
             <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.memberCount }}</td>
             <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.awardCount }}</td>
-            <td class="px-md py-sm text-right text-subtle" aria-hidden="true">›</td>
+            <td class="px-md py-sm text-right text-muted" aria-hidden="true">›</td>
           </tr>
         }
       </tbody>
@@ -82,7 +82,7 @@
             <span class="truncate text-body-sm font-semibold text-body">{{ row.name }}</span>
             <span class="whitespace-nowrap font-mono text-caption text-muted">{{ row.awardCount }} {{ (row.awardCount === 1 ? 'admin.teams.awardOne' : 'admin.teams.awardMany') | transloco }}</span>
           </span>
-          <span class="mt-1 block text-caption text-subtle">
+          <span class="mt-1 block text-caption text-muted">
             {{ (row.type === 'CityTeam' ? 'admin.teams.cityTeam' : 'admin.teams.mixteam') | transloco }}@if (row.location) { · {{ row.location }}} · <span class="font-mono">{{ row.memberCount }}</span> {{ 'admin.teams.membersLower' | transloco }}
           </span>
         </a>
@@ -92,7 +92,7 @@
 
   <!-- Pagination -->
   <div class="mt-md flex items-center justify-between gap-sm">
-    <span class="font-mono text-caption text-subtle" data-testid="admin-teams-range">
+    <span class="font-mono text-caption text-muted" data-testid="admin-teams-range">
       {{ 'admin.common.showing' | transloco:{ start: rangeStart(), end: rangeEnd(), total: total() } }}
     </span>
     <div class="flex gap-xs">
