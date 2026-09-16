@@ -6,7 +6,7 @@
     "authoritativeNotice": "This is a translation for your convenience. The German version is the binding one — if the two ever disagree, the German text governs.",
     "tocLabel": "On this page",
     "loadErrorTitle": "We couldn't load this page",
-    "loadErrorBody": "Something went wrong fetching the text. Give it another go — and if it keeps failing, write to us at the address in the imprint and we'll send it to you directly.",
+    "loadErrorBody": "We couldn't fetch the text. Give it another go, and if it keeps failing, write to us at the address in the imprint and we'll send it to you directly.",
     "retry": "Try again"
   },
   "crossLink": {

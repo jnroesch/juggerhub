@@ -232,7 +232,7 @@ describe('RegisterComponent', () => {
 
       // The handle is permanent and chosen under time pressure; without this, picking one reads
       // like naming yourself forever.
-      expect(fixture.nativeElement.textContent).toContain('you can set a display name on your profile later');
+      expect(fixture.nativeElement.textContent).toContain('You can set a display name on your profile later');
     });
   });
 

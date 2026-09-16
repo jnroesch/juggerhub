@@ -366,7 +366,7 @@ export class OnboardingComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.saving.set(false);
-          this.error.set('Something went wrong saving your profile. Please try again.');
+          this.error.set("We couldn't save your profile. Please try again.");
         },
       });
   }
