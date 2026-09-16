@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-container-md px-md py-2xl" data-testid="chat-inbox">
   <div class="flex items-center justify-between gap-md">
-    <h1 class="text-h3 text-heading">{{ 'chat.inbox.title' | transloco }}</h1>
+    <h1 class="text-h3">{{ 'chat.inbox.title' | transloco }}</h1>
 
     <a
       routerLink="/chat/new"
@@ -62,7 +62,7 @@
 
   <!-- The inbox — or, while a term is entered, the conversations it matched: the same rows either way -->
   @if (displayed().length > 0) {
-    <ul class="mt-lg divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card" data-testid="conversation-list">
+    <ul jhCard padding="flush" class="mt-lg divide-y divide-border-muted" data-testid="conversation-list">
       @for (c of displayed(); track c.id) {
         <li>
           <a
@@ -159,7 +159,7 @@
 
   <!-- Empty: warm, with a next step (wireframe 9a). Never while a term is entered — that is the search's own empty state. -->
   @if (hasNothing() && !isSearching()) {
-    <div class="mt-lg rounded-lg border border-border-muted bg-surface-card px-md py-2xl text-center" data-testid="chat-empty">
+    <div jhCard padding="flush" class="mt-lg px-md py-2xl text-center" data-testid="chat-empty">
       <h2 class="text-h4 text-heading">{{ 'chat.inbox.noMessagesYet' | transloco }}</h2>
       <p class="mx-auto mt-xs max-w-sm text-body-md text-muted">
         {{ 'chat.inbox.emptySubtitle' | transloco }}

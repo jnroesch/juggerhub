@@ -6,7 +6,7 @@
       <div class="mt-md h-32 rounded-lg bg-surface-muted"></div>
     </div>
   } @else if (failed()) {
-    <div class="rounded-lg border border-border-muted bg-surface-card px-md py-2xl text-center shadow-sm" data-testid="home-error">
+    <div jhCard padding="flush" class="px-md py-2xl text-center" data-testid="home-error">
       <p class="text-body-lg font-semibold text-heading">{{ 'home.errorTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-muted">{{ 'home.errorBody' | transloco }}</p>
       <button type="button" class="mt-md rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
@@ -15,8 +15,8 @@
     <!-- Greeting -->
     <header data-testid="home-greeting">
       @if (hasTeam()) {
-        <h1 class="text-h3 text-heading">{{ 'home.greetingHi' | transloco:{ name: home.viewer.displayName } }}</h1>
-        <p class="mt-xs text-body-sm text-muted">
+        <h1 class="text-h2">{{ 'home.greetingHi' | transloco:{ name: home.viewer.displayName } }}</h1>
+        <p class="mt-xs text-lead text-muted">
           @if (home.needsYou.length > 0) {
             {{ (home.needsYou.length === 1 ? 'home.needsYouOne' : 'home.needsYouMany') | transloco:{ count: home.needsYou.length } }}
           } @else if (home.upNext.length > 0) {
@@ -26,8 +26,8 @@
           }
         </p>
       } @else {
-        <h1 class="text-h3 text-heading">{{ 'home.greetingWelcome' | transloco:{ name: home.viewer.displayName } }}</h1>
-        <p class="mt-xs text-body-sm text-muted">{{ 'home.findCrew' | transloco }}</p>
+        <h1 class="text-h2">{{ 'home.greetingWelcome' | transloco:{ name: home.viewer.displayName } }}</h1>
+        <p class="mt-xs text-lead text-muted">{{ 'home.findCrew' | transloco }}</p>
       }
     </header>
 
@@ -43,7 +43,7 @@
 
         @if (hasTeam()) {
           <!-- 2. Up next — unified participation agenda (events + trainings) -->
-          <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="up-next">
+          <section jhCard data-testid="up-next">
             <div class="mb-sm flex items-center justify-between">
               <h2 class="text-body-lg font-semibold text-heading">{{ 'home.upNext' | transloco }}</h2>
               @if (home.upNext.length > 0) {
@@ -77,7 +77,7 @@
 
           <!-- Open to everyone -->
           @if (home.openToEveryone.length > 0) {
-            <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="open-to-everyone">
+            <section jhCard data-testid="open-to-everyone">
               <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'home.openToEveryone' | transloco }}</h2>
               <div class="flex flex-col gap-xs">
                 @for (item of home.openToEveryone; track item.id) {
@@ -92,7 +92,7 @@
       <!-- Rail — reading + ambient -->
       <aside class="flex min-w-0 flex-col gap-lg">
         <!-- 3. News — authored broadcast (team + event + party) -->
-        <section class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" data-testid="news">
+        <section jhCard data-testid="news">
           <div class="mb-sm flex items-center justify-between">
             <h2 class="text-body-lg font-semibold text-heading">{{ 'home.news' | transloco }}</h2>
             @if (home.news.length > 0) {

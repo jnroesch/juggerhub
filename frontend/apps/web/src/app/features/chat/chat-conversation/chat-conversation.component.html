@@ -19,7 +19,7 @@
 
     <span class="min-w-0 flex-1">
       <span class="flex items-center gap-xs">
-        <h1 class="truncate text-body-lg font-semibold text-heading">{{ detail()?.name ?? '…' }}</h1>
+        <h1 class="truncate text-body-lg font-semibold">{{ detail()?.name ?? '…' }}</h1>
         @if (detail()?.kind === 'Team') {
           <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-muted">{{ 'chat.inbox.tagTeam' | transloco }}</span>
         } @else if (detail()?.kind === 'Party') {
@@ -226,7 +226,10 @@
             @if (m.linkCard; as card) {
               <a
                 [routerLink]="card.href"
-                class="mt-xs block max-w-[85%] rounded-lg border border-border-muted bg-surface-card p-sm shadow-sm transition-all duration-fast hover:-translate-y-px hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                jhCard
+                interactive
+                padding="dense"
+                class="mt-xs max-w-[85%] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 data-testid="link-card"
               >
                 <span class="text-eyebrow uppercase tracking-eyebrow text-subtle">{{ card.kind }}</span>

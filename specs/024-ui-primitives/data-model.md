@@ -24,15 +24,30 @@ element's own `type`, `disabled`, `routerLink`, `aria-*`, `data-testid`, `(click
 - Primary label color: `text-on-accent` (never raw `text-white`).
 - At most one `variant="primary"` per view (DESIGN.md; author-enforced, checklist item).
 
-## Primitive: Card (`jh-card` component)
+## Primitive: Card (`jh-card` component, or `jhCard` on any element)
 
 | Input | Type | Default | Notes |
 |-------|------|---------|-------|
+| `padding` | `'default' \| 'dense' \| 'flush'` | `'default'` | 24px (spacing-6) / 16px / none — see below (GH #302) |
 | `accent` | `boolean` | `false` | renders the 4px `bg-brand-gradient` top strip |
 | `interactive` | `boolean` | `false` | adds hover lift (`-translate-y-[3px]` + deeper shadow) for clickable cards |
+| `overflowVisible` | `boolean` | `false` | drops the `overflow: hidden` clip so a positioned child can escape |
 
 Content via `<ng-content>`. Invariants: `surface-card`, `border-border-muted`,
 `rounded-lg`, `shadow-sm`, `p-6`(spacing-6).
+
+**Amended by GH #302.** Two changes, both recovering what this table already said:
+
+- The selector is `jh-card, [jhCard]`, so the card can be a `<section>`, `<li>`,
+  `<a>`, `<form>` or `<ul>`. T033 deferred ~60 surfaces because they were "nested
+  `<section>`/`<ul>` page panels" a `jh-card` *element* could not become; the
+  attribute removes that obstacle, and all but two are adopted.
+- `p-6` moves from a written invariant to the enforced default. T033's refinement —
+  "own only the *surface* … leaving padding to callers" — is reverted: padding did
+  not stay at 24, it drifted to three values with 16px on 32 of 40 call sites, which
+  GH #278 reported as text crowding the edge of the box. `dense` (16px) and `flush`
+  (none) name the two variations that are real; `app/core/design/card-surface.spec.ts`
+  fails on a card that writes its own.
 
 ## Primitive: Empty state (`jh-empty-state` component)
 

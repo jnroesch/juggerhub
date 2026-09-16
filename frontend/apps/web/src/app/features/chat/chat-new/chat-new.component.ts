@@ -4,6 +4,7 @@ import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ChatService } from '../../../core/services/chat.service';
 import { PersonHit } from '../../../core/models/chat.models';
+import { CardComponent } from '../../../shared/ui';
 
 /**
  * Start a chat (feature 019, wireframe 9e): pick **one person** for a DM, or **several** for a named
@@ -16,7 +17,7 @@ import { PersonHit } from '../../../core/models/chat.models';
  */
 @Component({
   selector: 'jh-chat-new',
-  imports: [FormsModule, RouterLink, TranslocoPipe],
+  imports: [CardComponent, FormsModule, RouterLink, TranslocoPipe],
   templateUrl: './chat-new.component.html',
   styleUrl: './chat-new.component.css',
 })

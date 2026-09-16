@@ -11,7 +11,7 @@
     <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
   } @else if (editor(); as e) {
     <a [routerLink]="['/events', e.eventId]" class="text-body-sm text-subtle hover:text-text" data-testid="results-back">‹ {{ e.eventName }}</a>
-    <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'events.results.title' | transloco }}</h1>
+    <h1 class="mt-md text-h3">{{ 'events.results.title' | transloco }}</h1>
     <p class="text-body-sm text-subtle">{{ e.eventName }}</p>
 
     @if (!e.isTournament) {
@@ -21,7 +21,7 @@
     } @else {
       <div class="mt-lg space-y-md lg:grid lg:grid-cols-3 lg:items-start lg:gap-lg lg:space-y-0">
         <!-- The ranking (US1, US2) -->
-        <jh-card class="p-md lg:col-span-2" data-testid="ranking-editor">
+        <jh-card class="lg:col-span-2" data-testid="ranking-editor">
           <h2 class="text-body-lg font-semibold text-heading">{{ 'events.results.editor.title' | transloco }}</h2>
 
           @if (e.isCancelled) {

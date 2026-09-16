@@ -14,7 +14,7 @@
 
     <!-- Fork: this one, or all of them? -->
     @if (mode() === 'fork') {
-      <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.edit.forkTitle' | transloco }}</h1>
+      <h1 class="mt-md text-h3">{{ 'trainings.edit.forkTitle' | transloco }}</h1>
       <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.edit.forkDesc' | transloco }}</p>
       <div class="mt-md flex flex-col gap-sm">
         <button type="button" (click)="choose('single')" class="rounded-lg border border-border-muted p-md text-left hover:border-border-strong">
@@ -31,7 +31,7 @@
     <!-- Edit this session (detaches) -->
     @if (mode() === 'single') {
       <div class="mt-md flex items-center gap-xs">
-        <h1 class="text-heading-lg font-semibold text-heading">{{ 'trainings.edit.editThisSession' | transloco }}</h1>
+        <h1 class="text-h3">{{ 'trainings.edit.editThisSession' | transloco }}</h1>
         @if (!s.isOneOff) {
           <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ 'trainings.edit.detachesFromSeries' | transloco }}</span>
         }
@@ -78,7 +78,7 @@
 
     <!-- Edit the whole series -->
     @if (mode() === 'series') {
-      <h1 class="mt-md text-heading-lg font-semibold text-heading">{{ 'trainings.edit.editSeries' | transloco }}</h1>
+      <h1 class="mt-md text-h3">{{ 'trainings.edit.editSeries' | transloco }}</h1>
       <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.edit.editSeriesDesc' | transloco }}</p>
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.name' | transloco }}
         <input [(ngModel)]="name" type="text" maxlength="120" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />

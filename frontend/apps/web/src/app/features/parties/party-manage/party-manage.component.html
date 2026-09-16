@@ -6,7 +6,7 @@
   } @else if (party(); as p) {
     <a [routerLink]="['/t', p.teamSlug]" class="text-body-sm text-subtle transition-colors hover:text-body">‹ {{ p.teamName }}</a>
     <div class="mt-xs flex flex-wrap items-center justify-between gap-sm">
-      <h1 class="text-h3 text-heading">{{ p.teamName }} @ {{ p.eventName }}</h1>
+      <h1 class="text-h3">{{ p.teamName }} @ {{ p.eventName }}</h1>
       <span class="font-mono text-body-sm text-muted">{{ p.inCount }} / {{ p.rosterCap }} {{ 'parties.manage.inSuffix' | transloco }}</span>
     </div>
     <p class="mt-xs text-body-sm text-subtle">{{ p.startsAt | translocoDate: { dateStyle: 'medium' } }}
@@ -25,7 +25,7 @@
 
     <!-- Member (non-admin) self actions -->
     @if (!isAdmin()) {
-      <jh-card class="mt-md p-md">
+      <jh-card class="mt-md">
         @if (p.myState === 'In') {
           <p class="text-body-sm text-body">{{ 'parties.manage.youreInCrew' | transloco }}</p>
           <button type="button" (click)="leave()" [disabled]="acting()"
@@ -45,7 +45,7 @@
 
     <!-- Readiness + apply (admin) -->
     @if (isAdmin()) {
-      <jh-card class="mt-md p-md">
+      <jh-card class="mt-md">
         <ul class="space-y-1 text-body-sm text-muted">
           <li>{{ p.readiness.enoughToFieldTeam ? '✓' : '·' }} {{ 'parties.manage.readinessEnough' | transloco }}</li>
           <li>· {{ 'parties.manage.readinessSpots' | transloco:{ spots: p.readiness.spotsOpen, cap: p.rosterCap } }}</li>
@@ -77,7 +77,7 @@
           class="rounded-md px-sm py-xs">{{ 'parties.manage.tabNoReply' | transloco }} · {{ p.noResponseCount }}</button>
       </div>
 
-      <ul class="mt-sm divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card shadow-sm">
+      <ul jhCard padding="flush" class="mt-sm divide-y divide-border-muted">
         @for (m of members(); track m.userId) {
           <li class="flex items-center justify-between gap-sm px-md py-sm">
             <a [routerLink]="['/u', m.handle]" class="group flex min-w-0 items-center gap-sm">
@@ -114,7 +114,7 @@
       <section class="mt-md">
         <p class="text-eyebrow uppercase text-muted">{{ 'parties.partyNewsLabel' | transloco }}</p>
         @if (isAdmin()) {
-          <form (ngSubmit)="postNews()" class="mt-xs rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+          <form jhCard padding="dense" (ngSubmit)="postNews()" class="mt-xs">
             <textarea [(ngModel)]="newsBody" name="newsBody" rows="2" maxlength="1000"
               [placeholder]="'parties.newsPlaceholder' | transloco"
               class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-brand focus:ring-2 focus:ring-focus"></textarea>
@@ -126,7 +126,7 @@
         }
         <ul class="mt-sm space-y-sm">
           @for (n of news(); track n.id) {
-            <li class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+            <li jhCard padding="dense">
               <p class="text-body-sm font-semibold text-heading">{{ n.authorDisplayName }}
                 <span class="ml-1 text-caption font-normal text-subtle">{{ (n.authorRole === 'Admin' ? 'parties.partyAdmin' : 'parties.member') | transloco }} · {{ n.createdDate | translocoDate: { dateStyle: 'short', timeStyle: 'short' } }}</span>
               </p>
@@ -141,7 +141,7 @@
 
     <!-- Tools (admin) -->
     @if (isAdmin()) {
-      <jh-card class="mt-md p-md">
+      <jh-card class="mt-md">
         <p class="text-eyebrow uppercase text-muted">{{ 'parties.manage.partyTools' | transloco }}</p>
         <div class="mt-sm grid gap-xs">
           <a [routerLink]="['/parties', id, 'recruiting']" class="rounded-md border border-border-muted px-md py-sm text-body-sm font-medium text-body transition-colors hover:bg-surface-sunken">{{ 'parties.manage.recruitingMarket' | transloco }}</a>

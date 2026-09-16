@@ -2,7 +2,7 @@
   @if (loading()) {
     <jh-loading />
   } @else if (loadError()) {
-    <div class="rounded-lg border border-border bg-surface-card px-md py-lg text-center">
+    <div jhCard class="text-center">
       <p class="text-body-lg font-bold text-ink">{{ 'events.detail.notFoundTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-subtle">{{ 'events.detail.notFoundBody' | transloco }}</p>
       <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand">{{ 'events.detail.goHome' | transloco }}</a>
@@ -21,7 +21,7 @@
       </div>
     }
 
-    <h1 class="mt-md text-heading-lg font-bold text-ink">{{ d.name }}</h1>
+    <h1 class="mt-md text-h3">{{ d.name }}</h1>
     <ul class="mt-sm space-y-xs text-body-md text-body">
       <li class="flex items-center gap-sm">
         <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -66,7 +66,7 @@
         }
 
         <!-- Details -->
-        <div class="rounded-lg border border-border bg-surface-card p-md">
+        <div jhCard>
           <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.about' | transloco }}</h2>
           <p class="mt-xs whitespace-pre-line text-body-md text-body">{{ d.description }}</p>
 
@@ -84,7 +84,7 @@
         </div>
 
         <!-- Who's taking part -->
-        <div class="rounded-lg border border-border bg-surface-card p-md">
+        <div jhCard>
           <jh-event-participant-groups
             [joined]="joined()"
             [awaiting]="awaiting()"
@@ -94,13 +94,13 @@
 
         <!-- Mercenary market (feature 017 — teams events only) -->
         @if (d.participantMode === 'Teams' && !cancelled() && !ended()) {
-          <div class="rounded-lg border border-border bg-surface-card p-md">
+          <div jhCard>
             <jh-market-board [eventId]="d.id" [authenticated]="d.viewer.isAuthenticated" />
           </div>
         }
 
         <!-- News -->
-        <div class="rounded-lg border border-border bg-surface-card p-md">
+        <div jhCard>
           <jh-event-news-feed
             [news]="news()"
             [canCompose]="d.viewer.isAdmin && !cancelled()"
@@ -147,7 +147,7 @@
 
           <!-- Entrance fee -->
           @if (d.isPaid) {
-            <div class="rounded-lg border border-border bg-surface-card p-md" data-testid="fee-block">
+            <div jhCard data-testid="fee-block">
               <div class="flex items-center justify-between">
                 <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.entranceFee' | transloco }}</h2>
                 @if (d.feePaymentDeadline) { <span class="rounded-full bg-surface-sunken px-sm py-0.5 text-body-sm text-subtle">{{ 'events.detail.payBy' | transloco:{ date: (d.feePaymentDeadline | translocoDate: { month: 'short', day: 'numeric' }) } }}</span> }
@@ -162,7 +162,7 @@
           }
 
           <!-- Contacts -->
-          <div class="rounded-lg border border-border bg-surface-card p-md">
+          <div jhCard>
             <jh-event-contacts-list [contacts]="contacts()" />
           </div>
         </div>

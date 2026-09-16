@@ -9,6 +9,7 @@ export type { ButtonVariant, ButtonSize } from './button/button.directive';
 export { IconComponent } from './icon/icon.component';
 export type { IconName } from './icon/icons';
 export { CardComponent } from './card/card.component';
+export type { CardPadding } from './card/card.component';
 export { LoadingComponent } from './loading/loading.component';
 export { AlertComponent } from './alert/alert.component';
 export type { AlertTone } from './alert/alert.component';

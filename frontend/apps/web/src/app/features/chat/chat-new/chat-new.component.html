@@ -10,7 +10,7 @@
       </svg>
     </a>
 
-    <h1 class="text-h4 text-heading">{{ 'chat.new.title' | transloco }}</h1>
+    <h1 class="text-h3">{{ 'chat.new.title' | transloco }}</h1>
 
     <button
       type="button"
@@ -89,7 +89,7 @@
   }
 
   @if (people().length > 0) {
-    <ul class="mt-md divide-y divide-border-muted rounded-lg border border-border-muted bg-surface-card" data-testid="people-results">
+    <ul jhCard padding="flush" class="mt-md divide-y divide-border-muted" data-testid="people-results">
       @for (p of people(); track p.userId) {
         <li>
           <button

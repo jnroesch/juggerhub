@@ -1,12 +1,12 @@
 <main class="mx-auto max-w-container-sm px-md py-lg">
   <button type="button" (click)="cancel()" class="mb-md text-body-sm text-subtle transition-colors hover:text-body">{{ 'common.cancel' | transloco }}</button>
-  <h1 class="text-h3 text-heading">{{ 'parties.create.title' | transloco }}</h1>
+  <h1 class="text-h3">{{ 'parties.create.title' | transloco }}</h1>
   <p class="mt-xs text-body-sm text-subtle">{{ 'parties.create.subtitle' | transloco }}</p>
 
   @if (loading()) {
     <jh-loading />
   } @else if (formableTeams().length === 0) {
-    <jh-card class="mt-lg p-md text-body-sm text-muted">
+    <jh-card class="mt-lg text-body-sm text-muted">
       {{ 'parties.create.noTeam' | transloco }}
     </jh-card>
   } @else {

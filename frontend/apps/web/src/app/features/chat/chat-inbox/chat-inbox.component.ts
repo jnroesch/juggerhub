@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ButtonDirective } from '../../../shared/ui';
+import { ButtonDirective, CardComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -20,7 +20,7 @@ import { injectLocale } from '../../../core/i18n/locale-format';
  */
 @Component({
   selector: 'jh-chat-inbox',
-  imports: [RouterLink, FormsModule, ButtonDirective, TranslocoPipe],
+  imports: [CardComponent, RouterLink, FormsModule, ButtonDirective, TranslocoPipe],
   templateUrl: './chat-inbox.component.html',
   styleUrl: './chat-inbox.component.css',
 })

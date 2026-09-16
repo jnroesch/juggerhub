@@ -153,7 +153,21 @@ max width per the taxonomy (research R6).
 
 **Purpose**: Cross-cutting card migration, drift prevention, and final SC verification.
 
-- [~] T033 Migrate card surfaces to `jh-card`. **Partially applied.** `jh-card` design refined to own only the *surface* (white / muted border / lg radius / soft shadow / optional `accent` strip + hover), leaving padding to callers — so wrapping never changes a card's spacing. Adopted for the clean, self-contained cards: the 5 **auth cards** (`accent`, replacing the hand-rolled gradient strip) + `your-trainings-card` + `notification-row`. The remaining ~60 surfaces are **nested `<section>`/`<ul>` page panels** (team-detail/admin/dashboard sections, divide-y list containers, chat bubbles) that already conform to DESIGN.md; converting them is DRY-only and involves fragile close-tag matching, so left for incremental adoption. The drift guard does not police card surfaces (no visual defect to prevent).
+- [X] T033 Migrate card surfaces to `jh-card`. **Completed by GH #302** — see the note below. Originally partially applied: `jh-card` design refined to own only the *surface* (white / muted border / lg radius / soft shadow / optional `accent` strip + hover), leaving padding to callers — so wrapping never changes a card's spacing. Adopted for the clean, self-contained cards: the 5 **auth cards** (`accent`, replacing the hand-rolled gradient strip) + `your-trainings-card` + `notification-row`. The remaining ~60 surfaces are **nested `<section>`/`<ul>` page panels** (team-detail/admin/dashboard sections, divide-y list containers, chat bubbles) that already conform to DESIGN.md; converting them is DRY-only and involves fragile close-tag matching, so left for incremental adoption. The drift guard does not police card surfaces (no visual defect to prevent).
+  > **Amendment (GH #302).** Every clause of the deferral turned out to be load-bearing
+  > in the wrong direction. "Leaving padding to callers — so wrapping never changes a
+  > card's spacing" preserved not one spacing but three: 16px on 32 of the 40 call sites,
+  > 24px on 6, 20px on 1, against a design system that says 24 — and GH #278 reported the
+  > result as text crowding the edge of the box, so there *was* a visual defect to prevent.
+  > "Nested `<section>`/`<ul>` page panels … fragile close-tag matching" was a fact about
+  > the selector, not the markup: `jh-card` was an element, so adopting it meant discarding
+  > the semantics, which is why 59 hand-rolled copies grew up beside it. #302 makes the
+  > selector `jh-card, [jhCard]`, moves `p-6` into the primitive as the default with `dense`
+  > and `flush` naming the two real variations, adopts 58 of the 60 remaining surfaces
+  > (the two exceptions are cards at one breakpoint only), and adds the card half of the
+  > drift guard as `app/core/design/card-surface.spec.ts`. It also enables the two details
+  > that were implemented here and used nowhere: `interactive` (zero uses) and the accent
+  > strip, which DESIGN.md now scopes to the focal card of an otherwise-empty page.
 - [X] T034 [P] Add drift-guard `scripts/check-ui-drift.ps1` (PowerShell) asserting zero occurrences (outside `shared/ui`) of retired patterns: hand-assembled coral buttons, `rounded-pill` brand actions, raw `text-white` on brand, `+ ` text-glyph icons, hand-rolled loading lines, bare `text-danger` alert paragraphs, and "invitation" in copy. **Guard passes clean.** (CI wiring left to the pipeline owner.)
 - [X] T035 Run `checklists/ui-review.md` — feature-specific items CHK030–CHK037 checked; CHK025 contrast exception stands (owner decision).
 - [X] T036 `nx test web --watch=false` (177/177) + `nx build web` green. `nx e2e web-e2e` **not run this session** (recommended before merge).

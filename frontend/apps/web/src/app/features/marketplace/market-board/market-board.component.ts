@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, input, signal } from '@angular/core';
-import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, LoadingComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MarketService } from '../../../core/services/market.service';
@@ -27,7 +27,7 @@ type BoardAction =
  */
 @Component({
   selector: 'jh-market-board',
-  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
+  imports: [CardComponent, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './market-board.component.html',
   styleUrl: './market-board.component.css',
 })

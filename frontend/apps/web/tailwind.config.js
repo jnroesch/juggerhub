@@ -204,9 +204,15 @@ module.exports = {
         'body-sm': ['var(--text-body-sm)', { lineHeight: '1.5' }],
         caption: ['var(--text-caption)', { lineHeight: '1.4' }],
         eyebrow: ['var(--text-eyebrow)', { lineHeight: '1.2', letterSpacing: '0.06em', fontWeight: '600' }],
-        /* Legacy heading aliases → new scale */
-        'heading-lg': ['var(--text-h3)', { lineHeight: '1.25', letterSpacing: '-0.02em', fontWeight: '700' }],
-        'heading-md': ['var(--text-h4)', { lineHeight: '1.25', fontWeight: '700' }],
+        /*
+         * `heading-lg` and `heading-md` were aliases of `h3` and `h4` — the same two sizes
+         * under a second set of names. They did not coexist peacefully: page titles were
+         * written as `heading-lg` in 37 places and `h3` in 27, the app looked like it had a
+         * larger scale than it did, and nothing made the duplication visible in review
+         * (GH #299). Both are retired, and removing them from this scale is what enforces
+         * it: `scale-keys.spec.ts` fails on a `text-` key that is neither a size nor a
+         * colour, so a `text-heading-lg` written tomorrow turns the suite red.
+         */
         code: ['var(--text-body-sm)', { lineHeight: '1.5' }],
       },
       letterSpacing: {

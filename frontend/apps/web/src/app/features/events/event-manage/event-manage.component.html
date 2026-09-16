@@ -8,7 +8,7 @@
     </div>
   } @else if (detail(); as d) {
     <a [routerLink]="['/events', d.id]" class="text-body-sm text-subtle hover:text-text">{{ 'events.manage.back' | transloco }}</a>
-    <h1 class="mt-md text-heading-lg font-bold text-ink">{{ 'events.manage.title' | transloco }}</h1>
+    <h1 class="mt-md text-h3">{{ 'events.manage.title' | transloco }}</h1>
     <p class="text-body-sm text-subtle">{{ d.name }} · {{ 'events.manage.spotsOccupied' | transloco:{ occupied: d.occupiedSpots, limit: d.participationLimit } }}</p>
     <a [routerLink]="['/events', d.id, 'edit']" class="mt-xs inline-block text-body-sm font-semibold text-brand" data-testid="to-settings">{{ 'events.manage.editAndCancel' | transloco }}</a>
 

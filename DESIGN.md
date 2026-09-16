@@ -219,8 +219,10 @@ components:
     border: "1px {semantic.border-muted}"
     rounded: "{rounded.lg}"
     padding: "{spacing.6}"
+    paddingDense: "{spacing.4} (compact repeated rows only)"
     shadow: "{shadows.sm}"
-    accentStrip: "{gradients.brand} (optional 4px top strip)"
+    accentStrip: "{gradients.brand} (4px top strip; the focal card of a page, see Components)"
+    hover: "lift 3px + {shadows.md} — only when the card is itself a link or button"
   input:
     backgroundColor: "{semantic.surface-card}"
     textColor: "{semantic.text-body}"
@@ -335,10 +337,39 @@ small screens).
 - **Mona Sans** — **body** and all UI text; honest, legible, friendly.
 - **Mona Sans Mono** — scores, stats, times, counts (tabular, sporty).
 
-Body is 16px (`body-md`); nothing meaningful drops below 12px (`caption`). The
-`eyebrow` step (`0.8125rem`, uppercase, `0.06em` tracking) is the only uppercase
-usage. Fonts are GitHub's open-source Mona Sans / Hubot Sans (shipped via
-`@fontsource`); the stacks fall back to `system-ui` if a face is unavailable.
+Nothing meaningful drops below 12px (`caption`). The `eyebrow` step
+(`0.8125rem`, uppercase, `0.06em` tracking) is the only uppercase usage. Fonts
+are GitHub's open-source Mona Sans / Hubot Sans (shipped via `@fontsource`); the
+stacks fall back to `system-ui` if a face is unavailable.
+
+### What each step is for
+
+A scale is a set of jobs, not a set of sizes. Pick the step by the job:
+
+| Step | Desktop / mobile | Job |
+|------|------------------|-----|
+| `display` | 64 / 44 | The brand mark's letter. Not a text step. |
+| `h1` | 48 / 34 | **The hero.** One screen in the product earns it: the onboarding welcome. |
+| `h2` | 36 / 26 | **A focal page title** — one card and nothing around it: sign in, register, an invite landing, "no such player". Plus the dashboard greeting, which is the front door. |
+| `h3` | 28 / 22 | **Every other page title.** |
+| `h4` | 22 / 19 | A section heading inside a card. |
+| `lead` | 20 | The deck: one sentence under a focal title, introducing the page. Never under an `h3` — 20 under 22 is not a step. |
+| `body-lg` | 18 | A bar title (the name in the chat header), and long-form prose. |
+| `body-md` | 16 | **Prose** — anything written to be read: a description, an empty state, a paragraph of explanation. |
+| `body-sm` | 14 | **The interface** — labels, nav, buttons, table cells, list rows, validation, secondary lines. |
+| `caption` | 12 | Metadata under something else: a timestamp, a count, a role. |
+| `eyebrow` | 13 | The one uppercase label. |
+
+`body-md` and `body-sm` are two jobs, not a default and an exception. Prose the
+reader came for is 16px; the interface around it is 14px. The app is mostly
+interface, so `body-sm` is the more common of the two — that is the shape of the
+product, not a drift to correct.
+
+**A title carries a step and nothing else.** Weight belongs to the step, and the
+display face and heading colour come from the base layer, so `font-bold` on a
+heading is either a no-op or a silent override of the scale. Both were live
+before GH #299 — 81 titles written 18 ways — and `heading-roles.spec.ts` now
+rejects the whole class.
 
 ## Layout
 
@@ -400,7 +431,7 @@ feature/media `xl` (28px), chips/avatars/pills `pill` (999px).
 Friendly and gentle. Durations 120 / 200 / 320ms. `ease-out` for entrances, a
 subtle `ease-bounce` for toggles and playful moments.
 
-- **Hover** — cards lift 3px + deepen shadow; buttons shift to a darker brand
+- **Hover** — clickable cards lift 3px + deepen shadow; buttons shift to a darker brand
   step and gain a colored glow; ghost/subtle controls warm their background.
 - **Press** — buttons nudge down 1px and scale to 0.99 (tactile, not jumpy).
 - **Focus** — 2px coral border + soft coral ring (`focus-ring`), always visible.
@@ -414,8 +445,19 @@ subtle `ease-bounce` for toggles and playful moments.
 - **Button (secondary)** — white `surface-card` background, `text-body` label,
   1px `border-strong` outline; warms on hover.
 - **Card** — white `surface-card`, 1px `border-muted`, `lg` radius, soft `sm`
-  shadow, lifts on hover. Many cards carry a thin **coral→sage gradient strip**
-  (`gradient.brand`) at the top as a signature detail — kept soft.
+  shadow, `spacing.6` (24px) of body padding. A card is one thing, drawn one way:
+  it is never re-assembled out of utilities. Two variations, and only these two:
+  **dense** (`spacing.4`) for a compact repeated row, where 24px would push the
+  list off a phone; and **flush** (none) for a card whose children carry their own
+  padding — a divided list, a table, a header strip.
+- **The accent strip** — a thin **coral→sage gradient** (`gradient.brand`) along
+  the top, kept soft. It marks the **focal card of a page that holds nothing
+  else**: sign in, register, reset a password, accept an invite, "no such
+  player". One card, one page, one strip — it is a signature, not decoration,
+  and on a grid or a list of cards it is noise.
+- **The hover lift** — a card that is *itself* a link or a button lifts 3px into
+  a deeper shadow under the pointer. A card that merely *contains* links must not
+  lift: the movement promises a target the whole box doesn't have.
 - **Input** — white `surface-card`, `text-body` color, 1px `border-strong`, `md`
   radius, ≥44px tall; focus uses `border-focus` + the coral `focus-ring`.
 - **Chips / badges / tags** — `pill` radius; sage for position/roster chips,

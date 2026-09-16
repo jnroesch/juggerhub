@@ -74,7 +74,7 @@
         } @else {
           <ul class="mt-xs space-y-sm">
             @for (party of parties(); track party.partyId) {
-              <li class="rounded-lg border border-border bg-surface-card p-md" data-testid="party-card">
+              <li jhCard padding="dense" data-testid="party-card">
                 <div class="flex items-start gap-sm">
                   <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-secondary-soft text-body-sm font-bold text-body">{{ party.teamName.charAt(0) }}</span>
                   <div class="min-w-0 flex-1">
@@ -119,7 +119,7 @@
         } @else {
           <ul class="mt-xs space-y-sm">
             @for (fa of freeAgents(); track fa.userId) {
-              <li class="rounded-lg border bg-surface-card p-md" [class]="isMe(fa) ? 'border-border-strong' : 'border-border'" data-testid="free-agent-card">
+              <li jhCard padding="dense" [style.--jh-card-border]="isMe(fa) ? 'var(--border-strong)' : null" data-testid="free-agent-card">
                 <div class="flex items-start gap-sm">
                   <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-secondary-soft text-body-sm font-bold text-body">{{ fa.displayName.charAt(0) }}</span>
                   <div class="min-w-0 flex-1">
