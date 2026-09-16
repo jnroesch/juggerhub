@@ -132,7 +132,16 @@ module.exports = {
         danger: 'var(--red-5)',
         ink: 'var(--text-heading)',
         text: 'var(--text-body)',
-        'text-muted': 'var(--text-muted)',
+        /*
+         * `muted`, not `text-muted`: a colour named `text-muted` produces the
+         * utility `text-text-muted`, so the 277 templates that wrote the
+         * obvious `text-muted` emitted nothing and rendered as body text
+         * (GH #297 — the same bug class as `py-3xs`, found by
+         * `scale-keys.spec.ts`). The nine sites that had found the working
+         * spelling were rewritten to the short one, so the token has a single
+         * name again.
+         */
+        muted: 'var(--text-muted)',
         subtle: 'var(--text-subtle)',
         faint: 'var(--sand-4)',
         surface: 'var(--surface-card)',
@@ -147,7 +156,7 @@ module.exports = {
          * other hairline insets only. `2xs` is `space-1`. Both were used in
          * templates long before they were defined here (GH #137): Tailwind
          * emits nothing for an unknown scale key, so `py-3xs` silently
-         * rendered as no padding at all. `spacing-scale.spec.ts` now fails on
+         * rendered as no padding at all. `scale-keys.spec.ts` now fails on
          * any spacing utility whose key is not in this scale.
          */
         '3xs': '2px',
@@ -199,6 +208,22 @@ module.exports = {
         'heading-lg': ['var(--text-h3)', { lineHeight: '1.25', letterSpacing: '-0.02em', fontWeight: '700' }],
         'heading-md': ['var(--text-h4)', { lineHeight: '1.25', fontWeight: '700' }],
         code: ['var(--text-body-sm)', { lineHeight: '1.5' }],
+      },
+      letterSpacing: {
+        /*
+         * DESIGN.md's `tracking` tokens. They were listed there from the start
+         * but never mapped here, so the whole `tracking-*` namespace fell
+         * through to Tailwind's own defaults and `tracking-eyebrow` — the one
+         * the eyebrow step is named after — emitted nothing at all (GH #297).
+         * `tight` and `wide` deliberately override Tailwind's 0.025em defaults
+         * with DESIGN.md's values; `scale-keys.spec.ts` fails on any
+         * `tracking-` key this scale (plus Tailwind's remaining defaults) does
+         * not define.
+         */
+        tight: '-0.02em',
+        normal: '0',
+        wide: '0.02em',
+        eyebrow: '0.06em',
       },
       boxShadow: {
         xs: 'var(--shadow-xs)',

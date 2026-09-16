@@ -3,7 +3,7 @@
     <jh-loading />
   } @else if (forbidden()) {
     <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center">
-      <p class="text-heading-sm font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
+      <p class="text-body-lg font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-subtle">{{ 'events.admins.notAllowedBody' | transloco }}</p>
     </div>
   } @else if (detail(); as d) {

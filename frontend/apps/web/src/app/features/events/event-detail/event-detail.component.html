@@ -3,7 +3,7 @@
     <jh-loading />
   } @else if (loadError()) {
     <div class="rounded-lg border border-border bg-surface-card px-md py-lg text-center">
-      <p class="text-heading-sm font-bold text-ink">{{ 'events.detail.notFoundTitle' | transloco }}</p>
+      <p class="text-body-lg font-bold text-ink">{{ 'events.detail.notFoundTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-subtle">{{ 'events.detail.notFoundBody' | transloco }}</p>
       <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand">{{ 'events.detail.goHome' | transloco }}</a>
     </div>
@@ -21,7 +21,7 @@
       </div>
     }
 
-    <h1 class="mt-md text-heading-xl font-bold text-ink">{{ d.name }}</h1>
+    <h1 class="mt-md text-heading-lg font-bold text-ink">{{ d.name }}</h1>
     <ul class="mt-sm space-y-xs text-body-md text-body">
       <li class="flex items-center gap-sm">
         <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
@@ -152,7 +152,7 @@
                 <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.entranceFee' | transloco }}</h2>
                 @if (d.feePaymentDeadline) { <span class="rounded-full bg-surface-sunken px-sm py-0.5 text-body-sm text-subtle">{{ 'events.detail.payBy' | transloco:{ date: (d.feePaymentDeadline | translocoDate: { month: 'short', day: 'numeric' }) } }}</span> }
               </div>
-              <p class="mt-xs text-heading-sm font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-subtle">{{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}</span></p>
+              <p class="mt-xs text-body-lg font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-subtle">{{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}</span></p>
               <dl class="mt-sm space-y-0.5 text-body-sm">
                 <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">{{ 'events.detail.payTo' | transloco }}</dt><dd class="font-semibold text-body">{{ d.feeRecipientName }}</dd></div>
                 <div class="flex gap-sm"><dt class="w-16 shrink-0 text-faint">{{ 'events.detail.iban' | transloco }}</dt><dd class="break-all font-mono text-subtle">{{ d.feeIban }}</dd></div>
