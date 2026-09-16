@@ -1,5 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { CardComponent } from '../card/card.component';
 import { EmptyStateComponent } from './empty-state.component';
 
 @Component({
@@ -23,14 +25,24 @@ describe('EmptyStateComponent (jh-empty-state)', () => {
     return fixture.nativeElement.querySelector('jh-empty-state > div') as HTMLElement;
   }
 
+  function card(): CardComponent | null {
+    return fixture.debugElement.query(By.directive(CardComponent))?.componentInstance ?? null;
+  }
+
   beforeEach(() => {
     TestBed.configureTestingModule({ imports: [HostComponent] });
     fixture = TestBed.createComponent(HostComponent);
     fixture.detectChanges();
   });
 
-  it('uses the bordered card container by default with muted, centered text', () => {
-    expect(container().classList).toContain('border-border-muted');
+  /*
+   * The surface is the shared card primitive rather than a second hand-rolled copy of it
+   * (GH #302) — but an empty state sets its own generous vertical room, which is why it
+   * takes the card `flush` instead of the 24px body padding.
+   */
+  it('draws the default variant on the shared card, flush, with muted centered text', () => {
+    expect(card()?.padding()).toBe('flush');
+    expect(container().classList).toContain('py-2xl');
     expect(container().classList).toContain('text-center');
     expect(container().querySelector('.text-muted')).not.toBeNull();
   });
@@ -49,7 +61,15 @@ describe('EmptyStateComponent (jh-empty-state)', () => {
   it('drops the card chrome in the inline variant', () => {
     fixture.componentInstance.inline.set(true);
     fixture.detectChanges();
-    expect(container().classList).not.toContain('border-border-muted');
+    expect(card()).toBeNull();
     expect(container().classList).toContain('text-center');
+  });
+
+  /* The body is one `<ng-template>` behind both variants: projection must survive a switch. */
+  it('keeps the projected content when the variant changes', () => {
+    fixture.componentInstance.inline.set(true);
+    fixture.detectChanges();
+    expect(container().textContent).toContain('No messages yet.');
+    expect(container().querySelector('[data-testid="action"]')).not.toBeNull();
   });
 });

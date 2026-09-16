@@ -132,7 +132,7 @@
     @if (isRecurring() && summaryCount() !== null) {
       <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.create.reviewPre' | transloco }} <span class="font-mono">{{ summaryCount() }}</span> {{ 'trainings.create.reviewPost' | transloco }}</p>
     }
-    <jh-card class="mt-md p-md text-body-sm">
+    <jh-card class="mt-md text-body-sm">
       <p class="font-medium text-heading">{{ name() }}</p>
       <p class="mt-2xs text-muted">{{ isRecurring() ? (('trainings.weekday.' + weekday() | transloco) + ' · ' + interval()) : ('trainings.oneOff' | transloco) }} · {{ startTime() }}–{{ endTime() }}</p>
       @if (locationKind() === 'InPerson') {
@@ -162,7 +162,7 @@
       <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.create.successSubtitle' | transloco }}</p>
     </div>
 
-    <jh-card class="p-md text-body-sm">
+    <jh-card class="text-body-sm">
       <p class="font-medium text-heading">{{ c.name }}</p>
       <p class="mt-2xs text-muted">
         {{ c.isOneOff ? ('trainings.oneOff' | transloco) : (('trainings.weekday.' + c.weekday | transloco) + ' · ' + (intervalKey(c.interval) | transloco)) }}

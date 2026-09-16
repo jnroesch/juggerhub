@@ -1,5 +1,5 @@
 @if (hasAny()) {
-  <jh-card class="p-md" data-testid="activity">
+  <jh-card data-testid="activity">
     <h2 class="mb-sm text-body-sm font-semibold uppercase tracking-wide text-subtle">{{ 'home.activityTitle' | transloco }}</h2>
     <ul class="flex flex-col gap-xs">
       @for (row of rows(); track $index) {

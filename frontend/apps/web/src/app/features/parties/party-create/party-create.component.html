@@ -6,7 +6,7 @@
   @if (loading()) {
     <jh-loading />
   } @else if (formableTeams().length === 0) {
-    <jh-card class="mt-lg p-md text-body-sm text-muted">
+    <jh-card class="mt-lg text-body-sm text-muted">
       {{ 'parties.create.noTeam' | transloco }}
     </jh-card>
   } @else {

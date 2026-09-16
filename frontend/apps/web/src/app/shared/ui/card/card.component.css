@@ -1,27 +1,49 @@
 :host {
   position: relative;
-  display: block;
   overflow: hidden;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-muted);
+  /*
+   * `--jh-card-border` is the one property a caller may reassign, because a card that means
+   * "this row is you" has no other way to say so: a Tailwind `border-*` class on the host
+   * loses to this rule (Angular injects component styles after the global sheet, so a tie
+   * goes to the component). Set it with `[style.--jh-card-border]`, to a token, never a hex.
+   */
+  border: 1px solid var(--jh-card-border, var(--border-muted));
   background-color: var(--surface-card);
   box-shadow: var(--shadow-sm);
-  /* Padding is intentionally the caller's — cards vary (compact rows, header
-     strips, full-bleed lists). The primitive owns the DESIGN.md *surface*
-     (white / muted border / lg radius / soft shadow); the recommended body
-     padding is spacing-6 (`p-xl` = 24px). */
+  /* Padding is the `padding` input, applied as `p-xl` / `p-md` host classes so the value
+     stays a design token rather than a number repeated here (GH #302). */
 }
 
-/* Clickable cards lift 3px with a deeper shadow on hover (DESIGN.md). */
-:host(.jh-card--interactive) {
-  transition:
-    transform var(--duration-base) var(--ease-standard),
-    box-shadow var(--duration-base) var(--ease-standard);
+/*
+ * Clickable cards lift 3px with a deeper shadow on hover (DESIGN.md, "Elevation & depth"
+ * and again under "Motion & states").
+ *
+ * `(hover: hover)` keeps it off touch, where there is no pointer to leave and the lift
+ * would stick to the card the finger last touched until something else was tapped.
+ */
+@media (hover: hover) {
+  :host(.jh-card--interactive) {
+    transition:
+      transform var(--duration-base) var(--ease-standard),
+      box-shadow var(--duration-base) var(--ease-standard);
+  }
+
+  :host(.jh-card--interactive:hover) {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
 }
 
-:host(.jh-card--interactive:hover) {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-md);
+/* The deeper shadow still answers the pointer; only the movement goes. */
+@media (prefers-reduced-motion: reduce) {
+  :host(.jh-card--interactive) {
+    transition: box-shadow var(--duration-base) var(--ease-standard);
+  }
+
+  :host(.jh-card--interactive:hover) {
+    transform: none;
+  }
 }
 
 /* Opt-out of the clip so an absolute dropdown/popover can escape the card box

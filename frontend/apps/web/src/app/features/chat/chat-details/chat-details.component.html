@@ -72,7 +72,7 @@
       A member row links to their profile like every other player listing does. `handle` is nullable
       (a guest without one), and a link to nowhere is worse than no link — those rows stay plain.
     -->
-    <ul class="mt-sm divide-y divide-border-muted overflow-hidden rounded-lg border border-border-muted bg-surface-card" data-testid="member-list">
+    <ul jhCard padding="flush" class="mt-sm divide-y divide-border-muted" data-testid="member-list">
       @for (m of members(); track m.userId) {
         <li>
           @if (m.handle) {

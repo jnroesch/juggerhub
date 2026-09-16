@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, IconComponent, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -17,7 +17,7 @@ import { injectDateFormats } from '../../../core/i18n/locale-format';
  */
 @Component({
   selector: 'jh-trainings-tab',
-  imports: [RouterLink, ButtonDirective, IconComponent, LoadingComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [CardComponent, RouterLink, ButtonDirective, IconComponent, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './trainings-tab.component.html',
   styleUrl: './trainings-tab.component.css',
 })

@@ -4,7 +4,7 @@
   @if (loading()) {
     <jh-loading />
   } @else if (forbidden()) {
-    <div class="mt-md rounded-lg border border-border bg-surface-card px-md py-lg text-center">
+    <div jhCard class="mt-md text-center">
       <p class="text-body-md font-bold text-ink">{{ 'marketplace.recruiting.adminsOnly' | transloco }}</p>
       <p class="mt-xs text-body-sm text-subtle">{{ 'marketplace.recruiting.adminsOnlyDesc' | transloco }}</p>
     </div>
@@ -17,7 +17,7 @@
     </div>
 
     <!-- Toggle + settings -->
-    <div class="mt-md rounded-lg border border-border bg-surface-card p-md">
+    <div jhCard class="mt-md">
       <label class="flex cursor-pointer items-center justify-between gap-sm">
         <span>
           <span class="text-body-md font-semibold text-body">{{ 'marketplace.recruiting.lookingForPlayers' | transloco }}</span>
@@ -58,7 +58,7 @@
     </div>
 
     <!-- Applications to you -->
-    <div class="mt-md rounded-lg border border-border bg-surface-card p-md">
+    <div jhCard class="mt-md">
       <h2 class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.applicationsToYou' | transloco }} · <span class="font-mono">{{ applications().length }}</span></h2>
       @if (applications().length === 0) {
         <p class="mt-xs text-body-sm text-subtle">{{ 'marketplace.recruiting.noApplications' | transloco }}</p>
@@ -81,7 +81,7 @@
     </div>
 
     <!-- Invites you've sent -->
-    <div class="mt-md rounded-lg border border-border bg-surface-card p-md">
+    <div jhCard class="mt-md">
       <h2 class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.invitesSent' | transloco }} · <span class="font-mono">{{ sentInvites().length }}</span></h2>
       @if (sentInvites().length === 0) {
         <p class="mt-xs text-body-sm text-subtle">{{ 'marketplace.recruiting.noInvitesOut' | transloco }}</p>
@@ -103,7 +103,7 @@
     </div>
 
     <!-- Direct invite -->
-    <div class="mt-md rounded-lg border border-border bg-surface-card p-md">
+    <div jhCard class="mt-md">
       <h2 class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.inviteAnyone' | transloco }}</h2>
       <p class="mt-0.5 text-body-sm text-subtle">{{ 'marketplace.recruiting.inviteAnyoneDesc' | transloco }}</p>
       <input type="search" [value]="query()" (input)="onQuery($any($event.target).value)" [placeholder]="'marketplace.recruiting.searchPlayers' | transloco"

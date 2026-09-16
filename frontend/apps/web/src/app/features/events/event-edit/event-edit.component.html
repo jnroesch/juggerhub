@@ -2,7 +2,7 @@
   @if (loading()) {
     <jh-loading />
   } @else if (forbidden()) {
-    <div class="rounded-lg border border-border bg-surface-card px-md py-lg text-center">
+    <div jhCard class="text-center">
       <p class="text-body-lg font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-subtle">{{ 'events.edit.notAllowedBody' | transloco }}</p>
     </div>
@@ -12,7 +12,7 @@
     <p class="text-body-sm text-subtle">{{ 'events.edit.subtitle' | transloco }}</p>
 
     <!-- Edit details -->
-    <form class="mt-lg space-y-md rounded-lg border border-border bg-surface-card p-md" [formGroup]="form" (ngSubmit)="saveEdit()">
+    <form jhCard class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="saveEdit()">
       <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.edit.details' | transloco }}</h2>
       <div>
         <label for="edit-name" class="text-body-sm text-subtle">{{ 'events.edit.name' | transloco }}</label>

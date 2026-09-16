@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -24,7 +24,7 @@ type AccountAction = 'suspend' | 'reinstate' | 'ban' | 'unban' | 'reset';
  */
 @Component({
   selector: 'jh-admin-user-detail',
-  imports: [TranslocoDatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [CardComponent, TranslocoDatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-user-detail.component.html',
   styleUrl: './admin-user-detail.component.css',
 })

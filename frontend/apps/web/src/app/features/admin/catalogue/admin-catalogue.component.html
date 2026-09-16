@@ -69,7 +69,7 @@
   </jh-empty-state>
 } @else {
   <!-- Desktop: a calm table -->
-  <div class="mt-md hidden overflow-hidden rounded-lg border border-border-muted bg-surface-card shadow-sm md:block">
+  <div jhCard padding="flush" class="mt-md hidden md:block">
     <table class="w-full text-left" data-testid="catalogue-table">
       <thead>
         <tr class="border-b border-border-muted text-caption text-subtle">
@@ -134,7 +134,7 @@
   <!-- Mobile: cards -->
   <ul class="mt-md flex flex-col gap-sm md:hidden" data-testid="catalogue-cards">
     @for (d of visible(); track d.id) {
-      <li class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" [class.opacity-60]="d.isRetired" data-testid="catalogue-row">
+      <li jhCard padding="dense" [class.opacity-60]="d.isRetired" data-testid="catalogue-row">
         <div class="flex items-start gap-sm">
           <span class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden border border-border-strong bg-surface-sunken text-muted"
             [class]="kind() === 'badge' ? 'rounded-full' : 'rounded-md'">

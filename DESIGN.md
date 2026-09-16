@@ -219,8 +219,10 @@ components:
     border: "1px {semantic.border-muted}"
     rounded: "{rounded.lg}"
     padding: "{spacing.6}"
+    paddingDense: "{spacing.4} (compact repeated rows only)"
     shadow: "{shadows.sm}"
-    accentStrip: "{gradients.brand} (optional 4px top strip)"
+    accentStrip: "{gradients.brand} (4px top strip; the focal card of a page, see Components)"
+    hover: "lift 3px + {shadows.md} — only when the card is itself a link or button"
   input:
     backgroundColor: "{semantic.surface-card}"
     textColor: "{semantic.text-body}"
@@ -400,7 +402,7 @@ feature/media `xl` (28px), chips/avatars/pills `pill` (999px).
 Friendly and gentle. Durations 120 / 200 / 320ms. `ease-out` for entrances, a
 subtle `ease-bounce` for toggles and playful moments.
 
-- **Hover** — cards lift 3px + deepen shadow; buttons shift to a darker brand
+- **Hover** — clickable cards lift 3px + deepen shadow; buttons shift to a darker brand
   step and gain a colored glow; ghost/subtle controls warm their background.
 - **Press** — buttons nudge down 1px and scale to 0.99 (tactile, not jumpy).
 - **Focus** — 2px coral border + soft coral ring (`focus-ring`), always visible.
@@ -414,8 +416,19 @@ subtle `ease-bounce` for toggles and playful moments.
 - **Button (secondary)** — white `surface-card` background, `text-body` label,
   1px `border-strong` outline; warms on hover.
 - **Card** — white `surface-card`, 1px `border-muted`, `lg` radius, soft `sm`
-  shadow, lifts on hover. Many cards carry a thin **coral→sage gradient strip**
-  (`gradient.brand`) at the top as a signature detail — kept soft.
+  shadow, `spacing.6` (24px) of body padding. A card is one thing, drawn one way:
+  it is never re-assembled out of utilities. Two variations, and only these two:
+  **dense** (`spacing.4`) for a compact repeated row, where 24px would push the
+  list off a phone; and **flush** (none) for a card whose children carry their own
+  padding — a divided list, a table, a header strip.
+- **The accent strip** — a thin **coral→sage gradient** (`gradient.brand`) along
+  the top, kept soft. It marks the **focal card of a page that holds nothing
+  else**: sign in, register, reset a password, accept an invite, "no such
+  player". One card, one page, one strip — it is a signature, not decoration,
+  and on a grid or a list of cards it is noise.
+- **The hover lift** — a card that is *itself* a link or a button lifts 3px into
+  a deeper shadow under the pointer. A card that merely *contains* links must not
+  lift: the movement promises a target the whole box doesn't have.
 - **Input** — white `surface-card`, `text-body` color, 1px `border-strong`, `md`
   radius, ≥44px tall; focus uses `border-focus` + the coral `focus-ring`.
 - **Chips / badges / tags** — `pill` radius; sage for position/roster chips,

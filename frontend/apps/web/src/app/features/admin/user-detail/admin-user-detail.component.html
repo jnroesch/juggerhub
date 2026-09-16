@@ -49,7 +49,7 @@
        Desktop: identity+activity left, account right, badges across the bottom. -->
   <div class="mt-md grid gap-md lg:grid-cols-3">
     <!-- Identity & activity -->
-    <section class="order-3 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-1 lg:col-span-2">
+    <section jhCard class="order-3 lg:order-1 lg:col-span-2">
       <h2 class="text-h4 font-bold text-heading">{{ 'admin.userDetail.identityTitle' | transloco }}</h2>
       <dl class="mt-sm grid gap-sm sm:grid-cols-2">
         <div>
@@ -100,7 +100,7 @@
     </section>
 
     <!-- Account help (wireframe 1d) -->
-    <section class="order-2 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-2">
+    <section jhCard class="order-2 lg:order-2">
       <h2 class="text-h4 font-bold text-heading">{{ 'admin.userDetail.accountTitle' | transloco }}</h2>
       @if (player.isAdmin) {
         <p class="mt-sm rounded-md bg-surface-sunken px-sm py-xs text-body-sm text-muted" data-testid="admin-shield-note">
@@ -160,7 +160,7 @@
 
     <!-- Badges & achievements with Assign (wireframe 1d/1e; UI migrated from 012's
          catalogue surface — this page is now the one place grants happen) — first on mobile -->
-    <section class="order-1 rounded-lg border border-border-muted bg-surface-card p-md shadow-sm lg:order-3 lg:col-span-3" data-testid="subject-awards">
+    <section jhCard class="order-1 lg:order-3 lg:col-span-3" data-testid="subject-awards">
       <div class="flex items-center justify-between gap-sm">
         <h2 class="text-h4 font-bold text-heading">
           {{ 'admin.userDetail.badgesTitle' | transloco }}

@@ -1,5 +1,5 @@
 @if (loadError()) {
-  <jh-card class="p-md" data-testid="results">
+  <jh-card data-testid="results">
     <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.results.title' | transloco }}</h2>
     <div class="mt-sm">
       <jh-alert tone="danger">{{ 'events.results.loadError' | transloco }}</jh-alert>
@@ -10,7 +10,7 @@
   </jh-card>
 } @else if (result(); as r) {
   @if (hasResults() || r.tugeny) {
-    <jh-card class="p-md" data-testid="results">
+    <jh-card data-testid="results">
       <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.results.title' | transloco }}</h2>
 
       @if (!ended() && r.tugeny; as link) {

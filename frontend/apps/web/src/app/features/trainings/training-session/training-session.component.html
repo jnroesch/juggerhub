@@ -58,7 +58,7 @@
       <div class="space-y-md lg:col-span-2">
         <!-- About (first — the organiser's note is the useful part) -->
         @if (s.description) {
-          <div class="rounded-lg border border-border bg-surface-card p-md">
+          <div jhCard>
             <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'trainings.session.about' | transloco }}</h2>
             <p class="mt-xs whitespace-pre-line text-body-md text-body">{{ s.description }}</p>
           </div>
@@ -66,7 +66,7 @@
 
         <!-- Where (structured address; venue → street → postcode+city → country) -->
         @if (s.locationKind === 'InPerson' && (s.venueName || s.street || s.postalCode || s.location)) {
-          <div class="rounded-lg border border-border bg-surface-card p-md" data-testid="session-address">
+          <div jhCard data-testid="session-address">
             <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'trainings.session.where' | transloco }}</h2>
             <p class="mt-xs text-body-md text-body">
               @if (s.venueName) { <span class="font-semibold">{{ s.venueName }}</span><br /> }
@@ -78,7 +78,7 @@
         }
 
         <!-- Who's coming -->
-        <div class="rounded-lg border border-border bg-surface-card p-md">
+        <div jhCard>
           <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'trainings.session.whosComing' | transloco }}</h2>
           @for (grp of [{ label: 'trainings.session.groupGoing', g: s.whosComing.going }, { label: 'trainings.session.groupMaybe', g: s.whosComing.maybe }, { label: 'trainings.session.groupCant', g: s.whosComing.cant }]; track grp.label) {
             @if (grp.g.count > 0) {
@@ -119,7 +119,7 @@
         <div class="mt-md space-y-md lg:mt-0 lg:sticky lg:top-[4.5rem]">
           <!-- RSVP -->
           @if (canRespond()) {
-            <div class="rounded-lg border border-border bg-surface-card p-md">
+            <div jhCard>
               <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">
                 {{ (s.viewerIsGuest ? 'trainings.session.comingAlong' : 'trainings.session.willYouMakeIt') | transloco }}
               </h2>

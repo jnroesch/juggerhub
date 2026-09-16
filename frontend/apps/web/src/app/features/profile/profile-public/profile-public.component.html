@@ -2,7 +2,7 @@
   @if (loading()) {
     <jh-loading />
   } @else if (notFound()) {
-    <jh-card accent class="mx-auto mt-2xl max-w-md p-xl text-center" data-testid="profile-notfound">
+    <jh-card accent class="mx-auto mt-2xl max-w-md text-center" data-testid="profile-notfound">
       <h1 class="text-h4 text-heading">{{ 'profile.public.notFoundTitle' | transloco }}</h1>
       <p class="mt-sm text-body-md text-muted">{{ 'profile.public.notFoundBody' | transloco }}</p>
       <a routerLink="/" class="mt-lg inline-block text-body-md font-medium text-link hover:text-link-hover">{{ 'profile.public.goToHub' | transloco }}</a>

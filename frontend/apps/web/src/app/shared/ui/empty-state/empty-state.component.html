@@ -1,8 +1,29 @@
-<div [class]="containerClasses()">
+<!--
+  The two variants differ only in their surface, so the body is written once and rendered
+  into whichever container is in play. `<ng-content>` cannot be repeated for the same slot
+  — the second copy would receive nothing — which is why this is a template outlet and not
+  two branches each holding their own projection.
+-->
+<ng-template #body>
   @if (heading()) {
     <h2 class="text-h4 text-heading">{{ heading() }}</h2>
   }
   <div class="text-body-sm text-muted" [class.mt-xs]="heading()">
     <ng-content></ng-content>
   </div>
-</div>
+</ng-template>
+
+@if (inline()) {
+  <div class="py-md text-center">
+    <ng-container [ngTemplateOutlet]="body" />
+  </div>
+} @else {
+  <!--
+    `padding="flush"`: an empty state is deliberately taller than a card's 24px body — the
+    space is what makes "nothing here yet" read as calm rather than broken — so it sets its
+    own. The surface itself is the shared card, not a second definition of one (GH #302).
+  -->
+  <div jhCard padding="flush" class="px-md py-2xl text-center">
+    <ng-container [ngTemplateOutlet]="body" />
+  </div>
+}

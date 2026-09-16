@@ -1,5 +1,5 @@
 import { Component, HostListener, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
@@ -27,7 +27,7 @@ const ICON_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
  */
 @Component({
   selector: 'jh-admin-catalogue',
-  imports: [TranslocoDatePipe, FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [CardComponent, TranslocoDatePipe, FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-catalogue.component.html',
   styleUrl: './admin-catalogue.component.css',
 })

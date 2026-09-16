@@ -1,5 +1,5 @@
 <main class="flex min-h-screen items-center justify-center bg-surface-sunken px-md py-lg">
-  <div class="w-full max-w-sm rounded-lg border border-border bg-surface-card px-lg py-lg text-center shadow-sm" data-testid="event-invite-accept">
+  <div jhCard accent class="w-full max-w-sm text-center" data-testid="event-invite-accept">
     @if (loading()) {
       <jh-loading />
     } @else if (notFound() || !preview()) {

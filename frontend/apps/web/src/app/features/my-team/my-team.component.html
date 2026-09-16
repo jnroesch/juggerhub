@@ -8,7 +8,10 @@
         <li>
           <a
             [routerLink]="['/t', team.slug]"
-            class="flex items-center gap-sm rounded-lg border border-border-muted bg-surface-card px-md py-sm shadow-sm transition-transform duration-fast hover:-translate-y-0.5 hover:shadow-md"
+            jhCard
+            interactive
+            padding="dense"
+            class="flex items-center gap-sm"
             [attr.data-testid]="'my-team-' + team.slug"
           >
             <!-- Feature 051 — the team's logo, or the letter disc it has always shown. -->
@@ -42,7 +45,7 @@
         <h2 id="my-team-invites-heading" class="text-eyebrow font-semibold uppercase tracking-[0.04em] text-muted">{{ 'myTeam.yourInvites' | transloco }}</h2>
         <ul class="mt-sm flex flex-col gap-sm">
           @for (inv of invites(); track inv.token) {
-            <li class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm" [attr.data-testid]="'invite-' + inv.teamSlug">
+            <li jhCard padding="dense" [attr.data-testid]="'invite-' + inv.teamSlug">
               <div class="flex items-start gap-sm">
                 <span class="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary" aria-hidden="true">{{ inv.teamName.charAt(0) }}</span>
                 <div class="min-w-0 flex-1">

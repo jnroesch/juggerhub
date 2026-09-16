@@ -62,7 +62,7 @@
   </jh-empty-state>
 } @else {
   <!-- Desktop: a calm table -->
-  <div class="mt-md hidden overflow-hidden rounded-lg border border-border-muted bg-surface-card shadow-sm md:block">
+  <div jhCard padding="flush" class="mt-md hidden md:block">
     <table class="w-full text-left" data-testid="admin-users-table">
       <thead>
         <tr class="border-b border-border-muted text-caption text-subtle">
@@ -112,7 +112,9 @@
       <li>
         <a
           [routerLink]="['/admin/users', row.handle]"
-          class="block rounded-lg border border-border-muted bg-surface-card p-md shadow-sm transition-shadow duration-fast hover:shadow-md"
+          jhCard
+          interactive
+          padding="dense"
           data-testid="admin-users-row"
         >
           <span class="flex items-center justify-between gap-sm">

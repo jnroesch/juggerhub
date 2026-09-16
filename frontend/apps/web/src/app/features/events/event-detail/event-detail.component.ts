@@ -1,7 +1,7 @@
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { LoadingComponent } from '../../../shared/ui';
+import { CardComponent, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { EventContact, EventDetail, EventNews, Signup } from '../../../core/models/event.models';
@@ -28,6 +28,7 @@ import { MarketBoardComponent } from '../../marketplace/market-board/market-boar
 @Component({
   selector: 'jh-event-detail',
   imports: [
+    CardComponent,
     RouterLink,
     TranslocoDatePipe,
     EventParticipantGroupsComponent,

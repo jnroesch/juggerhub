@@ -113,7 +113,7 @@
         }
 
         <!-- Roster -->
-        <jh-card class="p-md" overflowVisible data-testid="roster">
+        <jh-card overflowVisible data-testid="roster">
           <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.roster' | transloco }}</h2>
           @if (isMember()) {
             <ul class="flex flex-col">
@@ -161,7 +161,7 @@
 
         <!-- Recent events (feature 005/006). Named for what it contains: events the team played.
              The team's internal happenings live in the members-only card further down (feature 044). -->
-        <jh-card class="p-md" data-testid="activity">
+        <jh-card data-testid="activity">
           <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.recentEvents' | transloco }}</h2>
           @if (team.recentActivity.length > 0) {
             <ul class="flex flex-col gap-xs">
@@ -181,14 +181,14 @@
         <jh-team-placements [slug]="team.slug" />
 
         <!-- Badges & achievements (feature 012) -->
-        <jh-card class="p-md" data-testid="recognitions">
+        <jh-card data-testid="recognitions">
           <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.badges' | transloco }}</h2>
           <jh-recognition-display [badges]="team.badges" [achievements]="team.achievements" />
         </jh-card>
 
         <!-- News (members only) -->
         @if (isMember()) {
-          <jh-card class="p-md" data-testid="news">
+          <jh-card data-testid="news">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.news' | transloco }}</h2>
 
             <!-- Admin composer (feature 010): posting notifies the whole roster. -->
@@ -241,7 +241,7 @@
       <aside class="flex flex-col gap-lg">
         @if (isMember()) {
           <!-- Trainings (feature 018): the team's recurring training tab. -->
-          <jh-card class="p-md" data-testid="trainings">
+          <jh-card data-testid="trainings">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.trainings' | transloco }}</h2>
             <p class="text-body-sm text-muted">{{ 'teams.detail.trainingsDesc' | transloco }}</p>
             <a [routerLink]="['/t', slug(), 'trainings']" jhButton variant="secondary" size="sm" class="mt-sm">{{ 'teams.detail.viewTrainings' | transloco }}</a>
@@ -249,7 +249,7 @@
         }
 
         @if (isAdmin()) {
-          <jh-card class="p-md">
+          <jh-card>
             <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.teamTools' | transloco }}</h2>
             <div class="flex flex-col gap-xs">
               <a [routerLink]="['/t', slug(), 'invitations']" jhButton variant="secondary" size="sm">{{ 'teams.detail.invites' | transloco }}</a>

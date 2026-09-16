@@ -19,7 +19,7 @@
 
   <!-- Error -->
   @else if (failed()) {
-    <div class="mt-lg grid place-items-center rounded-lg border border-border-muted bg-surface-card px-md py-3xl text-center shadow-sm">
+    <div jhCard padding="flush" class="mt-lg grid place-items-center px-md py-3xl text-center">
       <p class="text-body-lg font-semibold text-heading">{{ 'settings.notifications.loadErrorTitle' | transloco }}</p>
       <p class="mt-xs max-w-sm text-body-sm text-muted">{{ 'settings.notifications.loadErrorBody' | transloco }}</p>
       <button
@@ -104,7 +104,7 @@
         <p class="mt-0.5 text-body-sm text-muted">{{ 'settings.notifications.alwaysOnDesc' | transloco }}</p>
         <ul class="mt-sm space-y-sm">
           @for (group of alwaysOn(); track group.label) {
-            <li class="flex items-center justify-between gap-md rounded-lg border border-border-muted bg-surface-card p-md shadow-sm">
+            <li jhCard padding="dense" class="flex items-center justify-between gap-md">
               <div>
                 <p class="text-body-sm font-semibold text-heading">{{ group.label }}</p>
                 <p class="mt-0.5 text-body-sm text-muted">{{ group.description }}</p>
