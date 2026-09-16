@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { ChipDirective, LoadingComponent } from '../../../shared/ui';
+import { ChipDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TrainingsService } from '../../../core/services/trainings.service';
@@ -13,7 +13,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-training-attendance',
-  imports: [RouterLink, ChipDirective, LoadingComponent, TranslocoPipe],
+  imports: [RouterLink, ChipDirective, LoadingComponent, TranslocoPipe, IconComponent],
   templateUrl: './attendance.component.html',
   styleUrl: './attendance.component.css',
 })

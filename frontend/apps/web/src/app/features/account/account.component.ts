@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 import { LanguageSwitcherComponent } from '../settings/language/language-switcher.component';
-import { LegalLinksComponent } from '../../shared/ui';
+import { IconComponent, LegalLinksComponent } from '../../shared/ui';
 import { DeleteAccountComponent } from './delete-account.component';
 
 /**
@@ -19,6 +19,7 @@ import { DeleteAccountComponent } from './delete-account.component';
     LanguageSwitcherComponent,
     LegalLinksComponent,
     DeleteAccountComponent,
+    IconComponent,
   ],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css',

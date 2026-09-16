@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, ChipDirective, LoadingComponent, EmptyStateComponent } from '../../../shared/ui';
+import { ButtonDirective, ChipDirective, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -28,7 +28,7 @@ type EditMode = 'fork' | 'single' | 'series';
  */
 @Component({
   selector: 'jh-training-edit',
-  imports: [FormsModule, ButtonDirective, ChipDirective, LoadingComponent, EmptyStateComponent, AddressFieldsComponent, TranslocoPipe],
+  imports: [FormsModule, ButtonDirective, ChipDirective, LoadingComponent, EmptyStateComponent, AddressFieldsComponent, TranslocoPipe, IconComponent],
   templateUrl: './training-edit.component.html',
   styleUrl: './training-edit.component.css',
 })

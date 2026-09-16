@@ -1,5 +1,5 @@
 <section class="mx-auto max-w-container-md px-md py-lg" data-testid="event-create">
-  <a routerLink="/" class="text-body-sm text-muted hover:text-text">{{ 'events.detail.backHome' | transloco }}</a>
+  <a routerLink="/" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'events.detail.backHome' | transloco }}</a>
 
   <!-- Round-knob progress -->
   <div class="mt-md flex items-center gap-xs" aria-hidden="true">
@@ -197,7 +197,7 @@
     <!-- Navigation -->
     <div class="flex items-center justify-between pt-sm">
       @if (stepIndex() > 0) {
-        <button type="button" (click)="back()" class="text-body-sm font-semibold text-muted hover:text-text">{{ 'common.back' | transloco }}</button>
+        <button type="button" (click)="back()" class="inline-flex items-center gap-2xs text-body-sm font-semibold text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</button>
       } @else {
         <span></span>
       }

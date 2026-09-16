@@ -6,9 +6,7 @@
       class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden"
       [attr.aria-label]="'chat.compose.backToMessages' | transloco"
     >
-      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="m15 18-6-6 6-6" />
-      </svg>
+      <jh-icon name="chevron-left" />
     </a>
 
     @if (detail()?.avatar?.url; as url) {
@@ -43,9 +41,7 @@
       [attr.aria-label]="'chat.conversation.chatDetails' | transloco"
       data-testid="open-details"
     >
-      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /><circle cx="5" cy="12" r="1" />
-      </svg>
+      <jh-icon name="ellipsis" />
     </a>
   </header>
 
@@ -172,19 +168,7 @@
                               [attr.aria-label]="'chat.conversation.downloadFile' | transloco: { name: a.fileName }"
                               data-testid="attachment-file"
                             >
-                              <svg
-                                class="size-5 shrink-0 opacity-70"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                stroke-width="2"
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                aria-hidden="true"
-                              >
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                <path d="M14 2v6h6" />
-                              </svg>
+                              <jh-icon name="file" class="shrink-0 opacity-70" />
                               <span class="min-w-0 flex-1">
                                 <span class="block truncate text-body-sm font-medium">{{ a.fileName }}</span>
                                 <span class="block font-mono text-caption opacity-70">{{ formatSize(a.sizeBytes) }}</span>
@@ -207,9 +191,7 @@
                   [attr.aria-label]="'chat.conversation.deleteYourMessage' | transloco"
                   data-testid="delete-message"
                 >
-                  <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6" />
-                  </svg>
+                  <jh-icon name="trash-2" size="sm" />
                 </button>
               }
             </div>
@@ -245,7 +227,16 @@
 
       @if (typingHere().length > 0) {
         <li class="flex items-start" aria-hidden="true">
-          <span class="rounded-md bg-surface-muted px-sm py-xs text-body-md text-muted">•••</span>
+          <!--
+            Three drawn dots, not the character "•••". A bullet glyph is outside the latin subset
+            Mona Sans ships, so the browser drew it from whatever fallback face it had — the same
+            reason the password-rules markers could not line up (GH #300).
+          -->
+          <span class="inline-flex items-center gap-2xs rounded-md bg-surface-muted px-sm py-sm">
+            <span class="h-1.5 w-1.5 rounded-pill bg-muted"></span>
+            <span class="h-1.5 w-1.5 rounded-pill bg-muted"></span>
+            <span class="h-1.5 w-1.5 rounded-pill bg-muted"></span>
+          </span>
         </li>
       }
     </ul>
@@ -260,9 +251,7 @@
         class="pointer-events-auto absolute -top-12 left-1/2 inline-flex min-h-11 -translate-x-1/2 items-center gap-xs rounded-pill bg-surface-inverse px-md text-body-sm font-medium text-on-inverse shadow-md transition-transform duration-fast hover:-translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
         data-testid="jump-pill"
       >
-        <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 5v14M19 12l-7 7-7-7" />
-        </svg>
+        <jh-icon name="arrow-down" size="sm" />
         <span class="font-mono">{{ newWhileAway() }}</span> {{ 'chat.conversation.newSuffix' | transloco }}
       </button>
     </div>
@@ -314,9 +303,7 @@
                 [attr.aria-label]="'chat.compose.removeFile' | transloco: { name: f.name }"
                 data-testid="remove-file"
               >
-                <svg class="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-                  <path d="M18 6 6 18M6 6l12 12" />
-                </svg>
+                <jh-icon name="x" size="sm" />
               </button>
             </li>
           }
@@ -348,9 +335,7 @@
           [attr.aria-label]="'chat.compose.attachFiles' | transloco"
           data-testid="attach"
         >
-          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
-            <path d="M12 5v14M5 12h14" />
-          </svg>
+          <jh-icon name="plus" />
         </button>
 
         <label class="min-w-0 flex-1">
@@ -375,9 +360,7 @@
           [attr.aria-label]="'chat.compose.sendMessage' | transloco"
           data-testid="send"
         >
-          <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M12 19V5M5 12l7-7 7 7" />
-          </svg>
+          <jh-icon name="arrow-up" />
         </button>
       </form>
     }

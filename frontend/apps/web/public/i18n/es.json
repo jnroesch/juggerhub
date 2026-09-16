@@ -20,7 +20,7 @@
     "loading": "Cargando…",
     "stillLoading": "Sigue cargando…",
     "continue": "Continuar",
-    "back": "‹ Atrás",
+    "back": "Atrás",
     "skip": "Omitir",
     "tryAgain": "Reintentar",
     "seeAll": "Ver todo",
@@ -64,7 +64,7 @@
       "address": "Handle del equipo",
       "checking": "Comprobando…",
       "checkFailed": "No hemos podido comprobar ese handle. Revisa tu conexión e inténtalo de nuevo.",
-      "slugAvailable": "✓ /t/{{slug}} está disponible",
+      "slugAvailable": "/t/{{slug}} está disponible",
       "slugUnavailable": "Ese handle no está disponible.",
       "slugHint": "Tu enlace permanente: letras, números, guiones. Las mayúsculas pasan a minúsculas. No se puede cambiar más adelante.",
       "type": "Tipo de equipo",
@@ -126,7 +126,7 @@
       "expiresIn": "Esta invitación caduca en 7 días."
     },
     "invitations": {
-      "backMembers": "‹ Miembros",
+      "backMembers": "Miembros",
       "title": "Invitar a personas",
       "denied": "Solo los administradores pueden gestionar invitaciones.",
       "shareLink": "Comparte tu enlace de invitación",
@@ -139,7 +139,7 @@
       "searchPlaceholder": "Buscar jugadores por nombre…",
       "searching": "Buscando…",
       "relationMember": "Miembro",
-      "relationInvited": "Invitado ✓",
+      "relationInvited": "Invitado",
       "invite": "Invitar",
       "sentTo": "Enviadas a personas · {{count}}",
       "noPending": "Aún no hay invitaciones pendientes.",
@@ -171,7 +171,7 @@
       "keepRequest": "Mantener solicitud",
       "partyRequest": "◆ Solicitud de party",
       "manageParty": "Gestionar party",
-      "youreInPrefix": "Estás dentro ✓ ·",
+      "youreInPrefix": "Estás dentro",
       "openParty": "abrir party",
       "partyFull": "Llena ahora mismo. Se reabre automáticamente si queda un hueco.",
       "imIn": "Me apunto",
@@ -222,8 +222,8 @@
       "notFoundTitle": "Evento no encontrado",
       "notFoundBody": "Este evento no existe o el enlace es incorrecto.",
       "goHome": "Ir al inicio",
-      "backHome": "‹ Inicio",
-      "backEvents": "‹ Eventos",
+      "backHome": "Inicio",
+      "backEvents": "Eventos",
       "cancelled": "Cancelado por el organizador. No se aceptan nuevas inscripciones.",
       "online": "En línea",
       "teamsOnly": "Solo equipos",
@@ -299,10 +299,10 @@
     "manage": {
       "notAllowedTitle": "No permitido",
       "notAllowedBody": "Solo un administrador del evento puede gestionarlo.",
-      "back": "‹ Volver al evento",
+      "back": "Volver al evento",
       "title": "Gestionar participantes",
       "spotsOccupied": "{{occupied}}/{{limit}} plazas ocupadas",
-      "editAndCancel": "Editar detalles y cancelar ›",
+      "editAndCancel": "Editar detalles y cancelar",
       "awaitingApproval": "Pendiente de aprobación ({{count}})",
       "nobodyAwaiting": "Nadie pendiente de aprobación.",
       "joined": "Dentro ({{count}})",
@@ -1052,8 +1052,8 @@
       "results": "Resultados"
     },
     "common": {
-      "prev": "‹ Anterior",
-      "next": "Siguiente ›",
+      "prev": "Anterior",
+      "next": "Siguiente",
       "showing": "Mostrando {{start}}–{{end}} de {{total}}",
       "statusActive": "Activo",
       "statusSuspended": "Suspendido",
@@ -1076,7 +1076,7 @@
       "statSuspended": "Suspendidos",
       "newPlayersTitle": "Nuevos jugadores esta semana",
       "newPlayersEmpty": "No hay nuevos jugadores esta semana. Tranquilo en el campo.",
-      "seeAllPlayers": "Ver todos los jugadores ›",
+      "seeAllPlayers": "Ver todos los jugadores",
       "recentlyGrantedTitle": "Otorgados recientemente",
       "recentlyGrantedEmpty": "Nada otorgado todavía. Las insignias aparecen aquí a medida que se otorgan.",
       "by": "por"
@@ -1354,7 +1354,7 @@
     }
   },
   "parties": {
-    "backToParty": "‹ Volver a la party",
+    "backToParty": "Volver a la party",
     "postUpdate": "Publicar novedad",
     "newsPlaceholder": "Quedamos a las 07:00 en la Aral de la A3…",
     "partyNewsLabel": "Novedades de la party",
@@ -1507,6 +1507,8 @@
       "lookingForPlayers": "Buscando jugadores",
       "lookingDesc": "Lista esta party en el mercado del evento para que los agentes libres te encuentren.",
       "spotsToAdvertise": "Huecos a anunciar",
+      "fewerSpots": "Menos plazas",
+      "moreSpots": "Más plazas",
       "of": "de",
       "inSoFar": "dentro hasta ahora",
       "positionsNeeded": "Posiciones necesarias",
@@ -1529,9 +1531,9 @@
     }
   },
   "trainings": {
-    "backTeam": "‹ Equipo",
-    "backTrainings": "‹ Entrenamientos",
-    "backSession": "‹ Sesión",
+    "backTeam": "Equipo",
+    "backTrainings": "Entrenamientos",
+    "backSession": "Sesión",
     "oneOff": "Única",
     "series": "Serie",
     "public": "Pública",
@@ -1578,7 +1580,7 @@
       "answerGoing": "Vas",
       "answerMaybe": "Quizás",
       "answerCant": "No puedes",
-      "answerRespond": "Responder ›",
+      "answerRespond": "Responder",
       "activeSeries": "Series activas",
       "upcoming": "próximas",
       "until": "hasta",
@@ -1631,8 +1633,8 @@
       "where": "Dónde"
     },
     "create": {
-      "cancelStep": "✕ Cancelar",
-      "back": "‹ Atrás",
+      "cancelStep": "Cancelar",
+      "back": "Atrás",
       "stepOf": "Paso {{n}} de 5",
       "step1Title": "¿Qué vas a configurar?",
       "recurringSeries": "Serie recurrente",
@@ -1666,7 +1668,7 @@
       "successViewFirst": "Ver la primera sesión"
     },
     "edit": {
-      "cancel": "‹ Cancelar",
+      "cancel": "Cancelar",
       "notFound": "Sesión no encontrada",
       "cantEdit": "Esta sesión ya pasó o ya no está programada, así que no se puede editar.",
       "forkTitle": "¿Esta o todas?",

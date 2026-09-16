@@ -1,7 +1,7 @@
 import { AfterViewChecked, Component, ElementRef, OnChanges, SimpleChanges, ViewChild, computed, effect, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { CardComponent, ChipDirective, LoadingComponent } from '../../../shared/ui';
+import { CardComponent, ChipDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { ChatService } from '../../../core/services/chat.service';
 import { ChatMessage, ConversationDetail } from '../../../core/models/chat.models';
@@ -31,7 +31,7 @@ const ACCEPTED_FILE_TYPES =
  */
 @Component({
   selector: 'jh-chat-conversation',
-  imports: [CardComponent, ChipDirective, FormsModule, RouterLink, LoadingComponent, TranslocoPipe],
+  imports: [CardComponent, ChipDirective, FormsModule, RouterLink, LoadingComponent, TranslocoPipe, IconComponent],
   templateUrl: './chat-conversation.component.html',
   styleUrl: './chat-conversation.component.css',
 })

@@ -12,7 +12,7 @@
   <form class="mt-md" (submit)="$event.preventDefault(); goSearch()">
     <label class="relative block max-w-md">
       <span class="sr-only">{{ 'admin.overview.findPlayer' | transloco }}</span>
-      <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <jh-icon name="search" size="sm" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
       <input
         type="search"
         [placeholder]="'admin.overview.findPlayerPlaceholder' | transloco"
@@ -70,7 +70,7 @@
             </li>
           }
         </ul>
-        <a routerLink="/admin/users" class="mt-xs inline-block text-body-sm font-medium text-link hover:text-link-hover">{{ 'admin.overview.seeAllPlayers' | transloco }}</a>
+        <a routerLink="/admin/users" class="mt-xs inline-flex items-center gap-2xs text-body-sm font-medium text-link hover:text-link-hover">{{ 'admin.overview.seeAllPlayers' | transloco }}<jh-icon name="chevron-right" size="sm" /></a>
       }
     </section>
 

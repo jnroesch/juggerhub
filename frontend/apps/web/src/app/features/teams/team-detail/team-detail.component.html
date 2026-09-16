@@ -53,7 +53,7 @@
           <button type="button" jhButton [disabled]="requestBusy()" data-testid="request-to-join" (click)="askConfirm('join')">{{ 'teams.detail.requestToJoin' | transloco }}</button>
         } @else if (requested()) {
           <span class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted" data-testid="requested">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            <jh-icon name="check" size="sm" />
             {{ 'teams.detail.requested' | transloco }}
           </span>
           <button type="button" [disabled]="requestBusy()" data-testid="cancel-request" (click)="askConfirm('cancel')"
@@ -82,7 +82,11 @@
               @if (card.myState === 'Admin' || card.status === 'Applied') {
                 <a [routerLink]="['/parties', card.partyId]" jhButton size="sm" class="mt-sm">{{ 'teams.detail.manageParty' | transloco }}</a>
               } @else if (card.myState === 'In') {
-                <p class="mt-sm text-body-sm font-semibold text-body">{{ 'teams.detail.youreInPrefix' | transloco }} <a [routerLink]="['/parties', card.partyId]" class="text-brand-strong">{{ 'teams.detail.openParty' | transloco }}</a></p>
+                <p class="mt-sm flex flex-wrap items-center gap-2xs text-body-sm font-semibold text-body">
+                  <jh-icon name="check" size="sm" class="text-success-fg" />{{ 'teams.detail.youreInPrefix' | transloco }}
+                  <span aria-hidden="true">·</span>
+                  <a [routerLink]="['/parties', card.partyId]" class="text-brand-strong">{{ 'teams.detail.openParty' | transloco }}</a>
+                </p>
               } @else if (card.isFull) {
                 <p class="mt-sm text-body-sm text-muted">{{ 'teams.detail.partyFull' | transloco }}</p>
               } @else {
@@ -129,7 +133,7 @@
                   @if (m.role === 'Admin') { <span jhChip>{{ 'teams.detail.adminBadge' | transloco }}</span> }
                   @if (isAdmin()) {
                     <div class="relative">
-                      <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" (click)="toggleMenu(m.userId)">⋯</button>
+                      <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" (click)="toggleMenu(m.userId)"><jh-icon name="ellipsis" size="sm" /></button>
                       @if (openMenu() === m.userId) {
                         <div class="absolute right-0 z-10 mt-1 w-40 rounded-md border border-border bg-surface py-xs shadow-md" role="menu">
                           <button type="button" class="block w-full px-md py-xs text-left text-body-sm hover:bg-surface-sunken" (click)="toggleAdmin(m)">{{ (m.role === 'Admin' ? 'teams.detail.makeMember' : 'teams.detail.makeAdmin') | transloco }}</button>

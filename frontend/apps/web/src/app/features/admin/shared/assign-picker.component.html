@@ -10,7 +10,7 @@
     <div class="flex items-center justify-between border-b border-border-muted px-md py-sm">
       <h3 class="text-body-lg font-semibold text-heading">{{ 'admin.assign.grantTo' | transloco:{ subject: subjectLabel() } }}</h3>
       <button type="button" (click)="close()" class="text-muted hover:text-body" [attr.aria-label]="'admin.assign.close' | transloco">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M18 6 6 18M6 6l12 12" /></svg>
+        <jh-icon name="x" />
       </button>
     </div>
 
@@ -62,7 +62,7 @@
                   @if (d.hasIcon) {
                     <img [src]="iconUrl(tab(), d.id)" [alt]="d.name" class="h-full w-full object-cover" />
                   } @else {
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><circle cx="12" cy="8" r="5" /><path d="M8.5 12.5 7 22l5-3 5 3-1.5-9.5" /></svg>
+                    <jh-icon name="award" />
                   }
                 </span>
                 <span class="block w-full truncate text-body-sm font-medium text-heading">{{ d.name }}</span>

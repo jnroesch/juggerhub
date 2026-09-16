@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { AlertComponent, ButtonDirective, CardComponent, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { FormsModule } from '@angular/forms';
@@ -14,7 +14,7 @@ import { PartyService } from '../../../core/services/party.service';
  */
 @Component({
   selector: 'jh-party-news',
-  imports: [CardComponent, RouterLink, TranslocoDatePipe, FormsModule, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [CardComponent, RouterLink, TranslocoDatePipe, FormsModule, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, TranslocoPipe, IconComponent],
   templateUrl: './party-news.component.html',
   styleUrl: './party-news.component.css',
 })

@@ -1,7 +1,8 @@
 <div class="mx-auto max-w-lg px-md py-lg">
   @if (!created()) {
   <div class="flex items-center justify-between">
-    <button type="button" (click)="step() === 1 ? cancel() : back()" class="text-body-sm font-medium text-link hover:text-link-hover">
+    <button type="button" (click)="step() === 1 ? cancel() : back()" class="inline-flex items-center gap-2xs text-body-sm font-medium text-link hover:text-link-hover">
+      <jh-icon [name]="step() === 1 ? 'x' : 'chevron-left'" size="sm" />
       {{ (step() === 1 ? 'trainings.create.cancelStep' : 'trainings.create.back') | transloco }}
     </button>
     <span class="font-mono text-caption text-muted">{{ 'trainings.create.stepOf' | transloco:{ n: step() } }}</span>
@@ -156,7 +157,7 @@
   @if (created(); as c) {
     <div class="py-lg text-center" data-testid="training-success">
       <span class="mx-auto grid h-12 w-12 place-items-center rounded-pill border border-success-border bg-success-bg text-success-fg">
-        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+        <jh-icon name="check" size="lg" />
       </span>
       <h1 class="mt-md text-h3">{{ 'trainings.create.successTitle' | transloco }}</h1>
       <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.create.successSubtitle' | transloco }}</p>

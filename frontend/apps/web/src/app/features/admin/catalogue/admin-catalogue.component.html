@@ -9,7 +9,7 @@
     data-testid="catalogue-new"
     jhButton
   >
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+    <jh-icon name="plus" size="sm" />
     {{ 'admin.catalogue.newType' | transloco }}
   </button>
 </div>
@@ -89,7 +89,7 @@
                   @if (d.hasIcon) {
                     <img [src]="iconUrl(d.id)" [alt]="d.name" class="h-full w-full object-cover" />
                   } @else {
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4"><circle cx="12" cy="8" r="5" /><path d="M8.5 12.5 7 22l5-3 5 3-1.5-9.5" /></svg>
+                    <jh-icon name="award" size="sm" />
                   }
                 </span>
                 <span class="min-w-0">
@@ -140,7 +140,7 @@
             @if (d.hasIcon) {
               <img [src]="iconUrl(d.id)" [alt]="d.name" class="h-full w-full object-cover" />
             } @else {
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><circle cx="12" cy="8" r="5" /><path d="M8.5 12.5 7 22l5-3 5 3-1.5-9.5" /></svg>
+              <jh-icon name="award" />
             }
           </span>
           <div class="min-w-0 flex-1">
@@ -191,7 +191,7 @@
           }
         </h3>
         <button type="button" (click)="closeForm()" class="text-muted hover:text-body" [attr.aria-label]="'admin.assign.close' | transloco">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          <jh-icon name="x" />
         </button>
       </div>
 
@@ -277,7 +277,7 @@
       <div class="flex items-center justify-between border-b border-border-muted px-md py-sm">
         <h3 class="text-body-lg font-semibold text-heading">{{ (kind() === 'badge' ? 'admin.catalogue.iconTitleBadge' : 'admin.catalogue.iconTitleAchievement') | transloco }} · {{ iconTarget()?.name }}</h3>
         <button type="button" (click)="closeIcon()" class="text-muted hover:text-body" [attr.aria-label]="'admin.assign.close' | transloco">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-5 w-5"><path d="M18 6 6 18M6 6l12 12" /></svg>
+          <jh-icon name="x" />
         </button>
       </div>
 
@@ -286,7 +286,7 @@
         <label
           class="flex cursor-pointer flex-col items-center justify-center gap-xs rounded-lg border-2 border-dashed border-border-strong bg-surface-sunken px-md py-lg text-center transition-colors duration-fast hover:border-border-accent"
           (dragover)="$event.preventDefault()" (drop)="onIconDrop($event)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" class="h-6 w-6 text-muted"><path d="M12 16V4m0 0-4 4m4-4 4 4" /><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" /></svg>
+          <jh-icon name="upload" size="lg" class="text-muted" />
           <span class="text-body-sm font-medium text-body">{{ 'admin.catalogue.iconDrop' | transloco }} <span class="text-link">{{ 'admin.catalogue.iconBrowse' | transloco }}</span></span>
           <span class="text-caption text-muted">{{ 'admin.catalogue.iconFormats' | transloco }}</span>
           <input type="file" accept="image/png,image/jpeg,image/webp" class="hidden" (change)="onIconFile($event)" data-testid="catalogue-icon-file" />
@@ -352,10 +352,10 @@
       </div>
       <div class="px-md py-md">
         <p class="text-body-sm text-body">{{ 'admin.catalogue.retireIntro' | transloco }}</p>
-        <ul class="mt-sm flex flex-col gap-xs text-body-sm text-muted">
-          <li class="flex gap-xs"><span aria-hidden="true" class="text-warning-fg">•</span> {{ 'admin.catalogue.retireKeepsPre' | transloco }} <span class="font-medium text-body">{{ 'admin.catalogue.retireKeepsStrong' | transloco }}</span> {{ 'admin.catalogue.retireKeepsPost' | transloco }}</li>
-          <li class="flex gap-xs"><span aria-hidden="true" class="text-warning-fg">•</span> {{ 'admin.catalogue.retireLeavesPre' | transloco }} <span class="font-medium text-body">{{ 'admin.catalogue.retireLeavesStrong' | transloco }}</span> {{ 'admin.catalogue.retireLeavesPost' | transloco }}</li>
-          <li class="flex gap-xs"><span aria-hidden="true" class="text-warning-fg">•</span> {{ 'admin.catalogue.retireReinstatePre' | transloco }} <span class="font-medium text-body">{{ 'admin.catalogue.retireReinstateStrong' | transloco }}</span> {{ 'admin.catalogue.retireReinstatePost' | transloco }}</li>
+        <ul class="mt-sm list-disc space-y-xs pl-lg text-body-sm text-muted marker:text-warning-fg">
+          <li>{{ 'admin.catalogue.retireKeepsPre' | transloco }} <span class="font-medium text-body">{{ 'admin.catalogue.retireKeepsStrong' | transloco }}</span> {{ 'admin.catalogue.retireKeepsPost' | transloco }}</li>
+          <li>{{ 'admin.catalogue.retireLeavesPre' | transloco }} <span class="font-medium text-body">{{ 'admin.catalogue.retireLeavesStrong' | transloco }}</span> {{ 'admin.catalogue.retireLeavesPost' | transloco }}</li>
+          <li>{{ 'admin.catalogue.retireReinstatePre' | transloco }} <span class="font-medium text-body">{{ 'admin.catalogue.retireReinstateStrong' | transloco }}</span> {{ 'admin.catalogue.retireReinstatePost' | transloco }}</li>
         </ul>
       </div>
       <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">

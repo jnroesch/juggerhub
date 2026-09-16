@@ -7,7 +7,7 @@
 <div class="mt-md flex flex-wrap items-center gap-sm">
   <label class="relative block min-w-0 flex-1 basis-64">
     <span class="sr-only">{{ 'admin.users.searchLabel' | transloco }}</span>
-    <svg class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <jh-icon name="search" size="sm" class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
     <input
       type="search"
       [placeholder]="'admin.users.searchPlaceholder' | transloco"
@@ -103,7 +103,7 @@
               >{{ (row.status === 'Active' ? 'admin.common.statusActive' : row.status === 'Suspended' ? 'admin.common.statusSuspended' : 'admin.common.statusBanned') | transloco }}</span>
             </td>
             <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.badgeCount }}</td>
-            <td class="px-md py-sm text-right text-muted" aria-hidden="true">›</td>
+            <td class="px-md py-sm text-right text-muted" aria-hidden="true"><jh-icon name="chevron-right" size="sm" /></td>
           </tr>
         }
       </tbody>
@@ -151,17 +151,17 @@
     <div class="flex gap-xs">
       <button
         type="button"
-        class="h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40"
+        class="inline-flex items-center gap-2xs h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40"
         [disabled]="!hasPrev()"
         (click)="page(-1)"
-      >{{ 'admin.common.prev' | transloco }}</button>
+      ><jh-icon name="chevron-left" size="sm" />{{ 'admin.common.prev' | transloco }}</button>
       <button
         type="button"
-        class="h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40"
+        class="inline-flex items-center gap-2xs h-11 rounded-md border border-border-strong bg-surface-card px-sm text-body-sm font-medium text-body transition-colors duration-fast enabled:hover:bg-surface-sunken disabled:opacity-40"
         [disabled]="!hasNext()"
         (click)="page(1)"
         data-testid="admin-users-next"
-      >{{ 'admin.common.next' | transloco }}</button>
+      >{{ 'admin.common.next' | transloco }}<jh-icon name="chevron-right" size="sm" /></button>
     </div>
   </div>
 }

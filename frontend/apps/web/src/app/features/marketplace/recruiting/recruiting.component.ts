@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, LoadingComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { MarketService } from '../../../core/services/market.service';
@@ -20,7 +20,7 @@ import { injectRelativeTime } from '../../../core/i18n/locale-format';
  */
 @Component({
   selector: 'jh-recruiting',
-  imports: [CardComponent, RouterLink, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, TranslocoPipe],
+  imports: [CardComponent, RouterLink, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, TranslocoPipe, IconComponent],
   templateUrl: './recruiting.component.html',
   styleUrl: './recruiting.component.css',
 })

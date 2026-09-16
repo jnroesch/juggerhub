@@ -114,15 +114,30 @@ danger color = `danger-fg` (red-6). Retires bare `text-danger` (red-5) error tex
 Content via `<ng-content>`. Owns `mx-auto`, the `max-w-container-*` cap, and
 horizontal page padding. Page-type mapping is the taxonomy in research R6.
 
-## Primitive: Icon (`jh-icon` component)
+## Primitive: Icon (`jh-icon` component) — grown by GH #300
 
 | Input | Type | Default | Notes |
 |-------|------|---------|-------|
-| `name` | curated union (e.g. `'plus' \| 'search' \| 'bell' \| …`) | — (required) | keys of the curated Lucide map |
-| `size` | `number` | `18` | px; 16–22 inline with text |
+| `name` | curated union (`'plus' \| 'search' \| 'check' \| …`, 48 names) | — (required) | keys of the curated Lucide map, under Lucide's own names |
+| `size` | `'sm' \| 'md' \| 'lg'` | `'md'` | 16 / 18 / 22 px — named steps, not a number |
 
 Invariants: inline SVG, 2px stroke, `currentColor`, `aria-hidden="true"` (decorative).
 No runtime icon-library dependency.
+
+**What #300 changed, and why.** 024 shipped the primitive with **seven** glyphs and it
+was used **five times in the whole app**; everything else was drawn by hand — **99 inline
+`<svg>` across 37 files at five stroke widths** (2.0 ×54, 1.8 ×39, 1.6 ×8, 3.0 ×2,
+2.2 ×1) and seven sizes, with all five bottom-nav tabs at 1.8 next to a primitive that
+draws at 2.0. Six more places used a **literal text character** as the icon, which this
+component's own doc comment already forbade, and twenty translation keys carried one
+inside the translated string (`common.back` was `"‹ Back"` in all three languages) —
+the half no scan of the markup could see.
+
+The `size` input is a three-value union rather than a number because a number is what let
+the seven sizes happen: each call site picked one, two of them outside the 16–22px range
+DESIGN.md states. `app/core/design/icon-system.spec.ts` fails on an inline `<svg>`, on an
+icon glyph in a template *or* a catalogue, on a `<jh-icon>` given a box of its own, on a
+DESIGN.md name the map cannot answer, and on a glyph in the map nothing draws.
 
 ## Variant coverage vs. audit findings
 
@@ -133,5 +148,5 @@ No runtime icon-library dependency.
 | Four empty-state treatments; bare dead-ends | `jh-empty-state` + `[action]` slot |
 | Loading color/size/margin/copy scatter | `jh-loading` standardized text line |
 | Arbitrary container widths | `jh-page-container` width taxonomy |
-| Literal `+` glyph as icon | `jh-icon name="plus"` |
+| Literal `+` glyph as icon | `jh-icon name="plus"` — and every other text glyph used as one, product-wide, by GH #300 |
 | Terminology "invite"/"invitation" | copy sweep to canonical **"invite"** (not a primitive) |

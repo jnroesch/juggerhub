@@ -7,6 +7,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { ChatService } from '../../core/services/chat.service';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NavId, badgeText, isActiveDestination } from '../nav-model';
+import { IconComponent } from '../../shared/ui';
 
 /**
  * The mobile bottom tab bar (feature 008): Home · Browse · My team · Chat · Alerts. Five
@@ -14,7 +15,7 @@ import { NavId, badgeText, isActiveDestination } from '../nav-model';
  */
 @Component({
   selector: 'jh-bottom-nav',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe, IconComponent],
   templateUrl: './bottom-nav.component.html',
   styleUrl: './bottom-nav.component.css',
 })

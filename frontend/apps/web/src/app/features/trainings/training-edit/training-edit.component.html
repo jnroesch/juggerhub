@@ -1,5 +1,5 @@
 <div class="mx-auto max-w-lg px-md py-lg">
-  <button type="button" (click)="cancel()" class="text-body-sm font-medium text-link hover:text-link-hover">{{ 'trainings.edit.cancel' | transloco }}</button>
+  <button type="button" (click)="cancel()" class="inline-flex items-center gap-2xs text-body-sm font-medium text-link hover:text-link-hover"><jh-icon name="chevron-left" size="sm" />{{ 'trainings.edit.cancel' | transloco }}</button>
 
   @if (loading()) {
     <jh-loading />

@@ -1,5 +1,5 @@
 <div class="mx-auto max-w-container-md px-md py-lg">
-  <a [routerLink]="['/trainings/sessions', sessionId]" class="text-body-sm font-medium text-link hover:text-link-hover">{{ 'trainings.backSession' | transloco }}</a>
+  <a [routerLink]="['/trainings/sessions', sessionId]" class="inline-flex items-center gap-2xs text-body-sm font-medium text-link hover:text-link-hover"><jh-icon name="chevron-left" size="sm" />{{ 'trainings.backSession' | transloco }}</a>
   <h1 class="mt-sm text-h3">{{ 'trainings.attendance.title' | transloco }}</h1>
 
   @if (loading()) {
@@ -25,7 +25,7 @@
             <span jhChip tone="outline">{{ 'trainings.attendance.guest' | transloco }}</span>
             <button type="button" (click)="removeGuest(e)" [disabled]="busy()" [attr.aria-label]="'trainings.attendance.removeGuest' | transloco"
               class="grid h-8 w-8 place-items-center rounded-md border border-danger-border text-danger-fg hover:bg-danger-bg">
-              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              <jh-icon name="x" size="sm" />
             </button>
           }
         </li>

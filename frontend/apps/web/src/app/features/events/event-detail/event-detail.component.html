@@ -8,7 +8,7 @@
       <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand-strong">{{ 'events.detail.goHome' | transloco }}</a>
     </div>
   } @else if (detail(); as d) {
-    <a routerLink="/browse/events" [queryParams]="eventsQuery()" [state]="restoreSearch" class="text-body-sm text-muted hover:text-text" data-testid="event-back">{{ 'events.detail.backEvents' | transloco }}</a>
+    <a routerLink="/browse/events" [queryParams]="eventsQuery()" [state]="restoreSearch" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text" data-testid="event-back"><jh-icon name="chevron-left" size="sm" />{{ 'events.detail.backEvents' | transloco }}</a>
 
     <!-- Hero: cover, title, meta, occupancy -->
     <div class="relative mt-sm flex h-28 items-end overflow-hidden rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
@@ -24,20 +24,20 @@
     <h1 class="mt-md text-h3">{{ d.name }}</h1>
     <ul class="mt-sm space-y-xs text-body-md text-body">
       <li class="flex items-center gap-sm">
-        <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        <jh-icon name="calendar-days" size="sm" class="shrink-0 text-muted" />
         {{ d.startsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }} → {{ d.endsAt | translocoDate: { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false } }}
       </li>
       <li class="flex items-center gap-sm">
-        <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.3-7-11a7 7 0 0114 0c0 4.7-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+        <jh-icon name="map-pin" size="sm" class="shrink-0 text-muted" />
         @if (d.locationKind === 'InPerson') { {{ d.venueName || d.location?.name }}{{ d.venueName && d.location ? ', ' + d.location.name : '' }} } @else { {{ 'events.detail.online' | transloco }} }
       </li>
       <li class="flex items-center gap-sm">
-        <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.5"/><path d="M2 21a7 7 0 0114 0M17 4.5a3.5 3.5 0 010 7M15 21a7 7 0 017 0"/></svg>
+        <jh-icon name="users" size="sm" class="shrink-0 text-muted" />
         {{ (d.participantMode === 'Teams' ? 'events.detail.teamsOnly' : 'events.detail.individualsOnly') | transloco }}
       </li>
       @if (d.isPaid) {
         <li class="flex items-center gap-sm">
-          <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4z"/></svg>
+          <jh-icon name="ticket" size="sm" class="shrink-0 text-muted" />
           {{ d.feeAmount }} {{ d.feeCurrency }} {{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}
         </li>
       }

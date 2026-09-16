@@ -3,7 +3,7 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
-import { AlertComponent, ButtonDirective, CardComponent, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { EditorPlacement, RankingRow, ResultEditor, SignedUpTeam } from '../../../core/models/results.models';
 import { ResultsService } from '../../../core/services/results.service';
 import { MAX_EXPORT_ROWS, MAX_TEAM_NAME, parseTugenyRankingExport } from './tugeny-export.parser';
@@ -48,6 +48,7 @@ export interface EditorRow {
     LoadingComponent,
     TugenyLinkCardComponent,
     TugenyTeamListCardComponent,
+    IconComponent,
   ],
   templateUrl: './event-results.component.html',
   styleUrl: './event-results.component.css',

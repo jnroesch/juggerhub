@@ -6,9 +6,7 @@
       class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus lg:hidden"
       [attr.aria-label]="'chat.compose.backToMessages' | transloco"
     >
-      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="m15 18-6-6 6-6" />
-      </svg>
+      <jh-icon name="chevron-left" />
     </a>
 
     @if (avatarUrl(); as url) {
@@ -78,9 +76,7 @@
         [attr.aria-label]="'chat.compose.sendMessage' | transloco"
         data-testid="compose-send"
       >
-        <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 19V5M5 12l7-7 7 7" />
-        </svg>
+        <jh-icon name="arrow-up" />
       </button>
     </form>
   </footer>

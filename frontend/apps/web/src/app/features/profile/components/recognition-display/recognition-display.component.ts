@@ -2,6 +2,7 @@ import { Component, computed, input } from '@angular/core';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { EarnedRecognition, recognitionIconUrl } from '../../../../core/models/recognition.models';
+import { IconComponent } from '../../../../shared/ui';
 
 /**
  * Feature 012 US2 — displays a subject's earned badges and achievements in two grouped sections
@@ -11,7 +12,7 @@ import { EarnedRecognition, recognitionIconUrl } from '../../../../core/models/r
  */
 @Component({
   selector: 'jh-recognition-display',
-  imports: [TranslocoDatePipe, TranslocoPipe],
+  imports: [TranslocoDatePipe, TranslocoPipe, IconComponent],
   templateUrl: './recognition-display.component.html',
   styleUrl: './recognition-display.component.css',
 })

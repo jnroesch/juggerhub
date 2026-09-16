@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, input, output, signal } from '@ang
 import { TranslocoPipe } from '@jsverse/transloco';
 import { PasswordPolicy } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth.service';
+import { IconComponent } from '../../../shared/ui';
 
 interface Rule {
   /** Translation key + params, resolved in the template so labels follow the active language. */
@@ -17,7 +18,7 @@ interface Rule {
  */
 @Component({
   selector: 'jh-password-rules',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, IconComponent],
   templateUrl: './password-rules.component.html',
   styleUrl: './password-rules.component.css',
 })

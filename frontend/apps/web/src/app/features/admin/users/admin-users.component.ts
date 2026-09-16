@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CardComponent, ChipDirective, ChipTone, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
+import { CardComponent, ChipDirective, ChipTone, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime } from 'rxjs';
@@ -22,7 +22,7 @@ const PAGE_SIZE = 20;
  */
 @Component({
   selector: 'jh-admin-users',
-  imports: [CardComponent, ChipDirective, RouterLink, FormsModule, LoadingComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [CardComponent, ChipDirective, RouterLink, FormsModule, LoadingComponent, EmptyStateComponent, TranslocoPipe, IconComponent],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.css',
 })

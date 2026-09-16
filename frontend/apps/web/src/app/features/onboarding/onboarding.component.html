@@ -144,7 +144,7 @@
         <label
           class="mt-lg flex items-center gap-xs rounded-md border border-border-strong bg-surface-card px-md py-xs transition-shadow duration-fast focus-within:border-brand focus-within:ring-2 focus-within:ring-focus"
         >
-          <jh-icon name="search" [size]="18" class="shrink-0 text-muted" />
+          <jh-icon name="search" class="shrink-0 text-muted" />
           <input
             type="search"
             data-testid="onboarding-team-search"
@@ -274,7 +274,7 @@
     <!-- 5 · Photo + bio -------------------------------------------------------->
     @case ('photo') {
       <div class="flex items-center justify-between">
-        <button type="button" (click)="back()" class="text-body-sm text-muted hover:text-text">{{ 'common.back' | transloco }}</button>
+        <button type="button" (click)="back()" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</button>
       </div>
       <div class="mt-lg flex-1">
         <h1 class="text-h2">{{ 'onboarding.photo.title' | transloco }}</h1>
@@ -342,9 +342,7 @@
     @case ('done') {
       <div class="flex flex-1 flex-col items-center justify-center text-center">
         <div class="grid h-16 w-16 place-items-center rounded-pill bg-brand-strong text-on-accent shadow-coral" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" class="h-8 w-8" stroke="currentColor" stroke-width="3">
-            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
-          </svg>
+          <jh-icon name="check" size="lg" />
         </div>
         <h1 class="mt-lg text-h2">{{ 'onboarding.done.title' | transloco }}</h1>
         <p class="mt-xs text-lead text-muted">{{ 'onboarding.done.subtitle' | transloco }}</p>
@@ -364,7 +362,7 @@
 
 <!-- Shared: back bar, progress knobs, and a plain Skip link ------------------->
 <ng-template #backBar>
-  <button type="button" (click)="back()" class="text-body-sm text-muted hover:text-text">{{ 'common.back' | transloco }}</button>
+  <button type="button" (click)="back()" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</button>
 </ng-template>
 
 <ng-template #progress>

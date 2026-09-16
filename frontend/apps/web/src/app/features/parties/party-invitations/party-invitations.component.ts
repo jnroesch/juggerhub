@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ButtonDirective, EmptyStateComponent, CardComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, EmptyStateComponent, IconComponent } from '../../../shared/ui';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -12,7 +12,7 @@ import { PartyService } from '../../../core/services/party.service';
  */
 @Component({
   selector: 'jh-party-invitations',
-  imports: [RouterLink, FormsModule, ButtonDirective, EmptyStateComponent, CardComponent, TranslocoPipe],
+  imports: [RouterLink, FormsModule, ButtonDirective, EmptyStateComponent, CardComponent, TranslocoPipe, IconComponent],
   templateUrl: './party-invitations.component.html',
   styleUrl: './party-invitations.component.css',
 })

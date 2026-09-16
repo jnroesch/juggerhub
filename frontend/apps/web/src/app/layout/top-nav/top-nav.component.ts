@@ -8,6 +8,7 @@ import { ChatService } from '../../core/services/chat.service';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AvatarMenuComponent } from '../avatar-menu/avatar-menu.component';
 import { NavId, badgeText, isActiveDestination } from '../nav-model';
+import { IconComponent } from '../../shared/ui';
 
 /**
  * The single top bar (feature 008). On desktop it carries the brand, the primary destinations
@@ -16,7 +17,7 @@ import { NavId, badgeText, isActiveDestination } from '../nav-model';
  */
 @Component({
   selector: 'jh-top-nav',
-  imports: [RouterLink, AvatarMenuComponent, TranslocoPipe],
+  imports: [RouterLink, AvatarMenuComponent, TranslocoPipe, IconComponent],
   templateUrl: './top-nav.component.html',
   styleUrl: './top-nav.component.css',
 })

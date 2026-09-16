@@ -1,5 +1,5 @@
 import { Component, HostListener, computed, inject, input, output, signal } from '@angular/core';
-import { ButtonDirective } from '../../../shared/ui';
+import { ButtonDirective, IconComponent } from '../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
@@ -21,7 +21,7 @@ type Tab = 'badge' | 'achievement';
  */
 @Component({
   selector: 'jh-assign-picker',
-  imports: [FormsModule, ButtonDirective, TranslocoPipe],
+  imports: [FormsModule, ButtonDirective, TranslocoPipe, IconComponent],
   templateUrl: './assign-picker.component.html',
   styleUrl: './assign-picker.component.css',
 })
