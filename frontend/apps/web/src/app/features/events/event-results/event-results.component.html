@@ -10,7 +10,9 @@
     <jh-alert tone="danger">{{ 'events.results.loadError' | transloco }}</jh-alert>
     <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
   } @else if (editor(); as e) {
-    <a [routerLink]="['/events', e.eventId]" class="text-body-sm text-muted hover:text-text" data-testid="results-back">‹ {{ e.eventName }}</a>
+    <a [routerLink]="['/events', e.eventId]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text" data-testid="results-back">
+      <jh-icon name="chevron-left" size="sm" />{{ e.eventName }}
+    </a>
     <h1 class="mt-md text-h3">{{ 'events.results.title' | transloco }}</h1>
     <p class="text-body-sm text-muted">{{ e.eventName }}</p>
 
@@ -99,7 +101,7 @@
                     class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                     [attr.aria-label]="'events.results.editor.removeRow' | transloco: { row: i + 1 }"
                     [attr.title]="'events.results.editor.remove' | transloco" data-testid="row-remove">
-                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                    <jh-icon name="x" />
                   </button>
                 </li>
               }

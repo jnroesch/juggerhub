@@ -402,14 +402,15 @@ rejects the whole class.
 
 ## Navigation: back links
 
-The small `‹ Parent` link above a page title means **up, not back**. The browser
-and the phone already provide *back*, the historical control; an in-page copy of
-it breaks exactly where it is needed. On a page opened from an alert or a shared
-link it leaves the app, after an edit-and-save it returns to the form, and it can
-never say where it goes.
+The small `chevron-left` + `Parent` link above a page title means **up, not
+back**. (The chevron is `jh-icon name="chevron-left"`, never a `‹` typed into the
+label — see Iconography.) The browser and the phone already provide *back*, the
+historical control; an in-page copy of it breaks exactly where it is needed. On
+a page opened from an alert or a shared link it leaves the app, after an
+edit-and-save it returns to the form, and it can never say where it goes.
 
-- **It leads to the page's parent, and says which one** — `‹ Trainings`, never a
-  bare `‹ Back`. Never `Location.back()`.
+- **It leads to the page's parent, and says which one** — "Trainings", never a
+  bare "Back". Never `Location.back()`.
 - **The parent is the one this viewer can open.** A page with several parents
   picks by audience. A training session's parent is the team's Trainings tab for
   a member and the public trainings list for everyone else; linking a guest to
@@ -498,6 +499,17 @@ subtle `ease-bounce` for toggles and playful moments.
 - **A pill that sets its own box is not a chip** — an avatar, the unread counter
   over a nav icon, a ranking number, a floating action pill. Its height is not
   its padding, and 44px would be wrong for a decoration nobody presses.
+- **List markers: the marker follows what it carries.** A list whose markers say
+  nothing — "what retiring does", the points in a legal section — uses CSS
+  `list-disc` / `list-decimal` with `marker:` for colour: a bullet is typography,
+  drawn by the browser in the running font, at the running size. A list whose
+  markers carry **state** — the password rules, a readiness checklist — uses
+  `jh-icon` instead, because the marker is information: `check` for met, `circle`
+  for not, `dot` for a neutral row. **One list, one kind of marker**: if any row
+  needs an icon, every row in that list gets one, so they share a box and a
+  stroke and line up by construction. Neither kind is ever a typed character —
+  that is how #278's first screenshot came to be a list of markers at two
+  different sizes in two different typefaces.
 
 ## Loading, error & retry states
 
@@ -560,6 +572,9 @@ treatment, built entirely from the tokens above; nothing new is introduced.
   status.
 - **Lists** — `disc` / `decimal`, indented on the spacing scale, at the body
   step. Lists carry the load in legal text; they are content, not decoration.
+  A section's body takes `{ list: [...] }` and `{ ordered: [...] }` blocks
+  alongside its paragraphs, so this is something the catalogue can ask for
+  rather than an aspiration (GH #300).
 - **Restraint** — no cards, no shadows, no gradient strip, no accent fields. A
   document page is text on the page background. Nothing on it competes for
   attention with the words.
@@ -571,10 +586,28 @@ treatment, built entirely from the tokens above; nothing new is introduced.
 ## Iconography
 
 - **Icon set: [Lucide](https://lucide.dev)** — friendly, rounded, 2px-stroke
-  line icons. Line icons only (no filled/duotone), sized 16–22px inline with
-  text, colored via `currentColor` or a token. Common icons: `compass, users,
-  calendar-days, search, bell, plus, map-pin, trophy, swords, user-plus,
-  arrow-right, check, sparkles`.
+  line icons. Line icons only (no filled/duotone), colored via `currentColor` or
+  a token. Common icons: `compass, users, calendar-days, search, bell, plus,
+  map-pin, trophy, swords, user-plus, arrow-right, check, sparkles`.
+- **Every icon is `jh-icon`.** A screen never inlines an `<svg>` — the primitive
+  owns the stroke, the size and the glyph set, which is the only way the weight
+  stays one weight. Before GH #300 the templates held 99 hand-drawn SVGs at
+  five stroke widths, and an icon at 1.6 beside one at 2.0 is most of what
+  "slightly incongruent" means from the outside. Adding a glyph means copying
+  Lucide's nodes into `shared/ui/icon/icons.ts` under Lucide's own name.
+- **Three sizes, and no fourth** — `sm` **16** inline with `caption`/`body-sm`,
+  in a chip, in a dense table row; `md` **18**, the default, inline with body
+  text and in a button beside its label; `lg` **22** for a nav tab, an empty
+  state, an icon standing on its own. Named steps, not pixels: the seven sizes
+  #300 found were seven call sites each picking a number.
+- **Never a text character as an icon.** `✓`, `○`, `•`, `›`, `‹`, `✕`, `⋯`,
+  `•••` — none of them. Half of them are outside the latin subset
+  `@fontsource/mona-sans` ships, so the browser draws them from a fallback face
+  at a different cap height and advance width: markers that cannot line up with
+  each other or with the label beside them, whatever box you put them in. That
+  is the list in #278's first screenshot. This holds in the **translation
+  catalogues** too — a chevron inside `"‹ Back"` is the same glyph, one layer
+  further from review, and one a translator has to carry.
 - **No emoji** as UI icons. Numbers/scores use the mono face, not glyphs.
 - **Brand mark** — gradient rounded square + crossed "pompfen" + lemon center
   dot; original brand asset, not an icon.

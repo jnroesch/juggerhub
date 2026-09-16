@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { LegalLinksComponent, ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, IconComponent, LegalLinksComponent, LoadingComponent } from '../../../shared/ui';
 import { InvitePreview } from '../../../core/models/team.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { MembershipService } from '../../../core/services/membership.service';
@@ -23,7 +23,7 @@ type PendingAction = 'accept' | 'decline';
  */
 @Component({
   selector: 'jh-invite-accept',
-  imports: [LegalLinksComponent, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
+  imports: [LegalLinksComponent, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe, IconComponent],
   templateUrl: './invite-accept.component.html',
   styleUrl: './invite-accept.component.css',
 })

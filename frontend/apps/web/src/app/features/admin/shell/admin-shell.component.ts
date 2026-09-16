@@ -3,6 +3,7 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { filter, map } from 'rxjs';
+import { IconComponent } from '../../../shared/ui';
 
 /**
  * The admin area shell (feature 013, wireframe 1a/1b): its own shield header with a
@@ -13,7 +14,7 @@ import { filter, map } from 'rxjs';
  */
 @Component({
   selector: 'jh-admin-shell',
-  imports: [RouterLink, RouterOutlet, TranslocoPipe],
+  imports: [RouterLink, RouterOutlet, TranslocoPipe, IconComponent],
   templateUrl: './admin-shell.component.html',
   styleUrl: './admin-shell.component.css',
 })

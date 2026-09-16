@@ -1,5 +1,5 @@
 <section class="mx-auto max-w-container-sm px-md py-lg" data-testid="team-create">
-  <a routerLink="/" class="text-body-sm text-muted hover:text-text">{{ 'common.back' | transloco }}</a>
+  <a routerLink="/" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</a>
 
   <h1 class="mt-md text-h3">{{ 'teams.create.title' | transloco }}</h1>
   <p class="text-body-md text-muted">{{ 'teams.create.subtitle' | transloco }}</p>
@@ -26,7 +26,7 @@
         <p class="mt-xs text-body-sm text-danger-fg" data-testid="slug-check-failed" role="alert">{{ 'teams.create.checkFailed' | transloco }}</p>
       } @else if (slugStatus(); as s) {
         @if (s.available) {
-          <p class="mt-xs text-body-sm text-success-fg" data-testid="slug-ok">{{ 'teams.create.slugAvailable' | transloco:{ slug: s.normalized } }}</p>
+          <p class="mt-xs flex items-center gap-2xs text-body-sm text-success-fg" data-testid="slug-ok"><jh-icon name="check" size="sm" class="shrink-0" />{{ 'teams.create.slugAvailable' | transloco:{ slug: s.normalized } }}</p>
         } @else {
           <p class="mt-xs text-body-sm text-danger-fg" data-testid="slug-bad">{{ slugReasonKey() | transloco: reasonParams }}</p>
         }

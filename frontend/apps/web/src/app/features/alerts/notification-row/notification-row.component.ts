@@ -1,6 +1,6 @@
 import { Component, computed, inject, input, output } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ButtonDirective, CardComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, IconComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import {
@@ -25,7 +25,7 @@ import { injectRelativeTime } from '../../../core/i18n/locale-format';
  */
 @Component({
   selector: 'jh-notification-row',
-  imports: [RouterLink, ButtonDirective, CardComponent, TranslocoPipe],
+  imports: [RouterLink, ButtonDirective, CardComponent, TranslocoPipe, IconComponent],
   templateUrl: './notification-row.component.html',
   styleUrl: './notification-row.component.css',
 })

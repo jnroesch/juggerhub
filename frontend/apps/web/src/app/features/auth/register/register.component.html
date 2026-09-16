@@ -53,9 +53,9 @@
             />
             @switch (handleState()) {
               @case ('checking') { <span class="pr-md text-body-sm text-muted">…</span> }
-              @case ('available') { <span class="pr-md text-body-sm text-success-fg" data-testid="handle-available">✓</span> }
-              @case ('unavailable') { <span class="pr-md text-body-sm text-danger-fg" data-testid="handle-unavailable">✕</span> }
-              @case ('failed') { <span class="pr-md text-body-sm text-danger-fg" data-testid="handle-check-failed">!</span> }
+              @case ('available') { <span class="pr-md text-success-fg" data-testid="handle-available"><jh-icon name="check" size="sm" /></span> }
+              @case ('unavailable') { <span class="pr-md text-danger-fg" data-testid="handle-unavailable"><jh-icon name="x" size="sm" /></span> }
+              @case ('failed') { <span class="pr-md text-danger-fg" data-testid="handle-check-failed"><jh-icon name="circle-alert" size="sm" /></span> }
             }
           </div>
           <!-- break-words: host + handle is one unbreakable token and can exceed a phone's width. -->

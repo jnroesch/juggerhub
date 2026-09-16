@@ -1,5 +1,5 @@
 <div class="mx-auto max-w-container-md px-md py-lg">
-  <a [routerLink]="['/t', slug()]" class="text-body-sm font-medium text-link hover:text-link-hover">{{ 'trainings.backTeam' | transloco }}</a>
+  <a [routerLink]="['/t', slug()]" class="inline-flex items-center gap-2xs text-body-sm font-medium text-link hover:text-link-hover"><jh-icon name="chevron-left" size="sm" />{{ 'trainings.backTeam' | transloco }}</a>
   <div class="mt-sm flex items-center justify-between">
     <h1 class="text-h3">{{ 'trainings.tab.title' | transloco }}</h1>
     @if (isAdmin()) {
@@ -43,9 +43,9 @@
               </p>
               <p class="text-caption text-muted"><span class="font-mono">{{ s.goingCount }}</span> {{ 'trainings.tab.going' | transloco }}</p>
             </div>
-            <span class="shrink-0 text-body-sm font-medium"
+            <span class="flex shrink-0 items-center gap-2xs text-body-sm font-medium"
               [class.text-success-fg]="s.myAnswer === 'Going'"
-              [class.text-link]="s.myAnswer !== 'Going'">{{ answerLabel(s.myAnswer) | transloco }}</span>
+              [class.text-link]="s.myAnswer !== 'Going'">{{ answerLabel(s.myAnswer) | transloco }}@if (!s.myAnswer) {<jh-icon name="chevron-right" size="sm" />}</span>
           </a>
         </li>
       }

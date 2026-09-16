@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { ButtonDirective, CardComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, IconComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -80,7 +80,7 @@ function pristineDraft(): TrainingDraft {
  */
 @Component({
   selector: 'jh-training-create',
-  imports: [FormsModule, ButtonDirective, CardComponent, AddressFieldsComponent, TranslocoPipe],
+  imports: [FormsModule, ButtonDirective, CardComponent, AddressFieldsComponent, TranslocoPipe, IconComponent],
   templateUrl: './training-create.component.html',
   styleUrl: './training-create.component.css',
 })

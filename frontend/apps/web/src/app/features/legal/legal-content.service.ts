@@ -3,10 +3,25 @@ import { Injectable, inject, signal } from '@angular/core';
 import { TranslocoService } from '@jsverse/transloco';
 import { Subject, catchError, combineLatest, of, startWith, switchMap, tap } from 'rxjs';
 
-/** One section of a legal document: a heading and its paragraphs. */
+/**
+ * One block of a legal section's body: a paragraph, or a list.
+ *
+ * A bare string is a paragraph, which is what every block was before GH #300 — so the
+ * catalogues need no migration and a translator writing prose writes exactly what they wrote
+ * before. The object forms exist because DESIGN.md's long-form section says lists carry the
+ * load in legal text, and until #300 the renderer had no way to draw one: a catalogue could
+ * only ask for `<p>`, which made that line of the design system unimplementable.
+ *
+ * Items are plain strings, never markup. There is no `[innerHTML]` anywhere on this page and
+ * there is not going to be one (constitution I) — a list is structure the renderer supplies,
+ * not markup the content carries.
+ */
+export type LegalBlock = string | { list: string[] } | { ordered: string[] };
+
+/** One section of a legal document: a heading and its body blocks. */
 export interface LegalSection {
   heading: string;
-  body: string[];
+  body: LegalBlock[];
 }
 
 /** One legal document — the terms of use, the privacy policy, or the imprint. */

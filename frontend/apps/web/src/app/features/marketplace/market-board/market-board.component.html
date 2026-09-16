@@ -88,7 +88,7 @@
                             <button type="button" (click)="accept(inv.id)" jhButton size="sm">{{ 'common.accept' | transloco }}</button>
                             <button type="button" (click)="decline(inv.id)" [attr.aria-label]="'marketplace.board.ariaDeclineInvite' | transloco" [attr.title]="'marketplace.board.titleDecline' | transloco"
                               class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-muted hover:bg-surface-sunken hover:text-body">
-                              <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                              <jh-icon name="x" size="sm" />
                             </button>
                           </div>
                         } @else if (pendingApplication(party)) {
@@ -130,11 +130,11 @@
                         <div class="flex shrink-0 gap-xs" data-testid="my-listing-actions">
                           <button type="button" (click)="openPost(true)" [attr.aria-label]="'marketplace.board.ariaEditListing' | transloco" [attr.title]="'marketplace.board.titleEdit' | transloco"
                             class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-muted hover:bg-surface-sunken hover:text-body">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg>
+                            <jh-icon name="pencil" size="sm" />
                           </button>
                           <button type="button" (click)="takeDown()" [disabled]="acting()" [attr.aria-label]="'marketplace.board.ariaTakeDown' | transloco" [attr.title]="'marketplace.board.titleTakeDown' | transloco"
                             class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-danger-fg hover:bg-danger-bg disabled:opacity-50">
-                            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                            <jh-icon name="x" size="sm" />
                           </button>
                         </div>
                       } @else if (canInvite()) {

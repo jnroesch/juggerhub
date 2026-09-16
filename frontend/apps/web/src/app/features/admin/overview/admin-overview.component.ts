@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { LoadingComponent, CardComponent } from '../../../shared/ui';
+import { CardComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +15,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-admin-overview',
-  imports: [TranslocoDatePipe, RouterLink, FormsModule, LoadingComponent, CardComponent, TranslocoPipe],
+  imports: [TranslocoDatePipe, RouterLink, FormsModule, LoadingComponent, CardComponent, TranslocoPipe, IconComponent],
   templateUrl: './admin-overview.component.html',
   styleUrl: './admin-overview.component.css',
 })

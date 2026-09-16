@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ButtonDirective, AlertComponent, LowercaseInputDirective } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, IconComponent, LowercaseInputDirective } from '../../../shared/ui';
 import { EMPTY, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 import { SlugAvailability, TeamType } from '../../../core/models/team.models';
 import { CityOption, toSelection } from '../../../core/models/city.models';
@@ -20,7 +20,7 @@ import { CityPickerComponent } from '../../../shared/city-picker/city-picker.com
  */
 @Component({
   selector: 'jh-team-create',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, LowercaseInputDirective, CityPickerComponent, TranslocoPipe],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, AlertComponent, LowercaseInputDirective, CityPickerComponent, TranslocoPipe, IconComponent],
   templateUrl: './team-create.component.html',
   styleUrl: './team-create.component.css',
 })

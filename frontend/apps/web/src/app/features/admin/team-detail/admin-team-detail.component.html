@@ -1,6 +1,6 @@
-<nav class="text-body-sm text-muted" [attr.aria-label]="'admin.common.breadcrumb' | transloco">
+<nav class="flex items-center gap-2xs text-body-sm text-muted" [attr.aria-label]="'admin.common.breadcrumb' | transloco">
   <a routerLink="/admin/teams" class="font-medium text-link hover:text-link-hover">{{ 'admin.teamDetail.breadcrumb' | transloco }}</a>
-  <span aria-hidden="true"> › </span>
+  <jh-icon name="chevron-right" size="sm" class="shrink-0" />
   <span>{{ detail()?.name ?? '…' }}</span>
 </nav>
 
@@ -42,7 +42,7 @@
         data-testid="assign"
         jhButton
       >
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        <jh-icon name="plus" size="sm" />
         {{ 'admin.teamDetail.assign' | transloco }}
       </button>
     </div>

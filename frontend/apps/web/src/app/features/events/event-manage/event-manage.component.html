@@ -7,10 +7,10 @@
       <p class="mt-xs text-body-sm text-muted">{{ 'events.manage.notAllowedBody' | transloco }}</p>
     </div>
   } @else if (detail(); as d) {
-    <a [routerLink]="['/events', d.id]" class="text-body-sm text-muted hover:text-text">{{ 'events.manage.back' | transloco }}</a>
+    <a [routerLink]="['/events', d.id]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'events.manage.back' | transloco }}</a>
     <h1 class="mt-md text-h3">{{ 'events.manage.title' | transloco }}</h1>
     <p class="text-body-sm text-muted">{{ d.name }} · {{ 'events.manage.spotsOccupied' | transloco:{ occupied: d.occupiedSpots, limit: d.participationLimit } }}</p>
-    <a [routerLink]="['/events', d.id, 'edit']" class="mt-xs inline-block text-body-sm font-semibold text-brand-strong" data-testid="to-settings">{{ 'events.manage.editAndCancel' | transloco }}</a>
+    <a [routerLink]="['/events', d.id, 'edit']" class="mt-xs inline-flex items-center gap-2xs text-body-sm font-semibold text-brand-strong" data-testid="to-settings">{{ 'events.manage.editAndCancel' | transloco }}<jh-icon name="chevron-right" size="sm" /></a>
 
     @if (error()) { <jh-alert class="mt-sm">{{ error() }}</jh-alert> }
 

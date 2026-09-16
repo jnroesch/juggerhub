@@ -1,5 +1,5 @@
 <section class="mx-auto max-w-container-sm px-md py-lg lg:max-w-container-lg" data-testid="team-invitations">
-  <a [routerLink]="['/t', slug()]" class="text-body-sm text-muted hover:text-text">{{ 'teams.invitations.backMembers' | transloco }}</a>
+  <a [routerLink]="['/t', slug()]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'teams.invitations.backMembers' | transloco }}</a>
   <h1 class="mt-md text-h3">{{ 'teams.invitations.title' | transloco }}</h1>
 
   @if (loading()) {
@@ -65,7 +65,7 @@
                 <span class="text-body-sm text-muted">{{ 'teams.invitations.relationMember' | transloco }}</span>
               }
               @case ('Invited') {
-                <span class="rounded-md border border-dashed border-border-strong px-md py-xs text-body-sm text-muted">{{ 'teams.invitations.relationInvited' | transloco }}</span>
+                <span class="inline-flex items-center gap-2xs rounded-md border border-dashed border-border-strong px-md py-xs text-body-sm text-muted"><jh-icon name="check" size="sm" />{{ 'teams.invitations.relationInvited' | transloco }}</span>
               }
               @default {
                 <button type="button" (click)="invite(u)" [attr.data-testid]="'invite-' + u.handle"

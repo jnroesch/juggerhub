@@ -7,7 +7,7 @@ import { Subject, debounceTime } from 'rxjs';
 import { AdminPlacement } from '../../../core/models/results.models';
 import { AdminService } from '../../../core/services/admin.service';
 import { problemDetail } from '../../../core/utils/problem';
-import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { AdminTeamPickerComponent } from '../shared/team-picker.component';
 
 const PAGE_SIZE = 20;
@@ -34,6 +34,7 @@ const PAGE_SIZE = 20;
     EmptyStateComponent,
     LoadingComponent,
     AdminTeamPickerComponent,
+    IconComponent,
   ],
   templateUrl: './admin-results.component.html',
   styleUrl: './admin-results.component.css',

@@ -54,10 +54,7 @@
 
   <!-- Search -->
   <label class="flex items-center gap-xs rounded-md border border-border-strong bg-surface-card px-sm py-xs">
-    <svg class="h-4 w-4 shrink-0 text-muted" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <circle cx="7" cy="7" r="4.5" stroke="currentColor" stroke-width="1.6" />
-      <line x1="10.5" y1="10.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-    </svg>
+    <jh-icon name="search" size="sm" class="shrink-0 text-muted" />
     <input
       #searchBox
       type="search"
@@ -77,11 +74,7 @@
       (click)="openFilters.emit()"
       data-testid="browse-filters-button"
     >
-      <svg class="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-        <line x1="2" y1="4.5" x2="14" y2="4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-        <line x1="4" y1="8" x2="12" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-        <line x1="6" y1="11.5" x2="10" y2="11.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-      </svg>
+      <jh-icon name="sliders-horizontal" size="sm" class="shrink-0" />
       {{ 'browse.filters' | transloco }}
       @if (activeFilterCount() > 0) {
         <span
@@ -105,11 +98,7 @@
           [attr.aria-expanded]="sortMenuOpen()"
           data-testid="browse-sort-button"
         >
-          <svg class="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <line x1="2" y1="4" x2="14" y2="4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-            <line x1="2" y1="8" x2="10" y2="8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-            <line x1="2" y1="12" x2="6" y2="12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" />
-          </svg>
+          <jh-icon name="arrow-down-wide-narrow" size="sm" class="shrink-0" />
           {{ 'browse.sort' | transloco }} · <b class="font-medium text-ink">{{ activeSortLabel() }}</b>
         </button>
 
@@ -142,9 +131,7 @@
               >
                 {{ option.label }}
                 @if (option.value === activeSort()) {
-                  <svg class="h-4 w-4 shrink-0" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                    <path d="M3.5 8.5 6.5 11.5 12.5 4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
+                  <jh-icon name="check" size="sm" class="shrink-0" />
                 }
               </button>
             }
@@ -165,7 +152,7 @@
           (click)="removeChip.emit(chip.key)"
         >
           {{ chip.label }}
-          <span aria-hidden="true">✕</span>
+          <jh-icon name="x" size="sm" />
           <span class="sr-only">{{ 'browse.removeFilter' | transloco:{ label: chip.label } }}</span>
         </button>
       }

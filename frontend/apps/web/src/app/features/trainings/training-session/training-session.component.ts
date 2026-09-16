@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CardComponent, ChipDirective, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
+import { CardComponent, ChipDirective, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -17,7 +17,7 @@ import { injectDateFormats } from '../../../core/i18n/locale-format';
  */
 @Component({
   selector: 'jh-training-session',
-  imports: [CardComponent, ChipDirective, RouterLink, LoadingComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [CardComponent, ChipDirective, RouterLink, LoadingComponent, EmptyStateComponent, TranslocoPipe, IconComponent],
   templateUrl: './training-session.component.html',
   styleUrl: './training-session.component.css',
 })

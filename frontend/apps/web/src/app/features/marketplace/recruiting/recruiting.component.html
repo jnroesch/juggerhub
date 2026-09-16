@@ -1,5 +1,5 @@
 <section class="mx-auto max-w-container-md px-md py-lg" data-testid="recruiting-page">
-  <a [routerLink]="['/parties', id]" class="text-body-sm text-muted hover:text-body">{{ 'parties.backToParty' | transloco }}</a>
+  <a [routerLink]="['/parties', id]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'parties.backToParty' | transloco }}</a>
 
   @if (loading()) {
     <jh-loading />
@@ -31,9 +31,9 @@
         <hr class="my-md border-t border-border" />
         <p class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.spotsToAdvertise' | transloco }}</p>
         <div class="mt-xs flex items-center gap-sm">
-          <button type="button" (click)="changeSpots(-1)" class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-body-md font-semibold text-body hover:bg-surface-sunken">−</button>
+          <button type="button" (click)="changeSpots(-1)" [attr.aria-label]="'marketplace.recruiting.fewerSpots' | transloco" class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-body hover:bg-surface-sunken"><jh-icon name="minus" size="sm" /></button>
           <span class="w-8 text-center font-mono text-body-md">{{ spots() }}</span>
-          <button type="button" (click)="changeSpots(1)" class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-body-md font-semibold text-body hover:bg-surface-sunken">+</button>
+          <button type="button" (click)="changeSpots(1)" [attr.aria-label]="'marketplace.recruiting.moreSpots' | transloco" class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-body hover:bg-surface-sunken"><jh-icon name="plus" size="sm" /></button>
           <span class="text-body-sm text-muted">{{ 'marketplace.recruiting.of' | transloco }} <span class="font-mono">{{ s.rosterCap }}</span> · <span class="font-mono">{{ s.inCount }}</span> {{ 'marketplace.recruiting.inSoFar' | transloco }}</span>
         </div>
 

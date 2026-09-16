@@ -5,9 +5,7 @@
       class="inline-flex min-h-11 min-w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       [attr.aria-label]="'common.cancel' | transloco"
     >
-      <svg class="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M18 6 6 18M6 6l12 12" />
-      </svg>
+      <jh-icon name="x" />
     </a>
 
     <h1 class="text-h3">{{ 'chat.new.title' | transloco }}</h1>
@@ -72,9 +70,7 @@
             [attr.aria-label]="'chat.new.removePerson' | transloco:{ name: p.displayName }"
           >
             {{ p.displayName }}
-            <svg class="size-4 text-muted" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M18 6 6 18M6 6l12 12" />
-            </svg>
+            <jh-icon name="x" size="sm" class="text-muted" />
           </button>
         </li>
       }
@@ -105,9 +101,7 @@
               aria-hidden="true"
             >
               @if (isSelected(p.userId)) {
-                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M20 6 9 17l-5-5" />
-                </svg>
+                <jh-icon name="check" size="sm" />
               }
             </span>
 

@@ -1,5 +1,5 @@
 <section class="mx-auto max-w-container-sm px-md py-lg" data-testid="team-settings">
-  <a [routerLink]="['/t', slug()]" class="text-body-sm text-muted hover:text-text">{{ 'common.back' | transloco }}</a>
+  <a [routerLink]="['/t', slug()]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</a>
   <h1 class="mt-md text-h3">{{ 'teams.settings.title' | transloco }}</h1>
 
   @if (loading()) {
@@ -108,7 +108,7 @@
         <button type="button" (click)="stepDown()" [disabled]="soleAdmin() || working()" data-testid="step-down"
           class="mt-xs flex w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-60">
           <span>{{ 'teams.settings.stepDown' | transloco }}</span>
-          <span class="text-muted">›</span>
+          <jh-icon name="chevron-right" size="sm" class="text-muted" />
         </button>
         @if (soleAdmin()) {
           <p class="mt-xs rounded-md border border-dashed border-warning-border bg-warning-bg px-md py-sm text-body-sm text-warning-fg" data-testid="sole-admin-warning">

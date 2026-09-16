@@ -5,6 +5,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { MembershipService } from '../../core/services/membership.service';
 import { ProfileService } from '../../core/services/profile.service';
 import { RecognitionAdminService } from '../../core/services/recognition-admin.service';
+import { IconComponent } from '../../shared/ui';
 
 /**
  * The account menu under the player's avatar (feature 008): Profile · Account · Sign out.
@@ -13,7 +14,7 @@ import { RecognitionAdminService } from '../../core/services/recognition-admin.s
  */
 @Component({
   selector: 'jh-avatar-menu',
-  imports: [RouterLink, TranslocoPipe],
+  imports: [RouterLink, TranslocoPipe, IconComponent],
   templateUrl: './avatar-menu.component.html',
   styleUrl: './avatar-menu.component.css',
 })

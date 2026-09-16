@@ -84,8 +84,32 @@
           @for (entry of sections(); track entry.key) {
             <section [id]="anchor(entry.key)" class="mt-2xl scroll-mt-lg">
               <h2 class="font-display text-h4 font-bold text-ink">{{ entry.section.heading }}</h2>
-              @for (paragraph of entry.section.body; track $index) {
-                <p class="mt-sm text-body-md leading-relaxed text-body">{{ paragraph }}</p>
+              @for (block of entry.blocks; track $index) {
+                @switch (block.kind) {
+                  @case ('paragraph') {
+                    <p class="mt-sm text-body-md leading-relaxed text-body">{{ block.text }}</p>
+                  }
+                  @case ('list') {
+                    <!--
+                      DESIGN.md, Long-form content: `disc` / `decimal`, indented on the spacing
+                      scale, at the body step. The items are plain strings — the structure is
+                      the renderer's, never markup carried in the catalogue.
+                    -->
+                    @if (block.ordered) {
+                      <ol class="mt-sm list-decimal space-y-2xs pl-lg text-body-md leading-relaxed text-body">
+                        @for (item of block.items; track $index) {
+                          <li>{{ item }}</li>
+                        }
+                      </ol>
+                    } @else {
+                      <ul class="mt-sm list-disc space-y-2xs pl-lg text-body-md leading-relaxed text-body">
+                        @for (item of block.items; track $index) {
+                          <li>{{ item }}</li>
+                        }
+                      </ul>
+                    }
+                  }
+                }
               }
             </section>
           }

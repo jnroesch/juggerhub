@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { EMPTY, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 import { InvitableUser, InviteLink, TeamInvitation } from '../../../core/models/team.models';
 import { TeamService } from '../../../core/services/team.service';
@@ -16,7 +16,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-team-invitations',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
+  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe, IconComponent],
   templateUrl: './team-invitations.component.html',
   styleUrl: './team-invitations.component.css',
 })

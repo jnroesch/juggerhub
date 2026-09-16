@@ -67,7 +67,7 @@ press, and shows a coral focus ring; at most one coral CTA per view.
 ### Primitives for User Story 1
 
 - [X] T004 [P] [US1] Create `jhButton` directive in `src/app/shared/ui/button/button.directive.{ts}` (host-class-only; selector `button[jhButton], a[jhButton]`) — inputs `variant` (primary/secondary/danger/ghost), `size` (md/sm), `full`; encodes `min-h-11` (md), `rounded-md`, weight 600, coral bg + `text-on-accent` (primary), `hover:bg-brand-hover hover:shadow-coral`, `active:translate-y-px`, always-visible coral focus ring. Add `button.directive.spec.ts` asserting 44px on md, primary tokens, focus class, and that it never overrides host `disabled`/`type`/`routerLink`.
-- [X] T005 [P] [US1] Create `jh-icon` component in `src/app/shared/ui/icon/icon.component.{ts,html,css}` + curated `icons.ts` (Lucide keys the app uses: `plus, search, bell, compass, users, calendar-days, map-pin, trophy, swords, user-plus, arrow-right, check, sparkles`, extended during migration) — inputs `name`, `size` (default 18); inline 2px-stroke `currentColor` SVG, `aria-hidden="true"`. Add `icon.component.spec.ts`.
+- [X] T005 [P] [US1] Create `jh-icon` component in `src/app/shared/ui/icon/icon.component.{ts,html,css}` + curated `icons.ts` (Lucide keys the app uses: `plus, search, bell, compass, users, calendar-days, map-pin, trophy, swords, user-plus, arrow-right, check, sparkles`, extended during migration) — inputs `name`, `size` (default 18); inline 2px-stroke `currentColor` SVG, `aria-hidden="true"`. Add `icon.component.spec.ts`. **Superseded in part by GH #300 (T038)**: the set shipped as 7 names rather than the 13 listed here, `size` is now `'sm' | 'md' | 'lg'` rather than a number, and "extended during migration" is what did not happen.
 
 ### Button migration (batched by feature area — different folders, parallelizable)
 
@@ -176,6 +176,16 @@ max width per the taxonomy (research R6).
   attribute directive with a `tone` input and two forms — label and control — and
   `app/core/design/chip-shape.spec.ts` is its drift guard, alongside #302's
   `card-surface.spec.ts`.
+- [X] T038 Adopt `jh-icon` product-wide. **Added by GH #300** — T005 built the primitive and
+  T010 replaced a single `+` glyph with it; the migration stopped there, one screen at a time.
+  The audit behind #278 counted **99 hand-inlined `<svg>` across 37 files at five stroke
+  widths and seven sizes**, `jh-icon` used **5 times in the whole app**, and sixteen places
+  drawing an icon with a literal text character — the thing T010 and `check-ui-drift.ps1`
+  had explicitly retired, back by another route. All 99 are `<jh-icon>`
+  now, the map is 48 Lucide glyphs covering everything DESIGN.md names, `size` is a named
+  three-step ramp instead of a number, and `app/core/design/icon-system.spec.ts` guards both
+  halves — the markup *and* the translation catalogues, where twenty keys were carrying a
+  chevron inside the translated string.
 - [X] T034 [P] Add drift-guard `scripts/check-ui-drift.ps1` (PowerShell) asserting zero occurrences (outside `shared/ui`) of retired patterns: hand-assembled coral buttons, `rounded-pill` brand actions, raw `text-white` on brand, `+ ` text-glyph icons, hand-rolled loading lines, bare `text-danger` alert paragraphs, and "invitation" in copy. **Guard passes clean.** (CI wiring left to the pipeline owner.)
 - [X] T035 Run `checklists/ui-review.md` — feature-specific items CHK030–CHK037 checked; CHK025 contrast exception stands (owner decision).
 - [X] T036 `nx test web --watch=false` (177/177) + `nx build web` green. `nx e2e web-e2e` **not run this session** (recommended before merge).

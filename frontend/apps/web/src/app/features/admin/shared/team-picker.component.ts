@@ -5,7 +5,7 @@ import { Subject, debounceTime } from 'rxjs';
 import { AdminTeamListItem } from '../../../core/models/admin.models';
 import { AdminService } from '../../../core/services/admin.service';
 import { problemDetail } from '../../../core/utils/problem';
-import { LoadingComponent } from '../../../shared/ui';
+import { IconComponent, LoadingComponent } from '../../../shared/ui';
 
 const PAGE_SIZE = 10;
 
@@ -16,7 +16,7 @@ const PAGE_SIZE = 10;
  */
 @Component({
   selector: 'jh-admin-team-picker',
-  imports: [TranslocoPipe, LoadingComponent],
+  imports: [TranslocoPipe, LoadingComponent, IconComponent],
   templateUrl: './team-picker.component.html',
   styleUrl: './team-picker.component.css',
 })

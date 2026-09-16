@@ -7,6 +7,7 @@ import {
   SupportedLanguage,
   isSupportedLanguage,
 } from '../../../core/i18n/supported-languages';
+import { IconComponent } from '../../../shared/ui';
 
 /**
  * Language switcher (feature 031, US2). A compact, accessible native select listing each language
@@ -17,7 +18,7 @@ import {
 @Component({
   selector: 'jh-language-switcher',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, IconComponent],
   templateUrl: './language-switcher.component.html',
   styleUrl: './language-switcher.component.css',
 })

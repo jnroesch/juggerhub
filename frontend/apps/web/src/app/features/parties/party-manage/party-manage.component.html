@@ -4,7 +4,9 @@
   } @else if (notFound()) {
     <jh-empty-state [heading]="'parties.manage.notFoundHeading' | transloco">{{ 'parties.manage.notFoundBody' | transloco }}</jh-empty-state>
   } @else if (party(); as p) {
-    <a [routerLink]="['/t', p.teamSlug]" class="text-body-sm text-muted transition-colors hover:text-body">‹ {{ p.teamName }}</a>
+    <a [routerLink]="['/t', p.teamSlug]" class="inline-flex items-center gap-2xs text-body-sm text-muted transition-colors hover:text-body">
+      <jh-icon name="chevron-left" size="sm" />{{ p.teamName }}
+    </a>
     <div class="mt-xs flex flex-wrap items-center justify-between gap-sm">
       <h1 class="text-h3">{{ p.teamName }} @ {{ p.eventName }}</h1>
       <span class="font-mono text-body-sm text-muted">{{ p.inCount }} / {{ p.rosterCap }} {{ 'parties.manage.inSuffix' | transloco }}</span>
@@ -47,9 +49,18 @@
     @if (isAdmin()) {
       <jh-card class="mt-md">
         <ul class="space-y-1 text-body-sm text-muted">
-          <li>{{ p.readiness.enoughToFieldTeam ? '✓' : '·' }} {{ 'parties.manage.readinessEnough' | transloco }}</li>
-          <li>· {{ 'parties.manage.readinessSpots' | transloco:{ spots: p.readiness.spotsOpen, cap: p.rosterCap } }}</li>
-          <li>· {{ 'parties.manage.readinessUnanswered' | transloco:{ count: p.readiness.unanswered } }}</li>
+          <li class="flex items-center gap-xs">
+            <jh-icon [name]="p.readiness.enoughToFieldTeam ? 'check' : 'circle'" size="sm" class="shrink-0" />
+            <span>{{ 'parties.manage.readinessEnough' | transloco }}</span>
+          </li>
+          <li class="flex items-center gap-xs">
+            <jh-icon name="dot" size="sm" class="shrink-0" />
+            <span>{{ 'parties.manage.readinessSpots' | transloco:{ spots: p.readiness.spotsOpen, cap: p.rosterCap } }}</span>
+          </li>
+          <li class="flex items-center gap-xs">
+            <jh-icon name="dot" size="sm" class="shrink-0" />
+            <span>{{ 'parties.manage.readinessUnanswered' | transloco:{ count: p.readiness.unanswered } }}</span>
+          </li>
         </ul>
         <div class="mt-md flex flex-wrap gap-sm">
           @if (!isApplied()) {

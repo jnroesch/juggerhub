@@ -2,7 +2,7 @@
 <header class="sticky top-0 z-30 border-b border-border-muted bg-surface-card">
   <div class="mx-auto flex max-w-container-lg items-center justify-between gap-sm px-md py-sm">
     <span class="inline-flex items-center gap-xs rounded-md bg-surface-inverse px-sm py-xs text-body-sm font-semibold text-on-inverse">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="h-4 w-4" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+      <jh-icon name="shield" size="sm" />
       {{ 'admin.label' | transloco }}
     </span>
     <a routerLink="/" class="whitespace-nowrap text-body-sm font-medium text-link hover:text-link-hover" data-testid="admin-back-to-app">{{ 'admin.backToApp' | transloco }}</a>
@@ -19,7 +19,7 @@
       [attr.aria-current]="overviewActive() ? 'page' : null"
       data-testid="admin-nav-overview"
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      <jh-icon name="layout-dashboard" size="sm" />
       {{ 'admin.nav.overview' | transloco }}
     </a>
     <a
@@ -29,7 +29,7 @@
       [attr.aria-current]="usersActive() ? 'page' : null"
       data-testid="admin-nav-users"
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 19v-1.5A3.5 3.5 0 0 0 12.5 14h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="10" cy="8" r="3.5"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.5-3.35"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8"/></svg>
+      <jh-icon name="users" size="sm" />
       {{ 'admin.nav.users' | transloco }}
     </a>
     <a
@@ -39,7 +39,7 @@
       [attr.aria-current]="teamsActive() ? 'page' : null"
       data-testid="admin-nav-teams"
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-12 0"/><circle cx="12" cy="7" r="4"/><path d="M4 21a6 6 0 0 1 4-5.65"/><path d="M20 21a6 6 0 0 0-4-5.65"/></svg>
+      <jh-icon name="users-round" size="sm" />
       {{ 'admin.nav.teams' | transloco }}
     </a>
     <a
@@ -49,7 +49,7 @@
       [attr.aria-current]="catalogueActive() ? 'page' : null"
       data-testid="admin-nav-catalogue"
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>
+      <jh-icon name="award" size="sm" />
       {{ 'admin.nav.catalogue' | transloco }}
     </a>
     <a
@@ -59,7 +59,7 @@
       [attr.aria-current]="resultsActive() ? 'page' : null"
       data-testid="admin-nav-results"
     >
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+      <jh-icon name="trophy" size="sm" />
       {{ 'admin.nav.results' | transloco }}
     </a>
   </nav>
@@ -82,7 +82,7 @@
     [attr.aria-current]="overviewActive() ? 'page' : null"
     data-testid="admin-nav-overview"
   >
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+    <jh-icon name="layout-dashboard" size="lg" />
     {{ 'admin.nav.overview' | transloco }}
   </a>
   <a
@@ -92,7 +92,7 @@
     [attr.aria-current]="usersActive() ? 'page' : null"
     data-testid="admin-nav-users"
   >
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 19v-1.5A3.5 3.5 0 0 0 12.5 14h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="10" cy="8" r="3.5"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.5-3.35"/><path d="M15.5 4.6a3.5 3.5 0 0 1 0 6.8"/></svg>
+    <jh-icon name="users" size="lg" />
     {{ 'admin.nav.users' | transloco }}
   </a>
   <a
@@ -102,7 +102,7 @@
     [attr.aria-current]="teamsActive() ? 'page' : null"
     data-testid="admin-nav-teams"
   >
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 21a8 8 0 0 0-12 0"/><circle cx="12" cy="7" r="4"/><path d="M4 21a6 6 0 0 1 4-5.65"/><path d="M20 21a6 6 0 0 0-4-5.65"/></svg>
+    <jh-icon name="users-round" size="lg" />
     {{ 'admin.nav.teams' | transloco }}
   </a>
   <a
@@ -112,7 +112,7 @@
     [attr.aria-current]="catalogueActive() ? 'page' : null"
     data-testid="admin-nav-catalogue"
   >
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="6"/><path d="M15.5 13 17 22l-5-3-5 3 1.5-9"/></svg>
+    <jh-icon name="award" size="lg" />
     {{ 'admin.nav.catalogue' | transloco }}
   </a>
   <a
@@ -122,7 +122,7 @@
     [attr.aria-current]="resultsActive() ? 'page' : null"
     data-testid="admin-nav-results"
   >
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+    <jh-icon name="trophy" size="lg" />
     {{ 'admin.nav.results' | transloco }}
   </a>
 </nav>

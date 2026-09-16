@@ -5,7 +5,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
 import { TranslocoLocaleService } from '@jsverse/transloco-locale';
 import { AlertComponent, ButtonDirective, LoadingComponent, PageContainerComponent } from '../../shared/ui';
 import { LanguageSwitcherComponent } from '../settings/language/language-switcher.component';
-import { LegalContentService, type LegalSection } from './legal-content.service';
+import { LegalContentService, type LegalBlock, type LegalSection } from './legal-content.service';
 
 /** Which of the three documents this page renders. */
 export type LegalDocumentKey = 'terms' | 'privacy' | 'imprint';
@@ -20,6 +20,24 @@ export interface LegalSiblingLink {
 const AUTHORITATIVE_LANG = 'de';
 
 /**
+ * One block of a section, in the shape the template renders: a paragraph, or a list that knows
+ * whether it is numbered. DESIGN.md's long-form section calls for `disc` / `decimal`, which is
+ * the whole of the vocabulary — a legal document does not need a third kind of list.
+ */
+export type LegalBlockView =
+  | { kind: 'paragraph'; text: string }
+  | { kind: 'list'; ordered: boolean; items: string[] };
+
+/** Catalogue blocks → rendered blocks. A bare string is a paragraph; see `LegalBlock`. */
+function toBlocks(body: readonly LegalBlock[]): LegalBlockView[] {
+  return body.map((block) => {
+    if (typeof block === 'string') return { kind: 'paragraph', text: block };
+    if ('ordered' in block) return { kind: 'list', ordered: true, items: block.ordered };
+    return { kind: 'list', ordered: false, items: block.list };
+  });
+}
+
+/**
  * The shared long-form document shell for the privacy policy and the imprint (feature 036).
  *
  * Implements the DESIGN.md "Long-form content" treatment: a `container-sm` measure (~70–75
@@ -31,8 +49,10 @@ const AUTHORITATIVE_LANG = 'de';
  * pushes sign-in and register, which is the wrong framing for a reader who has not decided to
  * register — and often the reason they are on this page at all.
  *
- * No `[innerHTML]` anywhere. Paragraphs are array entries in the catalog, never strings carrying
- * markup, so there is no sink to sanitise (constitution I).
+ * No `[innerHTML]` anywhere. A section's body is an array of blocks in the catalog — a string is
+ * a paragraph, `{ list: [...] }` / `{ ordered: [...] }` is a list — never a string carrying
+ * markup, so there is no sink to sanitise (constitution I). Lists exist because DESIGN.md says
+ * they carry the load in legal text and until GH #300 the renderer could only draw `<p>`.
  */
 @Component({
   selector: 'jh-legal-page',
@@ -113,14 +133,25 @@ export class LegalPageComponent implements OnInit {
     return version && label ? label.replace('{{version}}', version) : '';
   });
 
-  /** Section keys paired with their content, in the declared reading order. */
-  protected readonly sections = computed<{ key: string; section: LegalSection }[]>(() => {
+  /**
+   * Section keys paired with their content and their rendered blocks, in the declared reading
+   * order. The blocks are resolved here rather than in the template because a union is what a
+   * template cannot narrow: `@switch (block.kind)` reads as the document's structure, whereas
+   * `typeof block === 'string'` in markup reads as plumbing.
+   */
+  protected readonly sections = computed<
+    { key: string; section: LegalSection; blocks: LegalBlockView[] }[]
+  >(() => {
     const doc = this.document();
     if (!doc) return [];
 
     return this.sectionOrder()
       .filter((key) => doc.sections[key])
-      .map((key) => ({ key, section: doc.sections[key] }));
+      .map((key) => ({
+        key,
+        section: doc.sections[key],
+        blocks: toBlocks(doc.sections[key].body),
+      }));
   });
 
   ngOnInit(): void {

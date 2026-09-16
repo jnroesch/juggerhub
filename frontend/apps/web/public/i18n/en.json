@@ -16,7 +16,7 @@
     "loading": "Loading…",
     "stillLoading": "Still loading…",
     "continue": "Continue",
-    "back": "‹ Back",
+    "back": "Back",
     "skip": "Skip",
     "tryAgain": "Try again",
     "seeAll": "See all",
@@ -60,7 +60,7 @@
       "address": "Team handle",
       "checking": "Checking…",
       "checkFailed": "We couldn't check that handle. Check your connection and try again.",
-      "slugAvailable": "✓ /t/{{slug}} is available",
+      "slugAvailable": "/t/{{slug}} is available",
       "slugUnavailable": "That handle isn't available.",
       "slugHint": "Your permanent link: letters, numbers, hyphens. Capitals become lowercase. Can't be changed later.",
       "type": "Team type",
@@ -122,7 +122,7 @@
       "expiresIn": "This invite expires in 7 days."
     },
     "invitations": {
-      "backMembers": "‹ Members",
+      "backMembers": "Members",
       "title": "Invite people",
       "denied": "Only admins can manage invites.",
       "shareLink": "Share your invite link",
@@ -135,7 +135,7 @@
       "searchPlaceholder": "Search players by name…",
       "searching": "Searching…",
       "relationMember": "Member",
-      "relationInvited": "Invited ✓",
+      "relationInvited": "Invited",
       "invite": "Invite",
       "sentTo": "Sent to people · {{count}}",
       "noPending": "No pending invites yet.",
@@ -167,7 +167,7 @@
       "keepRequest": "Keep request",
       "partyRequest": "◆ Party request",
       "manageParty": "Manage party",
-      "youreInPrefix": "You're in ✓ ·",
+      "youreInPrefix": "You're in",
       "openParty": "open party",
       "partyFull": "Full right now. It reopens automatically if a spot frees.",
       "imIn": "I'm in",
@@ -218,8 +218,8 @@
       "notFoundTitle": "Event not found",
       "notFoundBody": "This event doesn't exist or the link is wrong.",
       "goHome": "Go home",
-      "backHome": "‹ Home",
-      "backEvents": "‹ Events",
+      "backHome": "Home",
+      "backEvents": "Events",
       "cancelled": "Cancelled by the organiser. No new sign-ups are being accepted.",
       "online": "Online",
       "teamsOnly": "Teams only",
@@ -295,10 +295,10 @@
     "manage": {
       "notAllowedTitle": "Not allowed",
       "notAllowedBody": "Only an event admin can manage this event.",
-      "back": "‹ Back to event",
+      "back": "Back to event",
       "title": "Manage participants",
       "spotsOccupied": "{{occupied}}/{{limit}} spots occupied",
-      "editAndCancel": "Edit details & cancel ›",
+      "editAndCancel": "Edit details & cancel",
       "awaitingApproval": "Awaiting approval ({{count}})",
       "nobodyAwaiting": "Nobody awaiting approval.",
       "joined": "Joined ({{count}})",
@@ -1048,8 +1048,8 @@
       "results": "Results"
     },
     "common": {
-      "prev": "‹ Prev",
-      "next": "Next ›",
+      "prev": "Prev",
+      "next": "Next",
       "showing": "Showing {{start}}–{{end}} of {{total}}",
       "statusActive": "Active",
       "statusSuspended": "Suspended",
@@ -1072,7 +1072,7 @@
       "statSuspended": "Suspended",
       "newPlayersTitle": "New players this week",
       "newPlayersEmpty": "No new players this week — quiet on the pitch.",
-      "seeAllPlayers": "See all players ›",
+      "seeAllPlayers": "See all players",
       "recentlyGrantedTitle": "Recently granted",
       "recentlyGrantedEmpty": "Nothing granted yet. Badges land here as they're given.",
       "by": "by"
@@ -1350,7 +1350,7 @@
     }
   },
   "parties": {
-    "backToParty": "‹ Back to party",
+    "backToParty": "Back to party",
     "postUpdate": "Post update",
     "newsPlaceholder": "Meet 07:00 at the Aral on the A3…",
     "partyNewsLabel": "Party news",
@@ -1503,6 +1503,8 @@
       "lookingForPlayers": "Looking for players",
       "lookingDesc": "List this party on the event market so free agents can find you.",
       "spotsToAdvertise": "Spots to advertise",
+      "fewerSpots": "Fewer spots",
+      "moreSpots": "More spots",
       "of": "of",
       "inSoFar": "in so far",
       "positionsNeeded": "Positions needed",
@@ -1525,9 +1527,9 @@
     }
   },
   "trainings": {
-    "backTeam": "‹ Team",
-    "backTrainings": "‹ Trainings",
-    "backSession": "‹ Session",
+    "backTeam": "Team",
+    "backTrainings": "Trainings",
+    "backSession": "Session",
     "oneOff": "One-off",
     "series": "Series",
     "public": "Public",
@@ -1574,7 +1576,7 @@
       "answerGoing": "You're going",
       "answerMaybe": "Maybe",
       "answerCant": "Can't make it",
-      "answerRespond": "Respond ›",
+      "answerRespond": "Respond",
       "activeSeries": "Active series",
       "upcoming": "upcoming",
       "until": "until",
@@ -1627,8 +1629,8 @@
       "where": "Where"
     },
     "create": {
-      "cancelStep": "✕ Cancel",
-      "back": "‹ Back",
+      "cancelStep": "Cancel",
+      "back": "Back",
       "stepOf": "Step {{n}} of 5",
       "step1Title": "What are you setting up?",
       "recurringSeries": "Recurring series",
@@ -1662,7 +1664,7 @@
       "successViewFirst": "View first session"
     },
     "edit": {
-      "cancel": "‹ Cancel",
+      "cancel": "Cancel",
       "notFound": "Session not found",
       "cantEdit": "This session is in the past or no longer scheduled, so it can't be edited.",
       "forkTitle": "This one, or all of them?",

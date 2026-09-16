@@ -20,7 +20,7 @@
     "loading": "Wird geladen…",
     "stillLoading": "Wird noch geladen…",
     "continue": "Weiter",
-    "back": "‹ Zurück",
+    "back": "Zurück",
     "skip": "Überspringen",
     "tryAgain": "Erneut versuchen",
     "seeAll": "Alle ansehen",
@@ -64,7 +64,7 @@
       "address": "Team-Handle",
       "checking": "Wird geprüft…",
       "checkFailed": "Wir konnten das Handle nicht prüfen. Prüfe deine Verbindung und versuch es noch mal.",
-      "slugAvailable": "✓ /t/{{slug}} ist verfügbar",
+      "slugAvailable": "/t/{{slug}} ist verfügbar",
       "slugUnavailable": "Dieses Handle ist nicht verfügbar.",
       "slugHint": "Dein dauerhafter Link: Buchstaben, Zahlen, Bindestriche. Großbuchstaben werden klein. Später nicht änderbar.",
       "type": "Teamart",
@@ -126,7 +126,7 @@
       "expiresIn": "Diese Einladung läuft in 7 Tagen ab."
     },
     "invitations": {
-      "backMembers": "‹ Mitglieder",
+      "backMembers": "Mitglieder",
       "title": "Leute einladen",
       "denied": "Nur Admins können Einladungen verwalten.",
       "shareLink": "Teile deinen Einladungslink",
@@ -139,7 +139,7 @@
       "searchPlaceholder": "Spieler nach Namen suchen…",
       "searching": "Wird gesucht…",
       "relationMember": "Mitglied",
-      "relationInvited": "Eingeladen ✓",
+      "relationInvited": "Eingeladen",
       "invite": "Einladen",
       "sentTo": "An Leute gesendet · {{count}}",
       "noPending": "Noch keine ausstehenden Einladungen.",
@@ -171,7 +171,7 @@
       "keepRequest": "Anfrage behalten",
       "partyRequest": "◆ Party-Anfrage",
       "manageParty": "Party verwalten",
-      "youreInPrefix": "Du bist dabei ✓ ·",
+      "youreInPrefix": "Du bist dabei",
       "openParty": "Party öffnen",
       "partyFull": "Gerade voll. Öffnet automatisch wieder, wenn ein Platz frei wird.",
       "imIn": "Ich bin dabei",
@@ -222,8 +222,8 @@
       "notFoundTitle": "Event nicht gefunden",
       "notFoundBody": "Dieses Event existiert nicht oder der Link ist falsch.",
       "goHome": "Zur Startseite",
-      "backHome": "‹ Startseite",
-      "backEvents": "‹ Events",
+      "backHome": "Startseite",
+      "backEvents": "Events",
       "cancelled": "Vom Veranstalter abgesagt. Es werden keine neuen Anmeldungen angenommen.",
       "online": "Online",
       "teamsOnly": "Nur Teams",
@@ -299,10 +299,10 @@
     "manage": {
       "notAllowedTitle": "Nicht erlaubt",
       "notAllowedBody": "Nur ein Event-Admin kann dieses Event verwalten.",
-      "back": "‹ Zurück zum Event",
+      "back": "Zurück zum Event",
       "title": "Teilnehmer verwalten",
       "spotsOccupied": "{{occupied}}/{{limit}} Plätze belegt",
-      "editAndCancel": "Details bearbeiten & absagen ›",
+      "editAndCancel": "Details bearbeiten & absagen",
       "awaitingApproval": "Wartet auf Bestätigung ({{count}})",
       "nobodyAwaiting": "Niemand wartet auf Bestätigung.",
       "joined": "Dabei ({{count}})",
@@ -1052,8 +1052,8 @@
       "results": "Ergebnisse"
     },
     "common": {
-      "prev": "‹ Zurück",
-      "next": "Weiter ›",
+      "prev": "Zurück",
+      "next": "Weiter",
       "showing": "Zeige {{start}}–{{end}} von {{total}}",
       "statusActive": "Aktiv",
       "statusSuspended": "Gesperrt",
@@ -1076,7 +1076,7 @@
       "statSuspended": "Gesperrt",
       "newPlayersTitle": "Neue Spieler diese Woche",
       "newPlayersEmpty": "Diese Woche keine neuen Spieler – ruhig auf dem Feld.",
-      "seeAllPlayers": "Alle Spieler ansehen ›",
+      "seeAllPlayers": "Alle Spieler ansehen",
       "recentlyGrantedTitle": "Kürzlich vergeben",
       "recentlyGrantedEmpty": "Noch nichts vergeben. Abzeichen erscheinen hier, sobald sie vergeben werden.",
       "by": "von"
@@ -1354,7 +1354,7 @@
     }
   },
   "parties": {
-    "backToParty": "‹ Zurück zur Party",
+    "backToParty": "Zurück zur Party",
     "postUpdate": "Update posten",
     "newsPlaceholder": "Treffen 07:00 an der Aral an der A3…",
     "partyNewsLabel": "Party-News",
@@ -1507,6 +1507,8 @@
       "lookingForPlayers": "Spieler gesucht",
       "lookingDesc": "Liste diese Party auf dem Event-Markt, damit freie Spieler dich finden.",
       "spotsToAdvertise": "Plätze zum Ausschreiben",
+      "fewerSpots": "Weniger Plätze",
+      "moreSpots": "Mehr Plätze",
       "of": "von",
       "inSoFar": "bisher dabei",
       "positionsNeeded": "Benötigte Positionen",
@@ -1529,9 +1531,9 @@
     }
   },
   "trainings": {
-    "backTeam": "‹ Team",
-    "backTrainings": "‹ Trainings",
-    "backSession": "‹ Einheit",
+    "backTeam": "Team",
+    "backTrainings": "Trainings",
+    "backSession": "Einheit",
     "oneOff": "Einzeltermin",
     "series": "Serie",
     "public": "Öffentlich",
@@ -1578,7 +1580,7 @@
       "answerGoing": "Du bist dabei",
       "answerMaybe": "Vielleicht",
       "answerCant": "Kann nicht",
-      "answerRespond": "Antworten ›",
+      "answerRespond": "Antworten",
       "activeSeries": "Aktive Serien",
       "upcoming": "anstehend",
       "until": "bis",
@@ -1631,8 +1633,8 @@
       "where": "Wo"
     },
     "create": {
-      "cancelStep": "✕ Abbrechen",
-      "back": "‹ Zurück",
+      "cancelStep": "Abbrechen",
+      "back": "Zurück",
       "stepOf": "Schritt {{n}} von 5",
       "step1Title": "Was möchtest du anlegen?",
       "recurringSeries": "Wiederkehrende Serie",
@@ -1666,7 +1668,7 @@
       "successViewFirst": "Erste Einheit ansehen"
     },
     "edit": {
-      "cancel": "‹ Abbrechen",
+      "cancel": "Abbrechen",
       "notFound": "Einheit nicht gefunden",
       "cantEdit": "Diese Einheit liegt in der Vergangenheit oder ist nicht mehr geplant, sie kann also nicht bearbeitet werden.",
       "forkTitle": "Diese eine oder alle?",

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, signal } from '@angular/core';
-import { LoadingComponent } from '../../../shared/ui';
+import { IconComponent, LoadingComponent } from '../../../shared/ui';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -19,7 +19,7 @@ type ComposeMode = 'direct' | 'team' | 'event';
  */
 @Component({
   selector: 'jh-chat-compose',
-  imports: [FormsModule, RouterLink, LoadingComponent, TranslocoPipe],
+  imports: [FormsModule, RouterLink, LoadingComponent, TranslocoPipe, IconComponent],
   templateUrl: './chat-compose.component.html',
   styleUrl: './chat-compose.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

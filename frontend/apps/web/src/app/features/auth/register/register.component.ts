@@ -17,7 +17,7 @@ import {
   IDENTIFIER_MAX_LENGTH,
   IDENTIFIER_MIN_LENGTH,
 } from '../../../core/models/identifier.models';
-import { LegalLinksComponent, ButtonDirective, AlertComponent, CardComponent, LowercaseInputDirective } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, IconComponent, LegalLinksComponent, LowercaseInputDirective } from '../../../shared/ui';
 import { LanguageSwitcherComponent } from '../../settings/language/language-switcher.component';
 
 /**
@@ -45,7 +45,7 @@ const LOCAL_HANDLE_ERRORS: ReadonlyArray<readonly [string, IdentifierRejection]>
  */
 @Component({
   selector: 'jh-register',
-  imports: [LegalLinksComponent, ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent, CardComponent, LowercaseInputDirective, LanguageSwitcherComponent, TranslocoPipe],
+  imports: [LegalLinksComponent, ReactiveFormsModule, RouterLink, PasswordRulesComponent, ButtonDirective, AlertComponent, CardComponent, LowercaseInputDirective, LanguageSwitcherComponent, TranslocoPipe, IconComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.css',
   // Feature 041: the acceptance control needs the version of the document it is asking about.

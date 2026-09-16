@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
@@ -21,7 +21,7 @@ type AwardKind = 'badge' | 'achievement';
  */
 @Component({
   selector: 'jh-admin-team-detail',
-  imports: [CardComponent, ChipDirective, TranslocoDatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [CardComponent, ChipDirective, TranslocoDatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe, IconComponent],
   templateUrl: './admin-team-detail.component.html',
   styleUrl: './admin-team-detail.component.css',
 })
