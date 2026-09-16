@@ -49,6 +49,30 @@ Content via `<ng-content>`. Invariants: `surface-card`, `border-border-muted`,
   (none) name the two variations that are real; `app/core/design/card-surface.spec.ts`
   fails on a card that writes its own.
 
+## Primitive: Chip (`jhChip` on any element) — added by GH #301
+
+| Input | Type | Default | Notes |
+|-------|------|---------|-------|
+| `tone` | `'muted' \| 'secondary' \| 'accent' \| 'brand' \| 'outline' \| 'success' \| 'warning' \| 'danger' \| 'info'` | `'muted'` | carries background, text and border together — a call site never writes a colour class |
+
+An attribute directive, like `jhButton`: the chip is always drawn on an element the
+markup already needed (a `<span>` in a sentence, an `<a>` to a team, a `<button>` in a
+filter row), so nothing about that element's semantics, `data-testid` or DOM position
+changes. Two forms, chosen by the host element and not by an input:
+
+- **label** (anything but a button/link) — `rounded-pill px-sm py-2xs text-caption`;
+- **control** (`<button jhChip>` / `<a jhChip>`) — `min-h-11 px-md py-xs text-body-sm`
+  plus hover, focus ring and disabled state. The inset is `jhButton`'s `sm` size,
+  because a chip you can press is a button that happens to be pill-shaped.
+
+**Why it was added.** 024 shipped no chip, and the app grew **eleven paddings across
+~84 sites**, 21 of them with no vertical padding at all inside a pill border — which is
+the box GH #278 reported text as touching — while the pressable ones (the filter
+control on four Browse tabs and two Marketplace boards) stood at roughly 19–25px
+against DESIGN.md's 44px. `app/core/design/chip-shape.spec.ts` fails on a hand-rolled
+chip, on a `jhChip` that writes its own padding/radius/text step, and on `rounded-full`,
+the retired second spelling of `rounded-pill`.
+
 ## Primitive: Empty state (`jh-empty-state` component)
 
 | Input | Type | Default | Notes |

@@ -24,7 +24,7 @@
           <span class="mt-0.5 block text-body-sm text-subtle">{{ 'marketplace.recruiting.lookingDesc' | transloco }}</span>
         </span>
         <input type="checkbox" [checked]="on()" (change)="on.set($any($event.target).checked)"
-          class="h-6 w-11 shrink-0 cursor-pointer appearance-none rounded-full bg-surface-muted transition-colors checked:bg-brand" data-testid="recruiting-toggle" />
+          class="h-6 w-11 shrink-0 cursor-pointer appearance-none rounded-pill bg-surface-muted transition-colors checked:bg-brand" data-testid="recruiting-toggle" />
       </label>
 
       @if (on()) {
@@ -40,7 +40,7 @@
         <p class="mt-md text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.positionsNeeded' | transloco }}</p>
         <div class="mt-xs flex flex-wrap gap-xs">
           @for (p of catalog; track p.value) {
-            <button type="button" (click)="togglePosition(p.value)" class="rounded-full border px-sm py-0.5 text-body-sm" [class]="positions().includes(p.value) ? 'border-brand bg-surface-accent-soft text-brand' : 'border-border-strong text-subtle hover:bg-surface-sunken'">{{ p.labelKey | transloco }}</button>
+            <button type="button" (click)="togglePosition(p.value)" jhChip [tone]="positions().includes(p.value) ? 'accent' : 'outline'" [attr.aria-pressed]="positions().includes(p.value)">{{ p.labelKey | transloco }}</button>
           }
         </div>
 

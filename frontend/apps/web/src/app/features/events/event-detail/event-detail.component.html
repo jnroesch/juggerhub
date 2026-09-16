@@ -12,7 +12,7 @@
 
     <!-- Hero: cover, title, meta, occupancy -->
     <div class="relative mt-sm flex h-28 items-end overflow-hidden rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
-      <span class="rounded-full bg-surface-card px-sm py-0.5 text-eyebrow font-semibold uppercase tracking-[0.08em] text-muted">{{ d.type === 'Other' ? d.customTypeLabel : ('events.type.' + d.type.toLowerCase() | transloco) }}</span>
+      <span jhChip tone="outline">{{ d.type === 'Other' ? d.customTypeLabel : ('events.type.' + d.type.toLowerCase() | transloco) }}</span>
     </div>
 
     @if (cancelled()) {
@@ -48,8 +48,8 @@
         <span class="font-semibold text-body">{{ (d.participantMode === 'Teams' ? 'events.detail.teamsIn' : 'events.detail.peopleIn') | transloco }}</span>
         <span class="text-subtle" data-testid="spots-label">{{ d.occupiedSpots }}/{{ d.participationLimit }}</span>
       </div>
-      <div class="mt-xs h-2 overflow-hidden rounded-full bg-surface-sunken">
-        <div class="h-full rounded-full bg-brand transition-all duration-fast" [style.width.%]="occupancyPct()"></div>
+      <div class="mt-xs h-2 overflow-hidden rounded-pill bg-surface-sunken">
+        <div class="h-full rounded-pill bg-brand transition-all duration-fast" [style.width.%]="occupancyPct()"></div>
       </div>
       <p class="mt-xs text-body-sm text-subtle">
         <span class="font-semibold text-body">{{ joined().length }}</span> {{ 'events.detail.confirmed' | transloco }}@if (awaiting().length > 0) { <span> · {{ 'events.detail.pendingPayment' | transloco:{ count: awaiting().length } }}</span> }
@@ -150,7 +150,7 @@
             <div jhCard data-testid="fee-block">
               <div class="flex items-center justify-between">
                 <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.entranceFee' | transloco }}</h2>
-                @if (d.feePaymentDeadline) { <span class="rounded-full bg-surface-sunken px-sm py-0.5 text-body-sm text-subtle">{{ 'events.detail.payBy' | transloco:{ date: (d.feePaymentDeadline | translocoDate: { month: 'short', day: 'numeric' }) } }}</span> }
+                @if (d.feePaymentDeadline) { <span jhChip>{{ 'events.detail.payBy' | transloco:{ date: (d.feePaymentDeadline | translocoDate: { month: 'short', day: 'numeric' }) } }}</span> }
               </div>
               <p class="mt-xs text-body-lg font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-subtle">{{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}</span></p>
               <dl class="mt-sm space-y-0.5 text-body-sm">

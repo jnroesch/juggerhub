@@ -3,9 +3,9 @@
   <!-- Header / hero — mirrors the team detail hero: avatar tile + name + a muted meta line. -->
   <header class="flex flex-wrap items-start gap-md">
     @if (p.avatarUrl; as url) {
-      <img [src]="url" alt="{{ p.displayName }}" class="h-16 w-16 shrink-0 rounded-full border border-default object-cover" />
+      <img [src]="url" alt="{{ p.displayName }}" class="h-16 w-16 shrink-0 rounded-pill border border-default object-cover" />
     } @else {
-      <span class="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-brand-gradient text-h4 font-bold text-on-accent" aria-hidden="true">{{ initial(p.displayName) }}</span>
+      <span class="grid h-16 w-16 shrink-0 place-items-center rounded-pill bg-brand-gradient text-h4 font-bold text-on-accent" aria-hidden="true">{{ initial(p.displayName) }}</span>
     }
     <div class="min-w-0 flex-1">
       <h1 class="text-h3">{{ p.displayName }}</h1>
@@ -36,8 +36,7 @@
           <ul class="flex flex-wrap gap-xs">
             @for (t of p.teams; track t.slug) {
               <li [attr.data-testid]="'profile-team-' + t.slug">
-                <a [routerLink]="['/t', t.slug]"
-                  class="inline-flex items-center gap-xs rounded-pill border border-border-strong bg-surface-card px-md py-xs text-body-sm transition-colors duration-fast hover:bg-surface-sunken">
+                <a [routerLink]="['/t', t.slug]" jhChip tone="outline">
                   <span class="font-medium text-heading">{{ t.name }}</span>
                   @if (t.location) { <span class="text-subtle">· {{ t.location.label }}</span> }
                   @if (t.role === 'Admin') { <span class="text-caption font-semibold text-brand">{{ 'profile.view.admin' | transloco }}</span> }
@@ -56,7 +55,7 @@
         } @else {
           <div class="flex flex-wrap gap-xs">
             @for (pompfe of p.pompfen; track pompfe) {
-              <span class="rounded-pill bg-surface-secondary-soft px-md py-xs text-body-sm font-medium text-secondary" [attr.data-testid]="'profile-pompfe-' + pompfe">
+              <span jhChip tone="secondary" [attr.data-testid]="'profile-pompfe-' + pompfe">
                 {{ labelKey(pompfe) | transloco }}
               </span>
             }

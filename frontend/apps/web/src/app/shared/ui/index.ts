@@ -10,6 +10,8 @@ export { IconComponent } from './icon/icon.component';
 export type { IconName } from './icon/icons';
 export { CardComponent } from './card/card.component';
 export type { CardPadding } from './card/card.component';
+export { ChipDirective } from './chip/chip.directive';
+export type { ChipTone } from './chip/chip.directive';
 export { LoadingComponent } from './loading/loading.component';
 export { AlertComponent } from './alert/alert.component';
 export type { AlertTone } from './alert/alert.component';

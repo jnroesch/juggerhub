@@ -10,7 +10,7 @@
         <ul class="mt-xs space-y-xs">
           @for (p of group.items; track p.id) {
             <li class="flex items-center gap-sm rounded-md px-1 py-1">
-              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-surface-sunken text-body-sm font-semibold text-subtle">{{ initial(p) }}</span>
+              <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-surface-sunken text-body-sm font-semibold text-subtle">{{ initial(p) }}</span>
               <span class="min-w-0 flex-1">
                 @if (p.userHandle) {
                   <button type="button" (click)="openProfile.emit(p.userHandle)" class="block truncate text-body-sm font-semibold text-body hover:text-brand">{{ label(p) }}</button>
@@ -20,7 +20,7 @@
                 @if (secondary(p)) { <span class="block truncate text-body-sm text-subtle">{{ secondary(p) }}</span> }
               </span>
               @if (group.pending) {
-                <span class="shrink-0 rounded-full bg-info-bg px-xs py-0.5 text-eyebrow font-semibold uppercase tracking-[0.06em] text-info-fg">{{ 'events.participants.pending' | transloco }}</span>
+                <span class="shrink-0" jhChip tone="info">{{ 'events.participants.pending' | transloco }}</span>
               }
             </li>
           }

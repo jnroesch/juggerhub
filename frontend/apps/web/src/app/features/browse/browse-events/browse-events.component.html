@@ -33,7 +33,7 @@
             }
           </span>
         </span>
-        <span class="rounded-pill border border-border px-sm py-0 text-caption text-subtle">
+        <span jhChip tone="outline">
           {{ event.type === 'Other' && event.customTypeLabel ? event.customTypeLabel : ('events.type.' + event.type.toLowerCase() | transloco) }}
         </span>
       </a>

@@ -21,12 +21,12 @@
   <div class="mt-sm flex flex-wrap items-center gap-sm">
     <h1 class="text-h3">{{ player.displayName }}</h1>
     <span
-      class="rounded-pill px-sm py-0.5 text-caption font-medium"
-      [class]="player.status === 'Active' ? 'bg-success-bg text-success-fg' : player.status === 'Suspended' ? 'bg-warning-bg text-warning-fg' : 'bg-danger-bg text-danger-fg'"
+      jhChip
+      [tone]="statusTone(player.status)"
       data-testid="admin-user-status"
     >{{ (player.status === 'Active' ? 'admin.common.statusActive' : player.status === 'Suspended' ? 'admin.common.statusSuspended' : 'admin.common.statusBanned') | transloco }}</span>
     @if (player.isAdmin) {
-      <span class="rounded-pill bg-surface-secondary-soft px-sm py-0.5 text-caption font-medium text-body">{{ 'admin.common.adminBadge' | transloco }}</span>
+      <span jhChip tone="secondary">{{ 'admin.common.adminBadge' | transloco }}</span>
     }
   </div>
   <p class="mt-1 text-body-sm text-muted">
@@ -59,7 +59,7 @@
               <span class="text-body-sm text-muted">—</span>
             }
             @for (team of player.teams; track team.slug) {
-              <a [routerLink]="['/t', team.slug]" class="rounded-pill bg-surface-secondary-soft px-sm py-0.5 text-caption font-medium text-body hover:underline">{{ team.name }}</a>
+              <a [routerLink]="['/t', team.slug]" jhChip tone="secondary">{{ team.name }}</a>
             }
           </dd>
         </div>
@@ -70,7 +70,7 @@
               <span class="text-body-sm text-muted">—</span>
             }
             @for (pompfe of player.pompfen; track pompfe) {
-              <span class="rounded-pill bg-surface-sunken px-sm py-0.5 text-caption font-medium text-body">{{ 'pompfen.' + pompfe | transloco }}</span>
+              <span jhChip>{{ 'pompfen.' + pompfe | transloco }}</span>
             }
           </dd>
         </div>

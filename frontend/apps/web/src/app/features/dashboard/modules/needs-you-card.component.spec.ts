@@ -74,6 +74,8 @@ describe('NeedsYouCardComponent', () => {
   it('a market application is shown as pending with no action buttons', () => {
     const { fixture } = mount([item('MarketApplication', { id: 'app-1' })]);
     expect(fixture.nativeElement.querySelector('button')).toBeNull();
-    expect(root(fixture)!.textContent).toContain('pending');
+    // "Pending", not "pending": the chip used to shout it through a CSS `uppercase`,
+    // so the string was written lower-case. The chip is one text step now (GH #301).
+    expect(root(fixture)!.textContent).toContain('Pending');
   });
 });

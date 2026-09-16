@@ -96,13 +96,13 @@
                 <span class="truncate text-body-md font-semibold text-heading">{{ c.name }}</span>
 
                 @if (tagFor(c); as tag) {
-                  <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-muted">
+                  <span jhChip tone="outline">
                     {{ tag }}
                   </span>
                 }
 
                 @if (c.state === 'Archived') {
-                  <span class="rounded-pill border border-border-default px-xs text-eyebrow uppercase tracking-eyebrow text-subtle">
+                  <span jhChip tone="outline">
                     {{ 'chat.inbox.archived' | transloco }}
                   </span>
                 }

@@ -1,5 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { CardComponent, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
+import { CardComponent, ChipDirective, ChipTone, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime } from 'rxjs';
@@ -8,6 +8,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AccountStatus, AdminUserListItem } from '../../../core/models/admin.models';
 import { AdminService } from '../../../core/services/admin.service';
 import { problemDetail } from '../../../core/utils/problem';
+import { accountStatusTone } from '../shared/status-tone';
 
 type StatusFilter = AccountStatus | null;
 
@@ -21,7 +22,7 @@ const PAGE_SIZE = 20;
  */
 @Component({
   selector: 'jh-admin-users',
-  imports: [CardComponent, RouterLink, FormsModule, LoadingComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [CardComponent, ChipDirective, RouterLink, FormsModule, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.css',
 })
@@ -66,6 +67,11 @@ export class AdminUsersComponent {
     this.status.set(status);
     this.skip.set(0);
     this.load();
+  }
+
+  /** The chip tone that stands for an account status. */
+  protected statusTone(status: AccountStatus): ChipTone {
+    return accountStatusTone(status);
   }
 
   protected page(direction: 1 | -1): void {

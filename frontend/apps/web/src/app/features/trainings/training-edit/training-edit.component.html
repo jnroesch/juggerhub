@@ -33,7 +33,7 @@
       <div class="mt-md flex items-center gap-xs">
         <h1 class="text-h3">{{ 'trainings.edit.editThisSession' | transloco }}</h1>
         @if (!s.isOneOff) {
-          <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ 'trainings.edit.detachesFromSeries' | transloco }}</span>
+          <span jhChip tone="outline">{{ 'trainings.edit.detachesFromSeries' | transloco }}</span>
         }
       </div>
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.date' | transloco }}

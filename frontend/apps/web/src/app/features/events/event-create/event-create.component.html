@@ -4,7 +4,7 @@
   <!-- Round-knob progress -->
   <div class="mt-md flex items-center gap-xs" aria-hidden="true">
     @for (s of steps; track s; let i = $index) {
-      <span class="h-2 rounded-full transition-all duration-fast"
+      <span class="h-2 rounded-pill transition-all duration-fast"
         [class]="i === stepIndex() ? 'w-6 bg-brand' : i < stepIndex() ? 'w-2 bg-brand/60' : 'w-2 bg-surface-sunken'"></span>
     }
   </div>

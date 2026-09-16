@@ -67,7 +67,8 @@
           <button
             type="button"
             (click)="remove(p.userId)"
-            class="inline-flex min-h-11 items-center gap-xs rounded-pill border border-border-default bg-surface-card px-sm text-body-sm text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            jhChip
+            tone="outline"
             [attr.aria-label]="'chat.new.removePerson' | transloco:{ name: p.displayName }"
           >
             {{ p.displayName }}

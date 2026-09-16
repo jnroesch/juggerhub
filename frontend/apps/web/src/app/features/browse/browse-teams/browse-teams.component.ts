@@ -8,6 +8,7 @@ import { SearchService } from '../../../core/services/search.service';
 import { TeamService } from '../../../core/services/team.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { FilterChip, SortOption, TeamBrowseParams, TeamCard } from '../../../core/models/search.models';
+import { ChipDirective } from '../../../shared/ui';
 import { BrowseList } from '../browse-list';
 import { BrowseUrl } from '../browse-url';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
@@ -22,7 +23,7 @@ import { CountryPickerComponent } from '../../../shared/country-picker/country-p
  */
 @Component({
   selector: 'jh-browse-teams',
-  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent, TranslocoPipe],
+  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent, ChipDirective, TranslocoPipe],
   templateUrl: './browse-teams.component.html',
   styleUrl: './browse-teams.component.css',
 })

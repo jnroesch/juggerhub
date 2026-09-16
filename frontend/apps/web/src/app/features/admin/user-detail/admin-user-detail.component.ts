@@ -1,13 +1,14 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, CardComponent, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, ChipDirective, ChipTone, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { map } from 'rxjs';
-import { AdminUserDetail } from '../../../core/models/admin.models';
+import { AccountStatus, AdminUserDetail } from '../../../core/models/admin.models';
 import { AdminAward, AdminSubjectAwards } from '../../../core/models/recognition.models';
 import { AdminService } from '../../../core/services/admin.service';
+import { accountStatusTone } from '../shared/status-tone';
 import { RecognitionAdminService } from '../../../core/services/recognition-admin.service';
 import { problemDetail } from '../../../core/utils/problem';
 import { AssignPickerComponent } from '../shared/assign-picker.component';
@@ -24,7 +25,7 @@ type AccountAction = 'suspend' | 'reinstate' | 'ban' | 'unban' | 'reset';
  */
 @Component({
   selector: 'jh-admin-user-detail',
-  imports: [CardComponent, TranslocoDatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
+  imports: [CardComponent, ChipDirective, TranslocoDatePipe, RouterLink, AssignPickerComponent, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe],
   templateUrl: './admin-user-detail.component.html',
   styleUrl: './admin-user-detail.component.css',
 })
@@ -172,5 +173,10 @@ export class AdminUserDetailComponent {
         ? this.recognition.revokeBadge(award.awardId)
         : this.recognition.revokeAchievement(award.awardId);
     call.subscribe({ next: () => this.reloadAwards() });
+  }
+
+  /** The chip tone that stands for an account status. */
+  protected statusTone(status: AccountStatus): ChipTone {
+    return accountStatusTone(status);
   }
 }

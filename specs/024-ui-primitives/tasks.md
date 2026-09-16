@@ -168,6 +168,14 @@ max width per the taxonomy (research R6).
   > drift guard as `app/core/design/card-surface.spec.ts`. It also enables the two details
   > that were implemented here and used nowhere: `interactive` (zero uses) and the accent
   > strip, which DESIGN.md now scopes to the focal card of an otherwise-empty page.
+- [X] T037 Add the chip primitive. **Added by GH #301** — 024 shipped button, card, icon,
+  loading, alert, empty-state and page-container, but no chip, and the small pill turned out
+  to be the most-copied element in the app: eleven padding combinations over ~84 sites, 21 of
+  them at `py-0` inside a pill border (the box GH #278 reported), two spellings of one 2px
+  value, and interactive chips at 19–25px against the 44px touch target. `jhChip` is an
+  attribute directive with a `tone` input and two forms — label and control — and
+  `app/core/design/chip-shape.spec.ts` is its drift guard, alongside #302's
+  `card-surface.spec.ts`.
 - [X] T034 [P] Add drift-guard `scripts/check-ui-drift.ps1` (PowerShell) asserting zero occurrences (outside `shared/ui`) of retired patterns: hand-assembled coral buttons, `rounded-pill` brand actions, raw `text-white` on brand, `+ ` text-glyph icons, hand-rolled loading lines, bare `text-danger` alert paragraphs, and "invitation" in copy. **Guard passes clean.** (CI wiring left to the pipeline owner.)
 - [X] T035 Run `checklists/ui-review.md` — feature-specific items CHK030–CHK037 checked; CHK025 contrast exception stands (owner decision).
 - [X] T036 `nx test web --watch=false` (177/177) + `nx build web` green. `nx e2e web-e2e` **not run this session** (recommended before merge).

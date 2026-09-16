@@ -33,9 +33,9 @@
             <div class="min-w-0 flex-1">
               <div class="flex items-center gap-xs">
                 <span class="truncate font-medium text-heading">{{ s.name }}</span>
-                <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ (s.isOneOff ? 'trainings.oneOff' : 'trainings.series') | transloco }}</span>
+                <span jhChip tone="outline">{{ (s.isOneOff ? 'trainings.oneOff' : 'trainings.series') | transloco }}</span>
                 @if (s.status === 'Cancelled') {
-                  <span class="rounded-pill border border-danger-border bg-danger-bg px-xs py-3xs text-caption text-danger-fg">{{ 'trainings.tab.cancelled' | transloco }}</span>
+                  <span jhChip tone="danger">{{ 'trainings.tab.cancelled' | transloco }}</span>
                 }
               </div>
               <p class="text-body-sm text-muted">

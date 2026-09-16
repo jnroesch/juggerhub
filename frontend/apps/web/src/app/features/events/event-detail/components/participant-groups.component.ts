@@ -1,11 +1,12 @@
 import { Component, computed, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Signup } from '../../../../core/models/event.models';
+import { ChipDirective } from '../../../../shared/ui';
 
 /** The public "who's taking part" section — joined / awaiting / waiting-list groups as avatar rows. */
 @Component({
   selector: 'jh-event-participant-groups',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, ChipDirective],
   templateUrl: './participant-groups.component.html',
   styleUrl: './participant-groups.component.css',
 })

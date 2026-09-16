@@ -8,6 +8,7 @@ import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { FilterChip, PlayerBrowseParams, PlayerCard, SortOption } from '../../../core/models/search.models';
 import { POMPFEN_CATALOG, Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
+import { ChipDirective } from '../../../shared/ui';
 import { BrowseList } from '../browse-list';
 import { BrowseUrl } from '../browse-url';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
@@ -22,7 +23,7 @@ import { CountryPickerComponent } from '../../../shared/country-picker/country-p
  */
 @Component({
   selector: 'jh-browse-players',
-  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, CountryPickerComponent, TranslocoPipe],
+  imports: [RouterLink, BrowseShellComponent, FilterPanelComponent, CountryPickerComponent, ChipDirective, TranslocoPipe],
   templateUrl: './browse-players.component.html',
   styleUrl: './browse-players.component.css',
 })

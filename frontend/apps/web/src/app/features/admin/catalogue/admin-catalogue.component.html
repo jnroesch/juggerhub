@@ -16,18 +16,20 @@
 
 <!-- Catalogue toggle: badges (recognition) vs achievements (milestones) -->
 <div class="mt-md flex flex-wrap items-center justify-between gap-sm">
-  <div class="inline-flex rounded-pill bg-surface-sunken p-1" role="group" [attr.aria-label]="'admin.catalogue.toggleLabel' | transloco">
+  <div class="inline-flex gap-xs" role="group" [attr.aria-label]="'admin.catalogue.toggleLabel' | transloco">
     <button
       type="button"
-      class="rounded-pill px-md py-1.5 text-body-sm font-semibold transition-colors duration-fast"
-      [class]="kind() === 'badge' ? 'bg-surface-card text-heading shadow-sm' : 'text-muted hover:text-body'"
+      jhChip
+      [tone]="kind() === 'badge' ? 'accent' : 'outline'"
+      [attr.aria-pressed]="kind() === 'badge'"
       (click)="setKind('badge')"
       data-testid="catalogue-toggle-badges"
     >{{ 'admin.catalogue.badges' | transloco }}</button>
     <button
       type="button"
-      class="rounded-pill px-md py-1.5 text-body-sm font-semibold transition-colors duration-fast"
-      [class]="kind() === 'achievement' ? 'bg-surface-card text-heading shadow-sm' : 'text-muted hover:text-body'"
+      jhChip
+      [tone]="kind() === 'achievement' ? 'accent' : 'outline'"
+      [attr.aria-pressed]="kind() === 'achievement'"
       (click)="setKind('achievement')"
       data-testid="catalogue-toggle-achievements"
     >{{ 'admin.catalogue.achievements' | transloco }}</button>
@@ -39,14 +41,11 @@
       {{ total() }} {{ (total() === 1 ? 'admin.catalogue.typeOne' : 'admin.catalogue.typeMany') | transloco }}@if (retiredCount() > 0) { · {{ retiredCount() }} {{ 'admin.catalogue.retiredLower' | transloco }}}
     </span>
     <div class="flex gap-1" role="group" [attr.aria-label]="'admin.catalogue.filterGroup' | transloco">
-      <button type="button" class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
-        [class]="filter() === 'all' ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-body'"
+      <button type="button" jhChip [tone]="filter() === 'all' ? 'accent' : 'outline'" [attr.aria-pressed]="filter() === 'all'"
         (click)="setFilter('all')" data-testid="catalogue-filter-all">{{ 'admin.catalogue.filterAll' | transloco }}</button>
-      <button type="button" class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
-        [class]="filter() === 'active' ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-body'"
+      <button type="button" jhChip [tone]="filter() === 'active' ? 'accent' : 'outline'" [attr.aria-pressed]="filter() === 'active'"
         (click)="setFilter('active')" data-testid="catalogue-filter-active">{{ 'admin.catalogue.filterActive' | transloco }}</button>
-      <button type="button" class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
-        [class]="filter() === 'retired' ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-body'"
+      <button type="button" jhChip [tone]="filter() === 'retired' ? 'accent' : 'outline'" [attr.aria-pressed]="filter() === 'retired'"
         (click)="setFilter('retired')" data-testid="catalogue-filter-retired">{{ 'admin.catalogue.filterRetired' | transloco }}</button>
     </div>
   </div>
@@ -86,7 +85,7 @@
             <td class="px-md py-sm">
               <span class="flex items-center gap-sm">
                 <span class="grid h-8 w-8 shrink-0 place-items-center overflow-hidden border border-border-strong bg-surface-sunken text-muted"
-                  [class]="kind() === 'badge' ? 'rounded-full' : 'rounded-md'">
+                  [class]="kind() === 'badge' ? 'rounded-pill' : 'rounded-md'">
                   @if (d.hasIcon) {
                     <img [src]="iconUrl(d.id)" [alt]="d.name" class="h-full w-full object-cover" />
                   } @else {
@@ -105,9 +104,9 @@
             <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ d.grantedCount }}</td>
             <td class="px-md py-sm">
               @if (d.isRetired) {
-                <span class="inline-flex items-center rounded-pill bg-warning-bg px-xs py-0.5 text-caption font-medium text-warning-fg">{{ 'admin.catalogue.statusRetired' | transloco }}</span>
+                <span jhChip tone="warning">{{ 'admin.catalogue.statusRetired' | transloco }}</span>
               } @else {
-                <span class="inline-flex items-center rounded-pill bg-success-bg px-xs py-0.5 text-caption font-medium text-success-fg">{{ 'admin.catalogue.statusActive' | transloco }}</span>
+                <span jhChip tone="success">{{ 'admin.catalogue.statusActive' | transloco }}</span>
               }
             </td>
             <td class="px-md py-sm">
@@ -137,7 +136,7 @@
       <li jhCard padding="dense" [class.opacity-60]="d.isRetired" data-testid="catalogue-row">
         <div class="flex items-start gap-sm">
           <span class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden border border-border-strong bg-surface-sunken text-muted"
-            [class]="kind() === 'badge' ? 'rounded-full' : 'rounded-md'">
+            [class]="kind() === 'badge' ? 'rounded-pill' : 'rounded-md'">
             @if (d.hasIcon) {
               <img [src]="iconUrl(d.id)" [alt]="d.name" class="h-full w-full object-cover" />
             } @else {
@@ -148,9 +147,9 @@
             <div class="flex items-center justify-between gap-sm">
               <span class="truncate text-body-sm font-semibold text-heading">{{ d.name }}</span>
               @if (d.isRetired) {
-                <span class="shrink-0 rounded-pill bg-warning-bg px-xs py-0.5 text-caption font-medium text-warning-fg">{{ 'admin.catalogue.statusRetired' | transloco }}</span>
+                <span class="shrink-0" jhChip tone="warning">{{ 'admin.catalogue.statusRetired' | transloco }}</span>
               } @else {
-                <span class="shrink-0 rounded-pill bg-success-bg px-xs py-0.5 text-caption font-medium text-success-fg">{{ 'admin.catalogue.statusActive' | transloco }}</span>
+                <span class="shrink-0" jhChip tone="success">{{ 'admin.catalogue.statusActive' | transloco }}</span>
               }
             </div>
             <p class="mt-0.5 text-caption text-muted">{{ d.description }}</p>
@@ -300,7 +299,7 @@
             <div class="mt-xs flex items-end gap-md">
               @for (size of [32, 40, 56]; track size) {
                 <div class="flex flex-col items-center gap-1">
-                  <span class="overflow-hidden border border-border-strong" [class]="kind() === 'badge' ? 'rounded-full' : 'rounded-md'"
+                  <span class="overflow-hidden border border-border-strong" [class]="kind() === 'badge' ? 'rounded-pill' : 'rounded-md'"
                     [style.width.px]="size" [style.height.px]="size">
                     <img [src]="preview" alt="Icon preview" class="h-full w-full object-cover" />
                   </span>
@@ -312,7 +311,7 @@
         } @else if (iconTarget(); as t) {
           @if (t.hasIcon) {
             <div class="mt-md flex items-center gap-sm">
-              <span class="overflow-hidden border border-border-strong" [class]="kind() === 'badge' ? 'rounded-full' : 'rounded-md'"
+              <span class="overflow-hidden border border-border-strong" [class]="kind() === 'badge' ? 'rounded-pill' : 'rounded-md'"
                 style="width: 40px; height: 40px">
                 <img [src]="iconUrl(t.id)" alt="Current icon" class="h-full w-full object-cover" />
               </span>

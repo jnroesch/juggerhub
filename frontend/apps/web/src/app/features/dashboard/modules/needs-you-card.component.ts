@@ -2,7 +2,7 @@ import { Component, computed, inject, input, output, signal } from '@angular/cor
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 import { RouterLink } from '@angular/router';
-import { CardComponent, ButtonDirective } from '../../../shared/ui';
+import { CardComponent, ButtonDirective, ChipDirective } from '../../../shared/ui';
 import { NeedsYouItem } from '../../../core/models/home.models';
 import { TeamService } from '../../../core/services/team.service';
 import { PartyService } from '../../../core/services/party.service';
@@ -18,7 +18,7 @@ import { injectRelativeTime } from '../../../core/i18n/locale-format';
  */
 @Component({
   selector: 'jh-needs-you-card',
-  imports: [RouterLink, CardComponent, ButtonDirective, TranslocoPipe],
+  imports: [RouterLink, CardComponent, ButtonDirective, ChipDirective, TranslocoPipe],
   templateUrl: './needs-you-card.component.html',
   styleUrl: './needs-you-card.component.css',
 })

@@ -85,7 +85,7 @@
       {{ 'browse.filters' | transloco }}
       @if (activeFilterCount() > 0) {
         <span
-          class="inline-flex min-w-5 items-center justify-center rounded-full bg-brand px-1 text-caption font-mono text-on-accent"
+          class="inline-flex min-w-5 items-center justify-center rounded-pill bg-brand px-1 text-caption font-mono text-on-accent"
           data-testid="browse-filter-badge"
         >{{ activeFilterCount() }}</span>
       }
@@ -160,7 +160,8 @@
       @for (chip of chips(); track chip.key) {
         <button
           type="button"
-          class="inline-flex items-center gap-xs rounded-pill bg-brand px-sm py-0 text-body-sm text-on-accent"
+          jhChip
+          tone="brand"
           (click)="removeChip.emit(chip.key)"
         >
           {{ chip.label }}

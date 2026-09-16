@@ -1,15 +1,20 @@
 import { Component, input, output } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { POMPFEN_CATALOG, Pompfe } from '../../../../shared/pompfen.catalog';
+import { ChipDirective } from '../../../../shared/ui';
 
 /**
  * The owner's pompfen picker: the full canonical set, with the player's selections
- * shown filled and the rest available (dotted), per the wireframe. Multi-select;
- * Läufer (a position) sits in the same set. Emits the full desired selection.
+ * shown filled and the rest outlined. Multi-select; Läufer (a position) sits in the
+ * same set. Emits the full desired selection.
+ *
+ * A picked pompfe wears the `secondary` chip tone — the same sage the profile shows it
+ * in once saved (GH #301), so the picker previews the chip it produces rather than
+ * inventing a selected-state colour of its own.
  */
 @Component({
   selector: 'jh-pompfe-selector',
-  imports: [TranslocoPipe],
+  imports: [TranslocoPipe, ChipDirective],
   templateUrl: './pompfe-selector.component.html',
   styleUrl: './pompfe-selector.component.css',
 })

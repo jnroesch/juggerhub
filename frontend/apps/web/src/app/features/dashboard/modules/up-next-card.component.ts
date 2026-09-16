@@ -1,5 +1,5 @@
 import { Component, computed, inject, input, signal } from '@angular/core';
-import { ButtonDirective } from '../../../shared/ui';
+import { ButtonDirective, ChipDirective } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { EventService } from '../../../core/services/event.service';
@@ -17,7 +17,7 @@ import { injectDateFormats } from '../../../core/i18n/locale-format';
  */
 @Component({
   selector: 'jh-up-next-card',
-  imports: [RouterLink, ButtonDirective, TranslocoPipe],
+  imports: [RouterLink, ButtonDirective, ChipDirective, TranslocoPipe],
   templateUrl: './up-next-card.component.html',
   styleUrl: './up-next-card.component.css',
 })
