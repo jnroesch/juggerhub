@@ -6,7 +6,9 @@
       <button
         type="button"
         (click)="markAllRead()"
-        class="rounded-pill px-sm py-xs text-body-sm font-medium text-link transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+        jhButton
+        variant="ghost"
+        size="sm"
         data-testid="mark-all-read"
       >
         {{ 'alerts.markAllRead' | transloco }}
@@ -72,7 +74,8 @@
           type="button"
           (click)="loadMore()"
           [disabled]="loadingMore()"
-          class="rounded-pill border border-border px-lg py-sm text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-60"
+          jhButton
+          variant="secondary"
         >
           {{ loadingMore() ? ('common.loading' | transloco) : ('alerts.showOlder' | transloco) }}
         </button>

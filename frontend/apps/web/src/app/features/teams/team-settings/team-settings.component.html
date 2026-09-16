@@ -84,7 +84,7 @@
             [attr.aria-checked]="beginnersWelcome()"
             [attr.aria-label]="'teams.settings.beginnersWelcome' | transloco"
             [disabled]="savingBeginners()"
-            class="relative inline-flex h-6 w-10 shrink-0 items-center rounded-full border transition-colors duration-fast disabled:opacity-60"
+            class="relative inline-flex h-6 w-10 shrink-0 items-center rounded-pill border transition-colors duration-fast disabled:opacity-60"
             [class.bg-brand]="beginnersWelcome()"
             [class.border-brand]="beginnersWelcome()"
             [class.bg-surface-sunken]="!beginnersWelcome()"
@@ -93,7 +93,7 @@
             data-testid="team-beginners-welcome"
           >
             <span
-              class="inline-block h-4 w-4 rounded-full bg-surface-card shadow-coral transition-transform duration-fast"
+              class="inline-block h-4 w-4 rounded-pill bg-surface-card shadow-coral transition-transform duration-fast"
               [class.translate-x-4]="beginnersWelcome()"
               [class.translate-x-1]="!beginnersWelcome()"
             ></span>

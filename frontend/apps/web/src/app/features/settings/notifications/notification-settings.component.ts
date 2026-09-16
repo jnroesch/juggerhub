@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ButtonDirective, CardComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, ChipDirective } from '../../../shared/ui';
 import { NotificationPreferencesService } from '../../../core/services/notification-preferences.service';
 import { ChannelKey, NotificationCategoryId } from '../../../core/models/notification-preferences.models';
 
@@ -12,7 +12,7 @@ import { ChannelKey, NotificationCategoryId } from '../../../core/models/notific
  */
 @Component({
   selector: 'jh-notification-settings',
-  imports: [CardComponent, ButtonDirective, TranslocoPipe],
+  imports: [CardComponent, ButtonDirective, ChipDirective, TranslocoPipe],
   templateUrl: './notification-settings.component.html',
   styleUrl: './notification-settings.component.css',
 })

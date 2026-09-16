@@ -10,11 +10,11 @@
 
     <!-- Hero: chips, title, icon meta list -->
     <div class="mt-sm flex flex-wrap items-center gap-xs">
-      <span class="rounded-pill border border-border-muted px-sm py-3xs text-caption font-medium text-secondary">
+      <span jhChip tone="outline">
         {{ (s.isOneOff ? 'trainings.oneOff' : 'trainings.series') | transloco }}
       </span>
       @if (s.visibility === 'Public') {
-        <span class="rounded-pill border border-success-border bg-success-bg px-sm py-3xs text-caption font-medium text-success-fg">{{ 'trainings.public' | transloco }}</span>
+        <span jhChip tone="success">{{ 'trainings.public' | transloco }}</span>
       }
       <span class="text-body-sm text-muted">{{ s.teamName }}</span>
     </div>
@@ -94,7 +94,7 @@
                         {{ p.displayName }}@if (p.isYou) { <span class="text-muted">· {{ 'trainings.attendance.you' | transloco }}</span> }
                       </a>
                       @if (p.isGuest) {
-                        <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ 'trainings.session.guest' | transloco }}</span>
+                        <span jhChip tone="outline">{{ 'trainings.session.guest' | transloco }}</span>
                       }
                       @if (p.position) {
                         <span class="text-caption text-muted">{{ p.position }}</span>

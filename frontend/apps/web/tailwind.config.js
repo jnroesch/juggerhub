@@ -183,8 +183,15 @@ module.exports = {
         lg: 'var(--radius-lg)',
         xl: 'var(--radius-xl)',
         '2xl': 'var(--radius-2xl)',
+        /*
+         * `pill` only. `full` was a second name for this exact value, and the app
+         * wrote both — `rounded-pill` 109 times, `rounded-full` 44 — for one 999px
+         * corner (GH #301). Retiring the key is what enforces the single spelling,
+         * the way #299 retired `heading-lg`; `chip-shape.spec.ts` fails on a
+         * `rounded-full` written tomorrow, before Tailwind's own 9999px default
+         * can render it as if nothing happened.
+         */
         pill: 'var(--radius-pill)',
-        full: 'var(--radius-pill)',
       },
       fontFamily: {
         display: 'var(--font-display)',

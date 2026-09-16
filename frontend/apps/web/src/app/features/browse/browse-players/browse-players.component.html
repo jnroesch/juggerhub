@@ -29,10 +29,10 @@
           <img
             [src]="'/api/v1/profiles/' + player.handle + '/avatar'"
             alt=""
-            class="h-8 w-8 rounded-full object-cover"
+            class="h-8 w-8 rounded-pill object-cover"
           />
         } @else {
-          <span class="h-8 w-8 rounded-full border border-dashed border-border-strong bg-surface-subtle" aria-hidden="true"></span>
+          <span class="h-8 w-8 rounded-pill border border-dashed border-border-strong bg-surface-subtle" aria-hidden="true"></span>
         }
         <span class="flex flex-1 flex-col">
           <span class="text-body-md text-ink">{{ player.displayName }}</span>
@@ -64,12 +64,8 @@
       @for (entry of catalog; track entry.value) {
         <button
           type="button"
-          class="rounded-pill border px-sm py-0 text-body-sm transition-colors duration-fast"
-          [class.bg-brand]="isPending(entry.value)"
-          [class.border-brand]="isPending(entry.value)"
-          [class.text-on-accent]="isPending(entry.value)"
-          [class.border-border-strong]="!isPending(entry.value)"
-          [class.text-ink]="!isPending(entry.value)"
+          jhChip
+          [tone]="isPending(entry.value) ? 'accent' : 'outline'"
           [attr.aria-pressed]="isPending(entry.value)"
           (click)="togglePending(entry.value)"
         >{{ entry.labelKey | transloco }}</button>

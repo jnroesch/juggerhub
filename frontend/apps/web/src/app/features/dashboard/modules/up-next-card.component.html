@@ -47,7 +47,7 @@
             [class.border-danger-border]="answer() === 'Cant'" [class.bg-danger-bg]="answer() === 'Cant'" [class.text-danger-fg]="answer() === 'Cant'" [class.border-border-strong]="answer() !== 'Cant'">{{ 'home.rsvpCant' | transloco }}</button>
         </div>
       } @else if (isTeamMode()) {
-        <span class="inline-flex items-center gap-1 rounded-pill bg-surface-secondary-soft px-sm py-1 text-caption font-medium text-secondary" data-testid="team-going">
+        <span jhChip tone="secondary" data-testid="team-going">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
           {{ 'home.teamGoing' | transloco }}
         </span>

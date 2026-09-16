@@ -60,7 +60,9 @@
         <button
           type="button"
           (click)="decline.emit()"
-          class="rounded-pill border border-border px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+          jhButton
+          variant="secondary"
+          size="sm"
           data-testid="notif-decline"
         >
           {{ 'common.decline' | transloco }}

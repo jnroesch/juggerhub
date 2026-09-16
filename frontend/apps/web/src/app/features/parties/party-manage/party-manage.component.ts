@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
+import { ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { FormsModule } from '@angular/forms';
@@ -18,7 +18,7 @@ import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
  */
 @Component({
   selector: 'jh-party-manage',
-  imports: [RouterLink, TranslocoDatePipe, FormsModule, ButtonDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
+  imports: [RouterLink, TranslocoDatePipe, FormsModule, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe],
   templateUrl: './party-manage.component.html',
   styleUrl: './party-manage.component.css',
 })

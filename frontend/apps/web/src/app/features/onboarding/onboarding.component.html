@@ -218,9 +218,9 @@
                     </span>
                   </span>
                   @if (requestedSlugs().has(team.slug)) {
-                    <span class="rounded-pill border border-border-strong px-sm py-0 text-caption text-subtle">{{ 'onboarding.team.asked' | transloco }}</span>
+                    <span jhChip tone="outline">{{ 'onboarding.team.asked' | transloco }}</span>
                   } @else if (team.beginnersWelcome) {
-                    <span class="rounded-pill border border-brand px-sm py-0 text-caption text-brand">{{ 'onboarding.team.beginners' | transloco }}</span>
+                    <span jhChip tone="accent">{{ 'onboarding.team.beginners' | transloco }}</span>
                   }
                 </button>
               }
@@ -283,7 +283,7 @@
         <div class="mt-lg flex flex-col items-center">
           <label
             for="onboarding-photo"
-            class="grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-full border border-dashed border-border-strong bg-surface-subtle text-center text-body-sm text-subtle"
+            class="grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-pill border border-dashed border-border-strong bg-surface-subtle text-center text-body-sm text-subtle"
           >
             @if (avatarPreview()) {
               <img [src]="avatarPreview()" [alt]="'onboarding.photo.previewAlt' | transloco" class="h-full w-full object-cover" />
@@ -341,7 +341,7 @@
     <!-- Done ------------------------------------------------------------------->
     @case ('done') {
       <div class="flex flex-1 flex-col items-center justify-center text-center">
-        <div class="grid h-16 w-16 place-items-center rounded-full bg-brand text-on-accent shadow-coral" aria-hidden="true">
+        <div class="grid h-16 w-16 place-items-center rounded-pill bg-brand text-on-accent shadow-coral" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" class="h-8 w-8" stroke="currentColor" stroke-width="3">
             <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
@@ -371,7 +371,7 @@
   <div class="flex justify-center gap-xs" aria-hidden="true" data-testid="onboarding-progress">
     @for (s of coreSteps; track s; let i = $index) {
       <span
-        class="h-2.5 w-2.5 rounded-full transition-colors"
+        class="h-2.5 w-2.5 rounded-pill transition-colors"
         [class.bg-primary]="i < coreIndex()"
         [class.border-2]="i === coreIndex()"
         [class.border-primary]="i === coreIndex()"

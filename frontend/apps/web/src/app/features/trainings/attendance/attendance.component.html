@@ -19,10 +19,10 @@
             <p class="text-caption text-muted">{{ answerLabel(e.answer) | transloco }}@if (e.position) { · {{ e.position }} }</p>
           </div>
           @if (e.isTeamAdmin) {
-            <span class="rounded-pill bg-surface-inverse px-xs py-3xs text-caption text-on-inverse">{{ 'trainings.attendance.admin' | transloco }}</span>
+            <span jhChip>{{ 'trainings.attendance.admin' | transloco }}</span>
           }
           @if (e.isGuest) {
-            <span class="rounded-pill border border-border-muted px-xs py-3xs text-caption text-secondary">{{ 'trainings.attendance.guest' | transloco }}</span>
+            <span jhChip tone="outline">{{ 'trainings.attendance.guest' | transloco }}</span>
             <button type="button" (click)="removeGuest(e)" [disabled]="busy()" [attr.aria-label]="'trainings.attendance.removeGuest' | transloco"
               class="grid h-8 w-8 place-items-center rounded-md border border-danger-border text-danger-fg hover:bg-danger-bg">
               <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>

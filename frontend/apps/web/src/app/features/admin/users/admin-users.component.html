@@ -21,27 +21,31 @@
   <div class="flex gap-1" role="group" [attr.aria-label]="'admin.users.filterGroup' | transloco">
     <button
       type="button"
-      class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
-      [class]="status() === null ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-text'"
+      jhChip
+      [tone]="status() === null ? 'accent' : 'outline'"
+      [attr.aria-pressed]="status() === null"
       (click)="setStatus(null)"
     >{{ 'admin.users.filterAll' | transloco }}</button>
     <button
       type="button"
-      class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
-      [class]="status() === 'Active' ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-text'"
+      jhChip
+      [tone]="status() === 'Active' ? 'accent' : 'outline'"
+      [attr.aria-pressed]="status() === 'Active'"
       (click)="setStatus('Active')"
     >{{ 'admin.common.statusActive' | transloco }}</button>
     <button
       type="button"
-      class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
-      [class]="status() === 'Suspended' ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-text'"
+      jhChip
+      [tone]="status() === 'Suspended' ? 'accent' : 'outline'"
+      [attr.aria-pressed]="status() === 'Suspended'"
       (click)="setStatus('Suspended')"
       data-testid="admin-users-filter-suspended"
     >{{ 'admin.common.statusSuspended' | transloco }}</button>
     <button
       type="button"
-      class="rounded-pill px-sm py-1 text-body-sm font-medium transition-colors duration-fast"
-      [class]="status() === 'Banned' ? 'bg-surface-inverse text-on-inverse' : 'bg-surface-sunken text-muted hover:text-text'"
+      jhChip
+      [tone]="status() === 'Banned' ? 'accent' : 'outline'"
+      [attr.aria-pressed]="status() === 'Banned'"
       (click)="setStatus('Banned')"
       data-testid="admin-users-filter-banned"
     >{{ 'admin.common.statusBanned' | transloco }}</button>
@@ -84,7 +88,7 @@
               <span class="flex items-center gap-xs">
                 <span class="block text-body-sm font-medium text-body">{{ row.displayName }}</span>
                 @if (row.isAdmin) {
-                  <span class="rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-caption font-medium text-body">{{ 'admin.common.adminBadge' | transloco }}</span>
+                  <span jhChip tone="secondary">{{ 'admin.common.adminBadge' | transloco }}</span>
                 }
               </span>
               <span class="block text-caption text-subtle">&#64;{{ row.handle }}</span>
@@ -94,8 +98,8 @@
             </td>
             <td class="px-md py-sm">
               <span
-                class="inline-flex items-center gap-1 rounded-pill px-xs py-0.5 text-caption font-medium"
-                [class]="row.status === 'Active' ? 'bg-success-bg text-success-fg' : row.status === 'Suspended' ? 'bg-warning-bg text-warning-fg' : 'bg-danger-bg text-danger-fg'"
+                jhChip
+                [tone]="statusTone(row.status)"
               >{{ (row.status === 'Active' ? 'admin.common.statusActive' : row.status === 'Suspended' ? 'admin.common.statusSuspended' : 'admin.common.statusBanned') | transloco }}</span>
             </td>
             <td class="px-md py-sm text-right font-mono text-body-sm text-body">{{ row.badgeCount }}</td>
@@ -121,12 +125,13 @@
             <span class="flex min-w-0 items-center gap-xs">
               <span class="truncate text-body-sm font-semibold text-body">{{ row.displayName }}</span>
               @if (row.isAdmin) {
-                <span class="rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-caption font-medium text-body">Admin</span>
+                <span jhChip tone="secondary">Admin</span>
               }
             </span>
             <span
-              class="whitespace-nowrap rounded-pill px-xs py-0.5 text-caption font-medium"
-              [class]="row.status === 'Active' ? 'bg-success-bg text-success-fg' : row.status === 'Suspended' ? 'bg-warning-bg text-warning-fg' : 'bg-danger-bg text-danger-fg'"
+              class="whitespace-nowrap"
+              jhChip
+              [tone]="statusTone(row.status)"
             >{{ (row.status === 'Active' ? 'admin.common.statusActive' : row.status === 'Suspended' ? 'admin.common.statusSuspended' : 'admin.common.statusBanned') | transloco }}</span>
           </span>
           <span class="mt-1 block truncate text-caption text-subtle">

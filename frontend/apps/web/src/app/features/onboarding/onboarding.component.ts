@@ -14,7 +14,7 @@ import { BrowseList } from '../browse/browse-list';
 import { safeReturnUrl } from '../../core/utils/return-url';
 import { PompfeSelectorComponent } from '../profile/components/pompfe-selector/pompfe-selector.component';
 import { Pompfe } from '../../shared/pompfen.catalog';
-import { ButtonDirective, AlertComponent, IconComponent, LoadingComponent } from '../../shared/ui';
+import { ButtonDirective, AlertComponent, ChipDirective, IconComponent, LoadingComponent } from '../../shared/ui';
 import { CityPickerComponent } from '../../shared/city-picker/city-picker.component';
 import { CityOption, Location, toSelection } from '../../core/models/city.models';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -48,6 +48,7 @@ const FLOW: readonly Step[] = ['welcome', 'name', 'city', 'pompfen', 'team', 'ph
     CityPickerComponent,
     ButtonDirective,
     AlertComponent,
+    ChipDirective,
     IconComponent,
     LoadingComponent,
     TranslocoPipe,

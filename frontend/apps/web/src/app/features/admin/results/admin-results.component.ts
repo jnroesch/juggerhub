@@ -7,7 +7,7 @@ import { Subject, debounceTime } from 'rxjs';
 import { AdminPlacement } from '../../../core/models/results.models';
 import { AdminService } from '../../../core/services/admin.service';
 import { problemDetail } from '../../../core/utils/problem';
-import { AlertComponent, ButtonDirective, CardComponent, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, LoadingComponent } from '../../../shared/ui';
 import { AdminTeamPickerComponent } from '../shared/team-picker.component';
 
 const PAGE_SIZE = 20;
@@ -25,6 +25,7 @@ const PAGE_SIZE = 20;
   selector: 'jh-admin-results',
   imports: [
     CardComponent,
+    ChipDirective,
     RouterLink,
     TranslocoPipe,
     TranslocoDatePipe,

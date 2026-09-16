@@ -16,7 +16,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject, debounceTime, filter, map } from 'rxjs';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { BrowseState, FilterChip, SortOption } from '../../../core/models/search.models';
-import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
+import { ButtonDirective, ChipDirective, LoadingComponent, AlertComponent } from '../../../shared/ui';
 
 /**
  * Shared browse shell (feature 007) — the single implementation of the discovery behaviour
@@ -28,7 +28,7 @@ import { ButtonDirective, LoadingComponent, AlertComponent } from '../../../shar
  */
 @Component({
   selector: 'jh-browse-shell',
-  imports: [RouterLink, RouterLinkActive, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe],
+  imports: [RouterLink, RouterLinkActive, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, TranslocoPipe],
   templateUrl: './browse-shell.component.html',
   styleUrl: './browse-shell.component.css',
 })

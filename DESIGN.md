@@ -381,9 +381,11 @@ rejects the whole class.
 - Spacing follows a 4px base (`space-1` 4 → `space-13` 128). Compose from these
   steps rather than arbitrary values. The one step below the base is the **2px
   half-step** (`space-0.5`, `3xs`) — reserved for hairline insets where 4px is
-  visibly too loose, in practice the vertical padding of pills. It is not a
-  general-purpose step: if a gap is being tuned by 2px, the wrong step was
-  chosen.
+  visibly too loose. It is not a general-purpose step: if a gap is being tuned
+  by 2px, the wrong step was chosen. It is **not** the padding of a chip, which
+  this file used to say and GH #301 disproved: at caption size 2px makes a 21px
+  pill whose glyphs touch its own border. A chip's inset is 12/4 — see
+  **Chips**, below.
 
 ## Navigation: back links
 
@@ -424,7 +426,9 @@ border; reserve larger shadows for elements that float above the page.
 
 **Rounded is core — corners are never sharp.** Small controls and inset boxes
 `sm` (10px), buttons/inputs/standard elements `md` (14px), cards `lg` (20px),
-feature/media `xl` (28px), chips/avatars/pills `pill` (999px).
+feature/media `xl` (28px), chips/avatars/pills `pill` (999px) — written
+`rounded-pill`, never `rounded-full`, which was a second name for the same
+corner until GH #301 retired it.
 
 ## Motion & states
 
@@ -460,8 +464,23 @@ subtle `ease-bounce` for toggles and playful moments.
   lift: the movement promises a target the whole box doesn't have.
 - **Input** — white `surface-card`, `text-body` color, 1px `border-strong`, `md`
   radius, ≥44px tall; focus uses `border-focus` + the coral `focus-ring`.
-- **Chips / badges / tags** — `pill` radius; sage for position/roster chips,
-  lemon for "New"/highlight badges.
+- **Chips / badges / tags** — the small pill that labels a thing, and on a
+  `<button>` / `<a>` the pill that filters a list. A chip is one shape, drawn one
+  way, and it is never re-assembled out of utilities: **`pill` radius, 12px of
+  side padding, 4px above and below, `caption` text**, with the whole colour —
+  background, text, border — carried by a **tone**: `muted` (default),
+  `secondary` (sage, for position and roster chips), `accent`, `brand`,
+  `outline`, and the four status tones `success` / `warning` / `danger` /
+  `info`. `lemon` stays the highlight colour of the mark and the "New" dot; no
+  chip wears it today.
+- **A chip you can press is 44px tall** and takes `jhButton`'s `sm` inset —
+  16/8 at `body-sm` — because it is a button that happens to be pill-shaped. A
+  filter chip is `accent` when it is on and `outline` when it is off, everywhere
+  in the product; a *picker's* selected chip instead wears the tone of the chip
+  it produces, so choosing a pompfe previews the sage chip the profile will show.
+- **A pill that sets its own box is not a chip** — an avatar, the unread counter
+  over a nav icon, a ranking number, a floating action pill. Its height is not
+  its padding, and 44px would be wrong for a decoration nobody presses.
 
 ## Loading, error & retry states
 

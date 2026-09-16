@@ -4,7 +4,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { pompfeLabelKey } from '../../../../shared/pompfen.catalog';
 import { ProfileView } from '../../../../core/models/profile.models';
 import { RecognitionDisplayComponent } from '../recognition-display/recognition-display.component';
-import { CardComponent } from '../../../../shared/ui';
+import { CardComponent, ChipDirective } from '../../../../shared/ui';
 
 /**
  * Shared, read-only presentation of a player profile (feature 026). Used both for the owner's own
@@ -14,7 +14,7 @@ import { CardComponent } from '../../../../shared/ui';
  */
 @Component({
   selector: 'jh-profile-view',
-  imports: [RouterLink, RecognitionDisplayComponent, TranslocoPipe, CardComponent],
+  imports: [RouterLink, RecognitionDisplayComponent, TranslocoPipe, CardComponent, ChipDirective],
   templateUrl: './profile-view.component.html',
   styleUrl: './profile-view.component.css',
 })

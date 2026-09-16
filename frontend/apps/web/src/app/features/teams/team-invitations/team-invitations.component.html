@@ -55,7 +55,7 @@
       <ul class="mt-sm divide-y divide-border">
         @for (u of results(); track u.userId) {
           <li class="flex items-center gap-sm py-sm">
-            <div class="h-8 w-8 rounded-full border border-dashed border-border-strong bg-surface-subtle"></div>
+            <div class="h-8 w-8 rounded-pill border border-dashed border-border-strong bg-surface-subtle"></div>
             <div class="min-w-0 flex-1">
               <p class="truncate text-body-md text-ink">{{ u.displayName }}</p>
               <p class="truncate text-body-sm text-subtle">&#64;{{ u.handle }}{{ u.location ? ' · ' + u.location : '' }}</p>

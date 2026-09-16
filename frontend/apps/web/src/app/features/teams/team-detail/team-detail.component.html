@@ -34,10 +34,10 @@
           <span aria-hidden="true">·</span>
           <span><span class="font-mono">{{ team.memberCount }}</span> {{ (team.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}</span>
           @if (team.isActive) {
-            <span class="rounded-pill bg-success-bg px-xs py-0.5 text-caption font-medium text-success-fg">{{ 'teams.detail.active' | transloco }}</span>
+            <span jhChip tone="success">{{ 'teams.detail.active' | transloco }}</span>
           }
           @if (team.beginnersWelcome) {
-            <span class="rounded-pill bg-surface-secondary-soft px-xs py-0.5 text-caption font-medium text-secondary">{{ 'teams.detail.beginnersWelcome' | transloco }}</span>
+            <span jhChip tone="secondary">{{ 'teams.detail.beginnersWelcome' | transloco }}</span>
           }
         </p>
       </div>
@@ -126,7 +126,7 @@
                     <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName || m.handle }}</a>
                     <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) || '—' }}</span>
                   </span>
-                  @if (m.role === 'Admin') { <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">{{ 'teams.detail.adminBadge' | transloco }}</span> }
+                  @if (m.role === 'Admin') { <span jhChip>{{ 'teams.detail.adminBadge' | transloco }}</span> }
                   @if (isAdmin()) {
                     <div class="relative">
                       <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-subtle hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" (click)="toggleMenu(m.userId)">⋯</button>
@@ -152,7 +152,7 @@
                     <a [routerLink]="['/u', m.handle]" class="block truncate font-medium text-heading hover:text-link">{{ m.displayName || m.handle }}</a>
                     <span class="block truncate text-caption text-subtle">{{ positions(m.pompfen) || '—' }}</span>
                   </span>
-                  @if (m.role === 'Admin') { <span class="rounded-pill bg-surface-muted px-xs py-0.5 text-caption font-medium text-muted">{{ 'teams.detail.adminBadge' | transloco }}</span> }
+                  @if (m.role === 'Admin') { <span jhChip>{{ 'teams.detail.adminBadge' | transloco }}</span> }
                 </li>
               }
             </ul>

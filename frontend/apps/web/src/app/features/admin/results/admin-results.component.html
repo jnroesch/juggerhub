@@ -5,12 +5,10 @@
 <p class="mt-xs text-body-md text-muted">{{ 'admin.results.lead' | transloco }}</p>
 
 <!-- Unconnected (the work queue) / connected -->
-<div class="mt-md inline-flex rounded-pill bg-surface-sunken p-1" role="group" [attr.aria-label]="'admin.results.filterLabel' | transloco">
-  <button type="button" class="rounded-pill px-md py-1.5 text-body-sm font-semibold transition-colors duration-fast"
-    [class]="!connected() ? 'bg-surface-card text-heading shadow-sm' : 'text-muted'" [attr.aria-pressed]="!connected()"
+<div class="mt-md inline-flex gap-xs" role="group" [attr.aria-label]="'admin.results.filterLabel' | transloco">
+  <button type="button" jhChip [tone]="!connected() ? 'accent' : 'outline'" [attr.aria-pressed]="!connected()"
     (click)="show(false)" data-testid="admin-results-unconnected">{{ 'admin.results.unconnected' | transloco }}</button>
-  <button type="button" class="rounded-pill px-md py-1.5 text-body-sm font-semibold transition-colors duration-fast"
-    [class]="connected() ? 'bg-surface-card text-heading shadow-sm' : 'text-muted'" [attr.aria-pressed]="connected()"
+  <button type="button" jhChip [tone]="connected() ? 'accent' : 'outline'" [attr.aria-pressed]="connected()"
     (click)="show(true)" data-testid="admin-results-connected">{{ 'admin.results.connected' | transloco }}</button>
 </div>
 
