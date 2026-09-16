@@ -15,7 +15,7 @@
     <a
       routerLink="/admin"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
-      [class]="overviewActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [class]="overviewActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="overviewActive() ? 'page' : null"
       data-testid="admin-nav-overview"
     >
@@ -25,7 +25,7 @@
     <a
       routerLink="/admin/users"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
-      [class]="usersActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [class]="usersActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="usersActive() ? 'page' : null"
       data-testid="admin-nav-users"
     >
@@ -35,7 +35,7 @@
     <a
       routerLink="/admin/teams"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
-      [class]="teamsActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [class]="teamsActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="teamsActive() ? 'page' : null"
       data-testid="admin-nav-teams"
     >
@@ -45,7 +45,7 @@
     <a
       routerLink="/admin/catalogue"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
-      [class]="catalogueActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [class]="catalogueActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="catalogueActive() ? 'page' : null"
       data-testid="admin-nav-catalogue"
     >
@@ -55,7 +55,7 @@
     <a
       routerLink="/admin/results"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
-      [class]="resultsActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [class]="resultsActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="resultsActive() ? 'page' : null"
       data-testid="admin-nav-results"
     >
@@ -71,7 +71,7 @@
 
 <!-- Mobile: bottom tab bar (wireframe 1b — no fifth tab in the main app; this bar lives only inside the admin area) -->
 <nav
-  class="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t border-border bg-surface md:hidden"
+  class="fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t border-border-default bg-surface-card md:hidden"
   [attr.aria-label]="'admin.label' | transloco"
   data-testid="admin-bottom-nav"
 >

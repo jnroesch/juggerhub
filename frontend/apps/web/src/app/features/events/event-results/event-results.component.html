@@ -2,15 +2,15 @@
   @if (loading()) {
     <jh-loading />
   } @else if (forbidden()) {
-    <div class="rounded-md border border-border bg-surface-card px-md py-lg text-center" data-testid="results-not-admin">
-      <p class="text-body-lg font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
+    <div class="rounded-md border border-border-default bg-surface-card px-md py-lg text-center" data-testid="results-not-admin">
+      <p class="text-body-lg font-bold text-heading">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-muted">{{ 'events.results.notAdmin' | transloco }}</p>
     </div>
   } @else if (loadError()) {
     <jh-alert tone="danger">{{ 'events.results.loadError' | transloco }}</jh-alert>
     <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
   } @else if (editor(); as e) {
-    <a [routerLink]="['/events', e.eventId]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text" data-testid="results-back">
+    <a [routerLink]="['/events', e.eventId]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body" data-testid="results-back">
       <jh-icon name="chevron-left" size="sm" />{{ e.eventName }}
     </a>
     <h1 class="mt-md text-h3">{{ 'events.results.title' | transloco }}</h1>
@@ -40,7 +40,7 @@
 
             <!-- Paste from Tugeny -->
             @if (pasteOpen()) {
-              <div class="mt-md rounded-md border border-border bg-surface-sunken p-sm" data-testid="paste-panel">
+              <div class="mt-md rounded-md border border-border-default bg-surface-sunken p-sm" data-testid="paste-panel">
                 <label for="tugeny-paste" class="text-body-sm font-semibold text-heading">{{ 'events.results.paste.title' | transloco }}</label>
                 <p class="mt-2xs text-caption text-muted">{{ 'events.results.paste.hint' | transloco }}</p>
                 <textarea id="tugeny-paste" rows="6" spellcheck="false"
@@ -62,7 +62,7 @@
             <!-- Rows -->
             <ol class="mt-md flex flex-col gap-xs" data-testid="ranking-rows">
               @for (row of rows(); track row.key; let i = $index) {
-                <li class="flex flex-wrap items-start gap-sm rounded-md border border-border bg-surface-card p-sm" data-testid="ranking-row">
+                <li class="flex flex-wrap items-start gap-sm rounded-md border border-border-default bg-surface-card p-sm" data-testid="ranking-row">
                   <label class="sr-only" [for]="'pos-' + row.key">{{ 'events.results.editor.position' | transloco }}</label>
                   <input [id]="'pos-' + row.key" type="number" min="1" max="999" inputmode="numeric"
                     class="h-11 w-14 shrink-0 rounded-md border border-border-strong bg-surface-card px-xs text-center font-mono text-body-md text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"
@@ -124,7 +124,7 @@
               <div class="mt-md"><jh-alert tone="warning">{{ 'events.results.replaceWarning' | transloco }}</jh-alert></div>
             }
 
-            <div class="mt-md flex flex-wrap items-center gap-sm border-t border-border pt-md">
+            <div class="mt-md flex flex-wrap items-center gap-sm border-t border-border-default pt-md">
               <button type="button" jhButton (click)="save()" [disabled]="saving() || rows().length === 0" data-testid="ranking-save">
                 {{ (confirmReplace() ? 'events.results.replaceConfirm' : 'events.results.editor.save') | transloco }}
               </button>

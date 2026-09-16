@@ -24,26 +24,26 @@
   <nav class="grid grid-cols-2 gap-1 rounded-md bg-surface-sunken p-1 sm:grid-cols-4" aria-label="Browse">
     <a
       routerLink="/browse/events"
-      routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-ink"
+      routerLinkActive="bg-surface-card text-heading shadow-sm"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-heading"
       data-testid="browse-tab-events"
     >{{ 'browse.tabEvents' | transloco }}</a>
     <a
       routerLink="/browse/teams"
-      routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-ink"
+      routerLinkActive="bg-surface-card text-heading shadow-sm"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-heading"
       data-testid="browse-tab-teams"
     >{{ 'browse.tabTeams' | transloco }}</a>
     <a
       routerLink="/browse/trainings"
-      routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-ink"
+      routerLinkActive="bg-surface-card text-heading shadow-sm"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-heading"
       data-testid="browse-tab-trainings"
     >{{ 'browse.tabTrainings' | transloco }}</a>
     <a
       routerLink="/browse/players"
-      routerLinkActive="bg-surface-card text-ink shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-ink"
+      routerLinkActive="bg-surface-card text-heading shadow-sm"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-heading"
       data-testid="browse-tab-players"
     >{{ 'browse.tabPlayers' | transloco }}</a>
   </nav>
@@ -58,7 +58,7 @@
     <input
       #searchBox
       type="search"
-      class="w-full bg-transparent text-body-md text-ink outline-none placeholder:text-muted"
+      class="w-full bg-transparent text-body-md text-heading outline-none placeholder:text-muted"
       [placeholder]="searchPlaceholder()"
       [attr.aria-label]="searchPlaceholder()"
       (input)="onSearchInput($event)"
@@ -99,7 +99,7 @@
           data-testid="browse-sort-button"
         >
           <jh-icon name="arrow-down-wide-narrow" size="sm" class="shrink-0" />
-          {{ 'browse.sort' | transloco }} · <b class="font-medium text-ink">{{ activeSortLabel() }}</b>
+          {{ 'browse.sort' | transloco }} · <b class="font-medium text-heading">{{ activeSortLabel() }}</b>
         </button>
 
         @if (sortMenuOpen()) {
@@ -112,7 +112,7 @@
             (click)="sortMenuOpen.set(false)"
           ></button>
           <div
-            class="absolute left-0 z-50 mt-xs flex min-w-48 flex-col gap-0 rounded-md border border-border bg-surface-card p-1 shadow-coral"
+            class="absolute left-0 z-50 mt-xs flex min-w-48 flex-col gap-0 rounded-md border border-border-default bg-surface-card p-1 shadow-coral"
             role="menu"
             [attr.aria-label]="'browse.sortBy' | transloco"
             data-testid="browse-sort-menu"
@@ -126,7 +126,7 @@
                 class="flex items-center justify-between gap-sm rounded-sm px-sm py-xs text-left text-body-sm transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 [class.text-brand-strong]="option.value === activeSort()"
                 [class.font-medium]="option.value === activeSort()"
-                [class.text-ink]="option.value !== activeSort()"
+                [class.text-heading]="option.value !== activeSort()"
                 [attr.data-testid]="'browse-sort-option-' + option.value"
               >
                 {{ option.label }}

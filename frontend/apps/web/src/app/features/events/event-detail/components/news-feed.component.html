@@ -11,7 +11,7 @@
   @if (news().length === 0) {
     <p class="mt-sm text-body-sm text-muted">{{ 'events.news.none' | transloco }}</p>
   } @else {
-    <ul class="mt-sm divide-y divide-border">
+    <ul class="mt-sm divide-y divide-border-default">
       @for (n of news(); track n.id) {
         <li class="py-sm first:pt-0 last:pb-0">
           <p class="text-body-md text-body">{{ n.body }}</p>

@@ -5,7 +5,7 @@
     <jh-loading />
   } @else if (forbidden()) {
     <div jhCard class="mt-md text-center">
-      <p class="text-body-md font-bold text-ink">{{ 'marketplace.recruiting.adminsOnly' | transloco }}</p>
+      <p class="text-body-md font-bold text-heading">{{ 'marketplace.recruiting.adminsOnly' | transloco }}</p>
       <p class="mt-xs text-body-sm text-muted">{{ 'marketplace.recruiting.adminsOnlyDesc' | transloco }}</p>
     </div>
   } @else if (loadError()) {
@@ -28,7 +28,7 @@
       </label>
 
       @if (on()) {
-        <hr class="my-md border-t border-border" />
+        <hr class="my-md border-t border-border-default" />
         <p class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.recruiting.spotsToAdvertise' | transloco }}</p>
         <div class="mt-xs flex items-center gap-sm">
           <button type="button" (click)="changeSpots(-1)" [attr.aria-label]="'marketplace.recruiting.fewerSpots' | transloco" class="grid h-8 w-8 place-items-center rounded-md border border-border-strong text-body hover:bg-surface-sunken"><jh-icon name="minus" size="sm" /></button>

@@ -24,6 +24,14 @@ import { join } from 'node:path';
  * `h4` — so `text-heading` is now unambiguously the colour and this guard is what makes the
  * retirement stick: any `text-heading-*` size written from here on is an undefined key.
  *
+ * GH #312 is the colour half of the same story, and the reason it needed a guard at all. The
+ * theme registered `ink` beside `heading` and `text` beside `body` — two names each for one
+ * custom property — so 121 text elements (and four fills) were painted in a colour whose
+ * canonical name was something else and *nothing rendered wrong*, which is why review never
+ * caught it. The aliases are gone from the `colors` map — along with `primary`, `accent`,
+ * `surface`, `surface-subtle`, `background`, `border`, `info-strong` and `warning` — so a
+ * `text-ink` or a `bg-surface` written tomorrow is an undefined key and fails here.
+ *
  * This walks the app source and fails on any of those utilities whose key is not in the *resolved*
  * Tailwind scale — resolved from the config, not a hardcoded list, so the guard cannot drift.
  * Because colour and size share the `text-` prefix, a `text-` key is accepted when it is valid in

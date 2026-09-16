@@ -92,9 +92,6 @@ const FOREGROUNDS: { token: string; on: string[] }[] = [
   { token: 'heading', on: ALL_LIGHT_SURFACES },
   { token: 'body', on: ALL_LIGHT_SURFACES },
   { token: 'muted', on: ALL_LIGHT_SURFACES },
-  // The legacy aliases of the two above; same ink, same surfaces.
-  { token: 'ink', on: ALL_LIGHT_SURFACES },
-  { token: 'text', on: ALL_LIGHT_SURFACES },
   { token: 'link', on: PAGE_SURFACES },
   { token: 'link-hover', on: PAGE_SURFACES },
   // Coral and sage as text, each also on its own soft tint.

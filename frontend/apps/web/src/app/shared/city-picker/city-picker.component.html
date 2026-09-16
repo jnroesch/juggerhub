@@ -5,12 +5,12 @@
     data-testid="city-picker-chip"
   >
     <jh-icon name="check" size="sm" class="shrink-0 text-brand-strong" />
-    <span class="truncate text-body-md text-ink">{{ label }}</span>
+    <span class="truncate text-body-md text-heading">{{ label }}</span>
     <button
       type="button"
       (click)="clear()"
       aria-label="Clear city"
-      class="grid h-11 w-11 shrink-0 place-items-center rounded-pill text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      class="grid h-11 w-11 shrink-0 place-items-center rounded-pill text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
     >
       <jh-icon name="x" size="sm" />
     </button>
@@ -50,7 +50,7 @@
               (click)="pick(option)"
               role="option"
               [attr.aria-selected]="option.externalId === selected()?.externalId"
-              class="min-h-11 w-full rounded-sm px-md py-sm text-left text-body-md text-ink transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              class="min-h-11 w-full rounded-sm px-md py-sm text-left text-body-md text-heading transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
             >
               {{ option.label }}
             </button>

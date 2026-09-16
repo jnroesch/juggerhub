@@ -3,12 +3,12 @@
     <jh-loading />
   } @else if (loadError()) {
     <div jhCard class="text-center">
-      <p class="text-body-lg font-bold text-ink">{{ 'events.detail.notFoundTitle' | transloco }}</p>
+      <p class="text-body-lg font-bold text-heading">{{ 'events.detail.notFoundTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-muted">{{ 'events.detail.notFoundBody' | transloco }}</p>
       <a routerLink="/" class="mt-md inline-block text-body-sm font-semibold text-brand-strong">{{ 'events.detail.goHome' | transloco }}</a>
     </div>
   } @else if (detail(); as d) {
-    <a routerLink="/browse/events" [queryParams]="eventsQuery()" [state]="restoreSearch" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text" data-testid="event-back"><jh-icon name="chevron-left" size="sm" />{{ 'events.detail.backEvents' | transloco }}</a>
+    <a routerLink="/browse/events" [queryParams]="eventsQuery()" [state]="restoreSearch" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body" data-testid="event-back"><jh-icon name="chevron-left" size="sm" />{{ 'events.detail.backEvents' | transloco }}</a>
 
     <!-- Hero: cover, title, meta, occupancy -->
     <div class="relative mt-sm flex h-28 items-end overflow-hidden rounded-lg border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
@@ -70,7 +70,7 @@
           <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.about' | transloco }}</h2>
           <p class="mt-xs whitespace-pre-line text-body-md text-body">{{ d.description }}</p>
 
-          <hr class="my-md border-t border-border" />
+          <hr class="my-md border-t border-border-default" />
 
           <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.where' | transloco }}</h2>
           @if (d.locationKind === 'InPerson') {
@@ -116,7 +116,7 @@
           <div>
             @if (d.viewer.isAdmin) {
               @if (menuOpen()) {
-                <div class="mb-xs overflow-hidden rounded-md border border-border bg-surface-card" data-testid="manage-menu-panel">
+                <div class="mb-xs overflow-hidden rounded-md border border-border-default bg-surface-card" data-testid="manage-menu-panel">
                   <a [routerLink]="['/events', d.id, 'manage']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'events.detail.manageParticipants' | transloco }}</a>
                   @if (d.type === 'Tournament') {
                     <a [routerLink]="['/events', d.id, 'results']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken" data-testid="manage-results">{{ 'events.detail.manageResults' | transloco }}</a>
@@ -152,7 +152,7 @@
                 <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.detail.entranceFee' | transloco }}</h2>
                 @if (d.feePaymentDeadline) { <span jhChip>{{ 'events.detail.payBy' | transloco:{ date: (d.feePaymentDeadline | translocoDate: { month: 'short', day: 'numeric' }) } }}</span> }
               </div>
-              <p class="mt-xs text-body-lg font-bold text-ink">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-muted">{{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}</span></p>
+              <p class="mt-xs text-body-lg font-bold text-heading">{{ d.feeAmount }} {{ d.feeCurrency }} <span class="text-body-sm font-normal text-muted">{{ (d.participantMode === 'Teams' ? 'events.detail.perTeam' : 'events.detail.perPerson') | transloco }}</span></p>
               <dl class="mt-sm space-y-0.5 text-body-sm">
                 <div class="flex gap-sm"><dt class="w-16 shrink-0 text-muted">{{ 'events.detail.payTo' | transloco }}</dt><dd class="font-semibold text-body">{{ d.feeRecipientName }}</dd></div>
                 <div class="flex gap-sm"><dt class="w-16 shrink-0 text-muted">{{ 'events.detail.iban' | transloco }}</dt><dd class="break-all font-mono text-muted">{{ d.feeIban }}</dd></div>

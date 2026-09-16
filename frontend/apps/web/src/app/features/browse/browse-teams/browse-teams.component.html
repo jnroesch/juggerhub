@@ -21,7 +21,7 @@
     @for (team of list.items(); track team.slug) {
       <a
         [routerLink]="['/t', team.slug]"
-        class="flex items-center gap-sm border-b border-border py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
+        class="flex items-center gap-sm border-b border-border-default py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
         data-testid="team-row"
       >
         <!-- Feature 051 — the team's logo, or the letter tile when it has none. -->
@@ -29,17 +29,17 @@
           <img
             [src]="logoUrl(team.slug)"
             alt=""
-            class="h-8 w-8 shrink-0 rounded-md border border-border object-cover"
+            class="h-8 w-8 shrink-0 rounded-md border border-border-default object-cover"
             data-testid="team-logo"
           />
         } @else {
           <span
-            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-dashed border-border-strong bg-surface-subtle text-body-sm font-semibold text-ink"
+            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-dashed border-border-strong bg-surface-sunken text-body-sm font-semibold text-heading"
             aria-hidden="true"
           >{{ team.logoInitial }}</span>
         }
         <span class="flex flex-1 flex-col">
-          <span class="text-body-md text-ink">{{ team.name }}</span>
+          <span class="text-body-md text-heading">{{ team.name }}</span>
           <span class="text-body-sm text-muted">
             @if (team.location) {
               {{ team.location.label }} ·

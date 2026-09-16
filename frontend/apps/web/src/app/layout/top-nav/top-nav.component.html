@@ -1,12 +1,12 @@
 <header
-  class="sticky top-0 z-30 flex h-14 items-center gap-sm border-b border-border bg-surface px-md"
+  class="sticky top-0 z-30 flex h-14 items-center gap-sm border-b border-border-default bg-surface-card px-md"
 >
   <!-- Brand -->
   <a routerLink="/" class="flex items-center gap-xs" [attr.aria-label]="'nav.brandHome' | transloco">
     <span class="grid h-7 w-7 place-items-center rounded-md bg-brand-gradient shadow-sm" aria-hidden="true">
       <span class="h-1.5 w-1.5 rounded-pill bg-highlight"></span>
     </span>
-    <span class="font-display text-h4 font-bold text-ink">JuggerHub</span>
+    <span class="font-display text-h4 font-bold text-heading">JuggerHub</span>
   </a>
 
   <!-- Desktop: primary destinations -->
@@ -14,7 +14,7 @@
     <a
       routerLink="/"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
-      [class]="homeActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [class]="homeActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="homeActive() ? 'page' : null"
       data-testid="nav-home"
     >
@@ -24,7 +24,7 @@
     <a
       routerLink="/browse"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
-      [class]="browseActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [class]="browseActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="browseActive() ? 'page' : null"
       data-testid="nav-browse"
     >
@@ -34,7 +34,7 @@
     <a
       [routerLink]="myTeamHref()"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
-      [class]="myTeamActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [class]="myTeamActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="myTeamActive() ? 'page' : null"
       data-testid="nav-my-team"
     >
@@ -44,7 +44,7 @@
     <a
       routerLink="/chat"
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
-      [class]="chatActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-text hover:bg-surface-sunken'"
+      [class]="chatActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="chatActive() ? 'page' : null"
       [attr.aria-label]="chatBadge() ? ('nav.unreadLabel' | transloco: { label: ('nav.chat' | transloco), count: chatBadge() }) : ('nav.chat' | transloco)"
       data-testid="nav-chat"
@@ -68,7 +68,7 @@
     <a
       routerLink="/alerts"
       class="relative hidden h-9 w-9 place-items-center rounded-md transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus md:grid"
-      [class]="alertsActive() ? 'bg-surface-accent-soft text-brand-strong' : 'text-text hover:bg-surface-sunken'"
+      [class]="alertsActive() ? 'bg-surface-accent-soft text-brand-strong' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="alertsActive() ? 'page' : null"
       [attr.aria-label]="alertsBadge() ? ('nav.unreadLabel' | transloco: { label: ('nav.alerts' | transloco), count: alertsBadge() }) : ('nav.alerts' | transloco)"
       data-testid="nav-alerts-bell"

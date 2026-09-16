@@ -5,7 +5,7 @@
     <jh-empty-state [heading]="'trainings.session.notFound' | transloco">{{ 'trainings.session.notFoundBody' | transloco }}</jh-empty-state>
   } @else if (session(); as s) {
     @if (back(); as b) {
-      <a [routerLink]="b.link" [queryParams]="b.queryParams" [state]="b.state" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text" data-testid="session-back"><jh-icon name="chevron-left" size="sm" />{{ 'trainings.backTrainings' | transloco }}</a>
+      <a [routerLink]="b.link" [queryParams]="b.queryParams" [state]="b.state" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body" data-testid="session-back"><jh-icon name="chevron-left" size="sm" />{{ 'trainings.backTrainings' | transloco }}</a>
     }
 
     <!-- Hero: chips, title, icon meta list -->
@@ -161,7 +161,7 @@
                 <jh-icon name="chevron-down" size="sm" class="text-muted transition-transform duration-fast" />
               </button>
               @if (menuOpen()) {
-                <div class="mt-xs overflow-hidden rounded-md border border-border bg-surface-card" data-testid="manage-menu-panel">
+                <div class="mt-xs overflow-hidden rounded-md border border-border-default bg-surface-card" data-testid="manage-menu-panel">
                   @if (canRespond()) {
                     @if (s.isOneOff || s.isDetached) {
                       <a [routerLink]="['/trainings/sessions', sessionId(), 'edit']" class="block px-md py-sm text-body-sm text-body hover:bg-surface-sunken">{{ 'trainings.session.editThisSession' | transloco }}</a>

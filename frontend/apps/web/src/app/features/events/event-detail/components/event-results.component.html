@@ -78,7 +78,7 @@
 
       @if (hasResults()) {
         @if (r.matchCount > 0) {
-          <hr class="my-md border-t border-border" />
+          <hr class="my-md border-t border-border-default" />
           <h3 class="text-body-md font-semibold text-heading">{{ 'events.results.matches.title' | transloco }}</h3>
 
           @if (!matchesOpen()) {
@@ -88,7 +88,7 @@
           } @else {
             @for (g of matchGroups(); track g.stage) {
               <h4 class="mt-md text-body-sm font-semibold text-heading" data-testid="match-stage">{{ g.stage ?? ('events.results.matches.knockout' | transloco) }}</h4>
-              <ul class="mt-xs divide-y divide-border">
+              <ul class="mt-xs divide-y divide-border-default">
                 @for (m of g.matches; track m.id) {
                   <li class="py-xs" data-testid="result-match" [attr.data-winner]="m.winner">
                     <p class="text-caption text-muted">

@@ -21,11 +21,11 @@
     @for (event of list.items(); track event.id) {
       <a
         [routerLink]="['/events', event.id]"
-        class="flex items-center gap-sm border-b border-border py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
+        class="flex items-center gap-sm border-b border-border-default py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
         data-testid="event-row"
       >
         <span class="flex flex-1 flex-col">
-          <span class="text-body-md text-ink">{{ event.name }}</span>
+          <span class="text-body-md text-heading">{{ event.name }}</span>
           <span class="text-body-sm text-muted">
             {{ event.startsAt | translocoDate: { dateStyle: 'medium' } }}
             @if (event.locationLabel) {
@@ -64,7 +64,7 @@
     <div class="flex items-center gap-xs">
       <input
         type="date"
-        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-heading outline-none"
         [attr.aria-label]="'browse.events.fromDate' | transloco"
         [value]="pendingFrom()"
         (input)="onPendingFrom($any($event.target).value)"
@@ -72,7 +72,7 @@
       <span class="text-muted">–</span>
       <input
         type="date"
-        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-heading outline-none"
         [attr.aria-label]="'browse.events.toDate' | transloco"
         [value]="pendingTo()"
         (input)="onPendingTo($any($event.target).value)"
@@ -83,7 +83,7 @@
   <label class="flex flex-col gap-xs">
     <span class="text-eyebrow uppercase text-muted">{{ 'browse.events.type' | transloco }}</span>
     <select
-      class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-ink outline-none"
+      class="rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-md text-heading outline-none"
       [value]="pendingType()"
       (change)="onPendingType($any($event.target).value)"
     >

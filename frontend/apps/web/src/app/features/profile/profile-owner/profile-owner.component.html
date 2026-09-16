@@ -60,7 +60,7 @@
             @if (avatarUrl(); as url) {
               <img [src]="url" [alt]="'profile.owner.yourPicture' | transloco" class="h-20 w-20 rounded-pill border border-default object-cover" />
             } @else {
-              <div class="grid h-20 w-20 place-items-center rounded-pill border border-dashed border-border-strong bg-surface-subtle text-body-sm text-muted">{{ 'profile.view.photo' | transloco }}</div>
+              <div class="grid h-20 w-20 place-items-center rounded-pill border border-dashed border-border-strong bg-surface-sunken text-body-sm text-muted">{{ 'profile.view.photo' | transloco }}</div>
             }
             <label class="absolute -bottom-1 -right-1 grid h-8 w-8 cursor-pointer place-items-center rounded-pill bg-brand-strong text-on-accent shadow-coral transition-colors duration-fast hover:bg-brand-strong-hover" [attr.aria-label]="'profile.owner.changePhoto' | transloco">
               <jh-icon name="pencil" size="sm" />

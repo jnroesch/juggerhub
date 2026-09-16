@@ -37,14 +37,14 @@
         }
       </div>
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.date' | transloco }}
-        <input [(ngModel)]="sessionDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [(ngModel)]="sessionDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
       </label>
       <div class="mt-md grid grid-cols-2 gap-sm">
         <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.start' | transloco }}
-          <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+          <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
         <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.end' | transloco }}
-          <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+          <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
       </div>
       <div class="mt-md grid grid-cols-2 gap-xs">
@@ -64,7 +64,7 @@
         />
       } @else {
         <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
-          <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+          <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
       }
       @if (!s.isOneOff) {
@@ -81,19 +81,19 @@
       <h1 class="mt-md text-h3">{{ 'trainings.edit.editSeries' | transloco }}</h1>
       <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.edit.editSeriesDesc' | transloco }}</p>
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.name' | transloco }}
-        <input [(ngModel)]="name" type="text" maxlength="120" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [(ngModel)]="name" type="text" maxlength="120" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
       </label>
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.dayOfWeek' | transloco }}
-        <select [(ngModel)]="weekday" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body">
+        <select [(ngModel)]="weekday" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body">
           @for (d of weekdays; track d) { <option [value]="d">{{ 'trainings.weekday.' + d | transloco }}</option> }
         </select>
       </label>
       <div class="mt-md grid grid-cols-2 gap-sm">
         <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.start' | transloco }}
-          <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+          <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
         <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.end' | transloco }}
-          <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+          <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
       </div>
       <div class="mt-md">
@@ -120,11 +120,11 @@
         />
       } @else {
         <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
-          <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+          <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
       }
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.until' | transloco }}
-        <input [(ngModel)]="endDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [(ngModel)]="endDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
       </label>
       <p class="mt-sm rounded-md bg-surface-sunken p-sm text-caption text-muted">{{ 'trainings.edit.seriesNotifyNote' | transloco }}</p>
       @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }
