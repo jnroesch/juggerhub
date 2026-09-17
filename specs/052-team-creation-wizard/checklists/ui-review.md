@@ -15,7 +15,7 @@ navigation), `components/invite-search/invite-search.component.html` (new, lifte
 
 ## Color & tokens
 
-- [x] CHK001 Components reference **semantic aliases** (`surface-card`, `text-body`, `brand-primary`, `border-default`…), never raw scale steps (`sand-4`, `coral-5`) — every class is a semantic alias; the progress knobs use `bg-brand` / `bg-brand/60` / `bg-surface-sunken`, the review list `surface-card` + `border-border-strong` + `divide-border-default`
+- [x] CHK001 Components reference **semantic aliases** (`surface-card`, `text-body`, `brand-primary`, `border-default`…), never raw scale steps (`sand-4`, `coral-5`) — every class is a semantic alias; the progress knobs use `bg-brand` / `bg-surface-sunken` (see CHK030 for why not `bg-brand/60`), the review list `surface-card` + `border-border-strong` + `divide-border-default`
 - [x] CHK002 **Exactly one coral `brand-primary` CTA per view** — one `jhButton` (default variant) in the navigation row on every step. The logo step's picker is `variant="secondary"`; the invite rows are outline (`border-brand` + `text-brand-strong`), carried over unchanged from the invitations screen
 - [x] CHK003 Lemon `brand-highlight` used only for small pops — not used at all here
 - [x] CHK004 Status uses paired `*-bg` / `*-border` / `*-fg` tokens — the Mixteam note is `info-bg` + `info-border` + `info-fg`; refusals are `text-danger-fg`; the available verdict `text-success-fg`
@@ -68,7 +68,7 @@ navigation), `components/invite-search/invite-search.component.html` (new, lifte
 
 ## Feature-specific UI
 
-- [x] CHK030 **Five knobs at 375px** — the row is five `h-2` pills (one `w-6`, four `w-2`) with `gap-xs`: 38px total. The event wizard already renders six in the same row
+- [x] CHK030 **Five knobs at 375px** — the row is five `h-2` pills (one `w-6`, four `w-2`) with `gap-xs`: 38px total, counted in a live DOM rather than read off the template. **Found failing and fixed during this review** — see the note below: the *completed* knobs were rendering fully transparent
 - [x] CHK031 **The review step reads as a summary, not a form** — a `<dl>` of label/value rows, no inputs, no field borders; only the "Change" controls are interactive, and they are text actions rather than input-shaped
 - [x] CHK032 **German at 375px, the binding case** — the longest new German strings are `reviewSubtitle` ("Das Team-Handle ist dauerhaft – alles andere kannst du später ändern.") and `inviteLater`. Both are `<p>` body copy that wraps freely. The review rows pair a fixed `w-28` label column with `min-w-0 flex-1` values carrying `break-words` (`break-all` for the handle), so no value can overflow the column
 - [x] CHK033 **Skip reads as a choice, not as leaving something unfinished** — the label is "Skip for now" / "Erst mal überspringen" / "Saltar por ahora", and both optional steps say "Optional" in their subtitle. No step says the team is incomplete, because it is not (FR-013)
@@ -77,7 +77,30 @@ navigation), `components/invite-search/invite-search.component.html` (new, lifte
 
 ## Notes
 
-**One failure found and fixed during this review**: CHK011, the review step's "Change" controls.
+**Two failures found and fixed during this review.**
+
+**CHK030 — the completed step knobs were invisible.** The markup was lifted verbatim from the
+event wizard, `bg-brand/60` included, and the class list reads exactly as intended. It is not:
+`brand` is registered in `tailwind.config.js` as a bare `var(--brand-primary)`, and Tailwind's
+`/60` modifier cannot compose a plain custom property into the `rgb(... / <alpha-value>)` form it
+needs, so the declaration is invalid and the knob gets **no background at all**. Measured in a
+browser: `bg-brand/60` computes to `rgba(0, 0, 0, 0)`. On the review step, the two steps already
+completed were rendering as gaps in the row.
+
+Fixed here by using the solid `bg-brand` token for completed knobs, with width carrying "you are
+here" and colour carrying done-vs-to-come. `surface-accent-soft` (coral-0) was considered and
+rejected: against `surface-sunken` (sand-1) at 8px the two are not tellable apart.
+
+**The root cause is not this feature's** and is filed as **GH #322**: the same bug silently
+disables four other places, including the browse filter panel's modal scrim
+(`bg-surface-inverse/40` — an overlay that does not dim) and the event wizard's own progress row.
+Those are left untouched here.
+
+The lesson worth keeping is about this checklist rather than the CSS: a markup-level review
+**cannot** catch this class of defect. The classes are right; the rendering is not. It took a
+screenshot.
+
+**CHK011 — the review step's "Change" controls.
 They were bare text buttons at roughly 20px tall, well under the 44px DESIGN.md sets as the
 default control height, and they are the only way back to an answer from the review step — the
 worst place to put an unreliable tap target. Fixed in place rather than deferred.
@@ -99,6 +122,8 @@ worst place to put an unreliable tap target. Fixed in place rather than deferred
 **Conventions** ([constitution](../../../.specify/memory/constitution.md) gate 5): `.html` / `.css` /
 `.ts` stay separate for both the rewritten wizard and the new `invite-search` component.
 
-**Not verified here**: the rendered result in a real browser at 375px. The checks above are
-against the markup and the token system; `quickstart.md` §Gate 7 lists what a visual pass should
-confirm, and that pass has not been run in this environment.
+**Verified in a browser.** The production build was served with every API call mocked, and the
+whole flow was walked at 1280×900, at 375×812, and at 375×812 in German — 33 screenshots, all five
+steps plus their empty/filled/uploaded/invited states. That pass is what caught CHK030. What
+remains unverified is the flow against a **real backend**: these screenshots prove the rendering,
+not the integration.

@@ -214,3 +214,28 @@ the verdict — the codebase's own comment says so) and T028 (the spec it names 
 wizard lives inside one `<form>`, so pressing Enter in the name field would have submitted it and
 created a team from the first screen, before the type, the city or the review had been seen.
 `onSubmit()` now dispatches by step, and a test covers it.
+
+---
+
+## Addendum — the visual pass (T038, partly closed)
+
+T038 above says the `quickstart.md` walkthrough was not run. It has since been run **against the
+production build with every API call mocked**, which is not the same as a real end-to-end pass but
+is enough to see the thing render: all five steps at 1280×900, at 375×812, and at 375×812 in
+German — 33 screenshots covering every empty/filled/uploaded/invited state.
+
+It immediately paid for itself. **The completed-step progress knobs were rendering fully
+transparent**, so every step already finished appeared as a gap in the row. The markup was lifted
+verbatim from the event wizard and its class list reads exactly as intended — `bg-brand/60` — but
+`brand` is a bare `var(--brand-primary)` and Tailwind's `/60` modifier cannot compose a plain
+custom property, so the declaration is invalid. Measured: `rgba(0, 0, 0, 0)`.
+
+Fixed here with the solid `bg-brand` token. The root cause is **not** this feature's — it silently
+disables four other sites, including the browse filter panel's modal scrim and the event wizard's
+own progress row — and is filed as **GH #322**.
+
+Recorded because it is the general lesson, not the specific bug: a markup-level UI review cannot
+catch this. Every class was correct. Only a rendered page showed it.
+
+**Still not verified**: the flow against a real backend. The screenshots prove the rendering, not
+the integration.

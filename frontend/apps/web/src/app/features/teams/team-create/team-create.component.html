@@ -3,11 +3,16 @@
     <a routerLink="/" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</a>
   }
 
-  <!-- Round-knob progress -->
+  <!-- Round-knob progress. Width carries "you are here", colour carries done-vs-to-come.
+       ⚠ Deliberately NOT `bg-brand/60` for the completed knobs, which is what the event wizard
+       uses: `brand` is registered as a bare `var(--brand-primary)`, and Tailwind's `/60` modifier
+       cannot compose a plain custom property into a channel form, so it resolves to an invalid
+       colour and the knob renders fully transparent. Every completed step is then an invisible
+       gap. Verified in a browser, not read off the class list. See GH #322. -->
   <div class="mt-md flex items-center gap-xs" aria-hidden="true">
     @for (s of steps; track s; let i = $index) {
       <span class="h-2 rounded-pill transition-all duration-fast"
-        [class]="i === stepIndex() ? 'w-6 bg-brand' : i < stepIndex() ? 'w-2 bg-brand/60' : 'w-2 bg-surface-sunken'"></span>
+        [class]="i === stepIndex() ? 'w-6 bg-brand' : i < stepIndex() ? 'w-2 bg-brand' : 'w-2 bg-surface-sunken'"></span>
     }
   </div>
 
