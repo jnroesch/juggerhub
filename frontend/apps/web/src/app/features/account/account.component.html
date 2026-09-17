@@ -5,8 +5,8 @@
       {{ 'account.subtitle' | transloco }}
     </p>
     @if (user(); as currentUser) {
-      <p class="mt-md text-body-md text-text" data-testid="account-email">
-        {{ 'account.signedInAs' | transloco }} <span class="font-medium text-ink">{{ currentUser.email }}</span>.
+      <p class="mt-md text-body-md text-body" data-testid="account-email">
+        {{ 'account.signedInAs' | transloco }} <span class="font-medium text-heading">{{ currentUser.email }}</span>.
       </p>
     }
 
@@ -14,7 +14,7 @@
       class="mt-lg flex items-center justify-between gap-md rounded-md border border-border-muted bg-surface-card px-md py-sm"
       data-testid="account-language"
     >
-      <span class="text-body-sm font-medium text-ink">{{ 'common.language' | transloco }}</span>
+      <span class="text-body-sm font-medium text-heading">{{ 'common.language' | transloco }}</span>
       <jh-language-switcher />
     </div>
 

@@ -22,7 +22,7 @@
     @for (player of list.items(); track player.handle) {
       <a
         [routerLink]="['/u', player.handle]"
-        class="flex items-center gap-sm border-b border-border py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
+        class="flex items-center gap-sm border-b border-border-default py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
         data-testid="player-row"
       >
         @if (player.hasAvatar) {
@@ -32,10 +32,10 @@
             class="h-8 w-8 rounded-pill object-cover"
           />
         } @else {
-          <span class="h-8 w-8 rounded-pill border border-dashed border-border-strong bg-surface-subtle" aria-hidden="true"></span>
+          <span class="h-8 w-8 rounded-pill border border-dashed border-border-strong bg-surface-sunken" aria-hidden="true"></span>
         }
         <span class="flex flex-1 flex-col">
-          <span class="text-body-md text-ink">{{ player.displayName }}</span>
+          <span class="text-body-md text-heading">{{ player.displayName }}</span>
           <span class="text-body-sm text-muted">
             @if (player.location) {
               {{ player.location.label }}

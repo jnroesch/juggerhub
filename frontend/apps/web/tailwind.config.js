@@ -9,10 +9,12 @@ const { join } = require('path');
  * scale so utilities like `bg-brand`, `text-heading`, `rounded-lg`,
  * `font-display` resolve to the design system.
  *
- * Prefer the semantic names (`brand`, `surface-card`, `text-body`,
- * `border-default`…). The legacy aliases (`primary`, `ink`, `surface`,
- * `background`…) are kept pointing at the warm palette so existing markup keeps
- * working. Add a token in DESIGN.md → styles.css first, then here.
+ * Every colour has exactly one name here — the semantic one (`brand`,
+ * `surface-card`, `text-body`, `border-default`…). The legacy aliases that used
+ * to sit beside them (`ink`, `text`, `primary`, `accent`, `surface`,
+ * `surface-subtle`, `background`, `border`) were second names for colours that
+ * already had one, and are retired (GH #312). Add a token in DESIGN.md →
+ * styles.css first, then here.
  *
  * @type {import('tailwindcss').Config}
  */
@@ -108,44 +110,20 @@ module.exports = {
         'surface-accent-soft': 'var(--surface-accent-soft)',
         'surface-secondary-soft': 'var(--surface-secondary-soft)',
 
-        /* Semantic — text */
+        /*
+         * Semantic — text. One name per colour: `ink` and `text` were second
+         * names for `heading` and `body`, and the app wrote both — `text-ink` 52
+         * times and `text-heading` 143, `text-text` 69 and `text-body` 252 — for
+         * two colours (GH #312). Nothing rendered wrong, which is why it lasted:
+         * both aliases resolved to the right custom property, so the duplication
+         * was invisible in review, the same shape as `text-muted` (#297) and
+         * `heading-lg` (#299). Retiring the keys is what enforces the single
+         * spelling: `scale-keys.spec.ts` fails on a `text-` key that is neither a
+         * size nor a colour, so a `text-ink` written tomorrow turns the suite red
+         * instead of quietly painting the right colour under the wrong name.
+         */
         heading: 'var(--text-heading)',
         body: 'var(--text-body)',
-        link: 'var(--text-link)',
-        'link-hover': 'var(--text-link-hover)',
-        'on-accent': 'var(--text-on-accent)',
-        'on-inverse': 'var(--text-on-inverse)',
-
-        /* Semantic — borders */
-        'border-default': 'var(--border-default)',
-        'border-muted': 'var(--border-muted)',
-        'border-accent': 'var(--border-accent)',
-        'border-focus': 'var(--border-focus)',
-
-        /* Semantic — status (fg / bg / border) */
-        'success-fg': 'var(--success-fg)',
-        'success-bg': 'var(--success-bg)',
-        'success-border': 'var(--success-border)',
-        'danger-fg': 'var(--danger-fg)',
-        'danger-bg': 'var(--danger-bg)',
-        'danger-border': 'var(--danger-border)',
-        'warning-fg': 'var(--warning-fg)',
-        'warning-bg': 'var(--warning-bg)',
-        'warning-border': 'var(--warning-border)',
-        'info-fg': 'var(--info-fg)',
-        'info-bg': 'var(--info-bg)',
-        'info-border': 'var(--info-border)',
-
-        /* Legacy aliases — repointed to the warm palette */
-        primary: 'var(--brand-primary)',
-        accent: 'var(--brand-secondary)',
-        info: 'var(--blue-5)',
-        'info-strong': 'var(--blue-6)',
-        success: 'var(--green-5)',
-        warning: 'var(--warning-fg)',
-        danger: 'var(--red-5)',
-        ink: 'var(--text-heading)',
-        text: 'var(--text-body)',
         /*
          * `muted`, not `text-muted`: a colour named `text-muted` produces the
          * utility `text-text-muted`, so the 277 templates that wrote the
@@ -166,11 +144,47 @@ module.exports = {
          * fails on a `text-subtle` written tomorrow, the way it does for
          * `text-heading-lg` (GH #299) and `rounded-full` (GH #301).
          */
-        surface: 'var(--surface-card)',
-        'surface-subtle': 'var(--surface-sunken)',
-        background: 'var(--surface-page)',
-        border: 'var(--border-default)',
+        link: 'var(--text-link)',
+        'link-hover': 'var(--text-link-hover)',
+        'on-accent': 'var(--text-on-accent)',
+        'on-inverse': 'var(--text-on-inverse)',
+
+        /* Semantic — borders */
+        'border-default': 'var(--border-default)',
+        'border-muted': 'var(--border-muted)',
+        'border-accent': 'var(--border-accent)',
+        'border-focus': 'var(--border-focus)',
         'border-strong': 'var(--border-strong)',
+
+        /* Semantic — status (fg / bg / border) */
+        'success-fg': 'var(--success-fg)',
+        'success-bg': 'var(--success-bg)',
+        'success-border': 'var(--success-border)',
+        'danger-fg': 'var(--danger-fg)',
+        'danger-bg': 'var(--danger-bg)',
+        'danger-border': 'var(--danger-border)',
+        'warning-fg': 'var(--warning-fg)',
+        'warning-bg': 'var(--warning-bg)',
+        'warning-border': 'var(--warning-border)',
+        'info-fg': 'var(--info-fg)',
+        'info-bg': 'var(--info-bg)',
+        'info-border': 'var(--info-border)',
+
+        /*
+         * Status accents at the raw scale step. These are NOT second names: they
+         * sit one step lighter than `danger-fg` / `success-fg` / `info-fg`
+         * (red/green/blue-5 against -6), and `--red-5`, `--green-5` and
+         * `--blue-5` are reachable through these keys and nowhere else —
+         * `contrast.spec.ts` lists all three as solid fills. `info-strong`
+         * (blue-6) and `warning` (`var(--warning-fg)`) *were* duplicates, of
+         * `info-fg` and `warning-fg`, and went with the rest in GH #312; both had
+         * zero call sites. `text-danger` was retired by #298 and a single
+         * `bg-danger` survives it — a colour question, not a naming one, so it is
+         * left for the contrast work rather than collapsed here.
+         */
+        info: 'var(--blue-5)',
+        success: 'var(--green-5)',
+        danger: 'var(--red-5)',
       },
       spacing: {
         /*

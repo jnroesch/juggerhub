@@ -87,7 +87,7 @@
     <div class="flex items-center gap-xs">
       <input
         type="date"
-        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-heading outline-none"
         [attr.aria-label]="'browse.trainings.fromDate' | transloco"
         [value]="pendingFrom()"
         (input)="onPendingFrom($any($event.target).value)"
@@ -95,7 +95,7 @@
       <span class="text-muted">–</span>
       <input
         type="date"
-        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-ink outline-none"
+        class="min-w-0 flex-1 rounded-md border border-border-strong bg-surface-card px-sm py-xs text-body-sm text-heading outline-none"
         [attr.aria-label]="'browse.trainings.toDate' | transloco"
         [value]="pendingTo()"
         (input)="onPendingTo($any($event.target).value)"

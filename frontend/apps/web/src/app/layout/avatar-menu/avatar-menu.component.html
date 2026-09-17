@@ -17,7 +17,7 @@
 
   @if (open()) {
     <div
-      class="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-md border border-border bg-surface py-xs shadow-md"
+      class="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-md border border-border-default bg-surface-card py-xs shadow-md"
       role="menu"
       [attr.aria-label]="'nav.account' | transloco"
       data-testid="avatar-menu"
@@ -29,7 +29,7 @@
       <a
         routerLink="/events/new"
         role="menuitem"
-        class="flex items-center gap-xs px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        class="flex items-center gap-xs px-md py-xs text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
         data-testid="create-event-link"
         (click)="close()"
       >
@@ -39,7 +39,7 @@
       <a
         routerLink="/teams/new"
         role="menuitem"
-        class="flex items-center gap-xs border-b border-border-muted px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        class="flex items-center gap-xs border-b border-border-muted px-md py-xs text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
         data-testid="create-team-link"
         (click)="close()"
       >
@@ -49,7 +49,7 @@
       <a
         [routerLink]="['/u', $safeNavigationMigration(user()?.handle)]"
         role="menuitem"
-        class="block px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        class="block px-md py-xs text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
         (click)="close()"
       >
         {{ 'nav.profile' | transloco }}
@@ -57,7 +57,7 @@
       <a
         routerLink="/account"
         role="menuitem"
-        class="block px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        class="block px-md py-xs text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
         (click)="close()"
       >
         {{ 'nav.account' | transloco }}
@@ -65,7 +65,7 @@
       <a
         routerLink="/settings/notifications"
         role="menuitem"
-        class="block px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        class="block px-md py-xs text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
         (click)="close()"
       >
         {{ 'nav.notificationSettings' | transloco }}
@@ -75,7 +75,7 @@
         target="_blank"
         rel="noopener noreferrer"
         role="menuitem"
-        class="flex items-center gap-xs border-t border-border-muted px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        class="flex items-center gap-xs border-t border-border-muted px-md py-xs text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
         data-testid="feedback-link"
         (click)="close()"
       >
@@ -87,7 +87,7 @@
         <a
           routerLink="/admin"
           role="menuitem"
-          class="flex items-center gap-xs border-t border-border-muted px-md py-xs text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+          class="flex items-center gap-xs border-t border-border-muted px-md py-xs text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
           data-testid="admin-link"
           (click)="close()"
         >
@@ -98,7 +98,7 @@
       <button
         type="button"
         role="menuitem"
-        class="block w-full border-t border-border-muted px-md py-xs text-left text-body-sm font-medium text-text transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
+        class="block w-full border-t border-border-muted px-md py-xs text-left text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken focus-visible:bg-surface-sunken focus-visible:outline-none"
         data-testid="sign-out"
         (click)="signOut()"
       >

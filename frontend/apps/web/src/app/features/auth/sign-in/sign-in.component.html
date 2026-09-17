@@ -11,7 +11,7 @@
 
     <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="submit()">
       <div>
-        <label for="email" class="block text-body-sm font-medium text-text">{{ 'auth.email' | transloco }}</label>
+        <label for="email" class="block text-body-sm font-medium text-body">{{ 'auth.email' | transloco }}</label>
         <input
           id="email"
           type="email"
@@ -24,7 +24,7 @@
 
       <div>
         <div class="flex items-center justify-between">
-          <label for="password" class="block text-body-sm font-medium text-text">{{ 'auth.password' | transloco }}</label>
+          <label for="password" class="block text-body-sm font-medium text-body">{{ 'auth.password' | transloco }}</label>
           <a routerLink="/forgot-password" class="text-body-sm font-medium text-link hover:text-link-hover">
             {{ 'auth.forgotPassword' | transloco }}
           </a>
@@ -39,7 +39,7 @@
         />
       </div>
 
-      <label class="flex items-center gap-xs text-body-sm text-text">
+      <label class="flex items-center gap-xs text-body-sm text-body">
         <input type="checkbox" formControlName="rememberMe" data-testid="sign-in-remember" class="h-4 w-4 rounded border-border-strong" />
         {{ 'auth.signIn.rememberMe' | transloco }}
       </label>

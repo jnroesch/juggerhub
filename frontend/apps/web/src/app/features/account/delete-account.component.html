@@ -46,39 +46,39 @@
           -->
           <h2 class="text-body-md font-semibold text-danger-fg">{{ 'account.delete.confirmTitle' | transloco }}</h2>
 
-          <p class="mt-xs text-body-sm text-text">{{ 'account.delete.erasedIntro' | transloco }}</p>
-          <ul class="mt-xs list-disc space-y-1 pl-md text-body-sm text-text">
+          <p class="mt-xs text-body-sm text-body">{{ 'account.delete.erasedIntro' | transloco }}</p>
+          <ul class="mt-xs list-disc space-y-1 pl-md text-body-sm text-body">
             @for (key of preview()?.erased ?? []; track key) {
               <li>{{ 'account.delete.erased.' + key | transloco }}</li>
             }
           </ul>
 
-          <p class="mt-sm text-body-sm font-medium text-text">{{ 'account.delete.retainedIntro' | transloco }}</p>
-          <ul class="mt-xs list-disc space-y-1 pl-md text-body-sm text-text">
+          <p class="mt-sm text-body-sm font-medium text-body">{{ 'account.delete.retainedIntro' | transloco }}</p>
+          <ul class="mt-xs list-disc space-y-1 pl-md text-body-sm text-body">
             @for (key of preview()?.retained ?? []; track key) {
               <li>{{ 'account.delete.retained.' + key | transloco }}</li>
             }
           </ul>
 
-          <p class="mt-sm text-body-sm text-text">{{ 'account.delete.ownWords' | transloco }}</p>
+          <p class="mt-sm text-body-sm text-body">{{ 'account.delete.ownWords' | transloco }}</p>
           <p class="mt-sm text-body-sm font-medium text-danger-fg">{{ 'account.delete.permanent' | transloco }}</p>
 
           <div class="mt-md space-y-sm">
             <label class="block">
-              <span class="text-body-sm font-medium text-ink">{{ 'account.delete.passwordLabel' | transloco }}</span>
+              <span class="text-body-sm font-medium text-heading">{{ 'account.delete.passwordLabel' | transloco }}</span>
               <input
                 type="password"
                 autocomplete="current-password"
                 [ngModel]="password()"
                 (ngModelChange)="password.set($event)"
                 [disabled]="working()"
-                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-md text-text focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-md text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 data-testid="delete-account-password"
               />
             </label>
 
             <label class="block">
-              <span class="text-body-sm font-medium text-ink">
+              <span class="text-body-sm font-medium text-heading">
                 {{ 'account.delete.confirmationLabel' | transloco: { word: confirmationWord() } }}
               </span>
               <input
@@ -88,7 +88,7 @@
                 [ngModel]="confirmation()"
                 (ngModelChange)="confirmation.set($event)"
                 [disabled]="working()"
-                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-md text-text focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-sm py-sm text-body-md text-body focus-visible:border-border-focus focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 data-testid="delete-account-confirmation"
               />
             </label>

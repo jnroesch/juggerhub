@@ -1,5 +1,5 @@
 <main
-  class="mx-auto flex min-h-dvh w-full max-w-sm flex-col bg-background px-lg py-xl"
+  class="mx-auto flex min-h-dvh w-full max-w-sm flex-col bg-surface-page px-lg py-xl"
   data-testid="onboarding"
 >
   @switch (step()) {
@@ -31,7 +31,7 @@
           data-testid="onboarding-dismiss"
           (click)="dismiss()"
           [disabled]="saving()"
-          class="w-full py-xs text-body-sm font-medium text-muted hover:text-text disabled:opacity-50"
+          class="w-full py-xs text-body-sm font-medium text-muted hover:text-body disabled:opacity-50"
         >
           {{ 'onboarding.welcome.later' | transloco }}
         </button>
@@ -151,7 +151,7 @@
             [placeholder]="'onboarding.team.searchPlaceholder' | transloco"
             [attr.aria-label]="'onboarding.team.searchAria' | transloco"
             (input)="onTeamQuery($any($event.target).value)"
-            class="w-full min-h-11 bg-transparent text-body-md text-ink outline-none placeholder:text-muted"
+            class="w-full min-h-11 bg-transparent text-body-md text-heading outline-none placeholder:text-muted"
           />
         </label>
 
@@ -191,7 +191,7 @@
                   data-testid="onboarding-team-row"
                   (click)="selectTeam(team)"
                   [attr.aria-pressed]="selectedTeam()?.slug === team.slug"
-                  class="flex min-h-11 items-center gap-sm rounded-sm border-b border-border px-xs py-sm text-left transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                  class="flex min-h-11 items-center gap-sm rounded-sm border-b border-border-default px-xs py-sm text-left transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                   [class.bg-surface-sunken]="selectedTeam()?.slug === team.slug"
                 >
                   <!-- Feature 051 — the team's logo, or the letter tile when it has none. -->
@@ -199,17 +199,17 @@
                     <img
                       [src]="logoUrl(team.slug)"
                       alt=""
-                      class="h-8 w-8 shrink-0 rounded-md border border-border object-cover"
+                      class="h-8 w-8 shrink-0 rounded-md border border-border-default object-cover"
                       data-testid="team-logo"
                     />
                   } @else {
                     <span
-                      class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-dashed border-border-strong bg-surface-subtle text-body-sm font-semibold text-ink"
+                      class="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-dashed border-border-strong bg-surface-sunken text-body-sm font-semibold text-heading"
                       aria-hidden="true"
                     >{{ team.logoInitial }}</span>
                   }
                   <span class="flex flex-1 flex-col">
-                    <span class="text-body-md text-ink">{{ team.name }}</span>
+                    <span class="text-body-md text-heading">{{ team.name }}</span>
                     <span class="text-body-sm text-muted">
                       @if (team.location) {
                         {{ team.location.label }} ·
@@ -264,7 +264,7 @@
           type="button"
           data-testid="onboarding-skip"
           (click)="next()"
-          class="w-full py-xs text-body-sm font-medium text-muted underline hover:text-text"
+          class="w-full py-xs text-body-sm font-medium text-muted underline hover:text-body"
         >
           {{ 'onboarding.team.notOnTeam' | transloco }}
         </button>
@@ -274,7 +274,7 @@
     <!-- 5 · Photo + bio -------------------------------------------------------->
     @case ('photo') {
       <div class="flex items-center justify-between">
-        <button type="button" (click)="back()" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</button>
+        <button type="button" (click)="back()" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</button>
       </div>
       <div class="mt-lg flex-1">
         <h1 class="text-h2">{{ 'onboarding.photo.title' | transloco }}</h1>
@@ -283,7 +283,7 @@
         <div class="mt-lg flex flex-col items-center">
           <label
             for="onboarding-photo"
-            class="grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-pill border border-dashed border-border-strong bg-surface-subtle text-center text-body-sm text-muted"
+            class="grid h-24 w-24 cursor-pointer place-items-center overflow-hidden rounded-pill border border-dashed border-border-strong bg-surface-sunken text-center text-body-sm text-muted"
           >
             @if (avatarPreview()) {
               <img [src]="avatarPreview()" [alt]="'onboarding.photo.previewAlt' | transloco" class="h-full w-full object-cover" />
@@ -331,7 +331,7 @@
           data-testid="onboarding-skip"
           (click)="finish()"
           [disabled]="saving()"
-          class="w-full py-xs text-body-sm font-medium text-muted underline hover:text-text disabled:opacity-50"
+          class="w-full py-xs text-body-sm font-medium text-muted underline hover:text-body disabled:opacity-50"
         >
           {{ 'onboarding.photo.skipNow' | transloco }}
         </button>
@@ -362,7 +362,7 @@
 
 <!-- Shared: back bar, progress knobs, and a plain Skip link ------------------->
 <ng-template #backBar>
-  <button type="button" (click)="back()" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</button>
+  <button type="button" (click)="back()" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</button>
 </ng-template>
 
 <ng-template #progress>
@@ -370,10 +370,10 @@
     @for (s of coreSteps; track s; let i = $index) {
       <span
         class="h-2.5 w-2.5 rounded-pill transition-colors"
-        [class.bg-primary]="i < coreIndex()"
+        [class.bg-brand]="i < coreIndex()"
         [class.border-2]="i === coreIndex()"
-        [class.border-primary]="i === coreIndex()"
-        [class.bg-background]="i === coreIndex()"
+        [class.border-brand]="i === coreIndex()"
+        [class.bg-surface-page]="i === coreIndex()"
         [class.bg-border-strong]="i > coreIndex()"
       ></span>
     }
@@ -385,7 +385,7 @@
     type="button"
     data-testid="onboarding-skip"
     (click)="next()"
-    class="w-full py-xs text-body-sm font-medium text-muted underline hover:text-text"
+    class="w-full py-xs text-body-sm font-medium text-muted underline hover:text-body"
   >
     {{ 'common.skip' | transloco }}
   </button>

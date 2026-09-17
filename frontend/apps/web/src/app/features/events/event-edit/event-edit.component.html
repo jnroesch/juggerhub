@@ -3,11 +3,11 @@
     <jh-loading />
   } @else if (forbidden()) {
     <div jhCard class="text-center">
-      <p class="text-body-lg font-bold text-ink">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
+      <p class="text-body-lg font-bold text-heading">{{ 'events.manage.notAllowedTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-muted">{{ 'events.edit.notAllowedBody' | transloco }}</p>
     </div>
   } @else if (detail(); as d) {
-    <a [routerLink]="['/events', d.id]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'events.manage.back' | transloco }}</a>
+    <a [routerLink]="['/events', d.id]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'events.manage.back' | transloco }}</a>
     <h1 class="mt-md text-h3">{{ 'events.edit.title' | transloco }}</h1>
     <p class="text-body-sm text-muted">{{ 'events.edit.subtitle' | transloco }}</p>
 
@@ -90,7 +90,7 @@
             <button type="button" (click)="cancelEvent()" [disabled]="cancelling()" data-testid="cancel-confirm"
               class="rounded-md bg-danger px-md py-xs text-body-sm font-semibold text-on-accent hover:opacity-90 disabled:opacity-50">{{ 'events.edit.yesCancel' | transloco }}</button>
             <button type="button" (click)="confirmingCancel.set(false)"
-              class="rounded-md px-md py-xs text-body-sm font-semibold text-muted hover:text-text">{{ 'events.edit.keepIt' | transloco }}</button>
+              class="rounded-md px-md py-xs text-body-sm font-semibold text-muted hover:text-body">{{ 'events.edit.keepIt' | transloco }}</button>
           </div>
         }
       </section>

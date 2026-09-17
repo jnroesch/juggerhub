@@ -3,7 +3,7 @@
     @if (loading()) {
       <jh-loading />
     } @else if (notFound() || !preview()) {
-      <p class="text-body-lg font-bold text-ink">{{ 'events.inviteAccept.notFoundTitle' | transloco }}</p>
+      <p class="text-body-lg font-bold text-heading">{{ 'events.inviteAccept.notFoundTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-muted">{{ 'events.inviteAccept.notFoundBody' | transloco }}</p>
     } @else if (preview(); as p) {
       <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-brand-strong">{{ 'events.inviteAccept.coAdminInvite' | transloco }}</span>
@@ -17,7 +17,7 @@
             <button type="button" (click)="accept()" [disabled]="acting()" data-testid="invite-accept"
               jhButton class="w-full">{{ 'events.inviteAccept.acceptHelp' | transloco }}</button>
             <button type="button" (click)="decline()" [disabled]="acting()" data-testid="invite-decline"
-              class="w-full rounded-md px-lg py-sm text-body-sm font-semibold text-muted hover:text-text disabled:opacity-50">{{ 'common.decline' | transloco }}</button>
+              class="w-full rounded-md px-lg py-sm text-body-sm font-semibold text-muted hover:text-body disabled:opacity-50">{{ 'common.decline' | transloco }}</button>
           </div>
         }
         @case ('Expired') {

@@ -12,8 +12,8 @@ import { join } from 'node:path';
  * now (`<section jhCard>`), which removes the reason to hand-roll one, and this guard
  * removes the drift that followed from it:
  *
- * - **the surface** — the hand-rolled copies disagreed about the border (`border-border` vs
- *   `border-border-muted`) and about whether there was a shadow at all, so "the JuggerHub
+ * - **the surface** — the hand-rolled copies disagreed about the border (`border-border-default`
+ *   vs `border-border-muted`) and about whether there was a shadow at all, so "the JuggerHub
  *   card" was several slightly different boxes depending on which file you were in;
  * - **the padding** — DESIGN.md says `spacing.6` (24px). The app shipped three values, 16px
  *   on 32 of the 40 call sites, which is what #278 reported as text crowding the edge of

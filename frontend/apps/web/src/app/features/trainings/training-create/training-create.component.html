@@ -25,7 +25,7 @@
     </div>
     <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.name' | transloco }}
       <input [ngModel]="name()" (ngModelChange)="name.set($event)" type="text" maxlength="120" data-testid="training-name" [placeholder]="'trainings.create.namePlaceholder' | transloco"
-        class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
     </label>
     <button type="button" (click)="next()" [disabled]="!name().trim()" data-testid="training-next-1"
       jhButton class="mt-lg w-full">{{ 'common.continue' | transloco }}</button>
@@ -36,20 +36,20 @@
     <h1 class="mt-md text-h3">{{ (isRecurring() ? 'trainings.create.step2RecurTitle' : 'trainings.create.step2OneTitle') | transloco }}</h1>
     @if (isRecurring()) {
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.dayOfWeek' | transloco }}
-        <select [ngModel]="weekday()" (ngModelChange)="weekday.set($event)" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body">
+        <select [ngModel]="weekday()" (ngModelChange)="weekday.set($event)" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body">
           @for (d of weekdays; track d) { <option [value]="d">{{ 'trainings.weekday.' + d | transloco }}</option> }
         </select>
       </label>
     }
     <label class="mt-md block text-body-sm font-medium text-heading">{{ (isRecurring() ? 'trainings.create.firstDate' : 'trainings.form.date') | transloco }}
-      <input [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" type="date" data-testid="training-start-date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+      <input [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" type="date" data-testid="training-start-date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
     </label>
     <div class="mt-md grid grid-cols-2 gap-sm">
       <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.start' | transloco }}
-        <input [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
       </label>
       <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.end' | transloco }}
-        <input [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
       </label>
     </div>
     @if (isRecurring()) {
@@ -63,7 +63,7 @@
         </div>
       </div>
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.until' | transloco }}
-        <input [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
       </label>
       @if (summaryCount() !== null) {
         <p class="mt-2xs text-caption text-muted">{{ 'trainings.create.endsPre' | transloco }} <span class="font-mono">{{ summaryCount() }}</span> {{ 'trainings.create.sessionsWord' | transloco }}</p>
@@ -95,11 +95,11 @@
       />
     } @else {
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
-        <input [ngModel]="virtualLink()" (ngModelChange)="virtualLink.set($event)" type="url" maxlength="500" data-testid="training-join-link" placeholder="https://…" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body" />
+        <input [ngModel]="virtualLink()" (ngModelChange)="virtualLink.set($event)" type="url" maxlength="500" data-testid="training-join-link" placeholder="https://…" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
       </label>
     }
     <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.create.descriptionOptional' | transloco }}
-      <textarea [ngModel]="description()" (ngModelChange)="description.set($event)" rows="3" maxlength="2000" class="mt-2xs w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body"></textarea>
+      <textarea [ngModel]="description()" (ngModelChange)="description.set($event)" rows="3" maxlength="2000" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body"></textarea>
     </label>
     @if (locationKind() === 'InPerson' && !whereComplete()) {
       <p class="mt-sm text-body-sm text-muted">
@@ -178,7 +178,7 @@
 
     <button type="button" (click)="createAnother()" data-testid="training-success-another" jhButton class="mt-lg w-full">{{ 'trainings.create.successCreateAnother' | transloco }}</button>
     <button type="button" (click)="goToTrainings()" data-testid="training-success-trainings"
-      class="mt-sm w-full rounded-md border border-border-strong bg-surface px-md py-sm text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken">{{ 'trainings.create.successGoToTrainings' | transloco }}</button>
+      class="mt-sm w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm font-medium text-body transition-colors duration-fast hover:bg-surface-sunken">{{ 'trainings.create.successGoToTrainings' | transloco }}</button>
     <button type="button" (click)="viewFirstSession()" data-testid="training-success-first"
       class="mt-sm w-full text-body-sm font-medium text-link hover:text-link-hover">{{ 'trainings.create.successViewFirst' | transloco }}</button>
   }

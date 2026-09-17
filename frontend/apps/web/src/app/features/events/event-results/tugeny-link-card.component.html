@@ -16,7 +16,7 @@
 
     @if (preview(); as p) {
       <!-- Import draft: nothing is saved until the admin confirms -->
-      <div class="mt-md border-t border-border pt-md" data-testid="tugeny-preview">
+      <div class="mt-md border-t border-border-default pt-md" data-testid="tugeny-preview">
         <p class="text-body-sm font-semibold text-heading">{{ 'events.results.tugeny.previewTitle' | transloco: { teams: p.placements.length, matches: p.matchCount } }}</p>
         @if (p.signedUpTeams.length > 0) {
           <p class="mt-2xs text-caption text-muted">{{ 'events.results.tugeny.connectPrompt' | transloco }}</p>

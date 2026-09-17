@@ -1,6 +1,6 @@
 <div class="flex items-center justify-between gap-sm">
   <span class="flex flex-col">
-    <span class="text-body-sm text-ink">{{ label() }}</span>
+    <span class="text-body-sm text-heading">{{ label() }}</span>
     @if (hint()) {
       <span class="text-caption text-muted">{{ hint() }}</span>
     }
@@ -14,7 +14,7 @@
     [class.bg-brand]="checked()"
     [class.border-brand]="checked()"
     [class.bg-surface-sunken]="!checked()"
-    [class.border-border]="!checked()"
+    [class.border-border-default]="!checked()"
     (click)="toggled.emit(!checked())"
   >
     <span

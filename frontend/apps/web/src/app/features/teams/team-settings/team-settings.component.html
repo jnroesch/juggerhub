@@ -1,5 +1,5 @@
 <section class="mx-auto max-w-container-sm px-md py-lg" data-testid="team-settings">
-  <a [routerLink]="['/t', slug()]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-text"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</a>
+  <a [routerLink]="['/t', slug()]" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</a>
   <h1 class="mt-md text-h3">{{ 'teams.settings.title' | transloco }}</h1>
 
   @if (loading()) {
@@ -21,7 +21,7 @@
             <img
               [src]="logoUrl()"
               [alt]="'teams.settings.logoAlt' | transloco: { name: t.name }"
-              class="h-14 w-14 shrink-0 rounded-lg border border-border object-cover"
+              class="h-14 w-14 shrink-0 rounded-lg border border-border-default object-cover"
               data-testid="team-logo-preview"
             />
           } @else {
@@ -69,13 +69,13 @@
         </div>
       </div>
 
-      <hr class="my-lg border-border" />
+      <hr class="my-lg border-border-default" />
 
       <div class="mt-lg">
         <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.settings.recruitment' | transloco }}</p>
         <div class="mt-xs flex items-center justify-between gap-sm rounded-md border border-border-strong bg-surface-card px-md py-sm">
           <span class="flex flex-col">
-            <span class="text-body-md text-ink">{{ 'teams.settings.beginnersWelcome' | transloco }}</span>
+            <span class="text-body-md text-heading">{{ 'teams.settings.beginnersWelcome' | transloco }}</span>
             <span class="text-body-sm text-muted">{{ 'teams.settings.beginnersWelcomeHint' | transloco }}</span>
           </span>
           <button
@@ -88,7 +88,7 @@
             [class.bg-brand]="beginnersWelcome()"
             [class.border-brand]="beginnersWelcome()"
             [class.bg-surface-sunken]="!beginnersWelcome()"
-            [class.border-border]="!beginnersWelcome()"
+            [class.border-border-default]="!beginnersWelcome()"
             (click)="toggleBeginnersWelcome()"
             data-testid="team-beginners-welcome"
           >
@@ -101,7 +101,7 @@
         </div>
       </div>
 
-      <hr class="my-lg border-border" />
+      <hr class="my-lg border-border-default" />
 
       <div class="mt-lg">
         <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.settings.yourRole' | transloco }}</p>
@@ -117,7 +117,7 @@
         }
       </div>
 
-      <hr class="my-lg border-border" />
+      <hr class="my-lg border-border-default" />
 
       <div>
         <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-danger-fg">{{ 'teams.settings.dangerZone' | transloco }}</p>

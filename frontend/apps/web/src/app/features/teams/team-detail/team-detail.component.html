@@ -19,7 +19,7 @@
         <img
           [src]="logoUrl(team.slug)"
           alt=""
-          class="h-14 w-14 shrink-0 rounded-lg border border-border object-cover"
+          class="h-14 w-14 shrink-0 rounded-lg border border-border-default object-cover"
           data-testid="team-logo"
         />
       } @else {
@@ -135,7 +135,7 @@
                     <div class="relative">
                       <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" (click)="toggleMenu(m.userId)"><jh-icon name="ellipsis" size="sm" /></button>
                       @if (openMenu() === m.userId) {
-                        <div class="absolute right-0 z-10 mt-1 w-40 rounded-md border border-border bg-surface py-xs shadow-md" role="menu">
+                        <div class="absolute right-0 z-10 mt-1 w-40 rounded-md border border-border-default bg-surface-card py-xs shadow-md" role="menu">
                           <button type="button" class="block w-full px-md py-xs text-left text-body-sm hover:bg-surface-sunken" (click)="toggleAdmin(m)">{{ (m.role === 'Admin' ? 'teams.detail.makeMember' : 'teams.detail.makeAdmin') | transloco }}</button>
                           <button type="button" class="block w-full px-md py-xs text-left text-body-sm text-danger-fg hover:bg-surface-sunken" (click)="remove(m)">{{ 'teams.detail.remove' | transloco }}</button>
                         </div>
@@ -203,7 +203,7 @@
                   rows="2"
                   maxlength="1000"
                   [placeholder]="'teams.detail.newsPlaceholder' | transloco"
-                  class="w-full resize-y rounded-md border border-border bg-surface-card px-md py-sm text-body-sm text-body placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                  class="w-full resize-y rounded-md border border-border-default bg-surface-card px-md py-sm text-body-sm text-body placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
                 ></textarea>
                 <div class="mt-sm flex justify-end">
                   <button

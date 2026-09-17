@@ -4,20 +4,20 @@
   scroll of a few dozen px. The column is top-aligned, so the dynamic unit only ever moves the
   bottom edge.
 -->
-<div class="flex min-h-dvh flex-col bg-background">
+<div class="flex min-h-dvh flex-col bg-surface-page">
   @if (anonymous()) {
     <!-- Public bar: shown to signed-out visitors (only the /u/:handle profile is reachable). -->
-    <header class="sticky top-0 z-30 flex h-14 items-center justify-between gap-sm border-b border-border bg-surface px-md" data-testid="public-top-bar">
+    <header class="sticky top-0 z-30 flex h-14 items-center justify-between gap-sm border-b border-border-default bg-surface-card px-md" data-testid="public-top-bar">
       <a routerLink="/" class="flex items-center gap-xs" [attr.aria-label]="'nav.brandHome' | transloco">
         <span class="grid h-7 w-7 place-items-center rounded-md bg-brand-gradient shadow-sm" aria-hidden="true">
           <span class="h-1.5 w-1.5 rounded-pill bg-highlight"></span>
         </span>
-        <span class="font-display text-h4 font-bold text-ink">JuggerHub</span>
+        <span class="font-display text-h4 font-bold text-heading">JuggerHub</span>
       </a>
       <nav class="flex items-center gap-xs" [attr.aria-label]="'nav.account' | transloco">
         <jh-language-switcher />
         <a routerLink="/sign-in" data-testid="public-sign-in"
-          class="rounded-md px-sm py-xs text-body-sm font-medium text-text hover:bg-surface-sunken">{{ 'nav.signIn' | transloco }}</a>
+          class="rounded-md px-sm py-xs text-body-sm font-medium text-body hover:bg-surface-sunken">{{ 'nav.signIn' | transloco }}</a>
         <a routerLink="/register" data-testid="public-register"
           class="rounded-md bg-brand-strong px-md py-xs text-body-sm font-semibold text-on-accent transition-colors duration-fast hover:bg-brand-strong-hover">{{ 'nav.register' | transloco }}</a>
       </nav>

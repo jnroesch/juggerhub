@@ -9,7 +9,7 @@
     <div jhCard padding="flush" class="px-md py-2xl text-center" data-testid="home-error">
       <p class="text-body-lg font-semibold text-heading">{{ 'home.errorTitle' | transloco }}</p>
       <p class="mt-xs text-body-sm text-muted">{{ 'home.errorBody' | transloco }}</p>
-      <button type="button" class="mt-md rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
+      <button type="button" class="mt-md rounded-md border border-border-strong bg-surface-card px-lg py-xs font-medium text-body hover:bg-surface-sunken" (click)="load()">{{ 'common.tryAgain' | transloco }}</button>
     </div>
   } @else if (data(); as home) {
     <!-- Greeting -->
@@ -71,7 +71,7 @@
               <a routerLink="/browse/teams" jhButton>{{ 'home.findTeamNearYou' | transloco }}</a>
               <!-- Feature 043: this pointed at /browse/events until the trainings browse existed,
                    so "Browse open trainings" landed in a list that only ever holds tournaments. -->
-              <a routerLink="/browse/trainings" class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong bg-surface px-lg py-xs font-medium text-text hover:bg-surface-sunken">{{ 'home.browseOpenTrainings' | transloco }}</a>
+              <a routerLink="/browse/trainings" class="inline-flex min-h-[44px] items-center rounded-md border border-border-strong bg-surface-card px-lg py-xs font-medium text-body hover:bg-surface-sunken">{{ 'home.browseOpenTrainings' | transloco }}</a>
             </div>
           </section>
 

@@ -14,12 +14,12 @@
         {{ 'marketplace.board.postYourself' | transloco }}
       </button>
     } @else if (m.ineligibleReason) {
-      <p class="mt-sm rounded-md border border-border bg-surface-sunken px-md py-sm text-body-sm text-muted" data-testid="ineligible">{{ m.ineligibleReason }} {{ 'marketplace.board.stillBrowse' | transloco }}</p>
+      <p class="mt-sm rounded-md border border-border-default bg-surface-sunken px-md py-sm text-body-sm text-muted" data-testid="ineligible">{{ m.ineligibleReason }} {{ 'marketplace.board.stillBrowse' | transloco }}</p>
     }
 
     <!-- Your market inbox: invites to answer + applications sent -->
     @if (m.invitesToAnswer.length > 0 || m.myApplications.length > 0) {
-      <div class="mt-sm rounded-md border border-border bg-surface-card px-md py-sm" data-testid="my-market">
+      <div class="mt-sm rounded-md border border-border-default bg-surface-card px-md py-sm" data-testid="my-market">
         @if (m.invitesToAnswer.length > 0) {
           <p class="text-eyebrow font-semibold uppercase tracking-wide text-muted">{{ 'marketplace.board.invitesToAnswer' | transloco }}</p>
           @for (inv of m.invitesToAnswer; track inv.id) {
@@ -159,7 +159,7 @@
   @if (action(); as a) {
     <div class="fixed inset-0 z-40 flex items-end justify-center bg-[rgba(26,22,15,0.45)] p-0 sm:items-center sm:p-md">
       <div class="w-full max-w-md rounded-t-xl bg-surface-card p-md shadow-xl sm:rounded-xl" role="dialog" aria-modal="true" data-testid="market-modal">
-        <h3 class="text-body-lg font-bold text-ink">
+        <h3 class="text-body-lg font-bold text-heading">
           @switch (a.kind) {
             @case ('apply') { {{ 'marketplace.board.modalApplyTo' | transloco:{ team: a.party.teamName } }} }
             @case ('invite') { {{ 'marketplace.board.modalInvite' | transloco:{ user: a.user.displayName } }} }
