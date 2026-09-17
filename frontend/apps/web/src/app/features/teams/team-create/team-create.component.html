@@ -1,80 +1,239 @@
 <section class="mx-auto max-w-container-sm px-md py-lg" data-testid="team-create">
-  <a routerLink="/" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</a>
+  @if (createdSlug() === null) {
+    <a routerLink="/" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</a>
+  }
 
-  <h1 class="mt-md text-h3">{{ 'teams.create.title' | transloco }}</h1>
-  <p class="text-body-md text-muted">{{ 'teams.create.subtitle' | transloco }}</p>
+  <!-- Round-knob progress -->
+  <div class="mt-md flex items-center gap-xs" aria-hidden="true">
+    @for (s of steps; track s; let i = $index) {
+      <span class="h-2 rounded-pill transition-all duration-fast"
+        [class]="i === stepIndex() ? 'w-6 bg-brand' : i < stepIndex() ? 'w-2 bg-brand/60' : 'w-2 bg-surface-sunken'"></span>
+    }
+  </div>
 
-  <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="submit()">
-    <div>
-      <label for="team-name" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.name' | transloco }}</label>
-      <input id="team-name" type="text" formControlName="name" placeholder="Rheinfeuer" data-testid="team-name"
-        class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus" />
-    </div>
+  <form class="mt-lg space-y-md" [formGroup]="form" (ngSubmit)="onSubmit()">
+    @switch (step()) {
+      <!-- 1. Name & team handle -->
+      @case ('basics') {
+        <div class="space-y-md">
+          <div>
+            <h1 class="text-h3">{{ 'teams.create.title' | transloco }}</h1>
+            <p class="text-body-md text-muted">{{ 'teams.create.subtitle' | transloco }}</p>
+          </div>
 
-    <div>
-      <label for="team-slug" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.address' | transloco }}</label>
-      <div class="mt-xs flex items-center rounded-md border border-border-strong bg-surface-card px-md focus-within:border-brand focus-within:ring-2 focus-within:ring-focus">
-        <span class="font-mono text-body-sm text-muted">/t/</span>
-        <input id="team-slug" type="text" formControlName="slug" placeholder="rheinfeuer" data-testid="team-slug"
-          autocapitalize="none" autocomplete="off" spellcheck="false" jhLowercase
-          class="w-full bg-transparent py-sm pl-0.5 font-mono text-body-md text-body outline-none" />
-      </div>
-      @if (checkingSlug()) {
-        <p class="mt-xs text-body-sm text-muted">{{ 'teams.create.checking' | transloco }}</p>
-      } @else if (slugCheckFailed()) {
-        <!-- Submit is blocked until a check succeeds, so say why rather than leaving a dead button. -->
-        <p class="mt-xs text-body-sm text-danger-fg" data-testid="slug-check-failed" role="alert">{{ 'teams.create.checkFailed' | transloco }}</p>
-      } @else if (slugStatus(); as s) {
-        @if (s.available) {
-          <p class="mt-xs flex items-center gap-2xs text-body-sm text-success-fg" data-testid="slug-ok"><jh-icon name="check" size="sm" class="shrink-0" />{{ 'teams.create.slugAvailable' | transloco:{ slug: s.normalized } }}</p>
-        } @else {
-          <p class="mt-xs text-body-sm text-danger-fg" data-testid="slug-bad">{{ slugReasonKey() | transloco: reasonParams }}</p>
-        }
-      } @else {
-        <p class="mt-xs text-body-sm text-muted">{{ 'teams.create.slugHint' | transloco }}</p>
-      }
-    </div>
+          <div>
+            <label for="team-name" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.name' | transloco }}</label>
+            <input id="team-name" type="text" formControlName="name" placeholder="Rheinfeuer" data-testid="team-name"
+              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus" />
+          </div>
 
-    <div>
-      <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.type' | transloco }}</span>
-      <div class="mt-xs grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" [attr.aria-label]="'teams.create.type' | transloco">
-        <button type="button" (click)="setType('CityTeam')" data-testid="type-city"
-          class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
-          [class]="type() === 'CityTeam' ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">
-          {{ 'teams.create.cityTeam' | transloco }}
-        </button>
-        <button type="button" (click)="setType('Mixteam')" data-testid="type-mix"
-          class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
-          [class]="type() === 'Mixteam' ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">
-          {{ 'teams.create.mixteam' | transloco }}
-        </button>
-      </div>
-    </div>
-
-    @if (type() === 'CityTeam') {
-      <div data-testid="team-city">
-        <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.city' | transloco }}</span>
-        <div class="mt-xs">
-          <jh-city-picker [placeholder]="'onboarding.city.placeholder' | transloco" (selectedChange)="onCitySelected($event)" />
+          <div>
+            <label for="team-slug" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.address' | transloco }}</label>
+            <div class="mt-xs flex items-center rounded-md border border-border-strong bg-surface-card px-md focus-within:border-brand focus-within:ring-2 focus-within:ring-focus">
+              <span class="font-mono text-body-sm text-muted">/t/</span>
+              <input id="team-slug" type="text" formControlName="slug" placeholder="rheinfeuer" data-testid="team-slug"
+                autocapitalize="none" autocomplete="off" spellcheck="false" jhLowercase
+                class="w-full bg-transparent py-sm pl-0.5 font-mono text-body-md text-body outline-none" />
+            </div>
+            @if (checkingSlug()) {
+              <p class="mt-xs text-body-sm text-muted">{{ 'teams.create.checking' | transloco }}</p>
+            } @else if (slugCheckFailed()) {
+              <!-- Advancing is blocked until a check succeeds, so say why rather than leaving a dead button. -->
+              <p class="mt-xs text-body-sm text-danger-fg" data-testid="slug-check-failed" role="alert">{{ 'teams.create.checkFailed' | transloco }}</p>
+            } @else if (slugStatus(); as s) {
+              @if (s.available) {
+                <p class="mt-xs flex items-center gap-2xs text-body-sm text-success-fg" data-testid="slug-ok"><jh-icon name="check" size="sm" class="shrink-0" />{{ 'teams.create.slugAvailable' | transloco:{ slug: s.normalized } }}</p>
+              } @else {
+                <p class="mt-xs text-body-sm text-danger-fg" data-testid="slug-bad" role="alert">{{ slugReasonKey() | transloco: reasonParams }}</p>
+              }
+            } @else {
+              <p class="mt-xs text-body-sm text-muted">{{ 'teams.create.slugHint' | transloco }}</p>
+            }
+          </div>
         </div>
-        <p class="mt-xs text-body-sm text-muted">{{ 'teams.create.cityHint' | transloco }}</p>
-        @if (!selectedCity()) {
-          <p class="mt-xs text-body-sm text-muted" data-testid="city-required">{{ 'teams.create.cityRequired' | transloco }}</p>
-        }
-      </div>
-    } @else {
-      <div class="rounded-md border border-dashed border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg" data-testid="mixteam-note">
-        {{ 'teams.create.mixteamNote' | transloco }}
-      </div>
+      }
+
+      <!-- 2. Type & city -->
+      @case ('type') {
+        <div class="space-y-md">
+          <div>
+            <h1 class="text-h3">{{ 'teams.create.typeTitle' | transloco }}</h1>
+            <p class="text-body-md text-muted">{{ 'teams.create.typeSubtitle' | transloco }}</p>
+          </div>
+
+          <div>
+            <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.type' | transloco }}</span>
+            <div class="mt-xs grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" [attr.aria-label]="'teams.create.type' | transloco">
+              <button type="button" (click)="setType('CityTeam')" data-testid="type-city"
+                class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+                [class]="type() === 'CityTeam' ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">
+                {{ 'teams.create.cityTeam' | transloco }}
+              </button>
+              <button type="button" (click)="setType('Mixteam')" data-testid="type-mix"
+                class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+                [class]="type() === 'Mixteam' ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">
+                {{ 'teams.create.mixteam' | transloco }}
+              </button>
+            </div>
+          </div>
+
+          @if (type() === 'CityTeam') {
+            <div data-testid="team-city">
+              <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.city' | transloco }}</span>
+              <div class="mt-xs">
+                <jh-city-picker [placeholder]="'onboarding.city.placeholder' | transloco" (selectedChange)="onCitySelected($event)" />
+              </div>
+              <p class="mt-xs text-body-sm text-muted">{{ 'teams.create.cityHint' | transloco }}</p>
+              @if (!selectedCity()) {
+                <p class="mt-xs text-body-sm text-muted" data-testid="city-required">{{ 'teams.create.cityRequired' | transloco }}</p>
+              }
+            </div>
+          } @else {
+            <div class="rounded-md border border-dashed border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg" data-testid="mixteam-note">
+              {{ 'teams.create.mixteamNote' | transloco }}
+            </div>
+          }
+        </div>
+      }
+
+      <!-- 3. Review — a summary, not a form. Each row returns to the step that owns it. -->
+      @case ('review') {
+        <div class="space-y-md" data-testid="team-review">
+          <div>
+            <h1 class="text-h3">{{ 'teams.create.reviewTitle' | transloco }}</h1>
+            <p class="text-body-md text-muted">{{ 'teams.create.reviewSubtitle' | transloco }}</p>
+          </div>
+
+          <dl class="divide-y divide-border-default rounded-md border border-border-strong bg-surface-card px-md">
+            <div class="flex items-baseline gap-sm py-sm">
+              <dt class="w-28 shrink-0 text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.name' | transloco }}</dt>
+              <dd class="min-w-0 flex-1 break-words text-body-md text-heading" data-testid="review-name">{{ form.controls.name.value }}</dd>
+              <button type="button" (click)="goTo('basics')" data-testid="review-edit-name"
+                class="inline-flex min-h-11 shrink-0 items-center px-2xs text-body-sm font-semibold text-brand-strong hover:underline">{{ 'teams.create.change' | transloco }}</button>
+            </div>
+            <div class="flex items-baseline gap-sm py-sm">
+              <dt class="w-28 shrink-0 text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.address' | transloco }}</dt>
+              <dd class="min-w-0 flex-1 break-all font-mono text-body-md text-heading" data-testid="review-slug">/t/{{ form.controls.slug.value }}</dd>
+              <button type="button" (click)="goTo('basics')" data-testid="review-edit-slug"
+                class="inline-flex min-h-11 shrink-0 items-center px-2xs text-body-sm font-semibold text-brand-strong hover:underline">{{ 'teams.create.change' | transloco }}</button>
+            </div>
+            <div class="flex items-baseline gap-sm py-sm">
+              <dt class="w-28 shrink-0 text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.type' | transloco }}</dt>
+              <dd class="min-w-0 flex-1 text-body-md text-heading" data-testid="review-type">{{ (type() === 'CityTeam' ? 'teams.create.cityTeam' : 'teams.create.mixteam') | transloco }}</dd>
+              <button type="button" (click)="goTo('type')" data-testid="review-edit-type"
+                class="inline-flex min-h-11 shrink-0 items-center px-2xs text-body-sm font-semibold text-brand-strong hover:underline">{{ 'teams.create.change' | transloco }}</button>
+            </div>
+            @if (type() === 'CityTeam') {
+              <div class="flex items-baseline gap-sm py-sm">
+                <dt class="w-28 shrink-0 text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.city' | transloco }}</dt>
+                <dd class="min-w-0 flex-1 break-words text-body-md text-heading" data-testid="review-city">{{ selectedCity()?.label }}</dd>
+                <button type="button" (click)="goTo('type')" data-testid="review-edit-city"
+                  class="inline-flex min-h-11 shrink-0 items-center px-2xs text-body-sm font-semibold text-brand-strong hover:underline">{{ 'teams.create.change' | transloco }}</button>
+              </div>
+            }
+          </dl>
+
+          <p class="text-body-sm text-muted">{{ 'teams.create.reviewPermanent' | transloco }}</p>
+        </div>
+      }
+
+      <!-- 4. Logo — optional. The team already exists from here on. -->
+      @case ('logo') {
+        <div class="space-y-md" data-testid="team-logo-step">
+          <div>
+            <h1 class="text-h3">{{ 'teams.create.logoTitle' | transloco }}</h1>
+            <p class="text-body-md text-muted">{{ 'teams.create.logoSubtitle' | transloco }}</p>
+          </div>
+
+          <div class="flex items-start gap-md rounded-md border border-border-strong bg-surface-card px-md py-sm">
+            @if (hasLogo()) {
+              <img
+                [src]="logoUrl()"
+                [alt]="'teams.create.logoAlt' | transloco: { name: form.controls.name.value }"
+                class="h-14 w-14 shrink-0 rounded-lg border border-border-default object-cover"
+                data-testid="wizard-logo-preview"
+              />
+            } @else {
+              <span class="grid h-14 w-14 shrink-0 place-items-center rounded-lg bg-brand-gradient text-h4 font-bold text-on-accent" aria-hidden="true">
+                {{ logoInitial() }}
+              </span>
+            }
+            <span class="min-w-0 flex-1">
+              <span class="block text-body-sm text-muted">{{ 'teams.create.logoHint' | transloco }}</span>
+              <span class="mt-sm flex flex-wrap items-center gap-sm">
+                <input
+                  #logoInput
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/gif"
+                  class="hidden"
+                  data-testid="wizard-logo-input"
+                  (change)="onLogoSelected($event)"
+                />
+                <button
+                  type="button"
+                  jhButton
+                  variant="secondary"
+                  [disabled]="uploadingLogo()"
+                  data-testid="wizard-logo-pick"
+                  (click)="logoInput.click()"
+                >
+                  {{ (uploadingLogo() ? 'teams.create.logoUploading' : hasLogo() ? 'teams.create.logoChange' : 'teams.create.logoUpload') | transloco }}
+                </button>
+              </span>
+            </span>
+          </div>
+        </div>
+      }
+
+      <!-- 5. Invite — optional, and the last thing before the team page. -->
+      @case ('invite') {
+        <div class="space-y-md" data-testid="team-invite-step">
+          <div>
+            <h1 class="text-h3">{{ 'teams.create.inviteTitle' | transloco }}</h1>
+            <p class="text-body-md text-muted">{{ 'teams.create.inviteSubtitle' | transloco }}</p>
+          </div>
+
+          <jh-invite-search [slug]="createdSlug()!" />
+
+          <p class="text-body-sm text-muted">{{ 'teams.create.inviteLater' | transloco }}</p>
+        </div>
+      }
     }
 
     @if (error()) {
       <jh-alert data-testid="team-create-error">{{ error() }}</jh-alert>
     }
 
-    <button type="submit" [disabled]="!canSubmit" data-testid="team-create-submit"
-      jhButton class="w-full">
-      {{ (submitting() ? 'teams.create.submitting' : 'teams.create.submit') | transloco }}
-    </button>
+    <!-- Navigation. No Back once the team exists: the handle is permanent and the rest is
+         settings now, so there is nothing behind it to return to. -->
+    <div class="flex items-center justify-between pt-sm">
+      @if (createdSlug() === null && stepIndex() > 0) {
+        <button type="button" (click)="back()" data-testid="team-back"
+          class="inline-flex items-center gap-2xs text-body-sm font-semibold text-muted hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</button>
+      } @else {
+        <span></span>
+      }
+
+      @switch (step()) {
+        @case ('review') {
+          <button type="submit" [disabled]="submitting()" data-testid="team-create-submit"
+            jhButton>{{ (submitting() ? 'teams.create.submitting' : 'teams.create.submit') | transloco }}</button>
+        }
+        @case ('logo') {
+          <!-- One control: skipping and continuing are the same move, so two buttons would be
+               two names for it. The label is honest about which one this is. -->
+          <button type="button" (click)="continueFromLogo()" [disabled]="uploadingLogo()" data-testid="team-logo-next"
+            jhButton>{{ (hasLogo() ? 'teams.create.next' : 'teams.create.skip') | transloco }}</button>
+        }
+        @case ('invite') {
+          <button type="button" (click)="finish()" data-testid="team-finish"
+            jhButton>{{ 'teams.create.finish' | transloco }}</button>
+        }
+        @default {
+          <button type="button" (click)="next()" [disabled]="!canAdvance()" data-testid="team-next"
+            jhButton>{{ 'teams.create.next' | transloco }}</button>
+        }
+      }
+    </div>
   </form>
 </section>

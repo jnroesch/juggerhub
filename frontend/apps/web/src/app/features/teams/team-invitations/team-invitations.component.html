@@ -46,35 +46,9 @@
     <!-- Add someone directly -->
     <div class="mt-lg">
       <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.invitations.addDirectly' | transloco }}</p>
-      <input type="text" [formControl]="searchControl" [placeholder]="'teams.invitations.searchPlaceholder' | transloco" data-testid="user-search"
-        autocomplete="off"
-        class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus" />
-      @if (searching()) {
-        <p class="mt-xs text-body-sm text-muted">{{ 'teams.invitations.searching' | transloco }}</p>
-      }
-      <ul class="mt-sm divide-y divide-border-default">
-        @for (u of results(); track u.userId) {
-          <li class="flex items-center gap-sm py-sm">
-            <div class="h-8 w-8 rounded-pill border border-dashed border-border-strong bg-surface-sunken"></div>
-            <div class="min-w-0 flex-1">
-              <p class="truncate text-body-md text-heading">{{ u.displayName }}</p>
-              <p class="truncate text-body-sm text-muted">&#64;{{ u.handle }}{{ u.location ? ' · ' + u.location : '' }}</p>
-            </div>
-            @switch (u.relation) {
-              @case ('Member') {
-                <span class="text-body-sm text-muted">{{ 'teams.invitations.relationMember' | transloco }}</span>
-              }
-              @case ('Invited') {
-                <span class="inline-flex items-center gap-2xs rounded-md border border-dashed border-border-strong px-md py-xs text-body-sm text-muted"><jh-icon name="check" size="sm" />{{ 'teams.invitations.relationInvited' | transloco }}</span>
-              }
-              @default {
-                <button type="button" (click)="invite(u)" [attr.data-testid]="'invite-' + u.handle"
-                  class="rounded-md border border-brand px-md py-xs text-body-sm font-semibold text-brand-strong transition-colors hover:bg-surface-accent-soft">{{ 'teams.invitations.invite' | transloco }}</button>
-              }
-            }
-          </li>
-        }
-      </ul>
+      <div class="mt-xs">
+        <jh-invite-search [slug]="slug()" (invited)="reload()" />
+      </div>
     </div>
 
     <!-- Pending -->

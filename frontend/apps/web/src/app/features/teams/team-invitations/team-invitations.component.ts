@@ -1,22 +1,26 @@
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { AlertComponent, ButtonDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
-import { EMPTY, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
-import { InvitableUser, InviteLink, TeamInvitation } from '../../../core/models/team.models';
+import { InviteLink, TeamInvitation } from '../../../core/models/team.models';
 import { TeamService } from '../../../core/services/team.service';
+import { InviteSearchComponent } from '../components/invite-search/invite-search.component';
 import { problemDetail } from '../../../core/utils/problem';
 
 /**
  * US3 — invite people. The single reusable invite link (copy / regenerate / revoke),
  * the pending-invite list, and a user search to invite players directly (emailed).
  * Admin-only; the API returns 403/404 for anyone else.
+ *
+ * The search itself lives in `jh-invite-search` (feature 052), which the create wizard's last
+ * step also renders. This screen keeps everything around it and learns that an invitation was
+ * created from the component's `invited` output, which is why {@link reload} is the handler
+ * rather than something the search calls back into.
  */
 @Component({
   selector: 'jh-team-invitations',
-  imports: [ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe, IconComponent],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe, IconComponent, InviteSearchComponent],
   templateUrl: './team-invitations.component.html',
   styleUrl: './team-invitations.component.css',
 })
@@ -28,43 +32,16 @@ export class TeamInvitationsComponent {
   protected readonly slug = signal('');
   protected readonly link = signal<InviteLink | null>(null);
   protected readonly pending = signal<TeamInvitation[]>([]);
-  protected readonly results = signal<InvitableUser[]>([]);
-  protected readonly searching = signal(false);
   protected readonly copied = signal(false);
   protected readonly loading = signal(true);
   protected readonly denied = signal(false);
   protected readonly error = signal<string | null>(null);
-
-  protected readonly searchControl = new FormControl('', { nonNullable: true });
 
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((pm) => {
       this.slug.set(pm.get('slug') ?? '');
       this.load();
     });
-
-    this.searchControl.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        switchMap((q) => {
-          const term = q.trim();
-          if (!term) {
-            this.results.set([]);
-            return EMPTY;
-          }
-          this.searching.set(true);
-          return this.teams.searchUsers(this.slug(), term);
-        }),
-        takeUntilDestroyed(),
-      )
-      .subscribe({
-        next: (p) => {
-          this.results.set(p.items);
-          this.searching.set(false);
-        },
-        error: () => this.searching.set(false),
-      });
   }
 
   private load(): void {
@@ -83,7 +60,8 @@ export class TeamInvitationsComponent {
     this.teams.getInviteLink(this.slug()).subscribe({ next: (l) => this.link.set(l) });
   }
 
-  private reload(): void {
+  /** Re-read what the extracted search just changed: the pending list, and the link's state. */
+  protected reload(): void {
     this.teams.getInvitations(this.slug()).subscribe({ next: (p) => this.pending.set(p.items) });
     this.teams.getInviteLink(this.slug()).subscribe({ next: (l) => this.link.set(l) });
   }
@@ -113,20 +91,6 @@ export class TeamInvitationsComponent {
     this.error.set(null);
     this.teams.revokeInvite(this.slug(), id).subscribe({
       next: () => this.reload(),
-      error: (err) => this.error.set(problemDetail(err)),
-    });
-  }
-
-  protected invite(user: InvitableUser): void {
-    if (user.relation !== 'Invitable') {
-      return;
-    }
-    this.error.set(null);
-    this.teams.createTargetedInvite(this.slug(), user.userId).subscribe({
-      next: () => {
-        this.results.update((rs) => rs.map((r) => (r.userId === user.userId ? { ...r, relation: 'Invited' } : r)));
-        this.reload();
-      },
       error: (err) => this.error.set(problemDetail(err)),
     });
   }
