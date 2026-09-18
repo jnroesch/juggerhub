@@ -13,6 +13,7 @@ import { MembershipService } from '../../../core/services/membership.service';
 import { TeamService } from '../../../core/services/team.service';
 import { problemDetail } from '../../../core/utils/problem';
 import { CityPickerComponent } from '../../../shared/city-picker/city-picker.component';
+import { InviteLinkComponent } from '../components/invite-link/invite-link.component';
 import { InviteSearchComponent } from '../components/invite-search/invite-search.component';
 
 /**
@@ -27,7 +28,8 @@ const STEPS: readonly Step[] = ['basics', 'type', 'review', 'logo', 'invite'];
  * US1 — create a team, as a guided wizard (feature 052, GH #320), in the same calm
  * one-question-per-screen style as onboarding and event creation: name & team handle (with live
  * availability, like the @handle), then type & city, then a review, then two optional steps —
- * a logo and an invite search. The creator becomes the first admin and lands on the team page.
+ * a logo, and inviting people, by the team's shared link or by searching for players. The
+ * creator becomes the first admin and lands on the team page.
  *
  * ## The team is created in the middle, and that is the whole design
  *
@@ -63,6 +65,7 @@ const STEPS: readonly Step[] = ['basics', 'type', 'review', 'logo', 'invite'];
     AlertComponent,
     LowercaseInputDirective,
     CityPickerComponent,
+    InviteLinkComponent,
     InviteSearchComponent,
     TranslocoPipe,
     IconComponent,

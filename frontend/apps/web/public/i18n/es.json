@@ -93,7 +93,7 @@
       "logoChange": "Cambiar logo",
       "logoUploading": "Subiendo…",
       "inviteTitle": "¿Quién está en el equipo?",
-      "inviteSubtitle": "Busca jugadores e invítalos. Opcional: tu equipo ya está listo igualmente.",
+      "inviteSubtitle": "Comparte un enlace o busca jugadores e invítalos. Opcional: tu equipo ya está listo igualmente.",
       "inviteLater": "Puedes invitar a más gente cuando quieras desde la página de invitaciones de tu equipo.",
       "slugReason": {
         "empty": "Elige un handle de equipo.",
@@ -151,6 +151,7 @@
       "shareLink": "Comparte tu enlace de invitación",
       "copy": "Copiar enlace",
       "copied": "¡Copiado!",
+      "copyFailed": "No hemos podido copiarlo. Selecciona el enlace y cópialo a mano.",
       "newLink": "Enlace nuevo",
       "anyoneCanJoin": "cualquiera con el enlace puede aceptar y unirse como jugador.",
       "createLink": "Crear un enlace de invitación",

@@ -190,7 +190,9 @@
         </div>
       }
 
-      <!-- 5. Invite — optional, and the last thing before the team page. -->
+      <!-- 5. Invite — optional, and the last thing before the team page. The shared link comes
+           first: it is the only one of the two that reaches somebody who has no account yet,
+           since the search below can only find players who do. -->
       @case ('invite') {
         <div class="space-y-md" data-testid="team-invite-step">
           <div>
@@ -198,7 +200,17 @@
             <p class="text-body-md text-muted">{{ 'teams.create.inviteSubtitle' | transloco }}</p>
           </div>
 
-          <jh-invite-search [slug]="createdSlug()!" />
+          <div>
+            <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.invitations.shareLink' | transloco }}</p>
+            <jh-invite-link [slug]="createdSlug()!" />
+          </div>
+
+          <div>
+            <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.invitations.addDirectly' | transloco }}</p>
+            <div class="mt-xs">
+              <jh-invite-search [slug]="createdSlug()!" />
+            </div>
+          </div>
 
           <p class="text-body-sm text-muted">{{ 'teams.create.inviteLater' | transloco }}</p>
         </div>

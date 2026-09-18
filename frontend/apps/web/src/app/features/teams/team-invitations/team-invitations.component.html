@@ -18,25 +18,7 @@
     <!-- Shareable link -->
     <div class="mt-lg">
       <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.invitations.shareLink' | transloco }}</p>
-      @if (link(); as l) {
-        <div class="mt-xs flex items-center gap-xs rounded-md border border-dashed border-border-strong bg-surface-sunken px-md py-sm">
-          <span class="min-w-0 flex-1 truncate font-mono text-body-sm text-body" data-testid="invite-link">{{ l.url }}</span>
-        </div>
-        <div class="mt-xs flex gap-xs">
-          <button type="button" (click)="copyLink()" data-testid="copy-link"
-            class="flex-1 rounded-md bg-surface-inverse px-md py-sm text-body-sm font-semibold text-on-inverse transition-colors hover:bg-sand-8">
-            {{ (copied() ? 'teams.invitations.copied' : 'teams.invitations.copy') | transloco }}
-          </button>
-          <button type="button" (click)="rotate()" data-testid="rotate-link"
-            jhButton variant="secondary" size="sm">{{ 'teams.invitations.newLink' | transloco }}</button>
-        </div>
-        <p class="mt-xs rounded-md border border-dashed border-warning-border bg-warning-bg px-md py-xs text-body-sm text-warning-fg">
-          {{ expiresIn(l.expiresDate) }} · {{ 'teams.invitations.anyoneCanJoin' | transloco }}
-        </p>
-      } @else {
-        <button type="button" (click)="rotate()" data-testid="create-link"
-          class="mt-xs w-full rounded-md bg-surface-inverse px-md py-sm text-body-sm font-semibold text-on-inverse hover:bg-sand-8">{{ 'teams.invitations.createLink' | transloco }}</button>
-      }
+      <jh-invite-link [slug]="slug()" (changed)="reload()" />
     </div>
       </div>
     </aside>

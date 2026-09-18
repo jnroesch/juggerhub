@@ -93,7 +93,7 @@
       "logoChange": "Logo ändern",
       "logoUploading": "Wird hochgeladen…",
       "inviteTitle": "Wer ist im Team?",
-      "inviteSubtitle": "Such nach Spielern und lade sie ein. Optional – dein Team ist so oder so fertig.",
+      "inviteSubtitle": "Teile einen Link oder such nach Spielern und lade sie ein. Optional – dein Team ist so oder so fertig.",
       "inviteLater": "Du kannst jederzeit weitere Leute über die Einladungsseite deines Teams einladen.",
       "slugReason": {
         "empty": "Wähle ein Team-Handle.",
@@ -151,6 +151,7 @@
       "shareLink": "Teile deinen Einladungslink",
       "copy": "Link kopieren",
       "copied": "Kopiert!",
+      "copyFailed": "Wir konnten nicht kopieren. Markiere den Link und kopier ihn von Hand.",
       "newLink": "Neuer Link",
       "anyoneCanJoin": "jeder mit dem Link kann annehmen und als Spieler beitreten.",
       "createLink": "Einladungslink erstellen",

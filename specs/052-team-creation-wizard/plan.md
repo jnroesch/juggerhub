@@ -119,13 +119,18 @@ frontend/apps/web/
     │   ├── team-create.component.css     # unchanged (empty-ish, as today)
     │   └── team-create.component.spec.ts # REWRITTEN against the new flow
     ├── components/
-    │   └── invite-search/                # NEW — extracted, two call sites
-    │       ├── invite-search.component.ts
-    │       ├── invite-search.component.html
-    │       └── invite-search.component.spec.ts
+    │   ├── invite-search/                # NEW — extracted, two call sites
+    │   │   ├── invite-search.component.ts
+    │   │   ├── invite-search.component.html
+    │   │   └── invite-search.component.spec.ts
+    │   └── invite-link/                  # NEW — extracted, two call sites
+    │       ├── invite-link.component.ts
+    │       ├── invite-link.component.html
+    │       └── invite-link.component.spec.ts
+    ├── invitation-expiry.ts              # NEW — the "expires in N days" phrase, shared by both
     └── team-invitations/
-        ├── team-invitations.component.ts   # search state moves out to the extracted component
-        └── team-invitations.component.html # inline search block replaced by <jh-invite-search>
+        ├── team-invitations.component.ts   # link + search state move out to the extracted components
+        └── team-invitations.component.html # both inline blocks replaced by their components
 ```
 
 **Structure Decision**: the existing `features/teams/` layout is kept as-is. The extracted search
@@ -210,6 +215,42 @@ Two consequences, both deliberate:
 2. **The extraction is verbatim otherwise.** Markup, tokens, `data-testid`s (`user-search`,
    `invite-<handle>`) and copy keys (`teams.invitations.*`) all move unchanged, so the existing
    `team-invitations` tests keep passing and the diff on that screen stays readable.
+
+### D4a. The invite step offers the shared link too, extracted the same way
+
+Added after the first walkthrough of the built flow. The search can only find people who already
+have a JuggerHub account, and a brand-new team is usually assembled from people who do not — the
+link is what gets pasted into the chat group the team actually lives in. A step titled *Who's in
+the team?* that cannot produce one sends the creator off to a screen nothing has told them about.
+
+The block is extracted exactly as D4 extracted the search — `features/teams/components/invite-link/`,
+rendered by both screens — and for the same reason: it owns a **rule**, that a team has exactly one
+live link, which is why creating and replacing are the same `POST` and why a replacement silently
+retires the link before it. A second copy of that is a second place for it to drift.
+
+| | input | output | what the parent does with it |
+|---|---|---|---|
+| team invitations | `slug` | `changed` | reloads its pending list — the link is a `Link` row in it |
+| create wizard | `slug` | `changed` | nothing — it has no pending list |
+
+Three things follow, all deliberate:
+
+1. **The parent can still retire the link**, because the invitations screen lists it among the
+   pending invitations, where it can be revoked. So `reload()` is **public** on the component and
+   that screen calls it after a revoke; otherwise the block beside the list would go on offering a
+   link that no longer admits anyone.
+2. **Nothing is offered until the first read answers.** The old screen rendered *Create an invite
+   link* while the read was still in flight, so on a team that already had one the likeliest early
+   press silently replaced the link the person was about to copy. Entering a wizard step is faster
+   than navigating to a screen, so the create control now waits for the answer.
+3. **A copy is only claimed when it happened.** `navigator.clipboard` is absent in an insecure
+   context — a phone on the local network, which is exactly where a link gets shared — and the
+   previous code said *Copied!* regardless, so the paste was whatever had been there before. One
+   new key, `teams.invitations.copyFailed`, in all three catalogues.
+
+The one thing this does **not** add is revoking from the wizard: a link created seconds ago, on a
+step whose other control replaces it outright, has nothing to revoke. It stays where it belongs, on
+the screen that lists pending invitations.
 
 ### D5. The 409 is the discriminator
 

@@ -10,7 +10,8 @@
 DESIGN.md wins and the conflict is reported rather than silently resolved.
 
 **Scope of this review**: `team-create.component.html` (rewritten — five steps, progress and
-navigation), `components/invite-search/invite-search.component.html` (new, lifted from
+navigation), `components/invite-search/invite-search.component.html` and
+`components/invite-link/invite-link.component.html` (both new, both lifted from
 `team-invitations.component.html`), and the copy added to the three catalogues.
 
 ## Color & tokens
@@ -119,11 +120,45 @@ worst place to put an unreliable tap target. Fixed in place rather than deferred
    worse at every width. `w-28` is 112px, which is `space-12` in the 4px scale, so it lands on
    the scale even though it is not spelled as a token.
 
+## The invite link block (D4a)
+
+- [x] CHK033 The block's markup, tokens and `data-testid`s move **verbatim** from the invitations
+  screen — dashed `border-border-strong` on the link row, `surface-inverse` copy control,
+  `variant="secondary"` replace control, `warning-*` triple on the expiry line — so the two screens
+  cannot drift apart visually (CHK001, CHK002 hold unchanged: the copy control is inverse, not coral)
+- [x] CHK034 The link itself is `font-mono` + `truncate` inside a `min-w-0 flex-1` span, so a long
+  token cannot push the row wider than the step at 375px
+- [x] CHK035 The step's two halves are labelled by the same eyebrow treatment the invitations screen
+  uses (`text-eyebrow` uppercase `text-muted`), so "Share your invite link" and "Or add someone
+  directly" read as one pattern across both screens
+- [x] CHK036 **German at 375px** for the new arrangement — the binding strings are
+  "Einladungslink erstellen" on a full-width control and the new
+  "Wir konnten nicht kopieren. Markiere den Link und kopier ihn von Hand." in `jh-alert`, both body
+  copy that wraps freely; "Teile deinen Einladungslink" is the longest eyebrow and fits on one line
+- [x] CHK037 Nothing is conveyed by colour alone — the expiry line pairs the warning tone with the
+  sentence "anyone with it can accept and join as a player", and a refused copy is a sentence
+
 **Conventions** ([constitution](../../../.specify/memory/constitution.md) gate 5): `.html` / `.css` /
-`.ts` stay separate for both the rewritten wizard and the new `invite-search` component.
+`.ts` stay separate for the rewritten wizard and for both new components.
 
 **Verified in a browser.** The production build was served with every API call mocked, and the
 whole flow was walked at 1280×900, at 375×812, and at 375×812 in German — 33 screenshots, all five
 steps plus their empty/filled/uploaded/invited states. That pass is what caught CHK030. What
 remains unverified is the flow against a **real backend**: these screenshots prove the rendering,
 not the integration.
+
+**Verified against the real stack (D4a).** The link addition was walked against the running local
+stack — real backend, database and Mailpit, a freshly registered account each time — at 1280×900 in
+English and at 375×812 in German, 16 screenshots. Beyond the rendering, four facts were checked
+that no component test can reach: the created link's text **matches what the clipboard actually
+received**; *New link* returns a different link; the link made in the wizard is the one the team's
+invitations screen then shows; and revoking its row there returns the block to its create control.
+
+**One deviation recorded rather than resolved unilaterally — CHK002 and the block's weight.** On
+the invitations screen the block sits in a one-third aside, so the `surface-inverse` copy control
+reads as a modest dark button. On the wizard step it spans the content column, and at 1280px that
+slab carries more visual weight than the coral *Go to your team* beside it. The letter of CHK002
+holds (there is exactly one coral CTA, and it is the navigation one), and the alternative —
+restyling the control for one of its two call sites — would undo the point of sharing the component
+at all. It is also arguably right: on this step, sharing the link *is* the action, and the coral CTA
+is a way out of the flow. Raised here for a second opinion.

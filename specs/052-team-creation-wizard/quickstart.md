@@ -25,6 +25,7 @@ The specs that must be green, and what each is actually protecting:
 |---|---|
 | `team-create.component.spec.ts` | the step machine, the latch, the 409 recovery |
 | `invite-search.component.spec.ts` | the relation switch and the optimistic flip |
+| `invite-link.component.spec.ts` | create / copy / replace, and what happens when each fails |
 | `team-invitations.component.spec.ts` | that extracting the search changed nothing on the existing screen |
 | `catalog-parity.spec.ts` | that the new copy landed in **all three** catalogues |
 
@@ -78,15 +79,24 @@ Change the address and finish. **Expect**: it works.
 
 ## Scenario 4 — The invite step (US3)
 
-1. On the invite step, type part of the second account's name or handle.
-2. **Expect**: they are listed with an invite action.
-3. **Expect**: a search matching nobody says so, rather than showing an empty area.
-4. Invite them. **Expect**: the row changes to "invited" and cannot be invited again.
-5. Search for **yourself**. **Expect**: shown as a member, with no invite action — you are the
+1. On the invite step, press **Create an invite link**. **Expect**: a link appears with a copy
+   control and its expiry, and nothing was offered before the step's first read answered.
+2. Copy it, then paste it somewhere. **Expect**: the pasted text is the link, and the control only
+   said "Copied!" because it actually was. (Over plain `http` on a phone the clipboard API is
+   unavailable — **expect** the refusal message there, not a false "Copied!".)
+3. Open the link in a second browser as the second account. **Expect**: it admits them to the team.
+4. Back on the step, press **New link**. **Expect**: a different link, and the previous one no
+   longer admits anyone.
+5. Type part of the second account's name or handle.
+6. **Expect**: they are listed with an invite action.
+7. **Expect**: a search matching nobody says so, rather than showing an empty area.
+8. Invite them. **Expect**: the row changes to "invited" and cannot be invited again.
+9. Search for **yourself**. **Expect**: shown as a member, with no invite action — you are the
    team's only member.
-6. Finish. **Expect**: you land on the team page.
-7. Go to the team's invitations screen. **Expect**: exactly the invitation you sent, pending — the
-   same one that screen would have created (SC-005).
+10. Finish. **Expect**: you land on the team page.
+11. Go to the team's invitations screen. **Expect**: exactly the invitation you sent, pending — the
+   same one that screen would have created (SC-005) — and the link you made last, shown as the
+   team's link (SC-005a).
 
 ## Scenario 5 — Abandoning after creation (FR-013, SC-007)
 
@@ -98,17 +108,24 @@ Change the address and finish. **Expect**: it works.
 4. Repeat, closing the tab on the **invite** step after sending one invitation. **Expect**: that one
    invitation is pending and nothing else differs.
 
-## Scenario 6 — The existing screen still works (D4)
+## Scenario 6 — The existing screen still works (D4, D4a)
 
-The invite search was lifted out of the team invitations screen into a shared component. Verify
-that screen directly:
+The invite search **and the invite link block** were lifted out of the team invitations screen into
+shared components. Verify that screen directly:
 
 1. Open an existing team's invitations screen.
 2. **Expect**: the search behaves as it always did — same debounce, same rows, same relations, same
    invite action, and the pending list still refreshes after inviting someone.
 3. **Expect one deliberate difference**: a search matching nobody now says so instead of rendering
    an empty list.
-4. **Expect unchanged**: the shared invite link, copy, regenerate, revoke, and the pending list.
+4. **Expect unchanged**: the link block in the aside — create, copy, "New link", the expiry line and
+   the "anyone with it can accept" warning, all where they were.
+5. **Expect two deliberate differences in that block**: nothing is offered until the first read
+   answers (no flash of *Create an invite link* on a team that has one), and a copy that the browser
+   refuses now says so instead of claiming success.
+6. Revoke the **invite link** row in the pending list. **Expect**: the block beside it stops
+   offering that link and returns to its create control — it no longer shows a link that admits
+   nobody.
 
 ## Gate 7 — the UI review
 

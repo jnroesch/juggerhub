@@ -350,6 +350,7 @@ describe('TeamCreateComponent', () => {
 
     el('team-logo-next').click();
     fixture.detectChanges();
+    httpMock.expectOne('/api/v1/teams/kiel-krakens/invitations/link').flush(null);
     expect(el('team-back')).toBeNull();
   });
 
@@ -390,22 +391,62 @@ describe('TeamCreateComponent', () => {
 
     httpMock.expectNone('/api/v1/teams/kiel-krakens/logo');
     expect(el('team-invite-step')).not.toBeNull();
+    httpMock.expectOne('/api/v1/teams/kiel-krakens/invitations/link').flush(null);
   });
 
-  it('offers the invite search for the created team, and finishes on its page', () => {
-    const router = TestBed.inject(Router);
-    const navigate = jest.spyOn(router, 'navigate').mockResolvedValue(true);
-
+  /** The invite step, with the link block's first read answered. */
+  function reachInvite(link: { url: string; token: string; expiresDate: string } | null = null): void {
     createTeam();
     el('team-logo-next').click();
     fixture.detectChanges();
+    httpMock.expectOne('/api/v1/teams/kiel-krakens/invitations/link').flush(link);
+    fixture.detectChanges();
+  }
+
+  it('offers both routes to inviting for the created team, and finishes on its page', () => {
+    const router = TestBed.inject(Router);
+    const navigate = jest.spyOn(router, 'navigate').mockResolvedValue(true);
+
+    reachInvite();
 
     expect(el('user-search')).not.toBeNull();
+    expect(el('create-link')).not.toBeNull();
 
     el('team-finish').click();
     fixture.detectChanges();
 
     expect(navigate).toHaveBeenCalledWith(['/t', 'kiel-krakens']);
+  });
+
+  /**
+   * The shared link is the only thing on this step that reaches somebody who has no account
+   * yet — the search beside it can only find players who do — and a brand-new team has none.
+   */
+  it('creates a shareable link for the new team on request', () => {
+    reachInvite();
+
+    el('create-link').click();
+    const request = httpMock.expectOne('/api/v1/teams/kiel-krakens/invitations/link');
+    expect(request.request.method).toBe('POST');
+    request.flush({
+      url: 'https://juggerhub.test/teams/kiel-krakens/join?token=abc',
+      token: 'abc',
+      expiresDate: new Date(Date.now() + 7 * 86_400_000).toISOString(),
+    });
+    fixture.detectChanges();
+
+    expect(el('invite-link').textContent).toContain('token=abc');
+    expect(el('copy-link')).not.toBeNull();
+  });
+
+  /** Nothing is created by arriving: a link exists only because somebody asked for one. */
+  it('creates no link by merely reaching the invite step', () => {
+    reachInvite();
+
+    el('team-finish').click();
+    fixture.detectChanges();
+
+    httpMock.expectNone((r) => r.method === 'POST' && r.url.endsWith('/invitations/link'));
   });
 
   /**

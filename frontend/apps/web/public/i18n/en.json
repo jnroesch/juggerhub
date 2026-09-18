@@ -89,7 +89,7 @@
       "logoChange": "Change logo",
       "logoUploading": "Uploading…",
       "inviteTitle": "Who's in the team?",
-      "inviteSubtitle": "Search for players and invite them. Optional — your team is ready either way.",
+      "inviteSubtitle": "Share a link, or search for players and invite them. Optional — your team is ready either way.",
       "inviteLater": "You can invite more people any time from your team's invite page.",
       "slugReason": {
         "empty": "Choose a team handle.",
@@ -147,6 +147,7 @@
       "shareLink": "Share your invite link",
       "copy": "Copy link",
       "copied": "Copied!",
+      "copyFailed": "We couldn't copy it. Select the link and copy it by hand.",
       "newLink": "New link",
       "anyoneCanJoin": "anyone with it can accept and join as a player.",
       "createLink": "Create an invite link",

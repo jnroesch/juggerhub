@@ -124,6 +124,20 @@ the team's invitations screen and received the same invitation that screen would
 - [X] T028 [P] [US3] ~~Update `team-invitations.component.spec.ts`~~ — **that file does not exist.** The invitations screen has never had a component spec, so there was nothing to keep green and nothing guarding the extraction. Recorded rather than quietly dropped: it makes `invite-search.component.spec.ts` (T027) the *first* test coverage this behaviour has ever had, which is a net gain, and it means the extraction's safety rests on the lifted markup being verbatim rather than on a regression test. A spec for the surrounding screen (link, pending, revoke) remains worth writing — noted as a follow-up.
 - [X] T029 [US3] Add a spec to `team-create.component.spec.ts` asserting the invite step renders `jh-invite-search` bound to the created slug, and that both Finish and Skip navigate to `/t/{slug}`.
 
+### Addition — the shared invite link on the same step (D4a, FR-020a/FR-020b)
+
+Added after the flow was built and walked: the search finds only people who already have an
+account, and a new team is usually assembled from people who do not. Same extraction shape as
+T023-T025, so the numbering continues rather than restarting.
+
+- [X] T029a [US3] Create `features/teams/invitation-expiry.ts` — the `expiresIn(iso, t)` phrase lifted verbatim out of `team-invitations.component.ts`, so the pending rows and the link block go on dating themselves identically once the block moves.
+- [X] T029b [US3] Create `features/teams/components/invite-link/invite-link.component.ts` + `.html`: required `slug` input, `changed` output, a **public** `reload()` (the parent can retire the link by revoking its pending row), the first read gated behind a `loaded` flag, and a copy that reports success only once the clipboard write resolves. Markup, tokens and the `invite-link` / `copy-link` / `rotate-link` / `create-link` `data-testid`s lift unchanged from `team-invitations.component.html`.
+- [X] T029c [US3] Rewrite the aside in `team-invitations.component.html` to render `<jh-invite-link [slug]="slug()" (changed)="reload()" />`, delete the link state from `team-invitations.component.ts` (`link`, `copied`, `copyLink()`, `rotate()`, the inline `expiresIn`), and call the child's `reload()` after a revoke.
+- [X] T029d [US3] Render the link block above the search on the wizard's invite step, each under the invitations screen's own eyebrow labels (`teams.invitations.shareLink` / `addDirectly`), and register the component in `team-create.component.ts`.
+- [X] T029e [US3] Copy: one new key `teams.invitations.copyFailed` and a reworded `teams.create.inviteSubtitle` in **all three** catalogues at once, or `catalog-parity.spec.ts` goes red.
+- [X] T029f [P] [US3] Create `invite-link.component.spec.ts`: nothing offered before the first read answers; create and replace both `POST` and emit `changed`; a failed create is reported, not retried (Principle VII); "Copied!" only after the write resolves and a refusal when it does not; a failed read falls back to the create control; and a slug change re-reads.
+- [X] T029g [US3] Extend `team-create.component.spec.ts`: the step offers both routes, a link can be created there, and merely reaching the step creates nothing.
+
 **Checkpoint**: all three stories complete.
 
 ---

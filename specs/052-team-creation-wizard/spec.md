@@ -122,10 +122,14 @@ the letter placeholder and is otherwise identical.
 
 ### User Story 3 - Invite people while creating the team (Priority: P3)
 
-After the logo step the player is offered a search for people to invite. Typing a name or handle
-lists players, each showing whether they can be invited, have already been invited, or are already
-in the team. Inviting one sends them the same invitation team settings would send. Several people
-can be invited without leaving the step, and the step can be skipped.
+After the logo step the player is offered two ways to invite people, the same two the team's
+invitations screen offers. The first is the team's shareable invite link: it can be created here,
+copied, and replaced, and it is the only one of the two that reaches somebody who does not have a
+JuggerHub account yet — teammates are usually recruited somewhere else entirely, in a chat group or
+a messenger, and a link is what can be pasted there. The second is a search: typing a name or
+handle lists players, each showing whether they can be invited, have already been invited, or are
+already in the team. Inviting one sends them the same invitation team settings would send. Several
+people can be invited without leaving the step, and the step can be skipped.
 
 **Why this priority**: The most valuable of the three for a team that intends to have members, but
 the one that depends on the other two being in place, and the one a solo creator will most often
@@ -139,6 +143,10 @@ have received from there.
 
 1. **Given** a player on the invite step, **When** they type a search term, **Then** matching
    players are listed with their relationship to the team shown.
+1a. **Given** a new team with no invite link, **When** the creator asks for one, **Then** a link is
+   created and shown, ready to be copied.
+1b. **Given** a link shown on the step, **When** the creator copies it, **Then** they are told it
+   was copied only if it actually reached the clipboard.
 2. **Given** a listed player who can be invited, **When** the creator invites them, **Then** the
    invitation is sent and that player is shown as invited without the list being re-searched.
 3. **Given** a player who has just been invited, **When** the creator looks at the list, **Then**
@@ -223,7 +231,13 @@ have received from there.
 
 #### The invite step
 
-- **FR-020**: After the logo step the player MUST be offered a search for people to invite.
+- **FR-020**: After the logo step the player MUST be offered both a shareable invite link and a
+  search for people to invite.
+- **FR-020a**: The step MUST let the player create the team's shareable invite link, copy it, and
+  replace it — the same three actions the team's invitations screen offers, producing the same
+  link. No link is created merely by reaching the step.
+- **FR-020b**: A copy MUST be reported as successful only when the link actually reached the
+  clipboard, and a refused copy MUST be reported with a way to proceed by hand.
 - **FR-021**: Search results MUST show, for each person, whether they can be invited, have already
   been invited, or are already a member.
 - **FR-022**: Inviting a person MUST send the same invitation the team's invitations screen sends.
@@ -240,6 +254,8 @@ have received from there.
   takes is one the product already offers.
 - **FR-029**: The logo and invite capabilities MUST remain available from team settings exactly as
   they are today; the wizard is an additional route to them, never a replacement.
+- **FR-029a**: The invite link and the invite search MUST behave identically on both screens that
+  offer them, and MUST be one implementation rather than two.
 - **FR-030**: A team description MUST NOT be introduced by this feature (see GH #321).
 
 ### Key Entities
@@ -264,6 +280,8 @@ No new entities. The feature reads and writes only what already exists:
   with no further action.
 - **SC-005**: A player who invites people during creation finds exactly those people pending on the
   team's invitations screen, with no further action.
+- **SC-005a**: A link created during creation is the team's link: it appears on the invitations
+  screen, admits whoever opens it, and is the one the creator copied.
 - **SC-006**: Every failure the flow can encounter — an address taken, a refused image, an
   invitation that could not be sent — leaves the player on a step that explains what happened and
   offers a way forward. None of them ends the flow or loses an answer.
@@ -298,9 +316,9 @@ No new entities. The feature reads and writes only what already exists:
   answers so that leaving and returning does not blank them (feature 045). This flow deliberately
   does not, in this feature: the exposure is two short steps rather than twenty-one answers, and
   adding a third kind of draft is its own change. Worth a follow-up once the flow exists.
-- **Changing the invite capability itself** — the shared invite link, invitation expiry, pending
-  invitation management and the emails all stay exactly as they are. The flow uses the targeted
-  invite as it stands.
+- **Changing the invite capability itself** — invitation expiry, pending invitation management,
+  link revocation and the emails all stay exactly as they are. The flow offers the shared link and
+  the targeted invite as they stand, and adds no server capability of its own (FR-028).
 - **Changing the logo capability itself** — cropping, removal, size and format rules all stay as
   feature 051 defined them.
 - **Anything reachable from team settings** stays reachable from team settings, unchanged.
