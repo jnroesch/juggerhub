@@ -1023,7 +1023,21 @@
       "askedConfirmation": "Le hemos pedido a {{name}} que te admita. Un administrador todavía tiene que aceptar.",
       "ask": "Solicitar unirse a {{name}}",
       "asking": "Solicitando…",
-      "notOnTeam": "Todavía no estoy en un equipo"
+      "notOnTeam": "Todavía no estoy en un equipo",
+      "invite": {
+        "eyebrow": "Estás invitado",
+        "loading": "Cargando tu invitación…",
+        "invitedBy": "{{name}} te ha invitado a unirte",
+        "accept": "Aceptar y unirse a {{team}}",
+        "accepting": "Uniéndose…",
+        "joined": "Ahora formas parte de {{team}}. Bienvenido a bordo.",
+        "alreadyMember": "Ya estás en {{team}}.",
+        "acceptError": "No pudimos unirte en este momento. Inténtalo otra vez.",
+        "orAnother": "O busca otro equipo",
+        "expired": "La invitación que seguiste ha caducado. Pide a un administrador del equipo que te envíe una nueva.",
+        "invalid": "La invitación que seguiste ya no es válida. Pide a un administrador del equipo que te envíe una nueva.",
+        "yourInvites": "Tus invitaciones"
+      }
     },
     "photo": {
       "title": "Hazlo tuyo",

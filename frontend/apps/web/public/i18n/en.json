@@ -1019,7 +1019,21 @@
       "askedConfirmation": "We've asked {{name}} to let you in. An admin still has to say yes.",
       "ask": "Ask to join {{name}}",
       "asking": "Asking…",
-      "notOnTeam": "I'm not on a team yet"
+      "notOnTeam": "I'm not on a team yet",
+      "invite": {
+        "eyebrow": "You're invited",
+        "loading": "Loading your invite…",
+        "invitedBy": "{{name}} invited you to join",
+        "accept": "Accept & join {{team}}",
+        "accepting": "Joining…",
+        "joined": "You're on {{team}} now. Welcome aboard.",
+        "alreadyMember": "You're already on {{team}}.",
+        "acceptError": "We couldn't join that just now. Give it another go.",
+        "orAnother": "Or look for another team",
+        "expired": "The invite you followed has expired. Ask a team admin for a new one.",
+        "invalid": "The invite you followed is no longer valid. Ask a team admin for a new one.",
+        "yourInvites": "Your invites"
+      }
     },
     "photo": {
       "title": "Make it yours",

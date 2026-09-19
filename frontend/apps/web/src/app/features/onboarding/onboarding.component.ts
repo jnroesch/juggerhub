@@ -7,19 +7,29 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, debounceTime, distinctUntilChanged, of, switchMap } from 'rxjs';
 import { ProfileService } from '../../core/services/profile.service';
 import { AuthService } from '../../core/services/auth.service';
+import { InvitationService } from '../../core/services/invitation.service';
+import { MembershipService } from '../../core/services/membership.service';
 import { SearchService } from '../../core/services/search.service';
 import { TeamService } from '../../core/services/team.service';
 import { TeamBrowseParams, TeamCard } from '../../core/models/search.models';
+import { InvitePreview, MyInvitation } from '../../core/models/team.models';
 import { BrowseList } from '../browse/browse-list';
+import { InviteRef, inviteFromReturnUrl, invitePagePath } from '../../core/utils/invite-ref';
 import { safeReturnUrl } from '../../core/utils/return-url';
 import { PompfeSelectorComponent } from '../profile/components/pompfe-selector/pompfe-selector.component';
 import { Pompfe } from '../../shared/pompfen.catalog';
-import { ButtonDirective, AlertComponent, ChipDirective, IconComponent, LoadingComponent } from '../../shared/ui';
+import { ButtonDirective, AlertComponent, CardComponent, ChipDirective, IconComponent, LoadingComponent } from '../../shared/ui';
 import { CityPickerComponent } from '../../shared/city-picker/city-picker.component';
 import { CityOption, Location, toSelection } from '../../core/models/city.models';
-import { TranslocoPipe } from '@jsverse/transloco';
+import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 
 type Step = 'welcome' | 'name' | 'city' | 'pompfen' | 'team' | 'photo' | 'done';
+
+/**
+ * What the wizard knows about the invite the player arrived with (feature 053). `'none'` when no
+ * invite was carried; the rest follow the anonymous preview endpoint's answer.
+ */
+type InvitePreviewState = 'none' | 'loading' | 'expired' | 'invalid' | { kind: 'usable'; preview: InvitePreview };
 
 /** The five core steps that carry the round-knob progress (welcome/done excluded). */
 const CORE_STEPS: readonly Step[] = ['name', 'city', 'pompfen', 'team', 'photo'];
@@ -34,10 +44,14 @@ const FLOW: readonly Step[] = ['welcome', 'name', 'city', 'pompfen', 'team', 'ph
  * complete so the flow is shown exactly once.
  *
  * The team step searches real teams and can send a join request (feature 029, replacing
- * 004's placeholder). Note what it deliberately does *not* do: `next()` and `back()` carry
- * no team logic and issue no request, so no state of that step — slow search, failed
- * search, failed join — can hold a player who registered thirty seconds ago inside the
- * wizard. Asking to join is its own press. Keep it that way.
+ * 004's placeholder). When the player arrived through a shared invite link, or has invitations
+ * addressed to their account, the step leads with those instead (feature 053) — the invite is
+ * previewed, offered, and accepted through the endpoints the invite page and the "My team" home
+ * already use. Note what the step deliberately does *not* do: `next()` and `back()` carry no
+ * team logic and issue no request, so no state of that step — slow search, failed search,
+ * failed join, stale invite, failed accept — can hold a player who registered thirty seconds
+ * ago inside the wizard. Asking to join is its own press, and so is accepting an invite. Keep
+ * it that way.
  */
 @Component({
   selector: 'jh-onboarding',
@@ -48,6 +62,7 @@ const FLOW: readonly Step[] = ['welcome', 'name', 'city', 'pompfen', 'team', 'ph
     CityPickerComponent,
     ButtonDirective,
     AlertComponent,
+    CardComponent,
     ChipDirective,
     IconComponent,
     LoadingComponent,
@@ -61,6 +76,9 @@ export class OnboardingComponent implements OnInit, OnDestroy {
   private readonly auth = inject(AuthService);
   private readonly search = inject(SearchService);
   private readonly teamApi = inject(TeamService);
+  private readonly invitations = inject(InvitationService);
+  private readonly membership = inject(MembershipService);
+  private readonly transloco = inject(TranslocoService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
@@ -123,6 +141,48 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     return team !== null && this.requestedSlugs().has(team.slug);
   });
 
+  // --- Team step: invitations (feature 053) ---------------------------------
+  // The invite the player arrived with rides in on the returnUrl sign-in carried here; it is
+  // an identity (slug + token), never a path, and a malformed one is simply "no invite".
+  // Accepting is its own press — acceptInvite() — never Continue.
+
+  /** The shared invite link the player registered from, if the returnUrl is the invite page. */
+  protected readonly carriedInvite: InviteRef | null = inviteFromReturnUrl(
+    this.route.snapshot.queryParamMap.get('returnUrl'),
+  );
+  /** What the preview said about the carried invite. */
+  protected readonly invitePreview = signal<InvitePreviewState>('none');
+  /** Usable targeted invitations addressed to this account (the "My team" home's list). */
+  protected readonly addressedInvites = signal<MyInvitation[]>([]);
+  /** Teams joined through this step, in order — the first is where the wizard exits to. */
+  protected readonly joinedSlugs = signal<readonly string[]>([]);
+  /** In-flight guard for an accept. Never gates Continue. */
+  protected readonly acceptingToken = signal<string | null>(null);
+  protected readonly inviteError = signal<string | null>(null);
+  /** Teams the player already belongs to, so "already on that team" can be told before a press. */
+  protected readonly memberSlugs = computed(() => new Set(this.membership.teams().map((t) => t.slug)));
+  private membershipsRequested = false;
+
+  /** The carried invite's preview once it is known to be usable. */
+  protected readonly usableInvite = computed(() => {
+    const state = this.invitePreview();
+    return typeof state === 'object' ? state.preview : null;
+  });
+
+  /**
+   * Addressed invitations minus any for the carried invite's team: a link and a targeted invite
+   * to one team are one offer to the player, and the carried one leads (research R8).
+   */
+  protected readonly visibleAddressed = computed(() => {
+    const carriedTeam = this.usableInvite()?.teamSlug;
+    return this.addressedInvites().filter((inv) => inv.teamSlug !== carriedTeam);
+  });
+
+  /** True when the step is leading with at least one invitation (the search becomes "or…"). */
+  protected readonly anyInviteShown = computed(
+    () => this.usableInvite() !== null || this.visibleAddressed().length > 0,
+  );
+
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
 
@@ -169,6 +229,59 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     // for players who dismiss at Welcome, and buys everyone else a step that is already
     // populated when they walk to it instead of one that flashes a loading line.
     this.reloadTeams();
+
+    // Feature 053 — the invitations the step will lead with, fetched the same way and for the
+    // same reason. Neither may block anything: a failed preview is a quiet note, a failed list
+    // is an empty list.
+    if (this.carriedInvite) {
+      this.loadCarriedInvite(this.carriedInvite);
+    }
+    this.loadAddressedInvites();
+  }
+
+  /** Preview the carried invite through the same anonymous endpoint the invite page uses. */
+  private loadCarriedInvite(invite: InviteRef): void {
+    this.invitePreview.set('loading');
+    this.teamApi.getInvitePreview(invite.token).subscribe({
+      next: (preview) => {
+        if (preview.state === 'Usable') {
+          this.invitePreview.set({ kind: 'usable', preview });
+          this.ensureMemberships();
+        } else {
+          this.invitePreview.set(preview.state === 'Expired' ? 'expired' : 'invalid');
+        }
+      },
+      // A 404 (no such invite, or a team that no longer exists) and any other failure read the
+      // same to the player: this invite is no longer valid. Nothing here disables the search.
+      error: () => this.invitePreview.set('invalid'),
+    });
+  }
+
+  /** The account's own pending invitations (feature 023's list). A failure is an empty list. */
+  private loadAddressedInvites(): void {
+    this.invitations.listMine().subscribe({
+      next: (page) => {
+        this.addressedInvites.set(page.items);
+        if (page.items.length > 0) {
+          this.ensureMemberships();
+        }
+      },
+      error: () => this.addressedInvites.set([]),
+    });
+  }
+
+  /**
+   * `/onboarding` sits outside the shell, so the shell's `membership.load()` has never run here.
+   * The accept endpoint answers 200 for "joined" and "already a member" alike, so the list is the
+   * only way to tell a player they are already on a team *before* they press (FR-021). Loaded
+   * once, and only when an invitation is actually known — a wizard with none stays as it was.
+   */
+  private ensureMemberships(): void {
+    if (this.membershipsRequested) {
+      return;
+    }
+    this.membershipsRequested = true;
+    this.membership.load();
   }
 
   ngOnDestroy(): void {
@@ -281,6 +394,51 @@ export class OnboardingComponent implements OnInit, OnDestroy {
     });
   }
 
+  // --- Team step: invitations (feature 053) ---------------------------------
+
+  /**
+   * Accept an invitation — the carried one or one addressed to the account. Like `askToJoin()`
+   * this is its own press and is deliberately *not* wired to Continue (029 FR-012/FR-018 carried
+   * over as 053 FR-011/FR-023): the wizard's primary action stays free of any network call.
+   *
+   * No retry, timeout, or backoff here. `retryInterceptor` time-limits this POST and never
+   * repeats it (constitution VII); a failed accept is reported and stays pressable.
+   */
+  protected acceptInvite(token: string, teamSlug: string): void {
+    if (this.acceptingToken() !== null || this.joinedSlugs().includes(teamSlug)) {
+      return;
+    }
+    this.acceptingToken.set(token);
+    this.inviteError.set(null);
+
+    this.teamApi.acceptInvite(token).subscribe({
+      next: (result) => {
+        this.acceptingToken.set(null);
+        this.joinedSlugs.update((slugs) => [...slugs, result.teamSlug]);
+        // The nav's "My team" cache and the already-member set both read this.
+        this.membership.load();
+      },
+      error: () => {
+        this.acceptingToken.set(null);
+        // One plain sentence whatever the status: the card's state on reload tells the truth,
+        // and no code or internal detail reaches the reader (Principle I, FR-024).
+        this.inviteError.set(this.transloco.translate('onboarding.team.invite.acceptError'));
+      },
+    });
+  }
+
+  /** Decline an addressed invitation. Gone from the step either way (023 precedent). */
+  protected declineInvite(token: string): void {
+    this.teamApi.declineInvite(token).subscribe({
+      next: () => this.removeAddressed(token),
+      error: () => this.removeAddressed(token),
+    });
+  }
+
+  private removeAddressed(token: string): void {
+    this.addressedInvites.update((list) => list.filter((inv) => inv.token !== token));
+  }
+
   /**
    * The opening list (no query) is narrowed to beginner-friendly teams (FR-002/FR-003) — UNLESS the
    * player has a home city, in which case "near you" is the stronger signal for a newcomer: we drop
@@ -374,15 +532,45 @@ export class OnboardingComponent implements OnInit, OnDestroy {
 
   /**
    * Refresh the cached session (so the guard sees onboardingCompleted) and enter the
-   * app. A returnUrl carried in from sign-in — an action pending since before the user
-   * signed up, e.g. an invite — takes precedence over the dashboard so it can resume.
+   * app at wherever `exitTarget()` says.
    */
   protected enterApp(): void {
-    const target = safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')) ?? '/';
+    const target = this.exitTarget();
     this.auth.loadSession().subscribe({
       next: () => this.router.navigateByUrl(target),
       error: () => this.router.navigateByUrl(target),
     });
+  }
+
+  /**
+   * Where the wizard lets the player out (feature 053, research R5):
+   *
+   * 1. A team joined through the step → that team's page.
+   * 2. A carried invite the step *offered* (usable, and the player walked past Welcome) that
+   *    they chose not to press → the invite page, WITHOUT the `?action=accept` sign-in carried.
+   *    The invite page resumes that action automatically; letting it run here would turn
+   *    Continue into an accept by another route (FR-011). Dismissing at Welcome never showed
+   *    the card, so there the pre-sign-in intent still stands, exactly as before this feature.
+   * 3. A carried invite that turned out stale → the dashboard; the step already said so.
+   * 4. Otherwise the returnUrl sign-in carried in — an action pending since before the player
+   *    signed up — takes precedence over the dashboard so it can resume, as it always has.
+   */
+  private exitTarget(): string {
+    const joined = this.joinedSlugs()[0];
+    if (joined) {
+      return `/t/${joined}`;
+    }
+    const carried = this.carriedInvite;
+    if (carried) {
+      const state = this.invitePreview();
+      if (typeof state === 'object' && this.step() !== 'welcome') {
+        return invitePagePath(carried);
+      }
+      if (state === 'expired' || state === 'invalid') {
+        return '/';
+      }
+    }
+    return safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')) ?? '/';
   }
 
   private blankToNull(value: string): string | null {
