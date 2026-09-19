@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { registerAndEnter } from './support/auth';
 import { pickCity } from './support/city';
+import { createTeam } from './support/team';
 
 /**
  * Feature 042 end-to-end: a team admin schedules an in-person training with a structured address.
@@ -17,13 +18,11 @@ test('create an in-person training with a structured address', async ({ page, re
 
   // A team to own the training; the creator becomes its first admin.
   const suffix = `${Date.now()}`;
-  await page.goto('/teams/new');
-  await page.getByTestId('team-name').fill(`Trainings E2E ${suffix}`);
-  await page.getByTestId('team-slug').fill(`trainings-e2e-${suffix}`);
-  await page.getByTestId('type-city').click();
-  await pickCity(page, 'team-city', 'Köln');
-  await page.getByTestId('team-create-submit').click();
-  await expect(page).toHaveURL(new RegExp(`/t/trainings-e2e-${suffix}`));
+  await createTeam(page, {
+    name: `Trainings E2E ${suffix}`,
+    slug: `trainings-e2e-${suffix}`,
+    city: 'Köln',
+  });
 
   // 1. Step 1 — a one-off, so the schedule step needs only a single date.
   await page.goto(`/t/trainings-e2e-${suffix}/trainings/new`);
@@ -79,12 +78,11 @@ test('a virtual training asks for no address at all', async ({ page, request }) 
   await registerAndEnter(page, request, 'trvirt');
 
   const suffix = `${Date.now()}`;
-  await page.goto('/teams/new');
-  await page.getByTestId('team-name').fill(`Virtual E2E ${suffix}`);
-  await page.getByTestId('team-slug').fill(`virtual-e2e-${suffix}`);
-  await page.getByTestId('type-city').click();
-  await pickCity(page, 'team-city', 'Berlin');
-  await page.getByTestId('team-create-submit').click();
+  await createTeam(page, {
+    name: `Virtual E2E ${suffix}`,
+    slug: `virtual-e2e-${suffix}`,
+    city: 'Berlin',
+  });
 
   await page.goto(`/t/virtual-e2e-${suffix}/trainings/new`);
   await page.getByTestId('training-oneoff').click();
