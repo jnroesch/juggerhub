@@ -321,7 +321,7 @@ stops in each case while other devices continue.
       The binding cases are the **desktop matrix at the `md` breakpoint in German with four
       columns** and the **mobile card's fourth row**, plus the device section in each of its six
       states. DESIGN.md wins on any conflict.
-- [ ] T045 Full verification per [quickstart.md](quickstart.md) §7:
+- [X] T045 Full verification per [quickstart.md](quickstart.md) §7:
       `dotnet test backend/tests/JuggerHub.Api.IntegrationTests`, then
       `cd frontend; npx nx lint web; npx nx test web; npx nx build web --configuration=production`,
       then `docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm --build playwright`.
