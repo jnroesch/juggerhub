@@ -5,6 +5,7 @@ using JuggerHub.Security.PlatformAdmin;
 using JuggerHub.Services.Email;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Security;
+using JuggerHub.Services.Teams;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -28,6 +29,7 @@ public sealed class AuthService : IAuthService
     private readonly PlatformAdminRoleSync _adminRoleSync;
     private readonly IdentityOptions _identityOptions;
     private readonly TermsOptions _terms;
+    private readonly TeamOptions _teams;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
@@ -40,6 +42,7 @@ public sealed class AuthService : IAuthService
         PlatformAdminRoleSync adminRoleSync,
         IOptions<IdentityOptions> identityOptions,
         IOptions<TermsOptions> terms,
+        IOptions<TeamOptions> teams,
         ILogger<AuthService> logger)
     {
         _userManager = userManager;
@@ -51,6 +54,7 @@ public sealed class AuthService : IAuthService
         _adminRoleSync = adminRoleSync;
         _identityOptions = identityOptions.Value;
         _terms = terms.Value;
+        _teams = teams.Value;
         _logger = logger;
     }
 
@@ -73,6 +77,13 @@ public sealed class AuthService : IAuthService
         {
             return termsRefusal;
         }
+
+        // Feature 053: the shared invite link the person registered from, if the form knew one.
+        // Shape only — no database read, so the invitation is never touched here and this
+        // endpoint never becomes an oracle for invite tokens. Malformed ⇒ null ⇒ today's link.
+        // It changes nothing else on this path: every refusal and the neutral response below are
+        // exactly what they were before the pair existed (research R3/R4).
+        var invite = InviteReference.TryParse(request.InviteSlug, request.InviteToken, _teams);
 
         var email = request.Email.Trim();
 
@@ -107,7 +118,10 @@ public sealed class AuthService : IAuthService
             // this email from re-registering, and it must not be emailed anything.
             if (!existing.EmailConfirmed && existing.Status == AccountStatus.Active)
             {
-                await SendVerificationSafelyAsync(existing, ct);
+                // The invite rides along here too: the realistic way into this branch is the
+                // invited person registering twice from the same link because the first mail
+                // did not turn up. A resend that dropped the invite would silently lose it.
+                await SendVerificationSafelyAsync(existing, invite, ct);
             }
 
             return RegisterResult.Accepted();
@@ -160,7 +174,7 @@ public sealed class AuthService : IAuthService
         // no restart needed between registering the first admin and using the admin area.
         await _adminRoleSync.TryDesignateOnRegistrationAsync(user);
 
-        await SendVerificationSafelyAsync(user, ct);
+        await SendVerificationSafelyAsync(user, invite, ct);
         return RegisterResult.Accepted();
     }
 
@@ -233,7 +247,8 @@ public sealed class AuthService : IAuthService
         var user = await _userManager.FindByEmailAsync(request.Email.Trim());
         if (user is not null && !user.EmailConfirmed)
         {
-            await SendVerificationSafelyAsync(user, ct);
+            var invite = InviteReference.TryParse(request.InviteSlug, request.InviteToken, _teams);
+            await SendVerificationSafelyAsync(user, invite, ct);
         }
         // Always neutral — no signal whether the account exists or is already verified.
     }
@@ -437,12 +452,12 @@ public sealed class AuthService : IAuthService
         return errors;
     }
 
-    private async Task SendVerificationSafelyAsync(User user, CancellationToken ct)
+    private async Task SendVerificationSafelyAsync(User user, InviteReference? invite, CancellationToken ct)
     {
         try
         {
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            await _authEmail.SendVerificationEmailAsync(user, token, ct);
+            await _authEmail.SendVerificationEmailAsync(user, token, invite, ct);
         }
         catch (Exception ex)
         {

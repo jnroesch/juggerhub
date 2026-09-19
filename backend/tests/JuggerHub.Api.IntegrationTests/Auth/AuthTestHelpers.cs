@@ -31,7 +31,8 @@ internal static class AuthTestHelpers
     /// need to exercise a refusal post their own payload instead.
     /// </summary>
     public static Task<HttpResponseMessage> RegisterAsync(
-        HttpClient client, string email, string? password = null, string? handle = null) =>
+        HttpClient client, string email, string? password = null, string? handle = null,
+        string? inviteSlug = null, string? inviteToken = null) =>
         client.PostAsJsonAsync("/api/v1/auth/register",
             new
             {
@@ -41,7 +42,15 @@ internal static class AuthTestHelpers
                 acceptsTerms = true,
                 termsVersion = CurrentTermsVersion,
                 termsLanguage = "en",
+                // Feature 053 — optional; null is what a form without an invite sends.
+                inviteSlug,
+                inviteToken,
             });
+
+    /// <summary>Feature 053 — resend verification, optionally carrying the invite pair.</summary>
+    public static Task<HttpResponseMessage> ResendVerificationAsync(
+        HttpClient client, string email, string? inviteSlug = null, string? inviteToken = null) =>
+        client.PostAsJsonAsync("/api/v1/auth/resend-verification", new { email, inviteSlug, inviteToken });
 
     public static Task<HttpResponseMessage> LoginAsync(HttpClient client, string email, string password, bool rememberMe = false) =>
         client.PostAsJsonAsync("/api/v1/auth/login", new { email, password, rememberMe });

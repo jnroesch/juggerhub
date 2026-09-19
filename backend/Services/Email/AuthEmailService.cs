@@ -3,6 +3,7 @@ using JuggerHub.Data;
 using JuggerHub.Entities;
 using JuggerHub.Services;
 using JuggerHub.Services.Localization;
+using JuggerHub.Services.Teams;
 using Microsoft.Extensions.Options;
 
 namespace JuggerHub.Services.Email;
@@ -13,6 +14,13 @@ namespace JuggerHub.Services.Email;
 /// <see cref="EmailOptions.FrontendBaseUrl"/>, and hands the HTML to
 /// <see cref="IEmailSender"/>. The verification/reset tokens are URL-encoded into the
 /// link; the SPA reads them from the query and POSTs them back to the API.
+///
+/// Feature 053: a verification link may also carry an <see cref="InviteReference"/> — the two
+/// segments of the shared invite link the person registered from — as <c>inviteSlug</c> and
+/// <c>inviteToken</c>, each URL-encoded on its own. The reference rides <b>next to</b> the
+/// verification token, never inside it, and the link never carries a path: the SPA composes the
+/// invite page from the two validated parts. The template prints whatever URL it is handed, so
+/// nothing about the email body changes.
 ///
 /// Language (feature 031): verification/reset are addressed to the caller themselves, so they use
 /// the <b>request</b> culture (the frontend stamped the effective language on <c>Accept-Language</c>);
@@ -44,11 +52,11 @@ public sealed class AuthEmailService
         _db = db;
     }
 
-    public async Task SendVerificationEmailAsync(User user, string token, CancellationToken ct = default)
+    public async Task SendVerificationEmailAsync(User user, string token, InviteReference? invite, CancellationToken ct = default)
     {
         // Pre-account: the caller's effective language rode in on Accept-Language (FR-012a).
         var culture = _culture.Resolve(user);
-        var url = BuildLink("verify-email", user.Id, token);
+        var url = BuildLink("verify-email", user.Id, token, invite);
         var name = await EmailRecipientName.ForAsync(_db, user, ct);
         var html = await _templates.GenerateEmailVerificationEmailAsync(name, user.Email!, url, culture);
         await _sender.SendAsync(user.Email!, _localizer.Get("subject.verification", culture), html, ct);
@@ -79,10 +87,16 @@ public sealed class AuthEmailService
         await _sender.SendAsync(user.Email!, _localizer.Get("subject.welcome", culture), html, ct);
     }
 
-    private string BuildLink(string path, Guid userId, string token)
+    private string BuildLink(string path, Guid userId, string token, InviteReference? invite = null)
     {
         var baseUrl = _options.FrontendBaseUrl.TrimEnd('/');
         var encodedToken = Uri.EscapeDataString(token);
-        return $"{baseUrl}/{path}?userId={userId}&token={encodedToken}";
+        var link = $"{baseUrl}/{path}?userId={userId}&token={encodedToken}";
+        if (invite is { } inviteRef)
+        {
+            link += $"&inviteSlug={Uri.EscapeDataString(inviteRef.Slug)}&inviteToken={Uri.EscapeDataString(inviteRef.Token)}";
+        }
+
+        return link;
     }
 }

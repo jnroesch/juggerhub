@@ -27,13 +27,23 @@ namespace JuggerHub.Dtos.Auth;
 /// The translation the document was shown in. Validated against the supported allowlist; without
 /// that check a client could write arbitrary text into an evidence row.
 /// </param>
+/// <param name="InviteSlug">
+/// Feature 053. With <paramref name="InviteToken"/>, an opaque reference to the shared invite link
+/// the person came from (its two path segments). Validated for shape only, never stored, never
+/// read against the invitation; its one effect is that the verification link carries it, so the
+/// invitation survives the email hop. A malformed pair is dropped silently — registration
+/// proceeds exactly as if nothing had been sent.
+/// </param>
+/// <param name="InviteToken">See <paramref name="InviteSlug"/>.</param>
 public sealed record RegisterRequest(
     [Required, EmailAddress, MaxLength(256)] string Email,
     [Required] string Password,
     [Required, MaxLength(30)] string Handle,
     [Required] bool AcceptsTerms,
     [Required, MaxLength(32)] string TermsVersion,
-    [Required, MaxLength(8)] string TermsLanguage);
+    [Required, MaxLength(8)] string TermsLanguage,
+    [MaxLength(64)] string? InviteSlug = null,
+    [MaxLength(128)] string? InviteToken = null);
 
 /// <summary>Sign in. <see cref="RememberMe"/> drives persistent vs session cookies.</summary>
 public sealed record LoginRequest(
@@ -45,9 +55,15 @@ public sealed record LoginRequest(
 public sealed record ForgotPasswordRequest(
     [Required, EmailAddress] string Email);
 
-/// <summary>Resend the verification email (enumeration-neutral).</summary>
+/// <summary>
+/// Resend the verification email (enumeration-neutral). The optional invite pair is the same
+/// shape-only reference <see cref="RegisterRequest"/> carries (feature 053): a screen that still
+/// knows which invite the person came from passes it on so the re-sent link carries it too.
+/// </summary>
 public sealed record ResendVerificationRequest(
-    [Required, EmailAddress] string Email);
+    [Required, EmailAddress] string Email,
+    [MaxLength(64)] string? InviteSlug = null,
+    [MaxLength(128)] string? InviteToken = null);
 
 /// <summary>Confirm email ownership via the emailed token.</summary>
 public sealed record VerifyEmailRequest(
