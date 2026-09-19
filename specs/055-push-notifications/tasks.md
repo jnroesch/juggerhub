@@ -316,7 +316,7 @@ stops in each case while other devices continue.
       by the player's browser and is under no contract with us. Describe the kind of recipient and
       the fact that the browser determines it. Run
       `npx nx test web --testPathPatterns="legal-catalog|catalog-parity"`.
-- [ ] T044 Instantiate `specs/055-push-notifications/checklists/ui-review.md` from
+- [X] T044 Instantiate `specs/055-push-notifications/checklists/ui-review.md` from
       `.specify/templates/ui-review-checklist-template.md` and verify each item against the diff.
       The binding cases are the **desktop matrix at the `md` breakpoint in German with four
       columns** and the **mobile card's fourth row**, plus the device section in each of its six
