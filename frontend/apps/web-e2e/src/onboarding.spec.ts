@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { pickCity } from './support/city';
-import { E2E_PASSWORD, registerVerifySignIn } from './support/auth';
+import { E2E_PASSWORD, newAccount, registerAndEnter, registerVerifySignIn, toPath, verifyLinkPath } from './support/auth';
 
 /**
  * Feature 004 end-to-end: a freshly-verified user's first sign-in is routed into
@@ -61,4 +61,84 @@ test('first login opens onboarding; completing it lands in the app and it is sho
   // Directly opening the flow after onboarding bounces to the app.
   await page.goto('/onboarding');
   await expect(page).not.toHaveURL(/onboarding/);
+});
+
+/**
+ * Feature 053: a shared invite link survives registration, the verification email and sign-in,
+ * and the onboarding team step leads with it. The invitee runs in a second browser context —
+ * their own browser, as far as cookies go — and the verification link is read from Mailpit,
+ * which is exactly the hop that used to drop the invite.
+ */
+test('an invite link survives registration and the team step offers it', async ({ page, browser, request }) => {
+  // 1. A team admin creates a team and its shared invite link.
+  await registerAndEnter(page, request, 'inv-admin');
+  const suffix = `${Date.now()}`;
+  const slug = `invite-e2e-${suffix}`;
+  const teamName = `Invite E2E ${suffix}`;
+  await page.goto('/teams/new');
+  await page.getByTestId('team-name').fill(teamName);
+  await page.getByTestId('team-slug').fill(slug);
+  await page.getByTestId('type-city').click();
+  await pickCity(page, 'team-city', 'Köln');
+  await page.getByTestId('team-create-submit').click();
+  await expect(page).toHaveURL(new RegExp(`/t/${slug}`));
+
+  await page.goto(`/t/${slug}/invitations`);
+  await page.getByTestId('create-link').click();
+  const inviteUrl = (await page.getByTestId('invite-link').textContent())?.trim() ?? '';
+  const invitePath = toPath(inviteUrl);
+  expect(invitePath).toMatch(new RegExp(`^/join/${slug}/`));
+
+  // 2. Someone with no account opens the link, presses Accept, and is sent to register.
+  const context = await browser.newContext();
+  const invitee = await context.newPage();
+  const account = newAccount('invitee');
+  await invitee.goto(invitePath);
+  await expect(invitee.getByTestId('invite-accept')).toContainText(teamName);
+  await invitee.getByTestId('accept-join').click();
+  await expect(invitee).toHaveURL(/sign-in\?returnUrl=/);
+  await invitee.getByRole('link', { name: /create an account/i }).click();
+  await expect(invitee).toHaveURL(/register\?returnUrl=/);
+  await invitee.getByTestId('register-email').fill(account.email);
+  await invitee.getByTestId('register-handle').fill(account.handle);
+  await expect(invitee.getByTestId('handle-available')).toBeVisible();
+  await invitee.getByTestId('register-password').fill(E2E_PASSWORD);
+  await invitee.getByTestId('register-confirm-password').fill(E2E_PASSWORD);
+  await invitee.getByTestId('register-accept-terms').check();
+  await expect(invitee.getByTestId('register-submit')).toBeEnabled();
+  await invitee.getByTestId('register-submit').click();
+  await expect(invitee.getByTestId('register')).toContainText(/check your email/i);
+
+  // 3. The emailed verification link carries the invite, and the verify page's Sign in carries
+  //    it on as the returnUrl sign-in already knows how to honour.
+  const verifyPath = await verifyLinkPath(request, account.email);
+  expect(verifyPath).toContain(`inviteSlug=${slug}`);
+  expect(verifyPath).toContain('inviteToken=');
+  await invitee.goto(verifyPath);
+  await expect(invitee.getByTestId('verify-email')).toContainText(/verified/i);
+  await invitee.getByTestId('verify-success-signin').click();
+  await expect(invitee).toHaveURL(/sign-in\?returnUrl=/);
+  await invitee.getByTestId('sign-in-email').fill(account.email);
+  await invitee.getByTestId('sign-in-password').fill(E2E_PASSWORD);
+  await invitee.getByTestId('sign-in-submit').click();
+  await expect(invitee).toHaveURL(/onboarding\?returnUrl=/);
+
+  // 4. The team step leads with the invitation; Accept joins immediately; the search stays.
+  await invitee.getByTestId('onboarding-start').click();
+  await invitee.getByTestId('onboarding-continue').click(); // name (prefilled) → city
+  await invitee.getByTestId('onboarding-skip').click(); // city → pompfen
+  await invitee.getByTestId('onboarding-skip').click(); // pompfen → team
+  await expect(invitee.getByTestId('onboarding-invite')).toContainText(teamName);
+  await expect(invitee.getByTestId('onboarding-team-search')).toBeVisible();
+  await invitee.getByTestId('onboarding-invite-accept').click();
+  await expect(invitee.getByTestId('onboarding-invite-joined')).toContainText(teamName);
+  await expect(invitee.getByTestId('onboarding-invite-accept')).toHaveCount(0);
+
+  // 5. Finishing onboarding lands on the joined team, not the dashboard.
+  await invitee.getByTestId('onboarding-continue').click(); // team → photo
+  await invitee.getByTestId('onboarding-finish').click();
+  await expect(invitee.getByTestId('onboarding')).toContainText(/all set/i);
+  await invitee.getByTestId('onboarding-enter').click();
+  await expect(invitee).toHaveURL(new RegExp(`/t/${slug}$`));
+  await context.close();
 });

@@ -199,6 +199,7 @@ From team settings, an admin can delete the team in a clearly marked danger zone
 - **FR-029**: Declining an invitation MUST NOT add the user and MUST record the invitation as declined.
 - **FR-030**: Opening an expired, revoked, or already-consumed invitation MUST show a friendly terminal state (e.g. "this invite has expired") with guidance to request a fresh one and no path to join.
 - **FR-031**: Accepting or declining MUST require authentication; an unauthenticated visitor MUST be able to sign in or register and return to the same invitation to act on it.
+  > *Feature 053 (2026-09-19, GH #324):* the **register** half of this promise did not hold — a new account verifies its email first, and the verification message knew nothing about the invitation. 053 carries the invite's identity through the verification link, so a registering visitor now returns to it too (inside the onboarding wizard, or at the invite page once onboarded). See [`specs/053-invite-aware-onboarding/spec.md`](../053-invite-aware-onboarding/spec.md).
 
 #### Team deletion
 

@@ -24,6 +24,14 @@ is the amendment that ends it.
 Everything else in 004 stands unchanged — in particular FR-008 and FR-014, which make every step
 after the display name skippable. This feature strengthens, never weakens, that guarantee.
 
+> **Amended by feature 053 (2026-09-19, GH #324).** The out-of-scope line below — "team
+> invitations or invite links in the step" — is **superseded**: when the player arrived through a
+> shared invite link, or has invitations addressed to their account, the team step now leads with
+> those and keeps this feature's search beneath them. Everything else here stands, and FR-012,
+> FR-017 and FR-018 are carried over unchanged: accepting an invitation is its own press, exactly
+> as asking to join is, and Continue still issues no request. See
+> [`specs/053-invite-aware-onboarding/spec.md`](../053-invite-aware-onboarding/spec.md).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Find my team and ask to join, during onboarding (Priority: P1)
@@ -280,8 +288,8 @@ fails are visibly and verbally distinct.
   visually indistinguishable from the rest of the app.
 - **The Done screen is untouched.** Its copy stays generic, since it cannot honestly speak to a
   request whose outcome is unknown.
-- **Out of scope**: creating a team from within onboarding; team invitations or invite links in the
-  step; filters or sorting beyond the query (city, active-only, sort order); paging through results
+- **Out of scope**: creating a team from within onboarding; ~~team invitations or invite links in
+  the step~~ (superseded by feature 053 — see the callout above); filters or sorting beyond the query (city, active-only, sort order); paging through results
   beyond the first page; showing or tracking the request's later outcome inside onboarding;
   notifying the player when an admin approves (feature 010 already covers that); re-running the team
   step later from settings.

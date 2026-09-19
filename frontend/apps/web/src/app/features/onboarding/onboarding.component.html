@@ -133,13 +133,16 @@
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
         <h1 class="text-h2">{{ 'onboarding.team.title' | transloco }}</h1>
-        <p class="mt-xs text-lead text-muted">
-          @if (homeCityPersisted()) {
-            {{ 'onboarding.team.introNear' | transloco }}
-          } @else {
-            {{ 'onboarding.team.introFar' | transloco }}
-          }
-        </p>
+        <!-- The intro describes the search; when an invitation leads (053) it moves down to it. -->
+        @if (!anyInviteShown()) {
+          <p class="mt-xs text-lead text-muted">
+            @if (homeCityPersisted()) {
+              {{ 'onboarding.team.introNear' | transloco }}
+            } @else {
+              {{ 'onboarding.team.introFar' | transloco }}
+            }
+          </p>
+        }
 
         <!--
           Feature 053 — the invitation(s) the player arrived with lead; the 029 search follows.
@@ -266,6 +269,13 @@
 
         @if (anyInviteShown()) {
           <p class="mt-lg text-body-sm font-medium text-heading">{{ 'onboarding.team.invite.orAnother' | transloco }}</p>
+          <p class="mt-2xs text-body-sm text-muted">
+            @if (homeCityPersisted()) {
+              {{ 'onboarding.team.introNear' | transloco }}
+            } @else {
+              {{ 'onboarding.team.introFar' | transloco }}
+            }
+          </p>
         }
 
         <label
