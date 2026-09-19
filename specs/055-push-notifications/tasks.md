@@ -220,7 +220,7 @@ notification naming its subject arrives and opens the right page.
       `frontend/apps/web/src/app/core/pwa/pwa-shell.spec.ts`: keep every existing assertion and add
       that `sw.js` now contains `addEventListener('push'` and `addEventListener('notificationclick'`.
       The no-offline assertions stay exactly as they are.
-- [ ] T031 [P] [US2] Write `backend/tests/JuggerHub.Api.IntegrationTests/Push/PushDispatchTests.cs`:
+- [X] T031 [P] [US2] Write `backend/tests/JuggerHub.Api.IntegrationTests/Push/PushDispatchTests.cs`:
       a `404` and a `410` each delete the row and cause no retry; a `5xx` is retried by the pipeline;
       a success touches `LastSuccessAt`; a recipient with no subscription causes **no outbound call
       at all** (SC-008); the response body never appears in the logs.
@@ -256,7 +256,7 @@ in-app entry still does.
       `frontend/apps/web/src/app/features/settings/notifications/notification-settings.component.spec.ts`:
       three toggles render per category; pressing the push toggle calls `setCell` with the `Push`
       channel; the always-on group gains no push toggle (FR-017).
-- [ ] T036 [P] [US3] Extend the preference integration tests in
+- [X] T036 [P] [US3] Extend the preference integration tests in
       `backend/tests/JuggerHub.Api.IntegrationTests/` to cover `PUT /notification-preferences/{category}/Push`
       round-tripping through the existing endpoint, and the matrix returning `push` for every
       category with the unset default of `true`.
