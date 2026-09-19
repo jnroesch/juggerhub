@@ -78,6 +78,8 @@ public static class WebPushServiceCollectionExtensions
             };
         });
 
+        services.AddScoped<IPushSubscriptionService, PushSubscriptionService>();
+
         return builder;
     }
 

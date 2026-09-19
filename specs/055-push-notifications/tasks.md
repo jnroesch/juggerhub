@@ -130,19 +130,19 @@ every state it can be in, including the iPhone install case deferred from 054.
 **Independent Test**: enable in a supporting browser and confirm a row exists and the page says so
 after a reload. On an iPhone in Safari, confirm the page shows install instructions and no button.
 
-- [ ] T015 [US1] Implement `backend/Services/Notifications/Push/PushSubscriptionService.cs`:
+- [X] T015 [US1] Implement `backend/Services/Notifications/Push/PushSubscriptionService.cs`:
       register (idempotent on `Endpoint`, **reassigning** an endpoint held by another account to the
       caller), remove (scoped to the caller, idempotent, never revealing whether a row existed), and
       touch `LastSuccessAt` through the change tracker so `AuditFieldsInterceptor` runs.
-- [ ] T016 [US1] Create `backend/Dtos/Notifications/PushDtos.cs` with the register request
+- [X] T016 [US1] Create `backend/Dtos/Notifications/PushDtos.cs` with the register request
       (`Endpoint`, `P256dh`, `Auth`, `DeviceLabel`), the remove request (`Endpoint`) and the
       public-key response, with `[Required]` validation and an absolute-`https` check on the
       endpoint per [contracts/push-api.md](contracts/push-api.md).
-- [ ] T017 [US1] Create `backend/Controllers/PushSubscriptionsController.cs` — thin, authenticated:
+- [X] T017 [US1] Create `backend/Controllers/PushSubscriptionsController.cs` — thin, authenticated:
       `GET /push/public-key`, `POST /push/subscriptions` (204), `DELETE /push/subscriptions` (204).
       The owner is **always** the caller's id from the token, never a body field. Apply the existing
       per-user rate-limit policy.
-- [ ] T018 [P] [US1] Write `backend/tests/JuggerHub.Api.IntegrationTests/Push/PushSubscriptionTests.cs`:
+- [X] T018 [P] [US1] Write `backend/tests/JuggerHub.Api.IntegrationTests/Push/PushSubscriptionTests.cs`:
       register creates one row; registering the same endpoint twice is idempotent; registering an
       endpoint held by another account **moves** it; remove is scoped to the caller and idempotent;
       all three endpoints reject an anonymous caller; a malformed endpoint is a 400.
