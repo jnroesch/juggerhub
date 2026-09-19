@@ -339,6 +339,15 @@ Always use the **semantic aliases** (`surface-card`, `text-body`,
   decorative separators, where contrast carries no meaning. `border-strong`
   (`sand-6`) draws an input or a secondary button: that is a UI component
   boundary, so it clears 3:1 on every light surface.
+- **Opacity** — every token takes Tailwind's slash modifier:
+  `bg-surface-inverse/40` for a scrim, `bg-surface-page/80` under a sticky
+  bar, `border-on-accent/30` for an edge on a coral fill. It composes at paint
+  time via `color-mix()`, so the token stays hex here and in `styles.css`, and
+  the plain utility is unchanged. The legacy `bg-opacity-*` / `text-opacity-*`
+  utilities are switched off — the modifier is the one spelling — and
+  `color-alpha.spec.ts` compiles every modifier the app writes, because the
+  failure mode is silent: a modifier that cannot compose emits no rule at all
+  and the element renders transparent, not faded (GH #317, #322).
 
 ## Typography
 
@@ -629,6 +638,12 @@ treatment, built entirely from the tokens above; nothing new is introduced.
 - **Don't** introduce new colors, fonts, or radii ad hoc — add a token here
   first so the system stays consistent.
 - **Don't** rely on color alone to convey status; pair it with text or an icon.
+- **Don't** set a colour in a static `class` that a conditional class also sets
+  — `routerLinkActive`, `[class.x]`, or a `[class]` branch. Two bare utilities
+  have the same specificity, so the stylesheet's order wins and the "active"
+  colour may never apply (the Browse tabs, GH #318). Spell both states out in
+  one binding instead, as `top-nav` does; `active-class.spec.ts` fails on the
+  racing shape.
 - **Don't** use emoji, pure-black shadows, sharp corners, or more than one coral
   CTA per view.
 - **Don't** invent a new visual style for one screen; extend this system.

@@ -176,17 +176,27 @@ function cssVariables(): Map<string, string> {
   return resolved;
 }
 
+/**
+ * A theme colour as the plain utility renders it. Since GH #322 every design-system colour
+ * is a *function* of the requested alpha (so `bg-brand/60` can compose), and called without
+ * one it returns the bare `var(--x)` it always was — which is the value this arithmetic
+ * resolves. A Tailwind default such as `black` is still a string.
+ */
+function plainValue(value: unknown): string {
+  return typeof value === 'function' ? (value({}) as string) : (value as string);
+}
+
 /** Every colour key in the resolved theme, flattened the way Tailwind names the utilities. */
 function themeColors(colors: Record<string, unknown>): Map<string, string> {
   const flat = new Map<string, string>();
 
   for (const [name, value] of Object.entries(colors)) {
-    if (typeof value === 'string') {
-      flat.set(name, value);
+    if (typeof value === 'string' || typeof value === 'function') {
+      flat.set(name, plainValue(value));
       continue;
     }
-    for (const [step, stepValue] of Object.entries(value as Record<string, string>)) {
-      flat.set(step === 'DEFAULT' ? name : `${name}-${step}`, stepValue);
+    for (const [step, stepValue] of Object.entries(value as Record<string, unknown>)) {
+      flat.set(step === 'DEFAULT' ? name : `${name}-${step}`, plainValue(stepValue));
     }
   }
 
@@ -390,7 +400,7 @@ describe('design-system contrast', () => {
     });
 
     it('focuses everything with one token', () => {
-      expect(resolveConfig(tailwindConfig).theme.ringColor.focus).toBe('var(--border-focus)');
+      expect(plainValue(resolveConfig(tailwindConfig).theme.ringColor.focus)).toBe('var(--border-focus)');
     });
   });
 
