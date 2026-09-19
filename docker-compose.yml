@@ -65,6 +65,16 @@ services:
       - Resilience__Outbound__Tugeny__TotalTimeoutSeconds=${RESILIENCE_TUGENY_TOTAL_TIMEOUT_SECONDS:-30}
       - Resilience__Outbound__Tugeny__MaxRetryAttempts=${RESILIENCE_TUGENY_MAX_RETRY_ATTEMPTS:-2}
       - Resilience__Outbound__Tugeny__BreakerMinimumThroughput=${RESILIENCE_TUGENY_BREAKER_MIN_THROUGHPUT:-4}
+      # Feature 055 — Web Push. The private key is a secret and has no default; a missing one fails
+      # startup rather than silently disabling the channel. Generate a local pair with
+      # `pwsh ./scripts/New-VapidKeyPair.ps1`.
+      - WebPush__Subject=${WEBPUSH_SUBJECT:-mailto:hello@juggerhub.local}
+      - WebPush__PublicKey=${WEBPUSH_PUBLIC_KEY:-}
+      - WebPush__PrivateKey=${WEBPUSH_PRIVATE_KEY:?WEBPUSH_PRIVATE_KEY must be set in .env — generate a pair with `pwsh ./scripts/New-VapidKeyPair.ps1`}
+      - Resilience__Outbound__WebPush__AttemptTimeoutSeconds=${RESILIENCE_WEBPUSH_ATTEMPT_TIMEOUT_SECONDS:-10}
+      - Resilience__Outbound__WebPush__TotalTimeoutSeconds=${RESILIENCE_WEBPUSH_TOTAL_TIMEOUT_SECONDS:-30}
+      - Resilience__Outbound__WebPush__MaxRetryAttempts=${RESILIENCE_WEBPUSH_MAX_RETRY_ATTEMPTS:-2}
+      - Resilience__Outbound__WebPush__BreakerMinimumThroughput=${RESILIENCE_WEBPUSH_BREAKER_MIN_THROUGHPUT:-5}
       # #244 — the proxies whose X-Forwarded-For the backend believes: here the frontend nginx
       # container, somewhere in Docker's default bridge address pools. Deployed, the pod CIDR.
       - ForwardedHeaders__KnownNetworks=${FORWARDED_HEADERS_KNOWN_NETWORKS:-172.16.0.0/12,192.168.0.0/16}

@@ -52,9 +52,11 @@ same thing with one fewer package and the constitution's wiring.
 nginx web tier. Service worker from feature 054.
 
 **Primary Dependencies**: `Lib.Net.Http.WebPush` 3.3.1 (MIT, 2.1M downloads, latest release
-2025-03-09; newest declared TFM `net6.0`, which .NET 10 resolves and which pulls **no**
-BouncyCastle — that dependency exists only on the `net451`/`netstandard2.0` assets). No frontend
-dependency: the Push API is a browser API.
+2025-03-09; newest declared TFM `net6.0`, which .NET 10 resolves, adding exactly one transitive
+package, `Lib.Net.Http.EncryptedContentEncoding`). Note when verifying: `BouncyCastle.Cryptography`
+is in the transitive list **either way**, via `MailKit → MimeKit`; this package pulls it only on
+its `net451`/`netstandard2.0` assets. Diff the list before and after rather than reading it once.
+No frontend dependency: the Push API is a browser API.
 
 **Storage**: one new table, `PushSubscriptions`, modelled on `RefreshToken`. One migration. No
 change to `NotificationPreference` (the sparse model absorbs a third channel with no migration).

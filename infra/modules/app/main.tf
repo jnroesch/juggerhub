@@ -127,6 +127,11 @@ resource "kubernetes_config_map_v1" "app" {
     # Feature 035 — media object storage. Only the container name is non-sensitive; the
     # connection string carries the account key and lives in the Secret below.
     "MediaStorage__ContainerName" = var.media_storage_container_name
+    # Feature 055 — Web Push. The public key is deliberately NOT a secret: every browser that
+    # subscribes receives it. It is still per-environment, which is why it is configuration and
+    # not a build-time constant in the frontend bundle.
+    "WebPush__Subject"   = var.webpush_subject
+    "WebPush__PublicKey" = var.webpush_public_key
     # #244 — the backend believes X-Forwarded-For only from the pod network: the frontend nginx
     # (/api) and the ingress controller (/hubs) both live there. Anyone else's header is ignored.
     "ForwardedHeaders__KnownNetworks" = var.pod_cidr
@@ -148,6 +153,8 @@ resource "kubernetes_secret_v1" "app" {
     "Admin__Emails"          = var.admin_emails
     # Feature 035 — carries the storage account key, so it belongs here and not in the ConfigMap.
     "MediaStorage__ConnectionString" = var.media_storage_connection_string
+    # Feature 055 — signs every push delivery. Its public half is in the ConfigMap above.
+    "WebPush__PrivateKey" = var.webpush_private_key
   }
   type = "Opaque"
 }

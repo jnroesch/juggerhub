@@ -17,9 +17,11 @@
 # object below is accepted by the API server and silently ignored.
 #
 # Deliberately NOT restricted:
-#   - Egress. The backend calls Resend, Azure Blob and tugeny.org (feature 050, tournament
-#     results import) by hostname, which a plain NetworkPolicy cannot express; FQDN egress rules
-#     are a Cilium-specific follow-up.
+#   - Egress. The backend calls Resend, Azure Blob, tugeny.org (feature 050, tournament results
+#     import) and the browser push services (feature 055 — Google, Apple and Mozilla endpoints,
+#     whose hostnames the BROWSER chooses, not us) by hostname, which a plain NetworkPolicy
+#     cannot express; FQDN egress rules are a Cilium-specific follow-up. Note that push in
+#     particular can never be reduced to a fixed host list.
 #   - Kubelet health probes. They originate from the node, which Cilium admits to local pods
 #     regardless of policy.
 #

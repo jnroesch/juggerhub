@@ -35,8 +35,12 @@ package metadata. The three owner decisions are inputs, recorded in the spec's C
   one-chained-call requirement cannot be met through it without reaching for a private constant.
   Taking the lower-level package drops a dependency and puts resilience where Principle VII says.
   The package is MIT, 2.1M downloads, last released 2025-03-09, and on .NET 10 resolves its
-  `net6.0` asset whose only dependency is `Lib.Net.Http.EncryptedContentEncoding` — **no
-  BouncyCastle**, which appears only on the `net451`/`netstandard2.0` assets.
+  `net6.0` asset whose only dependency is `Lib.Net.Http.EncryptedContentEncoding`, so it adds
+  exactly one transitive package. **Verified during implementation, and the obvious check is
+  misleading**: `dotnet list package --include-transitive` *does* show `BouncyCastle.Cryptography`,
+  but it arrives via `MailKit → MimeKit` and was already there before this reference existed. This
+  package pulls BouncyCastle only on its `net451`/`netstandard2.0` assets, which .NET 10 never
+  resolves. Compare the list before and after rather than reading it once.
 - **Alternatives considered**: `WebPush` 1.0.13 (the `web-push-libs` one) — older, bundles
   BouncyCastle on every target; hand-rolling VAPID ES256 plus RFC 8291 `aes128gcm` with BCL crypto —
   genuinely feasible now (`ECDsa`, `ECDiffieHellman`, `HKDF`, and `AesGcm` is already used by 047),

@@ -36,37 +36,38 @@ cannot be observed without US1**, since there is nothing to deliver to. US3 (the
 **Purpose**: the dependency, the configuration path across every environment, and the wiring that
 Principle VII requires. Nothing here is observable yet.
 
-- [ ] T001 Add `Lib.Net.Http.WebPush` version `3.3.1` to `backend/JuggerHub.Api.csproj`, pinning the
-      major per the constitution's dependency rules. Confirm with `dotnet list package --include-transitive`
-      that the only transitive addition is `Lib.Net.Http.EncryptedContentEncoding` and that **no
-      BouncyCastle package appears** (it is on the `net451`/`netstandard2.0` assets only). Record
-      the result in the PR.
-- [ ] T002 [P] Create `backend/Common/WebPushOptions.cs` with `SectionName = "WebPush"`,
+- [X] T001 Add `Lib.Net.Http.WebPush` version `3.3.1` to `backend/JuggerHub.Api.csproj`, pinning the
+      major per the constitution's dependency rules. Confirm the transitive set by running
+      `dotnet list package --include-transitive` **before and after** the change and diffing:
+      the only addition must be `Lib.Net.Http.EncryptedContentEncoding`. Reading the list once is
+      misleading — `BouncyCastle.Cryptography` appears in it either way, via `MailKit → MimeKit`.
+      Record the result in the PR.
+- [X] T002 [P] Create `backend/Common/WebPushOptions.cs` with `SectionName = "WebPush"`,
       `ResilienceName = "WebPush"`, and `Subject`, `PublicKey`, `PrivateKey` string properties plus
       an `IsConfigured` check. Add the matching `"WebPush"` section with empty values and a
       `"Resilience": { "Outbound": { "WebPush": { … } } }` block to `backend/appsettings.json`,
       spelling out all eight resilience keys the way `Resend` and `Tugeny` already do. Leave
       `BreakerMinimumThroughput` at 5 with a comment that this integration genuinely reaches it,
       unlike email.
-- [ ] T003 [P] Write `scripts/New-VapidKeyPair.ps1`: generate a P-256 key pair with
+- [X] T003 [P] Write `scripts/New-VapidKeyPair.ps1`: generate a P-256 key pair with
       `[System.Security.Cryptography.ECDsa]::Create()`, export the public key as base64url of the
       uncompressed point (`0x04 || X || Y`) and the private key as base64url of `D`, and print the
       exact `.env` lines to paste. Header comment: the library ships no generator, the encoding is
       specific, and each environment gets its own pair so a Dev subscription is never deliverable
       from Prod.
-- [ ] T004 [P] Add the configuration to the local path: `WEBPUSH_SUBJECT`, `WEBPUSH_PUBLIC_KEY`,
+- [X] T004 [P] Add the configuration to the local path: `WEBPUSH_SUBJECT`, `WEBPUSH_PUBLIC_KEY`,
       `WEBPUSH_PRIVATE_KEY` documented in `.env.sample` (the private key commented out, following
       the `EMAIL_RESEND_API_KEY` precedent), and the `WebPush__*` plus four
       `Resilience__Outbound__WebPush__*` variables in the backend `environment:` block of
       `docker-compose.yml` using the `${VAR:-}` form.
-- [ ] T005 [P] Add the deployed path: a `sensitive` + validated `webpush_private_key` variable in
+- [X] T005 [P] Add the deployed path: a `sensitive` + validated `webpush_private_key` variable in
       `infra/variables.tf`, passthrough in `infra/main.tf` and `infra/modules/app/variables.tf`,
       `"WebPush__PrivateKey"` in the `app-secrets` Secret and `"WebPush__Subject"` +
       `"WebPush__PublicKey"` in the `app-config` ConfigMap in `infra/modules/app/main.tf`, and
       `TF_VAR_webpush_private_key: ${{ secrets.WEBPUSH_PRIVATE_KEY }}` in
       `.github/workflows/deploy.yml`. Update the outbound-host comment in
       `infra/modules/app/network-policy.tf` to name the push services.
-- [ ] T006 Wire it in `backend/Program.cs`: bind `WebPushOptions`, **fail fast at startup** when the
+- [X] T006 Wire it in `backend/Program.cs`: bind `WebPushOptions`, **fail fast at startup** when the
       section is missing or malformed with no disable switch (mirroring the Redis and chat-encryption
       guards), and register the typed client
       `AddHttpClient<PushServiceClient>((http, sp) => new PushServiceClient(http) { DefaultAuthentication = …, AutoRetryAfter = false })
@@ -110,7 +111,7 @@ Principle VII requires. Nothing here is observable yet.
       touch. `IPushDispatcher`'s XML doc must say it is called **by** `NotificationService` and not
       implemented inside it, because `ChatMessageService` will call it directly in #309 without
       writing a `Notification` row (019 FR-051a).
-- [ ] T014 Extend `backend/tests/JuggerHub.Api.IntegrationTests/JuggerHubApiFactory.cs`: add the
+- [X] T014 Extend `backend/tests/JuggerHub.Api.IntegrationTests/JuggerHubApiFactory.cs`: add the
       `WebPush:*` and `Resilience:Outbound:WebPush:*` in-memory keys (a deliberately unreachable
       subject/endpoint host, following the `Tugeny:BaseUrl = "http://tugeny.invalid/"` precedent),
       and register a recording fake `IPushDispatcher` in `ConfigureTestServices` via
