@@ -331,7 +331,7 @@ and the PR.
       All green. Confirm `git diff --stat main -- backend infra` is **empty** (FR-014) and that
       `git status` shows no change to `frontend/package.json` or `package-lock.json` (no new
       dependency).
-- [ ] T027 Commit in small logical groups with `#307` in each message and the required
+- [X] T027 Commit in small logical groups with `#307` in each message and the required
       attribution line — suggested: (1) nginx locations, (2) icons + render tool, (3) manifest +
       index.html + guard/e2e for US1, (4) worker + registration + unit/guard/e2e for US2, (5) US3
       assertions, (6) privacy policy ×3. Open the PR with `Closes #307`, the device screenshots
