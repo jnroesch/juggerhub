@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { pickCity } from './support/city';
 import { E2E_PASSWORD, newAccount, registerAndEnter, registerVerifySignIn, toPath, verifyLinkPath } from './support/auth';
+import { createTeam } from './support/team';
 
 /**
  * Feature 004 end-to-end: a freshly-verified user's first sign-in is routed into
@@ -70,18 +71,12 @@ test('first login opens onboarding; completing it lands in the app and it is sho
  * which is exactly the hop that used to drop the invite.
  */
 test('an invite link survives registration and the team step offers it', async ({ page, browser, request }) => {
-  // 1. A team admin creates a team and its shared invite link.
+  // 1. A team admin creates a team (through the 052 wizard) and its shared invite link.
   await registerAndEnter(page, request, 'inv-admin');
   const suffix = `${Date.now()}`;
   const slug = `invite-e2e-${suffix}`;
   const teamName = `Invite E2E ${suffix}`;
-  await page.goto('/teams/new');
-  await page.getByTestId('team-name').fill(teamName);
-  await page.getByTestId('team-slug').fill(slug);
-  await page.getByTestId('type-city').click();
-  await pickCity(page, 'team-city', 'Köln');
-  await page.getByTestId('team-create-submit').click();
-  await expect(page).toHaveURL(new RegExp(`/t/${slug}`));
+  await createTeam(page, { name: teamName, slug, city: 'Köln' });
 
   await page.goto(`/t/${slug}/invitations`);
   await page.getByTestId('create-link').click();
