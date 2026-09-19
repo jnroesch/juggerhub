@@ -266,7 +266,7 @@
 
     <!-- Join / cancel confirmation (feature 009 — guards accidental clicks) -->
     @if (confirmIntent(); as intent) {
-      <div class="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-md" role="presentation">
+      <div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
         <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
           role="dialog" aria-modal="true" [attr.aria-label]="(intent === 'join' ? 'teams.detail.confirmJoinTitle' : 'teams.detail.confirmCancelTitle') | transloco:{ name: team.name }"
           data-testid="join-confirm">

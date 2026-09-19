@@ -340,8 +340,10 @@ Always use the **semantic aliases** (`surface-card`, `text-body`,
   (`sand-6`) draws an input or a secondary button: that is a UI component
   boundary, so it clears 3:1 on every light surface.
 - **Opacity** — every token takes Tailwind's slash modifier:
-  `bg-surface-inverse/40` for a scrim, `bg-surface-page/80` under a sticky
-  bar, `border-on-accent/30` for an edge on a coral fill. It composes at paint
+  `bg-surface-inverse/40` for a scrim (every modal and sheet backdrop — never
+  `bg-black`, which is Tailwind's own pure black and not a token),
+  `bg-surface-page/80` under a sticky bar, `border-on-accent/30` for an edge
+  on a coral fill. It composes at paint
   time via `color-mix()`, so the token stays hex here and in `styles.css`, and
   the plain utility is unchanged. The legacy `bg-opacity-*` / `text-opacity-*`
   utilities are switched off — the modifier is the one spelling — and
