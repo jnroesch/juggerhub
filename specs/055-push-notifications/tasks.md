@@ -146,25 +146,25 @@ after a reload. On an iPhone in Safari, confirm the page shows install instructi
       register creates one row; registering the same endpoint twice is idempotent; registering an
       endpoint held by another account **moves** it; remove is scoped to the caller and idempotent;
       all three endpoints reject an anonymous caller; a malformed endpoint is a 400.
-- [ ] T019 [P] [US1] Create `frontend/apps/web/src/app/core/services/push-device.service.ts`
+- [X] T019 [P] [US1] Create `frontend/apps/web/src/app/core/services/push-device.service.ts`
       exposing one signal over the six states `unsupported | needs-install | blocked | off |
       enabling | on`, plus `enable()` and `disable()`. Detect iOS by **display mode, not user-agent
       sniffing** (`PushManager` is absent in an iOS tab and present in the installed app), and derive
       a readable device label from the browser. Permission is requested **only** inside `enable()`,
       from the player's press.
-- [ ] T020 [P] [US1] Create
+- [X] T020 [P] [US1] Create
       `frontend/apps/web/src/app/features/settings/notifications/push-device-section.component.{ts,html,css}`
       rendering one sentence and the right control per state. The `blocked` state explains that only
       the browser can undo it and shows **no** button. The `needs-install` state carries the
       Add to Home Screen steps — this is 054's deferred install affordance.
-- [ ] T021 [US1] Add the device section to
+- [X] T021 [US1] Add the device section to
       `frontend/apps/web/src/app/features/settings/notifications/notification-settings.component.html`
       above the matrix, and inject the service in the component's `.ts`.
-- [ ] T022 [US1] Add the device-section copy to **all three** catalogues at once
+- [X] T022 [US1] Add the device-section copy to **all three** catalogues at once
       (`frontend/apps/web/public/i18n/{en,de,es}.json`) under `settings.notifications.push.*`:
       one string per state, the iOS steps, and the enable/disable labels. German uses `–`, never
       `—`. `catalog-parity.spec.ts` goes red if a locale is missed.
-- [ ] T023 [P] [US1] Write
+- [X] T023 [P] [US1] Write
       `frontend/apps/web/src/app/core/services/push-device.service.spec.ts` and a spec for the
       section component: each of the six states renders its own sentence; `blocked` renders no
       button; permission is never requested without a press.

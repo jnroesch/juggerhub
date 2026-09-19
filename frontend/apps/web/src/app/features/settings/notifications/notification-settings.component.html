@@ -8,6 +8,11 @@
     </p>
   }
 
+  <!-- Whether THIS browser receives notifications at all — a different question from which
+       categories would be pushed, which is the Push column below. Rendered above the matrix and
+       outside its load states, because it depends on the browser rather than on the server. -->
+  <jh-push-device-section class="mt-lg block" />
+
   <!-- Loading -->
   @if (loading()) {
     <div class="mt-lg space-y-md" aria-hidden="true">

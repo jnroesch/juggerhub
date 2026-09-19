@@ -747,8 +747,22 @@
       "loadErrorBody": "Es cosa nuestra, no tuya. Inténtalo de nuevo.",
       "inApp": "En la app",
       "email": "Correo",
+      "push": "Push",
       "alwaysOn": "Siempre activas",
-      "alwaysOnDesc": "Estas mantienen tu cuenta segura, por eso no se pueden desactivar."
+      "alwaysOnDesc": "Estas mantienen tu cuenta segura, por eso no se pueden desactivar.",
+      "pushDevice": {
+        "heading": "Notificaciones en este dispositivo",
+        "stateOn": "Este navegador recibe notificaciones, aunque JuggerHub no esté abierto. Cuáles recibe lo decides en la columna Push de abajo.",
+        "stateOff": "Este navegador todavía no recibe notificaciones. Al activarlas, tu navegador te pedirá permiso primero.",
+        "stateBlocked": "Tu navegador está bloqueando las notificaciones de JuggerHub. Desde aquí no podemos volver a preguntar: tendrías que permitirlas en los ajustes del navegador para este sitio.",
+        "stateNeedsInstall": "En iPhone y iPad, las notificaciones solo llegan a JuggerHub cuando lo tienes en la pantalla de inicio.",
+        "stateUnsupported": "Este navegador no puede recibir notificaciones. Todo lo demás funciona con normalidad.",
+        "turnOn": "Activar en este dispositivo",
+        "turnOff": "Desactivar en este dispositivo",
+        "installStep1": "Toca el botón Compartir en Safari.",
+        "installStep2": "Elige «Añadir a pantalla de inicio».",
+        "installStep3": "Abre JuggerHub desde la pantalla de inicio y vuelve aquí. Tendrás que iniciar sesión otra vez: la app instalada tiene su propia sesión."
+      }
     }
   },
   "browse": {

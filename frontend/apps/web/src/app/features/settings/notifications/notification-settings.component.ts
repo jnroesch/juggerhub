@@ -3,6 +3,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, CardComponent, ChipDirective } from '../../../shared/ui';
 import { NotificationPreferencesService } from '../../../core/services/notification-preferences.service';
 import { ChannelKey, NotificationCategoryId } from '../../../core/models/notification-preferences.models';
+import { PushDeviceSectionComponent } from './push-device-section.component';
 
 /**
  * Notification settings (feature 011). Renders the caller's per-category × per-channel matrix from
@@ -12,7 +13,7 @@ import { ChannelKey, NotificationCategoryId } from '../../../core/models/notific
  */
 @Component({
   selector: 'jh-notification-settings',
-  imports: [CardComponent, ButtonDirective, ChipDirective, TranslocoPipe],
+  imports: [CardComponent, ButtonDirective, ChipDirective, TranslocoPipe, PushDeviceSectionComponent],
   templateUrl: './notification-settings.component.html',
   styleUrl: './notification-settings.component.css',
 })
