@@ -121,7 +121,7 @@ cd frontend
 npx nx lint web
 npx nx test web
 npx nx build web --configuration=production
-docker compose -f docker-compose.yml -f docker-compose.test.yml up --build --abort-on-container-exit e2e
+docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm --build playwright
 ```
 
 All green, plus the device screenshots (Android + iOS, standalone, `/chat` at the bottom bar)

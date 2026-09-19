@@ -38,7 +38,7 @@ re-read the plan — something is wrong.
 
 **Purpose**: the two folders this feature introduces, and the baseline every later task assumes.
 
-- [ ] T001 Create the two new folders `frontend/apps/web/public/icons/` and
+- [X] T001 Create the two new folders `frontend/apps/web/public/icons/` and
       `frontend/apps/web/src/app/core/pwa/` and confirm `frontend/tools/` exists (create it if
       not). Re-verify the baseline the plan states before touching anything: no `manifest*` under
       `frontend/apps/web/`, no `@angular/service-worker` in `frontend/package.json`, no
@@ -54,7 +54,7 @@ re-read the plan — something is wrong.
 Doing these first means every later task adds to a file that already exists rather than two
 tasks racing to create it.
 
-- [ ] T002 Add two **exact-match** locations to `frontend/nginx.conf.template`, placed directly
+- [X] T002 Add two **exact-match** locations to `frontend/nginx.conf.template`, placed directly
       after the existing `location /i18n/ { … }` block and before `location / { … }`, following
       [contracts/served-files.md](contracts/served-files.md):
       `location = /sw.js { add_header Cache-Control "no-cache" always; try_files $uri =404; }` and
@@ -66,7 +66,7 @@ tasks racing to create it.
       in `nginxinc/nginx-unprivileged:1.31.5-alpine`); (c) why `no-cache`: the same reasoning as
       `/i18n/` — keep the copy, ask first, 304 on the ETag — and that these locations carry no
       `sub_filter`, so 033's injection never touches them. Change nothing else in the template.
-- [ ] T003 [P] Create the guard spec skeleton `frontend/apps/web/src/app/core/pwa/pwa-shell.spec.ts`:
+- [X] T003 [P] Create the guard spec skeleton `frontend/apps/web/src/app/core/pwa/pwa-shell.spec.ts`:
       a Jest `describe('PWA shell (054)')` that resolves `PUBLIC_DIR = path.resolve(__dirname, '../../../../public')`
       and `INDEX_HTML = path.resolve(__dirname, '../../../index.html')` with Node `fs`/`path`, plus
       two helpers: `readPublic(rel: string): string` and `pngSize(buf: Buffer): { width: number; height: number }`
@@ -74,7 +74,7 @@ tasks racing to create it.
       after asserting the 8-byte PNG signature. No assertions yet beyond one that the public
       folder exists (so the file is green and the paths are proven before US1/US2 add cases).
       Run `cd frontend && npx nx test web --testPathPatterns="core/pwa"` — green.
-- [ ] T004 [P] Create the e2e skeleton `frontend/apps/web-e2e/src/pwa-shell.spec.ts` modelled on
+- [X] T004 [P] Create the e2e skeleton `frontend/apps/web-e2e/src/pwa-shell.spec.ts` modelled on
       `frontend/apps/web-e2e/src/health.spec.ts`: a header comment naming feature 054, the two
       Playwright projects it runs at, and the rule that **header assertions run only when
       `process.env['BASE_URL']` is set** (the nginx container; the local Vite dev server sends its
@@ -96,7 +96,7 @@ and opens without Safari chrome; the guard spec and the e2e manifest/icon cases 
 
 ### Icons (FR-002)
 
-- [ ] T005 [P] [US1] Author `frontend/apps/web/public/icons/icon-maskable.svg` — the maskable
+- [X] T005 [P] [US1] Author `frontend/apps/web/public/icons/icon-maskable.svg` — the maskable
       source artwork: a 64×64 viewBox, a **full-bleed** `<rect width="64" height="64">` (no `rx`)
       filled with the same linear gradient as `frontend/apps/web/public/favicon.svg`
       (`#F5623A` → `#7A9B87`, same `x1/y1/x2/y2`), and the favicon's cross (two white stroked
@@ -105,7 +105,7 @@ and opens without Safari chrome; the guard spec and the e2e manifest/icon cases 
       — scale the favicon's 18→46 cross to about 20→44 and the circle radius from 6.5 to about 6).
       Add an XML comment at the top: source only, never referenced by the manifest; regenerate
       PNGs with `node frontend/tools/render-pwa-icons.mjs`.
-- [ ] T006 [P] [US1] Write `frontend/tools/render-pwa-icons.mjs` — a one-off renderer with a
+- [X] T006 [P] [US1] Write `frontend/tools/render-pwa-icons.mjs` — a one-off renderer with a
       header comment in the style of `backend/Data/Seed/regenerate-cities500.mjs` (what it does,
       how to run it, that the output is committed, why `.mjs` and not `.ps1`: only Chromium can
       rasterise the SVG with transparent corners and the Playwright CLI has no `--omit-background`).
@@ -116,21 +116,21 @@ and opens without Safari chrome; the guard spec and the e2e manifest/icon cases 
       and an `<img>` of exactly `size×size` whose `src` is the SVG read from disk and inlined as a
       `data:image/svg+xml;base64,…` URL (so no `file://` permissions matter), wait for the image to
       load, then `page.screenshot({ path, omitBackground })`. Exit non-zero on any failure.
-- [ ] T007 [US1] Run `cd frontend && node tools/render-pwa-icons.mjs` (depends on T005, T006) and
+- [X] T007 [US1] Run `cd frontend && node tools/render-pwa-icons.mjs` (depends on T005, T006) and
       commit the five PNGs under `frontend/apps/web/public/icons/`. Open each once: the `any`
       icons have transparent corners outside the rounded square; the maskable and apple-touch
       icons are fully opaque squares with the mark centred and not touching the edges.
 
 ### Manifest and entry page (FR-001, FR-003, FR-005)
 
-- [ ] T008 [P] [US1] Create `frontend/apps/web/public/manifest.webmanifest` with **exactly** the
+- [X] T008 [P] [US1] Create `frontend/apps/web/public/manifest.webmanifest` with **exactly** the
       JSON in [contracts/served-files.md](contracts/served-files.md) § Manifest shape: `name` and
       `short_name` "JuggerHub", `id`/`start_url`/`scope` "/", `display` "standalone",
       `background_color` "#FBF8F3", `theme_color` "#FFFFFF", four icons with `purpose` "any" or
       "maskable" on separate entries. **No `description`, `lang`, `screenshots`, `shortcuts`** or
       any other string a browser would show (FR-005). JSON has no comments, so record the two
       colours' token names (`surface-page`/sand-0, `surface-card`) in the guard spec instead (T010).
-- [ ] T009 [US1] Edit `frontend/apps/web/src/index.html`: inside `<head>`, after the two favicon
+- [X] T009 [US1] Edit `frontend/apps/web/src/index.html`: inside `<head>`, after the two favicon
       links, add `<link rel="manifest" href="manifest.webmanifest" />`,
       `<meta name="theme-color" content="#FFFFFF" />` and
       `<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />`, with an HTML comment in
@@ -141,7 +141,7 @@ and opens without Safari chrome; the guard spec and the e2e manifest/icon cases 
 
 ### Guard and e2e for US1
 
-- [ ] T010 [US1] Extend `frontend/apps/web/src/app/core/pwa/pwa-shell.spec.ts` (depends on T003,
+- [X] T010 [US1] Extend `frontend/apps/web/src/app/core/pwa/pwa-shell.spec.ts` (depends on T003,
       T007, T008, T009) with a `describe('manifest')`: parses `manifest.webmanifest`; asserts
       `display === 'standalone'`, `start_url === '/'`, `scope === '/'`, `id === '/'`;
       `background_color === '#FBF8F3'` and `theme_color === '#FFFFFF'` with a comment naming the
@@ -153,7 +153,7 @@ and opens without Safari chrome; the guard spec and the e2e manifest/icon cases 
       `sizes`. Add a `describe('index.html')` asserting the manifest link, the `theme-color` meta
       with `#FFFFFF`, and the `apple-touch-icon` link are present, and that `apple-touch-icon.png`
       exists at 180×180. Run `npx nx test web --testPathPatterns="core/pwa"` — green.
-- [ ] T011 [US1] Extend `frontend/apps/web-e2e/src/pwa-shell.spec.ts` (depends on T004, T008)
+- [X] T011 [US1] Extend `frontend/apps/web-e2e/src/pwa-shell.spec.ts` (depends on T004, T008)
       with `test('the installable description and its icons are served')`: `request.get('/manifest.webmanifest')`
       → `ok()`, `headers()['content-type']` contains `manifest+json` **only when `servedByNginx`**
       (the dev server may send `application/json` or octet-stream), body parses as JSON with
@@ -195,7 +195,7 @@ registration case are green; the app behaves identically with the worker present
 
 ### The worker (FR-006, FR-007)
 
-- [ ] T015 [P] [US2] Create `frontend/apps/web/public/sw.js` — a header comment in the repo's
+- [X] T015 [P] [US2] Create `frontend/apps/web/public/sw.js` — a header comment in the repo's
       voice stating what it is (JuggerHub's push-only service worker, feature 054), what it
       deliberately does NOT do (no `fetch` listener — a no-op one adds a worker hop to every
       navigation and the app has nothing to serve offline; no Cache API; no `importScripts`; no
@@ -212,7 +212,7 @@ registration case are green; the app behaves identically with the worker present
 
 ### Registration (FR-006, FR-008, FR-010)
 
-- [ ] T016 [P] [US2] Create `frontend/apps/web/src/app/core/pwa/register-service-worker.ts`
+- [X] T016 [P] [US2] Create `frontend/apps/web/src/app/core/pwa/register-service-worker.ts`
       exporting `registerServiceWorker(nav: Navigator = navigator, win: Window = window): void`:
       return immediately unless `'serviceWorker' in nav`; define `const register = () => { void nav.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).catch(() => undefined); }`;
       if `win.document.readyState === 'complete'` call `register()` now, else
@@ -222,7 +222,7 @@ registration case are green; the app behaves identically with the worker present
       fetch is not an app network call, and a wrapper here is review-rejectable; the failure is
       invisible by requirement; `updateViaCache: 'none'` is the browser-side half of FR-009 (the
       nginx `no-cache` header is the other); the two parameters exist for the spec's fakes.
-- [ ] T017 [P] [US2] Create `frontend/apps/web/src/app/core/pwa/register-service-worker.spec.ts`
+- [X] T017 [P] [US2] Create `frontend/apps/web/src/app/core/pwa/register-service-worker.spec.ts`
       (no `TestBed` — a plain function): (1) navigator without `serviceWorker` → a spy container's
       `register` is never called; (2) `readyState 'complete'` → `register` called exactly once
       with `'/sw.js'` and `{ scope: '/', updateViaCache: 'none' }`; (3) `readyState 'loading'` →
@@ -230,7 +230,7 @@ registration case are green; the app behaves identically with the worker present
       returning a rejected promise → no throw, and `await` a microtask turn to confirm no
       unhandled rejection (attach `process.on('unhandledRejection')` guard for the test). Run
       `npx nx test web --testPathPatterns="core/pwa"` — green.
-- [ ] T018 [US2] Edit `frontend/apps/web/src/main.ts` (depends on T016): import
+- [X] T018 [US2] Edit `frontend/apps/web/src/main.ts` (depends on T016): import
       `registerServiceWorker` from `./app/core/pwa/register-service-worker` and change the
       bootstrap line to
       `bootstrapApplication(App, appConfig).then(() => registerServiceWorker()).catch((err) => console.error(err));`
@@ -241,14 +241,14 @@ registration case are green; the app behaves identically with the worker present
 
 ### Guard and e2e for US2
 
-- [ ] T019 [US2] Extend `frontend/apps/web/src/app/core/pwa/pwa-shell.spec.ts` (depends on T003,
+- [X] T019 [US2] Extend `frontend/apps/web/src/app/core/pwa/pwa-shell.spec.ts` (depends on T003,
       T015) with `describe('sw.js')`: reads `public/sw.js`; asserts it does **not** contain
       `addEventListener('fetch'` (also the double-quoted form), does **not** contain
       `importScripts(`; asserts it **does** contain `addEventListener('install'` and
       `addEventListener('activate'`. Each negative assertion carries a one-line comment naming
       the FR (FR-007) and why (a worker with a fetch handler sits between every page and the
       server; nothing may be pulled in from elsewhere). Green.
-- [ ] T020 [US2] Extend `frontend/apps/web-e2e/src/pwa-shell.spec.ts` (depends on T004, T015,
+- [X] T020 [US2] Extend `frontend/apps/web-e2e/src/pwa-shell.spec.ts` (depends on T004, T015,
       T018) with two tests: `test('the worker script is served as a script, never as the app page')`
       — `request.get('/sw.js')` → `ok()`, `content-type` contains `javascript`, body does not
       contain `<html` and does contain `addEventListener`; and
@@ -272,13 +272,13 @@ freeze 033's injected configuration, or present the app offline.
 network; toggling offline shows the browser's own page; a changed `JH_ANALYTICS_HEAD` is visible
 on the next reload without a rebuild; the header e2e cases are green against the nginx image.
 
-- [ ] T021 [US3] Extend the `describe('sw.js')` in `frontend/apps/web/src/app/core/pwa/pwa-shell.spec.ts`
+- [X] T021 [US3] Extend the `describe('sw.js')` in `frontend/apps/web/src/app/core/pwa/pwa-shell.spec.ts`
       (depends on T019) with the FR-011 assertions: `sw.js` does **not** contain `caches.`,
       `caches.open`, `indexedDB`, `localStorage` or `sessionStorage`. Comment: "No offline mode,
       ever (spec Clarification 3, FR-011). This test is the rule; delete it only with a new owner
       decision recorded in a spec." Break it once on purpose (add a `caches.open('x')` line to
       `sw.js`), watch it fail, revert.
-- [ ] T022 [US3] Extend `frontend/apps/web-e2e/src/pwa-shell.spec.ts` (depends on T004, T002)
+- [X] T022 [US3] Extend `frontend/apps/web-e2e/src/pwa-shell.spec.ts` (depends on T004, T002)
       with `test('the worker and the manifest are served fresh')` guarded by
       `test.skip(!servedByNginx, 'Cache-Control is nginx\'s, not the dev server\'s')`: both
       `request.get('/sw.js')` and `request.get('/manifest.webmanifest')` return a `cache-control`
@@ -286,7 +286,7 @@ on the next reload without a rebuild; the header e2e cases are green against the
       `docker compose up -d --build` then `cd frontend; $env:BASE_URL='http://localhost:3000'; npx nx e2e web-e2e --grep "pwa"`
       — all pwa cases green at both projects (this is also the first run of T011/T020 against
       real nginx, which is where the shadowing hazard would show).
-- [ ] T023 [US3] Manual, against the compose stack — [quickstart.md](quickstart.md) § 3 and § 4:
+- [X] T023 [US3] Manual, against the compose stack — [quickstart.md](quickstart.md) § 3 and § 4:
       `curl.exe -sI` the two files and confirm `200` + correct `Content-Type` +
       `Cache-Control: no-cache`; confirm a missing worker is a **404** (rename it inside the
       container or build without it), never `200 text/html`; in DevTools confirm one activated
@@ -305,7 +305,7 @@ on the next reload without a rebuild; the header e2e cases are green against the
 **Purpose**: the privacy-policy paragraph the spec requires (FR-015), the full verification run,
 and the PR.
 
-- [ ] T024 Edit the three legal catalogues **together** —
+- [X] T024 Edit the three legal catalogues **together** —
       `frontend/apps/web/public/i18n/legal/de.json`, `…/en.json`, `…/es.json` — German first and
       authoritative: (a) append one paragraph to `privacy.storage.body` (the array under the
       heading "Cookies and what's kept in your browser") naming the site's own background helper
@@ -320,14 +320,14 @@ and the PR.
       `cd frontend && npx nx test web --testPathPatterns="legal-catalog|catalog-parity"` — both
       green (the legal guard walks arrays, so one missing locale is red; the interface guard proves
       zero interface keys were added, SC-007).
-- [ ] T025 Read the three new paragraphs on `/privacy` in de, en and es on the running stack
+- [X] T025 Read the three new paragraphs on `/privacy` in de, en and es on the running stack
       ([quickstart.md](quickstart.md) § 6) at 375 px and desktop: they sit inside the existing
       section with 036's long-form measure, German reads as the original. Screenshot the German
       one for the PR.
-- [ ] T026 Full verification per [quickstart.md](quickstart.md) § 7:
+- [X] T026 Full verification per [quickstart.md](quickstart.md) § 7:
       `cd frontend; npx nx lint web; npx nx test web; npx nx build web --configuration=production`,
       then the compose e2e overlay
-      `docker compose -f docker-compose.yml -f docker-compose.test.yml up --build --abort-on-container-exit e2e`.
+      `docker compose -f docker-compose.yml -f docker-compose.test.yml run --rm --build playwright`.
       All green. Confirm `git diff --stat main -- backend infra` is **empty** (FR-014) and that
       `git status` shows no change to `frontend/package.json` or `package-lock.json` (no new
       dependency).
