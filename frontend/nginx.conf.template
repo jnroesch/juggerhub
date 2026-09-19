@@ -265,6 +265,33 @@ server {
         try_files $uri =404;
     }
 
+    # The PWA shell (feature 054): the push-only service worker and the web app manifest, both
+    # static files at the site root so the worker's default scope is the whole origin.
+    #
+    # EXACT matches (=), for the same reason as the analytics endpoints above: `location /`
+    # answers every path with index.html, so a worker that is missing or mis-copied would be
+    # served as HTML. The browser refuses to run a page as a worker and rejects the
+    # registration — and the app swallows that rejection by design (FR-008), so the failure
+    # would be SILENT. `try_files $uri =404` makes a missing file a 404, never the SPA page.
+    #
+    # `no-cache` mirrors /i18n/ above: keep the copy, ask first, 304 on the ETag. Browsers cap a
+    # worker script's staleness at 24 h anyway; this plus the client's `updateViaCache: 'none'`
+    # brings a changed worker to the next visit. Neither location carries a sub_filter, so the
+    # per-environment injection in `location /` never touches these files.
+    location = /sw.js {
+        add_header Cache-Control "no-cache" always;
+        try_files $uri =404;
+    }
+
+    location = /manifest.webmanifest {
+        # This image's mime.types has no `webmanifest` entry (checked in
+        # nginxinc/nginx-unprivileged:1.31.5-alpine), so without this the manifest would go out
+        # as application/octet-stream.
+        default_type application/manifest+json;
+        add_header Cache-Control "no-cache" always;
+        try_files $uri =404;
+    }
+
     # SPA fallback: serve index.html for client-side routes.
     location / {
         try_files $uri $uri/ /index.html;
