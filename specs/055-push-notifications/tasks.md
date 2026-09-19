@@ -308,7 +308,7 @@ stops in each case while other devices continue.
 
 ## Phase 7: Polish and cross-cutting
 
-- [ ] T043 Add the disclosure to `frontend/apps/web/public/i18n/legal/{de,en,es}.json`, German
+- [X] T043 Add the disclosure to `frontend/apps/web/public/i18n/legal/{de,en,es}.json`, German
       authoritative: the delivery address stored per enabled device goes in the storage section
       beside 054's worker paragraph, and the push service goes in as a recipient. **It must NOT be
       appended to the processors list** — that section promises every provider works "under a

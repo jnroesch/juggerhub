@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ButtonDirective } from '../../../shared/ui';
+import { ButtonDirective, CardComponent } from '../../../shared/ui';
 import { PushDeviceService } from '../../../core/services/push-device.service';
 
 /**
@@ -16,7 +16,7 @@ import { PushDeviceService } from '../../../core/services/push-device.service';
  */
 @Component({
   selector: 'jh-push-device-section',
-  imports: [ButtonDirective, TranslocoPipe],
+  imports: [ButtonDirective, CardComponent, TranslocoPipe],
   templateUrl: './push-device-section.component.html',
   styleUrl: './push-device-section.component.css',
 })

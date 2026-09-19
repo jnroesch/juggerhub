@@ -171,6 +171,7 @@
           "If you're signed out and pick a language, that choice stays in your browser and never reaches us.",
           "The half-filled state of a form you're in the middle of. If you're setting up a training or an event and you leave the page, your browser keeps what you'd entered so you don't have to start over. For an event that includes the payment details you'd typed in — the recipient and the account number. All of it stays on your device and is never transmitted to us; we see none of it until you submit the form. It goes when you finish or cancel, when you sign out, and at the latest when you close the tab.",
           "The site's own background helper. Your browser keeps a small part of the site's program so the site can act while none of its tabs are open — for example, receive a notification you've asked for. It's part of the site, not a record about you: nothing about you is stored in it, and it goes when you clear the site's data in your browser.",
+          "When you turn notifications on for a device, your browser issues a delivery address for it. We store that address along with the keys your browser generates with it, so we can deliver to that device and no other. It goes when you turn notifications off for the device, when you sign out, and when you delete your account; a device that hasn't been reachable for a long time is removed on its own.",
           "We don't use cookies to advertise to you, or to follow you around other sites."
         ]
       },
@@ -179,6 +180,7 @@
         "body": [
           "A few providers help us run the site, each under a contract that only lets them handle data on our instructions. Microsoft Azure hosts the application, its database and uploaded files, in their West Europe region inside the EU. Resend delivers our email, and necessarily sees who it's going to and what it says.",
           "Where a provider handles data outside the EU, the standard contractual clauses in our agreement cover it.",
+          "Notifications to your device involve one more company, and its relationship to us is different from the ones above: which one it is depends on your browser, not on us — it's the delivery service run by whoever makes that browser. We have no contract with them and cannot give them instructions. They receive your device's delivery address and the text of the notification, which is what appears on your lock screen: what happened and what it concerns. Nothing you wrote is in it. This only happens once you turn notifications on for a device, and stops when you turn them off.",
           "We don't sell your data, and we don't hand it to anyone for advertising."
         ]
       },
