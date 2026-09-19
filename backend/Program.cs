@@ -268,6 +268,9 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 // hosted service runs whatever it finds; expired refresh tokens are the first category.
 builder.Services.Configure<RetentionOptions>(builder.Configuration.GetSection(RetentionOptions.SectionName));
 builder.Services.AddScoped<JuggerHub.Services.Retention.IRetentionSweep, JuggerHub.Services.Retention.ExpiredRefreshTokenSweep>();
+// Feature 055 — push subscriptions nothing is ever delivered to, which therefore never produce the
+// 404/410 that prunes the rest. RetentionBackgroundService runs whatever it finds.
+builder.Services.AddScoped<JuggerHub.Services.Retention.IRetentionSweep, JuggerHub.Services.Retention.StalePushSubscriptionSweep>();
 builder.Services.AddHostedService<JuggerHub.Services.Retention.RetentionBackgroundService>();
 
 // --- Account settings (feature 031: language preference) -------------------

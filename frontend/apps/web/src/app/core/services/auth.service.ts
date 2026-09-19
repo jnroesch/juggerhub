@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, catchError, finalize, map, of, shareReplay, switchMap, tap } from 'rxjs';
+import { Observable, catchError, finalize, from, map, of, shareReplay, switchMap, tap } from 'rxjs';
 import {
   AuthUser,
   ForgotPasswordRequest,
@@ -14,6 +14,7 @@ import {
 } from '../models/auth.models';
 import { WizardDraftStore } from '../drafts/wizard-draft.store';
 import { BrowseReturnService } from './browse-return.service';
+import { PushDeviceService } from './push-device.service';
 
 /**
  * Real client-side auth state + API. The server is the security boundary (tokens
@@ -35,6 +36,12 @@ export class AuthService {
   private readonly drafts = inject(WizardDraftStore);
   /** The remembered browse searches (GH #279) end with the session for the same reason. */
   private readonly browseReturns = inject(BrowseReturnService);
+  /**
+   * The push subscription for THIS browser (feature 055) ends with the session too, and for the
+   * sharpest version of the same reason: it would otherwise keep delivering this member's
+   * notifications to whoever picks the device up next.
+   */
+  private readonly pushDevice = inject(PushDeviceService);
   private readonly base = '/api/v1/auth';
 
   private readonly user = signal<AuthUser | null | undefined>(undefined);
@@ -68,7 +75,13 @@ export class AuthService {
   }
 
   logout(): Observable<void> {
-    return this.http.post<void>(`${this.base}/logout`, {}).pipe(
+    // The device's push subscription goes FIRST, while the session still exists to authorise the
+    // removal. Same reason as the drafts and the browse returns below, and with more at stake: a
+    // subscription left behind on a borrowed phone keeps delivering this member's notifications to
+    // whoever holds it next. Best effort — a failing unsubscribe must never block signing out, and
+    // the row is pruned later by the push service's 404/410 or by the retention sweep.
+    return from(this.pushDevice.disableQuietly()).pipe(
+      switchMap(() => this.http.post<void>(`${this.base}/logout`, {})),
       tap(() => {
         this.user.set(null);
         this.drafts.clearAll();
@@ -129,6 +142,10 @@ export class AuthService {
     this.user.set(null);
     this.drafts.clearAll();
     this.browseReturns.clear();
+    // Only the LOCAL half is possible here: this path runs after a failed refresh, so there is no
+    // session left to authorise the server-side removal. The row is pruned on its next 404/410 or
+    // by the retention sweep. Fire and forget — clearSession is synchronous by contract.
+    void this.pushDevice.disableQuietly();
   }
 
   /**

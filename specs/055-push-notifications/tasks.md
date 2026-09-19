@@ -272,32 +272,32 @@ in-app entry still does.
 **Independent Test**: turn off, sign out, and let a dead subscription be pruned; confirm delivery
 stops in each case while other devices continue.
 
-- [ ] T037 [US4] Add the off path to
+- [X] T037 [US4] Add the off path to
       `frontend/apps/web/src/app/features/settings/notifications/push-device-section.component.{ts,html}`:
       the `on` state offers turning this device off, which unsubscribes in the browser **and** calls
       `DELETE /push/subscriptions`.
-- [ ] T038 [US4] Hook sign-out in
+- [X] T038 [US4] Hook sign-out in
       `frontend/apps/web/src/app/core/services/auth.service.ts`: in `logout()`, unsubscribe locally
       and best-effort `DELETE` **before** the logout POST, beside `drafts.clearAll()` and
       `browseReturns.clear()`, extending that method's existing comment about what stops a shared
       device handing the next person the previous person's data. In `clearSession()` only the local
       unsubscribe is possible — there is no session left to call with — so note that the row is
       pruned later by its next `404`/`410` or by the sweep. A failure here must never block sign-out.
-- [ ] T039 [P] [US4] Create `backend/Services/Retention/StalePushSubscriptionSweep.cs` implementing
+- [X] T039 [P] [US4] Create `backend/Services/Retention/StalePushSubscriptionSweep.cs` implementing
       `IRetentionSweep` with `Name => "stale-push-subscriptions"`, deleting by `LastSuccessAt` older
       than a configured grace period via `ExecuteDeleteAsync`; add the grace period to
       `backend/Common/RetentionOptions.cs` and `backend/appsettings.json`; register it with one
       `AddScoped<IRetentionSweep, …>` line in `backend/Program.cs` beside the refresh-token sweep.
-- [ ] T040 [P] [US4] Add one `ExecuteDeleteAsync` for `PushSubscriptions` to
+- [X] T040 [P] [US4] Add one `ExecuteDeleteAsync` for `PushSubscriptions` to
       `EraseOwnedDataAsync` in `backend/Services/Account/AccountDeletionService.cs`, in the
       "records that exist solely to serve this member" group beside `Notifications` and
       `NotificationPreferences`.
-- [ ] T041 [P] [US4] Write
+- [X] T041 [P] [US4] Write
       `backend/tests/JuggerHub.Api.IntegrationTests/Push/PushSubscriptionLifecycleTests.cs`: removal
       stops delivery to that device and leaves the player's other device receiving; the sweep deletes
       only rows past the grace period; **account deletion leaves no subscription row** (SC-009); the
       hosted sweep is registered, mirroring `RefreshTokenRetentionTests`.
-- [ ] T042 [P] [US4] Extend
+- [X] T042 [P] [US4] Extend
       `frontend/apps/web/src/app/core/services/auth.service.spec.ts`: `logout()` attempts the
       unsubscribe and the DELETE before the logout call, and still completes when the unsubscribe
       throws.
