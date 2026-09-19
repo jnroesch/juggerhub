@@ -1045,7 +1045,21 @@
       "askedConfirmation": "Wir haben {{name}} gebeten, dich aufzunehmen. Ein Admin muss noch zustimmen.",
       "ask": "Beitritt bei {{name}} anfragen",
       "asking": "Wird angefragt…",
-      "notOnTeam": "Ich bin noch in keinem Team"
+      "notOnTeam": "Ich bin noch in keinem Team",
+      "invite": {
+        "eyebrow": "Du bist eingeladen",
+        "loading": "Einladung wird geladen…",
+        "invitedBy": "{{name}} hat dich eingeladen",
+        "accept": "Annehmen & {{team}} beitreten",
+        "accepting": "Beitritt läuft…",
+        "joined": "Du bist jetzt bei {{team}}. Willkommen an Bord.",
+        "alreadyMember": "Du bist schon bei {{team}}.",
+        "acceptError": "Das hat gerade nicht geklappt. Versuch es noch einmal.",
+        "orAnother": "Oder such nach einem anderen Team",
+        "expired": "Die Einladung, der du gefolgt bist, ist abgelaufen. Bitte einen Team-Admin, dir eine neue zu schicken.",
+        "invalid": "Die Einladung, der du gefolgt bist, ist nicht mehr gültig. Bitte einen Team-Admin, dir eine neue zu schicken.",
+        "yourInvites": "Deine Einladungen"
+      }
     },
     "photo": {
       "title": "Mach es zu deinem",

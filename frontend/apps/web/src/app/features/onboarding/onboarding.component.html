@@ -133,16 +133,154 @@
       <ng-container [ngTemplateOutlet]="backBar" />
       <div class="flex-1">
         <h1 class="text-h2">{{ 'onboarding.team.title' | transloco }}</h1>
-        <p class="mt-xs text-lead text-muted">
-          @if (homeCityPersisted()) {
-            {{ 'onboarding.team.introNear' | transloco }}
-          } @else {
-            {{ 'onboarding.team.introFar' | transloco }}
+        <!-- The intro describes the search; when an invitation leads (053) it moves down to it. -->
+        @if (!anyInviteShown()) {
+          <p class="mt-xs text-lead text-muted">
+            @if (homeCityPersisted()) {
+              {{ 'onboarding.team.introNear' | transloco }}
+            } @else {
+              {{ 'onboarding.team.introFar' | transloco }}
+            }
+          </p>
+        }
+
+        <!--
+          Feature 053 — the invitation(s) the player arrived with lead; the 029 search follows.
+          The Accept buttons below are the only new network presses on this step. Continue,
+          Skip and Back stay untouched.
+        -->
+        @if (carriedInvite; as ref) {
+          @switch (invitePreview()) {
+            @case ('loading') {
+              <jh-loading
+                class="mt-lg block"
+                align="center"
+                [label]="'onboarding.team.invite.loading' | transloco"
+                data-testid="onboarding-invite-loading"
+              />
+            }
+            @case ('expired') {
+              <p class="mt-lg text-body-sm text-muted" data-testid="onboarding-invite-expired">
+                {{ 'onboarding.team.invite.expired' | transloco }}
+              </p>
+            }
+            @case ('invalid') {
+              <p class="mt-lg text-body-sm text-muted" data-testid="onboarding-invite-invalid">
+                {{ 'onboarding.team.invite.invalid' | transloco }}
+              </p>
+            }
           }
-        </p>
+
+          @if (usableInvite(); as p) {
+            <p class="mt-lg text-eyebrow font-semibold uppercase tracking-[0.04em] text-muted">
+              {{ 'onboarding.team.invite.eyebrow' | transloco }}
+            </p>
+            <div jhCard padding="dense" class="mt-sm" data-testid="onboarding-invite">
+              <div class="flex items-start gap-sm">
+                <span
+                  class="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary-strong"
+                  aria-hidden="true"
+                >{{ p.teamName.charAt(0) }}</span>
+                <div class="min-w-0 flex-1">
+                  <span class="block truncate font-semibold text-heading">{{ p.teamName }}</span>
+                  <span class="block text-caption text-muted">{{ (p.type === 'CityTeam' ? 'myTeam.cityTeam' : 'myTeam.mixteam') | transloco }}@if (p.location) { · {{ p.location }}} · <span class="font-mono">{{ p.memberCount }}</span> {{ (p.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}</span>
+                  <span class="mt-0.5 block text-caption text-muted">{{ 'onboarding.team.invite.invitedBy' | transloco:{ name: p.inviterDisplayName } }}</span>
+                </div>
+              </div>
+              @if (joinedSlugs().includes(p.teamSlug)) {
+                <p class="mt-sm text-body-sm text-success-fg" data-testid="onboarding-invite-joined">
+                  {{ 'onboarding.team.invite.joined' | transloco:{ team: p.teamName } }}
+                </p>
+              } @else if (memberSlugs().has(p.teamSlug)) {
+                <p class="mt-sm text-body-sm text-muted" data-testid="onboarding-invite-member">
+                  {{ 'onboarding.team.invite.alreadyMember' | transloco:{ team: p.teamName } }}
+                </p>
+              } @else {
+                <button
+                  type="button"
+                  data-testid="onboarding-invite-accept"
+                  (click)="acceptInvite(ref.token, p.teamSlug)"
+                  [disabled]="acceptingToken() !== null"
+                  jhButton variant="secondary" class="mt-sm w-full"
+                >
+                  {{ acceptingToken() === ref.token ? ('onboarding.team.invite.accepting' | transloco) : ('onboarding.team.invite.accept' | transloco:{ team: p.teamName }) }}
+                </button>
+              }
+            </div>
+          }
+        }
+
+        @if (visibleAddressed().length > 0) {
+          <p class="mt-lg text-eyebrow font-semibold uppercase tracking-[0.04em] text-muted">
+            {{ 'onboarding.team.invite.yourInvites' | transloco }}
+          </p>
+          <ul class="mt-sm flex flex-col gap-sm" data-testid="onboarding-invites">
+            @for (inv of visibleAddressed(); track inv.token) {
+              <li jhCard padding="dense" [attr.data-testid]="'onboarding-invite-' + inv.teamSlug">
+                <div class="flex items-start gap-sm">
+                  <span
+                    class="grid h-10 w-10 shrink-0 place-items-center rounded-pill bg-surface-secondary-soft text-body-sm font-semibold text-secondary-strong"
+                    aria-hidden="true"
+                  >{{ inv.teamName.charAt(0) }}</span>
+                  <div class="min-w-0 flex-1">
+                    <span class="block truncate font-semibold text-heading">{{ inv.teamName }}</span>
+                    <span class="block text-caption text-muted">{{ (inv.teamType === 'CityTeam' ? 'myTeam.cityTeam' : 'myTeam.mixteam') | transloco }}@if (inv.location) { · {{ inv.location }}} · <span class="font-mono">{{ inv.memberCount }}</span> {{ (inv.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}</span>
+                    <span class="mt-0.5 block text-caption text-muted">{{ 'onboarding.team.invite.invitedBy' | transloco:{ name: inv.inviterDisplayName } }}</span>
+                  </div>
+                </div>
+                @if (joinedSlugs().includes(inv.teamSlug)) {
+                  <p class="mt-sm text-body-sm text-success-fg" [attr.data-testid]="'onboarding-invite-joined-' + inv.teamSlug">
+                    {{ 'onboarding.team.invite.joined' | transloco:{ team: inv.teamName } }}
+                  </p>
+                } @else if (memberSlugs().has(inv.teamSlug)) {
+                  <p class="mt-sm text-body-sm text-muted" [attr.data-testid]="'onboarding-invite-member-' + inv.teamSlug">
+                    {{ 'onboarding.team.invite.alreadyMember' | transloco:{ team: inv.teamName } }}
+                  </p>
+                } @else {
+                  <div class="mt-sm flex gap-sm">
+                    <button
+                      type="button"
+                      [attr.data-testid]="'onboarding-invite-accept-' + inv.teamSlug"
+                      (click)="acceptInvite(inv.token, inv.teamSlug)"
+                      [disabled]="acceptingToken() !== null"
+                      jhButton variant="secondary"
+                    >
+                      {{ (acceptingToken() === inv.token ? 'onboarding.team.invite.accepting' : 'common.accept') | transloco }}
+                    </button>
+                    <button
+                      type="button"
+                      [attr.data-testid]="'onboarding-invite-decline-' + inv.teamSlug"
+                      (click)="declineInvite(inv.token)"
+                      [disabled]="acceptingToken() !== null"
+                      jhButton variant="secondary"
+                    >
+                      {{ 'common.decline' | transloco }}
+                    </button>
+                  </div>
+                }
+              </li>
+            }
+          </ul>
+        }
+
+        @if (inviteError()) {
+          <jh-alert class="mt-sm" data-testid="onboarding-invite-error">{{ inviteError() }}</jh-alert>
+        }
+
+        @if (anyInviteShown()) {
+          <p class="mt-lg text-body-sm font-medium text-heading">{{ 'onboarding.team.invite.orAnother' | transloco }}</p>
+          <p class="mt-2xs text-body-sm text-muted">
+            @if (homeCityPersisted()) {
+              {{ 'onboarding.team.introNear' | transloco }}
+            } @else {
+              {{ 'onboarding.team.introFar' | transloco }}
+            }
+          </p>
+        }
 
         <label
           class="mt-lg flex items-center gap-xs rounded-md border border-border-strong bg-surface-card px-md py-xs transition-shadow duration-fast focus-within:border-brand focus-within:ring-2 focus-within:ring-focus"
+          [class.mt-sm]="anyInviteShown()"
         >
           <jh-icon name="search" class="shrink-0 text-muted" />
           <input

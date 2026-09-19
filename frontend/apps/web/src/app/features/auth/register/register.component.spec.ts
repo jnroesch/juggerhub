@@ -5,7 +5,7 @@ import {
 } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormGroup } from '@angular/forms';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { PasswordPolicy } from '../../../core/models/auth.models';
 import { RegisterComponent } from './register.component';
 import { translocoTestingModule } from '../../../../testing/transloco-testing';
@@ -32,11 +32,20 @@ const VALID_FORM = {
 
 describe('RegisterComponent', () => {
   let httpMock: HttpTestingController;
+  /** The route the page is rendered under; a test replaces it before creating the component. */
+  let routeStub: { snapshot: { queryParamMap: ReturnType<typeof convertToParamMap> } };
 
   beforeEach(() => {
+    routeStub = { snapshot: { queryParamMap: convertToParamMap({}) } };
     TestBed.configureTestingModule({
       imports: [translocoTestingModule()],
-      providers: [provideHttpClient(withXhr()), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(withXhr()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        // Lazy so a test can swap the stub after the module exists but before the component does.
+        { provide: ActivatedRoute, useFactory: () => routeStub },
+      ],
     });
     httpMock = TestBed.inject(HttpTestingController);
   });
@@ -86,6 +95,63 @@ describe('RegisterComponent', () => {
     instance.handleState.set('available');
     instance.passwordValid.set(true);
   }
+
+  /** Renders the page as if reached with the given `returnUrl`, ready to submit. */
+  function createReadyWithReturnUrl(returnUrl: string | null): ComponentFixture<RegisterComponent> {
+    routeStub = { snapshot: { queryParamMap: convertToParamMap(returnUrl ? { returnUrl } : {}) } };
+    const fixture = createComponent();
+    form(fixture).setValue(VALID_FORM);
+    markHandleAndPasswordReady(fixture);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function submittedBody(fixture: ComponentFixture<RegisterComponent>): Record<string, unknown> {
+    submitButton(fixture).click();
+    const req = httpMock.expectOne('/api/v1/auth/register');
+    const body = req.request.body as Record<string, unknown>;
+    req.flush({ message: 'ok' });
+    return body;
+  }
+
+  // Feature 053 — the invite the person came from rides on the registration so the server can
+  // put it on the verification link. It is the invite's identity, never the returnUrl itself.
+  describe('invite reference (feature 053)', () => {
+    const TOKEN = 'Xy9_abcDEF-ghiJKL012mnoPQR345stuVWX678yzAB_';
+
+    it('sends the invite pair when the returnUrl is the invite page', () => {
+      const fixture = createReadyWithReturnUrl(`/join/berlin-jugger/${TOKEN}?action=accept`);
+
+      const body = submittedBody(fixture);
+
+      expect(body['inviteSlug']).toBe('berlin-jugger');
+      expect(body['inviteToken']).toBe(TOKEN);
+      expect(body['returnUrl']).toBeUndefined();
+    });
+
+    it('sends neither field when there is no returnUrl or it is not the invite page', () => {
+      for (const returnUrl of [null, '/players/nik', '/']) {
+        const fixture = createReadyWithReturnUrl(returnUrl);
+        const body = submittedBody(fixture);
+        expect('inviteSlug' in body).toBe(false);
+        expect('inviteToken' in body).toBe(false);
+      }
+    });
+
+    it('sends neither field when the invite page path is malformed', () => {
+      const fixture = createReadyWithReturnUrl(`/join/Bad_Slug/${TOKEN}`);
+      const body = submittedBody(fixture);
+      expect('inviteSlug' in body).toBe(false);
+      expect('inviteToken' in body).toBe(false);
+    });
+
+    it('still forwards the returnUrl onto its sign-in links', () => {
+      const returnUrl = `/join/berlin-jugger/${TOKEN}?action=accept`;
+      const fixture = createReadyWithReturnUrl(returnUrl);
+      const params = (fixture.componentInstance as unknown as { signInParams: Record<string, string> }).signInParams;
+      expect(params).toEqual({ returnUrl });
+    });
+  });
 
   describe('handle field', () => {
     /** Drives the two signals the availability pipeline would otherwise set after a debounce. */
