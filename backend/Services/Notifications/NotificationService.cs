@@ -19,17 +19,20 @@ public sealed class NotificationService : INotificationService
     private readonly AppDbContext _db;
     private readonly INotificationRealtime _realtime;
     private readonly INotificationPreferenceService _preferences;
+    private readonly IPushFanOut _push;
     private readonly ILogger<NotificationService> _logger;
 
     public NotificationService(
         AppDbContext db,
         INotificationRealtime realtime,
         INotificationPreferenceService preferences,
+        IPushFanOut push,
         ILogger<NotificationService> logger)
     {
         _db = db;
         _realtime = realtime;
         _preferences = preferences;
+        _push = push;
         _logger = logger;
     }
 
@@ -43,36 +46,60 @@ public sealed class NotificationService : INotificationService
         string? dedupeKey = null,
         CancellationToken ct = default)
     {
-        // Honor the recipient's in-app preference for this category (feature 011): off ⇒ no row,
-        // no unread bump. Fail-safe defaults to on inside the preference service.
-        if (!await _preferences.IsEnabledAsync(recipientUserId, NotificationCategories.For(type), NotificationChannel.InApp, ct))
+        var category = NotificationCategories.For(type);
+
+        // THE TWO CHANNELS ARE READ INDEPENDENTLY, AND THAT IS THE POINT (feature 055, FR-015).
+        //
+        // This used to be a single in-app check with an early `return`, which gated everything
+        // after it. Adding push below such a return would have meant that turning IN-APP off for a
+        // category silently stopped PUSH as well — a member who wanted team news on their phone but
+        // not in their Alerts inbox would have got neither, with nothing to explain why. Keep these
+        // two reads separate, and keep the early exit conditioned on BOTH being off.
+        //
+        // Fail-safe defaults to on inside the preference service.
+        var wantsInApp = await _preferences.IsEnabledAsync(recipientUserId, category, NotificationChannel.InApp, ct);
+        var wantsPush = await _preferences.IsEnabledAsync(recipientUserId, category, NotificationChannel.Push, ct);
+        if (!wantsInApp && !wantsPush)
         {
             return;
         }
 
-        var notification = new Notification
-        {
-            RecipientUserId = recipientUserId,
-            Type = type,
-            Payload = JsonSerializer.Serialize(payload, PayloadJson),
-            ActorUserId = actorUserId,
-            DedupeKey = dedupeKey,
-        };
+        var payloadJson = JsonSerializer.Serialize(payload, PayloadJson);
 
-        _db.Notifications.Add(notification);
-        try
+        if (wantsInApp)
         {
-            await _db.SaveChangesAsync(ct);
-        }
-        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
-        {
-            // Duplicate for the same (recipient, dedupeKey) — the logical event is already
-            // notified. Detach and no-op (idempotency, FR-017).
-            _db.Entry(notification).State = EntityState.Detached;
-            return;
+            var notification = new Notification
+            {
+                RecipientUserId = recipientUserId,
+                Type = type,
+                Payload = payloadJson,
+                ActorUserId = actorUserId,
+                DedupeKey = dedupeKey,
+            };
+
+            _db.Notifications.Add(notification);
+            try
+            {
+                await _db.SaveChangesAsync(ct);
+            }
+            catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+            {
+                // Duplicate for the same (recipient, dedupeKey) — the logical event is already
+                // notified. Detach and no-op (idempotency, FR-017). Note this returns WITHOUT
+                // dispatching push: the member was already told, and telling them twice is exactly
+                // what the dedupe key exists to prevent.
+                _db.Entry(notification).State = EntityState.Detached;
+                return;
+            }
+
+            // Realtime badge first. Web push is the slow hop, and it must never delay this one.
+            await PushAsync(recipientUserId, notification, actorUserId, ct);
         }
 
-        await PushAsync(recipientUserId, notification, actorUserId, ct);
+        if (wantsPush)
+        {
+            await _push.FanOutAsync([recipientUserId], type, payloadJson, dedupeKey, ct);
+        }
     }
 
     public async Task CreateManyAsync(
@@ -89,15 +116,29 @@ public sealed class NotificationService : INotificationService
             return;
         }
 
-        // Drop recipients who turned this category's in-app channel off (feature 011).
+        var category = NotificationCategories.For(type);
+
+        // Two INDEPENDENT recipient sets, for the reason spelled out in CreateAsync above. The push
+        // set is NOT a subset of the in-app set: somebody who turned a category off in their Alerts
+        // inbox but left it on for their phone appears only in the second list.
         var recipients = (await _preferences.GetEnabledRecipientsAsync(
-            distinct, NotificationCategories.For(type), NotificationChannel.InApp, ct)).ToList();
-        if (recipients.Count == 0)
+            distinct, category, NotificationChannel.InApp, ct)).ToList();
+        var pushRecipients = (await _preferences.GetEnabledRecipientsAsync(
+            distinct, category, NotificationChannel.Push, ct)).ToList();
+
+        if (recipients.Count == 0 && pushRecipients.Count == 0)
         {
             return;
         }
 
         var json = JsonSerializer.Serialize(payload, PayloadJson);
+
+        if (recipients.Count == 0)
+        {
+            await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, ct);
+            return;
+        }
+
         var rows = recipients.Select(r => new Notification
         {
             RecipientUserId = r,
@@ -124,6 +165,9 @@ public sealed class NotificationService : INotificationService
         {
             await PushAsync(row.RecipientUserId, row, actorUserId, ct);
         }
+
+        // Realtime badges are out; the slow hop goes last.
+        await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, ct);
     }
 
     // --- Read -----------------------------------------------------------------

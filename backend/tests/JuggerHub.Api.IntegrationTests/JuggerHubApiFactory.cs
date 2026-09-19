@@ -73,6 +73,12 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
     /// </summary>
     public FakeChatRealtime ChatRealtime { get; } = new();
 
+    /// <summary>
+    /// Records push dispatches so tests can assert who was and was not sent to, with no outbound
+    /// call (feature 055). The real dispatcher is never constructed in tests.
+    /// </summary>
+    public Push.FakePushDispatcher PushDispatcher { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
@@ -160,6 +166,12 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
             // Same trick for chat's realtime seam: no socket, and the pushes become assertable.
             services.RemoveAll<JuggerHub.Services.Chat.Realtime.IChatRealtime>();
             services.AddSingleton<JuggerHub.Services.Chat.Realtime.IChatRealtime>(ChatRealtime);
+
+            // And for web push (feature 055): no outbound HTTPS, and the fan-out becomes
+            // assertable. The composer and the language grouping above it stay real, so a test
+            // still exercises the sentence a member would actually read.
+            services.RemoveAll<JuggerHub.Services.Notifications.Push.IPushDispatcher>();
+            services.AddSingleton<JuggerHub.Services.Notifications.Push.IPushDispatcher>(PushDispatcher);
         });
 
         builder.ConfigureLogging(logging => logging.AddProvider(new CaptureLoggerProvider(ErrorLogs)));

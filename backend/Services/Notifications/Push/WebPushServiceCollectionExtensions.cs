@@ -79,6 +79,10 @@ public static class WebPushServiceCollectionExtensions
         });
 
         services.AddScoped<IPushSubscriptionService, PushSubscriptionService>();
+        services.AddSingleton<IPushLocalizer, PushLocalizer>();
+        services.AddSingleton<IPushContentComposer, PushContentComposer>();
+        services.AddSingleton<IPushDispatcher, PushDispatcher>();
+        services.AddScoped<IPushFanOut, PushFanOut>();
 
         return builder;
     }

@@ -182,17 +182,17 @@ toggle being able to silence them.
 **Independent Test**: with a subscribed device and no tab open, trigger each producer and confirm a
 notification naming its subject arrives and opens the right page.
 
-- [ ] T024 [P] [US2] Create `backend/Services/Notifications/Push/PushLocalizer.cs` following
+- [X] T024 [P] [US2] Create `backend/Services/Notifications/Push/PushLocalizer.cs` following
       `EmailLocalizer`'s shape: per-culture dictionaries, **positional** placeholders (word order
       differs across en/de/es), and **`TryGetValue` with an English fallback per key, never a bare
       indexer** — cite `NotificationPreferenceService.cs:100-106`, where the bare indexer once took
       the settings page down for a whole language.
-- [ ] T025 [P] [US2] Create `backend/Services/Notifications/Push/PushContentComposer.cs` mapping
+- [X] T025 [P] [US2] Create `backend/Services/Notifications/Push/PushContentComposer.cs` mapping
       each of the nine `NotificationType` producer payloads to `{ title, body, url, tag }` per
       [contracts/push-api.md](contracts/push-api.md). `url` is **always app-relative**, never
       absolute and never built from user input. `tag` is the producer's dedupe key or
       `type:subjectId`.
-- [ ] T026 [US2] Implement `backend/Services/Notifications/Push/PushDispatcher.cs`: load recipients'
+- [X] T026 [US2] Implement `backend/Services/Notifications/Push/PushDispatcher.cs`: load recipients'
       subscriptions in one query; fan out with **bounded concurrency** (`Parallel.ForEachAsync`,
       small degree) because a team news post is members × devices; set the push message's `Topic`
       to the content `tag` and a sensible `TimeToLive`; touch `LastSuccessAt` on success; on
@@ -201,7 +201,7 @@ notification naming its subject arrives and opens the right page.
       (Principle VII). Comment the `429` distinction at the catch: a provider throttling us is
       retried by the shared pipeline honouring `Retry-After`, while our own limiter's `429` is never
       retried against.
-- [ ] T027 [US2] **The restructure.** In `backend/Services/Notifications/NotificationService.cs`,
+- [X] T027 [US2] **The restructure.** In `backend/Services/Notifications/NotificationService.cs`,
       change `CreateAsync` and `CreateManyAsync` so the in-app and push preferences are read
       **independently** before either acts: return early only when **both** are off; write the row
       and do the realtime `PushAsync` only when in-app is on; dispatch push last, after realtime, so
@@ -209,14 +209,14 @@ notification naming its subject arrives and opens the right page.
       dispatch either** — that is where once-only comes from in the common case. In
       `CreateManyAsync` resolve the two recipient sets separately; the push set is **not** a subset
       of the in-app set. Leave a comment naming the removed early return as the reason.
-- [ ] T028 [US2] Register `IPushDispatcher`/`PushDispatcher`, `IPushSubscriptionService`,
+- [X] T028 [US2] Register `IPushDispatcher`/`PushDispatcher`, `IPushSubscriptionService`,
       `PushLocalizer` and `PushContentComposer` in `backend/Program.cs` beside the other
       notification services.
-- [ ] T029 [P] [US2] Add the `push` and `notificationclick` handlers to
+- [X] T029 [P] [US2] Add the `push` and `notificationclick` handlers to
       `frontend/apps/web/public/sw.js`: show the notification from the JSON body using its `tag`;
       on click, focus an existing client at that path or open it. Keep the file's header comment
       truthful by updating it — still no `fetch` handler, no `caches`, no `importScripts`.
-- [ ] T030 [US2] **Extend, do not relax**, the 054 guard in
+- [X] T030 [US2] **Extend, do not relax**, the 054 guard in
       `frontend/apps/web/src/app/core/pwa/pwa-shell.spec.ts`: keep every existing assertion and add
       that `sw.js` now contains `addEventListener('push'` and `addEventListener('notificationclick'`.
       The no-offline assertions stay exactly as they are.
@@ -224,7 +224,7 @@ notification naming its subject arrives and opens the right page.
       a `404` and a `410` each delete the row and cause no retry; a `5xx` is retried by the pipeline;
       a success touches `LastSuccessAt`; a recipient with no subscription causes **no outbound call
       at all** (SC-008); the response body never appears in the logs.
-- [ ] T032 [US2] Write
+- [X] T032 [US2] Write
       `backend/tests/JuggerHub.Api.IntegrationTests/Push/NotificationChannelIndependenceTests.cs` —
       **the regression guard for the whole feature**. The four-way matrix for both `CreateAsync` and
       `CreateManyAsync`: in-app on + push on (row and dispatch); in-app on + push off (row, no
