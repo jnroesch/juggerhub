@@ -1,0 +1,164 @@
+# UI Review Checklist: Team Creation Wizard
+
+**Purpose**: Verify implemented UI complies with [DESIGN.md](../../../DESIGN.md) before the feature is considered done.
+**Created**: 2026-09-17
+**Feature**: [spec.md](../spec.md)
+
+**How to use**: This is an *implementation-quality* gate, run **after** UI is built and
+**before** verification — not a spec-quality gate like `requirements.md`.
+[DESIGN.md](../../../DESIGN.md) is the source of truth: if a check ever conflicts with it,
+DESIGN.md wins and the conflict is reported rather than silently resolved.
+
+**Scope of this review**: `team-create.component.html` (rewritten — five steps, progress and
+navigation), `components/invite-search/invite-search.component.html` and
+`components/invite-link/invite-link.component.html` (both new, both lifted from
+`team-invitations.component.html`), and the copy added to the three catalogues.
+
+## Color & tokens
+
+- [x] CHK001 Components reference **semantic aliases** (`surface-card`, `text-body`, `brand-primary`, `border-default`…), never raw scale steps (`sand-4`, `coral-5`) — every class is a semantic alias; the progress knobs use `bg-brand` / `bg-surface-sunken` (see CHK030 for why not `bg-brand/60`), the review list `surface-card` + `border-border-strong` + `divide-border-default`
+- [x] CHK002 **Exactly one coral `brand-primary` CTA per view** — one `jhButton` (default variant) in the navigation row on every step. The logo step's picker is `variant="secondary"`; the invite rows are outline (`border-brand` + `text-brand-strong`), carried over unchanged from the invitations screen
+- [x] CHK003 Lemon `brand-highlight` used only for small pops — not used at all here
+- [x] CHK004 Status uses paired `*-bg` / `*-border` / `*-fg` tokens — the Mixteam note is `info-bg` + `info-border` + `info-fg`; refusals are `text-danger-fg`; the available verdict `text-success-fg`
+- [x] CHK005 No new colors introduced ad hoc — no new value anywhere in the diff
+
+## Typography, numbers & voice
+
+- [x] CHK006 Headings use the display face, body the UI face — step titles are `text-h3`, body copy `text-body-md` / `text-body-sm`, driven by the existing scale classes
+- [x] CHK007 Scores, stats, times, counts set in **mono** — the team handle is the only such value and is `font-mono` on both the input (carried over) and the review row
+- [x] CHK008 **Sentence case everywhere** — "Does this look right?", "Give your team a logo", "Who's in the team?", "Continue", "Skip for now", "Go to your team", "Change". UPPERCASE only on the `text-eyebrow` field labels, which is the styled eyebrow
+- [x] CHK009 Nothing meaningful below 12px — smallest is `text-body-sm`; `text-eyebrow` is the label step, as elsewhere
+- [x] CHK010 Copy addresses the reader as **"you"**, CTAs invite, no emoji — "Give **your** team a logo", "Optional — you can add one any time". No emoji in any of the three catalogues
+
+## Layout & spacing
+
+- [x] CHK011 Touch targets ≥ 44px — `jhButton` carries `minHeight: 44px` by definition. **Found failing and fixed during this review**: the review step's four "Change" controls were bare text buttons with no height; they now carry `inline-flex min-h-11 items-center px-2xs` (`team-create.component.html:112` and the three rows below it)
+- [x] CHK012 Spacing composes from the 4px scale tokens — `space-y-md`, `gap-sm`, `py-sm`, `px-md`, `pt-sm`, `mt-xs`, `px-2xs`. The one non-token value is `w-28` on the review `<dt>`, a column width rather than spacing (see notes)
+- [x] CHK013 Centered column, mobile-first — `max-w-container-sm`, unchanged from the screen this replaces
+- [x] CHK014 Section rhythm uses `section-gap` — not applicable: a single-column form, not a sectioned page
+
+## Shape & elevation
+
+- [x] CHK015 **No sharp corners** — `rounded-md` on inputs and the review list, `rounded-lg` on the logo tile, `rounded-pill` on the progress knobs and the result avatars, `rounded-sm` on the type toggle segments
+- [x] CHK016 Shadows are the warm-tinted tokens — no shadow utility is used in the diff; surfaces are distinguished by border and background
+- [x] CHK017 Cards are `surface-card` + 1px muted border — the review list and the logo panel follow this. Neither lifts on hover, deliberately: they are not navigable cards (see notes)
+- [x] CHK018 Larger shadows reserved for floating elements — none used
+
+## Motion & states
+
+- [x] CHK019 Transitions use the `fast`/`base`/`slow` durations and token easings — `transition-all duration-fast` on the progress knobs, `transition-colors duration-fast` on the type toggle, `transition-shadow duration-fast` on inputs
+- [x] CHK020 Focus always visible — inputs carry `focus:border-border-focus focus:ring-2 focus:ring-focus`; `jhButton` carries its own focus ring
+- [x] CHK021 Buttons darken a brand step + glow on hover, nudge on press — inherited from `jhButton`; the outline invite button uses `hover:bg-surface-accent-soft`, carried over unchanged
+- [x] CHK022 No infinite decorative animation loops — none
+
+## Iconography
+
+- [x] CHK023 Icons are Lucide line icons via the `jh-icon` primitive — `chevron-left` on Back, `check` on the available verdict and the invited chip. No raw `<svg>` anywhere (GH #300's rule)
+- [x] CHK024 No emoji used as UI icons — none
+
+## Accessibility
+
+- [x] CHK025 Body text meets WCAG AA — all foreground/surface pairings are existing token combinations already covered by `contrast.spec.ts`
+- [x] CHK026 Status never conveyed by colour alone — the available verdict pairs green with a check icon **and** a sentence; refusals are sentences; the "invited" state is a chip with an icon and the word
+- [x] CHK027 Interactive elements keyboard-reachable with visible focus and labels — every control is a native `<button>` or `<input>`; the type toggle keeps its `role="group"` + `aria-label`; the progress row is `aria-hidden="true"` (decorative, and the step's own heading carries the meaning); both refusal lines carry `role="alert"`
+
+## Empty, loading & error states
+
+- [x] CHK028 Empty states offer a warm, low-pressure next step — the invite search's new empty state is "No players match that. Try another spelling, or their @handle." (a suggestion, not a dead end)
+- [x] CHK029 Loading and error states exist and are styled — "Checking…", "Searching…", "Uploading…"; failures render through `jh-alert` or a `text-danger-fg` line, never raw
+
+## Feature-specific UI
+
+- [x] CHK030 **Five knobs at 375px** — the row is five `h-2` pills (one `w-6`, four `w-2`) with `gap-xs`: 38px total, counted in a live DOM rather than read off the template. **Found failing and fixed during this review** — see the note below: the *completed* knobs were rendering fully transparent
+- [x] CHK031 **The review step reads as a summary, not a form** — a `<dl>` of label/value rows, no inputs, no field borders; only the "Change" controls are interactive, and they are text actions rather than input-shaped
+- [x] CHK032 **German at 375px, the binding case** — the longest new German strings are `reviewSubtitle` ("Das Team-Handle ist dauerhaft – alles andere kannst du später ändern.") and `inviteLater`. Both are `<p>` body copy that wraps freely. The review rows pair a fixed `w-28` label column with `min-w-0 flex-1` values carrying `break-words` (`break-all` for the handle), so no value can overflow the column
+- [x] CHK033 **Skip reads as a choice, not as leaving something unfinished** — the label is "Skip for now" / "Erst mal überspringen" / "Saltar por ahora", and both optional steps say "Optional" in their subtitle. No step says the team is incomplete, because it is not (FR-013)
+- [x] CHK034 **The one-way door is visible** — no Back control is rendered once the team exists, and the review step states the consequence before the press ("Your team handle is permanent…", "Creating the team makes you its first admin")
+- [x] CHK035 **German uses the Halbgeviertstrich** — `catalog-punctuation.spec.ts` caught three em dashes in the German copy on the first run; all three are now `–`. Verified green
+
+## Notes
+
+**Two failures found and fixed during this review.**
+
+**CHK030 — the completed step knobs were invisible.** The markup was lifted verbatim from the
+event wizard, `bg-brand/60` included, and the class list reads exactly as intended. It is not:
+`brand` is registered in `tailwind.config.js` as a bare `var(--brand-primary)`, and Tailwind's
+`/60` modifier cannot compose a plain custom property into the `rgb(... / <alpha-value>)` form it
+needs, so the declaration is invalid and the knob gets **no background at all**. Measured in a
+browser: `bg-brand/60` computes to `rgba(0, 0, 0, 0)`. On the review step, the two steps already
+completed were rendering as gaps in the row.
+
+Fixed here by using the solid `bg-brand` token for completed knobs, with width carrying "you are
+here" and colour carrying done-vs-to-come. `surface-accent-soft` (coral-0) was considered and
+rejected: against `surface-sunken` (sand-1) at 8px the two are not tellable apart.
+
+**The root cause is not this feature's** and is filed as **GH #322**: the same bug silently
+disables four other places, including the browse filter panel's modal scrim
+(`bg-surface-inverse/40` — an overlay that does not dim) and the event wizard's own progress row.
+Those are left untouched here.
+
+The lesson worth keeping is about this checklist rather than the CSS: a markup-level review
+**cannot** catch this class of defect. The classes are right; the rendering is not. It took a
+screenshot.
+
+**CHK011 — the review step's "Change" controls.
+They were bare text buttons at roughly 20px tall, well under the 44px DESIGN.md sets as the
+default control height, and they are the only way back to an answer from the review step — the
+worst place to put an unreliable tap target. Fixed in place rather than deferred.
+
+**Two deliberate non-conformances, both reported rather than silently resolved:**
+
+1. **CHK017 — the review list and logo panel do not lift on hover.** DESIGN.md's card spec
+   includes "lift 3px + deepen shadow on hover". These two surfaces are `surface-card` with a
+   border, but they are not cards in the sense the spec means: nothing about them is navigable,
+   and a panel that lifts under the cursor while only a small control inside it is clickable
+   advertises an interaction that does not exist. Reading DESIGN.md's own framing — the hover
+   lift belongs to cards that *go somewhere* — these are panels. Raised here for a second
+   opinion rather than decided unilaterally.
+2. **CHK012 — `w-28` on the review label column.** Not a 4px-scale spacing token but a column
+   width, which the scale does not cover. The alternative, a two-line stacked label/value, reads
+   worse at every width. `w-28` is 112px, which is `space-12` in the 4px scale, so it lands on
+   the scale even though it is not spelled as a token.
+
+## The invite link block (D4a)
+
+- [x] CHK033 The block's markup, tokens and `data-testid`s move **verbatim** from the invitations
+  screen — dashed `border-border-strong` on the link row, `surface-inverse` copy control,
+  `variant="secondary"` replace control, `warning-*` triple on the expiry line — so the two screens
+  cannot drift apart visually (CHK001, CHK002 hold unchanged: the copy control is inverse, not coral)
+- [x] CHK034 The link itself is `font-mono` + `truncate` inside a `min-w-0 flex-1` span, so a long
+  token cannot push the row wider than the step at 375px
+- [x] CHK035 The step's two halves are labelled by the same eyebrow treatment the invitations screen
+  uses (`text-eyebrow` uppercase `text-muted`), so "Share your invite link" and "Or add someone
+  directly" read as one pattern across both screens
+- [x] CHK036 **German at 375px** for the new arrangement — the binding strings are
+  "Einladungslink erstellen" on a full-width control and the new
+  "Wir konnten nicht kopieren. Markiere den Link und kopier ihn von Hand." in `jh-alert`, both body
+  copy that wraps freely; "Teile deinen Einladungslink" is the longest eyebrow and fits on one line
+- [x] CHK037 Nothing is conveyed by colour alone — the expiry line pairs the warning tone with the
+  sentence "anyone with it can accept and join as a player", and a refused copy is a sentence
+
+**Conventions** ([constitution](../../../.specify/memory/constitution.md) gate 5): `.html` / `.css` /
+`.ts` stay separate for the rewritten wizard and for both new components.
+
+**Verified in a browser.** The production build was served with every API call mocked, and the
+whole flow was walked at 1280×900, at 375×812, and at 375×812 in German — 33 screenshots, all five
+steps plus their empty/filled/uploaded/invited states. That pass is what caught CHK030. What
+remains unverified is the flow against a **real backend**: these screenshots prove the rendering,
+not the integration.
+
+**Verified against the real stack (D4a).** The link addition was walked against the running local
+stack — real backend, database and Mailpit, a freshly registered account each time — at 1280×900 in
+English and at 375×812 in German, 16 screenshots. Beyond the rendering, four facts were checked
+that no component test can reach: the created link's text **matches what the clipboard actually
+received**; *New link* returns a different link; the link made in the wizard is the one the team's
+invitations screen then shows; and revoking its row there returns the block to its create control.
+
+**One deviation recorded rather than resolved unilaterally — CHK002 and the block's weight.** On
+the invitations screen the block sits in a one-third aside, so the `surface-inverse` copy control
+reads as a modest dark button. On the wizard step it spans the content column, and at 1280px that
+slab carries more visual weight than the coral *Go to your team* beside it. The letter of CHK002
+holds (there is exactly one coral CTA, and it is the navigation one), and the alternative —
+restyling the control for one of its two call sites — would undo the point of sharing the component
+at all. It is also arguably right: on this step, sharing the link *is* the action, and the coral CTA
+is a way out of the flow. Raised here for a second opinion.
