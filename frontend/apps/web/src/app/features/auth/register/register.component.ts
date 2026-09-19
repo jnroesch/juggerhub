@@ -9,6 +9,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { passwordsMatch } from '../../../core/utils/passwords-match.validator';
 import { problemDetail } from '../../../core/utils/problem';
+import { inviteFromReturnUrl } from '../../../core/utils/invite-ref';
 import { safeReturnUrl } from '../../../core/utils/return-url';
 import { PasswordRulesComponent } from '../password-policy/password-rules.component';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -62,22 +63,32 @@ export class RegisterComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   /**
-   * A pending returnUrl (e.g. an invite opened while signed out) arrives here via the
-   * sign-in → register link. It's forwarded onto the "sign in" links so the intended
-   * action survives the register → verify → sign-in hop instead of being dropped.
-   * Only internal paths survive the open-redirect guard.
-   */
-  /**
    * Host for the permalink preview. Read from the browser rather than hardcoded so the
    * preview matches the origin the account is actually being created on (juggerhub.com,
    * dev.juggerhub.com, localhost) instead of naming a domain the profile isn't served from.
    */
   protected readonly appHost = location.host;
 
+  /**
+   * A pending returnUrl (e.g. an invite opened while signed out) arrives here via the
+   * sign-in → register link. It's forwarded onto the "sign in" links so the intended action
+   * survives a "sign in instead" detour. Only internal paths survive the open-redirect guard.
+   *
+   * It does NOT survive the email on its own: a brand-new account has to verify first, and the
+   * verification link is built server-side. When the returnUrl is a shared invite link, the
+   * invite's two segments are therefore also sent with the registration (feature 053) so the
+   * server can put them on that link — see `invite` below.
+   */
   protected readonly signInParams = ((): Record<string, string> => {
     const returnUrl = safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
     return returnUrl ? { returnUrl } : {};
   })();
+
+  /**
+   * The invite the person came from, if the returnUrl is the invite page — an identity (slug +
+   * token), never the path. Anything that is not exactly that shape is null and nothing is sent.
+   */
+  private readonly invite = inviteFromReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'));
 
   protected readonly form = this.fb.nonNullable.group(
     {
@@ -231,6 +242,9 @@ export class RegisterComponent {
         acceptsTerms,
         termsVersion,
         termsLanguage: this.transloco.getActiveLang(),
+        // Feature 053 — only when the person arrived from an invite link; otherwise the payload
+        // is exactly what it always was.
+        ...(this.invite ? { inviteSlug: this.invite.slug, inviteToken: this.invite.token } : {}),
       })
       .subscribe({
         next: () => {

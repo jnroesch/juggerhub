@@ -3,6 +3,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { inviteFromReturnUrl } from '../../../core/utils/invite-ref';
 import { safeReturnUrl } from '../../../core/utils/return-url';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { LegalLinksComponent, ButtonDirective, AlertComponent, CardComponent } from '../../../shared/ui';
@@ -54,7 +55,8 @@ export class SignInComponent {
         // invite opened while signed out). The server is the authority for the flag.
         // A pending returnUrl is carried *through* onboarding so the intended action
         // (e.g. accepting an invite) still resumes after the wizard, rather than being
-        // dropped at the first-login gate.
+        // dropped at the first-login gate. Feature 053 relies on exactly this hop to hand
+        // the wizard the invite the person registered from — keep it.
         const returnUrl = this.returnUrl();
         if (!user.onboardingCompleted) {
           this.router.navigate(['/onboarding'], returnUrl ? { queryParams: { returnUrl } } : {});
@@ -88,8 +90,15 @@ export class SignInComponent {
       return;
     }
 
-    // Neutral either way.
-    this.auth.resendVerification({ email }).subscribe({
+    // Neutral either way. If this sign-in still knows which invite the person came from, the
+    // re-sent link carries it too (feature 053) — otherwise the plain link, as before.
+    const invite = inviteFromReturnUrl(this.returnUrl());
+    this.auth
+      .resendVerification({
+        email,
+        ...(invite ? { inviteSlug: invite.slug, inviteToken: invite.token } : {}),
+      })
+      .subscribe({
       next: () => this.resent.set(true),
       error: () => this.resent.set(true),
     });

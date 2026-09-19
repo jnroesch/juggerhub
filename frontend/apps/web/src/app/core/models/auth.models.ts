@@ -48,6 +48,14 @@ export interface RegisterRequest {
 
   /** The language the document was shown in, recorded alongside the acceptance. */
   termsLanguage: string;
+
+  /**
+   * Feature 053 — with `inviteToken`, the two segments of the shared invite link the person
+   * came from. Validated for shape only, never stored; the server's one use is to put them on
+   * the verification link so the invite survives the email hop. Omitted entirely otherwise.
+   */
+  inviteSlug?: string;
+  inviteToken?: string;
 }
 
 export interface LoginRequest {
@@ -68,6 +76,9 @@ export interface ResetPasswordRequest {
 
 export interface ResendVerificationRequest {
   email: string;
+  /** Feature 053 — same pair as {@link RegisterRequest}, so a re-sent link carries the invite too. */
+  inviteSlug?: string;
+  inviteToken?: string;
 }
 
 export interface VerifyEmailRequest {
