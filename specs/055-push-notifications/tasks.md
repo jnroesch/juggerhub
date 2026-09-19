@@ -334,7 +334,7 @@ stops in each case while other devices continue.
 - [ ] T047 Device walk per [quickstart.md](quickstart.md) §6 on Android and iPhone, screenshots to
       the PR: lock-screen delivery, tap-through to the right page, and the iPhone install
       instructions shown in Safari before installation.
-- [ ] T048 Commit in logical groups with `#308` in each message, open the PR with `Closes #308`, the
+- [X] T048 Commit in logical groups with `#308` in each message, open the PR with `Closes #308`, the
       device screenshots, the recorded residuals from [plan.md](plan.md), and a note on #309 that its
       `IPushDispatcher` seam now exists and that chat must call it **without** writing a
       `Notification` row.
