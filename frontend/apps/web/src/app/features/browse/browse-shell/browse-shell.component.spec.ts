@@ -1,5 +1,7 @@
+import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { RouterTestingHarness } from '@angular/router/testing';
 import { translocoTestingModule } from '../../../../testing/transloco-testing';
 import { BrowseShellComponent } from './browse-shell.component';
 
@@ -60,5 +62,37 @@ describe('BrowseShellComponent — search box', () => {
 
     type('köln');
     expect(emitted).toEqual(['köln', 'köln']);
+  });
+});
+
+/**
+ * The active tab's dark label (GH #318). `routerLinkActive="text-heading"` over a base
+ * `text-muted` never applied — two bare utilities have the same specificity, and the stylesheet's
+ * order put `.text-muted` last — so the look is a `[class]` binding with two exclusive branches,
+ * read off the directive's own `isActive`. The base list names no colour at all.
+ */
+describe('BrowseShellComponent — active tab', () => {
+  @Component({ template: '<jh-browse-shell title="Browse" />', imports: [BrowseShellComponent] })
+  class Host {}
+
+  it('paints only the active tab with the heading colour, and marks it aria-current', async () => {
+    TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
+      providers: [provideRouter([{ path: 'browse/:tab', component: Host }])],
+    });
+    const harness = await RouterTestingHarness.create('/browse/teams');
+    // RouterLinkActive settles in a microtask after the navigation.
+    await harness.fixture.whenStable();
+    harness.detectChanges();
+
+    const tab = (id: string) => harness.routeNativeElement?.querySelector(`[data-testid="${id}"]`) as HTMLElement;
+
+    expect(tab('browse-tab-teams').classList).toContain('text-heading');
+    expect(tab('browse-tab-teams').classList).not.toContain('text-muted');
+    expect(tab('browse-tab-teams').getAttribute('aria-current')).toBe('page');
+
+    expect(tab('browse-tab-events').classList).toContain('text-muted');
+    expect(tab('browse-tab-events').classList).not.toContain('text-heading');
+    expect(tab('browse-tab-events').hasAttribute('aria-current')).toBe(false);
   });
 });

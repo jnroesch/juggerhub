@@ -1,6 +1,68 @@
 const { join } = require('path');
 
 /**
+ * Makes one design-system colour composable with Tailwind's opacity modifier
+ * (GH #317, #322).
+ *
+ * Every colour here is a CSS custom property, and Tailwind cannot derive an
+ * alpha channel from a bare `var(--x)`: for `bg-brand/60` it parses the value
+ * as a colour, fails, and drops the candidate — no rule, no warning, clean
+ * build. Five sites shipped that way, each fully transparent: the filter
+ * sheet's backdrop, the profile's sticky save bar, the event wizard's completed
+ * knobs, and the own-message attachment's border and hover tint. Only
+ * `bg-black/40` ever worked, because `black` is a Tailwind default hex rather
+ * than one of ours.
+ *
+ * A colour may be a function of the requested alpha, so this returns one:
+ *
+ * - **No modifier** → the bare `var(--x)` it always was. The plain rule is
+ *   byte-identical to before, and a browser without `color-mix()` loses
+ *   nothing it had.
+ * - **`/60`, `/[0.37]`** → `color-mix(in srgb, var(--x) 60%, transparent)`,
+ *   composed at paint time. The mix is premultiplied, so that is exactly the
+ *   token at 60% opacity with its hue untouched.
+ *
+ * The tokens stay hex in `styles.css` and in DESIGN.md. The channel-triplet
+ * alternative (`--sand-9: 36 31 24` + `rgb(var(--sand-9) / <alpha-value>)`)
+ * would have broken every direct `var(--token)` in a stylesheet and the
+ * arithmetic in `contrast.spec.ts`, to fix the same five sites.
+ *
+ * Anything else — `bg-brand/[50%]`, or the `var(--tw-bg-opacity)` the
+ * switched-off `backgroundOpacity` plugin would pass — is refused loudly
+ * rather than rendered at full opacity under a modifier that promised less.
+ *
+ * `color-alpha.spec.ts` compiles every modifier the app writes and fails on
+ * any that emits nothing, so the guard does not depend on this code path.
+ */
+function withAlpha(variable) {
+  return ({ opacityValue }) => {
+    if (opacityValue === undefined) return `var(${variable})`;
+    if (typeof opacityValue === 'string' && /^\d*\.?\d+$/.test(opacityValue)) {
+      const percent = Math.round(Number(opacityValue) * 10000) / 100;
+      return `color-mix(in srgb, var(${variable}) ${percent}%, transparent)`;
+    }
+    throw new Error(
+      `${variable}: opacity "${opacityValue}" is not a number — write the modifier as /60 or /[0.6]`,
+    );
+  };
+}
+
+/**
+ * Wraps a (possibly nested) map of `'var(--x)'` strings with `withAlpha`, so the
+ * palette below reads as the plain variable map it is.
+ */
+function alphaAware(map) {
+  return Object.fromEntries(
+    Object.entries(map).map(([key, value]) => {
+      if (typeof value !== 'string') return [key, alphaAware(value)];
+      const match = /^var\((--[a-z0-9-]+)\)$/.exec(value);
+      if (!match) throw new Error(`colour "${key}" must be a var(--token), got "${value}"`);
+      return [key, withAlpha(match[1])];
+    }),
+  );
+}
+
+/**
  * Tailwind theme for the JuggerHub `web` app.
  *
  * The design tokens themselves live as CSS custom properties in
@@ -25,7 +87,8 @@ module.exports = {
   ],
   theme: {
     extend: {
-      colors: {
+      /* Every entry is `var(--token)`; `alphaAware` makes each take a `/NN` modifier. */
+      colors: alphaAware({
         /* Raw scales */
         sand: {
           0: 'var(--sand-0)',
@@ -185,7 +248,7 @@ module.exports = {
         info: 'var(--blue-5)',
         success: 'var(--green-5)',
         danger: 'var(--red-5)',
-      },
+      }),
       spacing: {
         /*
          * `3xs` (2px) is the half-step below the 4px base — pill padding and
@@ -306,9 +369,24 @@ module.exports = {
          * It is `border-focus` now, the same token the inputs put on their focus
          * border, so every focusable thing in the product focuses one colour.
          */
-        focus: 'var(--border-focus)',
+        focus: withAlpha('--border-focus'),
       },
     },
+  },
+  /*
+   * The legacy `bg-opacity-*` / `text-opacity-*` … utilities are off (GH #322).
+   * They work by writing a `--tw-bg-opacity` variable into every colour rule,
+   * which would have forced the `color-mix` form onto plain `bg-brand` too —
+   * see `withAlpha`. The slash modifier (`bg-brand/60`) is the one spelling;
+   * `color-alpha.spec.ts` fails on the legacy one.
+   */
+  corePlugins: {
+    backgroundOpacity: false,
+    textOpacity: false,
+    borderOpacity: false,
+    ringOpacity: false,
+    divideOpacity: false,
+    placeholderOpacity: false,
   },
   plugins: [],
 };

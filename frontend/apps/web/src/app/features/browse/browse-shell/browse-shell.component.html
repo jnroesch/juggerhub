@@ -21,29 +21,50 @@
     at full size in all three languages, and `min-h-[44px]` keeps each cell at the touch-target
     minimum — which the previous three-tab row did not actually meet.
   -->
+  <!--
+    ⚠ The active look is a `[class]` binding with two exclusive branches, never a
+    `routerLinkActive="text-heading"` on top of a base `text-muted` (GH #318). Those are two
+    single-class selectors of identical specificity, so stylesheet order decides — Tailwind emits
+    `.text-heading` before `.text-muted` — and the inactive colour won on the active tab, in
+    every spelling the token ever had. `routerLinkActive` stays as the source of truth for
+    "active" (child routes, query params, the router's own matching) and is read through the
+    template reference; `active-class.spec.ts` fails on the racing shape.
+  -->
   <nav class="grid grid-cols-2 gap-1 rounded-md bg-surface-sunken p-1 sm:grid-cols-4" aria-label="Browse">
     <a
       routerLink="/browse/events"
-      routerLinkActive="bg-surface-card text-heading shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-heading"
+      routerLinkActive
+      #eventsTab="routerLinkActive"
+      ariaCurrentWhenActive="page"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium transition-colors duration-fast"
+      [class]="eventsTab.isActive ? 'bg-surface-card text-heading shadow-sm' : 'text-muted hover:text-heading'"
       data-testid="browse-tab-events"
     >{{ 'browse.tabEvents' | transloco }}</a>
     <a
       routerLink="/browse/teams"
-      routerLinkActive="bg-surface-card text-heading shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-heading"
+      routerLinkActive
+      #teamsTab="routerLinkActive"
+      ariaCurrentWhenActive="page"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium transition-colors duration-fast"
+      [class]="teamsTab.isActive ? 'bg-surface-card text-heading shadow-sm' : 'text-muted hover:text-heading'"
       data-testid="browse-tab-teams"
     >{{ 'browse.tabTeams' | transloco }}</a>
     <a
       routerLink="/browse/trainings"
-      routerLinkActive="bg-surface-card text-heading shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-heading"
+      routerLinkActive
+      #trainingsTab="routerLinkActive"
+      ariaCurrentWhenActive="page"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium transition-colors duration-fast"
+      [class]="trainingsTab.isActive ? 'bg-surface-card text-heading shadow-sm' : 'text-muted hover:text-heading'"
       data-testid="browse-tab-trainings"
     >{{ 'browse.tabTrainings' | transloco }}</a>
     <a
       routerLink="/browse/players"
-      routerLinkActive="bg-surface-card text-heading shadow-sm"
-      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium text-muted transition-colors duration-fast hover:text-heading"
+      routerLinkActive
+      #playersTab="routerLinkActive"
+      ariaCurrentWhenActive="page"
+      class="flex min-h-[44px] items-center justify-center rounded-sm px-sm py-xs text-center text-body-sm font-medium transition-colors duration-fast"
+      [class]="playersTab.isActive ? 'bg-surface-card text-heading shadow-sm' : 'text-muted hover:text-heading'"
       data-testid="browse-tab-players"
     >{{ 'browse.tabPlayers' | transloco }}</a>
   </nav>

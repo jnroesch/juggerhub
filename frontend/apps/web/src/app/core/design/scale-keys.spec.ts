@@ -157,12 +157,16 @@ function sourceFiles(dir: string): string[] {
   });
 }
 
-/** Every key in a resolved colour theme, flattened the way Tailwind names the utilities. */
+/**
+ * Every key in a resolved colour theme, flattened the way Tailwind names the utilities. A
+ * design-system colour is a function of the requested alpha since GH #322 (so `bg-brand/60`
+ * composes); a Tailwind default such as `black` is still a string. Both are leaves.
+ */
 function colorKeys(colors: Record<string, unknown>): Set<string> {
   const keys = new Set<string>();
 
   for (const [name, value] of Object.entries(colors)) {
-    if (typeof value === 'string') {
+    if (typeof value === 'string' || typeof value === 'function') {
       keys.add(name);
       continue;
     }
