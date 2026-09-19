@@ -81,31 +81,31 @@ Principle VII requires. Nothing here is observable yet.
 
 **⚠ No user story can start until this phase is done.**
 
-- [ ] T007 Create `backend/Entities/PushSubscription.cs` per [data-model.md](data-model.md):
+- [X] T007 Create `backend/Entities/PushSubscription.cs` per [data-model.md](data-model.md):
       `BaseEntity` with `UserId`, `Endpoint`, `P256dh`, `Auth`, `DeviceLabel`, `LastSuccessAt` and
       the `User` navigation. XML doc must state that **this IS owned data and belongs in
       `EraseOwnedDataAsync`**, explicitly contrasting it with `TermsAcceptance`, whose entity
       carries the opposite warning.
-- [ ] T008 Add the `DbSet` and configuration to `backend/Data/AppDbContext.cs` beside the
+- [X] T008 Add the `DbSet` and configuration to `backend/Data/AppDbContext.cs` beside the
       `RefreshToken` block it copies: max lengths, **unique index on `Endpoint`**, index on
       `UserId`, index on `LastSuccessAt`, `DeleteBehavior.Cascade` to `User`. Comment the unique
       index as load-bearing: it makes a device that changes hands **move** accounts instead of
       existing twice, which is the shared-device case in FR-020.
-- [ ] T009 Generate the migration for the new table only
+- [X] T009 Generate the migration for the new table only
       (`dotnet ef migrations add AddPushSubscriptions`), then **read the generated file** and
       confirm it creates one table and three indexes and touches nothing else.
-- [ ] T010 [P] Add `Push = 2` to `NotificationChannel` in `backend/Entities/NotificationEnums.cs`
+- [X] T010 [P] Add `Push = 2` to `NotificationChannel` in `backend/Entities/NotificationEnums.cs`
       and **delete the "Push is out of scope" sentence** from its XML doc — that was feature 011's
       deferral note and this feature is the deferral being taken up.
-- [ ] T011 [P] Add `bool Push` to `PreferenceChannelsDto` in
+- [X] T011 [P] Add `bool Push` to `PreferenceChannelsDto` in
       `backend/Dtos/Notifications/NotificationPreferenceDtos.cs`, and emit it from
       `GetMatrixAsync` in `backend/Services/Notifications/NotificationPreferenceService.cs` with a
       third `Effective(category, NotificationChannel.Push)` call.
-- [ ] T012 [P] Mirror the channel on the client in
+- [X] T012 [P] Mirror the channel on the client in
       `frontend/apps/web/src/app/core/models/notification-preferences.models.ts`: add `'Push'` to
       `NotificationChannelId`, `'push'` to `ChannelKey`, `push: boolean` to `PreferenceChannels`,
       and the mapping in `channelIdOf`.
-- [ ] T013 [P] Define the seams: `backend/Services/Notifications/Push/IPushDispatcher.cs` with
+- [X] T013 [P] Define the seams: `backend/Services/Notifications/Push/IPushDispatcher.cs` with
       `DispatchAsync(IReadOnlyCollection<Guid> recipientUserIds, PushContent content, CancellationToken ct)`,
       and `backend/Services/Notifications/Push/IPushSubscriptionService.cs` with register, remove and
       touch. `IPushDispatcher`'s XML doc must say it is called **by** `NotificationService` and not

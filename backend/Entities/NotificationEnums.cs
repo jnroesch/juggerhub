@@ -62,11 +62,26 @@ public enum NotificationCategory
     Events = 3,
 }
 
-/// <summary>The delivery medium a preference governs (feature 011). Push is out of scope. Serialized as its name.</summary>
+/// <summary>
+/// The delivery medium a preference governs (feature 011). Serialized as its name.
+/// <para>
+/// The three channels are INDEPENDENT. Turning one off for a category must never change or
+/// suppress delivery on another, in either direction — see the restructure in
+/// <c>NotificationService.CreateAsync</c>, where the in-app check used to be an early return that
+/// would have silently swallowed push.
+/// </para>
+/// </summary>
 public enum NotificationChannel
 {
     InApp = 0,
     Email = 1,
+
+    /// <summary>
+    /// Web push to the member's enabled devices (feature 055). Added here with no migration: the
+    /// preference table is sparse, so a third channel adds possible cells without touching a single
+    /// stored row.
+    /// </summary>
+    Push = 2,
 }
 
 /// <summary>Maps a producer <see cref="NotificationType"/> to its user-facing <see cref="NotificationCategory"/>.</summary>

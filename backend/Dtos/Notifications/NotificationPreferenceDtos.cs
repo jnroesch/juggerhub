@@ -17,8 +17,12 @@ public sealed record PreferenceCategoryDto(
     string Description,
     PreferenceChannelsDto Channels);
 
-/// <summary>The per-channel enabled state for a category (defaults applied for unset cells).</summary>
-public sealed record PreferenceChannelsDto(bool InApp, bool Email);
+/// <summary>
+/// The per-channel enabled state for a category (defaults applied for unset cells). The three
+/// channels are independent: <see cref="Push"/> being on does not require <see cref="InApp"/> to be
+/// on, and switching one off never silences another (feature 055).
+/// </summary>
+public sealed record PreferenceChannelsDto(bool InApp, bool Email, bool Push);
 
 /// <summary>A read-only "always on" group shown in settings but never togglable (e.g. security and sign-in).</summary>
 public sealed record AlwaysOnGroupDto(string Label, string Description);

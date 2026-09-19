@@ -6,14 +6,20 @@
  */
 
 export type NotificationCategoryId = 'InvitesAndRoster' | 'TeamNews' | 'Trainings' | 'Events';
-export type NotificationChannelId = 'InApp' | 'Email';
+export type NotificationChannelId = 'InApp' | 'Email' | 'Push';
 
-/** The two client-side keys of {@link PreferenceChannels}, matched to their API channel name. */
-export type ChannelKey = 'inApp' | 'email';
+/** The three client-side keys of {@link PreferenceChannels}, matched to their API channel name. */
+export type ChannelKey = 'inApp' | 'email' | 'push';
 
 export interface PreferenceChannels {
   inApp: boolean;
   email: boolean;
+  /**
+   * Web push to this account's enabled devices (feature 055). Independent of the other two: on
+   * here with in-app off still delivers. Whether any device is actually enabled is a separate,
+   * per-device question answered by the device section, not by this flag.
+   */
+  push: boolean;
 }
 
 export interface PreferenceCategory {
@@ -33,7 +39,13 @@ export interface NotificationPreferenceMatrix {
   alwaysOn: AlwaysOnGroup[];
 }
 
+const CHANNEL_IDS: Record<ChannelKey, NotificationChannelId> = {
+  inApp: 'InApp',
+  email: 'Email',
+  push: 'Push',
+};
+
 /** Map a client channel key to the API's channel route segment. */
 export function channelIdOf(key: ChannelKey): NotificationChannelId {
-  return key === 'inApp' ? 'InApp' : 'Email';
+  return CHANNEL_IDS[key];
 }
