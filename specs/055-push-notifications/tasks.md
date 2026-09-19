@@ -244,15 +244,15 @@ notification naming its subject arrives and opens the right page.
 **Independent Test**: turn a category's push off, trigger it, confirm nothing arrives while the
 in-app entry still does.
 
-- [ ] T033 [US3] Add the fourth column to
+- [X] T033 [US3] Add the fourth column to
       `frontend/apps/web/src/app/features/settings/notifications/notification-settings.component.html`:
       `md:grid-cols-[1fr_5rem_5rem]` becomes `md:grid-cols-[1fr_5rem_5rem_5rem]` on **both** the
       header row and the list item, plus a Push toggle block copying the Email one, with
       `data-testid="toggle-{category}-push"` and the same `role="switch"` and `aria-label` shape.
       Below `md` this renders as a fourth labelled row in the card, not a fourth column.
-- [ ] T034 [P] [US3] Add `settings.notifications.push` as the column heading to all three
+- [X] T034 [P] [US3] Add `settings.notifications.push` as the column heading to all three
       catalogues in `frontend/apps/web/public/i18n/{en,de,es}.json`.
-- [ ] T035 [P] [US3] Extend
+- [X] T035 [P] [US3] Extend
       `frontend/apps/web/src/app/features/settings/notifications/notification-settings.component.spec.ts`:
       three toggles render per category; pressing the push toggle calls `setCell` with the `Push`
       channel; the always-on group gains no push toggle (FR-017).
