@@ -47,6 +47,13 @@ test('the worker is registered for the whole site after the app starts', async (
   // signed-in shell too.
   await page.goto('/sign-in');
 
+  // Service workers need a secure context (HTTPS, or HTTP on localhost). If this fails, the
+  // origin under test is neither — see the Chromium flag in playwright.config.mts.
+  expect(
+    await page.evaluate(() => 'serviceWorker' in navigator),
+    'navigator.serviceWorker is missing: the origin under test is not a secure context',
+  ).toBe(true);
+
   const registration = await page.evaluate(() =>
     navigator.serviceWorker.ready.then((r) => ({
       scope: r.scope,
