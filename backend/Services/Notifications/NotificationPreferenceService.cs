@@ -110,7 +110,8 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
                     description,
                     new PreferenceChannelsDto(
                         Effective(category, NotificationChannel.InApp),
-                        Effective(category, NotificationChannel.Email)));
+                        Effective(category, NotificationChannel.Email),
+                        Effective(category, NotificationChannel.Push)));
             })
             .ToList();
 

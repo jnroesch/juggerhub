@@ -49,6 +49,31 @@ public sealed class PreferenceTests
         Assert.Equal(HttpStatusCode.Unauthorized, (await anon.GetAsync("/api/v1/notification-preferences")).StatusCode);
     }
 
+    /// <summary>
+    /// The third channel (feature 055) needed no new endpoint: the per-cell PUT binds the channel
+    /// from the route as an enum, so a new member is routable the day it exists.
+    /// </summary>
+    [Fact]
+    public async Task The_push_channel_defaults_to_on_and_round_trips_through_the_existing_endpoint()
+    {
+        var (user, _, _, _) = await NewUserAsync();
+
+        var matrix = await user.GetFromJsonAsync<JsonElement>("/api/v1/notification-preferences");
+        foreach (var category in new[] { "InvitesAndRoster", "TeamNews", "Trainings", "Events" })
+        {
+            Assert.True(Channel(matrix, category, "push"));
+        }
+
+        var put = await user.PutAsJsonAsync("/api/v1/notification-preferences/Trainings/Push", new { enabled = false });
+        Assert.Equal(HttpStatusCode.NoContent, put.StatusCode);
+
+        var after = await user.GetFromJsonAsync<JsonElement>("/api/v1/notification-preferences");
+        Assert.False(Channel(after, "Trainings", "push"));
+        // The other two channels of the same category are untouched — they are independent.
+        Assert.True(Channel(after, "Trainings", "inApp"));
+        Assert.True(Channel(after, "Trainings", "email"));
+    }
+
     [Fact]
     public async Task Unknown_category_or_channel_is_rejected()
     {

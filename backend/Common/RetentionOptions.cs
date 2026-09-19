@@ -43,6 +43,19 @@ public sealed class RetentionOptions
     /// </remarks>
     public int RefreshTokenGraceDays { get; set; } = 16;
 
+    /// <summary>
+    /// How long a push subscription is kept after its last successful delivery — or, for one that
+    /// never received anything, after it was registered (feature 055).
+    /// </summary>
+    /// <remarks>
+    /// A device that has been unreachable this long is gone: wiped, replaced, or with its site data
+    /// cleared. Most dead subscriptions are removed far sooner, the moment the push service answers
+    /// 404 or 410; this sweep exists for the ones nothing is ever sent to, which produce no such
+    /// answer because no delivery is attempted. 90 days is generous on purpose — a member who does
+    /// not open JuggerHub over a quiet winter should not have to re-enable their phone.
+    /// </remarks>
+    public int PushSubscriptionIdleDays { get; set; } = 90;
+
     /// <summary>How often the sweep runs. Deletion is by age, so a missed run self-corrects.</summary>
     public int SweepIntervalHours { get; set; } = 24;
 

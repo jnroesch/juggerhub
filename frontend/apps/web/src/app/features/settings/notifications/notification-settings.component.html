@@ -8,6 +8,11 @@
     </p>
   }
 
+  <!-- Whether THIS browser receives notifications at all — a different question from which
+       categories would be pushed, which is the Push column below. Rendered above the matrix and
+       outside its load states, because it depends on the browser rather than on the server. -->
+  <jh-push-device-section class="mt-lg block" />
+
   <!-- Loading -->
   @if (loading()) {
     <div class="mt-lg space-y-md" aria-hidden="true">
@@ -37,16 +42,17 @@
     <!-- Desktop: the matrix sits inside one card; on mobile each category is its own card. -->
     <div class="mt-lg md:rounded-lg md:border md:border-border-muted md:bg-surface-card md:px-md md:shadow-sm">
       <!-- Desktop column headers -->
-      <div class="hidden md:grid md:grid-cols-[1fr_5rem_5rem] md:items-end md:gap-md md:pb-sm md:pt-md">
+      <div class="hidden md:grid md:grid-cols-[1fr_5rem_5rem_5rem] md:items-end md:gap-md md:pb-sm md:pt-md">
         <span></span>
         <span class="text-center text-caption font-semibold uppercase tracking-wide text-muted">{{ 'settings.notifications.inApp' | transloco }}</span>
         <span class="text-center text-caption font-semibold uppercase tracking-wide text-muted">{{ 'settings.notifications.email' | transloco }}</span>
+        <span class="text-center text-caption font-semibold uppercase tracking-wide text-muted">{{ 'settings.notifications.push' | transloco }}</span>
       </div>
 
       <ul class="space-y-md md:space-y-0">
         @for (cat of categories(); track cat.category) {
         <li
-          class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm md:grid md:grid-cols-[1fr_5rem_5rem] md:items-center md:gap-md md:rounded-none md:border-0 md:border-t md:border-border-muted md:bg-transparent md:p-0 md:py-md md:shadow-none"
+          class="rounded-lg border border-border-muted bg-surface-card p-md shadow-sm md:grid md:grid-cols-[1fr_5rem_5rem_5rem] md:items-center md:gap-md md:rounded-none md:border-0 md:border-t md:border-border-muted md:bg-transparent md:p-0 md:py-md md:shadow-none"
         >
           <div>
             <p class="text-body-sm font-semibold text-heading">{{ cat.label }}</p>
@@ -89,6 +95,27 @@
               <span
                 class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
                 [class]="cat.channels.email ? 'translate-x-5' : 'translate-x-0.5'"
+              ></span>
+            </button>
+          </div>
+
+          <!-- Push. Independent of the two above: on here with In-app off still reaches the
+               member's devices. Whether any device is enabled is the section at the top. -->
+          <div class="mt-sm flex items-center justify-between md:mt-0 md:justify-center">
+            <span class="text-body-sm text-muted md:hidden">{{ 'settings.notifications.push' | transloco }}</span>
+            <button
+              type="button"
+              role="switch"
+              [attr.aria-checked]="cat.channels.push"
+              [attr.aria-label]="cat.label + ' — ' + ('settings.notifications.push' | transloco)"
+              (click)="toggle(cat.category, 'push', cat.channels.push)"
+              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+              [class]="cat.channels.push ? 'bg-brand' : 'bg-surface-muted'"
+              [attr.data-testid]="'toggle-' + cat.category + '-push'"
+            >
+              <span
+                class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
+                [class]="cat.channels.push ? 'translate-x-5' : 'translate-x-0.5'"
               ></span>
             </button>
           </div>

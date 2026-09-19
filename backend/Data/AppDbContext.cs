@@ -36,6 +36,9 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
 
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
+    /// <summary>Browsers members have enabled push notifications on (feature 055).</summary>
+    public DbSet<PushSubscription> PushSubscriptions => Set<PushSubscription>();
+
     public DbSet<PlayerProfile> PlayerProfiles => Set<PlayerProfile>();
 
     public DbSet<ProfilePompfe> ProfilePompfen => Set<ProfilePompfe>();
@@ -579,6 +582,35 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
             entity.HasOne(p => p.User)
                 .WithMany()
                 .HasForeignKey(p => p.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Feature 055 — one row per browser a member has enabled notifications on. Configured
+        // beside RefreshToken because it copies that table's shape: a per-device credential, a
+        // unique index on the credential itself, a lookup index on the owner, and an index on the
+        // column the retention sweep deletes by.
+        builder.Entity<PushSubscription>(entity =>
+        {
+            entity.Property(s => s.Endpoint).HasMaxLength(512).IsRequired();
+            entity.Property(s => s.P256dh).HasMaxLength(128).IsRequired();
+            entity.Property(s => s.Auth).HasMaxLength(64).IsRequired();
+            entity.Property(s => s.DeviceLabel).HasMaxLength(64);
+
+            // LOAD-BEARING, not hygiene. A push endpoint identifies a browser, not an account, so
+            // when a device changes hands the new owner's registration must MOVE the row rather
+            // than add a second one. Without this index the old owner keeps receiving the new
+            // owner's notifications, which is precisely the shared-device case the feature has to
+            // get right.
+            entity.HasIndex(s => s.Endpoint).IsUnique();
+            entity.HasIndex(s => s.UserId);
+
+            // Serves the retention sweep, which deletes by age of last success. Same reasoning as
+            // the RefreshToken.ExpiresAt index below: without it that DELETE scans the table.
+            entity.HasIndex(s => s.LastSuccessAt);
+
+            entity.HasOne(s => s.User)
+                .WithMany()
+                .HasForeignKey(s => s.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

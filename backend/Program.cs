@@ -17,6 +17,7 @@ using JuggerHub.Services.Health;
 using JuggerHub.Services.Home;
 using JuggerHub.Services.Media;
 using JuggerHub.Services.Notifications;
+using JuggerHub.Services.Notifications.Push;
 using JuggerHub.Services.Notifications.Realtime;
 using JuggerHub.Services.Profile;
 using JuggerHub.Services.Results;
@@ -250,6 +251,12 @@ else
     builder.Services.AddScoped<IEmailSender, SmtpEmailSender>();
 }
 
+// --- Web Push (feature 055 / #308) -----------------------------------------
+// Outbound HTTPS to whichever push service the recipient's browser uses (Google, Apple, Mozilla),
+// so constitution VII is engaged: one typed client, the shared pipeline, one configuration
+// section. The library's own uncapped 429 retry is switched off inside — see the extension.
+builder.Services.AddWebPushClient(builder.Configuration);
+
 // --- Auth flows + session (refresh token) ----------------------------------
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
@@ -261,6 +268,9 @@ builder.Services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 // hosted service runs whatever it finds; expired refresh tokens are the first category.
 builder.Services.Configure<RetentionOptions>(builder.Configuration.GetSection(RetentionOptions.SectionName));
 builder.Services.AddScoped<JuggerHub.Services.Retention.IRetentionSweep, JuggerHub.Services.Retention.ExpiredRefreshTokenSweep>();
+// Feature 055 — push subscriptions nothing is ever delivered to, which therefore never produce the
+// 404/410 that prunes the rest. RetentionBackgroundService runs whatever it finds.
+builder.Services.AddScoped<JuggerHub.Services.Retention.IRetentionSweep, JuggerHub.Services.Retention.StalePushSubscriptionSweep>();
 builder.Services.AddHostedService<JuggerHub.Services.Retention.RetentionBackgroundService>();
 
 // --- Account settings (feature 031: language preference) -------------------
@@ -551,6 +561,12 @@ var app = builder.Build();
 // migrations below: refusing to start on a missing key should not first alter anyone's schema.
 // Throws with a message naming the configuration key and never echoing key material (FR-007).
 app.Services.ValidateChatMessageEncryption();
+
+// --- Web Push configuration (feature 055 / #308) ---------------------------
+// Same reasoning as the line above, and deliberately beside it: refusing to start on missing VAPID
+// keys should happen before the migrations below alter anyone's schema. Names the configuration
+// keys, never the key material.
+app.Services.ValidateWebPushConfiguration();
 
 // --- Auto-apply EF migrations on startup (fail-fast) -----------------------
 // Every environment (incl. Production) is brought up to schema before serving;

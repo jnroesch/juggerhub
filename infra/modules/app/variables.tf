@@ -147,6 +147,21 @@ variable "resend_api_key" {
   sensitive = true
 }
 
+# Feature 055 — Web Push (VAPID). Subject and public key are not secrets and ride in the ConfigMap;
+# the private key signs every delivery and rides in the Secret.
+variable "webpush_subject" {
+  type = string
+}
+
+variable "webpush_public_key" {
+  type = string
+}
+
+variable "webpush_private_key" {
+  type      = string
+  sensitive = true
+}
+
 variable "email_from_address" {
   description = "From header on outgoing mail; may carry a display name (\"Name <addr>\")."
   type        = string

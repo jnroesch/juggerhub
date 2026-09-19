@@ -287,6 +287,10 @@ public sealed class AccountDeletionService : IAccountDeletionService
         // Records that exist solely to serve this member (FR-017).
         await _db.Notifications.Where(n => n.RecipientUserId == userId).ExecuteDeleteAsync(ct);
         await _db.NotificationPreferences.Where(p => p.UserId == userId).ExecuteDeleteAsync(ct);
+        // Feature 055 — the devices they had notifications enabled on, each carrying a delivery
+        // address for that browser. Owned data with no audit purpose that outlives the member,
+        // unlike TermsAcceptance, whose entity warns against exactly this line.
+        await _db.PushSubscriptions.Where(s => s.UserId == userId).ExecuteDeleteAsync(ct);
 
         // Participation (FR-018).
         await _db.TeamMemberships.Where(m => m.UserId == userId).ExecuteDeleteAsync(ct);

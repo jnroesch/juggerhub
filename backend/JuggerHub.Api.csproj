@@ -49,6 +49,17 @@
     <PackageReference Include="Azure.Storage.Blobs" Version="12.29.2" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.14.1" />
     <PackageReference Include="Konscious.Security.Cryptography.Argon2" Version="1.3.1" />
+    <!-- Feature 055 — Web Push (VAPID + RFC 8291 message encryption). The LOW-LEVEL package only:
+         its companion Lib.AspNetCore.WebPush registers its own internal named HttpClient and its
+         AddPushServiceClient returns IServiceCollection, not IHttpClientBuilder, so the shared
+         resilience pipeline could not be chained onto it (constitution VII). PushServiceClient
+         takes an HttpClient, so it wires as an ordinary typed client instead — see Program.cs.
+         On .NET 10 this resolves the net6.0 asset, whose only dependency is
+         Lib.Net.Http.EncryptedContentEncoding — so this package adds exactly one transitive.
+         (BouncyCastle DOES show up when listing transitive packages, but it arrives via
+         MailKit then MimeKit and predates this reference. This package pulls it only on its
+         net451/netstandard2.0 assets, which .NET 10 never resolves.) -->
+    <PackageReference Include="Lib.Net.Http.WebPush" Version="3.3.1" />
     <PackageReference Include="MailKit" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.12" />
     <!-- GH #250: the Data Protection key ring lives in Postgres so every replica shares it and it

@@ -1,0 +1,66 @@
+<section jhCard padding="dense" data-testid="push-device-section">
+  <h2 class="text-body-lg font-semibold text-heading">
+    {{ 'settings.notifications.pushDevice.heading' | transloco }}
+  </h2>
+
+  <!-- On: this browser receives notifications. -->
+  @if (state() === 'on') {
+    <p class="mt-xs text-body-sm text-muted" data-testid="push-state-on">
+      {{ 'settings.notifications.pushDevice.stateOn' | transloco }}
+    </p>
+    <button
+      type="button"
+      jhButton
+      variant="secondary"
+      class="mt-md"
+      [disabled]="busy()"
+      (click)="disable()"
+      data-testid="push-disable"
+    >
+      {{ 'settings.notifications.pushDevice.turnOff' | transloco }}
+    </button>
+  }
+
+  <!-- Off: the member can turn it on from here. -->
+  @else if (state() === 'off' || state() === 'enabling') {
+    <p class="mt-xs text-body-sm text-muted" data-testid="push-state-off">
+      {{ 'settings.notifications.pushDevice.stateOff' | transloco }}
+    </p>
+    <button
+      type="button"
+      jhButton
+      class="mt-md"
+      [disabled]="busy() || state() === 'enabling'"
+      (click)="enable()"
+      data-testid="push-enable"
+    >
+      {{ 'settings.notifications.pushDevice.turnOn' | transloco }}
+    </button>
+  }
+
+  <!-- Blocked: only the browser can undo this, so there is deliberately no control here. -->
+  @else if (state() === 'blocked') {
+    <p class="mt-xs text-body-sm text-muted" data-testid="push-state-blocked">
+      {{ 'settings.notifications.pushDevice.stateBlocked' | transloco }}
+    </p>
+  }
+
+  <!-- iOS, not installed: notifications only reach an app on the Home Screen. -->
+  @else if (state() === 'needs-install') {
+    <p class="mt-xs text-body-sm text-muted" data-testid="push-state-needs-install">
+      {{ 'settings.notifications.pushDevice.stateNeedsInstall' | transloco }}
+    </p>
+    <ol class="mt-sm list-decimal space-y-xs pl-lg text-body-sm text-muted">
+      <li>{{ 'settings.notifications.pushDevice.installStep1' | transloco }}</li>
+      <li>{{ 'settings.notifications.pushDevice.installStep2' | transloco }}</li>
+      <li>{{ 'settings.notifications.pushDevice.installStep3' | transloco }}</li>
+    </ol>
+  }
+
+  <!-- No Push API at all. -->
+  @else {
+    <p class="mt-xs text-body-sm text-muted" data-testid="push-state-unsupported">
+      {{ 'settings.notifications.pushDevice.stateUnsupported' | transloco }}
+    </p>
+  }
+</section>

@@ -189,7 +189,13 @@ public sealed class RefreshTokenRetentionTests
     private async Task<int> SweepAsync()
     {
         using var scope = _factory.Services.CreateScope();
-        var sweep = scope.ServiceProvider.GetRequiredService<IRetentionSweep>();
+        // Selected BY NAME, not by resolving the single registration. More than one sweep exists
+        // now (feature 055 added one for stale push subscriptions), and GetRequiredService returns
+        // whichever was registered last — which silently ran the wrong sweep against these
+        // assertions. RetentionBackgroundService itself uses GetServices, so this matches it.
+        var sweep = scope.ServiceProvider
+            .GetServices<IRetentionSweep>()
+            .Single(s => s.Name == "expired-refresh-tokens");
         return await sweep.SweepAsync();
     }
 
