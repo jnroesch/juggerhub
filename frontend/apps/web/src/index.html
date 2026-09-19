@@ -10,6 +10,14 @@
          .ico over the SVG. -->
     <link rel="icon" href="favicon.ico" sizes="32x32" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <!-- PWA shell (feature 054): the manifest makes every route installable; theme-color is
+         DESIGN surface-card, the colour of the top and bottom bars, same as the manifest's.
+         iOS takes the Home Screen icon from apple-touch-icon, not from the manifest, and paints
+         transparent pixels black — hence the opaque 180×180 render. The viewport meta above is
+         deliberately left without viewport-fit=cover (see specs/054-pwa-shell/research.md, R6). -->
+    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="theme-color" content="#FFFFFF" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
   </head>
   <body>
     <jh-root></jh-root>

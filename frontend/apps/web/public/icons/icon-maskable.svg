@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Maskable-icon SOURCE for the PWA shell (feature 054). Not referenced by the manifest; the
+  committed PNGs under this folder are rendered from it with `node frontend/tools/render-pwa-icons.mjs`.
+
+  Same mark and gradient as favicon.svg, but full-bleed (no rounded corners) with the glyph
+  scaled into the central 80% — the maskable safe zone — so no launcher mask crops it. Also the
+  source of apple-touch-icon.png, which must be opaque (iOS paints transparency black).
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0.3" x2="1" y2="0.7">
+      <stop offset="0" stop-color="#F5623A"/>
+      <stop offset="1" stop-color="#7A9B87"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" fill="url(#g)"/>
+  <g stroke="#fff" stroke-width="4.75" stroke-linecap="round">
+    <path d="M20 20 44 44"/>
+    <path d="M44 20 20 44"/>
+  </g>
+  <circle cx="32" cy="32" r="5.6" fill="#FFE066" stroke="#fff" stroke-width="2.2"/>
+</svg>
