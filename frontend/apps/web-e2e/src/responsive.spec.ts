@@ -44,3 +44,67 @@ test('primary navigation is reachable', async ({ page }, testInfo) => {
     await expect(page.getByTestId('nav-browse')).toBeVisible();
   }
 });
+
+/**
+ * The same no-overflow assertion, in German, across the app's main authenticated routes.
+ *
+ * German runs 30–40% past the English for a sentence and can double a short label, so it is
+ * where this product's overflows actually appear — every one shipped so far was found in German
+ * at 375px, by hand, after the code was written. The test above proved the shell at one route in
+ * English, which is the one combination that was never going to fail.
+ *
+ * `jh.lang` is seeded before the app boots rather than clicked through the switcher: the
+ * precedence in `LanguageService` is account preference → stored choice → browser, and a fresh
+ * e2e account has no preference, so the stored choice wins. The `lang` assertion is load-bearing
+ * — without it a seeding regression would leave every route quietly passing in English.
+ *
+ * The widths are set here rather than taken from the project, because the two project viewports
+ * (1280, and the mobile device preset) are not the two that DESIGN.md calls binding. 375 is the
+ * narrow phone, and 768 is `md` — the breakpoint where stacked cards become a grid and a German
+ * column header has the least room it will ever have. So the block runs once, on the desktop
+ * project, and drives the viewport itself; running it again under device emulation would repeat
+ * the same layout assertion for the same widths.
+ *
+ * This is the mechanical half only. Truncation and clipped-but-not-scrolling text stay with the
+ * owner's walk, because telling a deliberate ellipsis from a broken label needs eyes.
+ */
+const GERMAN_ROUTES = ['/', '/browse/teams', '/browse/players', '/browse/trainings', '/account'];
+
+/** 375 = narrow phone, 768 = `md`, 1280 = desktop. The first two are DESIGN.md's binding cases. */
+const GERMAN_WIDTHS = [375, 768, 1280];
+
+test.describe('German text expansion', () => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    // This block drives its own viewports, so running it again under device emulation would
+    // repeat the same three widths. Skipped in the hook rather than with a `test.skip(fn)`
+    // callback, whose `({}, testInfo)` signature is an empty destructuring pattern that lint
+    // rejects outright.
+    test.skip(
+      testInfo.project.name !== 'desktop-chromium',
+      'drives its own viewports; device emulation would repeat the same widths',
+    );
+
+    await page.addInitScript(() => window.localStorage.setItem('jh.lang', 'de'));
+  });
+
+  for (const width of GERMAN_WIDTHS) {
+    test(`no horizontal overflow in German at ${width}px`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+
+      for (const route of GERMAN_ROUTES) {
+        await test.step(route, async () => {
+          await page.goto(route);
+
+          // The app really is in German — otherwise this is the English test with more steps.
+          await expect(page.locator('html')).toHaveAttribute('lang', 'de');
+
+          const overflow = await page.evaluate(
+            () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          );
+          expect(overflow, `${route} overflows horizontally in German at ${width}px`)
+            .toBeLessThanOrEqual(1);
+        });
+      }
+    });
+  }
+});

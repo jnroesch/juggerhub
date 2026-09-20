@@ -410,6 +410,17 @@ rejects the whole class.
   this file used to say and GH #301 disproved: at caption size 2px makes a 21px
   pill whose glyphs touch its own border. A chip's inset is 12/4 — see
   **Chips**, below.
+- **Translated text is longer, and the layout is what has to give.** German and
+  Spanish run 30–40% past the English for a sentence, and far more than that for
+  a short one — a 10-character English label can double. So a label, tab, chip or
+  button is never sized to its English string: no fixed widths on text
+  containers, and no truncation on anything a reader has to act on. A clipped
+  nav item is a broken nav item. The binding review case is **German at 375px
+  and at `md`** (768px, where stacked cards become a grid and a German column
+  header has the least room it will ever have), because that is where every
+  overflow this product has shipped was found. `responsive.spec.ts` asserts the
+  no-overflow half at 375 / 768 / 1280 in German; truncation and clipped text
+  need eyes, so they stay with the walk.
 
 ## Navigation: back links
 
@@ -468,6 +479,42 @@ subtle `ease-bounce` for toggles and playful moments.
   is not drawn against its own coral fill. It used to be `coral-1` at 1.32:1 —
   present in the markup, invisible on the screen (GH #298).
 - Prefer fades/slides; no infinite decorative loops in content.
+- **Reduced motion** — when the reader has asked their system for less motion,
+  the product stops *moving things*. It does not stop telling them what
+  happened, and the difference is the whole rule: a hover still answers, a press
+  still darkens, an error still appears — none of it travels. The base layer in
+  `styles.css` holds movement out of the transition set and stops infinite loops
+  after one pass; a component with a real alternative writes it itself, as
+  `card.component.css` does by dropping the 3px lift and keeping the deeper
+  shadow. What is never written is the blanket `transition: none` or `0.01ms`
+  kill: it flattens every state change in the product at once, and an entrance
+  keyframe that never runs can leave its element parked on the opening frame —
+  which is how a reduced-motion rule turns into invisible content.
+
+## Browser surfaces
+
+The parts of the page nobody drew still carry a design. The selection highlight,
+the text caret, the scrollbar and the underline under a link all arrive from the
+browser in values that belong to no design system — and on a warm sand page the
+default selection blue is the one cool colour in the whole product. They are
+themed from the tokens above, in `styles.css`, and `browser-surfaces.spec.ts`
+pins them so they cannot quietly revert.
+
+- **Selection** — `coral-1` behind `text-body`. The tint carries no contrast duty
+  of its own, so the selected text keeps the ink it already had.
+- **Caret** — `border-focus` (`coral-5`), the same step as the focus ring, so a
+  focused input agrees with itself.
+- **Scrollbar** — a `sand-4` thumb on a `surface-sunken` track, `pill` radius,
+  thin. Themed, never hidden: a scrollbar is how a reader knows there is more.
+- **Underline offset** — `0.18em`, so the rule clears Mona Sans' descenders.
+  The *thickness* was already tuned at `0.1em` (GH #277); the offset was left at
+  the browser's default and set the line into the glyphs.
+- **Figures** — `font-variant-numeric: tabular-nums` rides with the mono face, so
+  a changing count does not shift the glyphs beside it. This is the token
+  keeping the promise this file already made for scores and times.
+
+Nothing here introduces a value. Each is a claim on a token defined above, which
+is the test for whether a new browser surface belongs in this list at all.
 
 ## Components
 

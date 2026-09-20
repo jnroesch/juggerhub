@@ -41,6 +41,11 @@ DESIGN.md wins and the conflict is reported rather than silently resolved.
 - [ ] CHK012 Spacing composes from the 4px scale tokens (`space-1`…`space-13`) — no arbitrary pixel values
 - [ ] CHK013 Content sits in a centered column capped at `container-lg` (1100px); layout is mobile-first and reflows down
 - [ ] CHK014 Section rhythm uses `section-gap` (`clamp(48px, 8vw, 112px)`)
+- [ ] CHK030 **Translated text fits**: no fixed-width text containers, no truncation on anything
+      the reader must act on. Verified in **German at 375px and at `md`** — the binding case,
+      and where every overflow this product has shipped was found
+- [ ] CHK031 No unintended horizontal scroll at 375px (`scrollWidth - clientWidth <= 1`)
+- [ ] CHK032 Layout survives 200% browser zoom and larger text settings without clipping
 
 ## Shape & elevation
 
@@ -55,6 +60,9 @@ DESIGN.md wins and the conflict is reported rather than silently resolved.
 - [ ] CHK020 Focus is always visible: a 2px `border-focus` ring (`ring-focus`), with a 2px offset on a filled control
 - [ ] CHK021 Buttons darken a brand step + gain a colored glow on hover, and nudge down 1px / scale 0.99 on press
 - [ ] CHK022 No infinite decorative animation loops in content
+- [ ] CHK033 Motion honours `prefers-reduced-motion`: movement goes, feedback stays. A component
+      with a meaningful reduced alternative writes it (see `card.component.css`); nobody writes
+      a blanket `transition: none` / `0.01ms` kill
 
 ## Iconography
 
@@ -66,15 +74,28 @@ DESIGN.md wins and the conflict is reported rather than silently resolved.
 - [ ] CHK025 Body text meets **WCAG AA contrast (≥ 4.5:1)** against its surface
 - [ ] CHK026 Status is **never conveyed by color alone** — paired with text or an icon
 - [ ] CHK027 Interactive elements are keyboard-reachable with a visible focus state and appropriate labels/roles
+- [ ] CHK034 Every `<img>` carries `alt` — descriptive when it carries meaning, `alt=""` when it
+      is decorative. A missing attribute is not the same as an empty one
+- [ ] CHK035 DOM and focus order agree with the visual order; no keyboard trap
+- [ ] CHK036 Heading levels never skip (`h1` → `h2` → `h3`) — the hierarchy is the navigation for
+      anyone using a screen reader, and a skipped level breaks it silently
+
+## Browser surfaces
+
+- [ ] CHK038 Anything this feature adds that the browser draws — a new scrollable region, a text
+      input, prose links — inherits the themed selection, caret, scrollbar and underline offset
+      from the base layer rather than overriding them
 
 ## Empty, loading & error states
 
 - [ ] CHK028 Empty states offer a warm, low-pressure next step (e.g. "Be the first to…")
 - [ ] CHK029 Loading and error states exist and are styled to the system (not raw/unstyled)
+- [ ] CHK037 Loading is the muted `jh-loading` line with `role="status"` — **never a skeleton or a
+      spinner**. `animate-pulse` placeholders are the shape this forbids (GH #337)
 
 ## Feature-specific UI
 
-- [ ] CHK030 [Add per-feature UI checks here — e.g. specific components, chip styles, or layouts this feature introduces]
+- [ ] CHK039 [Add per-feature UI checks here — e.g. specific components, chip styles, or layouts this feature introduces]
 
 ## Notes
 
