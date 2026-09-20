@@ -54,7 +54,7 @@ ENTRYPOINT ["npx", "nx", "e2e", "web-e2e"]
 # The UNPRIVILEGED build of the same nginx release (#252), published by NGINX alongside the official
 # image: runs as uid 101, listens on 8080, and keeps its pid and every temp path under /tmp — so the
 # container needs no root, no capabilities, and can run with a read-only root filesystem.
-FROM nginxinc/nginx-unprivileged:1.31.5-alpine AS runtime
+FROM nginxinc/nginx-unprivileged:1.31.6-alpine AS runtime
 # Config is a TEMPLATE, not a finished file: the nginx image's own entrypoint
 # (/docker-entrypoint.d/20-envsubst-on-templates.sh) renders /etc/nginx/templates/*.template
 # into /etc/nginx/conf.d/ at container start. That is what lets one built image carry
