@@ -69,6 +69,13 @@ default). The baked-in sample values work as-is for local development. See the
 [README](README.md#quick-start) for the full URL map and the local auth-flow
 walkthrough.
 
+You do **not** need a Six Labors licence key of your own. The image pipeline uses
+[ImageSharp](https://sixlabors.com/products/imagesharp/), which from version 4 checks a
+licence when the code is compiled, and the project's key is committed at
+`backend/sixlabors.lic` so that a plain clone builds. Leave it alone; every *other*
+`*.lic` path in the repo is gitignored, so a key of your own can't be committed by
+accident.
+
 ### Checks to run before opening a PR
 
 CI runs lint, build, and tests on every pull request, so run them locally first.
