@@ -165,6 +165,10 @@ docker compose up -d --build   # database, Redis, backend, frontend, Mailpit
 docker compose ps              # wait for services to become healthy
 ```
 
+No licence key setup is needed: ImageSharp 4 validates a Six Labors licence at compile
+time, and the project's key is committed at `backend/sixlabors.lic` so a plain clone
+builds. See [CONTRIBUTING](CONTRIBUTING.md#running--testing-locally).
+
 The backend **auto-applies EF Core migrations on startup** against the (initially
 empty) database — there's no manual migration step. On first startup it also **seeds the
 bundled GeoNames `cities500` dataset** (~235k cities) that backs the city picker — a one-time
