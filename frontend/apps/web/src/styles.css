@@ -272,4 +272,103 @@
     color: var(--text-heading);
     letter-spacing: -0.02em;
   }
+
+  /* ---- Browser surfaces ------------------------------------------------
+     The parts of the page nobody drew still ship with a design. The selection
+     highlight, the caret, the scrollbar and the underline offset all arrive from
+     the browser in colours that belong to no design system — on a warm sand page
+     the default blue selection is the one cool colour in the product.
+
+     None of these introduces a value: each is a claim on a token defined above.
+     `browser-surfaces.spec.ts` pins them. */
+
+  ::selection {
+    /* coral-1 is a tint rather than a text step, so it carries no contrast duty
+       of its own; the selected text keeps `--text-body` on top of it. */
+    background-color: var(--coral-1);
+    color: var(--text-body);
+  }
+
+  :root {
+    /* The caret is the one piece of brand that blinks. `border-focus` (coral-5)
+       is the step the focus ring already uses, so a focused input agrees with
+       itself. */
+    caret-color: var(--border-focus);
+    /* Firefox reads these two; the WebKit pseudo-elements below cover Chrome
+       and Safari. */
+    scrollbar-color: var(--sand-4) var(--surface-sunken);
+    scrollbar-width: thin;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background-color: var(--surface-sunken);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: var(--sand-4);
+    border: 2px solid var(--surface-sunken);
+    border-radius: var(--radius-pill);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--sand-5);
+  }
+
+  a {
+    /* DESIGN.md underlines links in prose, and #277 already tuned the thickness.
+       The offset was left at the browser default, which sets the rule into Mona
+       Sans' descenders. */
+    text-underline-offset: 0.18em;
+  }
+
+  /* DESIGN.md sets scores, stats, times and counts in the mono face, "tabular,
+     sporty". Nothing ever asked for the feature, so those figures rendered
+     proportional and a changing count shifted every glyph beside it. Four call
+     sites had found this and written `tabular-nums` by hand; this is the token
+     keeping its own word. A numeric utility written beside `font-mono` still
+     wins, because the utilities layer is emitted after this one. */
+  .font-mono {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* ---- Reduced motion -----------------------------------------------------
+   `prefers-reduced-motion` asks the product to stop *moving things*. It does not
+   ask it to stop saying what happened, and the difference is the whole rule.
+
+   So this is deliberately NOT the blanket `transition: none` / `0.01ms` kill.
+   That flattens every state change the product has, and it would overwrite the
+   one component already doing this properly: `card.component.css` drops the 3px
+   lift and keeps the deeper shadow. That is the house pattern, and this is it
+   generalised.
+
+   Two things go, and nothing else:
+
+   - **Infinite loops stop after one pass.** DESIGN.md forbids them in content
+     already; seven skeleton placeholders ship one anyway through `animate-pulse`
+     (GH #337). Until those are replaced with `jh-loading` this is what stops a
+     page pulsing at a reader who asked it not to.
+   - **Movement goes; colour, shadow and opacity stay.** A hover still answers
+     and a press still darkens — they simply do not travel.
+
+   `animation-duration` is deliberately not zeroed. An entrance keyframe that
+   never runs can leave its element parked on the opening frame, which is how a
+   reduced-motion rule turns into invisible content. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-iteration-count: 1 !important;
+    transition-property: color, background-color, border-color,
+      text-decoration-color, fill, stroke, box-shadow, opacity !important;
+  }
+
+  html {
+    scroll-behavior: auto !important;
+  }
 }
