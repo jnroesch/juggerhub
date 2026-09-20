@@ -30,6 +30,16 @@ jobs:
           CHAT_ENCRYPTION_KEYS=1:Q0ktZTJlLW5vdC1hLXNlY3JldC0zMi1ieXRlLWtleSE=
           EOF
 
+      # Feature 055: the backend refuses to start without VAPID configuration, and compose refuses
+      # to interpolate without the private key, so the stack cannot come up at all without a pair.
+      #
+      # Generated per run by the repo's own script rather than hardcoded beside the keys above, for
+      # the same reason the certificates below use theirs: CI then exercises the generator every PR
+      # instead of it only ever being run by hand. It also keeps key material out of a public repo
+      # entirely — these keys live for the length of one job and sign nothing that leaves it.
+      - name: Generate a throwaway VAPID key pair
+        run: pwsh ./scripts/New-VapidKeyPair.ps1 | grep '^WEBPUSH_' >> .env
+
       # Feature 047: the backend connects to Postgres with `SSL Mode=VerifyFull`, so the
       # database needs a certificate and the backend needs the CA that signed it. The files are
       # gitignored, so CI has to make its own — the same way a fresh clone does.
