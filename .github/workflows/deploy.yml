@@ -107,6 +107,10 @@ jobs:
       TF_VAR_resend_api_key: ${{ secrets.RESEND_API_KEY }}
       # Feature 055 — Web Push. The public key is not a secret but is per-environment, so it is an
       # Environment variable rather than a secret; the private key signs deliveries and is one.
+      # The fallback is not decoration: an unset Environment variable expands to an empty string,
+      # which would OVERRIDE the Terraform default rather than fall back to it, and then fail that
+      # variable's validation with a message about the subject rather than about the missing value.
+      TF_VAR_webpush_subject: ${{ vars.WEBPUSH_SUBJECT || 'mailto:hello@juggerhub.com' }}
       TF_VAR_webpush_public_key: ${{ vars.WEBPUSH_PUBLIC_KEY }}
       TF_VAR_webpush_private_key: ${{ secrets.WEBPUSH_PRIVATE_KEY }}
       TF_VAR_admin_emails: ${{ secrets.ADMIN_EMAILS }}
