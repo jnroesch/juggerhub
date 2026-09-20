@@ -9,7 +9,7 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="10.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.12" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.10.1" />
     <!-- Transitive via Testcontainers, which still pins 2025.1.0 — vulnerable to
          GHSA-q939-rpr3-3284 (ScpClient recursive download writes arbitrary files
          from server-controlled names). Patched in 2026.0.0; drop this direct
