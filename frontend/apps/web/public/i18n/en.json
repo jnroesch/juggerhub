@@ -743,8 +743,22 @@
       "loadErrorBody": "This is on our end, not yours. Give it another go.",
       "inApp": "In-app",
       "email": "Email",
+      "push": "Push",
       "alwaysOn": "Always on",
-      "alwaysOnDesc": "These keep your account safe, so they can't be turned off."
+      "alwaysOnDesc": "These keep your account safe, so they can't be turned off.",
+      "pushDevice": {
+        "heading": "Notifications on this device",
+        "stateOn": "This browser gets notifications, even when JuggerHub isn't open. Which ones is up to the Push column below.",
+        "stateOff": "This browser doesn't get notifications yet. Turning it on asks your browser for permission first.",
+        "stateBlocked": "Your browser is blocking notifications for JuggerHub. We can't ask again from here — you'd need to allow them in your browser's settings for this site.",
+        "stateNeedsInstall": "On iPhone and iPad, notifications only reach JuggerHub once it's on your Home Screen.",
+        "stateUnsupported": "This browser can't receive notifications. Everything else works as usual.",
+        "turnOn": "Turn on for this device",
+        "turnOff": "Turn off for this device",
+        "installStep1": "Tap the Share button in Safari.",
+        "installStep2": "Choose \"Add to Home Screen\".",
+        "installStep3": "Open JuggerHub from your Home Screen and come back here. You'll be asked to sign in again — the installed app keeps its own session."
+      }
     }
   },
   "browse": {

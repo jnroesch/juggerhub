@@ -747,8 +747,22 @@
       "loadErrorBody": "Das liegt an uns, nicht an dir. Versuch es noch einmal.",
       "inApp": "In-App",
       "email": "E-Mail",
+      "push": "Push",
       "alwaysOn": "Immer an",
-      "alwaysOnDesc": "Diese schützen dein Konto und können daher nicht ausgeschaltet werden."
+      "alwaysOnDesc": "Diese schützen dein Konto und können daher nicht ausgeschaltet werden.",
+      "pushDevice": {
+        "heading": "Meldungen auf diesem Gerät",
+        "stateOn": "Dieser Browser bekommt Meldungen, auch wenn JuggerHub nicht geöffnet ist. Welche das sind, legst du in der Spalte Push unten fest.",
+        "stateOff": "Dieser Browser bekommt noch keine Meldungen. Beim Einschalten fragt dich zuerst dein Browser um Erlaubnis.",
+        "stateBlocked": "Dein Browser blockiert Meldungen für JuggerHub. Von hier aus können wir nicht noch einmal fragen – du müsstest sie in den Browsereinstellungen für diese Seite erlauben.",
+        "stateNeedsInstall": "Auf iPhone und iPad erreichen Meldungen JuggerHub erst, wenn es auf deinem Home-Bildschirm liegt.",
+        "stateUnsupported": "Dieser Browser kann keine Meldungen empfangen. Alles andere funktioniert wie gewohnt.",
+        "turnOn": "Für dieses Gerät einschalten",
+        "turnOff": "Für dieses Gerät ausschalten",
+        "installStep1": "Tippe in Safari auf Teilen.",
+        "installStep2": "Wähle „Zum Home-Bildschirm“.",
+        "installStep3": "Öffne JuggerHub über den Home-Bildschirm und komm hierher zurück. Du wirst dich erneut anmelden müssen – die installierte App hat ihre eigene Sitzung."
+      }
     }
   },
   "browse": {

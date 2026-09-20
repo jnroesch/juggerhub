@@ -304,6 +304,37 @@ variable "resend_api_key" {
   }
 }
 
+# Feature 055 — Web Push (VAPID). Each environment has its OWN key pair: a subscription is bound to
+# the public key it was created with, so a Dev key can never deliver to a Prod subscription.
+# Generate with scripts/New-VapidKeyPair.ps1.
+variable "webpush_subject" {
+  type        = string
+  description = "VAPID 'sub' claim — how a push service contacts us about our traffic. mailto: or https: only."
+  default     = "mailto:hello@juggerhub.com"
+  validation {
+    condition     = startswith(var.webpush_subject, "mailto:") || startswith(var.webpush_subject, "https://")
+    error_message = "webpush_subject must start with 'mailto:' or 'https://' — push services reject anything else."
+  }
+}
+
+variable "webpush_public_key" {
+  type        = string
+  description = "VAPID public key, base64url of the uncompressed P-256 point. Not a secret: browsers receive it."
+  validation {
+    condition     = length(var.webpush_public_key) > 0
+    error_message = "webpush_public_key must be set."
+  }
+}
+
+variable "webpush_private_key" {
+  type      = string
+  sensitive = true
+  validation {
+    condition     = length(var.webpush_private_key) > 0
+    error_message = "webpush_private_key must be set (GitHub Environment secret)."
+  }
+}
+
 variable "admin_emails" {
   type        = string
   description = "Comma-separated platform-admin allowlist."

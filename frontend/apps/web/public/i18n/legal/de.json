@@ -171,6 +171,7 @@
           "Wenn du abgemeldet bist und eine Sprache auswählst, bleibt diese Auswahl in deinem Browser und erreicht uns nie.",
           "Der Zwischenstand eines Formulars, das du gerade ausfüllst. Legst du ein Training oder eine Veranstaltung an und verlässt dabei die Seite, bewahrt dein Browser das bereits Ausgefüllte auf, damit du nicht von vorn anfangen musst. Bei einer Veranstaltung gehören dazu auch die Zahlungsangaben, die du eingetragen hast, also Empfänger und IBAN. Das alles bleibt auf deinem Gerät und wird nicht an uns übertragen – wir sehen davon erst etwas, wenn du das Formular abschickst. Es verschwindet, sobald du fertig bist oder abbrichst, sobald du dich abmeldest, und spätestens wenn du den Tab schließt.",
           "Der Hintergrundhelfer der Seite selbst. Dein Browser behält einen kleinen Teil des Programms der Seite, damit die Seite etwas tun kann, während keiner ihrer Tabs offen ist – zum Beispiel eine Benachrichtigung entgegennehmen, die du bestellt hast. Er gehört zur Seite, nicht zu deinen Daten: Über dich ist darin nichts gespeichert, und er verschwindet, wenn du die Daten der Seite in deinem Browser löschst.",
+          "Wenn du Meldungen auf einem Gerät einschaltest, vergibt dein Browser dafür eine Zustelladresse. Wir speichern sie zusammen mit den Schlüsseln, die dein Browser dazu erzeugt, damit wir an genau dieses Gerät zustellen können. Schaltest du die Meldungen für das Gerät wieder aus, meldest du dich ab oder löschst du dein Konto, verschwindet der Eintrag; ein Gerät, das lange nicht mehr erreichbar war, wird von selbst entfernt.",
           "Wir setzen keine Cookies, um dir Werbung zu zeigen oder dir über andere Seiten hinweg zu folgen."
         ]
       },
@@ -179,6 +180,7 @@
         "body": [
           "Ein paar Dienstleister helfen uns, die Seite zu betreiben, jeweils vertraglich gebunden, Daten nur nach unseren Weisungen zu verarbeiten. Microsoft Azure hostet die Anwendung, ihre Datenbank und hochgeladene Dateien, in der Region West Europe innerhalb der EU. Resend stellt unsere E-Mails zu und sieht dabei zwangsläufig, an wen sie gehen und was darin steht.",
           "Soweit ein Dienstleister Daten außerhalb der EU verarbeitet, decken die Standardvertragsklauseln in unserem Vertrag das ab.",
+          "Meldungen auf dein Gerät laufen über einen weiteren Beteiligten, und der steht in einem anderen Verhältnis zu uns als die oben genannten: Welcher es ist, bestimmt dein Browser, nicht wir – es ist der Zustelldienst seines Herstellers. Wir haben mit ihm keinen Vertrag und können ihm nichts vorschreiben. Er bekommt die Zustelladresse deines Geräts und den Text der Meldung, also das, was auf deinem Sperrbildschirm steht: worum es geht und wen oder was es betrifft. Inhalte, die du geschrieben hast, sind nicht darin. Das passiert erst, wenn du Meldungen auf einem Gerät einschaltest, und hört auf, sobald du sie ausschaltest.",
           "Wir verkaufen deine Daten nicht, und wir geben sie niemandem für Werbezwecke."
         ]
       },

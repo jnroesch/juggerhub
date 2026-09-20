@@ -58,9 +58,16 @@ describe('PWA shell (054)', () => {
   describe('sw.js', () => {
     const sw = readPublic('sw.js');
 
-    it('has lifecycle listeners only', () => {
+    it('has its lifecycle listeners', () => {
       expect(sw).toContain("addEventListener('install'");
       expect(sw).toContain("addEventListener('activate'");
+    });
+
+    it('handles push and notification clicks (feature 055)', () => {
+      // Added by 055. Deleting either would leave a registered worker that receives a push and
+      // shows nothing, which in some browsers costs the site its notification permission.
+      expect(sw).toContain("addEventListener('push'");
+      expect(sw).toContain("addEventListener('notificationclick'");
     });
 
     it('has no fetch handler (FR-007)', () => {

@@ -171,6 +171,7 @@
           "Si tienes la sesión cerrada y eliges un idioma, esa elección se queda en tu navegador y nunca llega hasta nosotros.",
           "Lo que llevas escrito de un formulario que estás rellenando. Si estás creando un entrenamiento o un evento y abandonas la página, tu navegador conserva lo que habías introducido para que no tengas que empezar de cero. En el caso de un evento eso incluye los datos de pago que hubieras escrito: el destinatario y el número de cuenta. Todo ello se queda en tu dispositivo y nunca se nos transmite; no vemos nada hasta que envías el formulario. Desaparece cuando terminas o cancelas, cuando cierras la sesión y, como muy tarde, cuando cierras la pestaña.",
           "El ayudante en segundo plano del propio sitio. Tu navegador conserva una pequeña parte del programa del sitio para que este pueda actuar mientras ninguna de sus pestañas está abierta; por ejemplo, recibir una notificación que hayas pedido. Forma parte del sitio, no es un registro sobre ti: no guarda nada sobre ti, y desaparece cuando borras los datos del sitio en tu navegador.",
+          "Cuando activas las notificaciones en un dispositivo, tu navegador le asigna una dirección de entrega. La guardamos junto con las claves que tu navegador genera con ella, para poder entregar a ese dispositivo y a ningún otro. Desaparece cuando desactivas las notificaciones en ese dispositivo, cuando cierras la sesión y cuando eliminas tu cuenta; un dispositivo que lleva mucho tiempo sin estar accesible se elimina por sí solo.",
           "No usamos cookies para mostrarte publicidad ni para seguirte por otros sitios."
         ]
       },
@@ -179,6 +180,7 @@
         "body": [
           "Unos pocos proveedores nos ayudan a hacer funcionar el sitio, cada uno con un contrato que solo les permite tratar datos siguiendo nuestras instrucciones. Microsoft Azure aloja la aplicación, su base de datos y los archivos subidos, en su región West Europe dentro de la UE. Resend entrega nuestro correo, y necesariamente ve a quién va y qué dice.",
           "Cuando un proveedor trata datos fuera de la UE, lo cubren las cláusulas contractuales tipo de nuestro acuerdo.",
+          "Las notificaciones a tu dispositivo implican a una parte más, y su relación con nosotros es distinta de las anteriores: cuál sea depende de tu navegador, no de nosotros; es el servicio de entrega de quien lo fabrica. No tenemos contrato con ellos y no podemos darles instrucciones. Reciben la dirección de entrega de tu dispositivo y el texto de la notificación, que es lo que aparece en tu pantalla de bloqueo: qué ha pasado y a qué equipo, evento o entrenamiento se refiere. No incluye nada de lo que hayas escrito. Esto solo ocurre cuando activas las notificaciones en un dispositivo, y cesa cuando las desactivas.",
           "No vendemos tus datos y no se los entregamos a nadie con fines publicitarios."
         ]
       },

@@ -7,6 +7,10 @@ import { TestBed } from '@angular/core/testing';
 import { AuthUser } from '../models/auth.models';
 import { AuthService } from './auth.service';
 import { WizardDraftStore } from '../drafts/wizard-draft.store';
+import { PushDeviceService } from './push-device.service';
+
+/** Lets the pending promises in logout's push-removal step settle before the next assertion. */
+const flushMicrotasks = (): Promise<void> => new Promise((resolve) => setTimeout(resolve, 0));
 
 const USER: AuthUser = { id: 'u1', email: 'a@example.com', emailConfirmed: true, onboardingCompleted: true, handle: 'a-handle' };
 
@@ -50,11 +54,14 @@ describe('AuthService', () => {
     expect(service.currentUser()).toEqual(USER);
   });
 
-  it('logout clears authenticated state', () => {
+  it('logout clears authenticated state', async () => {
     service.login({ email: 'a@example.com', password: 'pw', rememberMe: false }).subscribe();
     httpMock.expectOne('/api/v1/auth/login').flush(USER);
 
     service.logout().subscribe();
+    // Feature 055: logout first removes this browser's push subscription, while the session still
+    // exists to authorise it, so the logout POST is now one tick behind the call.
+    await flushMicrotasks();
     httpMock.expectOne('/api/v1/auth/logout').flush(null);
 
     expect(service.isAuthenticated()).toBe(false);
@@ -66,14 +73,33 @@ describe('AuthService', () => {
    * it — for the event wizard the draft can hold a fee recipient and bank account number, and the
    * next person to sign in on a shared device would otherwise be handed it.
    */
-  it('logout clears unfinished wizard drafts', () => {
+  it('logout clears unfinished wizard drafts', async () => {
     const drafts = TestBed.inject(WizardDraftStore);
     const clearAll = jest.spyOn(drafts, 'clearAll');
 
     service.logout().subscribe();
+    await flushMicrotasks();
     httpMock.expectOne('/api/v1/auth/logout').flush(null);
 
     expect(clearAll).toHaveBeenCalled();
+  });
+
+  /**
+   * Feature 055. A push subscription left behind on a borrowed phone would keep delivering this
+   * member's notifications to whoever holds it next, so it goes with the session — and a failure
+   * removing it must never hold up signing out.
+   */
+  it('logout removes this browser from push, and completes even when that fails', async () => {
+    const push = TestBed.inject(PushDeviceService);
+    const disable = jest.spyOn(push, 'disableQuietly');
+
+    let completed = false;
+    service.logout().subscribe({ complete: () => (completed = true) });
+    await flushMicrotasks();
+    httpMock.expectOne('/api/v1/auth/logout').flush(null);
+
+    expect(disable).toHaveBeenCalled();
+    expect(completed).toBe(true);
   });
 
   /** The other end of the session: the interceptor calls this when a refresh fails. */
