@@ -68,20 +68,55 @@ public sealed class ChatDoesNotTouchAlertsTests : ChatTestSupport
     }
 
     /// <summary>
-    /// FR-051a: chat introduces no new notification type or preference category. Pinning the enum
+    /// FR-051a, first half: chat introduces no new notification <b>type</b>. Pinning the enum
     /// members means adding a chat one becomes a deliberate, reviewed change to feature 010/011's
     /// contract — not a side effect of a chat PR.
     /// </summary>
+    /// <remarks>
+    /// <b>This test worked.</b> It failed when feature 056 added <c>NotificationCategory.Chat</c>,
+    /// which forced exactly the conversation it was written to force, and the owner decided that
+    /// chat should be refusable in the same list as everything else. The category half of FR-051a
+    /// is therefore amended and lives in
+    /// <see cref="Chat_has_a_preference_category_but_still_no_producer_type"/> below; the type half
+    /// is unchanged and still guarded here.
+    /// </remarks>
     [Fact]
-    public void Chat_adds_no_notification_type_or_category()
+    public void Chat_adds_no_notification_type()
     {
         var types = Enum.GetNames<NotificationType>();
         Assert.DoesNotContain(types, t => t.Contains("Chat", StringComparison.OrdinalIgnoreCase));
         Assert.DoesNotContain(types, t => t.Contains("Message", StringComparison.OrdinalIgnoreCase));
+    }
 
-        var categories = Enum.GetNames<NotificationCategory>();
-        Assert.DoesNotContain(categories, c => c.Contains("Chat", StringComparison.OrdinalIgnoreCase));
-        Assert.DoesNotContain(categories, c => c.Contains("Message", StringComparison.OrdinalIgnoreCase));
+    /// <summary>
+    /// FR-051a as amended by feature 056: chat has a preference category, and it is Push-only with
+    /// no producer type behind it.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// The category exists for one reason — a member must be able to say "not chat, on my phone" in
+    /// the place they say it about everything else. It does not put chat into the Alerts spine, and
+    /// the two tests above are what keep that true.
+    /// </para>
+    /// <para>
+    /// The In-app and E-mail assertions are the load-bearing ones here. If chat ever became
+    /// deliverable in-app, it would mean rows in the Alerts inbox — the thing feature 019 refused
+    /// and this file exists to prevent — and it would happen through the preference matrix rather
+    /// than through a chat PR, where nobody would be looking for it.
+    /// </para>
+    /// </remarks>
+    [Fact]
+    public void Chat_has_a_preference_category_but_still_no_producer_type()
+    {
+        Assert.Contains(Enum.GetNames<NotificationCategory>(), c => c == nameof(NotificationCategory.Chat));
+
+        Assert.DoesNotContain(
+            Enum.GetValues<NotificationType>().Select(NotificationCategories.For),
+            c => c == NotificationCategory.Chat);
+
+        Assert.True(NotificationCategories.Supports(NotificationCategory.Chat, NotificationChannel.Push));
+        Assert.False(NotificationCategories.Supports(NotificationCategory.Chat, NotificationChannel.InApp));
+        Assert.False(NotificationCategories.Supports(NotificationCategory.Chat, NotificationChannel.Email));
     }
 
     private static async Task<int> GetAlertsUnreadAsync(HttpClient client)

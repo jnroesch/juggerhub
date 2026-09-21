@@ -89,38 +89,38 @@ observable yet.
 
 ### The column
 
-- [ ] T006 Add `public DateTime? PushConsideredAt { get; set; }` to
+- [X] T006 Add `public DateTime? PushConsideredAt { get; set; }` to
       `backend/Entities/ChatMessage.cs`, with the XML doc from
       [data-model.md](data-model.md#d1-chatmessagepushconsideredat-new-column). The doc must say
       three things: that it records the question having been **asked, never the answer**; that the
       worker MUST mark every message it selects; and why `ModifiedDate` legitimately moves on a
       message nobody edited.
-- [ ] T007 Configure the **partial** index in `backend/Data/AppDbContext.cs` beside the other
+- [X] T007 Configure the **partial** index in `backend/Data/AppDbContext.cs` beside the other
       `ChatMessage` index configuration:
       `HasIndex(m => m.CreatedDate).HasFilter("\"PushConsideredAt\" IS NULL")` named
       `IX_ChatMessages_PushConsideredAt_Pending`. A full index would cover every message ever sent
       to serve a query that only ever wants the newest handful.
-- [ ] T008 Generate the migration `AddChatMessagePushConsideredAt` and **hand-add the backfill** to
+- [X] T008 Generate the migration `AddChatMessagePushConsideredAt` and **hand-add the backfill** to
       the generated `Up`: `migrationBuilder.Sql("UPDATE \"ChatMessages\" SET \"PushConsideredAt\" = now() WHERE \"PushConsideredAt\" IS NULL;")`,
       after the column is added and **before** the index is created. Comment it: without it every
       pre-existing row sits in the partial index for ever (it fails the max-age filter, so it is
       never selected and never marked), and the first pass after deployment would consider the
       whole message history.
-- [ ] T009 Apply the migration locally (`dotnet ef database update` against the local stack) and verify by inspection: the index exists, `indpred` is
+- [X] T009 Apply the migration locally (`dotnet ef database update` against the local stack) and verify by inspection: the index exists, `indpred` is
       non-null (`\d+ "ChatMessages"` in psql, or query `pg_index`), and
       `SELECT count(*) FROM "ChatMessages" WHERE "PushConsideredAt" IS NULL` returns `0`.
 
 ### The category
 
-- [ ] T010 [P] Add `Chat = 4` to `NotificationCategory` in `backend/Entities/NotificationEnums.cs`,
+- [X] T010 [P] Add `Chat = 4` to `NotificationCategory` in `backend/Entities/NotificationEnums.cs`,
       **appended, never inserted** — the values are stored as integers and renumbering would
       silently re-point every existing preference row. The XML doc states that this category has no
       `NotificationType` mapped to it and never will (019 FR-051), and that it governs Push only.
-- [ ] T011 [P] Add `NotificationCategories.Supports(category, channel)` to the same file, written
+- [X] T011 [P] Add `NotificationCategories.Supports(category, channel)` to the same file, written
       permissively (`category != Chat || channel == Push`) so a future category defaults to the
       visible behaviour rather than to a silently missing toggle. Doc it as the one home for the
       rule, naming its three readers.
-- [ ] T012 [P] Add `NotificationCategoryTests.Chat_has_no_producer_type` to
+- [X] T012 [P] Add `NotificationCategoryTests.Chat_has_no_producer_type` to
       `backend/tests/JuggerHub.Api.IntegrationTests/Notifications/` asserting that no
       `NotificationType` maps to `NotificationCategory.Chat` through `NotificationCategories.For`.
       This pins FR-004 at the type level: the day someone adds a `ChatMessage` notification type,
@@ -128,17 +128,17 @@ observable yet.
 
 ### The shared name
 
-- [ ] T013 Create `backend/Services/Chat/ChatDisplayName.cs` as an `internal static` class holding
+- [X] T013 Create `backend/Services/Chat/ChatDisplayName.cs` as an `internal static` class holding
       `For(...)` and `InquiryAdminLabel(...)`, moved **verbatim** from
       `ChatConversationService.DisplayName` (line ~1244). Add an optional
       `ChatNameFallbacks` record parameter defaulting to today's English literals
       (`"Group"`, `"Team chat"`, `"Party chat"`, `"Chat"`). Document that it is called, never
       copied — the 043 `LocationLabelFor` precedent — because the notification and the inbox must
       agree about what a conversation is called.
-- [ ] T014 Repoint `ChatConversationService`'s two call sites (lines ~503 and ~703) at
+- [X] T014 Repoint `ChatConversationService`'s two call sites (lines ~503 and ~703) at
       `ChatDisplayName.For`, passing no fallbacks so the default set applies, and delete the private
       originals. **Behaviour must not change.**
-- [ ] T015 Run the existing chat suite **unedited** —
+- [X] T015 Run the existing chat suite **unedited** —
       `dotnet test backend/tests/JuggerHub.Api.IntegrationTests --filter "FullyQualifiedName~Chat"` —
       and confirm it is green. That is the proof the extraction changed nothing; do not adjust a
       test to make it pass.

@@ -500,7 +500,7 @@ public sealed class ChatConversationService : IChatConversationService
             items.Add(new ConversationSummaryDto(
                 r.Id,
                 r.Kind,
-                DisplayName(r.Kind, r.Name, r.TeamName, r.Other?.DisplayName, r.EventName, r.RequesterName, isRequester, placeholder),
+                ChatDisplayName.For(r.Kind, r.Name, r.TeamName, r.Other?.DisplayName, r.EventName, r.RequesterName, isRequester, placeholder),
                 BuildAvatar(r.Kind, r.TeamId, r.TeamSlug, r.TeamHasLogo, r.Other?.UserId, r.Other?.Handle, r.Other?.HasAvatar ?? false, r.RequesterUserId, r.RequesterHandle, r.RequesterHasAvatar, isRequester),
                 last is null
                     ? null
@@ -700,7 +700,7 @@ public sealed class ChatConversationService : IChatConversationService
         return ChatResult<ConversationDetailDto>.Ok(new ConversationDetailDto(
             conversationId,
             row.Kind,
-            DisplayName(row.Kind, row.Name, row.TeamName, row.Other?.DisplayName, row.EventName, row.RequesterName, isRequester, placeholder),
+            ChatDisplayName.For(row.Kind, row.Name, row.TeamName, row.Other?.DisplayName, row.EventName, row.RequesterName, isRequester, placeholder),
             BuildAvatar(row.Kind, row.TeamId, row.TeamSlug, row.TeamHasLogo, row.Other?.UserId, row.Other?.Handle, row.Other?.HasAvatar ?? false, row.RequesterUserId, row.RequesterHandle, row.RequesterHasAvatar, isRequester),
             row.State,
             row.Me?.IsMuted ?? false,
@@ -1225,55 +1225,9 @@ public sealed class ChatConversationService : IChatConversationService
             : ChatResult<ConversationSummaryDto>.Ok(found);
     }
 
-    /// <summary>
-    /// A conversation's display name. Only a group stores one; the rest derive it — except an archived
-    /// auto chat, which froze its name at archival because the link it derived from is gone (R3a).
-    /// </summary>
-    /// <remarks>
-    /// Inquiry threads (feature 027) name themselves <b>per viewer</b>: the requester sees the team
-    /// name / event title (what they're asking about); an admin sees the requester's name <em>and</em>
-    /// the team/event it concerns — e.g. "Ada K. · Rheinfeuer" — because an admin of several teams/events
-    /// needs the context to tell inquiries apart. A frozen <paramref name="stored"/> name (set at
-    /// archival, when the link is severed) wins for every derived kind.
-    /// <para>
-    /// The final <c>placeholder</c> argument is the caller's localized
-    /// <see cref="MemberPlaceholder"/> (feature 037). It is passed in rather than read from a
-    /// constant so the value can vary by request culture while this helper stays static and pure.
-    /// </para>
-    /// </remarks>
-    private static string DisplayName(
-        ConversationKind kind,
-        string? stored,
-        string? teamName,
-        string? otherName,
-        string? eventName,
-        string? requesterName,
-        bool isRequester,
-        string placeholder) =>
-        kind switch
-        {
-            ConversationKind.Group => stored ?? "Group",
-            ConversationKind.Direct => otherName ?? placeholder,
-            ConversationKind.Team => stored ?? teamName ?? "Team chat",
-            ConversationKind.Party => stored ?? "Party chat",
-            ConversationKind.TeamInquiry => stored ?? (isRequester ? teamName : InquiryAdminLabel(requesterName, teamName, placeholder)) ?? placeholder,
-            ConversationKind.EventInquiry => stored ?? (isRequester ? eventName : InquiryAdminLabel(requesterName, eventName, placeholder)) ?? placeholder,
-            _ => stored ?? "Chat",
-        };
-
-    /// <summary>
-    /// The admin-side label for an inquiry row: the requester's name plus the team/event it concerns,
-    /// so an admin who manages several can tell them apart (feature 027). Degrades gracefully when
-    /// either part is missing.
-    /// </summary>
-    private static string InquiryAdminLabel(string? requesterName, string? context, string placeholder) =>
-        (requesterName, context) switch
-        {
-            ({ } r, { } c) => $"{r} · {c}",
-            ({ } r, null) => r,
-            (null, { } c) => c,
-            _ => placeholder,
-        };
+    // What a conversation is called moved to ChatDisplayName in feature 056, so that a chat push
+    // notification and this inbox cannot name the same conversation differently. Called, not
+    // copied — see that file's remarks.
 
     // A TEAM conversation carries the team's logo since feature 051 (#305) — until then there was
     // no team-logo endpoint at all, which is the gap issue #193 recorded and the reason this Url
