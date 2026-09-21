@@ -298,21 +298,21 @@ leaving a team chat, so this is a regression guard, not a later increment — it
 **Independent test**: [quickstart.md](quickstart.md) scenario 4 — mute, post, wait, nothing
 arrives; unmute, post, one arrives.
 
-- [ ] T040 [US2] Add the **mute** clause to the eligibility filter in
+- [X] T040 [US2] Add the **mute** clause to the eligibility filter in
       `backend/Services/Chat/Push/ChatPushScanner.cs`: drop any recipient whose
       `ConversationParticipant.IsMuted` is true (FR-010). Comment that this is the **only** lever
       that suppresses a chat push, and why — see T041.
-- [ ] T041 [US2] Add the **hide** clause (`IsHidden`) in the same predicate, with the comment that
+- [X] T041 [US2] Add the **hide** clause (`IsHidden`) in the same predicate, with the comment that
       makes it comprehensible: a member-written message already clears `IsHidden` for everyone
       through `ChatMessageService.ReturnToArchiversInboxesAsync` (048 FR-007), so this matches only
       when a member archives the conversation **during** the quiet delay — which is exactly when
       they have just said they do not want to hear about it (FR-011). Without this comment the
       clause reads as dead code and will eventually be deleted.
-- [ ] T042 [US2] Add the **left a group** clause (`LeftDate == null`) — FR-012 — and the **block**
+- [X] T042 [US2] Add the **left a group** clause (`LeftDate == null`) — FR-012 — and the **block**
       check for `Direct` conversations via `ChatGuard.IsBlockedBetweenAsync(senderId, recipientId)`,
       which is stored directionally and enforced symmetrically (FR-013). Only `Direct` needs it;
       say so rather than calling it for every kind.
-- [ ] T043 [P] [US2] In `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushEligibilityTests.cs`: one test per clause — muted, left, blocked — each
+- [X] T043 [P] [US2] In `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushEligibilityTests.cs`: one test per clause — muted, left, blocked — each
       asserting zero dispatches while an unmuted control conversation in the same pass still
       produces one. Plus **the race test for FR-011**: send, set `IsHidden` while the message is
       still inside the quiet window, run the pass, assert nothing. Do **not** write a test asserting
@@ -333,7 +333,7 @@ is refused.
 
 ### The teeth
 
-- [ ] T044 [US3] **Add the preference filter to the scanner** (trap 2):
+- [X] T044 [US3] **Add the preference filter to the scanner** (trap 2):
       `INotificationPreferenceService.GetEnabledRecipientsAsync(recipients, NotificationCategory.Chat, NotificationChannel.Push, ct)`
       — the batch form, applied after the other filters and before composition, in
       `backend/Services/Chat/Push/ChatPushScanner.cs`. Comment that `PushDispatcher` filters nothing
