@@ -59,7 +59,7 @@ requirement on the branch, not a runtime switch anyone has to remember to flip.
 **Purpose**: the configuration section, in every environment, with safe defaults. Nothing
 observable yet.
 
-- [ ] T001 Create `backend/Common/ChatPushOptions.cs` with `SectionName = "ChatPush"` and the seven
+- [X] T001 Create `backend/Common/ChatPushOptions.cs` with `SectionName = "ChatPush"` and the seven
       properties from [contracts/chat-push-api.md](contracts/chat-push-api.md#configuration):
       `Enabled` (true), `QuietDelaySeconds` (30), `PollIntervalSeconds` (10),
       `MaxMessageAgeMinutes` (60), `MaxMessagesPerPass` (500), `PassTimeoutMinutes` (5),
@@ -67,16 +67,16 @@ observable yet.
       habit of explaining *why* a number is what it is in XML docs — `QuietDelaySeconds` is an
       owner decision (spec Clarifications) and `MaxMessagesPerPass` exists because Principle VII
       forbids unbounded work, not as a tuning knob.
-- [ ] T002 Add the `ChatPush` section to `backend/appsettings.json` with the defaults above, placed
+- [X] T002 Add the `ChatPush` section to `backend/appsettings.json` with the defaults above, placed
       next to the existing `Retention` section (line 35).
-- [ ] T003 [P] Add `"ChatPush": { "QuietDelaySeconds": 5, "PollIntervalSeconds": 2 }` to
+- [X] T003 [P] Add `"ChatPush": { "QuietDelaySeconds": 5, "PollIntervalSeconds": 2 }` to
       `backend/appsettings.Development.json` so local verification does not require a 30-second
       wait per attempt.
-- [ ] T004 [P] Set `ChatPush:Enabled` to `false` in
+- [X] T004 [P] Set `ChatPush:Enabled` to `false` in
       `backend/tests/JuggerHub.Api.IntegrationTests/JuggerHubApiFactory.cs`, mirroring how
       `Retention:Enabled` is handled there. **Load-bearing**: every scanner test drives one
       deterministic pass directly, and a live timer would race those assertions non-reproducibly.
-- [ ] T005 Register the options in `backend/Program.cs` beside the `RetentionOptions` line (269):
+- [X] T005 Register the options in `backend/Program.cs` beside the `RetentionOptions` line (269):
       `builder.Services.Configure<ChatPushOptions>(builder.Configuration.GetSection(ChatPushOptions.SectionName));`
 
 **Checkpoint**: `dotnet build` passes; the app starts; nothing behaves differently.

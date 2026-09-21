@@ -134,6 +134,16 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
                 // underneath a test that is asserting on them. RetentionTests invokes the sweep
                 // directly and asserts separately that the hosted service is wired up.
                 ["Retention:Enabled"] = "false",
+                // Feature 056 — same reason as the line above, and for the same kind of timer.
+                // Every chat-push test drives one pass directly through IChatPushScanner and then
+                // asserts on what the fake dispatcher received; a live loop would consider those
+                // messages first and the assertions would fail depending on timing rather than on
+                // behaviour. ChatPushTests asserts separately that the hosted service is wired up.
+                ["ChatPush:Enabled"] = "false",
+                // The quiet delay is what a test has to wait out to make a message eligible, so it
+                // is zero here: eligibility is then decided purely by the state the test set up,
+                // which is the thing under test. Keep the other bounds at their real values.
+                ["ChatPush:QuietDelaySeconds"] = "0",
                 // Feature 030 (R8) — skip loading the full ~235k cities500 dataset; tests seed a
                 // small CityReference fixture (TestReferenceCities) in InitializeAsync instead.
                 ["Seeding:CityReferences"] = "false",
