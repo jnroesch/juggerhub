@@ -281,6 +281,8 @@ builder.Services.AddHostedService<JuggerHub.Services.Retention.RetentionBackgrou
 // the send path ever waits for a push.
 builder.Services.Configure<ChatPushOptions>(builder.Configuration.GetSection(ChatPushOptions.SectionName));
 builder.Services.AddScoped<JuggerHub.Services.Chat.Push.IChatPushComposer, JuggerHub.Services.Chat.Push.ChatPushComposer>();
+builder.Services.AddScoped<JuggerHub.Services.Chat.Push.IChatPushScanner, JuggerHub.Services.Chat.Push.ChatPushScanner>();
+builder.Services.AddHostedService<JuggerHub.Services.Hosted.ChatPushBackgroundService>();
 
 // --- Account settings (feature 031: language preference) -------------------
 builder.Services.AddScoped<JuggerHub.Services.Account.ILanguagePreferenceService, JuggerHub.Services.Account.LanguagePreferenceService>();

@@ -200,84 +200,84 @@ a notification arrives naming the sender and showing the text, and the Alerts in
 
 ### The pass
 
-- [ ] T023 [US1] Create `backend/Services/Chat/Push/IChatPushScanner.cs` exposing
+- [X] T023 [US1] Create `backend/Services/Chat/Push/IChatPushScanner.cs` exposing
       `Task<int> RunOnceAsync(CancellationToken ct)` returning the number of messages considered.
       **Separate from the background service on purpose**: every test drives one deterministic pass,
       the same reason `IRetentionSweep` is separable from `RetentionBackgroundService`.
-- [ ] T024 [US1] In `backend/Services/Chat/Push/ChatPushScanner.cs`, implement the **selection**:
+- [X] T024 [US1] In `backend/Services/Chat/Push/ChatPushScanner.cs`, implement the **selection**:
       `ChatMessages` where `PushConsideredAt == null`, `Kind == Member`, `CreatedDate <= now - QuietDelaySeconds`,
       ordered by `Id`, `Take(MaxMessagesPerPass)`, `AsNoTracking()`, projected to only what is
       needed. **No lower age bound in the query** — the max-age rule is a dispatch filter (T031),
       not a selection filter, because a message that is never selected is never marked.
-- [ ] T025 [US1] Implement the **claim**: one `ExecuteUpdateAsync` over the selected ids filtered by
+- [X] T025 [US1] Implement the **claim**: one `ExecuteUpdateAsync` over the selected ids filtered by
       `PushConsideredAt == null`, setting `PushConsideredAt` and `ModifiedDate` in the same
       statement (constitution III — `ExecuteUpdateAsync` bypasses the audit interceptor, the defect
       048 recorded). **If it affects zero rows, another replica owns this batch: return.**
-- [ ] T026 [US1] Implement **grouping**: group the claimed messages by conversation and take the
+- [X] T026 [US1] Implement **grouping**: group the claimed messages by conversation and take the
       **newest** per conversation as the one to notify about. Safe because `LastReadMessageId` is a
       monotonic UUIDv7 cursor, so "read the newest but not an older one" cannot occur. Comment that
       this is what keeps FR-022 true without a second dispatch per message.
-- [ ] T027 [US1] Implement **recipient resolution** via
+- [X] T027 [US1] Implement **recipient resolution** via
       `ChatGuard.ResolveParticipantUserIdsAsync(conversationId, ct)` — never a second membership
       query. It already handles all six conversation kinds *and* the archived-snapshot case where
       the roster it would otherwise ask has been deleted.
-- [ ] T028 [US1] Implement the **base filters**: drop the sender (FR-008); drop anyone whose
+- [X] T028 [US1] Implement the **base filters**: drop the sender (FR-008); drop anyone whose
       `ConversationParticipant.LastReadMessageId` is at or past the message id (FR-009); resolve
       join cut-offs in batch through `ChatGuard.ResolveJoinCutoffsAsync` and drop anyone who joined
       after the message (FR-014).
-- [ ] T029 [US1] Implement the **kind exclusions**: skip a message whose conversation `State` is
+- [X] T029 [US1] Implement the **kind exclusions**: skip a message whose conversation `State` is
       `Archived` (FR-017) and skip `IsDeleted` messages (FR-016) — both still get marked. System
       lines never reach here because T024 filters `Kind == Member`, which is FR-015 satisfied by
       selection rather than by a branch; say so in a comment so a future widening of the selection
       does not quietly repeal it.
-- [ ] T030 [US1] Implement **composition and dispatch**: group the surviving recipients by
+- [X] T030 [US1] Implement **composition and dispatch**: group the surviving recipients by
       `SupportedLanguages.ResolveOrDefault(u.PreferredLanguage)` (the **recipient's** language, the
       shape `PushFanOut` already uses), compose once per language, and call
       `IPushDispatcher.DispatchAsync` — **never `IPushFanOut`**, which takes a `NotificationType`
       and the in-app row's payload JSON, neither of which chat has. Wrap the whole per-conversation
       block in `try/catch` so one conversation's failure cannot end the pass (FR-003).
-- [ ] T031 [US1] Implement the **max-age rule**: a message older than `MaxMessageAgeMinutes` is
+- [X] T031 [US1] Implement the **max-age rule**: a message older than `MaxMessageAgeMinutes` is
       marked considered and **not dispatched** (FR-025). Comment that the marking is unconditional
       and why — trap 3, the index invariant.
-- [ ] T032 [US1] Register the scanner in `backend/Program.cs` near line 273:
+- [X] T032 [US1] Register the scanner in `backend/Program.cs` near line 273:
       `builder.Services.AddScoped<IChatPushScanner, ChatPushScanner>();` and the composer as scoped
       alongside it. `IPushDispatcher` is already a singleton
       (`WebPushServiceCollectionExtensions.cs:84`), so it is injectable directly.
 
 ### The loop
 
-- [ ] T033 [US1] Create `backend/Services/Hosted/ChatPushBackgroundService.cs` modelled on
+- [X] T033 [US1] Create `backend/Services/Hosted/ChatPushBackgroundService.cs` modelled on
       `backend/Services/Retention/RetentionBackgroundService.cs`: honour `Enabled`, a `PeriodicTimer`
       at `PollIntervalSeconds`, **a scope per pass** (never one held between passes — it would keep
       a pooled connection idle), a per-pass timeout from `PassTimeoutMinutes` linked to the stopping
       token (Principle VII: nothing waits forever, background loops included), a failure logged and
       the loop continued, and a clean exit on `OperationCanceledException` during shutdown.
-- [ ] T034 [US1] **Add no retry anywhere** in `backend/Services/Hosted/ChatPushBackgroundService.cs`
+- [X] T034 [US1] **Add no retry anywhere** in `backend/Services/Hosted/ChatPushBackgroundService.cs`
       or `backend/Services/Chat/Push/ChatPushScanner.cs`. A failed dispatch is dropped; the message
       stays marked. Record in the background service's remarks that this is deliberate: retrying
       would amplify an incident on the hottest table in the product to deliver a convenience, and
       the in-app equivalent is still waiting for the member either way (FR-003, Principle VII).
       Equally, add no `AddJuggerHubResilience` — 055's `WebPush` typed client already carries the
       pipeline and wrapping the seam again stacks handlers, which is review-rejectable.
-- [ ] T035 [US1] In `backend/Services/Hosted/ChatPushBackgroundService.cs` and
+- [X] T035 [US1] In `backend/Services/Hosted/ChatPushBackgroundService.cs` and
       `backend/Services/Chat/Push/ChatPushScanner.cs`, log counts and ids only — **never message
       text, a sender name or a conversation name**, at any level (FR-021c). This is stricter than
       the rest of the platform's logging and the comment should say so, next to the
       `PushDispatcher` precedent (`backend/Services/Notifications/Push/PushDispatcher.cs:110-117`)
       of logging a status code and a subscription id and explicitly not the body or the endpoint.
-- [ ] T036 [US1] Register it in `backend/Program.cs` beside the retention host (line 274):
+- [X] T036 [US1] Register it in `backend/Program.cs` beside the retention host (line 274):
       `builder.Services.AddHostedService<ChatPushBackgroundService>();`
 
 ### Tests
 
-- [ ] T037 [P] [US1] In `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushScannerTests.cs`: an unread direct message older than the delay produces
+- [X] T037 [P] [US1] In `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushScannerTests.cs`: an unread direct message older than the delay produces
       exactly one dispatch to the recipient, with the sender as title and the text as body; a
       message *younger* than the delay produces none and is **not** marked.
-- [ ] T038 [P] [US1] In `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushScannerTests.cs`: running the pass twice over the same message dispatches
+- [X] T038 [P] [US1] In `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushScannerTests.cs`: running the pass twice over the same message dispatches
       **once** (FR-024); four messages in one conversation produce **one** dispatch tagged
       `chat:{conversationId}` (FR-022); messages in two conversations produce two dispatches with
       different tags (FR-023).
-- [ ] T039 [P] [US1] In `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushScannerTests.cs`: **no `Notification` row exists** in the database after
+- [X] T039 [P] [US1] In `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushScannerTests.cs`: **no `Notification` row exists** in the database after
       any of it (FR-004 / 019 FR-051 — the decision this whole design protects); a system line, a
       deleted message and a message in an archived conversation each produce nothing and are each
       marked; a message older than `MaxMessageAgeMinutes` is marked and not dispatched; and a
