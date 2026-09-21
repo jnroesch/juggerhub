@@ -280,6 +280,7 @@ builder.Services.AddHostedService<JuggerHub.Services.Retention.RetentionBackgrou
 // background pass picks messages up once they have gone unread for the quiet delay, so nothing on
 // the send path ever waits for a push.
 builder.Services.Configure<ChatPushOptions>(builder.Configuration.GetSection(ChatPushOptions.SectionName));
+builder.Services.AddScoped<JuggerHub.Services.Chat.Push.IChatPushComposer, JuggerHub.Services.Chat.Push.ChatPushComposer>();
 
 // --- Account settings (feature 031: language preference) -------------------
 builder.Services.AddScoped<JuggerHub.Services.Account.ILanguagePreferenceService, JuggerHub.Services.Account.LanguagePreferenceService>();

@@ -157,7 +157,7 @@ a notification arrives naming the sender and showing the text, and the Alerts in
 
 ### The strings
 
-- [ ] T016 [US1] Add the chat keys to
+- [X] T016 [US1] Add the chat keys to
       `backend/Services/Notifications/Push/PushLocalizer.cs` in en/de/es: `chat.sentMessage`
       ("sent you a message" — the no-preview fallback), `chat.sentAttachment` ("sent an
       attachment"), `chat.groupBody` (`"{0}: {1}"` — sender, text), and the three conversation-name
@@ -168,31 +168,31 @@ a notification arrives naming the sender and showing the text, and the Alerts in
 
 ### The composer
 
-- [ ] T017 [US1] Create `backend/Services/Chat/Push/IChatPushComposer.cs` — a pure seam taking the
+- [X] T017 [US1] Create `backend/Services/Chat/Push/IChatPushComposer.cs` — a pure seam taking the
       per-conversation naming inputs, the message (id, sender name, `BodyCipher`, whether it has
       attachments), the recipient's culture and whether the recipient is the inquiry requester, and
       returning a `PushContent`. No `AppDbContext`, no `IPushDispatcher`: it must be unit-testable
       without a database.
-- [ ] T018 [US1] Implement `backend/Services/Chat/Push/ChatPushComposer.cs` per
+- [X] T018 [US1] Implement `backend/Services/Chat/Push/ChatPushComposer.cs` per
       [research.md R6](research.md#r6-composing-the-text): `Direct` → title is the sender, body is
       the text; every other kind → title is `ChatDisplayName.For(...)` with localized fallbacks,
       body is `"{sender}: {text}"`.
-- [ ] T019 [US1] In the same file, implement the URL as `/chat/{conversationId}` — app-relative,
+- [X] T019 [US1] In the same file, implement the URL as `/chat/{conversationId}` — app-relative,
       built from a `Guid`, verified against `frontend/apps/web/src/app/app.routes.ts` where the open
       conversation is a child of the `chat` shell — and the tag as `chat:{conversationId}`,
       **keyed on the conversation, not the message**, which is what makes several messages collapse
       into one notification across passes as well as within one.
-- [ ] T020 [US1] Implement truncation to `ChatPushOptions.PreviewLength` (120) with an ellipsis,
+- [X] T020 [US1] Implement truncation to `ChatPushOptions.PreviewLength` (120) with an ellipsis,
       cutting on a character boundary. Messages run to 2000 characters
       (`ChatConstants.MaxMessageLength`) and no lock screen shows that; sending it whole reproduces
       a long private message outside the platform for no benefit (FR-020).
-- [ ] T021 [US1] Implement the three degraded bodies in order: **`BodyCipher.Length == 0` first**
+- [X] T021 [US1] Implement the three degraded bodies in order: **`BodyCipher.Length == 0` first**
       → `chat.sentAttachment` (trap 4 — asking the cipher about an empty array throws
       `ArgumentException` by design); then `TryUnprotect` returning `false` → `chat.sentMessage`,
       naming sender and conversation with no preview (FR-021a, mirroring how 047 already shows a
       placeholder for one message rather than failing a conversation); then a missing sender profile
       → `Common.MemberPlaceholder.For(culture)`.
-- [ ] T022 [P] [US1] Write `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushComposerTests.cs`
+- [X] T022 [P] [US1] Write `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushComposerTests.cs`
       covering every branch of T018–T021: direct vs group title, the `"{sender}: {text}"` join,
       truncation at the bound, unreadable body, attachment-only, missing profile, the URL shape, the
       tag shape, and that a German recipient gets German fallbacks while the sender's language is
