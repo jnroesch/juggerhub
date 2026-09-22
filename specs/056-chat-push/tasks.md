@@ -434,11 +434,11 @@ value passes silently — and the German version is the legally authoritative on
 
 ## Phase 8: Polish, verification and delivery
 
-- [ ] T061 Run the full backend suite: `dotnet test backend/tests/JuggerHub.Api.IntegrationTests`.
+- [X] T061 Run the full backend suite: `dotnet test backend/tests/JuggerHub.Api.IntegrationTests`.
       Green, including the chat tests untouched since T015.
-- [ ] T062 [P] Run the frontend suite, build, lint and typecheck from `frontend/`. Jest 30 takes
+- [X] T062 [P] Run the frontend suite, build, lint and typecheck from `frontend/`. Jest 30 takes
       `--testPathPatterns` (plural); the old singular flag is silently ignored and runs everything.
-- [ ] T063 Work through [checklists/ui-review.md](checklists/ui-review.md) against the diff,
+- [X] T063 Work through [checklists/ui-review.md](checklists/ui-review.md) against the diff,
       recording `file:line` for anything that fails. CHK044 (the five-row matrix at `md` in German)
       and CHK040 (unavailable cells must not read as switched-off switches) are the binding ones.
       CHK037 is a **pre-existing** failure on that page (`animate-pulse` skeletons, GH #337) and is
@@ -447,7 +447,7 @@ value passes silently — and the German version is the legally authoritative on
       Android installed + iPhone Added-to-Home-Screen, phone locked, with the app fully closed; plus
       Settings → Notifications at **375px and `md`, in German**. Screenshots to the PR. Read the
       output rather than assuming it passed.
-- [ ] T065 Confirm the release gate before opening the PR: T044–T054 and T055–T057 are all done, so
+- [X] T065 Confirm the release gate before opening the PR: T044–T054 and T055–T057 are all done, so
       no environment can deliver a chat notification that a member cannot refuse, under a policy
       that says its content is not in it.
 - [ ] T066 Open the PR with `Closes #309`, the residuals from [plan.md](plan.md#residuals-recorded-rather-than-solved)
