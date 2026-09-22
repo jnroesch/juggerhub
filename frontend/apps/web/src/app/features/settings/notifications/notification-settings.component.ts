@@ -2,7 +2,13 @@ import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { ButtonDirective, CardComponent, ChipDirective } from '../../../shared/ui';
 import { NotificationPreferencesService } from '../../../core/services/notification-preferences.service';
-import { ChannelKey, NotificationCategoryId } from '../../../core/models/notification-preferences.models';
+import {
+  ChannelKey,
+  NotificationCategoryId,
+  NotificationChannelId,
+  PreferenceCategory,
+  channelIdOf,
+} from '../../../core/models/notification-preferences.models';
 import { PushDeviceSectionComponent } from './push-device-section.component';
 
 /**
@@ -42,6 +48,21 @@ export class NotificationSettingsComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  /**
+   * Whether this category has this cell at all (feature 056).
+   *
+   * Not every category is deliverable on every channel: chat has its own inbox and badge rather
+   * than Alerts rows, and there is no email for a missed message. Such a cell is rendered as
+   * unavailable, never as a switched-off toggle — the toggle would say "you could turn this on",
+   * which is untrue and is the support question the category's description exists to pre-empt.
+   *
+   * Reads `availableChannels`, never `channels`: the server leaves an unavailable cell's value at
+   * its default precisely so it cannot be confused with a member's own choice.
+   */
+  isAvailable(category: PreferenceCategory, channelKey: ChannelKey): boolean {
+    return category.availableChannels.includes(channelIdOf(channelKey) as NotificationChannelId);
   }
 
   toggle(category: NotificationCategoryId, channelKey: ChannelKey, current: boolean): void {

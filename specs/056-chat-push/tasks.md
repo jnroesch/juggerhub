@@ -342,15 +342,15 @@ is refused.
 
 ### The server surface
 
-- [ ] T045 [US3] Add `IReadOnlyList<NotificationChannel> AvailableChannels` to
+- [X] T045 [US3] Add `IReadOnlyList<NotificationChannel> AvailableChannels` to
       `PreferenceCategoryDto` in `backend/Dtos/Notifications/NotificationPreferenceDtos.cs`.
       Additive. Document why `Channels` is **not** narrowed for Chat: `false` is indistinguishable
       from a member's own choice to switch something off, and making the record nullable pushes a
       three-state decision onto four categories that use it correctly today.
-- [ ] T046 [US3] In `backend/Services/Notifications/NotificationPreferenceService.cs`, append
+- [X] T046 [US3] In `backend/Services/Notifications/NotificationPreferenceService.cs`, append
       `NotificationCategory.Chat` to `CategoryOrder` (last, after `Events`) and populate
       `AvailableChannels` for every category from `NotificationCategories.Supports`.
-- [ ] T047 [US3] Add the Chat label and description to `CategoryCopy` in **all three** cultures in
+- [X] T047 [US3] Add the Chat label and description to `CategoryCopy` in **all three** cultures in
       the same file. The description is where the empty cells are explained, because it is the one
       place a member is looking at them — English along the lines of *"New messages in your
       conversations. Chat has its own inbox and badge, so there's nothing to send in-app or by
@@ -358,35 +358,35 @@ is refused.
       its three entries are checked by eye, and the per-category `TryGetValue` fallback (added by
       039 after a bare indexer took the page down) means a missing culture degrades rather than
       throws.
-- [ ] T048 [US3] Add the unavailable-cell guard to
+- [X] T048 [US3] Add the unavailable-cell guard to
       `backend/Controllers/NotificationPreferencesController.cs`, beside the existing
       `Enum.IsDefined` check: refuse with `400` and
       *"That notification category isn't delivered on that channel."* when
       `!NotificationCategories.Supports(category, channel)`. Principle I — without it a client can
       store a `(Chat, Email)` row that means nothing and that something could later read back as
       though it meant something.
-- [ ] T049 [P] [US3] In `backend/tests/JuggerHub.Api.IntegrationTests/Notifications/NotificationPreferenceTests.cs`: `PUT …/Chat/Push` → `204` and the row is
+- [X] T049 [P] [US3] In `backend/tests/JuggerHub.Api.IntegrationTests/Notifications/NotificationPreferenceTests.cs`: `PUT …/Chat/Push` → `204` and the row is
       stored; `PUT …/Chat/InApp` and `PUT …/Chat/Email` → `400` **and no row is written**; the
       matrix response contains a `Chat` category last with `availableChannels == ["Push"]` and its
       `channels.inApp` / `channels.email` still present.
-- [ ] T050 [P] [US3] In `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushEligibilityTests.cs`: a recipient with `(Chat, Push)` set to `false`
+- [X] T050 [P] [US3] In `backend/tests/JuggerHub.Api.IntegrationTests/Chat/ChatPushEligibilityTests.cs`: a recipient with `(Chat, Push)` set to `false`
       receives nothing while an unset recipient in the same pass receives one (FR-027); a recipient
       who has turned **Team news** off still receives chat notifications and vice versa (FR-028a).
 
 ### The interface
 
-- [ ] T051 [US3] Add `availableChannels` to the preference types in
+- [X] T051 [US3] Add `availableChannels` to the preference types in
       `frontend/apps/web/src/app/core/services/notification-preference.service.ts`.
-- [ ] T052 [US3] Render the unavailable cells in
+- [X] T052 [US3] Render the unavailable cells in
       `frontend/apps/web/src/app/features/settings/notifications/notification-settings.component.html`.
       Each of the three cell blocks becomes conditional on the channel being available; the
       unavailable form is **not a button, has no `role="switch"` and is not focusable** (CHK041),
       shows an em dash with an `sr-only` explanation (CHK042 — a lone "—" is announced as nothing),
       and keeps its mobile row label so the card still reads as three rows (CHK043).
-- [ ] T053 [P] [US3] Add the unavailable-cell string to
+- [X] T053 [P] [US3] Add the unavailable-cell string to
       `frontend/apps/web/public/i18n/{en,de,es}.json` — **all three in one change**, or
       `catalog-parity.spec.ts` goes red.
-- [ ] T054 [P] [US3] Extend
+- [X] T054 [P] [US3] Extend
       `frontend/apps/web/src/app/features/settings/notifications/notification-settings.component.spec.ts`:
       a category with `availableChannels: ['Push']` renders one switch and two non-interactive
       cells, and `toggle()` is never called for an unavailable channel.

@@ -32,6 +32,9 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
         NotificationCategory.TeamNews,
         NotificationCategory.Trainings,
         NotificationCategory.Events,
+        // Feature 056 — last, after the four that existed. Push-only: its other two cells are
+        // reported as unavailable rather than switched off (NotificationCategories.Supports).
+        NotificationCategory.Chat,
     ];
 
     /// <summary>
@@ -49,6 +52,7 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
                 [NotificationCategory.TeamNews] = ("Team news", "News posted to your teams"),
                 [NotificationCategory.Trainings] = ("Trainings", "New training sessions and schedule changes"),
                 [NotificationCategory.Events] = ("Events", "Changes to events you signed up for"),
+                [NotificationCategory.Chat] = ("Chat messages", "New messages in your conversations. Chat has its own inbox and badge, so there is nothing to send in-app or by e-mail."),
             },
             ["de"] = new Dictionary<NotificationCategory, (string, string)>
             {
@@ -56,6 +60,7 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
                 [NotificationCategory.TeamNews] = ("Team-News", "Neuigkeiten, die in deinen Teams gepostet werden"),
                 [NotificationCategory.Trainings] = ("Trainings", "Neue Trainingseinheiten und Terminänderungen"),
                 [NotificationCategory.Events] = ("Veranstaltungen", "Änderungen an Events, für die du angemeldet bist"),
+                [NotificationCategory.Chat] = ("Chat-Nachrichten", "Neue Nachrichten in deinen Unterhaltungen. Chat hat ein eigenes Postfach mit eigenem Zähler – in der App und per E-Mail gibt es daher nichts zu senden."),
             },
             ["es"] = new Dictionary<NotificationCategory, (string, string)>
             {
@@ -63,6 +68,7 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
                 [NotificationCategory.TeamNews] = ("Noticias del equipo", "Novedades publicadas en tus equipos"),
                 [NotificationCategory.Trainings] = ("Entrenamientos", "Nuevas sesiones de entrenamiento y cambios de horario"),
                 [NotificationCategory.Events] = ("Eventos", "Cambios en los eventos a los que te apuntaste"),
+                [NotificationCategory.Chat] = ("Mensajes del chat", "Mensajes nuevos en tus conversaciones. El chat tiene su propia bandeja y su propio contador, así que no hay nada que enviar en la app ni por correo."),
             },
         };
 
@@ -111,7 +117,11 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
                     new PreferenceChannelsDto(
                         Effective(category, NotificationChannel.InApp),
                         Effective(category, NotificationChannel.Email),
-                        Effective(category, NotificationChannel.Push)));
+                        Effective(category, NotificationChannel.Push)),
+                    // Which cells exist at all (feature 056). The values above stay as they are
+                    // for an unavailable cell — see PreferenceCategoryDto's remarks for why
+                    // narrowing them would be worse than leaving them alone.
+                    NotificationCategories.ChannelsFor(category));
             })
             .ToList();
 

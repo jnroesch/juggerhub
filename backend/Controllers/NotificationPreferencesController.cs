@@ -55,6 +55,17 @@ public sealed class NotificationPreferencesController : ControllerBase
                 detail: "That notification category or channel isn't recognized.");
         }
 
+        // Both enum members exist, but not every pairing of them does (feature 056). Chat is
+        // Push-only. Refusing here rather than storing the row is the never-trust-the-client rule
+        // applied to a cell the interface never draws: a stored (Chat, Email) preference would
+        // mean nothing, and nothing reading it back later could tell that from a member's
+        // considered choice.
+        if (!NotificationCategories.Supports(category, channel))
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest, title: "Channel not available",
+                detail: "That notification category isn't delivered on that channel.");
+        }
+
         await _preferences.SetCellAsync(userId, category, channel, request.Enabled, ct);
         return NoContent();
     }

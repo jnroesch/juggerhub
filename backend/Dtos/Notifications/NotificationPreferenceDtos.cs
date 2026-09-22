@@ -11,11 +11,29 @@ public sealed record NotificationPreferenceMatrixDto(
     IReadOnlyList<AlwaysOnGroupDto> AlwaysOn);
 
 /// <summary>One togglable category row.</summary>
+/// <param name="Category">The category this row governs.</param>
+/// <param name="Label">Server-owned display name, in the caller's language.</param>
+/// <param name="Description">Server-owned one-liner explaining what falls under it.</param>
+/// <param name="Channels">The effective on/off state of each channel, with defaults applied.</param>
+/// <param name="AvailableChannels">
+/// Which cells this category actually has (feature 056). Every category offers all three except
+/// <see cref="NotificationCategory.Chat"/>, which is Push-only: chat has no Alerts row by design
+/// (feature 019, FR-051) and no email producer.
+/// </param>
+/// <remarks>
+/// <b><see cref="Channels"/> is deliberately NOT narrowed for a category with unavailable cells,</b>
+/// and the client must branch on <see cref="AvailableChannels"/> rather than on its values. Sending
+/// <c>false</c> for a cell that does not exist would be indistinguishable from a member having
+/// switched it off, and making the record nullable would push a three-state decision onto four
+/// categories that use it correctly today. This says the thing that is actually true — these are
+/// the cells that exist — and leaves the value semantics alone.
+/// </remarks>
 public sealed record PreferenceCategoryDto(
     NotificationCategory Category,
     string Label,
     string Description,
-    PreferenceChannelsDto Channels);
+    PreferenceChannelsDto Channels,
+    IReadOnlyList<NotificationChannel> AvailableChannels);
 
 /// <summary>
 /// The per-channel enabled state for a category (defaults applied for unset cells). The three

@@ -744,6 +744,7 @@
       "inApp": "In-app",
       "email": "Email",
       "push": "Push",
+      "notAvailable": "Not available for this kind of notification",
       "alwaysOn": "Always on",
       "alwaysOnDesc": "These keep your account safe, so they can't be turned off.",
       "pushDevice": {
