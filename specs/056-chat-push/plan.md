@@ -281,3 +281,27 @@ writing a second one.
 7. **`ModifiedDate` moves on a message nobody edited.** Accurate (the row did change) and invisible
    (no chat DTO carries it, 019 has no edit), but it is the kind of thing that looks wrong in a
    diff, so the column's XML doc says why.
+
+## Found during implementation
+
+- **The block clause is defence in depth, not the first line.** `ChatMessageService.SendAsync`
+  already refuses a send between blocked players with `403`, so no message from a blocked sender
+  can exist for the pass to consider. The clause in `EligibleAsync` closes exactly one gap: a block
+  created *after* the send and before the pass ran — the same shape as archiving during the delay.
+  Both halves are asserted in `ChatPushEligibilityTests` so the clause is not mistaken for the only
+  thing standing between a blocked player and somebody's lock screen.
+- **019's own FR-051a guard caught the category, as designed.**
+  `ChatDoesNotTouchAlertsTests.Chat_adds_no_notification_type_or_category` failed the moment
+  `NotificationCategory.Chat` appeared — its doc comment had said adding one should be "a
+  deliberate, reviewed change to feature 010/011's contract, not a side effect of a chat PR", and
+  that is what it forced. It is now split in two: the notification-type half unchanged, and a new
+  test asserting the category exists, has no producer, and is refused on In-app and E-mail.
+- **`ChatGuard` needed a third join-cutoff shape.** The existing batch helper resolves one user
+  across many conversations; the pass needs one conversation across many users.
+  `ResolveJoinCutoffsForMembersAsync` was added beside its siblings rather than written out at the
+  call site, so the rule about what a join cutoff *is* keeps one home instead of acquiring a third
+  copy — a thirty-player team chat would otherwise have cost thirty round trips per message.
+- **`dotnet ef migrations add --no-build` silently produced an empty migration**, because it read
+  the previous build's assembly and found no model difference. Caught by reading the generated file
+  rather than by any test — an empty migration would have shipped a snapshot claiming a column the
+  database never got. Always let the tool build.

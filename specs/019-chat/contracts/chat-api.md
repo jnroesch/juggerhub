@@ -23,6 +23,14 @@ event and manual group conversations are unchanged and still have no crest. No f
 removed. See
 [`../../051-team-logos/contracts/team-logo-api.md`](../../051-team-logos/contracts/team-logo-api.md).
 
+**Amended by feature 056 (chat push).** **No endpoint here changed** — chat push adds none, and
+reads nothing through this API. A background pass finds messages that have gone unread for a short
+delay and hands them to the push channel directly, below the notification store, so chat still
+writes no notification row (FR-051). The one API surface that changed is elsewhere:
+`GET /notification-preferences` gained a Push-only **Chat** entry and an `availableChannels` field,
+and `PUT /notification-preferences/Chat/{InApp|Email}` is refused with `400`. See
+[`../../056-chat-push/contracts/chat-push-api.md`](../../056-chat-push/contracts/chat-push-api.md).
+
 ---
 
 ## Conversations

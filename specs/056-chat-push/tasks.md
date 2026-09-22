@@ -420,15 +420,15 @@ value passes silently — and the German version is the legally authoritative on
 
 ## Phase 7: Amending 019
 
-- [ ] T058 [P] Add an "Amended by feature 056" callout near the top of `specs/019-chat/spec.md`, in
+- [X] T058 [P] Add an "Amended by feature 056" callout near the top of `specs/019-chat/spec.md`, in
       the shape 022, 046 and 048 each used.
-- [ ] T059 [P] Mark **FR-051a superseded in part** in `specs/019-chat/spec.md`, with the breakdown
+- [X] T059 [P] Mark **FR-051a superseded in part** in `specs/019-chat/spec.md`, with the breakdown
       from [research.md R11](research.md#r11-amending-019): "no new notification type" **stands**;
       "no chat rows in the Alerts inbox" (FR-051) **stands, untouched**; "no new
       notification-preference category" is **superseded**. Marking FR-051a superseded without that
       breakdown would read as a reversal of the Alerts-row decision — the opposite of what happened,
       and the thing #309 itself argues hardest against.
-- [ ] T060 [P] Add a pointer to this feature in `specs/019-chat/contracts/chat-api.md`, as 046 did.
+- [X] T060 [P] Add a pointer to this feature in `specs/019-chat/contracts/chat-api.md`, as 046 did.
 
 ---
 
