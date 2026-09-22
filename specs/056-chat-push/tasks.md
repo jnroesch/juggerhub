@@ -400,7 +400,7 @@ is refused.
 **No automated guard covers this phase.** `legal-catalog.spec.ts` compares key *sets*, so a stale
 value passes silently — and the German version is the legally authoritative one.
 
-- [ ] T055 Rewrite the push-service paragraph in
+- [X] T055 Rewrite the push-service paragraph in
       `frontend/apps/web/public/i18n/legal/de.json` (line 183). The sentence *"Inhalte, die du
       geschrieben hast, sind nicht darin."* must go, replaced by text saying that what a
       notification says can include something another member wrote to you. Write it **German
@@ -408,11 +408,11 @@ value passes silently — and the German version is the legally authoritative on
       Keep it generic: describe the **category of data**, never the feature, and do **not** replace
       it with a new claim about what the product does *not* do, which is the shape of sentence being
       corrected here for the second time.
-- [ ] T056 Mirror the change in `frontend/apps/web/public/i18n/legal/en.json` (line 183) — drop
+- [X] T056 Mirror the change in `frontend/apps/web/public/i18n/legal/en.json` (line 183) — drop
       *"Nothing you wrote is in it."* — and in `frontend/apps/web/public/i18n/legal/es.json`, which
       needs a **wider** edit than the other two: it additionally enumerates *"a qué equipo, evento o
       entrenamiento se refiere"*, and a chat message is none of those. All three in one commit.
-- [ ] T057 Run `npx jest --testPathPatterns "legal-catalog"` (green, as expected — it cannot see
+- [X] T057 Run `npx jest --testPathPatterns "legal-catalog"` (green, as expected — it cannot see
       this change) and then verify by eye per [quickstart.md](quickstart.md#8-the-privacy-policy-fr-029-sc-012):
       open `/privacy` in all three languages and read the paragraph.
 
