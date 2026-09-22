@@ -450,7 +450,7 @@ value passes silently — and the German version is the legally authoritative on
 - [X] T065 Confirm the release gate before opening the PR: T044–T054 and T055–T057 are all done, so
       no environment can deliver a chat notification that a member cannot refuse, under a policy
       that says its content is not in it.
-- [ ] T066 Open the PR with `Closes #309`, the residuals from [plan.md](plan.md#residuals-recorded-rather-than-solved)
+- [X] T066 Open the PR with `Closes #309`, the residuals from [plan.md](plan.md#residuals-recorded-rather-than-solved)
       restated in the description, and the device-walk screenshots. Note the two follow-ups worth
       filing: a "hide previews" control, and naming a party chat after its party (pre-existing, 046).
 
