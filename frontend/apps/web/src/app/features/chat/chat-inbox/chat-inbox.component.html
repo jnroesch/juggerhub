@@ -31,11 +31,7 @@
 
   <!-- Loading -->
   @if (loading()) {
-    <div class="mt-lg space-y-md" aria-hidden="true">
-      @for (i of [1, 2, 3]; track i) {
-        <div class="h-16 animate-pulse rounded-lg border border-border-muted bg-surface-sunken"></div>
-      }
-    </div>
+    <jh-loading [label]="'chat.inbox.loading' | transloco" />
   }
 
   @if (failed()) {

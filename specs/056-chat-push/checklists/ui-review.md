@@ -160,6 +160,11 @@ blocks, which is exactly the shape CHK037 forbids (GH #337). It predates this fe
 the diff, and swapping it for `jh-loading` would be an unrelated change to a shared screen. Recorded
 here so the gate is not marked clean on a page that is not.
 
+> **Resolved by the GH #337 fix**: the skeleton is now `jh-loading` with a contextual label
+> (`settings.notifications.loading`), and `core/design/loading-states.spec.ts` keeps looping
+> animation utilities out of the source. The unchecked box above is left as the record of what
+> this feature shipped against.
+
 ### Out of the design system's reach
 
 The notification itself — lock-screen heading, body text, icon, collapse behaviour — is drawn by

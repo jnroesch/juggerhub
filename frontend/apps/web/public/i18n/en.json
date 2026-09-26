@@ -225,7 +225,8 @@
       "viewTrainings": "View trainings",
       "teamTools": "Team tools",
       "invites": "Invites",
-      "settings": "Settings"
+      "settings": "Settings",
+      "loading": "Loading team…"
     },
     "placements": {
       "title": "Tournament results",
@@ -617,7 +618,8 @@
       "tagAdmins": "Admins",
       "attachmentPhoto": "Photo",
       "attachmentFile": "File",
-      "attachmentSeveral": "{{count}} files"
+      "attachmentSeveral": "{{count}} files",
+      "loading": "Loading your chats…"
     },
     "compose": {
       "backToMessages": "Back to messages",
@@ -660,7 +662,8 @@
       "attachmentUnavailable": "This file can’t be opened.",
       "downloadFile": "Download {{name}}",
       "openImage": "Open {{name}}",
-      "closeImage": "Close"
+      "closeImage": "Close",
+      "loading": "Loading messages…"
     },
     "details": {
       "backToChat": "Back to the chat",
@@ -682,7 +685,8 @@
       "leaveChat": "Leave chat",
       "blockConfirm": "Block {{name}}? They won't be able to message you, and this chat leaves your inbox. You'll both still take part in any group you share.",
       "block": "Block",
-      "blockUser": "Block {{name}}"
+      "blockUser": "Block {{name}}",
+      "loading": "Loading chat details…"
     }
   },
   "account": {
@@ -759,7 +763,8 @@
         "installStep1": "Tap the Share button in Safari.",
         "installStep2": "Choose \"Add to Home Screen\".",
         "installStep3": "Open JuggerHub from your Home Screen and come back here. You'll be asked to sign in again — the installed app keeps its own session."
-      }
+      },
+      "loading": "Loading your settings…"
     }
   },
   "browse": {
@@ -897,7 +902,8 @@
     "loadMore": "Load more",
     "upNextSubtitle": "Your upcoming trainings, matches, and events.",
     "upNextEmpty": "Nothing coming up right now.",
-    "loadEventsError": "We couldn't load your events."
+    "loadEventsError": "We couldn't load your events.",
+    "loading": "Loading your home page…"
   },
   "nav": {
     "brandHome": "JuggerHub home",
@@ -1398,7 +1404,8 @@
       "trainingUpdatedChanged": "An upcoming session changed",
       "eventCancelledTitle": "{{event}} was cancelled",
       "eventCancelledSupporting": "The organiser called off an event you signed up for"
-    }
+    },
+    "loading": "Loading your alerts…"
   },
   "parties": {
     "backToParty": "Back to party",

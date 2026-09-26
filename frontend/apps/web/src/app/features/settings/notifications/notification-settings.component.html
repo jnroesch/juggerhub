@@ -15,11 +15,7 @@
 
   <!-- Loading -->
   @if (loading()) {
-    <div class="mt-lg space-y-md" aria-hidden="true">
-      @for (i of [1, 2]; track i) {
-        <div class="h-20 animate-pulse rounded-lg border border-border-muted bg-surface-sunken"></div>
-      }
-    </div>
+    <jh-loading [label]="'settings.notifications.loading' | transloco" />
   }
 
   <!-- Error -->
