@@ -75,7 +75,7 @@ conversation**, about the **newest** message the recipient has not read. The col
 **Rationale**: `PushDispatcher` already turns a tag into both, and its own comment states the
 contract — *"the tag makes a second arrival replace the first ON THE DEVICE; the topic makes a push
 service replace a message it still holds UNDELIVERED"*. Keying it on the conversation makes FR-022
-true across passes as well as within one: four messages that cross the 30-second line in two
+true across passes as well as within one: four messages that cross the quiet-delay line in two
 different passes still leave one notification on the device.
 
 Using the *newest* unread message is safe because the read marker is monotonic
@@ -109,8 +109,8 @@ therefore **must** filter first, or FR-027 does nothing.
 #309 says *"`ChatMessageService.cs:310` and the nav badge both exclude `IsMuted || IsHidden`"* and
 treats the two as equivalent levers. They are not, on this path.
 `ChatMessageService.ReturnToArchiversInboxesAsync` clears `IsHidden` for **every** member on
-**every** member-written send (feature 048, FR-007). By the time the worker evaluates the message
-30 seconds later, the flag is already `false`.
+**every** member-written send (feature 048, FR-007). By the time the worker evaluates the message,
+one quiet delay later, the flag is already `false`.
 
 So **mute is the only lever that suppresses a chat push**, and FR-011 only bites in one narrow
 case: the member archives the conversation *during* the quiet delay — which is precisely the moment
@@ -352,7 +352,7 @@ empty cells.
 2. **Duplicate outbound calls are possible** under the R8 race. Invisible to the member, bounded by
    the batch size, and not worth `SKIP LOCKED`.
 3. **The quiet delay is felt twice.** Worst-case latency is the delay plus one poll interval, so the
-   poll interval has to be short enough that 30 seconds does not become 90.
+   poll interval has to be short enough that the delay is not doubled by the wait to be noticed.
 4. **No presence suppression.** A member with the app open on a desktop and the conversation closed
    is notified. Deliberate (spec assumption), and unavoidable while `userVisibleOnly` stands.
 5. **A notification survives the message being read on another device**, once it has been shown.

@@ -62,10 +62,28 @@ not.
   introduces no notification type and still writes nothing to the Alerts inbox. The row's In-app
   and E-mail cells are therefore not offered: chat has no Alerts row by design, and
   email-on-missed-message is out of scope for this feature.
-- Q: How long must a message stay unread before it is worth a notification? → A: **30 seconds.**
-  Closest to feeling instant, which is the point of singling chat out. The accepted cost is more
-  notifications reaching someone who was about to open the conversation on another screen; two
-  minutes and five minutes were declined as turning a message into a digest.
+- Q: How long must a message stay unread before it is worth a notification? → A: **30 seconds**,
+  as the closest of the offered options to feeling instant; two and five minutes were declined as
+  turning a message into a digest. **Revised to 5 seconds on 2026-09-26** (see below).
+
+### Session 2026-09-26
+
+- Q: Why a delay at all rather than near-instant notifications? → A: The delay **is** the presence
+  check, and it is the only one available: a browser requires every delivered push to be visible,
+  so suppression has to happen on the server before dispatch, and the server cannot see whether a
+  window is open. "Still unread after N seconds" is the stand-in. Setting N to zero does not make
+  notifications faster, it removes the check.
+- Q: Then how short can it be? → A: **5 seconds, in every environment.** Tracing the read path
+  settled it: a message arriving in a conversation that is open and in the foreground marks itself
+  read within a fraction of a second, so the window does not need to be long to catch the case it
+  exists for. What the shorter window gives up is the softer case — somebody who notices the in-app
+  badge and opens the conversation a few seconds later now gets a notification that 30 seconds
+  would have spared them. Accepted. The poll interval drops to **2 seconds** in the same decision,
+  which is pure latency and costs nothing in quality, giving a felt latency of 5–7 seconds.
+- Q: Should the values differ between local, Dev and Prod? → A: **No.** They were briefly split
+  (5/2 locally, 30/10 deployed) so local verification did not cost half a minute per attempt, which
+  meant nobody ever experienced the production timing while developing. One set of values
+  everywhere, so what is walked through locally is what ships.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -214,8 +232,9 @@ past the quiet delay, and confirm nothing arrives while a non-chat notification 
 
 - **FR-001**: The system MUST deliver a push notification to a member's enabled devices when a
   message written by another member in a conversation they belong to has remained unread for a
-  quiet delay of **30 seconds**. The delay MUST be configurable, with 30 seconds as the safe
-  built-in default.
+  quiet delay of **5 seconds**. The delay MUST be configurable, with 5 seconds as the built-in
+  default, and MUST be the same in every environment. It MUST NOT be zero: zero removes the
+  presence check rather than shortening it.
 - **FR-002**: The notification MUST NOT be sent as part of the request that sent the message.
   Sending a message MUST NOT wait for any notification work, and MUST NOT become measurably slower
   than it is today.

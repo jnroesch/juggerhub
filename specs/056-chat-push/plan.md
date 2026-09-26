@@ -11,13 +11,14 @@ A chat message reaches nobody who is not on the site. Feature 055 placed `IPushD
 that seam's first caller, so 019's "no Alerts rows" decision is honoured rather than reversed.
 
 The mechanism is **delay-and-recheck**: a background pass picks up member-written messages that have
-been unconsidered for 30 seconds, works out per recipient whether they still have not read it and
+been unconsidered for 5 seconds, works out per recipient whether they still have not read it and
 still want to hear about it, and hands one `PushContent` per conversation to the existing
 dispatcher. Nothing is awaited on `SendAsync`.
 
-**Three owner decisions shape it** (spec Clarifications): a **30-second** quiet delay; the payload
-carries a **preview of the message**, not just the sender's name; and **Chat becomes an entry in the
-notification preferences matrix**, Push-only.
+**Three owner decisions shape it** (spec Clarifications): a **5-second** quiet delay — revised down
+from 30 on 2026-09-26, and the same value in every environment; the payload carries a **preview of
+the message**, not just the sender's name; and **Chat becomes an entry in the notification
+preferences matrix**, Push-only.
 
 ## Technical Context
 
@@ -55,7 +56,7 @@ Read these before writing code. Each is a finding from the codebase, not a guess
 #309 treats mute and hide as equivalent levers because the nav badge excludes
 `IsMuted || IsHidden`. On this path they are not equivalent:
 `ChatMessageService.ReturnToArchiversInboxesAsync` clears `IsHidden` for **every** member on
-**every** member-written send (048 FR-007), so 30 seconds later the flag is already `false`.
+**every** member-written send (048 FR-007), so by the time the pass runs the flag is already `false`.
 
 **Mute is the only lever that suppresses.** FR-011 bites only when a member archives *during* the
 quiet delay. Build it that way, test FR-010 as the load-bearing case, and test FR-011 as a race —
@@ -73,7 +74,7 @@ every test of the happy path still passes. (research R4, R7)
 
 The partial index covers `WHERE "PushConsideredAt" IS NULL`. A selected-but-unmarked message stays
 in that index for ever, and the index stops being small — which is the only reason it is affordable
-to query every ten seconds. The mark is unconditional, after selection, before or after dispatch.
+to query every couple of seconds. The mark is unconditional, after selection, before or after dispatch.
 (data-model D1)
 
 ### 4. ⚠ `TryUnprotect` throws on an **empty** array, and an empty body is a real message
@@ -103,7 +104,7 @@ than the other two — it also enumerates "which team, event or training it conc
 | **II. Thin controllers, service-centric** | Passes. One controller line added (a guard). All logic in `ChatPushBackgroundService` / `ChatPushComposer` behind interfaces; DTOs from explicit `.Select` projections. |
 | **III. Disciplined data access** | **Engaged.** New column on `BaseEntity`-derived `ChatMessage`; `AsNoTracking` + projections for every read; the batch is bounded (no unpaged `ToListAsync`); `ExecuteUpdateAsync` sets `ModifiedDate` in the same statement. |
 | **IV. Auth & sessions** | Untouched. |
-| **V. Environment parity** | Passes. One new `ChatPush` config section, same shape everywhere, safe defaults, **no new secret**. |
+| **V. Environment parity** | Passes. One new `ChatPush` config section with the **same values** everywhere, not merely the same shape: the timing pair was briefly split to make local verification quicker, which meant nobody experienced production timing while developing. Safe defaults, **no new secret**. |
 | **VI. Conventions** | Passes. Frontend keeps `.html`/`.css`/`.ts` separate; no new scripts. |
 | **VII. Resilient, never amplifying** | **Not engaged as a new integration — and reaching for `AddJuggerHubResilience` here is review-rejectable.** No outbound call is added: the existing `WebPush` typed client already carries timeout, jittered retry, `Retry-After` handling and breaker; wrapping the seam again stacks handlers. What it *does* require and what is built: a bounded per-pass timeout, a bounded batch size, **no retry of a failed dispatch** (the message is marked considered either way — retrying would amplify an incident to deliver a convenience), and nothing sensitive in logs. (research R9) |
 | **Gate 7 — UI/Design** | **ENGAGED** → `checklists/ui-review.md`. New matrix row with two unavailable cells, new server-owned copy, three locales. |
@@ -271,7 +272,7 @@ writing a second one.
 2. **Duplicate outbound calls are possible** when two replicas interleave a claim. Invisible to the
    member (the tag collapses them), bounded by the batch size, and not worth `SELECT … FOR UPDATE
    SKIP LOCKED` (research R8).
-3. **Felt latency is delay + poll interval**, so 30 seconds is really 30–40.
+3. **Felt latency is delay + poll interval**, so 5 seconds is really 5–7.
 4. **No presence suppression.** A member with the app open and the conversation closed is notified.
    Deliberate, and unavoidable while `userVisibleOnly` stands.
 5. **A shown notification is not withdrawn** when the message is read elsewhere. Clearing it needs

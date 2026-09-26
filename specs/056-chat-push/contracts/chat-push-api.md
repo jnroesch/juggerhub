@@ -111,13 +111,17 @@ leaves the platform, not to the wire format, and it is why FR-029 exists.
 ## Configuration
 
 New section `ChatPush`, alongside the existing `WebPush` and `Retention` sections. All values have
-safe built-in defaults (Principle VII), identical in shape across local / Dev / Prod (Principle V).
+safe built-in defaults (Principle VII), and every one of them is **identical in value, not merely in
+shape, across local / Dev / Prod** (Principle V). The timing pair was briefly split so local
+verification did not cost half a minute per attempt, which meant nobody ever experienced the
+production timing while developing — so there is deliberately no `ChatPush` override in
+`appsettings.Development.json`.
 
 | Key | Default | Meaning |
 |---|---|---|
 | `ChatPush:Enabled` | `true` | Whether the worker runs. The integration suite turns it off so a timer cannot race assertions that drive the pass directly — the same reason `Retention:Enabled` exists |
-| `ChatPush:QuietDelaySeconds` | `30` | FR-001. The window in which reading the message cancels the notification |
-| `ChatPush:PollIntervalSeconds` | `10` | How often a pass runs. Worst-case felt latency is the delay plus this, so it stays well under the delay |
+| `ChatPush:QuietDelaySeconds` | `5` | FR-001. The window in which reading the message cancels the notification — this IS the presence check, so it is shortened but never set to zero |
+| `ChatPush:PollIntervalSeconds` | `2` | How often a pass runs. Worst-case felt latency is the delay plus this, so it stays well under the delay. Pure latency: cheap to lower, and it changes when a notification goes out, never whether |
 | `ChatPush:MaxMessageAgeMinutes` | `60` | FR-025. Older messages are marked considered and **never dispatched** |
 | `ChatPush:MaxMessagesPerPass` | `500` | Principle VII: the batch is bounded. Unbounded work over a backlog is the same defect as an unbounded wait |
 | `ChatPush:PassTimeoutMinutes` | `5` | Principle VII: nothing waits forever, background loops included |

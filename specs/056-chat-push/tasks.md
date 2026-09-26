@@ -23,15 +23,15 @@ Five findings from the code, each of which is easy to walk into and three of whi
 
 1. **Hide does not suppress a chat push, though #309 says it does.**
    `ChatMessageService.ReturnToArchiversInboxesAsync` clears `IsHidden` for every member on every
-   member-written send (048 FR-007), so the flag is already `false` when the pass runs 30 seconds
-   later. **Mute is the only lever.** T040 is the load-bearing test; T041 is a *race* test and must
-   archive during the delay window, not before it.
+   member-written send (048 FR-007), so the flag is already `false` by the time the pass runs one
+   quiet delay later. **Mute is the only lever.** T040 is the load-bearing test; T041 is a *race*
+   test and must archive during the delay window, not before it.
 2. **The preference check is the caller's job.** `PushDispatcher.DispatchAsync` filters nothing;
    `NotificationService` reads the preference itself before calling the fan-out. Forget T049 and the
    off switch does nothing while every happy-path test still passes.
 3. **Mark every message the pass selects**, including the ones it sends nothing for (T031). The
    partial index is `WHERE "PushConsideredAt" IS NULL`; a selected-but-unmarked row stays in it for
-   ever and the index stops being small enough to query every ten seconds.
+   ever and the index stops being small enough to query every couple of seconds.
 4. **`IChatMessageCipher.TryUnprotect` throws on a zero-length array** — it returns `false` only for
    a *corrupt* envelope. A `Member` row with a live sender and an empty `BodyCipher` is an
    attachment-only message (049), not corruption. Branch on `Length == 0` **first** (T026).
@@ -61,7 +61,7 @@ observable yet.
 
 - [X] T001 Create `backend/Common/ChatPushOptions.cs` with `SectionName = "ChatPush"` and the seven
       properties from [contracts/chat-push-api.md](contracts/chat-push-api.md#configuration):
-      `Enabled` (true), `QuietDelaySeconds` (30), `PollIntervalSeconds` (10),
+      `Enabled` (true), `QuietDelaySeconds` (5), `PollIntervalSeconds` (2),
       `MaxMessageAgeMinutes` (60), `MaxMessagesPerPass` (500), `PassTimeoutMinutes` (5),
       `PreviewLength` (120). Follow `backend/Common/RetentionOptions.cs` for shape and for the
       habit of explaining *why* a number is what it is in XML docs — `QuietDelaySeconds` is an
@@ -69,9 +69,13 @@ observable yet.
       forbids unbounded work, not as a tuning knob.
 - [X] T002 Add the `ChatPush` section to `backend/appsettings.json` with the defaults above, placed
       next to the existing `Retention` section (line 35).
-- [X] T003 [P] Add `"ChatPush": { "QuietDelaySeconds": 5, "PollIntervalSeconds": 2 }` to
+- [X] T003 [P] ~~Add `"ChatPush": { "QuietDelaySeconds": 5, "PollIntervalSeconds": 2 }` to
       `backend/appsettings.Development.json` so local verification does not require a 30-second
-      wait per attempt.
+      wait per attempt.~~ **Reverted 2026-09-26**: the owner took those values for every
+      environment, so the override became redundant and was removed. Having it at all meant nobody
+      ever experienced the production timing while developing, which is the argument that settled
+      it — there is now deliberately no `ChatPush` section in
+      `appsettings.Development.json`.
 - [X] T004 [P] Set `ChatPush:Enabled` to `false` in
       `backend/tests/JuggerHub.Api.IntegrationTests/JuggerHubApiFactory.cs`, mirroring how
       `Retention:Enabled` is handled there. **Load-bearing**: every scanner test drives one

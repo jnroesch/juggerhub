@@ -34,7 +34,10 @@
 Three owner decisions were taken in the clarification round of 2026-09-20 and are recorded in the
 spec's Clarifications section:
 
-1. **Quiet delay: 30 seconds** (FR-001), configurable with that as the safe default.
+1. **Quiet delay: 30 seconds** (FR-001), configurable with that as the safe default. **Revised to 5
+   seconds on 2026-09-26**, in every environment, after the read path was traced: a message arriving
+   in a foreground conversation marks itself read sub-second, so the window does not need to be long
+   to catch the case it exists for. The poll interval dropped to 2 seconds in the same decision.
 2. **Payload carries a preview** (FR-019), not just the sender's name. This is a widening of
    feature 055's "name the subject, don't reproduce it" rule and was chosen over the conservative
    option with the privacy cost stated. It produces two hard obligations that are now requirements

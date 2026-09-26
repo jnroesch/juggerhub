@@ -34,19 +34,37 @@ public sealed class ChatPushOptions
     /// long" is the stand-in: read it on any device inside the window and nothing is sent.
     /// </para>
     /// <para>
-    /// <b>30 seconds is an owner decision</b> (spec Clarifications), chosen over two and five
-    /// minutes because chat's whole claim on a notification is immediacy. The accepted cost is
-    /// more notifications reaching somebody who was about to open the conversation on another
-    /// screen.
+    /// <b>Five seconds is an owner decision</b> (spec Clarifications), revised down from thirty
+    /// once the read path was traced. A message arriving in a conversation that is open and in the
+    /// foreground marks itself read within a fraction of a second — the arrival scrolls the thread,
+    /// the scroll fires <c>onScroll</c>, and that calls <c>markReadToLatest</c> — so the window does
+    /// not need to be long to catch the case it exists for.
+    /// </para>
+    /// <para>
+    /// <b>What the shorter window gives up</b> is the softer case: somebody who notices the in-app
+    /// badge and opens the conversation a few seconds later gets a notification thirty seconds
+    /// would have spared them. Accepted, because chat's whole claim on a notification is immediacy.
+    /// Two and five minutes were declined outright as turning a message into a digest.
+    /// </para>
+    /// <para>
+    /// Zero is a different thing entirely and is not a smaller version of this: it removes the
+    /// window rather than shortening it, so nothing can ever be read in time and every message
+    /// reaches every device. Do not set it.
     /// </para>
     /// </remarks>
-    public int QuietDelaySeconds { get; set; } = 30;
+    public int QuietDelaySeconds { get; set; } = 5;
 
     /// <summary>
     /// How often a pass runs. Felt latency is <see cref="QuietDelaySeconds"/> <em>plus</em> this,
     /// so it stays well under the delay rather than near it.
     /// </summary>
-    public int PollIntervalSeconds { get; set; } = 10;
+    /// <remarks>
+    /// Cheap to lower, unlike the delay: a pass is one query against a partial index that is
+    /// usually empty, and shortening the interval costs latency only — it changes <em>when</em> a
+    /// notification goes out, never <em>whether</em>. Every replica keeps its own unsynchronised
+    /// timer, so the effective rate across a deployment is higher than this number suggests.
+    /// </remarks>
+    public int PollIntervalSeconds { get; set; } = 2;
 
     /// <summary>
     /// A message older than this is marked considered and never dispatched.

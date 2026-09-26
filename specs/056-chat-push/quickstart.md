@@ -15,12 +15,9 @@ owner's device walk and 8 is the legal check that no automated guard covers.
 - Notifications enabled for account A's browser: Settings → Notifications → the device section at
   the top. Chrome or Firefox on the desktop is enough for everything except scenario 7.
 
-Shorten the wait while testing:
-
-```jsonc
-// backend/appsettings.Development.json
-"ChatPush": { "QuietDelaySeconds": 5, "PollIntervalSeconds": 2 }
-```
+**No local timing override is needed, and there deliberately isn't one.** The shipped values are
+`QuietDelaySeconds: 5` and `PollIntervalSeconds: 2` in every environment, so a notification arrives
+5–7 seconds after the message and what you walk through here is exactly what runs in Prod.
 
 ---
 
@@ -69,8 +66,10 @@ so a later arrival replaces the earlier notification.
 
 ### 4b. Archiving during the delay (FR-011)
 
-Easiest with `QuietDelaySeconds` raised to 30: have B send, then as A hide the conversation within
-the window, then wait. **Expect**: nothing.
+The window is only 5 seconds, so raise `QuietDelaySeconds` temporarily to give yourself room: have B
+send, then as A hide the conversation inside the window, then wait. **Expect**: nothing. (Put the
+value back afterwards — the integration suite covers this case deterministically in
+`ChatPushEligibilityTests`, so this walk is a sanity check rather than the guard.)
 
 ## 5. The off switch (US3, FR-027, FR-028)
 
