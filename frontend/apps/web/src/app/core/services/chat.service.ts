@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import type { HubConnection } from '@microsoft/signalr';
@@ -40,6 +41,7 @@ const TYPING_EXPIRY_MS = 5000;
 export class ChatService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly document = inject(DOCUMENT);
   private readonly base = '/api/v1/chat';
 
   private readonly _unread = signal(0);
@@ -77,6 +79,8 @@ export class ChatService {
   private hub?: HubConnection;
   private connecting = false;
   private lastTypingSentAt = 0;
+  /** The conversation whose read was held back because the tab was hidden — see {@link markReadToLatest}. */
+  private deferredReadId: string | null = null;
   private typingSweep?: ReturnType<typeof setInterval>;
 
   constructor() {
@@ -94,6 +98,7 @@ export class ChatService {
         this._openId.set(null);
         this._unread.set(0);
         this._typing.set([]);
+        this.deferredReadId = null;
       }
     });
   }
@@ -336,8 +341,22 @@ export class ChatService {
     return this.http.post<void>(`${this.base}/conversations/${conversationId}/read`, { lastReadMessageId });
   }
 
-  /** Mark read up to whatever is currently newest in the open thread. */
+  /**
+   * Mark read up to whatever is currently newest in the open thread.
+   *
+   * **Only while the page is visible.** A conversation left open in a background tab is not being
+   * read: marking it would hold the badge at zero and stop chat push (056) from ever telling the
+   * player about it. The read is remembered instead and caught up by {@link flushDeferredRead} when
+   * the tab comes back (GH #344). The rule lives here rather than in the callers so every path —
+   * including the re-open after a socket reconnect — obeys it.
+   */
   markReadToLatest(conversationId: string): void {
+    if (this.document.visibilityState === 'hidden') {
+      this.deferredReadId = conversationId;
+      return;
+    }
+    this.deferredReadId = null;
+
     const all = this._messages();
     const latest = all.length > 0 ? all[all.length - 1] : undefined;
     if (!latest) {
@@ -351,6 +370,13 @@ export class ChatService {
       },
       error: () => undefined,
     });
+  }
+
+  /** Catch up a read {@link markReadToLatest} held back while the tab was hidden. No-op otherwise. */
+  flushDeferredRead(conversationId: string): void {
+    if (this.deferredReadId === conversationId) {
+      this.markReadToLatest(conversationId);
+    }
   }
 
   /**
@@ -501,8 +527,28 @@ export class ChatService {
       this.appendMessage(message);
     }
 
+    // Sending is the clearest "stopped typing" there is (019 US2 scenario 6). Without this the
+    // bubble sits under the message just sent until the server-stamped expiry runs out (GH #343).
+    this.clearTyping(conversationId, message.senderId);
+
     // Keep the row's preview and ordering fresh even when the conversation isn't open.
     this.bumpConversationWithMessage(conversationId, message);
+  }
+
+  /**
+   * Drop one person's typing signal in one conversation. Only the sender's: another member of a
+   * group who is mid-sentence keeps showing. A system line has no sender and clears nothing.
+   */
+  private clearTyping(conversationId: string, userId: string | null): void {
+    if (userId === null) {
+      return;
+    }
+
+    this._typing.update((ts) =>
+      ts.some((t) => t.conversationId === conversationId && t.userId === userId)
+        ? ts.filter((t) => !(t.conversationId === conversationId && t.userId === userId))
+        : ts,
+    );
   }
 
   /**

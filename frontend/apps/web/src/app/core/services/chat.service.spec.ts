@@ -391,4 +391,101 @@ describe('ChatService', () => {
       people: { items: [{ userId: 'u9' }], totalCount: 1 },
     });
   });
+
+  describe('typing ends when the typist sends (GH #343)', () => {
+    const typing = (conversationId: string, userId: string) =>
+      service['onTyping']({ conversationId, userId, displayName: userId, expiresInMs: 5000 });
+
+    const arrives = (conversationId: string, over: Partial<ChatMessage>) =>
+      service['onMessageCreated'](conversationId, message(over));
+
+    beforeEach(() => {
+      TestBed.tick();
+      flushInitialUnread();
+      // Known rows, so an arriving message bumps its row instead of re-seeding the inbox.
+      service.loadInbox().subscribe();
+      httpMock
+        .expectOne('/api/v1/chat/conversations?skip=0&take=20')
+        .flush({ items: [conversation({ id: 'c1' }), conversation({ id: 'c2' })], totalCount: 2, skip: 0, take: 20 });
+    });
+
+    it("drops the sender's typing signal the moment their message lands", () => {
+      typing('c1', 'u2');
+
+      arrives('c1', { id: 'm9', senderId: 'u2' });
+
+      expect(service.typing()).toEqual([]);
+    });
+
+    it('leaves another member who is still mid-sentence showing', () => {
+      typing('c1', 'u2');
+      typing('c1', 'u3');
+
+      arrives('c1', { id: 'm9', senderId: 'u2' });
+
+      expect(service.typing().map((t) => t.userId)).toEqual(['u3']);
+    });
+
+    it('leaves the same person typing in another conversation showing', () => {
+      typing('c1', 'u2');
+      typing('c2', 'u2');
+
+      arrives('c1', { id: 'm9', senderId: 'u2' });
+
+      expect(service.typing().map((t) => t.conversationId)).toEqual(['c2']);
+    });
+
+    it('clears nothing for a system line, which has no sender', () => {
+      typing('c1', 'u2');
+
+      arrives('c1', { id: 'm9', kind: 'System', senderId: null, systemEvent: 'Joined' });
+
+      expect(service.typing().map((t) => t.userId)).toEqual(['u2']);
+    });
+  });
+
+  describe('a hidden tab is not reading (GH #344)', () => {
+    let visibility: jest.SpyInstance;
+
+    beforeEach(() => {
+      visibility = jest.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden');
+      TestBed.tick();
+      flushInitialUnread();
+    });
+
+    afterEach(() => visibility.mockRestore());
+
+    const openHidden = () => {
+      service.openConversation('c1').subscribe();
+      httpMock
+        .expectOne('/api/v1/chat/conversations/c1/messages')
+        .flush({ items: [message({ id: 'm1' })], nextBefore: null });
+    };
+
+    it('holds the read back while the page is hidden', () => {
+      openHidden();
+
+      httpMock.expectNone('/api/v1/chat/conversations/c1/read');
+    });
+
+    it('catches the held-back read up once the page is visible again', () => {
+      openHidden();
+
+      visibility.mockReturnValue('visible');
+      service.flushDeferredRead('c1');
+
+      const read = httpMock.expectOne('/api/v1/chat/conversations/c1/read');
+      expect(read.request.body).toEqual({ lastReadMessageId: 'm1' });
+      read.flush(null);
+      httpMock.match('/api/v1/chat/conversations/unread-count').forEach((r) => r.flush({ unreadCount: 0 }));
+    });
+
+    it('sends nothing on return when nothing was held back', () => {
+      visibility.mockReturnValue('visible');
+
+      service.flushDeferredRead('c1');
+
+      httpMock.expectNone('/api/v1/chat/conversations/c1/read');
+    });
+  });
 });
