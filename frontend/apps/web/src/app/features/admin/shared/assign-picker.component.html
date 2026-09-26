@@ -60,7 +60,7 @@
               >
                 <span class="grid h-11 w-11 place-items-center overflow-hidden rounded-pill border border-border-strong bg-surface-sunken text-muted">
                   @if (d.hasIcon) {
-                    <img [src]="iconUrl(tab(), d.id)" [alt]="d.name" class="h-full w-full object-cover" />
+                    <img [src]="iconUrl(tab(), d.id)" alt="" class="h-full w-full object-cover" />
                   } @else {
                     <jh-icon name="award" />
                   }

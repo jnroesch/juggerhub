@@ -87,7 +87,7 @@
                 <span class="grid h-8 w-8 shrink-0 place-items-center overflow-hidden border border-border-strong bg-surface-sunken text-muted"
                   [class]="kind() === 'badge' ? 'rounded-pill' : 'rounded-md'">
                   @if (d.hasIcon) {
-                    <img [src]="iconUrl(d.id)" [alt]="d.name" class="h-full w-full object-cover" />
+                    <img [src]="iconUrl(d.id)" alt="" class="h-full w-full object-cover" />
                   } @else {
                     <jh-icon name="award" size="sm" />
                   }
@@ -138,7 +138,7 @@
           <span class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden border border-border-strong bg-surface-sunken text-muted"
             [class]="kind() === 'badge' ? 'rounded-pill' : 'rounded-md'">
             @if (d.hasIcon) {
-              <img [src]="iconUrl(d.id)" [alt]="d.name" class="h-full w-full object-cover" />
+              <img [src]="iconUrl(d.id)" alt="" class="h-full w-full object-cover" />
             } @else {
               <jh-icon name="award" />
             }

@@ -28,7 +28,10 @@ export default [
   },
   {
     files: ['**/*.html'],
-    // Override or add rules here
-    rules: {},
+    rules: {
+      // GH #340 / UI review CHK034: every <img> needs an alt — a bound [alt] counts, and
+      // alt="" is the explicit "decorative" answer. A missing one makes screen readers read the URL.
+      '@angular-eslint/template/alt-text': 'error',
+    },
   },
 ];
