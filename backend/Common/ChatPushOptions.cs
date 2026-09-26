@@ -36,9 +36,12 @@ public sealed class ChatPushOptions
     /// <para>
     /// <b>Five seconds is an owner decision</b> (spec Clarifications), revised down from thirty
     /// once the read path was traced. A message arriving in a conversation that is open and in the
-    /// foreground marks itself read within a fraction of a second — the arrival scrolls the thread,
-    /// the scroll fires <c>onScroll</c>, and that calls <c>markReadToLatest</c> — so the window does
-    /// not need to be long to catch the case it exists for.
+    /// foreground, with the reader at the newest message, marks itself read within a fraction of a
+    /// second — <c>ChatConversationComponent</c> calls <c>markReadToLatest</c> on arrival, not via
+    /// the <c>scroll</c> event, which a thread too short to scroll never fires (GH #344) — so the
+    /// window does not need to be long to catch the case it exists for. A background tab does NOT
+    /// mark read (the service holds it back until the tab is visible), which is what lets a push
+    /// reach a player who left a conversation open and walked away.
     /// </para>
     /// <para>
     /// <b>What the shorter window gives up</b> is the softer case: somebody who notices the in-app

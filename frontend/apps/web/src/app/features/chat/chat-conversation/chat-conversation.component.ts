@@ -1,4 +1,21 @@
-import { AfterViewChecked, Component, ElementRef, OnChanges, SimpleChanges, ViewChild, computed, effect, inject, input, signal } from '@angular/core';
+import {
+  AfterViewChecked,
+  Component,
+  ElementRef,
+  HostListener,
+  Injector,
+  OnChanges,
+  SimpleChanges,
+  ViewChild,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CardComponent, ChipDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
@@ -42,6 +59,8 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
   private readonly chat = inject(ChatService);
   private readonly t = inject(TranslocoService);
   private readonly locale = injectLocale();
+  private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
 
   @ViewChild('scroller') private scroller?: ElementRef<HTMLElement>;
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
@@ -143,7 +162,22 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
       }
 
       if (this.pinnedToBottom) {
-        this.pendingScrollToBottom = true;
+        // Scrolled after the render that draws the new message — NOT via `pendingScrollToBottom`.
+        // That flag is only consumed in `ngAfterViewChecked`, and this effect runs too late in the
+        // pass for this view's check to see it, so nothing scrolled on arrival: the flag waited for
+        // the next check of this view, which was typically the reader's own scroll up — and yanked
+        // them straight back down, the one thing FR-021 forbids (found in the GH #344 walk).
+        afterNextRender(() => this.scrollToBottom(), { injector: this.injector });
+
+        // A reader pinned to the bottom sees the message as it lands, so it is read now (GH #344).
+        // Not left to the `scroll` event the scroll-to-bottom would cause: a browser fires that only
+        // when `scrollTop` actually changes, which a thread short enough not to scroll never does —
+        // and then the badge counts up, and chat push (056) notifies, for a message on screen. Own
+        // sends are skipped: the server never counts them as unread.
+        const arrivals = all.slice(all.length - arrived);
+        if (arrivals.some((m) => !m.isOwn)) {
+          untracked(() => this.chat.markReadToLatest(this.conversationId()));
+        }
       } else {
         this.newWhileAway.update((n) => n + arrived);
         this.dividerBeforeId.update((id) => id ?? all[previousIndex + 1]?.id ?? null);
@@ -197,6 +231,18 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
         this.failed.set(true);
       },
     });
+  }
+
+  /**
+   * Back in the foreground: what arrived while the tab was hidden was held back by the service
+   * (GH #344), and is read now if the reader is still at the bottom. Scrolled up, it stays unread
+   * behind the divider until they scroll down, exactly as if it had arrived while they watched.
+   */
+  @HostListener('document:visibilitychange')
+  protected onVisibilityChange(): void {
+    if (this.document.visibilityState === 'visible' && this.pinnedToBottom) {
+      this.chat.flushDeferredRead(this.conversationId());
+    }
   }
 
   protected onScroll(): void {
