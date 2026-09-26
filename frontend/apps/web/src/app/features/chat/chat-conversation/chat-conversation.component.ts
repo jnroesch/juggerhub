@@ -3,9 +3,11 @@ import {
   Component,
   ElementRef,
   HostListener,
+  Injector,
   OnChanges,
   SimpleChanges,
   ViewChild,
+  afterNextRender,
   computed,
   effect,
   inject,
@@ -58,6 +60,7 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
   private readonly t = inject(TranslocoService);
   private readonly locale = injectLocale();
   private readonly document = inject(DOCUMENT);
+  private readonly injector = inject(Injector);
 
   @ViewChild('scroller') private scroller?: ElementRef<HTMLElement>;
   @ViewChild('fileInput') private fileInput?: ElementRef<HTMLInputElement>;
@@ -159,7 +162,12 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
       }
 
       if (this.pinnedToBottom) {
-        this.pendingScrollToBottom = true;
+        // Scrolled after the render that draws the new message — NOT via `pendingScrollToBottom`.
+        // That flag is only consumed in `ngAfterViewChecked`, and this effect runs too late in the
+        // pass for this view's check to see it, so nothing scrolled on arrival: the flag waited for
+        // the next check of this view, which was typically the reader's own scroll up — and yanked
+        // them straight back down, the one thing FR-021 forbids (found in the GH #344 walk).
+        afterNextRender(() => this.scrollToBottom(), { injector: this.injector });
 
         // A reader pinned to the bottom sees the message as it lands, so it is read now (GH #344).
         // Not left to the `scroll` event the scroll-to-bottom would cause: a browser fires that only
