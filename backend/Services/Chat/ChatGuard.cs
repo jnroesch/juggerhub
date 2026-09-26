@@ -359,6 +359,88 @@ public sealed class ChatGuard
     }
 
     /// <summary>
+    /// Batched <see cref="ResolveJoinCutoffAsync"/> the other way round: one conversation, many
+    /// users. For the chat push pass (feature 056), which resolves cutoffs for a whole roster at
+    /// once. One query rather than one per member — a thirty-player team chat would otherwise cost
+    /// thirty round trips per message.
+    /// </summary>
+    /// <remarks>
+    /// Kept here beside its two siblings rather than written out at the call site, so the rule
+    /// about what a join cutoff <em>is</em> — per kind, resetting on rejoin, absent for an archived
+    /// chat — stays in one place. A second copy of it in a background service would be the third,
+    /// and it would drift.
+    /// </remarks>
+    public async Task<Dictionary<Guid, DateTime?>> ResolveJoinCutoffsForMembersAsync(
+        ChatAccess access,
+        IReadOnlyCollection<Guid> userIds,
+        CancellationToken ct = default)
+    {
+        var result = userIds.ToDictionary(id => id, _ => (DateTime?)null);
+
+        // Archived: snapshotted participant rows are stamped at archive time, so a cutoff would
+        // hide the whole history from everyone (FR-027). Same exemption as the single-user form.
+        if (access.IsArchived || userIds.Count == 0)
+        {
+            return result;
+        }
+
+        // An inquiry's admin side is cut off at their grant; the requester's at their participant
+        // row. Resolve the admin side in bulk and let the requester fall through to the default.
+        if (access.IsInquiry)
+        {
+            var adminCutoffs = access.Kind == ConversationKind.TeamInquiry
+                ? await _db.TeamMemberships.AsNoTracking()
+                    .Where(m => m.TeamId == access.TeamId && userIds.Contains(m.UserId) && m.Role == TeamRole.Admin)
+                    .Select(m => new { m.UserId, Cutoff = (DateTime?)m.JoinedDate })
+                    .ToListAsync(ct)
+                : await _db.EventAdmins.AsNoTracking()
+                    .Where(a => a.EventId == access.EventId && userIds.Contains(a.UserId))
+                    .Select(a => new { a.UserId, Cutoff = (DateTime?)a.AddedDate })
+                    .ToListAsync(ct);
+
+            foreach (var row in adminCutoffs.Where(r => r.UserId != access.RequesterUserId))
+            {
+                result[row.UserId] = row.Cutoff;
+            }
+
+            if (access.RequesterUserId is { } requester && result.ContainsKey(requester))
+            {
+                result[requester] = await _db.ConversationParticipants.AsNoTracking()
+                    .Where(p => p.ConversationId == access.ConversationId && p.UserId == requester && p.LeftDate == null)
+                    .Select(p => (DateTime?)p.JoinedDate)
+                    .FirstOrDefaultAsync(ct);
+            }
+
+            return result;
+        }
+
+        var cutoffs = access.Kind switch
+        {
+            ConversationKind.Team => await _db.TeamMemberships.AsNoTracking()
+                .Where(m => m.TeamId == access.TeamId && userIds.Contains(m.UserId))
+                .Select(m => new { m.UserId, Cutoff = (DateTime?)m.JoinedDate })
+                .ToListAsync(ct),
+
+            ConversationKind.Party => await _db.PartyMembers.AsNoTracking()
+                .Where(pm => pm.PartyId == access.PartyId && userIds.Contains(pm.UserId) && pm.Status == PartyMemberStatus.In)
+                .Select(pm => new { pm.UserId, Cutoff = (DateTime?)pm.CreatedDate })
+                .ToListAsync(ct),
+
+            _ => await _db.ConversationParticipants.AsNoTracking()
+                .Where(p => p.ConversationId == access.ConversationId && userIds.Contains(p.UserId) && p.LeftDate == null)
+                .Select(p => new { p.UserId, Cutoff = (DateTime?)p.JoinedDate })
+                .ToListAsync(ct),
+        };
+
+        foreach (var row in cutoffs)
+        {
+            result[row.UserId] = row.Cutoff;
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Batched <see cref="ResolveJoinCutoffAsync"/> for the inbox and nav-badge loops, which resolve a
     /// cutoff for many conversations at once. Three queries total (teams, parties, group/direct) rather
     /// than one per conversation. Archived conversations map to null (no cutoff).

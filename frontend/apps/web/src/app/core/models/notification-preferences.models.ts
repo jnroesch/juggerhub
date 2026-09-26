@@ -5,7 +5,7 @@
  * matrix and mobile stack render the same copy.
  */
 
-export type NotificationCategoryId = 'InvitesAndRoster' | 'TeamNews' | 'Trainings' | 'Events';
+export type NotificationCategoryId = 'InvitesAndRoster' | 'TeamNews' | 'Trainings' | 'Events' | 'Chat';
 export type NotificationChannelId = 'InApp' | 'Email' | 'Push';
 
 /** The three client-side keys of {@link PreferenceChannels}, matched to their API channel name. */
@@ -27,6 +27,17 @@ export interface PreferenceCategory {
   label: string;
   description: string;
   channels: PreferenceChannels;
+  /**
+   * Which cells this category actually has (feature 056). Every category offers all three except
+   * `Chat`, which is push-only: chat has its own inbox and badge rather than Alerts rows
+   * (feature 019), and there is no email for a missed message.
+   *
+   * **Branch on this, never on the values in {@link channels}.** The server deliberately leaves
+   * those at their defaults for an unavailable cell, because `false` would be indistinguishable
+   * from the member having switched it off. Rendering such a cell as a switched-off toggle tells
+   * them they could turn it on, which is untrue.
+   */
+  availableChannels: NotificationChannelId[];
 }
 
 export interface AlwaysOnGroup {

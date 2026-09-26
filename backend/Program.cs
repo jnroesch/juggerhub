@@ -273,6 +273,17 @@ builder.Services.AddScoped<JuggerHub.Services.Retention.IRetentionSweep, JuggerH
 builder.Services.AddScoped<JuggerHub.Services.Retention.IRetentionSweep, JuggerHub.Services.Retention.StalePushSubscriptionSweep>();
 builder.Services.AddHostedService<JuggerHub.Services.Retention.RetentionBackgroundService>();
 
+// --- Chat push (feature 056 / GH #309) -------------------------------------
+// Chat writes no notification rows (feature 019, FR-051), so it reaches a device through
+// IPushDispatcher directly rather than through the notification store — which is the seam feature
+// 055 deliberately placed below NotificationService for this caller. Delivery is out of band: a
+// background pass picks messages up once they have gone unread for the quiet delay, so nothing on
+// the send path ever waits for a push.
+builder.Services.Configure<ChatPushOptions>(builder.Configuration.GetSection(ChatPushOptions.SectionName));
+builder.Services.AddScoped<JuggerHub.Services.Chat.Push.IChatPushComposer, JuggerHub.Services.Chat.Push.ChatPushComposer>();
+builder.Services.AddScoped<JuggerHub.Services.Chat.Push.IChatPushScanner, JuggerHub.Services.Chat.Push.ChatPushScanner>();
+builder.Services.AddHostedService<JuggerHub.Services.Hosted.ChatPushBackgroundService>();
+
 // --- Account settings (feature 031: language preference) -------------------
 builder.Services.AddScoped<JuggerHub.Services.Account.ILanguagePreferenceService, JuggerHub.Services.Account.LanguagePreferenceService>();
 // Feature 037 — self-service account erasure.

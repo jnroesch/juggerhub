@@ -107,6 +107,36 @@ public sealed class ChatMessage : BaseEntity
     public Guid? LinkTargetId { get; set; }
 
     /// <summary>
+    /// When the chat push pass looked at this message (feature 056). Null means it has not been
+    /// looked at yet; a value means a decision was taken — which is <b>not</b> the same as a
+    /// notification having been sent.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>This records that the question was asked, never the answer.</b> Most marked messages are
+    /// marked with nothing delivered: everyone had read it, everyone had muted the conversation, or
+    /// nobody had a device enabled. Storing the outcome would mean storing which conversations each
+    /// member was away from, which is a record about people that this feature has no use for.
+    /// </para>
+    /// <para>
+    /// <b>The pass MUST mark every message it selects, including the ones it sends nothing for.</b>
+    /// The index behind it is partial — <c>WHERE "PushConsideredAt" IS NULL</c> — so it holds only
+    /// the last few seconds' worth of rows and stays cheap to query every few seconds. A message
+    /// that is selected and left unmarked stays in that index for ever, and the index stops being
+    /// small. The same reasoning is why the migration that added this column backfilled every row
+    /// that already existed.
+    /// </para>
+    /// <para>
+    /// Written through <c>ExecuteUpdateAsync</c>, which bypasses the change tracker, so
+    /// <see cref="BaseEntity.ModifiedDate"/> is set in the same statement (constitution III). That
+    /// timestamp moving on a message nobody edited looks wrong and is not: the row did change.
+    /// Nothing renders it — no chat DTO carries <c>ModifiedDate</c> and feature 019 ships no
+    /// message editing — so it cannot surface as a spurious "edited" marker.
+    /// </para>
+    /// </remarks>
+    public DateTime? PushConsideredAt { get; set; }
+
+    /// <summary>
     /// Files sent with this message (feature 049), in the sender's chosen order. Empty for a
     /// message that is only text, which is most of them.
     /// </summary>

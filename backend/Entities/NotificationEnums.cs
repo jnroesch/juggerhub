@@ -60,6 +60,31 @@ public enum NotificationCategory
     /// notices can join it without a rename.
     /// </summary>
     Events = 3,
+
+    /// <summary>
+    /// New chat messages (feature 056 / GH #309). <b>Push only</b>, and unlike the four above it
+    /// has no <see cref="NotificationType"/> mapped to it and never will.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Chat writes no notification rows and raises nothing in the Alerts inbox — feature 019's
+    /// FR-051, which this deliberately leaves standing. Chat reaches a device through
+    /// <c>IPushDispatcher</c> directly, below the notification store, so this category governs
+    /// delivery without a producer type existing anywhere.
+    /// </para>
+    /// <para>
+    /// It exists so a member can say "not chat, on my phone" in the same place they say it about
+    /// everything else. That required amending the last clause of 019's FR-051a ("no new
+    /// notification-preference category"); the clauses that matter — no notification type, no
+    /// Alerts row — are untouched. See <c>specs/056-chat-push/research.md</c> R11.
+    /// </para>
+    /// <para>
+    /// <b>Appended, never inserted.</b> These values are stored as integers in
+    /// <c>NotificationPreferences</c>, so renumbering an existing member would silently re-point
+    /// every preference row a member has ever set.
+    /// </para>
+    /// </remarks>
+    Chat = 4,
 }
 
 /// <summary>
@@ -103,4 +128,35 @@ public static class NotificationCategories
         // NotificationType needs a case above, and a test asserting it (feature 039).
         _ => NotificationCategory.TeamNews,
     };
+
+    /// <summary>
+    /// Whether a category can be delivered on a channel at all (feature 056).
+    /// <see cref="NotificationCategory.Chat"/> is the only one that is not deliverable everywhere:
+    /// it is Push-only, because chat has no Alerts row by design (feature 019, FR-051) and no email
+    /// producer.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// One home for the rule, three readers: <c>NotificationPreferenceService.GetMatrixAsync</c>
+    /// tells the client which cells exist, <c>NotificationPreferencesController.Set</c> refuses to
+    /// store a cell that does not, and the category's own description copy explains the empty ones
+    /// to the member looking at them.
+    /// </para>
+    /// <para>
+    /// The refusal is not pedantry. A stored <c>(Chat, Email)</c> row would mean nothing, and
+    /// something reading it back later could not tell that from a member's considered choice —
+    /// which is the never-trust-the-client rule (constitution I) applied to a cell the interface
+    /// never draws.
+    /// </para>
+    /// <para>
+    /// Written permissively — everything is supported unless stated — so that adding a category
+    /// defaults to the visible behaviour rather than to a toggle that silently goes missing.
+    /// </para>
+    /// </remarks>
+    public static bool Supports(NotificationCategory category, NotificationChannel channel) =>
+        category != NotificationCategory.Chat || channel == NotificationChannel.Push;
+
+    /// <summary>The channels a category can be delivered on, in display order.</summary>
+    public static IReadOnlyList<NotificationChannel> ChannelsFor(NotificationCategory category) =>
+        Enum.GetValues<NotificationChannel>().Where(c => Supports(category, c)).ToList();
 }

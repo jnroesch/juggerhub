@@ -110,6 +110,86 @@ public sealed class PushLocalizer : IPushLocalizer
                 ["de"] = "Du hast eine neue Meldung",
                 ["es"] = "Tienes una notificación nueva",
             },
+
+            // --- Chat (feature 056 / GH #309) ------------------------------------------------
+            //
+            // These DO carry member-written content, unlike everything above. That is an owner
+            // decision (spec 056, Clarifications): a notification that does not say what was said
+            // does not save anyone the trip into the app, and chat is the one place in the product
+            // where that trip is the whole cost. It is why the privacy policy describes what a
+            // notification can contain — the push service is chosen by the recipient's browser and
+            // is under no contract with us.
+            //
+            // The message text itself is never a value here; it is an argument. Nothing in this
+            // file is ever logged, and neither is what fills these placeholders.
+
+            // {0} = sender's display name, {1} = the message (already truncated)
+            ["chat.groupBody"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0}: {1}",
+                ["de"] = "{0}: {1}",
+                ["es"] = "{0}: {1}",
+            },
+            // Used when the text cannot be read back, so the notification still goes out naming who
+            // wrote — the same posture the app takes when it shows a placeholder for one message
+            // rather than failing the conversation (feature 047).
+            ["chat.sentMessage"] = new Dictionary<string, string>
+            {
+                ["en"] = "sent you a message",
+                ["de"] = "hat dir eine Nachricht geschickt",
+                ["es"] = "te ha enviado un mensaje",
+            },
+            // {0} = sender's display name. The group/team form of the above.
+            ["chat.sentMessageIn"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} wrote in the chat",
+                ["de"] = "{0} hat im Chat geschrieben",
+                ["es"] = "{0} ha escrito en el chat",
+            },
+            // A real message from a real sender that is a photo or a file and no words
+            // (feature 049) — not an error, and it must not render as an empty preview.
+            ["chat.sentAttachment"] = new Dictionary<string, string>
+            {
+                ["en"] = "sent an attachment",
+                ["de"] = "hat einen Anhang geschickt",
+                ["es"] = "ha enviado un archivo adjunto",
+            },
+            // {0} = sender's display name.
+            ["chat.sentAttachmentIn"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} sent an attachment",
+                ["de"] = "{0} hat einen Anhang geschickt",
+                ["es"] = "{0} ha enviado un archivo adjunto",
+            },
+
+            // The generic conversation names, for ChatNameFallbacks. The inbox ships these in
+            // English to everyone; a lock screen is composed per recipient, so it need not.
+            // chat.name.party is the one that always fires: a live party conversation stores no
+            // name and there is nothing to derive one from (feature 046 drift).
+            ["chat.name.group"] = new Dictionary<string, string>
+            {
+                ["en"] = "Group",
+                ["de"] = "Gruppe",
+                ["es"] = "Grupo",
+            },
+            ["chat.name.team"] = new Dictionary<string, string>
+            {
+                ["en"] = "Team chat",
+                ["de"] = "Team-Chat",
+                ["es"] = "Chat del equipo",
+            },
+            ["chat.name.party"] = new Dictionary<string, string>
+            {
+                ["en"] = "Party chat",
+                ["de"] = "Party-Chat",
+                ["es"] = "Chat del grupo",
+            },
+            ["chat.name.other"] = new Dictionary<string, string>
+            {
+                ["en"] = "Chat",
+                ["de"] = "Chat",
+                ["es"] = "Chat",
+            },
         };
 
     /// <inheritdoc />

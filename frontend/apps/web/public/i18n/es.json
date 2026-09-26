@@ -748,6 +748,7 @@
       "inApp": "En la app",
       "email": "Correo",
       "push": "Push",
+      "notAvailable": "No disponible para este tipo de notificación",
       "alwaysOn": "Siempre activas",
       "alwaysOnDesc": "Estas mantienen tu cuenta segura, por eso no se pueden desactivar.",
       "pushDevice": {

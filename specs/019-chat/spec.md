@@ -56,6 +56,33 @@
 > the download disposition load-bearing rather than hygiene. **Unfurl is unchanged**: an
 > attachment is not a link card, and the platform still never fetches an external URL (FR-042).
 > Message-text search stays removed (feature 046) and file names are **not** searchable.
+
+> **Amended by feature 056 (2026-09-21) — a missed message can reach a device, and chat gains a
+> preference category.** A member-written message that has gone unread for a short delay now
+> produces a web push notification on the recipient's enabled devices. **FR-051 is untouched and
+> stands**: chat still writes no notification row, still raises nothing in the Alerts inbox, and
+> still introduces no `NotificationType`. Push is a *transport* reached below the notification
+> store — feature 055 placed `IPushDispatcher` there for exactly this caller — so chat gets reach
+> without the Alerts duplication 019 refused.
+>
+> **FR-051a is superseded in part, and only in part.** Its clause forbidding a new
+> *notification-preference category* no longer holds: a **Chat** entry joins the settings matrix,
+> Push-only, because a member must be able to say "not chat, on my phone" in the place they say it
+> about everything else. Its other clauses — no new notification type, and the Alerts spine left
+> alone — are restated and enforced by test
+> (`ChatDoesNotTouchAlertsTests.Chat_has_a_preference_category_but_still_no_producer_type`).
+>
+> **Mute is the only lever that silences a notification**, which makes FR-028's "contributes
+> nothing to the nav unread total" also mean "and nothing reaches your phone" — the reading 048
+> already implied when it named mute the stand-in for leaving a team chat. **Hide does not
+> suppress**, and cannot: FR-029's rule that a member's message returns an archived conversation to
+> the inbox clears the flag before the notification is ever decided. It bites only when a member
+> archives during the delay.
+>
+> The notification carries the sender and a shortened **preview of the message text** — an owner
+> decision, and the first time member-written content leaves the platform, which is why the privacy
+> policy describes it. Presence is approximated by "still unread", never observed: no connection
+> check, because browsers require every push to be visible anyway. See `specs/056-chat-push/`.
 > See `specs/049-chat-attachments/` and its
 > [`contracts/chat-attachments-api.md`](../049-chat-attachments/contracts/chat-attachments-api.md).
 
@@ -369,7 +396,7 @@ A player on a wide screen sees the inbox become a left rail with every conversat
 **Surfacing outside Chat**
 
 - **FR-051**: Chat MUST be its own inbox: an unread message MUST be surfaced by the Chat destination's badge and the conversation's own row, and MUST NOT raise a row in the Alerts inbox (feature 010).
-- **FR-051a**: Chat MUST NOT introduce a new notification type or notification-preference category; the existing Alerts spine and its preference matrix (features 010/011) MUST be left unchanged by this feature.
+- **FR-051a**: Chat MUST NOT introduce a new notification type or notification-preference category; the existing Alerts spine and its preference matrix (features 010/011) MUST be left unchanged by this feature. *(**Superseded in part by feature 056.** The "no new notification type" clause and the Alerts spine stand, and are now enforced by test. The "no new notification-preference category" clause does not: a Push-only **Chat** entry joins the matrix, because a member must be able to refuse chat notifications where they refuse every other kind. Nothing about the Alerts inbox changed — chat still writes no notification row.)*
 
 ### Key Entities *(include if feature involves data)*
 
@@ -412,7 +439,7 @@ A player on a wide screen sees the inbox become a left rail with every conversat
 - **Group size**: A manually-created group is bounded by a sensible maximum member count rather than being unlimited; the exact bound is set in planning.
 - **Anyone in a group can add**: Manual groups have no admin role — any member can add people and any member can leave. This matches the wireframe, which offers Add and Leave to the viewer with no role distinction.
 - **Message retention**: Messages are retained indefinitely and there is no scheduled purge; retention policy is not part of this feature.
-- **Out of scope**: photo, file and voice-note sharing (the details panel's "shared items" means unfurled link cards only); inline RSVP or any other action from inside a card; reporting a conversation or a user to admins (blocking is the recourse this feature ships); editing a sent message (delete-and-resend instead, FR-050b); moderator/admin deletion of a member's message; message reactions, replies/threading, forwarding and pinning; push notifications and email-on-missed-message; chat rows in the Alerts inbox (FR-051); admin visibility into private conversations; group read receipts / "seen by" detail.
+- **Out of scope**: photo, file and voice-note sharing (the details panel's "shared items" means unfurled link cards only); inline RSVP or any other action from inside a card; reporting a conversation or a user to admins (blocking is the recourse this feature ships); editing a sent message (delete-and-resend instead, FR-050b); moderator/admin deletion of a member's message; message reactions, replies/threading, forwarding and pinning; ~~push notifications~~ *(built by feature 056)* and email-on-missed-message; chat rows in the Alerts inbox (FR-051); admin visibility into private conversations; group read receipts / "seen by" detail.
 - **Design system**: Chat follows DESIGN.md. Where the wireframe conflicts with it, DESIGN.md wins: the wireframe's blue own-message bubbles are rendered in the coral brand primary, since blue is reserved for the "info" status token and DESIGN.md forbids introducing colors ad hoc. Reported rather than silently resolved, per the constitution.
 - **Wireframe navigation is illustrative**: The wireframe draws a Home / Teams / Events / Chat / You navigation, which is not the app's actual navigation (Home / Browse / My team / Alerts, feature 008). Chat is added as a new destination to the real navigation; the wireframe's other tabs are not adopted.
 - **Existing team/party news is unaffected**: Team news and party news posts (features 005/016) are a separate broadcast surface and are not replaced or merged by chat.

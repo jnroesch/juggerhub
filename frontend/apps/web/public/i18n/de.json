@@ -748,6 +748,7 @@
       "inApp": "In-App",
       "email": "E-Mail",
       "push": "Push",
+      "notAvailable": "Für diese Art von Meldung nicht verfügbar",
       "alwaysOn": "Immer an",
       "alwaysOnDesc": "Diese schützen dein Konto und können daher nicht ausgeschaltet werden.",
       "pushDevice": {

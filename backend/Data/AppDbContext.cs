@@ -1110,6 +1110,17 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
             entity.HasIndex(m => new { m.ConversationId, m.Id });
             entity.HasIndex(m => m.SenderId);
 
+            // Feature 056 — the only query the chat push pass runs: "messages nobody has looked at
+            // yet, older than the quiet delay". PARTIAL on purpose. With the pass marking every
+            // message it selects, the rows where PushConsideredAt is null are just the last few
+            // seconds' worth, so this index stays a few pages however large ChatMessages grows —
+            // which is what makes it affordable to query every few seconds. A full index on the
+            // column would instead cover every message ever sent, to serve a query that never wants
+            // more than the newest handful.
+            entity.HasIndex(m => m.CreatedDate)
+                .HasFilter("\"PushConsideredAt\" IS NULL")
+                .HasDatabaseName("IX_ChatMessages_PushConsideredAt_Pending");
+
             entity.HasOne(m => m.Conversation)
                 .WithMany(c => c.Messages)
                 .HasForeignKey(m => m.ConversationId)

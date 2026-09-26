@@ -51,4 +51,50 @@ public sealed class NotificationCategoryMappingTests
         Assert.Equal(all.Length, covered.Distinct().Count());
         Assert.Empty(all.Except(covered));
     }
+
+    // --- Chat (feature 056) ---------------------------------------------------
+
+    [Fact]
+    public void Chat_has_no_producer_type()
+    {
+        // Chat is the one category with no NotificationType behind it, and that is the whole point:
+        // chat raises no row in the Alerts inbox (feature 019, FR-051) and reaches a device through
+        // IPushDispatcher directly. The day someone adds a chat notification type, this says no
+        // before the Alerts inbox does.
+        var mapped = Enum.GetValues<NotificationType>().Select(NotificationCategories.For);
+
+        Assert.DoesNotContain(NotificationCategory.Chat, mapped);
+    }
+
+    [Theory]
+    [InlineData(NotificationChannel.InApp, false)]
+    [InlineData(NotificationChannel.Email, false)]
+    [InlineData(NotificationChannel.Push, true)]
+    public void Chat_is_deliverable_on_push_only(NotificationChannel channel, bool expected) =>
+        Assert.Equal(expected, NotificationCategories.Supports(NotificationCategory.Chat, channel));
+
+    [Fact]
+    public void Every_other_category_is_deliverable_on_every_channel()
+    {
+        // Supports() is written permissively so a future category defaults to the visible
+        // behaviour. This pins that: Chat is the exception, not the pattern.
+        var others = Enum.GetValues<NotificationCategory>()
+            .Where(c => c != NotificationCategory.Chat);
+
+        foreach (var category in others)
+        {
+            foreach (var channel in Enum.GetValues<NotificationChannel>())
+            {
+                Assert.True(
+                    NotificationCategories.Supports(category, channel),
+                    $"{category}/{channel} should be deliverable.");
+            }
+        }
+    }
+
+    [Fact]
+    public void ChannelsFor_chat_offers_push_alone() =>
+        Assert.Equal(
+            [NotificationChannel.Push],
+            NotificationCategories.ChannelsFor(NotificationCategory.Chat));
 }

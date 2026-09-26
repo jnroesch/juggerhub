@@ -188,6 +188,69 @@ public sealed class PreferenceTests
         throw new Xunit.Sdk.XunitException($"Category {category} not found in matrix.");
     }
 
+    // --- Chat: a category that is not deliverable everywhere (feature 056) ----
+
+    [Fact]
+    public async Task Chat_appears_last_and_offers_push_alone()
+    {
+        var (user, _, _, _) = await NewUserAsync();
+
+        var matrix = await user.GetFromJsonAsync<JsonElement>("/api/v1/notification-preferences");
+        var categories = matrix.GetProperty("categories").EnumerateArray().ToList();
+
+        Assert.Equal("Chat", categories[^1].GetProperty("category").GetString());
+
+        var available = categories[^1].GetProperty("availableChannels")
+            .EnumerateArray().Select(c => c.GetString()).ToList();
+        Assert.Equal(["Push"], available);
+
+        // The channels record is NOT narrowed for the unavailable cells — sending false would be
+        // indistinguishable from a member having switched them off. The client branches on
+        // availableChannels instead.
+        Assert.True(Channel(matrix, "Chat", "push"));
+        Assert.True(matrix.GetProperty("categories").EnumerateArray()
+            .First(c => c.GetProperty("category").GetString() == "Chat")
+            .GetProperty("channels").GetProperty("inApp").GetBoolean());
+
+        // Every other category still offers all three.
+        foreach (var other in categories.SkipLast(1))
+        {
+            Assert.Equal(3, other.GetProperty("availableChannels").GetArrayLength());
+        }
+    }
+
+    [Fact]
+    public async Task Chat_push_round_trips_like_any_other_cell()
+    {
+        var (user, _, _, _) = await NewUserAsync();
+
+        var put = await user.PutAsJsonAsync("/api/v1/notification-preferences/Chat/Push", new { enabled = false });
+        Assert.Equal(HttpStatusCode.NoContent, put.StatusCode);
+
+        var matrix = await user.GetFromJsonAsync<JsonElement>("/api/v1/notification-preferences");
+        Assert.False(Channel(matrix, "Chat", "push"));
+    }
+
+    [Theory]
+    [InlineData("InApp")]
+    [InlineData("Email")]
+    public async Task Chat_refuses_a_channel_it_does_not_have(string channel)
+    {
+        // Never-trust-the-client applied to a cell the interface never draws. A stored
+        // (Chat, Email) row would mean nothing, and nothing reading it back could tell that from a
+        // member's considered choice.
+        var (user, _, _, _) = await NewUserAsync();
+
+        var put = await user.PutAsJsonAsync(
+            $"/api/v1/notification-preferences/Chat/{channel}", new { enabled = true });
+
+        Assert.Equal(HttpStatusCode.BadRequest, put.StatusCode);
+
+        // …and nothing was written. A refusal that still stored the row would be worse than none.
+        var matrix = await user.GetFromJsonAsync<JsonElement>("/api/v1/notification-preferences");
+        Assert.True(Channel(matrix, "Chat", channel == "InApp" ? "inApp" : "email"));
+    }
+
     private static async Task<JsonElement> ListNotificationsAsync(HttpClient client)
     {
         var page = await client.GetFromJsonAsync<JsonElement>("/api/v1/notifications");

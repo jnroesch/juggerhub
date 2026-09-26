@@ -59,65 +59,88 @@
             <p class="mt-0.5 text-body-sm text-muted">{{ cat.description }}</p>
           </div>
 
-          <!-- In-app -->
+          <!-- In-app. A category without this cell (chat, which has its own inbox and badge)
+               renders the unavailable marker instead — never a switched-off toggle, which would
+               promise something that cannot be turned on. -->
           <div class="mt-md flex items-center justify-between md:mt-0 md:justify-center">
             <span class="text-body-sm text-muted md:hidden">{{ 'settings.notifications.inApp' | transloco }}</span>
-            <button
-              type="button"
-              role="switch"
-              [attr.aria-checked]="cat.channels.inApp"
-              [attr.aria-label]="cat.label + ' — ' + ('settings.notifications.inApp' | transloco)"
-              (click)="toggle(cat.category, 'inApp', cat.channels.inApp)"
-              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-              [class]="cat.channels.inApp ? 'bg-brand' : 'bg-surface-muted'"
-              [attr.data-testid]="'toggle-' + cat.category + '-inApp'"
-            >
-              <span
-                class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
-                [class]="cat.channels.inApp ? 'translate-x-5' : 'translate-x-0.5'"
-              ></span>
-            </button>
+            @if (isAvailable(cat, 'inApp')) {
+              <button
+                type="button"
+                role="switch"
+                [attr.aria-checked]="cat.channels.inApp"
+                [attr.aria-label]="cat.label + ' — ' + ('settings.notifications.inApp' | transloco)"
+                (click)="toggle(cat.category, 'inApp', cat.channels.inApp)"
+                class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                [class]="cat.channels.inApp ? 'bg-brand' : 'bg-surface-muted'"
+                [attr.data-testid]="'toggle-' + cat.category + '-inApp'"
+              >
+                <span
+                  class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
+                  [class]="cat.channels.inApp ? 'translate-x-5' : 'translate-x-0.5'"
+                ></span>
+              </button>
+            } @else {
+              <span class="text-body-sm text-muted" [attr.data-testid]="'unavailable-' + cat.category + '-inApp'">
+                <span aria-hidden="true">—</span>
+                <span class="sr-only">{{ 'settings.notifications.notAvailable' | transloco }}</span>
+              </span>
+            }
           </div>
 
           <!-- Email -->
           <div class="mt-sm flex items-center justify-between md:mt-0 md:justify-center">
             <span class="text-body-sm text-muted md:hidden">{{ 'settings.notifications.email' | transloco }}</span>
-            <button
-              type="button"
-              role="switch"
-              [attr.aria-checked]="cat.channels.email"
-              [attr.aria-label]="cat.label + ' — ' + ('settings.notifications.email' | transloco)"
-              (click)="toggle(cat.category, 'email', cat.channels.email)"
-              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-              [class]="cat.channels.email ? 'bg-brand' : 'bg-surface-muted'"
-              [attr.data-testid]="'toggle-' + cat.category + '-email'"
-            >
-              <span
-                class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
-                [class]="cat.channels.email ? 'translate-x-5' : 'translate-x-0.5'"
-              ></span>
-            </button>
+            @if (isAvailable(cat, 'email')) {
+              <button
+                type="button"
+                role="switch"
+                [attr.aria-checked]="cat.channels.email"
+                [attr.aria-label]="cat.label + ' — ' + ('settings.notifications.email' | transloco)"
+                (click)="toggle(cat.category, 'email', cat.channels.email)"
+                class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                [class]="cat.channels.email ? 'bg-brand' : 'bg-surface-muted'"
+                [attr.data-testid]="'toggle-' + cat.category + '-email'"
+              >
+                <span
+                  class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
+                  [class]="cat.channels.email ? 'translate-x-5' : 'translate-x-0.5'"
+                ></span>
+              </button>
+            } @else {
+              <span class="text-body-sm text-muted" [attr.data-testid]="'unavailable-' + cat.category + '-email'">
+                <span aria-hidden="true">—</span>
+                <span class="sr-only">{{ 'settings.notifications.notAvailable' | transloco }}</span>
+              </span>
+            }
           </div>
 
           <!-- Push. Independent of the two above: on here with In-app off still reaches the
                member's devices. Whether any device is enabled is the section at the top. -->
           <div class="mt-sm flex items-center justify-between md:mt-0 md:justify-center">
             <span class="text-body-sm text-muted md:hidden">{{ 'settings.notifications.push' | transloco }}</span>
-            <button
-              type="button"
-              role="switch"
-              [attr.aria-checked]="cat.channels.push"
-              [attr.aria-label]="cat.label + ' — ' + ('settings.notifications.push' | transloco)"
-              (click)="toggle(cat.category, 'push', cat.channels.push)"
-              class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
-              [class]="cat.channels.push ? 'bg-brand' : 'bg-surface-muted'"
-              [attr.data-testid]="'toggle-' + cat.category + '-push'"
-            >
-              <span
-                class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
-                [class]="cat.channels.push ? 'translate-x-5' : 'translate-x-0.5'"
-              ></span>
-            </button>
+            @if (isAvailable(cat, 'push')) {
+              <button
+                type="button"
+                role="switch"
+                [attr.aria-checked]="cat.channels.push"
+                [attr.aria-label]="cat.label + ' — ' + ('settings.notifications.push' | transloco)"
+                (click)="toggle(cat.category, 'push', cat.channels.push)"
+                class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-pill transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                [class]="cat.channels.push ? 'bg-brand' : 'bg-surface-muted'"
+                [attr.data-testid]="'toggle-' + cat.category + '-push'"
+              >
+                <span
+                  class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
+                  [class]="cat.channels.push ? 'translate-x-5' : 'translate-x-0.5'"
+                ></span>
+              </button>
+            } @else {
+              <span class="text-body-sm text-muted" [attr.data-testid]="'unavailable-' + cat.category + '-push'">
+                <span aria-hidden="true">—</span>
+                <span class="sr-only">{{ 'settings.notifications.notAvailable' | transloco }}</span>
+              </span>
+            }
           </div>
         </li>
         }
