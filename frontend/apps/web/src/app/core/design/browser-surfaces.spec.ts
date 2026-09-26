@@ -122,9 +122,9 @@ describe('reduced motion', () => {
   });
 
   it('stops infinite loops after a single pass', () => {
-    // DESIGN.md forbids decorative loops in content; seven `animate-pulse` skeletons ship one
-    // anyway (GH #337). This is the floor that keeps them from pulsing at a reader who asked
-    // for less motion, and it must outlive that fix.
+    // DESIGN.md forbids decorative loops in content. The `animate-pulse` skeletons that shipped
+    // one were replaced (GH #337, `loading-states.spec.ts`); this is the floor for the next loop
+    // that slips in, and it outlives that fix on purpose.
     expect(block).toMatch(/animation-iteration-count:\s*1\s*!important/);
   });
 

@@ -350,9 +350,9 @@
    Two things go, and nothing else:
 
    - **Infinite loops stop after one pass.** DESIGN.md forbids them in content
-     already; seven skeleton placeholders ship one anyway through `animate-pulse`
-     (GH #337). Until those are replaced with `jh-loading` this is what stops a
-     page pulsing at a reader who asked it not to.
+     already, and the pulsing skeletons that once shipped one were replaced with
+     `jh-loading` (GH #337, guarded by `loading-states.spec.ts`). This is the
+     floor for whatever loop slips in next.
    - **Movement goes; colour, shadow and opacity stay.** A hover still answers
      and a press still darkens — they simply do not travel.
 

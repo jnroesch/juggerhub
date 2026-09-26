@@ -1,9 +1,6 @@
 <section class="mx-auto max-w-container-md px-md py-lg" data-testid="team-detail">
   @if (loading()) {
-    <div class="animate-pulse">
-      <div class="h-8 w-56 rounded-md bg-surface-muted"></div>
-      <div class="mt-md h-32 rounded-lg bg-surface-muted"></div>
-    </div>
+    <jh-loading [label]="'teams.detail.loading' | transloco" />
   } @else if (notFound()) {
     <jh-empty-state [heading]="'teams.detail.notFoundTitle' | transloco">
       {{ 'teams.detail.notFoundBody' | transloco }}

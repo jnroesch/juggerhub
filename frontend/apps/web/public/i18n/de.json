@@ -229,7 +229,8 @@
       "viewTrainings": "Trainings ansehen",
       "teamTools": "Team-Tools",
       "invites": "Einladungen",
-      "settings": "Einstellungen"
+      "settings": "Einstellungen",
+      "loading": "Team wird geladen…"
     },
     "placements": {
       "title": "Turnierergebnisse",
@@ -621,7 +622,8 @@
       "tagAdmins": "Admins",
       "attachmentPhoto": "Foto",
       "attachmentFile": "Datei",
-      "attachmentSeveral": "{{count}} Dateien"
+      "attachmentSeveral": "{{count}} Dateien",
+      "loading": "Deine Chats werden geladen…"
     },
     "compose": {
       "backToMessages": "Zurück zu den Nachrichten",
@@ -664,7 +666,8 @@
       "attachmentUnavailable": "Diese Datei kann nicht geöffnet werden.",
       "downloadFile": "{{name}} herunterladen",
       "openImage": "{{name}} öffnen",
-      "closeImage": "Schließen"
+      "closeImage": "Schließen",
+      "loading": "Nachrichten werden geladen…"
     },
     "details": {
       "backToChat": "Zurück zum Chat",
@@ -686,7 +689,8 @@
       "leaveChat": "Chat verlassen",
       "blockConfirm": "{{name}} blockieren? Diese Person kann dir dann keine Nachrichten mehr senden, und dieser Chat verlässt deinen Posteingang. Ihr nehmt beide weiterhin an gemeinsamen Gruppen teil.",
       "block": "Blockieren",
-      "blockUser": "{{name}} blockieren"
+      "blockUser": "{{name}} blockieren",
+      "loading": "Chat-Details werden geladen…"
     }
   },
   "account": {
@@ -763,7 +767,8 @@
         "installStep1": "Tippe in Safari auf Teilen.",
         "installStep2": "Wähle „Zum Home-Bildschirm“.",
         "installStep3": "Öffne JuggerHub über den Home-Bildschirm und komm hierher zurück. Du wirst dich erneut anmelden müssen – die installierte App hat ihre eigene Sitzung."
-      }
+      },
+      "loading": "Deine Einstellungen werden geladen…"
     }
   },
   "browse": {
@@ -901,7 +906,8 @@
     "loadMore": "Mehr laden",
     "upNextSubtitle": "Deine anstehenden Trainings, Spiele und Events.",
     "upNextEmpty": "Gerade steht nichts an.",
-    "loadEventsError": "Wir konnten deine Events nicht laden."
+    "loadEventsError": "Wir konnten deine Events nicht laden.",
+    "loading": "Deine Startseite wird geladen…"
   },
   "nav": {
     "brandHome": "JuggerHub Startseite",
@@ -1402,7 +1408,8 @@
       "trainingUpdatedChanged": "Eine anstehende Einheit hat sich geändert",
       "eventCancelledTitle": "{{event}} wurde abgesagt",
       "eventCancelledSupporting": "Die Organisation hat ein Event abgesagt, für das du angemeldet warst"
-    }
+    },
+    "loading": "Deine Meldungen werden geladen…"
   },
   "parties": {
     "backToParty": "Zurück zur Party",

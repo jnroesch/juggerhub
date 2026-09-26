@@ -17,11 +17,7 @@
   </div>
 
   @if (loading()) {
-    <div class="mt-lg space-y-md" aria-hidden="true">
-      @for (i of [1, 2, 3]; track i) {
-        <div class="h-12 animate-pulse rounded-lg bg-surface-sunken"></div>
-      }
-    </div>
+    <jh-loading [label]="'chat.details.loading' | transloco" />
   }
 
   @if (failed()) {

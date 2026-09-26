@@ -3,7 +3,7 @@ import { Component, HostListener, computed, inject, signal } from '@angular/core
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
-import { ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, IconComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import {
   JoinRequest,
@@ -29,7 +29,7 @@ import { TeamPlacementsComponent } from './placements/team-placements.component'
  */
 @Component({
   selector: 'jh-team-detail',
-  imports: [RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, IconComponent],
+  imports: [LoadingComponent, RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, IconComponent],
   templateUrl: './team-detail.component.html',
   styleUrl: './team-detail.component.css',
 })

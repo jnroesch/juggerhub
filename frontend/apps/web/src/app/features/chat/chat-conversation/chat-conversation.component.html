@@ -48,11 +48,7 @@
   <!-- Thread -->
   <div #scroller (scroll)="onScroll()" class="relative min-h-0 flex-1 overflow-y-auto px-md py-md">
     @if (loading()) {
-      <div class="space-y-md" aria-hidden="true">
-        @for (i of [1, 2, 3]; track i) {
-          <div class="h-12 animate-pulse rounded-lg bg-surface-sunken"></div>
-        }
-      </div>
+      <jh-loading [label]="'chat.conversation.loading' | transloco" align="center" />
     }
 
     @if (failed()) {

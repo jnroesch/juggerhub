@@ -1,10 +1,6 @@
 <section class="mx-auto max-w-container-lg px-md py-lg">
   @if (loading()) {
-    <div class="animate-pulse" data-testid="home-loading">
-      <div class="h-8 w-48 rounded-md bg-surface-muted"></div>
-      <div class="mt-lg h-40 rounded-lg bg-surface-muted"></div>
-      <div class="mt-md h-32 rounded-lg bg-surface-muted"></div>
-    </div>
+    <jh-loading [label]="'home.loading' | transloco" data-testid="home-loading" />
   } @else if (failed()) {
     <div jhCard padding="flush" class="px-md py-2xl text-center" data-testid="home-error">
       <p class="text-body-lg font-semibold text-heading">{{ 'home.errorTitle' | transloco }}</p>

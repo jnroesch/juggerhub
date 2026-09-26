@@ -229,7 +229,8 @@
       "viewTrainings": "Ver entrenamientos",
       "teamTools": "Herramientas del equipo",
       "invites": "Invitaciones",
-      "settings": "Ajustes"
+      "settings": "Ajustes",
+      "loading": "Cargando equipo…"
     },
     "placements": {
       "title": "Resultados en torneos",
@@ -621,7 +622,8 @@
       "tagAdmins": "Administradores",
       "attachmentPhoto": "Foto",
       "attachmentFile": "Archivo",
-      "attachmentSeveral": "{{count}} archivos"
+      "attachmentSeveral": "{{count}} archivos",
+      "loading": "Cargando tus chats…"
     },
     "compose": {
       "backToMessages": "Volver a los mensajes",
@@ -664,7 +666,8 @@
       "attachmentUnavailable": "Este archivo no se puede abrir.",
       "downloadFile": "Descargar {{name}}",
       "openImage": "Abrir {{name}}",
-      "closeImage": "Cerrar"
+      "closeImage": "Cerrar",
+      "loading": "Cargando mensajes…"
     },
     "details": {
       "backToChat": "Volver al chat",
@@ -686,7 +689,8 @@
       "leaveChat": "Salir del chat",
       "blockConfirm": "¿Bloquear a {{name}}? No podrá enviarte mensajes y este chat saldrá de tu bandeja. Ambos seguiréis participando en cualquier grupo que compartáis.",
       "block": "Bloquear",
-      "blockUser": "Bloquear a {{name}}"
+      "blockUser": "Bloquear a {{name}}",
+      "loading": "Cargando detalles del chat…"
     }
   },
   "account": {
@@ -763,7 +767,8 @@
         "installStep1": "Toca el botón Compartir en Safari.",
         "installStep2": "Elige «Añadir a pantalla de inicio».",
         "installStep3": "Abre JuggerHub desde la pantalla de inicio y vuelve aquí. Tendrás que iniciar sesión otra vez: la app instalada tiene su propia sesión."
-      }
+      },
+      "loading": "Cargando tus ajustes…"
     }
   },
   "browse": {
@@ -901,7 +906,8 @@
     "loadMore": "Cargar más",
     "upNextSubtitle": "Tus próximos entrenamientos, partidos y eventos.",
     "upNextEmpty": "Nada próximo por ahora.",
-    "loadEventsError": "No pudimos cargar tus eventos."
+    "loadEventsError": "No pudimos cargar tus eventos.",
+    "loading": "Cargando tu página de inicio…"
   },
   "nav": {
     "brandHome": "Inicio de JuggerHub",
@@ -1402,7 +1408,8 @@
       "trainingUpdatedChanged": "Una sesión próxima cambió",
       "eventCancelledTitle": "{{event}} se ha cancelado",
       "eventCancelledSupporting": "La organización canceló un evento al que te habías apuntado"
-    }
+    },
+    "loading": "Cargando tus avisos…"
   },
   "parties": {
     "backToParty": "Volver a la party",
