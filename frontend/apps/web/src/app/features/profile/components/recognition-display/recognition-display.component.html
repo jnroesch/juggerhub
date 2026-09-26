@@ -13,7 +13,7 @@
                 class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-pill border border-border-strong bg-surface-sunken text-muted"
               >
                 @if (b.hasIcon) {
-                  <img [src]="badgeIcon(b.definitionId)" [alt]="b.name" class="h-full w-full object-cover" />
+                  <img [src]="badgeIcon(b.definitionId)" alt="" class="h-full w-full object-cover" />
                 } @else {
                   <jh-icon name="award" />
                 }
@@ -41,7 +41,7 @@
                 class="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-pill border border-border-strong bg-surface-secondary-soft text-muted"
               >
                 @if (a.hasIcon) {
-                  <img [src]="achievementIcon(a.definitionId)" [alt]="a.name" class="h-full w-full object-cover" />
+                  <img [src]="achievementIcon(a.definitionId)" alt="" class="h-full w-full object-cover" />
                 } @else {
                   <jh-icon name="trophy" />
                 }
