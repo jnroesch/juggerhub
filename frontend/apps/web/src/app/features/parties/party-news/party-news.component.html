@@ -5,7 +5,7 @@
 
   @if (isAdmin()) {
     <form jhCard (ngSubmit)="post()" class="mt-md">
-      <textarea [(ngModel)]="body" name="body" rows="2" maxlength="1000"
+      <textarea [ngModel]="body()" (ngModelChange)="body.set($event)" name="body" rows="2" maxlength="1000"
         [placeholder]="'parties.newsPlaceholder' | transloco"
         class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"></textarea>
       @if (error()) { <jh-alert class="mt-xs">{{ error() }}</jh-alert> }
