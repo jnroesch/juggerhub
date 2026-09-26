@@ -111,6 +111,18 @@ installed app, which is why 054 existed at all.
 - **Android**, installed from Chrome: scenario 1 with the phone locked. The notification appears on
   the lock screen with the sender and the text. Tapping it opens the installed app on the
   conversation, not a new browser tab.
+- **Look at the small status-bar icon while you are there.** `sw.js` sets `badge` to
+  `/icons/icon-192.png`, and Android renders a badge as a **monochrome** glyph — Chrome keeps only
+  the alpha silhouette and throws the colour away. So the status bar shows the outline of the whole
+  logo, with any detail carried by colour rather than transparency flattened out. It may read fine
+  or it may be an indistinct blob; nothing but a device can tell.
+  **This belongs to feature 055, not to chat push** — it is the same for all nine existing
+  notification types — so if it looks wrong, file it separately. The fix is a dedicated alpha-only
+  badge asset, not a change here.
+- Send a second message into the same conversation while the first notification is still showing.
+  **Expect** the text to change *silently* — no second buzz. `renotify` is not set, so a
+  same-tag replacement updates in place, which is what makes the collapse feel right rather than
+  like being pestered four times.
 - **iPhone**, Added to Home Screen: same. Confirm it arrives with the app fully closed.
 - **Settings → Notifications at 375px, in German**: the Chat row reads correctly, the unavailable
   cells do not look like switches that are merely off, and nothing overflows.
