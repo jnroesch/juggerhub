@@ -36,7 +36,12 @@
     "postalCode": "Postleitzahl",
     "postalPlaceholder": "50933",
     "city": "Stadt",
-    "cityPlaceholder": "Nach einer Stadt suchen…"
+    "cityPlaceholder": "Nach einer Stadt suchen…",
+    "citySearch": "Stadtsuche",
+    "clearCity": "Stadt entfernen",
+    "citySearching": "Suche läuft…",
+    "cityUnavailable": "Die Stadtsuche ist gerade nicht erreichbar. Bitte versuch es gleich noch einmal.",
+    "cityNoMatch": "Keine passende Stadt – versuch eine andere Schreibweise."
   },
   "myTeam": {
     "yourTeams": "Deine Teams",

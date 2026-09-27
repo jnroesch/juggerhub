@@ -32,7 +32,12 @@
     "postalCode": "Postal code",
     "postalPlaceholder": "50933",
     "city": "City",
-    "cityPlaceholder": "Search for a city…"
+    "cityPlaceholder": "Search for a city…",
+    "citySearch": "City search",
+    "clearCity": "Clear city",
+    "citySearching": "Searching…",
+    "cityUnavailable": "City search isn’t available right now. Please try again in a moment.",
+    "cityNoMatch": "No matching city — try a different spelling."
   },
   "myTeam": {
     "yourTeams": "Your teams",
