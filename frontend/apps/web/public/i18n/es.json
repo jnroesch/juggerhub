@@ -36,7 +36,12 @@
     "postalCode": "Código postal",
     "postalPlaceholder": "50933",
     "city": "Ciudad",
-    "cityPlaceholder": "Busca una ciudad…"
+    "cityPlaceholder": "Busca una ciudad…",
+    "citySearch": "Búsqueda de ciudad",
+    "clearCity": "Quitar ciudad",
+    "citySearching": "Buscando…",
+    "cityUnavailable": "La búsqueda de ciudades no está disponible ahora mismo. Inténtalo de nuevo en un momento.",
+    "cityNoMatch": "No hay ninguna ciudad que coincida: prueba con otra ortografía."
   },
   "myTeam": {
     "yourTeams": "Tus equipos",
@@ -788,6 +793,8 @@
     "clearSearchFilters": "Borrar búsqueda y filtros",
     "loadMore": "Cargar más",
     "country": "País",
+    "anyCountry": "Cualquier país",
+    "clearCountry": "Quitar país",
     "showEyebrow": "Mostrar",
     "sortNameAsc": "A–Z",
     "sortNearest": "Más cercanos primero",

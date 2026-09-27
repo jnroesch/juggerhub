@@ -49,10 +49,11 @@
       [attr.aria-label]="chatBadge() ? ('nav.unreadLabel' | transloco: { label: ('nav.chat' | transloco), count: chatBadge() }) : ('nav.chat' | transloco)"
       data-testid="nav-chat"
     >
-      <span class="relative">
+      <span class="relative" [jhBump]="chatUnread()">
         <jh-icon name="message-circle" />
         @if (chatBadge(); as badge) {
           <span
+            data-bump
             class="absolute -right-2 -top-1.5 grid h-5 min-w-5 place-items-center rounded-pill bg-brand-strong px-1 font-mono text-caption font-bold leading-none text-on-accent"
             aria-hidden="true"
             data-testid="nav-chat-badge"
@@ -72,10 +73,12 @@
       [attr.aria-current]="alertsActive() ? 'page' : null"
       [attr.aria-label]="alertsBadge() ? ('nav.unreadLabel' | transloco: { label: ('nav.alerts' | transloco), count: alertsBadge() }) : ('nav.alerts' | transloco)"
       data-testid="nav-alerts-bell"
+      [jhBump]="alertsUnread()"
     >
       <jh-icon name="bell" />
       @if (alertsBadge(); as badge) {
         <span
+          data-bump
           class="absolute -right-0.5 -top-0.5 grid h-5 min-w-5 place-items-center rounded-pill bg-brand-strong px-1 text-caption font-bold leading-none text-on-accent"
           aria-hidden="true"
           data-testid="nav-alerts-badge"

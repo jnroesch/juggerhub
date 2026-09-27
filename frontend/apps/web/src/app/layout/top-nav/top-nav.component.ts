@@ -8,7 +8,7 @@ import { ChatService } from '../../core/services/chat.service';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AvatarMenuComponent } from '../avatar-menu/avatar-menu.component';
 import { NavId, badgeText, isActiveDestination } from '../nav-model';
-import { IconComponent } from '../../shared/ui';
+import { BumpDirective, IconComponent } from '../../shared/ui';
 
 /**
  * The single top bar (feature 008). On desktop it carries the brand, the primary destinations
@@ -17,7 +17,7 @@ import { IconComponent } from '../../shared/ui';
  */
 @Component({
   selector: 'jh-top-nav',
-  imports: [RouterLink, AvatarMenuComponent, TranslocoPipe, IconComponent],
+  imports: [RouterLink, AvatarMenuComponent, TranslocoPipe, IconComponent, BumpDirective],
   templateUrl: './top-nav.component.html',
   styleUrl: './top-nav.component.css',
 })
@@ -33,6 +33,10 @@ export class TopNavComponent {
   /** Capped unread badge for the Chat destination (feature 019). Same badgeText() as the bell — two
    * badges in one nav must not cap differently. */
   protected readonly chatBadge = computed(() => badgeText(this.chat.unreadCount()));
+
+  /** The raw counts behind both badges, for `jhBump` — the capped text cannot say "9+ went up". */
+  protected readonly alertsUnread = this.notifications.unreadCount;
+  protected readonly chatUnread = this.chat.unreadCount;
 
   private readonly url = toSignal(
     this.router.events.pipe(

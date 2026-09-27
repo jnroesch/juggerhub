@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime, switchMap, of, catchError } from 'rxjs';
 import { CityService } from '../../core/services/city.service';
 import { CityOption, Location } from '../../core/models/city.models';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { IconComponent } from '../ui';
 
 /**
@@ -18,7 +19,7 @@ import { IconComponent } from '../ui';
  */
 @Component({
   selector: 'jh-city-picker',
-  imports: [FormsModule, IconComponent],
+  imports: [FormsModule, IconComponent, TranslocoPipe],
   templateUrl: './city-picker.component.html',
   styleUrl: './city-picker.component.css',
 })
@@ -29,8 +30,11 @@ export class CityPickerComponent implements OnInit {
   /** Prefilled label from an already-set location (e.g. profile edit). Display only. */
   @Input() initial: Location | null = null;
 
-  /** Placeholder shown in the search field. */
-  @Input() placeholder = 'Search for a city…';
+  /**
+   * Placeholder shown in the search field — an already-translated string. Without one the field
+   * reads `address.cityPlaceholder`; it used to fall back to an English literal instead.
+   */
+  @Input() placeholder: string | null = null;
 
   /** Emits on every selection change: the picked option, or null when cleared. */
   @Output() readonly selectedChange = new EventEmitter<CityOption | null>();

@@ -7,7 +7,7 @@ import { NotificationService } from '../../core/services/notification.service';
 import { ChatService } from '../../core/services/chat.service';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { NavId, badgeText, isActiveDestination } from '../nav-model';
-import { IconComponent } from '../../shared/ui';
+import { BumpDirective, IconComponent } from '../../shared/ui';
 
 /**
  * The mobile bottom tab bar (feature 008): Home · Browse · My team · Chat · Alerts. Five
@@ -15,7 +15,7 @@ import { IconComponent } from '../../shared/ui';
  */
 @Component({
   selector: 'jh-bottom-nav',
-  imports: [RouterLink, TranslocoPipe, IconComponent],
+  imports: [RouterLink, TranslocoPipe, IconComponent, BumpDirective],
   templateUrl: './bottom-nav.component.html',
   styleUrl: './bottom-nav.component.css',
 })
@@ -31,6 +31,10 @@ export class BottomNavComponent {
   /** Capped unread badge for the Chat destination (feature 019). Same badgeText() as the bell — two
    * badges in one nav must not cap differently. */
   protected readonly chatBadge = computed(() => badgeText(this.chat.unreadCount()));
+
+  /** The raw counts behind both badges, for `jhBump` — the capped text cannot say "9+ went up". */
+  protected readonly alertsUnread = this.notifications.unreadCount;
+  protected readonly chatUnread = this.chat.unreadCount;
 
   private readonly url = toSignal(
     this.router.events.pipe(

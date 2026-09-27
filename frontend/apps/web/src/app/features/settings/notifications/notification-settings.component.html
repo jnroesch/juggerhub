@@ -72,7 +72,7 @@
                 [attr.data-testid]="'toggle-' + cat.category + '-inApp'"
               >
                 <span
-                  class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
+                  class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-base ease-bounce"
                   [class]="cat.channels.inApp ? 'translate-x-5' : 'translate-x-0.5'"
                 ></span>
               </button>
@@ -99,7 +99,7 @@
                 [attr.data-testid]="'toggle-' + cat.category + '-email'"
               >
                 <span
-                  class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
+                  class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-base ease-bounce"
                   [class]="cat.channels.email ? 'translate-x-5' : 'translate-x-0.5'"
                 ></span>
               </button>
@@ -127,7 +127,7 @@
                 [attr.data-testid]="'toggle-' + cat.category + '-push'"
               >
                 <span
-                  class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-fast"
+                  class="inline-block h-5 w-5 transform rounded-pill bg-white shadow-sm transition-transform duration-base ease-bounce"
                   [class]="cat.channels.push ? 'translate-x-5' : 'translate-x-0.5'"
                 ></span>
               </button>

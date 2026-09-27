@@ -337,6 +337,107 @@
   }
 }
 
+/* ---- Motion vocabulary ----------------------------------------------------
+   DESIGN.md "Motion vocabulary" names every way the product moves; these are
+   those names. A component reaches them through Angular's built-in
+   `animate.enter` / `animate.leave` (or a plain class) and never declares a
+   keyframe of its own, because each keyframe here that travels is declared a
+   second time, fade only, in the reduced-motion block below. The base layer
+   there leaves an entrance keyframe running on purpose, so without that twin a
+   `rise` would still travel for a reader who asked it not to.
+   `browser-surfaces.spec.ts` fails on a travelling keyframe without its twin.
+
+   Entrances fill `backwards`, so a staggered item waits invisibly for its turn
+   rather than flashing in and then animating — and never `both`: a transform
+   held after the end would beat a card's hover-lift transition for good. The
+   leave fills `both` because it must stay faded until the element is gone. */
+
+@keyframes jh-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes jh-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+@keyframes jh-step-forward {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+
+@keyframes jh-step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+}
+
+@keyframes jh-bump {
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+@keyframes jh-check {
+  from {
+    stroke-dashoffset: 24;
+  }
+}
+
+@keyframes jh-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@layer components {
+  /* `--jh-stagger` is the item's index in a first-load list. Past the sixth
+     item everything starts together, so a long list never keeps the reader
+     waiting for its tail. */
+  .jh-rise {
+    animation: jh-rise var(--duration-base) var(--ease-out) backwards;
+    animation-delay: calc(min(var(--jh-stagger, 0), 5) * 30ms);
+  }
+
+  /* Scales from `transform-origin`; the popover sets it to the edge it opens from. */
+  .jh-pop {
+    animation: jh-pop var(--duration-base) var(--ease-out) backwards;
+  }
+
+  .jh-step-forward {
+    animation: jh-step-forward var(--duration-base) var(--ease-out) backwards;
+  }
+
+  .jh-step-back {
+    animation: jh-step-back var(--duration-base) var(--ease-out) backwards;
+  }
+
+  .jh-bump {
+    animation: jh-bump var(--duration-base) var(--ease-bounce);
+  }
+
+  /* On `<jh-icon name="check">` — the icon system allows no hand-drawn SVG, so this draws the
+     glyph it already has. Its stroke is about 22.6 units long in the 24-unit box, so a 24-unit
+     dash, offset by its own length, starts with the whole mark hidden. */
+  .jh-check path {
+    stroke-dasharray: 24;
+    animation: jh-check var(--duration-slow) var(--ease-out) backwards;
+  }
+
+  /* Every leave: faster than the entrance, and it only fades — the reader is done with it. */
+  .jh-leave {
+    animation: jh-fade-out var(--duration-fast) var(--ease-standard) both;
+  }
+}
+
 /* ---- Reduced motion -----------------------------------------------------
    `prefers-reduced-motion` asks the product to stop *moving things*. It does not
    ask it to stop saying what happened, and the difference is the whole rule.
@@ -370,5 +471,45 @@
 
   html {
     scroll-behavior: auto !important;
+  }
+
+  /* The motion vocabulary's travelling keyframes, fade only. Declared after the
+     originals, so these win while the preference is set. `jh-bump` becomes a
+     keyframe that does nothing — the count changing already says it. The check
+     arrives drawn. */
+  @keyframes jh-rise {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes jh-pop {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes jh-step-forward {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes jh-step-back {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes jh-bump {
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes jh-check {
+    to {
+      stroke-dashoffset: 0;
+    }
   }
 }

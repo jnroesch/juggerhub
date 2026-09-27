@@ -5,7 +5,7 @@
   @switch (step()) {
     <!-- Welcome ---------------------------------------------------------------->
     @case ('welcome') {
-      <div class="flex flex-1 flex-col items-center justify-center text-center">
+      <div [animate.enter]="stepEnter()" class="flex flex-1 flex-col items-center justify-center text-center">
         <div
           class="grid h-16 w-16 place-items-center rounded-lg bg-brand-gradient font-display text-display font-bold text-on-accent shadow-coral"
           aria-hidden="true"
@@ -41,7 +41,7 @@
     <!-- 1 · Display name (required) -------------------------------------------->
     @case ('name') {
       <ng-container [ngTemplateOutlet]="backBar" />
-      <div class="flex-1">
+      <div [animate.enter]="stepEnter()" class="flex-1">
         <h1 class="text-h2">{{ 'onboarding.name.title' | transloco }}</h1>
         <p class="mt-xs text-lead text-muted">{{ 'onboarding.name.subtitle' | transloco }}</p>
         <input
@@ -71,7 +71,7 @@
     <!-- 2 · City --------------------------------------------------------------->
     @case ('city') {
       <ng-container [ngTemplateOutlet]="backBar" />
-      <div class="flex-1">
+      <div [animate.enter]="stepEnter()" class="flex-1">
         <h1 class="text-h2">{{ 'onboarding.city.title' | transloco }}</h1>
         <p class="mt-xs text-lead text-muted">{{ 'onboarding.city.subtitle' | transloco }}</p>
         <div class="mt-lg" data-testid="onboarding-city">
@@ -100,7 +100,7 @@
     <!-- 3 · Pompfen ------------------------------------------------------------>
     @case ('pompfen') {
       <ng-container [ngTemplateOutlet]="backBar" />
-      <div class="flex-1">
+      <div [animate.enter]="stepEnter()" class="flex-1">
         <h1 class="text-h2">{{ 'onboarding.pompfen.title' | transloco }}</h1>
         <p class="mt-xs text-lead text-muted">{{ 'onboarding.pompfen.subtitle' | transloco }}</p>
         <div class="mt-lg">
@@ -131,7 +131,7 @@
     -->
     @case ('team') {
       <ng-container [ngTemplateOutlet]="backBar" />
-      <div class="flex-1">
+      <div [animate.enter]="stepEnter()" class="flex-1">
         <h1 class="text-h2">{{ 'onboarding.team.title' | transloco }}</h1>
         <!-- The intro describes the search; when an invitation leads (053) it moves down to it. -->
         @if (!anyInviteShown()) {
@@ -188,7 +188,8 @@
                 </div>
               </div>
               @if (joinedSlugs().includes(p.teamSlug)) {
-                <p class="mt-sm text-body-sm text-success-fg" data-testid="onboarding-invite-joined">
+                <p class="mt-sm flex items-start gap-xs text-body-sm text-success-fg" data-testid="onboarding-invite-joined">
+                  <jh-icon name="check" size="sm" class="jh-check mt-0.5 shrink-0" />
                   {{ 'onboarding.team.invite.joined' | transloco:{ team: p.teamName } }}
                 </p>
               } @else if (memberSlugs().has(p.teamSlug)) {
@@ -229,7 +230,8 @@
                   </div>
                 </div>
                 @if (joinedSlugs().includes(inv.teamSlug)) {
-                  <p class="mt-sm text-body-sm text-success-fg" [attr.data-testid]="'onboarding-invite-joined-' + inv.teamSlug">
+                  <p class="mt-sm flex items-start gap-xs text-body-sm text-success-fg" [attr.data-testid]="'onboarding-invite-joined-' + inv.teamSlug">
+                    <jh-icon name="check" size="sm" class="jh-check mt-0.5 shrink-0" />
                     {{ 'onboarding.team.invite.joined' | transloco:{ team: inv.teamName } }}
                   </p>
                 } @else if (memberSlugs().has(inv.teamSlug)) {
@@ -414,7 +416,7 @@
       <div class="flex items-center justify-between">
         <button type="button" (click)="back()" class="inline-flex items-center gap-2xs text-body-sm text-muted hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'common.back' | transloco }}</button>
       </div>
-      <div class="mt-lg flex-1">
+      <div [animate.enter]="stepEnter()" class="mt-lg flex-1">
         <h1 class="text-h2">{{ 'onboarding.photo.title' | transloco }}</h1>
         <p class="mt-xs text-lead text-muted">{{ 'onboarding.photo.subtitle' | transloco }}</p>
 
@@ -478,7 +480,7 @@
 
     <!-- Done ------------------------------------------------------------------->
     @case ('done') {
-      <div class="flex flex-1 flex-col items-center justify-center text-center">
+      <div [animate.enter]="stepEnter()" class="flex flex-1 flex-col items-center justify-center text-center">
         <div class="grid h-16 w-16 place-items-center rounded-pill bg-brand-strong text-on-accent shadow-coral" aria-hidden="true">
           <jh-icon name="check" size="lg" />
         </div>

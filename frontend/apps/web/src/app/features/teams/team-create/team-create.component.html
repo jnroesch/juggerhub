@@ -19,7 +19,7 @@
     @switch (step()) {
       <!-- 1. Name & team handle -->
       @case ('basics') {
-        <div class="space-y-md">
+        <div [animate.enter]="stepEnter()" class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'teams.create.title' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'teams.create.subtitle' | transloco }}</p>
@@ -59,7 +59,7 @@
 
       <!-- 2. Type & city -->
       @case ('type') {
-        <div class="space-y-md">
+        <div [animate.enter]="stepEnter()" class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'teams.create.typeTitle' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'teams.create.typeSubtitle' | transloco }}</p>
@@ -102,7 +102,7 @@
 
       <!-- 3. Review — a summary, not a form. Each row returns to the step that owns it. -->
       @case ('review') {
-        <div class="space-y-md" data-testid="team-review">
+        <div [animate.enter]="stepEnter()" class="space-y-md" data-testid="team-review">
           <div>
             <h1 class="text-h3">{{ 'teams.create.reviewTitle' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'teams.create.reviewSubtitle' | transloco }}</p>
@@ -143,7 +143,7 @@
 
       <!-- 4. Logo — optional. The team already exists from here on. -->
       @case ('logo') {
-        <div class="space-y-md" data-testid="team-logo-step">
+        <div [animate.enter]="stepEnter()" class="space-y-md" data-testid="team-logo-step">
           <div>
             <h1 class="text-h3">{{ 'teams.create.logoTitle' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'teams.create.logoSubtitle' | transloco }}</p>
@@ -193,7 +193,7 @@
            first: it is the only one of the two that reaches somebody who has no account yet,
            since the search below can only find players who do. -->
       @case ('invite') {
-        <div class="space-y-md" data-testid="team-invite-step">
+        <div [animate.enter]="stepEnter()" class="space-y-md" data-testid="team-invite-step">
           <div>
             <h1 class="text-h3">{{ 'teams.create.inviteTitle' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'teams.create.inviteSubtitle' | transloco }}</p>

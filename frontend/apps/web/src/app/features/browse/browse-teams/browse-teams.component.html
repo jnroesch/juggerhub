@@ -20,6 +20,7 @@
   <div rows class="flex flex-col">
     @for (team of list.items(); track team.slug) {
       <a
+        [jhRise]="$index"
         [routerLink]="['/t', team.slug]"
         class="flex items-center gap-sm border-b border-border-default py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
         data-testid="team-row"

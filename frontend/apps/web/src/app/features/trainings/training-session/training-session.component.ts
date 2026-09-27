@@ -44,6 +44,12 @@ export class TrainingSessionComponent {
   protected readonly isCancelled = computed(() => this.session()?.status === 'Cancelled');
 
   /**
+   * The reader just answered "Going" and the server accepted it: the button's check draws itself
+   * once (DESIGN.md "Motion vocabulary", `check`). Never for the answer the page loaded with.
+   */
+  protected readonly drawGoing = signal(false);
+
+  /**
    * Where "‹ Trainings" leads — the session's parent FOR THIS VIEWER (GH #279).
    *
    * A session has two parents. A member's is their team's Trainings tab. An outsider's is the
@@ -97,9 +103,11 @@ export class TrainingSessionComponent {
     }
     this.busy.set(true);
     this.error.set(null);
+    this.drawGoing.set(false);
     this.trainings.respond(this.sessionId(), answer).subscribe({
       next: () => {
         this.busy.set(false);
+        this.drawGoing.set(answer === 'Going');
         this.load(); // refresh counts + who's-coming
       },
       error: (err) => {

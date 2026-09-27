@@ -17,7 +17,9 @@
 
   @if (open()) {
     <div
-      class="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-md border border-border-default bg-surface-card py-xs shadow-md"
+      animate.enter="jh-pop"
+      animate.leave="jh-leave"
+      class="absolute right-0 z-50 mt-2 w-52 origin-top-right overflow-hidden rounded-md border border-border-default bg-surface-card py-xs shadow-md"
       role="menu"
       [attr.aria-label]="'nav.account' | transloco"
       data-testid="avatar-menu"

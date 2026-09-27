@@ -20,6 +20,7 @@
   <div rows class="flex flex-col">
     @for (event of list.items(); track event.id) {
       <a
+        [jhRise]="$index"
         [routerLink]="['/events', event.id]"
         class="flex items-center gap-sm border-b border-border-default py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
         data-testid="event-row"

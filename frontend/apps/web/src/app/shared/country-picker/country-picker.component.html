@@ -5,11 +5,11 @@
       [value]="value()"
       (input)="onInput($any($event.target).value)"
       (focus)="open.set(true)"
-      [placeholder]="placeholder()"
+      [placeholder]="'browse.anyCountry' | transloco"
       autocomplete="off"
       role="combobox"
       aria-controls="country-picker-listbox"
-      aria-label="Country"
+      [attr.aria-label]="'browse.country' | transloco"
       [attr.aria-expanded]="open() && matches().length > 0"
       data-testid="country-picker-input"
       class="w-full rounded-md border border-border-strong bg-surface-card px-sm py-xs pr-8 text-body-md text-heading outline-none transition-shadow duration-fast placeholder:text-muted focus:border-border-focus focus:ring-2 focus:ring-focus"
@@ -18,7 +18,7 @@
       <button
         type="button"
         (click)="clear()"
-        aria-label="Clear country"
+        [attr.aria-label]="'browse.clearCountry' | transloco"
         class="absolute right-1 grid h-8 w-8 place-items-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         <jh-icon name="x" size="sm" />
@@ -29,7 +29,9 @@
   @if (open() && matches().length > 0) {
     <ul
       id="country-picker-listbox"
-      class="mt-xs flex flex-col rounded-md border border-border-strong bg-surface-card p-1 shadow-sm"
+      animate.enter="jh-pop"
+      animate.leave="jh-leave"
+      class="mt-xs flex origin-top flex-col rounded-md border border-border-strong bg-surface-card p-1 shadow-sm"
       role="listbox"
       data-testid="country-picker-menu"
     >

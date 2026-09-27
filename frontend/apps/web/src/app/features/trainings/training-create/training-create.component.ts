@@ -1,5 +1,5 @@
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { ButtonDirective, CardComponent, IconComponent } from '../../../shared/ui';
+import { ButtonDirective, CardComponent, IconComponent, stepMotion } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -109,6 +109,9 @@ export class TrainingCreateComponent {
   private readonly restored = this.drafts.readTraining(this.slug);
 
   protected readonly step = signal<TrainingDraftStep>(this.restored?.step ?? this.pristine.step);
+
+  /** The class each step's root enters with — forward or back by the step order (DESIGN.md "Motion vocabulary"). */
+  protected readonly stepEnter = stepMotion(this.step, [1, 2, 3, 4, 5]);
   protected readonly busy = signal(false);
   protected readonly error = signal<string | null>(null);
 

@@ -40,10 +40,11 @@
     [attr.aria-current]="active('chat') ? 'page' : null"
     data-testid="tab-chat"
   >
-    <span class="relative">
+    <span class="relative" [jhBump]="chatUnread()">
       <jh-icon name="message-circle" size="lg" />
       @if (chatBadge(); as badge) {
         <span
+          data-bump
           class="absolute -right-2 -top-1 grid h-5 min-w-5 place-items-center rounded-pill bg-brand-strong px-1 font-mono text-caption font-bold leading-none text-on-accent"
           [attr.aria-label]="'nav.unreadMessages' | transloco: { count: badge }"
           data-testid="tab-chat-badge"
@@ -59,10 +60,11 @@
     [attr.aria-current]="active('alerts') ? 'page' : null"
     data-testid="tab-alerts"
   >
-    <span class="relative">
+    <span class="relative" [jhBump]="alertsUnread()">
       <jh-icon name="bell" size="lg" />
       @if (alertsBadge(); as badge) {
         <span
+          data-bump
           class="absolute -right-2 -top-1 grid h-5 min-w-5 place-items-center rounded-pill bg-brand-strong px-1 text-caption font-bold leading-none text-on-accent"
           aria-hidden="true"
           data-testid="tab-alerts-badge"

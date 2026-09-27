@@ -74,13 +74,13 @@
 
         @if (m.kind === 'System') {
           <!-- Quiet, centered, no bubble: clearly not a member's message -->
-          <li class="py-xs text-center" data-testid="system-line">
+          <li class="py-xs text-center" [class.jh-rise]="arrivedLive().has(m.id)" data-testid="system-line">
             <span class="rounded-pill bg-surface-sunken px-sm py-xs text-body-sm italic text-muted">
               {{ systemText(m) }}
             </span>
           </li>
         } @else {
-          <li class="flex flex-col" [class.items-end]="m.isOwn" [class.items-start]="!m.isOwn">
+          <li class="flex flex-col" [class.items-end]="m.isOwn" [class.items-start]="!m.isOwn" [class.jh-rise]="arrivedLive().has(m.id)">
             @if (!m.isOwn && showsSenderNames() && m.senderName) {
               <span class="mb-xs px-xs text-body-sm font-medium text-muted">{{ m.senderName }}</span>
             }

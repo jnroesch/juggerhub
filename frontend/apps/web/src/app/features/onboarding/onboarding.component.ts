@@ -18,7 +18,7 @@ import { InviteRef, inviteFromReturnUrl, invitePagePath } from '../../core/utils
 import { safeReturnUrl } from '../../core/utils/return-url';
 import { PompfeSelectorComponent } from '../profile/components/pompfe-selector/pompfe-selector.component';
 import { Pompfe } from '../../shared/pompfen.catalog';
-import { ButtonDirective, AlertComponent, CardComponent, ChipDirective, IconComponent, LoadingComponent } from '../../shared/ui';
+import { ButtonDirective, AlertComponent, CardComponent, ChipDirective, IconComponent, LoadingComponent, stepMotion } from '../../shared/ui';
 import { CityPickerComponent } from '../../shared/city-picker/city-picker.component';
 import { CityOption, Location, toSelection } from '../../core/models/city.models';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -84,6 +84,9 @@ export class OnboardingComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly step = signal<Step>('welcome');
+
+  /** The class each step's root enters with — forward or back by the step order (DESIGN.md "Motion vocabulary"). */
+  protected readonly stepEnter = stepMotion(this.step, FLOW);
   protected readonly coreSteps = CORE_STEPS;
 
   // Collected values — prefilled from the current profile so Skip/Back never blank

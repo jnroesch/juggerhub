@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CityPickerComponent } from './city-picker.component';
 import { CityOption } from '../../core/models/city.models';
+import { translocoTestingModule } from '../../../testing/transloco-testing';
 
 const BERLIN: CityOption = {
   externalId: 'osm:R:1', name: 'Berlin', region: 'Berlin', countryName: 'Germany',
@@ -20,6 +21,7 @@ describe('CityPickerComponent', () => {
   beforeEach(() => {
     jest.useFakeTimers(); // the type-ahead debounces 250ms
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     httpMock = TestBed.inject(HttpTestingController);
@@ -162,5 +164,64 @@ describe('CityPickerComponent', () => {
 
     expect(fixture.nativeElement.querySelector('[data-testid="city-picker-unavailable"]')).toBeTruthy();
     expect(options().length).toBe(0);
+  });
+});
+
+describe('CityPickerComponent — in German', () => {
+  // Every string in this control used to be an English literal, so onboarding, the team wizard,
+  // the training and event address steps and the profile read English wherever a city was asked for.
+  let fixture: ComponentFixture<CityPickerComponent>;
+  let httpMock: HttpTestingController;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    TestBed.configureTestingModule({
+      imports: [
+        translocoTestingModule(
+          { de: require('../../../../public/i18n/de.json') },
+          { translocoConfig: { availableLangs: ['en', 'de', 'es'], defaultLang: 'de', fallbackLang: 'de' } },
+        ),
+      ],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting()],
+    });
+    httpMock = TestBed.inject(HttpTestingController);
+    fixture = TestBed.createComponent(CityPickerComponent);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+    jest.useRealTimers();
+  });
+
+  const host = () => fixture.nativeElement as HTMLElement;
+  const input = () => host().querySelector<HTMLInputElement>('[data-testid="city-picker-input"]')!;
+
+  function type(value: string): void {
+    input().value = value;
+    input().dispatchEvent(new Event('input'));
+    jest.advanceTimersByTime(300);
+    fixture.detectChanges();
+  }
+
+  it('falls back to a German placeholder and names the field in German', () => {
+    expect(input().placeholder).toBe('Nach einer Stadt suchen…');
+    expect(input().getAttribute('aria-label')).toBe('Stadtsuche');
+  });
+
+  it('says in German that nothing matched, and that the search is unavailable', () => {
+    type('xyz');
+    httpMock.expectOne((r) => r.url === '/api/v1/cities/search').flush([]);
+    fixture.detectChanges();
+    expect(host().textContent).toContain('Keine passende Stadt – versuch eine andere Schreibweise.');
+
+    type('abc');
+    httpMock
+      .expectOne((r) => r.url === '/api/v1/cities/search')
+      .flush('unavailable', { status: 503, statusText: 'Service Unavailable' });
+    fixture.detectChanges();
+    expect(host().querySelector('[data-testid="city-picker-unavailable"]')?.textContent?.trim()).toBe(
+      'Die Stadtsuche ist gerade nicht erreichbar. Bitte versuch es gleich noch einmal.',
+    );
   });
 });

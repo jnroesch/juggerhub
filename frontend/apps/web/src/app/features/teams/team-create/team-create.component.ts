@@ -4,7 +4,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { AlertComponent, ButtonDirective, IconComponent, LowercaseInputDirective } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, IconComponent, LowercaseInputDirective, stepMotion } from '../../../shared/ui';
 import { EMPTY, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
 import { SlugAvailability, TeamType } from '../../../core/models/team.models';
 import { CityOption, toSelection } from '../../../core/models/city.models';
@@ -81,6 +81,9 @@ export class TeamCreateComponent {
 
   protected readonly steps = STEPS;
   protected readonly step = signal<Step>('basics');
+
+  /** The class each step's root enters with — forward or back by the step order (DESIGN.md "Motion vocabulary"). */
+  protected readonly stepEnter = stepMotion(this.step, STEPS);
   protected readonly stepIndex = computed(() => STEPS.indexOf(this.step()));
 
   /**

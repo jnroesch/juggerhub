@@ -9,7 +9,7 @@
     <button
       type="button"
       (click)="clear()"
-      aria-label="Clear city"
+      [attr.aria-label]="'address.clearCity' | transloco"
       class="grid h-11 w-11 shrink-0 place-items-center rounded-pill text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-heading focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
     >
       <jh-icon name="x" size="sm" />
@@ -19,23 +19,23 @@
   <div class="relative flex flex-col gap-xs">
     <input
       type="text"
-      [placeholder]="placeholder"
+      [placeholder]="placeholder ?? ('address.cityPlaceholder' | transloco)"
       [ngModel]="query()"
       (ngModelChange)="onQuery($event)"
       autocomplete="off"
       role="combobox"
       aria-controls="city-picker-listbox"
       [attr.aria-expanded]="results().length > 0"
-      aria-label="City search"
+      [attr.aria-label]="'address.citySearch' | transloco"
       data-testid="city-picker-input"
       class="min-h-11 w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast placeholder:text-muted focus:border-border-focus focus:ring-2 focus:ring-focus"
     />
 
     @if (searching()) {
-      <p class="text-body-sm text-muted">Searching…</p>
+      <p class="text-body-sm text-muted">{{ 'address.citySearching' | transloco }}</p>
     } @else if (unavailable()) {
       <p class="text-body-sm text-danger-fg" role="status" data-testid="city-picker-unavailable">
-        City search isn’t available right now. Please try again in a moment.
+        {{ 'address.cityUnavailable' | transloco }}
       </p>
     } @else if (results().length > 0) {
       <ul
@@ -58,7 +58,7 @@
         }
       </ul>
     } @else if (searched()) {
-      <p class="text-body-sm text-muted">No matching city — try a different spelling.</p>
+      <p class="text-body-sm text-muted">{{ 'address.cityNoMatch' | transloco }}</p>
     }
   </div>
 }

@@ -13,7 +13,7 @@
     @switch (step()) {
       <!-- 1. Type & name -->
       @case ('type') {
-        <div class="space-y-md">
+        <div [animate.enter]="stepEnter()" class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.typeTitle' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'events.create.typeSubtitle' | transloco }}</p>
@@ -44,7 +44,7 @@
 
       <!-- 2. When -->
       @case ('when') {
-        <div class="space-y-md">
+        <div [animate.enter]="stepEnter()" class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.whenTitle' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'events.create.whenSubtitle' | transloco }}</p>
@@ -69,7 +69,7 @@
 
       <!-- 3. Where -->
       @case ('where') {
-        <div class="space-y-md">
+        <div [animate.enter]="stepEnter()" class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.whereTitle' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'events.create.whereSubtitle' | transloco }}</p>
@@ -103,7 +103,7 @@
 
       <!-- 4. Who can join -->
       @case ('who') {
-        <div class="space-y-md">
+        <div [animate.enter]="stepEnter()" class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.whoTitle' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'events.create.whoSubtitle' | transloco }}</p>
@@ -135,7 +135,7 @@
 
       <!-- 5. Fee -->
       @case ('fee') {
-        <div class="space-y-md">
+        <div [animate.enter]="stepEnter()" class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.feeTitle' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'events.create.feeSubtitle' | transloco }}</p>
@@ -174,7 +174,7 @@
 
       <!-- 6. Review -->
       @case ('review') {
-        <div class="space-y-md">
+        <div [animate.enter]="stepEnter()" class="space-y-md">
           <div>
             <h1 class="text-h3">{{ 'events.create.reviewTitle' | transloco }}</h1>
             <p class="text-body-md text-muted">{{ 'events.create.reviewSubtitle' | transloco }}</p>

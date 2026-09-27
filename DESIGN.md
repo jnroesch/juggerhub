@@ -491,6 +491,83 @@ subtle `ease-bounce` for toggles and playful moments.
   keyframe that never runs can leave its element parked on the opening frame —
   which is how a reduced-motion rule turns into invisible content.
 
+### Motion vocabulary
+
+The product moves in six ways and no others. Each one answers a change: a
+thing arrived, opened, advanced, counted up or succeeded. Nothing moves to
+decorate a screen that is standing still. A new kind of movement is added here
+first, like a new colour, and then built.
+
+| Name    | What it answers                                  | Movement                                                        | Duration / ease                          | With reduced motion           |
+| ------- | ------------------------------------------------ | --------------------------------------------------------------- | ---------------------------------------- | ----------------------------- |
+| `rise`  | Something new arrived in a list                  | Fades in while travelling up 6px                                | `base` in, `out`                         | Fades in, does not travel     |
+| `pop`   | A menu, popover or picker opened                 | Fades in, scales 0.96 → 1 from the edge it opened from          | `base` in, `out`; leaves in `fast`, fade only | Fades in and out           |
+| `step`  | A wizard moved to the next or previous step      | The new step fades in, travelling 16px in the direction of travel | `base`, `out`                          | Crossfades                    |
+| `bump`  | A count went up (unread badge)                   | Scales 1 → 1.15 → 1 once                                        | `base`, `bounce`                         | The number changes, nothing moves |
+| `check` | An action you took succeeded                     | A checkmark draws its own stroke once                           | `slow`, `out`                            | Appears already drawn         |
+| `knob`  | A switch was flipped                             | The thumb slides across, overshooting slightly                  | `base`, `bounce` (a transition)          | Thumb jumps; the colour still fades |
+
+Where each one goes:
+
+- **`rise`** — a chat message from someone else arriving in an open thread, and
+  the **first** load of the inbox, the Browse results and the dashboard modules,
+  staggered 30ms per item and capped at the sixth item, so the last one starts
+  at 150ms. A list that reloads, pages, filters or is re-seeded from the server
+  does not rise again: the page provides a `RiseScope`, and it admits only the
+  first batch rendered on a visit. Your own sent message does not rise; it was
+  already there in the composer.
+- **`pop`** — the avatar menu, the country picker's list, the Browse filter
+  panel (from the bottom on a phone, from the right on a desktop) and the assign
+  dialog. It leaves faster than it came, because a closing menu is something the
+  reader has already finished with. The assign dialog only enters: its host
+  removes the whole component, and a leave inside it would never be seen. The
+  city picker's list does not pop — it is rebuilt after every search, so it
+  would pop on every keystroke.
+- **`step`** — onboarding and the team, event and training wizards. Back
+  travels the other way. The first step on arrival does not animate; there was
+  no step before it.
+- **`bump`** — the unread badges in the top and bottom bars, when the count
+  goes up. Not when it first renders, not when it goes down.
+- **`check`** — the "you joined" line after accepting an invitation in
+  onboarding, and the "Going" answer on a training session, drawn only when the
+  reader has just given it (not for the answer the page loaded with). It draws
+  the icon system's own `check` glyph, since no screen hand-draws SVG, and sits
+  beside the confirmation text, never in place of it; the text is readable from
+  the first frame. The invite page and the team wizard have no confirmation to
+  sit beside — both move on to the next screen — so they have no check.
+- **`knob`** — every drawn switch: notification preferences, team settings,
+  the Browse filter toggles. The public-profile toggle is a native checkbox with
+  no thumb to slide, and stays one.
+
+Rules that hold for all six:
+
+- **Motion never blocks.** The content and its controls are usable from the
+  first frame; a reader who clicks mid-animation gets the click. Nothing waits
+  for an animation to end before it becomes interactive.
+- **Only `transform` and `opacity` move.** Never `height`, `width`, `top`,
+  `margin` or anything else that makes the page re-lay itself out — in the chat
+  thread that would also fight the scroll position that keeps a thread pinned to
+  its latest message.
+- **Nothing longer than `slow`** (320ms), and nothing loops. `check` is the only
+  thing that uses the full `slow`.
+- **One thing moves at a time per region.** A staggered list and a popping
+  menu are fine together; two lists rising side by side are not.
+- **Keyframes live in `styles.css`, each beside its reduced-motion twin.** The
+  base layer above stops loops and removes movement from *transitions*, but it
+  deliberately leaves an entrance *keyframe* running — so a `rise` written with
+  `translate` would still travel for a reader who asked it not to. Each keyframe
+  that moves is therefore declared a second time inside the
+  `prefers-reduced-motion` block, opacity only. A component uses the shared
+  keyframe by name and never writes its own.
+- **Angular's built-in `animate.enter` / `animate.leave`, never
+  `@angular/animations`.** The built-in form applies a class and lets CSS do the
+  rest, which is what the reduced-motion twin needs, and it works without zone.js.
+- **No animation library, no Lottie player.** Snippets from galleries such as
+  uiverse.io or LottieFiles are references for an idea, rebuilt here in our own
+  tokens. A pasted snippet brings its own colours, timings and usually an
+  infinite loop, and a Lottie file bakes its colours into data this file cannot
+  govern.
+
 ## Browser surfaces
 
 The parts of the page nobody drew still carry a design. The selection highlight,

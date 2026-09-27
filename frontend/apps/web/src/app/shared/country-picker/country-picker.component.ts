@@ -2,6 +2,7 @@ import { Component, DestroyRef, ElementRef, HostListener, OnInit, computed, inje
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CityService } from '../../core/services/city.service';
 import { Country } from '../../core/models/city.models';
+import { TranslocoPipe } from '@jsverse/transloco';
 import { IconComponent } from '../ui';
 
 /** Keep the suggestion list short enough to sit under the input without a scroll area — the viewer
@@ -18,7 +19,7 @@ const MAX_RESULTS = 6;
  */
 @Component({
   selector: 'jh-country-picker',
-  imports: [IconComponent],
+  imports: [IconComponent, TranslocoPipe],
   templateUrl: './country-picker.component.html',
   styleUrl: './country-picker.component.css',
 })
@@ -29,7 +30,6 @@ export class CountryPickerComponent implements OnInit {
 
   /** The current filter text (owned by the parent). Its display and filtering both read from here. */
   readonly value = input('');
-  readonly placeholder = input('Any country');
 
   /** Emits the new filter text on every edit, and the exact country name when a suggestion is picked. */
   readonly valueChange = output<string>();

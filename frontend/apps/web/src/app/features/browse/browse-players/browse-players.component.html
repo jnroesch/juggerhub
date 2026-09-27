@@ -21,6 +21,7 @@
   <div rows class="flex flex-col">
     @for (player of list.items(); track player.handle) {
       <a
+        [jhRise]="$index"
         [routerLink]="['/u', player.handle]"
         class="flex items-center gap-sm border-b border-border-default py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
         data-testid="player-row"

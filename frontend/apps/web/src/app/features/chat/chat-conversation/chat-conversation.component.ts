@@ -83,6 +83,13 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
   protected readonly dividerBeforeId = signal<string | null>(null);
 
   /**
+   * Messages from someone else that arrived live while this thread was open — the only rows that
+   * `rise` (DESIGN.md "Motion vocabulary"). Not the thread opening, not a page of history, and not
+   * the reader's own send, which was already on screen in the composer.
+   */
+  protected readonly arrivedLive = signal<ReadonlySet<string>>(new Set());
+
+  /**
    * Files picked but not yet sent (feature 049). A signal, not a plain array: the app is zoneless,
    * so a plain property would never re-render the tray.
    */
@@ -160,6 +167,11 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
         return;
       }
 
+      const fromOthers = all.slice(all.length - arrived).filter((m) => !m.isOwn);
+      if (fromOthers.length > 0) {
+        this.arrivedLive.update((ids) => new Set([...ids, ...fromOthers.map((m) => m.id)]));
+      }
+
       if (this.pinnedToBottom) {
         // Scrolled after the render that draws the new message — NOT via a flag consumed in
         // `ngAfterViewChecked`, because this effect runs too late in the
@@ -207,6 +219,7 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
     this.failed.set(false);
     this.resetDivider();
     this.lastLatestId = null;
+    this.arrivedLive.set(new Set());
     this.pendingScrollAnchor = null;
     this.pinnedToBottom = true;
 
