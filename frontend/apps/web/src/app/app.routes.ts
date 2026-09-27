@@ -3,20 +3,10 @@ import { authGuard } from './core/guards/auth.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { onboardingGuard } from './core/guards/onboarding.guard';
 import { ShellComponent } from './layout/shell/shell.component';
-import { AccountComponent } from './features/account/account.component';
-import { SignInComponent } from './features/auth/sign-in/sign-in.component';
-import { RegisterComponent } from './features/auth/register/register.component';
-import { ForgotPasswordComponent } from './features/auth/forgot-password/forgot-password.component';
-import { ResetPasswordComponent } from './features/auth/reset-password/reset-password.component';
-import { VerifyEmailComponent } from './features/auth/verify-email/verify-email.component';
-import { ProfilePageComponent } from './features/profile/profile-page/profile-page.component';
-import { OnboardingComponent } from './features/onboarding/onboarding.component';
-import { TeamCreateComponent } from './features/teams/team-create/team-create.component';
-import { TeamDetailComponent } from './features/teams/team-detail/team-detail.component';
-import { TeamInvitationsComponent } from './features/teams/team-invitations/team-invitations.component';
-import { TeamSettingsComponent } from './features/teams/team-settings/team-settings.component';
-import { InviteAcceptComponent } from './features/teams/invite-accept/invite-accept.component';
-// Events (feature 006) are lazy-loaded to keep them out of the initial bundle.
+// Every screen is lazy-loaded (`loadComponent`) so the initial bundle carries only the shell, the
+// guards and the core services. ShellComponent is the one eager component: it frames every in-shell
+// route, so it is needed on first paint anyway. Do not add a static `component:` import for a
+// screen — it pulls that screen, and everything it imports, into the initial bundle.
 
 export const appRoutes: Route[] = [
   {
@@ -91,7 +81,11 @@ export const appRoutes: Route[] = [
         loadComponent: () => import('./features/dashboard/see-all/news-page.component').then((m) => m.NewsPageComponent),
       },
       // Guarded sample route — unauthenticated access redirects toward sign-in.
-      { path: 'account', component: AccountComponent, canActivate: [authGuard] },
+      {
+        path: 'account',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/account/account.component').then((m) => m.AccountComponent),
+      },
       // Notification settings (feature 011) — the per-category × per-channel matrix. Lazy-loaded.
       {
         path: 'settings/notifications',
@@ -105,14 +99,34 @@ export const appRoutes: Route[] = [
       // handle gets the editable view; everyone else the read-only one; a signed-out visitor to a
       // private/unknown profile is redirected to sign-in by the read-only view. NOT authGuarded —
       // signed-out visitors can see public profiles (the shell shows a slim public bar for them).
-      { path: 'u/:handle', component: ProfilePageComponent },
+      {
+        path: 'u/:handle',
+        loadComponent: () => import('./features/profile/profile-page/profile-page.component').then((m) => m.ProfilePageComponent),
+      },
       // Teams (feature 005) — create + the members-only team space, in the shell.
-      { path: 'teams/new', component: TeamCreateComponent, canActivate: [authGuard] },
+      {
+        path: 'teams/new',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/teams/team-create/team-create.component').then((m) => m.TeamCreateComponent),
+      },
       // Team page (feature 009). Authenticated-only since feature 026 — teams are never anonymous;
       // members/admins see more inline. The limited "public" view is for signed-in non-members.
-      { path: 't/:slug', component: TeamDetailComponent, canActivate: [authGuard] },
-      { path: 't/:slug/invitations', component: TeamInvitationsComponent, canActivate: [authGuard] },
-      { path: 't/:slug/settings', component: TeamSettingsComponent, canActivate: [authGuard] },
+      {
+        path: 't/:slug',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/teams/team-detail/team-detail.component').then((m) => m.TeamDetailComponent),
+      },
+      {
+        path: 't/:slug/invitations',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/teams/team-invitations/team-invitations.component').then((m) => m.TeamInvitationsComponent),
+      },
+      {
+        path: 't/:slug/settings',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/teams/team-settings/team-settings.component').then((m) => m.TeamSettingsComponent),
+      },
       // Events (feature 006) — authenticated-only since feature 026 (events are never anonymous). Lazy-loaded.
       {
         path: 'events/new',
@@ -261,14 +275,35 @@ export const appRoutes: Route[] = [
     loadComponent: () => import('./features/legal/imprint/imprint.component').then((m) => m.ImprintComponent),
   },
   // Auth screens are full-screen, outside the shell.
-  { path: 'sign-in', component: SignInComponent },
-  { path: 'register', component: RegisterComponent },
-  { path: 'forgot-password', component: ForgotPasswordComponent },
-  { path: 'reset-password', component: ResetPasswordComponent },
-  { path: 'verify-email', component: VerifyEmailComponent },
+  {
+    path: 'sign-in',
+    loadComponent: () => import('./features/auth/sign-in/sign-in.component').then((m) => m.SignInComponent),
+  },
+  {
+    path: 'register',
+    loadComponent: () => import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
+  },
+  {
+    path: 'forgot-password',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component').then((m) => m.ForgotPasswordComponent),
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component').then((m) => m.ResetPasswordComponent),
+  },
+  {
+    path: 'verify-email',
+    loadComponent: () => import('./features/auth/verify-email/verify-email.component').then((m) => m.VerifyEmailComponent),
+  },
   // First-login onboarding — full-screen, outside the shell. authGuard requires a
   // session; onboardingGuard bounces already-onboarded users to the dashboard.
-  { path: 'onboarding', component: OnboardingComponent, canActivate: [authGuard, onboardingGuard] },
+  {
+    path: 'onboarding',
+    canActivate: [authGuard, onboardingGuard],
+    loadComponent: () => import('./features/onboarding/onboarding.component').then((m) => m.OnboardingComponent),
+  },
   // Admin area (feature 013) — full-screen shell with its own shield header and nav;
   // gated to platform admins (server-enforced; adminGuard is UX only). Lazy-loaded.
   // Children: overview (landing) · users (search/list) · users/:handle (player detail)
@@ -319,7 +354,10 @@ export const appRoutes: Route[] = [
     ],
   },
   // Invite accept — full-screen, outside the shell; preview is anonymous, accept needs auth.
-  { path: 'join/:slug/:token', component: InviteAcceptComponent },
+  {
+    path: 'join/:slug/:token',
+    loadComponent: () => import('./features/teams/invite-accept/invite-accept.component').then((m) => m.InviteAcceptComponent),
+  },
   // Event co-admin invite accept — full-screen, outside the shell; preview anonymous, accept needs auth.
   {
     path: 'event-invite/:token',

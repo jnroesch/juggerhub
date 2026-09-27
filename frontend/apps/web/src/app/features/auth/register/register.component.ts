@@ -18,7 +18,8 @@ import {
   IDENTIFIER_MAX_LENGTH,
   IDENTIFIER_MIN_LENGTH,
 } from '../../../core/models/identifier.models';
-import { AlertComponent, ButtonDirective, CardComponent, IconComponent, LegalLinksComponent, LowercaseInputDirective } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, IconComponent, LegalLinksComponent } from '../../../shared/ui';
+import { LowercaseInputDirective } from '../../../shared/ui/lowercase-input/lowercase-input.directive';
 import { LanguageSwitcherComponent } from '../../settings/language/language-switcher.component';
 
 /**
