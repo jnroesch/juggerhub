@@ -53,8 +53,10 @@
     "yourInvites": "Deine Einladungen",
     "cityTeam": "Stadtteam",
     "mixteam": "Mixteam",
-    "memberOne": "Mitglied",
-    "memberMany": "Mitglieder",
+    "members": {
+      "one": "Mitglied",
+      "other": "Mitglieder"
+    },
     "invitedBy": "Eingeladen von {{name}}",
     "orFindOwn": "Oder finde dein eigenes Team",
     "findYourTeam": "Finde dein Team",
@@ -557,8 +559,10 @@
       "opening": "Wird geöffnet…",
       "message": "Nachricht",
       "inviteToTeam": "In ein Team einladen",
-      "alreadyOnTeamOne": "Schon in deinem Team",
-      "alreadyOnTeamMany": "Schon in deinen Teams",
+      "alreadyOnTeam": {
+        "one": "Schon in deinem Team",
+        "other": "Schon in deinen Teams"
+      },
       "inviting": "Wird eingeladen…",
       "inviteTo": "Einladen in",
       "invitedTo": "In {{name}} eingeladen."
@@ -856,8 +860,10 @@
     "errorBody": "Der Server hat gerade nicht geantwortet. Versuch es noch einmal.",
     "greetingHi": "Hallo {{name}}",
     "greetingWelcome": "Willkommen, {{name}}",
-    "needsYouOne": "Es wartet {{count}} Sache auf dich.",
-    "needsYouMany": "Es warten {{count}} Sachen auf dich.",
+    "needsYou": {
+      "one": "Es wartet {{count}} Sache auf dich.",
+      "other": "Es warten {{count}} Sachen auf dich."
+    },
     "upNextCount": "Bei dir stehen {{count}} an.",
     "nothingCalendar": "Noch nichts in deinem Kalender. Such dir ein Spiel.",
     "findCrew": "Finden wir dir ein Team.",
@@ -1162,8 +1168,10 @@
       "colTeams": "Teams",
       "colStatus": "Status",
       "colBadges": "Abzeichen",
-      "badgeOne": "Abzeichen",
-      "badgeMany": "Abzeichen"
+      "badges": {
+        "one": "Abzeichen",
+        "other": "Abzeichen"
+      }
     },
     "teams": {
       "title": "Teams",
@@ -1182,8 +1190,10 @@
       "cityTeam": "Stadtteam",
       "mixteam": "Mixteam",
       "membersLower": "Mitglieder",
-      "awardOne": "Auszeichnung",
-      "awardMany": "Auszeichnungen"
+      "awards": {
+        "one": "Auszeichnung",
+        "other": "Auszeichnungen"
+      }
     },
     "userDetail": {
       "breadcrumb": "Nutzer",
@@ -1278,8 +1288,10 @@
       "toggleLabel": "Katalog",
       "badges": "Abzeichen",
       "achievements": "Auszeichnungen",
-      "typeOne": "Typ",
-      "typeMany": "Typen",
+      "types": {
+        "one": "Typ",
+        "other": "Typen"
+      },
       "retiredLower": "stillgelegt",
       "filterGroup": "Nach Status filtern",
       "filterAll": "Alle",
@@ -1537,8 +1549,10 @@
       "loadError": "Wir konnten den Markt nicht laden. Versuche es gleich noch einmal.",
       "partiesRecruiting": "Suchende Partys",
       "noCrews": "Noch sucht keine Crew hier. Biete dich an, und sie finden dich.",
-      "spotOpenOne": "Platz frei",
-      "spotOpenMany": "Plätze frei",
+      "spotsOpen": {
+        "one": "Platz frei",
+        "other": "Plätze frei"
+      },
       "needs": "braucht",
       "freeAgents": "Freie Spieler",
       "noFreeAgents": "Noch keine freien Spieler auf dem Board.",

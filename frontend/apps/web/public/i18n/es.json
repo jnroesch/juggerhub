@@ -53,8 +53,10 @@
     "yourInvites": "Tus invitaciones",
     "cityTeam": "Equipo de ciudad",
     "mixteam": "Mixteam",
-    "memberOne": "miembro",
-    "memberMany": "miembros",
+    "members": {
+      "one": "miembro",
+      "other": "miembros"
+    },
     "invitedBy": "Invitado por {{name}}",
     "orFindOwn": "O crea tu propio equipo",
     "findYourTeam": "Encuentra tu equipo",
@@ -557,8 +559,10 @@
       "opening": "Abriendo…",
       "message": "Mensaje",
       "inviteToTeam": "Invitar a un equipo",
-      "alreadyOnTeamOne": "Ya está en tu equipo",
-      "alreadyOnTeamMany": "Ya está en tus equipos",
+      "alreadyOnTeam": {
+        "one": "Ya está en tu equipo",
+        "other": "Ya está en tus equipos"
+      },
       "inviting": "Invitando…",
       "inviteTo": "Invitar a",
       "invitedTo": "Invitado a {{name}}."
@@ -856,8 +860,10 @@
     "errorBody": "El servidor no ha respondido ahora mismo. Inténtalo de nuevo.",
     "greetingHi": "Hola {{name}}",
     "greetingWelcome": "Bienvenido, {{name}}",
-    "needsYouOne": "Tienes {{count}} cosa esperándote.",
-    "needsYouMany": "Tienes {{count}} cosas esperándote.",
+    "needsYou": {
+      "one": "Tienes {{count}} cosa esperándote.",
+      "other": "Tienes {{count}} cosas esperándote."
+    },
     "upNextCount": "Tienes {{count}} próximamente.",
     "nothingCalendar": "Aún no hay nada en tu calendario. Busca un partido.",
     "findCrew": "Vamos a buscarte un equipo.",
@@ -1162,8 +1168,10 @@
       "colTeams": "Equipos",
       "colStatus": "Estado",
       "colBadges": "Insignias",
-      "badgeOne": "insignia",
-      "badgeMany": "insignias"
+      "badges": {
+        "one": "insignia",
+        "other": "insignias"
+      }
     },
     "teams": {
       "title": "Equipos",
@@ -1182,8 +1190,10 @@
       "cityTeam": "Equipo de ciudad",
       "mixteam": "Equipo mixto",
       "membersLower": "miembros",
-      "awardOne": "reconocimiento",
-      "awardMany": "reconocimientos"
+      "awards": {
+        "one": "reconocimiento",
+        "other": "reconocimientos"
+      }
     },
     "userDetail": {
       "breadcrumb": "Usuarios",
@@ -1278,8 +1288,10 @@
       "toggleLabel": "Catálogo",
       "badges": "Insignias",
       "achievements": "Logros",
-      "typeOne": "tipo",
-      "typeMany": "tipos",
+      "types": {
+        "one": "tipo",
+        "other": "tipos"
+      },
       "retiredLower": "retirados",
       "filterGroup": "Filtrar por estado",
       "filterAll": "Todos",
@@ -1537,8 +1549,10 @@
       "loadError": "No hemos podido cargar el mercado. Inténtalo en un momento.",
       "partiesRecruiting": "Parties reclutando",
       "noCrews": "Todavía no hay equipos reclutando aquí. Ofrécete y te encontrarán.",
-      "spotOpenOne": "hueco libre",
-      "spotOpenMany": "huecos libres",
+      "spotsOpen": {
+        "one": "hueco libre",
+        "other": "huecos libres"
+      },
       "needs": "necesita",
       "freeAgents": "Agentes libres",
       "noFreeAgents": "Aún no hay agentes libres en el tablón.",

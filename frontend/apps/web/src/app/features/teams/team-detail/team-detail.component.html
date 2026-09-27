@@ -29,7 +29,7 @@
         <p class="mt-1 flex flex-wrap items-center gap-xs text-body-sm text-muted">
           <span>{{ team.type === 'CityTeam' ? (team.location?.label || ('teams.create.cityTeam' | transloco)) : ('teams.create.mixteam' | transloco) }}</span>
           <span aria-hidden="true">·</span>
-          <span><span class="font-mono">{{ team.memberCount }}</span> {{ (team.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}</span>
+          <span><span class="font-mono">{{ team.memberCount }}</span> {{ 'myTeam.members' | pluralKey: team.memberCount | transloco }}</span>
           @if (team.isActive) {
             <span jhChip tone="success">{{ 'teams.detail.active' | transloco }}</span>
           }

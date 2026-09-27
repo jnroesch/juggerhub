@@ -36,7 +36,7 @@
       <h2 class="mt-sm text-h4 text-heading">{{ d.name }}</h2>
       <p class="text-body-sm text-muted">
         <span class="font-mono">{{ d.memberCount }}</span>
-        {{ (d.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}
+        {{ 'myTeam.members' | pluralKey: d.memberCount | transloco }}
         @if (d.kind === 'Group') { · {{ 'chat.details.kindGroup' | transloco }} } @else if (d.kind === 'Team') { · {{ 'chat.details.kindTeam' | transloco }} } @else if (d.kind === 'Party') { · {{ 'chat.details.kindParty' | transloco }} }
       </p>
 

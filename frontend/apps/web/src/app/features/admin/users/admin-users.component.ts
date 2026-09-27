@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, debounceTime } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { AccountStatus, AdminUserListItem } from '../../../core/models/admin.models';
 import { AdminService } from '../../../core/services/admin.service';
 import { problemDetail } from '../../../core/utils/problem';
@@ -22,7 +23,7 @@ const PAGE_SIZE = 20;
  */
 @Component({
   selector: 'jh-admin-users',
-  imports: [CardComponent, ChipDirective, RouterLink, FormsModule, LoadingComponent, EmptyStateComponent, TranslocoPipe, IconComponent],
+  imports: [CardComponent, ChipDirective, RouterLink, FormsModule, LoadingComponent, EmptyStateComponent, TranslocoPipe, PluralKeyPipe, IconComponent],
   templateUrl: './admin-users.component.html',
   styleUrl: './admin-users.component.css',
 })

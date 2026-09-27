@@ -38,7 +38,7 @@
   <!-- Status filter -->
   <div class="flex items-center gap-sm">
     <span class="font-mono text-caption text-muted" data-testid="catalogue-count">
-      {{ total() }} {{ (total() === 1 ? 'admin.catalogue.typeOne' : 'admin.catalogue.typeMany') | transloco }}@if (retiredCount() > 0) { · {{ retiredCount() }} {{ 'admin.catalogue.retiredLower' | transloco }}}
+      {{ total() }} {{ 'admin.catalogue.types' | pluralKey: total() | transloco }}@if (retiredCount() > 0) { · {{ retiredCount() }} {{ 'admin.catalogue.retiredLower' | transloco }}}
     </span>
     <div class="flex gap-1" role="group" [attr.aria-label]="'admin.catalogue.filterGroup' | transloco">
       <button type="button" jhChip [tone]="filter() === 'all' ? 'accent' : 'outline'" [attr.aria-pressed]="filter() === 'all'"

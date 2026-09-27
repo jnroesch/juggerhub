@@ -22,6 +22,7 @@ import { ButtonDirective, AlertComponent, CardComponent, ChipDirective, IconComp
 import { CityPickerComponent } from '../../shared/city-picker/city-picker.component';
 import { CityOption, Location, toSelection } from '../../core/models/city.models';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../core/i18n/plural-key.pipe';
 
 type Step = 'welcome' | 'name' | 'city' | 'pompfen' | 'team' | 'photo' | 'done';
 
@@ -67,6 +68,7 @@ const FLOW: readonly Step[] = ['welcome', 'name', 'city', 'pompfen', 'team', 'ph
     IconComponent,
     LoadingComponent,
     TranslocoPipe,
+    PluralKeyPipe,
   ],
   templateUrl: './onboarding.component.html',
   styleUrl: './onboarding.component.css',

@@ -14,7 +14,7 @@
         <h1 class="text-h2">{{ 'home.greetingHi' | transloco:{ name: home.viewer.displayName } }}</h1>
         <p class="mt-xs text-lead text-muted">
           @if (home.needsYou.length > 0) {
-            {{ (home.needsYou.length === 1 ? 'home.needsYouOne' : 'home.needsYouMany') | transloco:{ count: home.needsYou.length } }}
+            {{ 'home.needsYou' | pluralKey: home.needsYou.length | transloco:{ count: home.needsYou.length } }}
           } @else if (home.upNext.length > 0) {
             {{ 'home.upNextCount' | transloco:{ count: home.upNext.length } }}
           } @else {

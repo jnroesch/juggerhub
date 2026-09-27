@@ -8,6 +8,7 @@ import { UpNextCardComponent } from './modules/up-next-card.component';
 import { NewsListComponent } from './modules/news-list.component';
 import { ActivityListComponent } from './modules/activity-list.component';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../core/i18n/plural-key.pipe';
 
 /**
  * Home — the logged-in entry point (feature 008, reshaped by feature 025). Loads the composite
@@ -18,7 +19,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
  */
 @Component({
   selector: 'jh-dashboard',
-  imports: [LoadingComponent, RouterLink, NeedsYouCardComponent, UpNextCardComponent, NewsListComponent, ActivityListComponent, ButtonDirective, EmptyStateComponent, TranslocoPipe, RiseDirective],
+  imports: [LoadingComponent, RouterLink, NeedsYouCardComponent, UpNextCardComponent, NewsListComponent, ActivityListComponent, ButtonDirective, EmptyStateComponent, TranslocoPipe, PluralKeyPipe, RiseDirective],
   providers: [RiseScope],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
