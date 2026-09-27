@@ -2,7 +2,7 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
-import { AlertComponent, ButtonDirective, IconComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, IconComponent, stepMotion } from '../../../shared/ui';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import {
@@ -92,6 +92,9 @@ export class EventCreateComponent {
 
   protected readonly steps = STEPS;
   protected readonly step = signal<Step>(this.restored?.step ?? this.pristine.step);
+
+  /** The class each step's root enters with — forward or back by the step order (DESIGN.md "Motion vocabulary"). */
+  protected readonly stepEnter = stepMotion(this.step, STEPS);
   protected readonly stepIndex = computed(() => STEPS.indexOf(this.step()));
 
   // Toggled choices (not form controls) — mirror the team-create toggle pattern.
