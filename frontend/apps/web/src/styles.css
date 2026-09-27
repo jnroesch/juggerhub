@@ -347,8 +347,10 @@
    `rise` would still travel for a reader who asked it not to.
    `browser-surfaces.spec.ts` fails on a travelling keyframe without its twin.
 
-   Entrances fill `both`, so a staggered item waits invisibly for its turn
-   rather than flashing in and then animating. */
+   Entrances fill `backwards`, so a staggered item waits invisibly for its turn
+   rather than flashing in and then animating — and never `both`: a transform
+   held after the end would beat a card's hover-lift transition for good. The
+   leave fills `both` because it must stay faded until the element is gone. */
 
 @keyframes jh-rise {
   from {
@@ -404,21 +406,21 @@
      item everything starts together, so a long list never keeps the reader
      waiting for its tail. */
   .jh-rise {
-    animation: jh-rise var(--duration-base) var(--ease-out) both;
+    animation: jh-rise var(--duration-base) var(--ease-out) backwards;
     animation-delay: calc(min(var(--jh-stagger, 0), 5) * 30ms);
   }
 
   /* Scales from `transform-origin`; the popover sets it to the edge it opens from. */
   .jh-pop {
-    animation: jh-pop var(--duration-base) var(--ease-out) both;
+    animation: jh-pop var(--duration-base) var(--ease-out) backwards;
   }
 
   .jh-step-forward {
-    animation: jh-step-forward var(--duration-base) var(--ease-out) both;
+    animation: jh-step-forward var(--duration-base) var(--ease-out) backwards;
   }
 
   .jh-step-back {
-    animation: jh-step-back var(--duration-base) var(--ease-out) both;
+    animation: jh-step-back var(--duration-base) var(--ease-out) backwards;
   }
 
   .jh-bump {
@@ -428,7 +430,7 @@
   /* On an SVG path with `pathLength="1"`, so the dash covers the stroke whatever its length. */
   .jh-check {
     stroke-dasharray: 1;
-    animation: jh-check var(--duration-slow) var(--ease-out) both;
+    animation: jh-check var(--duration-slow) var(--ease-out) backwards;
   }
 
   /* Every leave: faster than the entrance, and it only fades — the reader is done with it. */

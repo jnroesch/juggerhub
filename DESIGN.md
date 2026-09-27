@@ -509,13 +509,13 @@ first, like a new colour, and then built.
 
 Where each one goes:
 
-- **`rise`** — a chat message from someone else arriving in an open thread; a
-  new conversation or notification entering its list; and the **first** load of
-  the inbox, the Browse results and the dashboard modules, staggered 30ms per
-  item and capped at the sixth item, so the last one starts at 150ms. A list
-  that reloads, pages, filters or is re-seeded from the server does not rise
-  again — only its first appearance on a visit and a single live arrival do.
-  Your own sent message does not rise; it was already there in the composer.
+- **`rise`** — a chat message from someone else arriving in an open thread, and
+  the **first** load of the inbox, the Browse results and the dashboard modules,
+  staggered 30ms per item and capped at the sixth item, so the last one starts
+  at 150ms. A list that reloads, pages, filters or is re-seeded from the server
+  does not rise again: the page provides a `RiseScope`, and it admits only the
+  first batch rendered on a visit. Your own sent message does not rise; it was
+  already there in the composer.
 - **`pop`** — the avatar menu, the country picker's list, the Browse filter
   panel (from the bottom on a phone, from the right on a desktop) and the assign
   dialog. It leaves faster than it came, because a closing menu is something the

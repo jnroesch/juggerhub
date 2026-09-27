@@ -56,7 +56,7 @@
   @if (displayed().length > 0) {
     <ul jhCard padding="flush" class="mt-lg divide-y divide-border-muted" data-testid="conversation-list">
       @for (c of displayed(); track c.id) {
-        <li>
+        <li [jhRise]="$index">
           <a
             [routerLink]="['/chat', c.id]"
             class="flex items-center gap-sm px-md py-sm transition-colors duration-fast hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"

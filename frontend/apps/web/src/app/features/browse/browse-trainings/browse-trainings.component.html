@@ -29,6 +29,7 @@
   <div rows class="flex flex-col gap-xs">
     @for (training of list.items(); track training.sessionId) {
       <a
+        [jhRise]="$index"
         [routerLink]="['/trainings', 'sessions', training.sessionId]"
         class="flex items-center gap-sm rounded-md border border-border-muted bg-surface-card px-sm py-sm no-underline transition-colors duration-fast hover:bg-surface-sunken"
         data-testid="training-row"

@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, EmptyStateComponent, LoadingComponent } from '../../shared/ui';
+import { ButtonDirective, EmptyStateComponent, LoadingComponent, RiseDirective, RiseScope } from '../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { HomeService } from '../../core/services/home.service';
 import { Home } from '../../core/models/home.models';
@@ -18,7 +18,8 @@ import { TranslocoPipe } from '@jsverse/transloco';
  */
 @Component({
   selector: 'jh-dashboard',
-  imports: [LoadingComponent, RouterLink, NeedsYouCardComponent, UpNextCardComponent, NewsListComponent, ActivityListComponent, ButtonDirective, EmptyStateComponent, TranslocoPipe],
+  imports: [LoadingComponent, RouterLink, NeedsYouCardComponent, UpNextCardComponent, NewsListComponent, ActivityListComponent, ButtonDirective, EmptyStateComponent, TranslocoPipe, RiseDirective],
+  providers: [RiseScope],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
 })

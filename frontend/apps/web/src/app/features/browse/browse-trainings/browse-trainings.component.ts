@@ -9,7 +9,7 @@ import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { FilterChip, SortOption, TrainingBrowseParams, TrainingCard } from '../../../core/models/search.models';
 import { CityOption, Location } from '../../../core/models/city.models';
-import { ChipDirective } from '../../../shared/ui';
+import { ChipDirective, RiseDirective, RiseScope } from '../../../shared/ui';
 import { BrowseList } from '../browse-list';
 import { BrowseUrl, dateParam } from '../browse-url';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
@@ -37,8 +37,10 @@ import { CityPickerComponent } from '../../../shared/city-picker/city-picker.com
     CountryPickerComponent,
     CityPickerComponent,
     ChipDirective,
+    RiseDirective,
     TranslocoPipe,
   ],
+  providers: [RiseScope],
   templateUrl: './browse-trainings.component.html',
   styleUrl: './browse-trainings.component.css',
 })

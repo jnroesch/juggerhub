@@ -8,7 +8,7 @@ import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { SearchService } from '../../../core/services/search.service';
 import { ProfileService } from '../../../core/services/profile.service';
 import { EventBrowseParams, EventCard, EventType, FilterChip, SortOption } from '../../../core/models/search.models';
-import { ChipDirective } from '../../../shared/ui';
+import { ChipDirective, RiseDirective, RiseScope } from '../../../shared/ui';
 import { BrowseList } from '../browse-list';
 import { BrowseUrl, dateParam } from '../browse-url';
 import { BrowseShellComponent } from '../browse-shell/browse-shell.component';
@@ -25,7 +25,8 @@ const EVENT_TYPES: readonly EventType[] = ['Tournament', 'Workshop', 'Other'];
  */
 @Component({
   selector: 'jh-browse-events',
-  imports: [RouterLink, TranslocoDatePipe, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent, ChipDirective, TranslocoPipe],
+  imports: [RouterLink, TranslocoDatePipe, BrowseShellComponent, FilterPanelComponent, FilterToggleComponent, CountryPickerComponent, ChipDirective, RiseDirective, TranslocoPipe],
+  providers: [RiseScope],
   templateUrl: './browse-events.component.html',
   styleUrl: './browse-events.component.css',
 })

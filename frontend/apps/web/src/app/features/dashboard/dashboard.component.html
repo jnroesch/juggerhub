@@ -34,12 +34,12 @@
       <div class="flex min-w-0 flex-col gap-lg">
         <!-- 1. Needs you — actionable, pinned top -->
         @if (home.needsYou.length > 0) {
-          <jh-needs-you-card [items]="home.needsYou" (resolved)="onResolved($event)" />
+          <jh-needs-you-card [jhRise]="0" [items]="home.needsYou" (resolved)="onResolved($event)" />
         }
 
         @if (hasTeam()) {
           <!-- 2. Up next — unified participation agenda (events + trainings) -->
-          <section jhCard data-testid="up-next">
+          <section jhCard [jhRise]="1" data-testid="up-next">
             <div class="mb-sm flex items-center justify-between">
               <h2 class="text-body-lg font-semibold text-heading">{{ 'home.upNext' | transloco }}</h2>
               @if (home.upNext.length > 0) {
@@ -60,7 +60,7 @@
           </section>
         } @else {
           <!-- New player: find a team -->
-          <section class="rounded-lg border border-dashed border-border-strong bg-surface-sunken p-lg" data-testid="find-a-team">
+          <section class="rounded-lg border border-dashed border-border-strong bg-surface-sunken p-lg" [jhRise]="1" data-testid="find-a-team">
             <h2 class="text-body-lg font-semibold text-heading">{{ 'home.notOnTeamTitle' | transloco }}</h2>
             <p class="mt-xs max-w-md text-body-sm text-muted">{{ 'home.notOnTeamBody' | transloco }}</p>
             <div class="mt-md flex flex-wrap gap-sm">
@@ -73,7 +73,7 @@
 
           <!-- Open to everyone -->
           @if (home.openToEveryone.length > 0) {
-            <section jhCard data-testid="open-to-everyone">
+            <section jhCard [jhRise]="2" data-testid="open-to-everyone">
               <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'home.openToEveryone' | transloco }}</h2>
               <div class="flex flex-col gap-xs">
                 @for (item of home.openToEveryone; track item.id) {
@@ -88,7 +88,7 @@
       <!-- Rail — reading + ambient -->
       <aside class="flex min-w-0 flex-col gap-lg">
         <!-- 3. News — authored broadcast (team + event + party) -->
-        <section jhCard data-testid="news">
+        <section jhCard [jhRise]="3" data-testid="news">
           <div class="mb-sm flex items-center justify-between">
             <h2 class="text-body-lg font-semibold text-heading">{{ 'home.news' | transloco }}</h2>
             @if (home.news.length > 0) {
@@ -104,7 +104,7 @@
 
         <!-- 4. What's going on — quiet passive activity log; hides itself when empty -->
         @if (home.activity.length > 0) {
-          <jh-activity-list [items]="home.activity" />
+          <jh-activity-list [jhRise]="4" [items]="home.activity" />
         }
       </aside>
     </div>
