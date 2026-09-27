@@ -23,7 +23,9 @@ import { LANG_TO_LOCALE, isSupportedLanguage } from './supported-languages';
  *
  * The number is only ever the category's input. Deciding a form in code — `n === 1 ? 'a' : 'b'` —
  * is the English two-form rule compiled into a template, where no translator can see it; that is
- * what this replaced, in thirteen places.
+ * what this replaced, in twelve places. And every message that interpolates `{{count}}` is a plural
+ * message, even where the English forms are identical, because whether the words around a number
+ * change with it is for each language to say — German "Bei dir stehen 1 an." was one of them.
  *
  * Why not ICU MessageFormat (`@jsverse/transloco-messageformat`): its transpiler runs Transloco's
  * `{{ }}` interpolation FIRST and compiles the result, so a player whose display name contains `{`

@@ -2,6 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { Subject, debounceTime } from 'rxjs';
 import { AdminPlacement } from '../../../core/models/results.models';
@@ -28,6 +29,7 @@ const PAGE_SIZE = 20;
     ChipDirective,
     RouterLink,
     TranslocoPipe,
+    PluralKeyPipe,
     TranslocoDatePipe,
     AlertComponent,
     ButtonDirective,

@@ -83,6 +83,19 @@ describe('EventResultsComponent (the results card on the event page)', () => {
     expect(q(f, 'results-meta')?.textContent).toContain('4 teams ranked');
   });
 
+  it('agrees with a count of one (GH #338: "1 teams ranked", "Show all 1 matches")', () => {
+    const f = mount(
+      result({
+        placements: [{ id: 'a', position: 1, name: 'Rigor Mortis', teamSlug: null }],
+        rankedCount: 1,
+        matchCount: 1,
+      }),
+    );
+
+    expect(q(f, 'results-meta')?.textContent).toContain('1 team ranked');
+    expect(q(f, 'results-show-matches')?.textContent?.trim()).toBe('Show 1 match');
+  });
+
   it('names every team that shares first place', () => {
     const f = mount(
       result({

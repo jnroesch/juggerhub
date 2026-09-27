@@ -3,6 +3,10 @@
  * Adding a language is a one-line change here plus its catalogs / `.resx` / email folder on the
  * backend — no architecture change (SC-008). English is the source and universal fallback.
  *
+ * Plurals are part of "its catalogs": a plural message carries one form per CLDR category the
+ * language has (`plural.ts`), and `catalog-plurals.spec.ts` fails until the new catalog has every
+ * form that language's rules select (GH #338).
+ *
  * Kept in parity with the backend supported-culture list (RequestLocalization + the language
  * `PUT` validator).
  */

@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { Party, PartyMember, PartyNews, PartyRosterGroup } from '../../../core/models/party.models';
 import { PartyService } from '../../../core/services/party.service';
 import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
@@ -18,7 +19,7 @@ import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
  */
 @Component({
   selector: 'jh-party-manage',
-  imports: [RouterLink, TranslocoDatePipe, FormsModule, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe, IconComponent],
+  imports: [RouterLink, TranslocoDatePipe, FormsModule, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent],
   templateUrl: './party-manage.component.html',
   styleUrl: './party-manage.component.css',
 })

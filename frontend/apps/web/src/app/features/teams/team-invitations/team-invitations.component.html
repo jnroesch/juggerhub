@@ -35,7 +35,7 @@
 
     <!-- Pending -->
     <div class="mt-lg">
-      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.invitations.sentTo' | transloco:{ count: pending().length } }}</p>
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.invitations.sentTo' | pluralKey: pending().length | transloco:{ count: pending().length } }}</p>
       @if (pending().length === 0) {
         <p class="mt-xs text-body-sm text-muted">{{ 'teams.invitations.noPending' | transloco }}</p>
       } @else {

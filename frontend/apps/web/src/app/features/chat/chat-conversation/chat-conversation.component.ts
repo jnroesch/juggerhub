@@ -20,6 +20,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { CardComponent, ChipDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { ChatService } from '../../../core/services/chat.service';
 import { ChatMessage, ConversationDetail } from '../../../core/models/chat.models';
 import { injectLocale } from '../../../core/i18n/locale-format';
@@ -48,7 +49,7 @@ const ACCEPTED_FILE_TYPES =
  */
 @Component({
   selector: 'jh-chat-conversation',
-  imports: [CardComponent, ChipDirective, FormsModule, RouterLink, LoadingComponent, TranslocoPipe, IconComponent],
+  imports: [CardComponent, ChipDirective, FormsModule, RouterLink, LoadingComponent, TranslocoPipe, PluralKeyPipe, IconComponent],
   templateUrl: './chat-conversation.component.html',
   styleUrl: './chat-conversation.component.css',
 })

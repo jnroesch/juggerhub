@@ -1,13 +1,15 @@
 import { Component, computed, effect, inject, input, output, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { PasswordPolicy } from '../../../core/models/auth.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { IconComponent } from '../../../shared/ui';
 
 interface Rule {
-  /** Translation key + params, resolved in the template so labels follow the active language. */
+  /** Translation key, resolved in the template so labels follow the active language. */
   key: string;
-  params?: Record<string, unknown>;
+  /** Set when the rule names a number; `key` is then a plural message (GH #338). */
+  count?: number;
   met: boolean;
 }
 
@@ -18,7 +20,7 @@ interface Rule {
  */
 @Component({
   selector: 'jh-password-rules',
-  imports: [TranslocoPipe, IconComponent],
+  imports: [TranslocoPipe, PluralKeyPipe, IconComponent],
   templateUrl: './password-rules.component.html',
   styleUrl: './password-rules.component.css',
 })
@@ -38,7 +40,7 @@ export class PasswordRulesComponent {
     }
 
     const rules: Rule[] = [
-      { key: 'auth.passwordRules.minLength', params: { count: policy.minLength }, met: value.length >= policy.minLength },
+      { key: 'auth.passwordRules.minLength', count: policy.minLength, met: value.length >= policy.minLength },
     ];
     if (policy.requireUppercase) {
       rules.push({ key: 'auth.passwordRules.uppercase', met: /[A-Z]/.test(value) });
@@ -55,7 +57,7 @@ export class PasswordRulesComponent {
     if (policy.requiredUniqueChars > 1) {
       rules.push({
         key: 'auth.passwordRules.uniqueChars',
-        params: { count: policy.requiredUniqueChars },
+        count: policy.requiredUniqueChars,
         met: new Set(value).size >= policy.requiredUniqueChars,
       });
     }

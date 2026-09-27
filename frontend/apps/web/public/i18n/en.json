@@ -164,14 +164,20 @@
       "relationMember": "Member",
       "relationInvited": "Invited",
       "invite": "Invite",
-      "sentTo": "Sent to people · {{count}}",
+      "sentTo": {
+        "one": "Sent to people · {{count}}",
+        "other": "Sent to people · {{count}}"
+      },
       "noPending": "No pending invites yet.",
       "inviteLink": "Invite link",
       "revoke": "Revoke",
       "revokeHint": "Revoke cancels an invite before it's accepted.",
       "expiresToday": "expires today",
       "expiresTomorrow": "expires tomorrow",
-      "expiresInDays": "expires in {{count}} days",
+      "expiresInDays": {
+        "one": "expires in {{count}} day",
+        "other": "expires in {{count}} days"
+      },
       "searchEmpty": "No players match that. Try another spelling, or their @handle.",
       "searchFailed": "We couldn't run that search. Check your connection and try again."
     },
@@ -237,7 +243,10 @@
     },
     "placements": {
       "title": "Tournament results",
-      "place": "Place {{position}} of {{count}}",
+      "place": {
+        "one": "Place {{position}} of {{count}}",
+        "other": "Place {{position}} of {{count}}"
+      },
       "empty": "No tournament results recorded for this team yet.",
       "loadMore": "Show older results",
       "loadError": "We couldn't load the tournament results just now."
@@ -259,7 +268,10 @@
       "teamsIn": "Teams in",
       "peopleIn": "People in",
       "confirmed": "confirmed",
-      "pendingPayment": "{{count}} pending payment",
+      "pendingPayment": {
+        "one": "{{count}} pending payment",
+        "other": "{{count}} pending payment"
+      },
       "about": "About",
       "where": "Where",
       "manageParticipants": "Manage participants & waitlist",
@@ -329,11 +341,20 @@
       "title": "Manage participants",
       "spotsOccupied": "{{occupied}}/{{limit}} spots occupied",
       "editAndCancel": "Edit details & cancel",
-      "awaitingApproval": "Awaiting approval ({{count}})",
+      "awaitingApproval": {
+        "one": "Awaiting approval ({{count}})",
+        "other": "Awaiting approval ({{count}})"
+      },
       "nobodyAwaiting": "Nobody awaiting approval.",
-      "joined": "Joined ({{count}})",
+      "joined": {
+        "one": "Joined ({{count}})",
+        "other": "Joined ({{count}})"
+      },
       "nobodyJoined": "Nobody joined yet.",
-      "waitingList": "Waiting list ({{count}})",
+      "waitingList": {
+        "one": "Waiting list ({{count}})",
+        "other": "Waiting list ({{count}})"
+      },
       "waitlistEmpty": "The waiting list is empty.",
       "promote": "Promote",
       "noOpenSpot": "No open spot"
@@ -353,7 +374,10 @@
       "starts": "Starts",
       "ends": "Ends",
       "participationLimit": "Participation limit",
-      "limitHint": "Can't drop below the {{count}} already taking part. Teams-vs-individuals can't change after sign-ups.",
+      "limitHint": {
+        "one": "Can't drop below the {{count}} already taking part. Teams-vs-individuals can't change after sign-ups.",
+        "other": "Can't drop below the {{count}} already taking part. Teams-vs-individuals can't change after sign-ups."
+      },
       "saved": "Saved.",
       "save": "Save changes",
       "saving": "Saving…",
@@ -450,7 +474,10 @@
       "liveView": "Follow it live on Tugeny",
       "winner": "Winner",
       "sharedFirst": "Shared first place",
-      "teamsRanked": "{{count}} teams ranked",
+      "teamsRanked": {
+        "one": "{{count}} team ranked",
+        "other": "{{count}} teams ranked"
+      },
       "lastChanged": "updated {{date}}",
       "provenance": "Results from Tugeny",
       "editedSince": "edited since",
@@ -463,7 +490,10 @@
       "replaceConfirm": "Replace the saved ranking",
       "matches": {
         "title": "Matches",
-        "show": "Show all {{count}} matches",
+        "show": {
+          "one": "Show {{count}} match",
+          "other": "Show all {{count}} matches"
+        },
         "knockout": "Knockout",
         "draw": "draw",
         "loadMore": "Load more matches",
@@ -618,7 +648,10 @@
       "noMessagesYet": "No messages yet",
       "emptySubtitle": "Say hi to a teammate, or start a group to sort out carpools and gear.",
       "teamChatNote": "Your team chat shows up here the moment you join a team.",
-      "unreadAria": "{{count}} unread messages",
+      "unreadAria": {
+        "one": "{{count}} unread message",
+        "other": "{{count}} unread messages"
+      },
       "mutedAria": "Muted",
       "typingOne": "{{name}} is typing…",
       "typingSeveral": "Several people are typing…",
@@ -627,7 +660,10 @@
       "tagAdmins": "Admins",
       "attachmentPhoto": "Photo",
       "attachmentFile": "File",
-      "attachmentSeveral": "{{count}} files",
+      "attachmentCount": {
+        "one": "{{count}} file",
+        "other": "{{count}} files"
+      },
       "loading": "Loading your chats…"
     },
     "compose": {
@@ -654,7 +690,10 @@
     },
     "conversation": {
       "directMessage": "Direct message",
-      "members": "{{count}} members",
+      "members": {
+        "one": "{{count}} member",
+        "other": "{{count}} members"
+      },
       "chatDetails": "Chat details",
       "loadError": "We couldn't load this chat.",
       "loadingEarlier": "Loading earlier messages…",
@@ -801,12 +840,15 @@
     "filterPanel": {
       "close": "Close filters",
       "reset": "Reset",
-      "show": "Show {{noun}}",
-      "showCount": "Show {{count}} {{noun}}"
+      "show": "Show {{noun}}"
     },
     "teams": {
       "searchPlaceholder": "Search teams…",
       "noun": "teams",
+      "showCount": {
+        "one": "Show {{count}} team",
+        "other": "Show {{count}} teams"
+      },
       "chipActive": "Active",
       "chipBeginners": "Beginners",
       "activeLabel": "Active teams only",
@@ -820,11 +862,19 @@
       "searchPlaceholder": "Search players…",
       "note": "Every player on JuggerHub is listed here.",
       "noun": "players",
+      "showCount": {
+        "one": "Show {{count}} player",
+        "other": "Show {{count}} players"
+      },
       "position": "Position"
     },
     "events": {
       "searchPlaceholder": "Search events…",
       "noun": "events",
+      "showCount": {
+        "one": "Show {{count}} event",
+        "other": "Show {{count}} events"
+      },
       "hidePastLabel": "Hide past events",
       "hidePastHint": "Only upcoming",
       "dateRange": "Date range",
@@ -840,6 +890,10 @@
       "searchPlaceholder": "Search trainings…",
       "note": "Trainings teams have opened to everyone. Turn up as a guest.",
       "noun": "trainings",
+      "showCount": {
+        "one": "Show {{count}} training",
+        "other": "Show {{count}} trainings"
+      },
       "hidePastLabel": "Hide past sessions",
       "hidePastHint": "Only upcoming",
       "dateRange": "Date range",
@@ -860,7 +914,10 @@
       "one": "You've got {{count}} thing waiting on you.",
       "other": "You've got {{count}} things waiting on you."
     },
-    "upNextCount": "You've got {{count}} coming up.",
+    "upNextCount": {
+      "one": "You've got {{count}} coming up.",
+      "other": "You've got {{count}} coming up."
+    },
     "nothingCalendar": "Nothing on your calendar yet. Go find a game.",
     "findCrew": "Let's find you a crew.",
     "upNext": "Up next",
@@ -930,8 +987,14 @@
     "chat": "Chat",
     "alerts": "Alerts",
     "primary": "Primary",
-    "unreadLabel": "{{label}}, {{count}} unread",
-    "unreadMessages": "{{count}} unread messages",
+    "unreadLabel": {
+      "one": "{{label}}, {{count}} unread",
+      "other": "{{label}}, {{count}} unread"
+    },
+    "unreadMessages": {
+      "one": "{{count}} unread message",
+      "other": "{{count}} unread messages"
+    },
     "accountMenu": "Account menu",
     "account": "Account",
     "create": "Create",
@@ -957,12 +1020,18 @@
     "handle": "Handle",
     "forgotPassword": "Forgot password?",
     "passwordRules": {
-      "minLength": "At least {{count}} characters",
+      "minLength": {
+        "one": "At least {{count}} character",
+        "other": "At least {{count}} characters"
+      },
       "uppercase": "An uppercase letter",
       "lowercase": "A lowercase letter",
       "digit": "A number",
       "symbol": "A symbol",
-      "uniqueChars": "At least {{count}} unique characters"
+      "uniqueChars": {
+        "one": "At least {{count}} unique character",
+        "other": "At least {{count}} unique characters"
+      }
     },
     "signIn": {
       "title": "Sign in",
@@ -1375,7 +1444,10 @@
       "search": "Search by team name",
       "empty": "Every placement is connected. Nothing to check right now.",
       "emptyConnected": "No placement is connected yet.",
-      "place": "Place {{position}} of {{count}}",
+      "place": {
+        "one": "Place {{position}} of {{count}}",
+        "other": "Place {{position}} of {{count}}"
+      },
       "fromTugeny": "Imported from Tugeny",
       "connect": "Connect to a team",
       "connectedTo": "Connected to",
@@ -1497,7 +1569,10 @@
       "cantMakeIt": "Can't make it",
       "readinessEnough": "At least 5 players, enough to field a team",
       "readinessSpots": "{{spots}} of {{cap}} spots still open (optional)",
-      "readinessUnanswered": "{{count}} members haven't answered yet (optional)",
+      "readinessUnanswered": {
+        "one": "{{count}} member hasn't answered yet (optional)",
+        "other": "{{count}} members haven't answered yet (optional)"
+      },
       "applyToEvent": "Apply to event",
       "withdrawFromEvent": "Withdraw from event",
       "tabIn": "In",

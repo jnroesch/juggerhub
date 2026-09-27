@@ -131,7 +131,7 @@
               @if (c.unreadCount > 0) {
                 <span
                   class="inline-flex min-w-5 items-center justify-center rounded-pill bg-brand-strong px-xs font-mono text-caption font-semibold text-on-accent"
-                  [attr.aria-label]="'chat.inbox.unreadAria' | transloco:{ count: c.unreadCount }"
+                  [attr.aria-label]="'chat.inbox.unreadAria' | pluralKey: c.unreadCount | transloco:{ count: c.unreadCount }"
                 >
                   {{ badge(c.unreadCount) }}
                 </span>

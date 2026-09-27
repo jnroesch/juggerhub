@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { isPluralNode } from './plural';
 
 /**
  * Key-parity guard for the MAIN interface catalogs (feature 042, research R8).
@@ -33,8 +34,18 @@ function load(lang: string): Catalog {
   return JSON.parse(readFileSync(join(CATALOG_DIR, `${lang}.json`), 'utf-8')) as Catalog;
 }
 
-/** Every leaf path in the tree, dotted; array entries are indexed (`a.b.0`). */
+/**
+ * Every leaf path in the tree, dotted; array entries are indexed (`a.b.0`).
+ *
+ * A plural message (GH #338) counts as ONE leaf at the message's own path: its forms are the
+ * language's CLDR categories, so they are supposed to differ between catalogues (a Polish
+ * catalogue has `few` and `many` where English has neither). Which forms each language needs is
+ * `catalog-plurals.spec.ts`'s job; this file only asks that the same messages exist everywhere.
+ */
 function keyPaths(node: unknown, prefix = ''): string[] {
+  if (isPluralNode(node)) {
+    return [prefix];
+  }
   if (Array.isArray(node)) {
     return node.flatMap((item, i) => keyPaths(item, `${prefix}.${i}`));
   }

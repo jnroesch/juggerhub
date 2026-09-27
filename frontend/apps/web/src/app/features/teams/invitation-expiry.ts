@@ -1,4 +1,5 @@
 import { TranslocoService } from '@jsverse/transloco';
+import { translatePlural } from '../../core/i18n/plural';
 
 /**
  * How long an invitation (or the shared invite link) still has, as a phrase — "expires today",
@@ -17,5 +18,5 @@ export function expiresIn(iso: string, t: TranslocoService): string {
   if (days === 1) {
     return t.translate('teams.invitations.expiresTomorrow');
   }
-  return t.translate('teams.invitations.expiresInDays', { count: days });
+  return translatePlural(t, 'teams.invitations.expiresInDays', days);
 }

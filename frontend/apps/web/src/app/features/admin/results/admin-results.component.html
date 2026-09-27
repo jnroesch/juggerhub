@@ -41,7 +41,7 @@
           <div class="min-w-0">
             <p class="break-words text-body-md font-semibold text-heading">{{ p.sourceName }}</p>
             <p class="text-body-sm text-muted">
-              <span class="tabular-nums">{{ 'admin.results.place' | transloco: { position: p.position, count: p.rankedCount } }}</span> ·
+              <span class="tabular-nums">{{ 'admin.results.place' | pluralKey: p.rankedCount | transloco: { position: p.position, count: p.rankedCount } }}</span> ·
               <a [routerLink]="['/events', p.eventId]" class="hover:text-link">{{ p.eventName }}</a> ·
               {{ p.eventDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}
             </p>

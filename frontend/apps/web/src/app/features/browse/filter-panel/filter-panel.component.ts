@@ -1,5 +1,6 @@
 import { Component, ElementRef, HostListener, effect, input, output, viewChild } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { ButtonDirective } from '../../../shared/ui';
 
 /**
@@ -15,7 +16,7 @@ import { ButtonDirective } from '../../../shared/ui';
  */
 @Component({
   selector: 'jh-filter-panel',
-  imports: [ButtonDirective, TranslocoPipe],
+  imports: [ButtonDirective, TranslocoPipe, PluralKeyPipe],
   templateUrl: './filter-panel.component.html',
   styleUrl: './filter-panel.component.css',
 })
@@ -23,8 +24,14 @@ export class FilterPanelComponent {
   readonly open = input(false);
   /** Live count of results the pending selection would show (null = unknown/loading). */
   readonly pendingCount = input<number | null>(null);
-  /** Plural noun for the primary button, e.g. "teams". */
+  /** Plural noun for the primary button while the count is unknown ("Show teams"). */
   readonly resultNoun = input('results');
+  /**
+   * Plural message for the primary button once the count is known ("Show 1 team" / "Show 4 teams").
+   * A whole sentence per page, not the count glued to `resultNoun`: the noun has to agree with the
+   * number, and only the page knows which noun it is (GH #338).
+   */
+  readonly showCountKey = input.required<string>();
 
   readonly apply = output<void>();
   readonly resetFilters = output<void>();

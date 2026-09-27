@@ -16,7 +16,7 @@
           @if (home.needsYou.length > 0) {
             {{ 'home.needsYou' | pluralKey: home.needsYou.length | transloco:{ count: home.needsYou.length } }}
           } @else if (home.upNext.length > 0) {
-            {{ 'home.upNextCount' | transloco:{ count: home.upNext.length } }}
+            {{ 'home.upNextCount' | pluralKey: home.upNext.length | transloco:{ count: home.upNext.length } }}
           } @else {
             {{ 'home.nothingCalendar' | transloco }}
           }

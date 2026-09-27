@@ -2,6 +2,7 @@ import { Component, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { AlertComponent, ButtonDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { TeamInvitation } from '../../../core/models/team.models';
 import { TeamService } from '../../../core/services/team.service';
@@ -23,7 +24,7 @@ import { expiresIn } from '../invitation-expiry';
  */
 @Component({
   selector: 'jh-team-invitations',
-  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe, IconComponent, InviteLinkComponent, InviteSearchComponent],
+  imports: [RouterLink, ButtonDirective, LoadingComponent, AlertComponent, TranslocoPipe, PluralKeyPipe, IconComponent, InviteLinkComponent, InviteSearchComponent],
   templateUrl: './team-invitations.component.html',
   styleUrl: './team-invitations.component.css',
 })

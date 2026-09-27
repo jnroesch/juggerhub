@@ -4,9 +4,11 @@ import { ButtonDirective, CardComponent, ChipDirective, IconComponent, LoadingCo
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { ChatService } from '../../../core/services/chat.service';
 import { Conversation, LastMessage } from '../../../core/models/chat.models';
 import { injectLocale } from '../../../core/i18n/locale-format';
+import { translatePlural } from '../../../core/i18n/plural';
 
 /**
  * The chat inbox (feature 019, wireframe 9a): every conversation as a row, a search that narrows
@@ -20,7 +22,7 @@ import { injectLocale } from '../../../core/i18n/locale-format';
  */
 @Component({
   selector: 'jh-chat-inbox',
-  imports: [LoadingComponent, CardComponent, ChipDirective, RouterLink, FormsModule, ButtonDirective, TranslocoPipe, IconComponent, RiseDirective],
+  imports: [LoadingComponent, CardComponent, ChipDirective, RouterLink, FormsModule, ButtonDirective, TranslocoPipe, PluralKeyPipe, IconComponent, RiseDirective],
   providers: [RiseScope],
   templateUrl: './chat-inbox.component.html',
   styleUrl: './chat-inbox.component.css',
@@ -151,7 +153,7 @@ export class ChatInboxComponent implements OnInit {
    */
   protected attachmentLabel(last: LastMessage): string {
     if (last.attachmentCount > 1) {
-      return this.t.translate('chat.inbox.attachmentSeveral', { count: last.attachmentCount });
+      return translatePlural(this.t, 'chat.inbox.attachmentCount', last.attachmentCount);
     }
 
     return this.t.translate(
