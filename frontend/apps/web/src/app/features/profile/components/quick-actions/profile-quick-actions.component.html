@@ -28,7 +28,7 @@
               {{ 'profile.quickActions.inviteToTeam' | transloco }}
             </button>
             <span class="text-caption text-muted" data-testid="qa-invite-reason">
-              {{ (adminTeamCount() > 1 ? 'profile.quickActions.alreadyOnTeamMany' : 'profile.quickActions.alreadyOnTeamOne') | transloco }}
+              {{ 'profile.quickActions.alreadyOnTeam' | pluralKey: adminTeamCount() | transloco }}
             </span>
           </span>
         } @else {

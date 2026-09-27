@@ -6,6 +6,7 @@ import { MembershipService } from '../../core/services/membership.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { ChatService } from '../../core/services/chat.service';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../core/i18n/plural-key.pipe';
 import { NavId, badgeText, isActiveDestination } from '../nav-model';
 import { BumpDirective, IconComponent } from '../../shared/ui';
 
@@ -15,7 +16,7 @@ import { BumpDirective, IconComponent } from '../../shared/ui';
  */
 @Component({
   selector: 'jh-bottom-nav',
-  imports: [RouterLink, TranslocoPipe, IconComponent, BumpDirective],
+  imports: [RouterLink, TranslocoPipe, PluralKeyPipe, IconComponent, BumpDirective],
   templateUrl: './bottom-nav.component.html',
   styleUrl: './bottom-nav.component.css',
 })

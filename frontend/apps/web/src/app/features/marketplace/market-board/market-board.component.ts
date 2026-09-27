@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { MarketService } from '../../../core/services/market.service';
 import {
   MarketListingCard,
@@ -27,7 +28,7 @@ type BoardAction =
  */
 @Component({
   selector: 'jh-market-board',
-  imports: [CardComponent, RouterLink, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, TranslocoPipe, IconComponent],
+  imports: [CardComponent, RouterLink, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, TranslocoPipe, PluralKeyPipe, IconComponent],
   templateUrl: './market-board.component.html',
   styleUrl: './market-board.component.css',
 })

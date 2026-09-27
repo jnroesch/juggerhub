@@ -86,6 +86,24 @@ describe('ChatInboxComponent avatars (issue #193)', () => {
   });
 });
 
+describe('ChatInboxComponent unread badge label (GH #338)', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const label = (unreadCount: number): string | null => {
+    chat.conversations.set([{ ...conversation('Direct', null), unreadCount }]);
+    const row = create().nativeElement.querySelector('[data-testid="conversation-c-1"]') as HTMLElement;
+    return row.querySelector('[aria-label]')?.getAttribute('aria-label') ?? null;
+  };
+
+  // One used to read "1 unread messages".
+  it.each([
+    [1, '1 unread message'],
+    [4, '4 unread messages'],
+  ])('agrees with a count of %i', (count, expected) => {
+    expect(label(count)).toBe(expected);
+  });
+});
+
 /**
  * Inbox search (feature 046): the field narrows the inbox to conversations whose members' or own
  * names match, rendered as the ordinary rows; message text is never searched and no "In your

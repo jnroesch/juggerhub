@@ -4,6 +4,7 @@ import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { RecognitionDefinition, RecognitionKind } from '../../../core/models/recognition.models';
 import { RecognitionAdminService } from '../../../core/services/recognition-admin.service';
 import { problemDetail } from '../../../core/utils/problem';
@@ -27,7 +28,7 @@ const ICON_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
  */
 @Component({
   selector: 'jh-admin-catalogue',
-  imports: [CardComponent, ChipDirective, TranslocoDatePipe, FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe, IconComponent],
+  imports: [CardComponent, ChipDirective, TranslocoDatePipe, FormsModule, ButtonDirective, LoadingComponent, EmptyStateComponent, TranslocoPipe, PluralKeyPipe, IconComponent],
   templateUrl: './admin-catalogue.component.html',
   styleUrl: './admin-catalogue.component.css',
 })

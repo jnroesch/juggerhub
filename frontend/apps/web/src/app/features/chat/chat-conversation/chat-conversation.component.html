@@ -30,7 +30,7 @@
         <span class="block truncate text-body-sm text-link" data-testid="typing-indicator">{{ typingLabel() }}</span>
       } @else if (detail(); as d) {
         <span class="block text-body-sm text-muted">
-          @if (d.kind === 'Direct') { {{ 'chat.conversation.directMessage' | transloco }} } @else { {{ 'chat.conversation.members' | transloco:{ count: d.memberCount } }} }
+          @if (d.kind === 'Direct') { {{ 'chat.conversation.directMessage' | transloco }} } @else { {{ 'chat.conversation.members' | pluralKey: d.memberCount | transloco:{ count: d.memberCount } }} }
         </span>
       }
     </span>

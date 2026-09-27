@@ -80,7 +80,7 @@
         >
           <span class="flex items-center justify-between gap-sm">
             <span class="truncate text-body-sm font-semibold text-body">{{ row.name }}</span>
-            <span class="whitespace-nowrap font-mono text-caption text-muted">{{ row.awardCount }} {{ (row.awardCount === 1 ? 'admin.teams.awardOne' : 'admin.teams.awardMany') | transloco }}</span>
+            <span class="whitespace-nowrap font-mono text-caption text-muted">{{ row.awardCount }} {{ 'admin.teams.awards' | pluralKey: row.awardCount | transloco }}</span>
           </span>
           <span class="mt-1 block text-caption text-muted">
             {{ (row.type === 'CityTeam' ? 'admin.teams.cityTeam' : 'admin.teams.mixteam') | transloco }}@if (row.location) { · {{ row.location }}} · <span class="font-mono">{{ row.memberCount }}</span> {{ 'admin.teams.membersLower' | transloco }}

@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../../core/i18n/plural-key.pipe';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { AlertComponent, ButtonDirective, CardComponent, EmptyStateComponent, LoadingComponent } from '../../../../shared/ui';
 import { TeamPlacement } from '../../../../core/models/results.models';
@@ -17,7 +18,7 @@ const PAGE = 10;
  */
 @Component({
   selector: 'jh-team-placements',
-  imports: [RouterLink, TranslocoPipe, TranslocoDatePipe, AlertComponent, ButtonDirective, CardComponent, EmptyStateComponent, LoadingComponent],
+  imports: [RouterLink, TranslocoPipe, PluralKeyPipe, TranslocoDatePipe, AlertComponent, ButtonDirective, CardComponent, EmptyStateComponent, LoadingComponent],
   templateUrl: './team-placements.component.html',
   styleUrl: './team-placements.component.css',
 })

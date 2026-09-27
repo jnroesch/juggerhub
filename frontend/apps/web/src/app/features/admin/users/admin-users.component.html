@@ -137,7 +137,7 @@
           <span class="mt-1 block truncate text-caption text-muted">
             &#64;{{ row.handle }}@if (row.teams.length) { · {{ row.teams.join(' · ') }}}
           </span>
-          <span class="mt-1 block font-mono text-caption text-muted">{{ row.badgeCount }} {{ (row.badgeCount === 1 ? 'admin.users.badgeOne' : 'admin.users.badgeMany') | transloco }}</span>
+          <span class="mt-1 block font-mono text-caption text-muted">{{ row.badgeCount }} {{ 'admin.users.badges' | pluralKey: row.badgeCount | transloco }}</span>
         </a>
       </li>
     }

@@ -59,7 +59,7 @@
           </li>
           <li class="flex items-center gap-xs">
             <jh-icon name="dot" size="sm" class="shrink-0" />
-            <span>{{ 'parties.manage.readinessUnanswered' | transloco:{ count: p.readiness.unanswered } }}</span>
+            <span>{{ 'parties.manage.readinessUnanswered' | pluralKey: p.readiness.unanswered | transloco:{ count: p.readiness.unanswered } }}</span>
           </li>
         </ul>
         <div class="mt-md flex flex-wrap gap-sm">

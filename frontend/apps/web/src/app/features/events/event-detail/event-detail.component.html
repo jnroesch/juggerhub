@@ -52,7 +52,7 @@
         <div class="h-full rounded-pill bg-brand transition-all duration-fast" [style.width.%]="occupancyPct()"></div>
       </div>
       <p class="mt-xs text-body-sm text-muted">
-        <span class="font-semibold text-body">{{ joined().length }}</span> {{ 'events.detail.confirmed' | transloco }}@if (awaiting().length > 0) { <span> · {{ 'events.detail.pendingPayment' | transloco:{ count: awaiting().length } }}</span> }
+        <span class="font-semibold text-body">{{ joined().length }}</span> {{ 'events.detail.confirmed' | transloco }}@if (awaiting().length > 0) { <span> · {{ 'events.detail.pendingPayment' | pluralKey: awaiting().length | transloco:{ count: awaiting().length } }}</span> }
       </p>
     </div>
 

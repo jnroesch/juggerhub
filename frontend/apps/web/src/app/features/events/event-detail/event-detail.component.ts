@@ -1,6 +1,7 @@
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { CardComponent, ChipDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -40,6 +41,7 @@ import { MarketBoardComponent } from '../../marketplace/market-board/market-boar
     MarketBoardComponent,
     LoadingComponent,
     TranslocoPipe,
+    PluralKeyPipe,
     IconComponent,
   ],
   templateUrl: './event-detail.component.html',

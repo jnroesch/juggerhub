@@ -17,7 +17,7 @@
     <!-- Participants -->
     <div class="mt-lg space-y-md lg:grid lg:grid-cols-2 lg:items-start lg:gap-xl lg:space-y-0">
       <section class="lg:col-span-2">
-        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.manage.awaitingApproval' | transloco:{ count: awaiting().length } }}</h2>
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.manage.awaitingApproval' | pluralKey: awaiting().length | transloco:{ count: awaiting().length } }}</h2>
         @if (awaiting().length === 0) { <p class="mt-xs text-body-sm text-muted">{{ 'events.manage.nobodyAwaiting' | transloco }}</p> }
         <ul class="mt-xs space-y-xs">
           @for (p of awaiting(); track p.id) {
@@ -35,7 +35,7 @@
       </section>
 
       <section>
-        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.manage.joined' | transloco:{ count: joined().length } }}</h2>
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.manage.joined' | pluralKey: joined().length | transloco:{ count: joined().length } }}</h2>
         @if (joined().length === 0) { <p class="mt-xs text-body-sm text-muted">{{ 'events.manage.nobodyJoined' | transloco }}</p> }
         <ul class="mt-xs space-y-xs">
           @for (p of joined(); track p.id) {
@@ -49,7 +49,7 @@
       </section>
 
       <section>
-        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.manage.waitingList' | transloco:{ count: waitlist().length } }}</h2>
+        <h2 class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'events.manage.waitingList' | pluralKey: waitlist().length | transloco:{ count: waitlist().length } }}</h2>
         @if (waitlist().length === 0) { <p class="mt-xs text-body-sm text-muted">{{ 'events.manage.waitlistEmpty' | transloco }}</p> }
         <ul class="mt-xs space-y-xs">
           @for (p of waitlist(); track p.id) {

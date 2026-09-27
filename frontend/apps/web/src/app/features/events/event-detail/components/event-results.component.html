@@ -52,7 +52,7 @@
         </ol>
 
         <p class="mt-md text-caption text-muted" data-testid="results-meta">
-          {{ 'events.results.teamsRanked' | transloco: { count: r.rankedCount } }}
+          {{ 'events.results.teamsRanked' | pluralKey: r.rankedCount | transloco: { count: r.rankedCount } }}
           @if (r.resultsChangedAt) {
             <span> · {{ 'events.results.lastChanged' | transloco: { date: (r.resultsChangedAt | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' }) } }}</span>
           }
@@ -83,7 +83,7 @@
 
           @if (!matchesOpen()) {
             <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="openMatches()" data-testid="results-show-matches">
-              {{ 'events.results.matches.show' | transloco: { count: r.matchCount } }}
+              {{ 'events.results.matches.show' | pluralKey: r.matchCount | transloco: { count: r.matchCount } }}
             </button>
           } @else {
             @for (g of matchGroups(); track g.stage) {

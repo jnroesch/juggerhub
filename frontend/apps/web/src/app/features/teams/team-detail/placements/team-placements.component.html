@@ -9,7 +9,7 @@
             <a [routerLink]="['/events', p.eventId]" class="hover:text-link">{{ p.eventName }}</a>
             <span class="block text-caption text-muted">{{ p.date | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</span>
           </span>
-          <span class="shrink-0 text-body-sm font-semibold tabular-nums text-heading">{{ 'teams.placements.place' | transloco: { position: p.position, count: p.rankedCount } }}</span>
+          <span class="shrink-0 text-body-sm font-semibold tabular-nums text-heading">{{ 'teams.placements.place' | pluralKey: p.rankedCount | transloco: { position: p.position, count: p.rankedCount } }}</span>
         </li>
       }
     </ul>

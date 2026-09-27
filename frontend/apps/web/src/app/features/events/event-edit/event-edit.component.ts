@@ -1,5 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { AlertComponent, ButtonDirective, CardComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -23,7 +24,7 @@ import { problemDetail } from '../../../core/utils/problem';
  */
 @Component({
   selector: 'jh-event-edit',
-  imports: [CardComponent, ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, AddressFieldsComponent, TranslocoPipe, IconComponent],
+  imports: [CardComponent, ReactiveFormsModule, RouterLink, ButtonDirective, LoadingComponent, AlertComponent, AddressFieldsComponent, TranslocoPipe, PluralKeyPipe, IconComponent],
   templateUrl: './event-edit.component.html',
   styleUrl: './event-edit.component.css',
 })

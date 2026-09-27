@@ -46,7 +46,7 @@
       class="flex items-center gap-xs rounded-md px-sm py-xs text-body-sm font-medium transition-colors duration-fast"
       [class]="chatActive() ? 'bg-surface-accent-soft text-brand-strong font-semibold' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="chatActive() ? 'page' : null"
-      [attr.aria-label]="chatBadge() ? ('nav.unreadLabel' | transloco: { label: ('nav.chat' | transloco), count: chatBadge() }) : ('nav.chat' | transloco)"
+      [attr.aria-label]="chatBadge() ? ('nav.unreadLabel' | pluralKey: chatUnread() | transloco: { label: ('nav.chat' | transloco), count: chatBadge() }) : ('nav.chat' | transloco)"
       data-testid="nav-chat"
     >
       <span class="relative" [jhBump]="chatUnread()">
@@ -71,7 +71,7 @@
       class="relative hidden h-9 w-9 place-items-center rounded-md transition-colors duration-fast focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus md:grid"
       [class]="alertsActive() ? 'bg-surface-accent-soft text-brand-strong' : 'text-body hover:bg-surface-sunken'"
       [attr.aria-current]="alertsActive() ? 'page' : null"
-      [attr.aria-label]="alertsBadge() ? ('nav.unreadLabel' | transloco: { label: ('nav.alerts' | transloco), count: alertsBadge() }) : ('nav.alerts' | transloco)"
+      [attr.aria-label]="alertsBadge() ? ('nav.unreadLabel' | pluralKey: alertsUnread() | transloco: { label: ('nav.alerts' | transloco), count: alertsBadge() }) : ('nav.alerts' | transloco)"
       data-testid="nav-alerts-bell"
       [jhBump]="alertsUnread()"
     >

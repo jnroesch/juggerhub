@@ -42,10 +42,11 @@
       (click)="apply.emit()"
       data-testid="filter-apply"
     >
-      @if (pendingCount() === null) {
+      @let count = pendingCount();
+      @if (count === null) {
         {{ 'browse.filterPanel.show' | transloco:{ noun: resultNoun() } }}
       } @else {
-        {{ 'browse.filterPanel.showCount' | transloco:{ count: pendingCount(), noun: resultNoun() } }}
+        {{ showCountKey() | pluralKey: count | transloco:{ count: count } }}
       }
     </button>
   </div>

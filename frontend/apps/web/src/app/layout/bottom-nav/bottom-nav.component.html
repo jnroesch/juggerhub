@@ -46,7 +46,7 @@
         <span
           data-bump
           class="absolute -right-2 -top-1 grid h-5 min-w-5 place-items-center rounded-pill bg-brand-strong px-1 font-mono text-caption font-bold leading-none text-on-accent"
-          [attr.aria-label]="'nav.unreadMessages' | transloco: { count: badge }"
+          [attr.aria-label]="'nav.unreadMessages' | pluralKey: chatUnread() | transloco: { count: badge }"
           data-testid="tab-chat-badge"
         >{{ badge }}</span>
       }

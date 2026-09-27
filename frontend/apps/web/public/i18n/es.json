@@ -53,8 +53,10 @@
     "yourInvites": "Tus invitaciones",
     "cityTeam": "Equipo de ciudad",
     "mixteam": "Mixteam",
-    "memberOne": "miembro",
-    "memberMany": "miembros",
+    "members": {
+      "one": "miembro",
+      "other": "miembros"
+    },
     "invitedBy": "Invitado por {{name}}",
     "orFindOwn": "O crea tu propio equipo",
     "findYourTeam": "Encuentra tu equipo",
@@ -166,14 +168,20 @@
       "relationMember": "Miembro",
       "relationInvited": "Invitado",
       "invite": "Invitar",
-      "sentTo": "Enviadas a personas · {{count}}",
+      "sentTo": {
+        "one": "Enviadas a personas · {{count}}",
+        "other": "Enviadas a personas · {{count}}"
+      },
       "noPending": "Aún no hay invitaciones pendientes.",
       "inviteLink": "Enlace de invitación",
       "revoke": "Revocar",
       "revokeHint": "Revocar cancela una invitación antes de que se acepte.",
       "expiresToday": "caduca hoy",
       "expiresTomorrow": "caduca mañana",
-      "expiresInDays": "caduca en {{count}} días",
+      "expiresInDays": {
+        "one": "caduca en {{count}} día",
+        "other": "caduca en {{count}} días"
+      },
       "searchEmpty": "Ningún jugador coincide. Prueba con otra forma de escribirlo o con su @handle.",
       "searchFailed": "No hemos podido hacer la búsqueda. Revisa tu conexión e inténtalo de nuevo."
     },
@@ -239,7 +247,10 @@
     },
     "placements": {
       "title": "Resultados en torneos",
-      "place": "Puesto {{position}} de {{count}}",
+      "place": {
+        "one": "Puesto {{position}} de {{count}}",
+        "other": "Puesto {{position}} de {{count}}"
+      },
       "empty": "Todavía no hay resultados de torneos para este equipo.",
       "loadMore": "Ver resultados anteriores",
       "loadError": "No pudimos cargar los resultados de torneos ahora mismo."
@@ -261,7 +272,10 @@
       "teamsIn": "Equipos dentro",
       "peopleIn": "Personas dentro",
       "confirmed": "confirmados",
-      "pendingPayment": "{{count}} pago pendiente",
+      "pendingPayment": {
+        "one": "{{count}} pago pendiente",
+        "other": "{{count}} pagos pendientes"
+      },
       "about": "Acerca de",
       "where": "Dónde",
       "manageParticipants": "Gestionar participantes y lista de espera",
@@ -331,11 +345,20 @@
       "title": "Gestionar participantes",
       "spotsOccupied": "{{occupied}}/{{limit}} plazas ocupadas",
       "editAndCancel": "Editar detalles y cancelar",
-      "awaitingApproval": "Pendiente de aprobación ({{count}})",
+      "awaitingApproval": {
+        "one": "Pendiente de aprobación ({{count}})",
+        "other": "Pendiente de aprobación ({{count}})"
+      },
       "nobodyAwaiting": "Nadie pendiente de aprobación.",
-      "joined": "Dentro ({{count}})",
+      "joined": {
+        "one": "Dentro ({{count}})",
+        "other": "Dentro ({{count}})"
+      },
       "nobodyJoined": "Nadie se ha unido todavía.",
-      "waitingList": "Lista de espera ({{count}})",
+      "waitingList": {
+        "one": "Lista de espera ({{count}})",
+        "other": "Lista de espera ({{count}})"
+      },
       "waitlistEmpty": "La lista de espera está vacía.",
       "promote": "Promover",
       "noOpenSpot": "No hay plaza libre"
@@ -355,7 +378,10 @@
       "starts": "Empieza",
       "ends": "Termina",
       "participationLimit": "Límite de participación",
-      "limitHint": "No puede bajar de los {{count}} que ya participan. Equipos frente a individuales no se puede cambiar tras las inscripciones.",
+      "limitHint": {
+        "one": "No puede bajar de {{count}}, porque ya hay una inscripción. Equipos frente a individuales no se puede cambiar tras las inscripciones.",
+        "other": "No puede bajar de los {{count}} que ya participan. Equipos frente a individuales no se puede cambiar tras las inscripciones."
+      },
       "saved": "Guardado.",
       "save": "Guardar cambios",
       "saving": "Guardando…",
@@ -452,7 +478,10 @@
       "liveView": "Seguirlo en directo en Tugeny",
       "winner": "Ganador",
       "sharedFirst": "Primer puesto compartido",
-      "teamsRanked": "{{count}} equipos clasificados",
+      "teamsRanked": {
+        "one": "{{count}} equipo clasificado",
+        "other": "{{count}} equipos clasificados"
+      },
       "lastChanged": "actualizado el {{date}}",
       "provenance": "Resultados de Tugeny",
       "editedSince": "editado desde entonces",
@@ -465,7 +494,10 @@
       "replaceConfirm": "Sustituir la clasificación guardada",
       "matches": {
         "title": "Partidos",
-        "show": "Ver los {{count}} partidos",
+        "show": {
+          "one": "Ver {{count}} partido",
+          "other": "Ver los {{count}} partidos"
+        },
         "knockout": "Eliminatorias",
         "draw": "empate",
         "loadMore": "Cargar más partidos",
@@ -557,8 +589,10 @@
       "opening": "Abriendo…",
       "message": "Mensaje",
       "inviteToTeam": "Invitar a un equipo",
-      "alreadyOnTeamOne": "Ya está en tu equipo",
-      "alreadyOnTeamMany": "Ya está en tus equipos",
+      "alreadyOnTeam": {
+        "one": "Ya está en tu equipo",
+        "other": "Ya está en tus equipos"
+      },
       "inviting": "Invitando…",
       "inviteTo": "Invitar a",
       "invitedTo": "Invitado a {{name}}."
@@ -618,7 +652,10 @@
       "noMessagesYet": "Aún no hay mensajes",
       "emptySubtitle": "Saluda a un compañero o crea un grupo para organizar transporte y equipamiento.",
       "teamChatNote": "El chat de tu equipo aparece aquí en cuanto te unes a un equipo.",
-      "unreadAria": "{{count}} mensajes sin leer",
+      "unreadAria": {
+        "one": "{{count}} mensaje sin leer",
+        "other": "{{count}} mensajes sin leer"
+      },
       "mutedAria": "Silenciado",
       "typingOne": "{{name}} está escribiendo…",
       "typingSeveral": "Varias personas están escribiendo…",
@@ -627,7 +664,10 @@
       "tagAdmins": "Administradores",
       "attachmentPhoto": "Foto",
       "attachmentFile": "Archivo",
-      "attachmentSeveral": "{{count}} archivos",
+      "attachmentCount": {
+        "one": "{{count}} archivo",
+        "other": "{{count}} archivos"
+      },
       "loading": "Cargando tus chats…"
     },
     "compose": {
@@ -654,7 +694,10 @@
     },
     "conversation": {
       "directMessage": "Mensaje directo",
-      "members": "{{count}} miembros",
+      "members": {
+        "one": "{{count}} miembro",
+        "other": "{{count}} miembros"
+      },
       "chatDetails": "Detalles del chat",
       "loadError": "No pudimos cargar este chat.",
       "loadingEarlier": "Cargando mensajes anteriores…",
@@ -801,12 +844,15 @@
     "filterPanel": {
       "close": "Cerrar filtros",
       "reset": "Restablecer",
-      "show": "Mostrar {{noun}}",
-      "showCount": "Mostrar {{count}} {{noun}}"
+      "show": "Mostrar {{noun}}"
     },
     "teams": {
       "searchPlaceholder": "Buscar equipos…",
       "noun": "equipos",
+      "showCount": {
+        "one": "Mostrar {{count}} equipo",
+        "other": "Mostrar {{count}} equipos"
+      },
       "chipActive": "Activos",
       "chipBeginners": "Principiantes",
       "activeLabel": "Solo equipos activos",
@@ -820,11 +866,19 @@
       "searchPlaceholder": "Buscar jugadores…",
       "note": "Todos los jugadores de JuggerHub aparecen aquí.",
       "noun": "jugadores",
+      "showCount": {
+        "one": "Mostrar {{count}} jugador",
+        "other": "Mostrar {{count}} jugadores"
+      },
       "position": "Posición"
     },
     "events": {
       "searchPlaceholder": "Buscar eventos…",
       "noun": "eventos",
+      "showCount": {
+        "one": "Mostrar {{count}} evento",
+        "other": "Mostrar {{count}} eventos"
+      },
       "hidePastLabel": "Ocultar eventos pasados",
       "hidePastHint": "Solo próximos",
       "dateRange": "Rango de fechas",
@@ -840,6 +894,10 @@
       "searchPlaceholder": "Buscar entrenamientos…",
       "note": "Entrenamientos que los equipos han abierto a todo el mundo. Ven como invitado.",
       "noun": "entrenamientos",
+      "showCount": {
+        "one": "Mostrar {{count}} entrenamiento",
+        "other": "Mostrar {{count}} entrenamientos"
+      },
       "hidePastLabel": "Ocultar entrenamientos pasados",
       "hidePastHint": "Solo próximos",
       "dateRange": "Rango de fechas",
@@ -856,9 +914,14 @@
     "errorBody": "El servidor no ha respondido ahora mismo. Inténtalo de nuevo.",
     "greetingHi": "Hola {{name}}",
     "greetingWelcome": "Bienvenido, {{name}}",
-    "needsYouOne": "Tienes {{count}} cosa esperándote.",
-    "needsYouMany": "Tienes {{count}} cosas esperándote.",
-    "upNextCount": "Tienes {{count}} próximamente.",
+    "needsYou": {
+      "one": "Tienes {{count}} cosa esperándote.",
+      "other": "Tienes {{count}} cosas esperándote."
+    },
+    "upNextCount": {
+      "one": "Tienes {{count}} próximamente.",
+      "other": "Tienes {{count}} próximamente."
+    },
     "nothingCalendar": "Aún no hay nada en tu calendario. Busca un partido.",
     "findCrew": "Vamos a buscarte un equipo.",
     "upNext": "A continuación",
@@ -928,8 +991,14 @@
     "chat": "Chat",
     "alerts": "Notificaciones",
     "primary": "Navegación principal",
-    "unreadLabel": "{{label}}, {{count}} sin leer",
-    "unreadMessages": "{{count}} mensajes sin leer",
+    "unreadLabel": {
+      "one": "{{label}}, {{count}} sin leer",
+      "other": "{{label}}, {{count}} sin leer"
+    },
+    "unreadMessages": {
+      "one": "{{count}} mensaje sin leer",
+      "other": "{{count}} mensajes sin leer"
+    },
     "accountMenu": "Menú de la cuenta",
     "account": "Cuenta",
     "create": "Crear",
@@ -955,12 +1024,18 @@
     "handle": "Usuario",
     "forgotPassword": "¿Olvidaste tu contraseña?",
     "passwordRules": {
-      "minLength": "Al menos {{count}} caracteres",
+      "minLength": {
+        "one": "Al menos {{count}} carácter",
+        "other": "Al menos {{count}} caracteres"
+      },
       "uppercase": "Una letra mayúscula",
       "lowercase": "Una letra minúscula",
       "digit": "Un número",
       "symbol": "Un símbolo",
-      "uniqueChars": "Al menos {{count}} caracteres distintos"
+      "uniqueChars": {
+        "one": "Al menos {{count}} carácter distinto",
+        "other": "Al menos {{count}} caracteres distintos"
+      }
     },
     "signIn": {
       "title": "Iniciar sesión",
@@ -1162,8 +1237,10 @@
       "colTeams": "Equipos",
       "colStatus": "Estado",
       "colBadges": "Insignias",
-      "badgeOne": "insignia",
-      "badgeMany": "insignias"
+      "badges": {
+        "one": "insignia",
+        "other": "insignias"
+      }
     },
     "teams": {
       "title": "Equipos",
@@ -1182,8 +1259,10 @@
       "cityTeam": "Equipo de ciudad",
       "mixteam": "Equipo mixto",
       "membersLower": "miembros",
-      "awardOne": "reconocimiento",
-      "awardMany": "reconocimientos"
+      "awards": {
+        "one": "reconocimiento",
+        "other": "reconocimientos"
+      }
     },
     "userDetail": {
       "breadcrumb": "Usuarios",
@@ -1278,8 +1357,10 @@
       "toggleLabel": "Catálogo",
       "badges": "Insignias",
       "achievements": "Logros",
-      "typeOne": "tipo",
-      "typeMany": "tipos",
+      "types": {
+        "one": "tipo",
+        "other": "tipos"
+      },
       "retiredLower": "retirados",
       "filterGroup": "Filtrar por estado",
       "filterAll": "Todos",
@@ -1367,7 +1448,10 @@
       "search": "Buscar por nombre de equipo",
       "empty": "Todos los puestos están vinculados. No hay nada que revisar ahora.",
       "emptyConnected": "Todavía no hay ningún puesto vinculado.",
-      "place": "Puesto {{position}} de {{count}}",
+      "place": {
+        "one": "Puesto {{position}} de {{count}}",
+        "other": "Puesto {{position}} de {{count}}"
+      },
       "fromTugeny": "Importado de Tugeny",
       "connect": "Vincular con un equipo",
       "connectedTo": "Vinculado con",
@@ -1489,7 +1573,10 @@
       "cantMakeIt": "No puedo",
       "readinessEnough": "Al menos 5 jugadores, suficiente para formar un equipo",
       "readinessSpots": "{{spots}} de {{cap}} huecos aún libres (opcional)",
-      "readinessUnanswered": "{{count}} miembros aún no han respondido (opcional)",
+      "readinessUnanswered": {
+        "one": "{{count}} miembro aún no ha respondido (opcional)",
+        "other": "{{count}} miembros aún no han respondido (opcional)"
+      },
       "applyToEvent": "Inscribirse al evento",
       "withdrawFromEvent": "Retirarse del evento",
       "tabIn": "Dentro",
@@ -1537,8 +1624,10 @@
       "loadError": "No hemos podido cargar el mercado. Inténtalo en un momento.",
       "partiesRecruiting": "Parties reclutando",
       "noCrews": "Todavía no hay equipos reclutando aquí. Ofrécete y te encontrarán.",
-      "spotOpenOne": "hueco libre",
-      "spotOpenMany": "huecos libres",
+      "spotsOpen": {
+        "one": "hueco libre",
+        "other": "huecos libres"
+      },
       "needs": "necesita",
       "freeAgents": "Agentes libres",
       "noFreeAgents": "Aún no hay agentes libres en el tablón.",

@@ -183,7 +183,7 @@
                 >{{ p.teamName.charAt(0) }}</span>
                 <div class="min-w-0 flex-1">
                   <span class="block truncate font-semibold text-heading">{{ p.teamName }}</span>
-                  <span class="block text-caption text-muted">{{ (p.type === 'CityTeam' ? 'myTeam.cityTeam' : 'myTeam.mixteam') | transloco }}@if (p.location) { · {{ p.location }}} · <span class="font-mono">{{ p.memberCount }}</span> {{ (p.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}</span>
+                  <span class="block text-caption text-muted">{{ (p.type === 'CityTeam' ? 'myTeam.cityTeam' : 'myTeam.mixteam') | transloco }}@if (p.location) { · {{ p.location }}} · <span class="font-mono">{{ p.memberCount }}</span> {{ 'myTeam.members' | pluralKey: p.memberCount | transloco }}</span>
                   <span class="mt-0.5 block text-caption text-muted">{{ 'onboarding.team.invite.invitedBy' | transloco:{ name: p.inviterDisplayName } }}</span>
                 </div>
               </div>
@@ -225,7 +225,7 @@
                   >{{ inv.teamName.charAt(0) }}</span>
                   <div class="min-w-0 flex-1">
                     <span class="block truncate font-semibold text-heading">{{ inv.teamName }}</span>
-                    <span class="block text-caption text-muted">{{ (inv.teamType === 'CityTeam' ? 'myTeam.cityTeam' : 'myTeam.mixteam') | transloco }}@if (inv.location) { · {{ inv.location }}} · <span class="font-mono">{{ inv.memberCount }}</span> {{ (inv.memberCount === 1 ? 'myTeam.memberOne' : 'myTeam.memberMany') | transloco }}</span>
+                    <span class="block text-caption text-muted">{{ (inv.teamType === 'CityTeam' ? 'myTeam.cityTeam' : 'myTeam.mixteam') | transloco }}@if (inv.location) { · {{ inv.location }}} · <span class="font-mono">{{ inv.memberCount }}</span> {{ 'myTeam.members' | pluralKey: inv.memberCount | transloco }}</span>
                     <span class="mt-0.5 block text-caption text-muted">{{ 'onboarding.team.invite.invitedBy' | transloco:{ name: inv.inviterDisplayName } }}</span>
                   </div>
                 </div>

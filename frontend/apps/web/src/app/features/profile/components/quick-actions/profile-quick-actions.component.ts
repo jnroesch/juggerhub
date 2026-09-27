@@ -8,6 +8,7 @@ import { TeamService } from '../../../../core/services/team.service';
 import { ProfileTeam } from '../../../../core/models/profile.models';
 import { ButtonDirective, AlertComponent } from '../../../../shared/ui';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../../core/i18n/plural-key.pipe';
 
 /** A team the viewer administers and to which the target player can be invited. */
 interface EligibleTeam {
@@ -29,7 +30,7 @@ interface EligibleTeam {
   selector: 'jh-profile-quick-actions',
   templateUrl: './profile-quick-actions.component.html',
   styleUrl: './profile-quick-actions.component.css',
-  imports: [ButtonDirective, AlertComponent, TranslocoPipe],
+  imports: [ButtonDirective, AlertComponent, TranslocoPipe, PluralKeyPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProfileQuickActionsComponent implements OnInit {

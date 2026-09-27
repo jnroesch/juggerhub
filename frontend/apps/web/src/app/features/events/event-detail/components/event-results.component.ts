@@ -1,6 +1,7 @@
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
+import { PluralKeyPipe } from '../../../../core/i18n/plural-key.pipe';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { AlertComponent, ButtonDirective, CardComponent, LoadingComponent } from '../../../../shared/ui';
 import { Placement, TournamentMatch, TournamentResult } from '../../../../core/models/results.models';
@@ -28,7 +29,7 @@ const MATCH_PAGE = 50;
  */
 @Component({
   selector: 'jh-event-results',
-  imports: [RouterLink, TranslocoPipe, TranslocoDatePipe, CardComponent, AlertComponent, ButtonDirective, LoadingComponent],
+  imports: [RouterLink, TranslocoPipe, PluralKeyPipe, TranslocoDatePipe, CardComponent, AlertComponent, ButtonDirective, LoadingComponent],
   templateUrl: './event-results.component.html',
   styleUrl: './event-results.component.css',
 })
