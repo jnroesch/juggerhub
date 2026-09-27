@@ -107,7 +107,7 @@ describe('TrainingEditComponent (post-save destination)', () => {
     const regenerated = 'cccccccc-0000-0000-0000-000000000003';
     build(result(regenerated, 4));
 
-    fixture.componentInstance['weekday'] = 'Thursday';
+    fixture.componentInstance['weekday'].set('Thursday');
     saveSeries();
 
     expect(api.editSeries).toHaveBeenCalledWith(SESSION.trainingId, expect.objectContaining({ weekday: 'Thursday' }));
