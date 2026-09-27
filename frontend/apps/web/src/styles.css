@@ -388,10 +388,7 @@
 
 @keyframes jh-check {
   from {
-    stroke-dashoffset: 1;
-  }
-  to {
-    stroke-dashoffset: 0;
+    stroke-dashoffset: 24;
   }
 }
 
@@ -427,9 +424,11 @@
     animation: jh-bump var(--duration-base) var(--ease-bounce);
   }
 
-  /* On an SVG path with `pathLength="1"`, so the dash covers the stroke whatever its length. */
-  .jh-check {
-    stroke-dasharray: 1;
+  /* On `<jh-icon name="check">` — the icon system allows no hand-drawn SVG, so this draws the
+     glyph it already has. Its stroke is about 22.6 units long in the 24-unit box, so a 24-unit
+     dash, offset by its own length, starts with the whole mark hidden. */
+  .jh-check path {
+    stroke-dasharray: 24;
     animation: jh-check var(--duration-slow) var(--ease-out) backwards;
   }
 

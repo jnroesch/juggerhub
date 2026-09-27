@@ -188,7 +188,8 @@
                 </div>
               </div>
               @if (joinedSlugs().includes(p.teamSlug)) {
-                <p class="mt-sm text-body-sm text-success-fg" data-testid="onboarding-invite-joined">
+                <p class="mt-sm flex items-start gap-xs text-body-sm text-success-fg" data-testid="onboarding-invite-joined">
+                  <jh-icon name="check" size="sm" class="jh-check mt-0.5 shrink-0" />
                   {{ 'onboarding.team.invite.joined' | transloco:{ team: p.teamName } }}
                 </p>
               } @else if (memberSlugs().has(p.teamSlug)) {
@@ -229,7 +230,8 @@
                   </div>
                 </div>
                 @if (joinedSlugs().includes(inv.teamSlug)) {
-                  <p class="mt-sm text-body-sm text-success-fg" [attr.data-testid]="'onboarding-invite-joined-' + inv.teamSlug">
+                  <p class="mt-sm flex items-start gap-xs text-body-sm text-success-fg" [attr.data-testid]="'onboarding-invite-joined-' + inv.teamSlug">
+                    <jh-icon name="check" size="sm" class="jh-check mt-0.5 shrink-0" />
                     {{ 'onboarding.team.invite.joined' | transloco:{ team: inv.teamName } }}
                   </p>
                 } @else if (memberSlugs().has(inv.teamSlug)) {

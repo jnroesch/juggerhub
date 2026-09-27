@@ -528,9 +528,13 @@ Where each one goes:
   no step before it.
 - **`bump`** — the unread badges in the top and bottom bars, when the count
   goes up. Not when it first renders, not when it goes down.
-- **`check`** — accepting an invitation, finishing the team wizard, answering
-  "going" to a session or event. It sits beside the confirmation text, never in
-  place of it, and the text is readable from the first frame.
+- **`check`** — the "you joined" line after accepting an invitation in
+  onboarding, and the "Going" answer on a training session, drawn only when the
+  reader has just given it (not for the answer the page loaded with). It draws
+  the icon system's own `check` glyph, since no screen hand-draws SVG, and sits
+  beside the confirmation text, never in place of it; the text is readable from
+  the first frame. The invite page and the team wizard have no confirmation to
+  sit beside — both move on to the next screen — so they have no check.
 - **`knob`** — every drawn switch: notification preferences, team settings,
   the Browse filter toggles. The public-profile toggle is a native checkbox with
   no thumb to slide, and stays one.

@@ -128,7 +128,7 @@
                   class="flex flex-col items-center gap-2xs rounded-md border px-sm py-md text-body-sm font-medium transition-all duration-fast active:translate-y-px"
                   [class.border-success-border]="s.myAnswer === 'Going'" [class.bg-success-bg]="s.myAnswer === 'Going'"
                   [class.text-success-fg]="s.myAnswer === 'Going'" [class.border-border-strong]="s.myAnswer !== 'Going'">
-                  <jh-icon name="check" />
+                  <jh-icon name="check" [class.jh-check]="drawGoing() && s.myAnswer === 'Going'" />
                   <span>{{ 'trainings.session.going' | transloco }}</span>
                 </button>
                 <button type="button" (click)="respond('Maybe')" [disabled]="busy()" [attr.aria-pressed]="s.myAnswer === 'Maybe'"
