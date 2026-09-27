@@ -198,7 +198,6 @@ motion:
     standard: "cubic-bezier(0.4, 0, 0.2, 1)"
     out: "cubic-bezier(0.16, 1, 0.3, 1)"
     bounce: "cubic-bezier(0.34, 1.56, 0.64, 1)"
-    bounce: "cubic-bezier(0.34, 1.56, 0.64, 1)"
 components:
   button:
     backgroundColor: "{semantic.brand-primary-strong}"
@@ -528,8 +527,9 @@ Where each one goes:
 - **`check`** — accepting an invitation, finishing the team wizard, answering
   "going" to a session or event. It sits beside the confirmation text, never in
   place of it, and the text is readable from the first frame.
-- **`knob`** — every `role="switch"`: notification preferences, the public
-  profile toggle, team settings, the Browse filter toggles.
+- **`knob`** — every drawn switch: notification preferences, team settings,
+  the Browse filter toggles. The public-profile toggle is a native checkbox with
+  no thumb to slide, and stays one.
 
 Rules that hold for all six:
 

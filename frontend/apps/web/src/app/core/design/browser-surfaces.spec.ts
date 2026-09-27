@@ -156,4 +156,37 @@ describe('reduced motion', () => {
       expect(`${property}: ${ms}ms`).toBe(`${property}: ${Math.max(ms, 50)}ms`);
     }
   });
+
+  it('gives every travelling keyframe a fade-only twin', () => {
+    // The block above deliberately leaves entrance keyframes running, so a keyframe that moves
+    // would still move for a reader who asked it not to. DESIGN.md "Motion vocabulary": each one
+    // is declared again inside the block, where it wins the cascade, without the movement.
+    const outside = keyframes(css.replace(block ?? '', ''));
+    const inside = keyframes(block ?? '');
+    const travelling = [...outside].filter(([, body]) => /\btransform\s*:/.test(body)).map(([name]) => name);
+
+    expect(travelling.length).toBeGreaterThan(0);
+    for (const name of travelling) {
+      expect(`${name}: ${inside.has(name) ? 'twinned' : 'missing'}`).toBe(`${name}: twinned`);
+      expect(`${name}: ${/\btransform\s*:/.test(inside.get(name) ?? '') ? 'still moves' : 'still'}`).toBe(`${name}: still`);
+    }
+  });
 });
+
+/** Every `@keyframes` in a stretch of CSS, name → body. */
+function keyframes(css: string): Map<string, string> {
+  const found = new Map<string, string>();
+  const pattern = /@keyframes\s+([\w-]+)\s*\{/g;
+
+  for (let m = pattern.exec(css); m; m = pattern.exec(css)) {
+    let depth = 0;
+    for (let i = m.index + m[0].length - 1; i < css.length; i++) {
+      if (css[i] === '{') depth++;
+      else if (css[i] === '}' && --depth === 0) {
+        found.set(m[1], css.slice(m.index, i + 1));
+        break;
+      }
+    }
+  }
+  return found;
+}
