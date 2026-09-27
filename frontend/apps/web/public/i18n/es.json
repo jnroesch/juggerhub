@@ -663,6 +663,8 @@
       "systemRemoved": "{{name}} fue eliminado",
       "systemGroupCreated": "{{name}} creó este grupo",
       "messageUnavailable": "Este mensaje no se puede mostrar.",
+      "receiptSent": "Enviado",
+      "receiptRead": "Leído",
       "attachmentUnavailable": "Este archivo no se puede abrir.",
       "downloadFile": "Descargar {{name}}",
       "openImage": "Abrir {{name}}",

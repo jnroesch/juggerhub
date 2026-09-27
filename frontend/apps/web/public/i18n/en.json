@@ -659,6 +659,8 @@
       "systemRemoved": "{{name}} was removed",
       "systemGroupCreated": "{{name}} started this group",
       "messageUnavailable": "This message can’t be displayed.",
+      "receiptSent": "Sent",
+      "receiptRead": "Read",
       "attachmentUnavailable": "This file can’t be opened.",
       "downloadFile": "Download {{name}}",
       "openImage": "Open {{name}}",
