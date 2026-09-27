@@ -20,5 +20,6 @@ export { EmptyStateComponent } from './empty-state/empty-state.component';
 export { PageContainerComponent } from './page/page-container.component';
 export type { PageWidth } from './page/page-container.component';
 export { LowercaseInputDirective } from './lowercase-input/lowercase-input.directive';
+export { BumpDirective } from './bump/bump.directive';
 export { LegalLinksComponent } from './legal-links/legal-links.component';
 export type { LegalLinksVariant } from './legal-links/legal-links.component';
