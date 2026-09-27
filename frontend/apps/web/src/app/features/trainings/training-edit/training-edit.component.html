@@ -37,21 +37,21 @@
         }
       </div>
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.date' | transloco }}
-        <input [(ngModel)]="sessionDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
+        <input [ngModel]="sessionDate()" (ngModelChange)="sessionDate.set($event)" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
       </label>
       <div class="mt-md grid grid-cols-2 gap-sm">
         <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.start' | transloco }}
-          <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
+          <input [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
         <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.end' | transloco }}
-          <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
+          <input [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
       </div>
       <div class="mt-md grid grid-cols-2 gap-xs">
-        <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">{{ 'trainings.form.inPerson' | transloco }}</button>
-        <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
+        <button type="button" (click)="locationKind.set('InPerson')" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind() === 'InPerson'" [class.border-border-strong]="locationKind() !== 'InPerson'">{{ 'trainings.form.inPerson' | transloco }}</button>
+        <button type="button" (click)="locationKind.set('Virtual')" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind() === 'Virtual'" [class.border-border-strong]="locationKind() !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
       </div>
-      @if (locationKind === 'InPerson') {
+      @if (locationKind() === 'InPerson') {
         <p class="mt-md text-body-sm font-medium text-heading">{{ 'trainings.edit.locationJustThisWeek' | transloco }}</p>
         <jh-address-fields
           class="mt-xs"
@@ -64,7 +64,7 @@
         />
       } @else {
         <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
-          <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
+          <input [ngModel]="virtualLink()" (ngModelChange)="virtualLink.set($event)" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
       }
       @if (!s.isOneOff) {
@@ -81,34 +81,34 @@
       <h1 class="mt-md text-h3">{{ 'trainings.edit.editSeries' | transloco }}</h1>
       <p class="mt-2xs text-body-sm text-muted">{{ 'trainings.edit.editSeriesDesc' | transloco }}</p>
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.name' | transloco }}
-        <input [(ngModel)]="name" type="text" maxlength="120" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
+        <input [ngModel]="name()" (ngModelChange)="name.set($event)" type="text" maxlength="120" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
       </label>
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.dayOfWeek' | transloco }}
-        <select [(ngModel)]="weekday" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body">
+        <select [ngModel]="weekday()" (ngModelChange)="weekday.set($event)" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body">
           @for (d of weekdays; track d) { <option [value]="d">{{ 'trainings.weekday.' + d | transloco }}</option> }
         </select>
       </label>
       <div class="mt-md grid grid-cols-2 gap-sm">
         <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.start' | transloco }}
-          <input [(ngModel)]="startTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
+          <input [ngModel]="startTime()" (ngModelChange)="startTime.set($event)" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
         <label class="block text-body-sm font-medium text-heading">{{ 'trainings.form.end' | transloco }}
-          <input [(ngModel)]="endTime" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
+          <input [ngModel]="endTime()" (ngModelChange)="endTime.set($event)" type="time" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
       </div>
       <div class="mt-md">
         <span class="text-body-sm font-medium text-heading">{{ 'trainings.form.repeats' | transloco }}</span>
         <div class="mt-2xs grid grid-cols-3 gap-xs">
           @for (opt of [{ v: 'Weekly', l: 'trainings.form.weekly' }, { v: 'BiWeekly', l: 'trainings.form.biweekly' }, { v: 'Monthly', l: 'trainings.form.monthly' }]; track opt.v) {
-            <button type="button" (click)="interval = $any(opt.v)" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="interval === opt.v" [class.border-border-strong]="interval !== opt.v">{{ opt.l | transloco }}</button>
+            <button type="button" (click)="interval.set($any(opt.v))" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="interval() === opt.v" [class.border-border-strong]="interval() !== opt.v">{{ opt.l | transloco }}</button>
           }
         </div>
       </div>
       <div class="mt-md grid grid-cols-2 gap-xs">
-        <button type="button" (click)="locationKind = 'InPerson'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'InPerson'" [class.border-border-strong]="locationKind !== 'InPerson'">{{ 'trainings.form.inPerson' | transloco }}</button>
-        <button type="button" (click)="locationKind = 'Virtual'" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind === 'Virtual'" [class.border-border-strong]="locationKind !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
+        <button type="button" (click)="locationKind.set('InPerson')" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind() === 'InPerson'" [class.border-border-strong]="locationKind() !== 'InPerson'">{{ 'trainings.form.inPerson' | transloco }}</button>
+        <button type="button" (click)="locationKind.set('Virtual')" class="rounded-md border px-sm py-xs text-body-sm" [class.border-brand]="locationKind() === 'Virtual'" [class.border-border-strong]="locationKind() !== 'Virtual'">{{ 'trainings.form.virtual' | transloco }}</button>
       </div>
-      @if (locationKind === 'InPerson') {
+      @if (locationKind() === 'InPerson') {
         <jh-address-fields
           class="mt-md"
           testIdPrefix="series"
@@ -120,11 +120,11 @@
         />
       } @else {
         <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.joinLink' | transloco }}
-          <input [(ngModel)]="virtualLink" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
+          <input [ngModel]="virtualLink()" (ngModelChange)="virtualLink.set($event)" type="url" maxlength="500" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
         </label>
       }
       <label class="mt-md block text-body-sm font-medium text-heading">{{ 'trainings.form.until' | transloco }}
-        <input [(ngModel)]="endDate" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
+        <input [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" type="date" class="mt-2xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body" />
       </label>
       <p class="mt-sm rounded-md bg-surface-sunken p-sm text-caption text-muted">{{ 'trainings.edit.seriesNotifyNote' | transloco }}</p>
       @if (error()) { <p class="mt-sm text-body-sm text-danger-fg">{{ error() }}</p> }

@@ -39,7 +39,7 @@ export class PartyManageComponent implements OnInit {
   // Party news, shown inline on the manage view (crew-only).
   protected readonly news = signal<PartyNews[]>([]);
   protected readonly posting = signal(false);
-  protected newsBody = '';
+  protected readonly newsBody = signal('');
 
   protected readonly isAdmin = computed(() => this.party()?.myRole === 'Admin');
   protected readonly isApplied = computed(() => this.party()?.status === 'Applied');
@@ -78,14 +78,14 @@ export class PartyManageComponent implements OnInit {
   }
 
   protected postNews(): void {
-    const text = this.newsBody.trim();
+    const text = this.newsBody().trim();
     if (this.posting() || text.length === 0) {
       return;
     }
     this.posting.set(true);
     this.parties.postNews(this.id, { body: text }).subscribe({
       next: () => {
-        this.newsBody = '';
+        this.newsBody.set('');
         this.posting.set(false);
         this.loadNews();
       },

@@ -50,15 +50,17 @@ export class TrainingEditComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly result = signal<string | null>(null);
 
-  // Form state (prefilled on load).
-  protected sessionDate = '';
-  protected startTime = '';
-  protected endTime = '';
-  protected locationKind: LocationKind = 'InPerson';
+  // Form state (prefilled on load). Signals rather than plain fields so a programmatic write (the
+  // prefill) repaints on its own terms under OnPush, not because a sibling signal happens to change
+  // in the same callback (GH #130).
+  protected readonly sessionDate = signal('');
+  protected readonly startTime = signal('');
+  protected readonly endTime = signal('');
+  protected readonly locationKind = signal<LocationKind>('InPerson');
   // Feature 042 — structured address, prefilled from the session detail.
-  protected venueName = '';
-  protected street = '';
-  protected postalCode = '';
+  protected readonly venueName = signal('');
+  protected readonly street = signal('');
+  protected readonly postalCode = signal('');
   /** The city currently stored, so the picker reads it back. Set once, before the form renders. */
   protected readonly initialCity = signal<Location | null>(null);
   /**
@@ -67,13 +69,13 @@ export class TrainingEditComponent {
    * point), a value = they picked a new one.
    */
   protected readonly pickedCity = signal<CityOption | null | undefined>(undefined);
-  protected virtualLink = '';
-  protected name = '';
-  protected description = '';
-  protected weekday = 'Tuesday';
-  protected interval: TrainingInterval = 'Weekly';
-  protected endDate = '';
-  protected visibility: TrainingVisibility = 'TeamOnly';
+  protected readonly virtualLink = signal('');
+  protected readonly name = signal('');
+  protected readonly description = signal('');
+  protected readonly weekday = signal('Tuesday');
+  protected readonly interval = signal<TrainingInterval>('Weekly');
+  protected readonly endDate = signal('');
+  protected readonly visibility = signal<TrainingVisibility>('TeamOnly');
 
   // Originals for the series form, so unchanged pattern fields aren't sent (avoids needless regeneration).
   private origWeekday = '';
@@ -115,24 +117,24 @@ export class TrainingEditComponent {
   }
 
   private prefill(s: TrainingSessionDetail): void {
-    this.sessionDate = s.sessionDate;
-    this.startTime = s.startTime.slice(0, 5);
-    this.endTime = s.endTime.slice(0, 5);
-    this.locationKind = s.locationKind;
-    this.venueName = s.venueName ?? '';
-    this.street = s.street ?? '';
-    this.postalCode = s.postalCode ?? '';
+    this.sessionDate.set(s.sessionDate);
+    this.startTime.set(s.startTime.slice(0, 5));
+    this.endTime.set(s.endTime.slice(0, 5));
+    this.locationKind.set(s.locationKind);
+    this.venueName.set(s.venueName ?? '');
+    this.street.set(s.street ?? '');
+    this.postalCode.set(s.postalCode ?? '');
     // Set before the form renders — `jh-city-picker` reads its `initial` in ngOnInit, and the form
     // only exists in the loaded branch of the template.
     this.initialCity.set(s.location);
     this.pickedCity.set(undefined);
-    this.virtualLink = s.virtualLink ?? '';
-    this.name = s.name;
-    this.description = s.description ?? '';
-    this.weekday = this.origWeekday = s.weekday ?? 'Tuesday';
-    this.interval = this.origInterval = s.interval ?? 'Weekly';
-    this.endDate = this.origEndDate = s.endDate ?? '';
-    this.visibility = s.visibility;
+    this.virtualLink.set(s.virtualLink ?? '');
+    this.name.set(s.name);
+    this.description.set(s.description ?? '');
+    this.weekday.set((this.origWeekday = s.weekday ?? 'Tuesday'));
+    this.interval.set((this.origInterval = s.interval ?? 'Weekly'));
+    this.endDate.set((this.origEndDate = s.endDate ?? ''));
+    this.visibility.set(s.visibility);
   }
 
   protected choose(mode: EditMode): void {
@@ -159,9 +161,9 @@ export class TrainingEditComponent {
   /** The whole in-person address, always sent together — never field by field (FR-007). */
   private addressBlock() {
     return {
-      venueName: this.venueName.trim() || null,
-      street: this.street.trim() || null,
-      postalCode: this.postalCode.trim() || null,
+      venueName: this.venueName().trim() || null,
+      street: this.street().trim() || null,
+      postalCode: this.postalCode().trim() || null,
       location: this.citySelection(),
     };
   }
@@ -179,16 +181,16 @@ export class TrainingEditComponent {
     }
     this.busy.set(true);
     this.error.set(null);
-    const inPerson = this.locationKind === 'InPerson';
+    const inPerson = this.locationKind() === 'InPerson';
     const body: EditSessionRequest = {
-      sessionDate: this.sessionDate,
-      startTime: `${this.startTime}:00`,
-      endTime: `${this.endTime}:00`,
-      locationKind: this.locationKind,
+      sessionDate: this.sessionDate(),
+      startTime: `${this.startTime()}:00`,
+      endTime: `${this.endTime()}:00`,
+      locationKind: this.locationKind(),
       ...(inPerson
         ? this.addressBlock()
         : { venueName: null, street: null, postalCode: null, location: null }),
-      virtualLink: inPerson ? null : this.virtualLink.trim(),
+      virtualLink: inPerson ? null : this.virtualLink().trim(),
     };
     this.trainings.editSession(this.sessionId, body).subscribe({
       next: () => this.router.navigate(['/trainings/sessions', this.sessionId]),
@@ -206,23 +208,23 @@ export class TrainingEditComponent {
     }
     this.busy.set(true);
     this.error.set(null);
-    const inPerson = this.locationKind === 'InPerson';
+    const inPerson = this.locationKind() === 'InPerson';
     const body: EditSeriesRequest = {
-      name: this.name.trim(),
-      description: this.description.trim() || null,
-      locationKind: this.locationKind,
+      name: this.name().trim(),
+      description: this.description().trim() || null,
+      locationKind: this.locationKind(),
       ...(inPerson
         ? this.addressBlock()
         : { venueName: null, street: null, postalCode: null, location: null }),
-      virtualLink: inPerson ? null : this.virtualLink.trim(),
-      startTime: `${this.startTime}:00`,
-      endTime: `${this.endTime}:00`,
-      visibility: this.visibility,
+      virtualLink: inPerson ? null : this.virtualLink().trim(),
+      startTime: `${this.startTime()}:00`,
+      endTime: `${this.endTime()}:00`,
+      visibility: this.visibility(),
     };
     // Only send pattern/end-date fields when they actually changed — those trigger regeneration.
-    if (this.weekday !== this.origWeekday) body.weekday = this.weekday;
-    if (this.interval !== this.origInterval) body.interval = this.interval;
-    if (this.endDate && this.endDate !== this.origEndDate) body.endDate = this.endDate;
+    if (this.weekday() !== this.origWeekday) body.weekday = this.weekday();
+    if (this.interval() !== this.origInterval) body.interval = this.interval();
+    if (this.endDate() && this.endDate() !== this.origEndDate) body.endDate = this.endDate();
 
     this.trainings.editSeries(s.trainingId, body).subscribe({
       // Never back to `this.sessionId`: a weekday/interval/end-date change regenerates the future set

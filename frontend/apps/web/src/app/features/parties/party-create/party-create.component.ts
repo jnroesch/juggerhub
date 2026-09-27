@@ -30,8 +30,8 @@ export class PartyCreateComponent implements OnInit {
   protected readonly submitting = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  protected selectedTeamId = '';
-  protected message = '';
+  protected readonly selectedTeamId = signal('');
+  protected readonly message = signal('');
 
   private eventId = '';
 
@@ -47,7 +47,7 @@ export class PartyCreateComponent implements OnInit {
         this.context.set(ctx);
         const formable = ctx.teams.filter((t) => t.canForm);
         if (formable.length === 1) {
-          this.selectedTeamId = formable[0].teamId;
+          this.selectedTeamId.set(formable[0].teamId);
         }
         this.loading.set(false);
       },
@@ -56,12 +56,12 @@ export class PartyCreateComponent implements OnInit {
   }
 
   protected submit(): void {
-    if (this.submitting() || !this.selectedTeamId) {
+    if (this.submitting() || !this.selectedTeamId()) {
       return;
     }
     this.submitting.set(true);
     this.error.set(null);
-    this.parties.formParty({ eventId: this.eventId, teamId: this.selectedTeamId, message: this.message || null }).subscribe({
+    this.parties.formParty({ eventId: this.eventId, teamId: this.selectedTeamId(), message: this.message() || null }).subscribe({
       next: (party) => this.router.navigate(['/parties', party.id]),
       error: (err) => {
         this.submitting.set(false);
