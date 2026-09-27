@@ -130,7 +130,6 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
   protected readonly showsSenderNames = computed(() => this.detail()?.kind !== 'Direct');
 
   private pinnedToBottom = true;
-  private pendingScrollToBottom = false;
   /** The scroller height captured before a history page was requested; applied once it has rendered. */
   private pendingScrollAnchor: number | null = null;
   /** The newest message the thread held on the last pass — the anchor for "what has arrived since". */
@@ -162,8 +161,8 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
       }
 
       if (this.pinnedToBottom) {
-        // Scrolled after the render that draws the new message — NOT via `pendingScrollToBottom`.
-        // That flag is only consumed in `ngAfterViewChecked`, and this effect runs too late in the
+        // Scrolled after the render that draws the new message — NOT via a flag consumed in
+        // `ngAfterViewChecked`, because this effect runs too late in the
         // pass for this view's check to see it, so nothing scrolled on arrival: the flag waited for
         // the next check of this view, which was typically the reader's own scroll up — and yanked
         // them straight back down, the one thing FR-021 forbids (found in the GH #344 walk).
@@ -192,11 +191,6 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
   }
 
   ngAfterViewChecked(): void {
-    if (this.pendingScrollToBottom) {
-      this.pendingScrollToBottom = false;
-      this.scrollToBottom();
-    }
-
     if (this.pendingScrollAnchor !== null) {
       const previousHeight = this.pendingScrollAnchor;
       this.pendingScrollAnchor = null;
@@ -224,7 +218,11 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
     this.chat.openConversation(id).subscribe({
       next: () => {
         this.loading.set(false);
-        this.pendingScrollToBottom = true;
+        // Opens at the latest message. Scheduled after the render that draws the thread rather than
+        // left as a flag for `ngAfterViewChecked`: the app is zoneless, and a signal-driven refresh of
+        // this view alone does not run its parent's check — so the hook never fired and the thread
+        // opened at the very top (the same trap as the arrival scroll above, GH #344).
+        afterNextRender(() => this.scrollToBottom(), { injector: this.injector });
       },
       error: () => {
         this.loading.set(false);
@@ -317,7 +315,7 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
         this.pending.set([]);
         this.pendingError.set(null);
         this.sending.set(false);
-        this.pendingScrollToBottom = true;
+        afterNextRender(() => this.scrollToBottom(), { injector: this.injector });
       },
       error: (e: { error?: { detail?: string } }) => {
         this.sending.set(false);
@@ -388,6 +386,14 @@ export class ChatConversationComponent implements OnChanges, AfterViewChecked {
     return who.length === 1
       ? this.t.translate('chat.inbox.typingOne', { name: who[0].displayName })
       : this.t.translate('chat.inbox.typingSeveral');
+  }
+
+  /**
+   * The server sends the receipt as a code ("Sent"/"Read"), never as text — printing it raw put
+   * English under every own bubble in the German and Spanish interface.
+   */
+  protected receiptKey(state: 'Sent' | 'Read'): string {
+    return state === 'Read' ? 'chat.conversation.receiptRead' : 'chat.conversation.receiptSent';
   }
 
   protected messageTime(iso: string): string {

@@ -196,7 +196,7 @@
             <span class="mt-xs flex items-center gap-xs px-xs font-mono text-caption text-muted">
               <span>{{ messageTime(m.sentAt) }}</span>
               @if (m.readState) {
-                <span aria-live="polite">· {{ m.readState }}</span>
+                <span aria-live="polite">· {{ receiptKey(m.readState) | transloco }}</span>
               }
             </span>
 
