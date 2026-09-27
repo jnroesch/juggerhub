@@ -18,7 +18,7 @@
             {{ formableTeams()[0].teamName }}
           </p>
         } @else {
-          <select [(ngModel)]="selectedTeamId" name="team"
+          <select [ngModel]="selectedTeamId()" (ngModelChange)="selectedTeamId.set($event)" name="team"
             class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus">
             <option value="" disabled>{{ 'parties.create.pickTeam' | transloco }}</option>
             @for (t of formableTeams(); track t.teamId) {
@@ -37,7 +37,7 @@
 
       <div>
         <p class="text-eyebrow uppercase text-muted">{{ 'parties.create.messageToTeam' | transloco }}</p>
-        <textarea [(ngModel)]="message" name="message" rows="3" maxlength="500"
+        <textarea [ngModel]="message()" (ngModelChange)="message.set($event)" name="message" rows="3" maxlength="500"
           [placeholder]="'parties.create.messagePlaceholder' | transloco"
           class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"></textarea>
       </div>
@@ -50,7 +50,7 @@
         <jh-alert>{{ error() }}</jh-alert>
       }
 
-      <button type="submit" [disabled]="submitting() || !selectedTeamId"
+      <button type="submit" [disabled]="submitting() || !selectedTeamId()"
         jhButton class="w-full">
         {{ 'parties.create.submit' | transloco }}
       </button>

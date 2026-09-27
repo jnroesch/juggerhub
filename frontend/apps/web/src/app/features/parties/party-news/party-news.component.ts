@@ -28,7 +28,7 @@ export class PartyNewsComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly posting = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected body = '';
+  protected readonly body = signal('');
 
   protected readonly isAdmin = computed(() => this.party()?.myRole === 'Admin');
   protected id = '';
@@ -50,7 +50,7 @@ export class PartyNewsComponent implements OnInit {
   }
 
   protected post(): void {
-    const text = this.body.trim();
+    const text = this.body().trim();
     if (this.posting() || text.length === 0) {
       return;
     }
@@ -58,7 +58,7 @@ export class PartyNewsComponent implements OnInit {
     this.error.set(null);
     this.parties.postNews(this.id, { body: text }).subscribe({
       next: () => {
-        this.body = '';
+        this.body.set('');
         this.posting.set(false);
         this.load();
       },
