@@ -516,9 +516,13 @@ Where each one goes:
   that reloads, pages, filters or is re-seeded from the server does not rise
   again — only its first appearance on a visit and a single live arrival do.
   Your own sent message does not rise; it was already there in the composer.
-- **`pop`** — the avatar menu, the filter panel, the city and country pickers,
-  the assign picker. It leaves faster than it came, because a closing menu is
-  something the reader has already finished with.
+- **`pop`** — the avatar menu, the country picker's list, the Browse filter
+  panel (from the bottom on a phone, from the right on a desktop) and the assign
+  dialog. It leaves faster than it came, because a closing menu is something the
+  reader has already finished with. The assign dialog only enters: its host
+  removes the whole component, and a leave inside it would never be seen. The
+  city picker's list does not pop — it is rebuilt after every search, so it
+  would pop on every keystroke.
 - **`step`** — onboarding and the team, event and training wizards. Back
   travels the other way. The first step on arrival does not animate; there was
   no step before it.
