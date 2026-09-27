@@ -784,6 +784,8 @@
     "clearSearchFilters": "Clear search & filters",
     "loadMore": "Load more",
     "country": "Country",
+    "anyCountry": "Any country",
+    "clearCountry": "Clear country",
     "showEyebrow": "Show",
     "sortNameAsc": "A–Z",
     "sortNearest": "Nearest first",

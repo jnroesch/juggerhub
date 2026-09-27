@@ -788,6 +788,8 @@
     "clearSearchFilters": "Suche & Filter zurücksetzen",
     "loadMore": "Mehr laden",
     "country": "Land",
+    "anyCountry": "Jedes Land",
+    "clearCountry": "Land entfernen",
     "showEyebrow": "Anzeigen",
     "sortNameAsc": "A–Z",
     "sortNearest": "Nächste zuerst",

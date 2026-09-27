@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { CountryPickerComponent } from './country-picker.component';
 import { Country } from '../../core/models/city.models';
+import { translocoTestingModule } from '../../../testing/transloco-testing';
 
 const COUNTRIES: Country[] = [
   { code: 'DE', name: 'Germany' },
@@ -16,6 +17,7 @@ describe('CountryPickerComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
+      imports: [translocoTestingModule()],
       providers: [provideHttpClient(withXhr()), provideHttpClientTesting()],
     });
     httpMock = TestBed.inject(HttpTestingController);
@@ -103,5 +105,34 @@ describe('CountryPickerComponent', () => {
 
     fixture.nativeElement.querySelector('[aria-label="Clear country"]').click();
     expect(emitted).toEqual(['']);
+  });
+});
+
+describe('CountryPickerComponent — in German', () => {
+  // The placeholder and both accessible names used to be English literals, so the German Browse
+  // filters read "Any country" and a screen reader announced "Country" / "Clear country".
+  it('reads the placeholder and both accessible names from the catalogue', () => {
+    TestBed.configureTestingModule({
+      imports: [
+        translocoTestingModule(
+          { de: require('../../../../public/i18n/de.json') },
+          {
+            translocoConfig: { availableLangs: ['en', 'de', 'es'], defaultLang: 'de', fallbackLang: 'de' },
+          },
+        ),
+      ],
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting()],
+    });
+    const fixture = TestBed.createComponent(CountryPickerComponent);
+    fixture.componentRef.setInput('value', 'Deutschland');
+    fixture.detectChanges();
+    TestBed.inject(HttpTestingController).expectOne('/api/v1/cities/countries').flush([]);
+    fixture.detectChanges();
+
+    const host = fixture.nativeElement as HTMLElement;
+    const input = host.querySelector<HTMLInputElement>('[data-testid="country-picker-input"]')!;
+    expect(input.placeholder).toBe('Jedes Land');
+    expect(input.getAttribute('aria-label')).toBe('Land');
+    expect(host.querySelector('[aria-label="Land entfernen"]')).not.toBeNull();
   });
 });
