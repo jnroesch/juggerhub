@@ -102,6 +102,8 @@ export interface HomeNews {
   sourceSlugOrId: string;
   body: string;
   createdDate: string;
+  /** Feature 057 — ISO date-time of the last edit; null if never. Only team posts can be edited. */
+  editedDate: string | null;
 }
 
 // ---- What's going on (passive activity) ------------------------------------

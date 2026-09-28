@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using JuggerHub.Api.IntegrationTests.Auth;
 using JuggerHub.Api.IntegrationTests.Home;
+using JuggerHub.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace JuggerHub.Api.IntegrationTests.Teams;
@@ -281,6 +282,79 @@ public sealed class TeamNewsEditDeleteTests
         Assert.Equal("News post not found", await ProblemTitleAsync(edit));
     }
 
+    // --- US3: every copy tells the same story ---------------------------------------------------
+
+    [Fact]
+    public async Task An_edit_corrects_the_excerpt_in_alerts_already_delivered_without_making_them_new()
+    {
+        var team = await TeamWithMemberAsync();
+        var reader = await NewUserAsync();
+        await JoinAsync(team.Admin, team.Slug, reader);
+        var former = await NewUserAsync();
+        await JoinAsync(team.Admin, team.Slug, former);
+        var post = await PostAsync(team.Admin, team.Slug, "Training moves to Thursday.");
+        await PostAsync(team.Admin, team.Slug, "A later update."); // the edited post's row is not the newest
+        await MarkReadAsync(reader, (await AlertsForPostAsync(reader, post)).Single());
+        await LeaveAsync(former, team.Slug);
+
+        var orderBefore = (await AlertsAsync(team.Member)).Select(n => n.GetProperty("id").GetString()).ToList();
+        var unreadBefore = await UnreadCountAsync(team.Member);
+        var readerUnreadBefore = await UnreadCountAsync(reader);
+        var rowsModifiedBefore = await ModifiedDatesOfAlertsAsync(post);
+        var liveBefore = _factory.NotificationRealtime.UnreadCountsFor(team.Member.Id).Count;
+
+        (await EditAsync(team.Admin, team.Slug, post, "Training moves to Friday.")).EnsureSuccessStatusCode();
+
+        // Every copy of the opening text now says Friday — the former member's included (FR-006).
+        foreach (var player in new[] { team.Member, reader, former })
+        {
+            var row = (await AlertsForPostAsync(player, post)).Single();
+            Assert.Equal("Training moves to Friday.", row.GetProperty("payload").GetProperty("excerpt").GetString());
+        }
+
+        // ...and nothing about the rows became new: read state, order and counts hold.
+        Assert.False((await AlertsForPostAsync(team.Member, post)).Single().GetProperty("isRead").GetBoolean());
+        Assert.True((await AlertsForPostAsync(reader, post)).Single().GetProperty("isRead").GetBoolean());
+        Assert.Equal(orderBefore, (await AlertsAsync(team.Member)).Select(n => n.GetProperty("id").GetString()).ToList());
+        Assert.Equal(unreadBefore, await UnreadCountAsync(team.Member));
+        Assert.Equal(readerUnreadBefore, await UnreadCountAsync(reader));
+        Assert.Equal(liveBefore, _factory.NotificationRealtime.UnreadCountsFor(team.Member.Id).Count);
+
+        // The rewrite went through ExecuteUpdate, so it set ModifiedDate itself (Gate 2).
+        var rowsModifiedAfter = await ModifiedDatesOfAlertsAsync(post);
+        Assert.Equal(3, rowsModifiedAfter.Count);
+        Assert.All(rowsModifiedAfter, pair => Assert.True(pair.Value > rowsModifiedBefore[pair.Key]));
+    }
+
+    [Fact]
+    public async Task Home_marks_an_edited_team_post_and_never_event_news()
+    {
+        var team = await TeamWithMemberAsync();
+        var edited = await PostAsync(team.Admin, team.Slug, "Kit order closes Thursday.");
+        await PostAsync(team.Admin, team.Slug, "Never touched.");
+        var eventId = await HomeTestSupport.SeedEventAsync(
+            _factory, "Rhein Cup", DateTime.UtcNow.AddDays(10), DateTime.UtcNow.AddDays(11), ParticipantMode.Individuals);
+        await HomeTestSupport.SignupUserAsync(_factory, eventId, team.Member.Id);
+        await HomeTestSupport.AddEventNewsAsync(_factory, eventId, team.Admin.Id, "Schedule posted.");
+
+        (await EditAsync(team.Admin, team.Slug, edited, "Kit order closes Friday.")).EnsureSuccessStatusCode();
+
+        var news = await HomeNewsAsync(team.Member);
+        var editedItem = news.Single(n => n.GetProperty("body").GetString() == "Kit order closes Friday.");
+        Assert.Equal("team", editedItem.GetProperty("source").GetString());
+        Assert.Equal(JsonValueKind.String, editedItem.GetProperty("editedDate").ValueKind);
+        Assert.Equal(JsonValueKind.Null,
+            news.Single(n => n.GetProperty("body").GetString() == "Never touched.").GetProperty("editedDate").ValueKind);
+        Assert.Equal(JsonValueKind.Null,
+            news.Single(n => n.GetProperty("source").GetString() == "event").GetProperty("editedDate").ValueKind);
+
+        // The dashboard's own News module reads the same item.
+        var home = await team.Member.Client.GetFromJsonAsync<JsonElement>("/api/v1/home");
+        var dashboardItem = home.GetProperty("news").EnumerateArray()
+            .Single(n => n.GetProperty("body").GetString() == "Kit order closes Friday.");
+        Assert.Equal(JsonValueKind.String, dashboardItem.GetProperty("editedDate").ValueKind);
+    }
+
     // --- helpers --------------------------------------------------------------------------------
 
     private sealed record Player(HttpClient Client, Guid Id, string Handle, string Email);
@@ -398,4 +472,11 @@ public sealed class TeamNewsEditDeleteTests
     private Task<DateTime> ModifiedDateOfPostAsync(Guid postId) =>
         HomeTestSupport.WithDbAsync(_factory, db =>
             db.TeamNewsPosts.AsNoTracking().Where(n => n.Id == postId).Select(n => n.ModifiedDate).SingleAsync());
+
+    /// <summary>ModifiedDate of each Alerts row announcing <paramref name="postId"/>, by row id.</summary>
+    private Task<Dictionary<Guid, DateTime>> ModifiedDatesOfAlertsAsync(Guid postId) =>
+        HomeTestSupport.WithDbAsync(_factory, db =>
+            db.Notifications.AsNoTracking()
+                .Where(n => n.DedupeKey != null && n.DedupeKey.StartsWith($"news:{postId}:"))
+                .ToDictionaryAsync(n => n.Id, n => n.ModifiedDate));
 }

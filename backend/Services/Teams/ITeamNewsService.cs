@@ -53,7 +53,8 @@ public interface ITeamNewsService
 
     /// <summary>
     /// Replace a post's text (any current admin, any post). The post keeps its author, date and
-    /// place in the feed and is marked edited. Nobody is notified. Text equal to the current text
+    /// place in the feed and is marked edited, and the alerts already delivered for it show the
+    /// corrected excerpt without becoming new. Nobody is notified. Text equal to the current text
     /// (after trimming) writes nothing.
     /// </summary>
     Task<TeamNewsEditResult> EditAsync(string slug, Guid postId, Guid actorUserId, string body, CancellationToken ct = default);

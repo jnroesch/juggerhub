@@ -181,6 +181,13 @@ public sealed class TeamNewsService : ITeamNewsService
         if (trimmed != current)
         {
             var now = DateTime.UtcNow;
+            var team = await _db.Teams.AsNoTracking()
+                .Where(t => t.Id == a.TeamId)
+                .Select(t => new { t.Slug, t.Name })
+                .FirstAsync(ct);
+            // What every alert already delivered for the post will say from now on (FR-006): the
+            // same shape PostAsync wrote, carrying the corrected excerpt.
+            var payload = new TeamNewsPayload(team.Slug, team.Name, postId, Excerpt(trimmed));
 
             // The post and the alerts that quote it change together or not at all (research R3).
             // Every statement is an ExecuteUpdate with fixed values, so the execution strategy can
@@ -198,8 +205,13 @@ public sealed class TeamNewsService : ITeamNewsService
                 if (rows == 0)
                 {
                     // Another admin deleted it between the read above and this write (FR-019).
+                    // Returning before the alerts is also what keeps another team's post id away
+                    // from that team's rows (FR-012).
                     return false;
                 }
+
+                // Silently: the rows keep their read state and place, and nothing is pushed.
+                await _notifications.ReplacePayloadAsync(NotificationType.TeamNews, NewsDedupePrefix(postId), payload, ct);
 
                 await tx.CommitAsync(ct);
                 return true;
