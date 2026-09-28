@@ -171,6 +171,22 @@ export class TeamService {
     return this.http.post<TeamNews>(`${this.base}/${encodeURIComponent(slug)}/news`, { body });
   }
 
+  /**
+   * Feature 057 — any admin: replace a post's text. Notifies nobody. A 404 means the post is gone
+   * (or the viewer lost access); never retried automatically, like every mutation.
+   */
+  editNews(slug: string, postId: string, body: string): Observable<TeamNews> {
+    return this.http.patch<TeamNews>(
+      `${this.base}/${encodeURIComponent(slug)}/news/${encodeURIComponent(postId)}`,
+      { body },
+    );
+  }
+
+  /** Feature 057 — any admin: delete a post and the alerts that announced it. A 404 means it is already gone. */
+  deleteNews(slug: string, postId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${encodeURIComponent(slug)}/news/${encodeURIComponent(postId)}`);
+  }
+
   // --- Members & roles -----------------------------------------------------
 
   setRole(slug: string, userId: string, role: TeamRole): Observable<TeamMember> {

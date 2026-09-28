@@ -14,6 +14,6 @@ internal static class HomeNewsMerge
         sources.SelectMany(s => s)
             .OrderByDescending(n => n.CreatedDate)
             .ThenByDescending(n => n.Id)
-            .Select(n => new HomeNewsDto(n.Source, n.SourceName, n.SourceSlugOrId, n.Body, n.CreatedDate))
+            .Select(n => new HomeNewsDto(n.Source, n.SourceName, n.SourceSlugOrId, n.Body, n.CreatedDate, n.EditedDate))
             .ToList();
 }

@@ -14,9 +14,34 @@ public enum TeamNewsPostStatus
 /// <summary>The posted news item plus the authorization outcome.</summary>
 public sealed record TeamNewsPostResult(TeamNewsPostStatus Status, TeamNewsDto? Post);
 
+/// <summary>Outcome of an attempt to edit a team news post (feature 057).</summary>
+public enum TeamNewsEditStatus
+{
+    /// <summary>Saved — or the text was already the same, in which case nothing was written.</summary>
+    Updated,
+    NotFoundOrNotMember,
+    Forbidden,
+    /// <summary>No such post in this team: deleted, never existed, or another team's.</summary>
+    PostNotFound,
+}
+
+/// <summary>The post as it now stands, plus the outcome.</summary>
+public sealed record TeamNewsEditResult(TeamNewsEditStatus Status, TeamNewsDto? Post);
+
+/// <summary>Outcome of an attempt to delete a team news post (feature 057).</summary>
+public enum TeamNewsDeleteStatus
+{
+    Deleted,
+    NotFoundOrNotMember,
+    Forbidden,
+    /// <summary>No such post in this team: already deleted, never existed, or another team's.</summary>
+    PostNotFound,
+}
+
 /// <summary>
 /// Team news feed. Reading is member-scoped; posting (feature 010) is admin-only and fans out an
-/// in-app notification to every other current member.
+/// in-app notification to every other current member; editing and deleting (feature 057) are
+/// open to any current admin, for any post, and notify nobody.
 /// </summary>
 public interface ITeamNewsService
 {
@@ -25,4 +50,19 @@ public interface ITeamNewsService
 
     /// <summary>Post a news update (admin-only); persists it and notifies the rest of the roster.</summary>
     Task<TeamNewsPostResult> PostAsync(string slug, Guid actorUserId, string body, CancellationToken ct = default);
+
+    /// <summary>
+    /// Replace a post's text (any current admin, any post). The post keeps its author, date and
+    /// place in the feed and is marked edited, and the alerts already delivered for it show the
+    /// corrected excerpt without becoming new. Nobody is notified. Text equal to the current text
+    /// (after trimming) writes nothing.
+    /// </summary>
+    Task<TeamNewsEditResult> EditAsync(string slug, Guid postId, Guid actorUserId, string body, CancellationToken ct = default);
+
+    /// <summary>
+    /// Delete a post for good (any current admin, any post), together with the alerts that
+    /// announced it — every recipient's, former members' included. Nobody is notified; copies
+    /// already sent by email are out of reach.
+    /// </summary>
+    Task<TeamNewsDeleteStatus> DeleteAsync(string slug, Guid postId, Guid actorUserId, CancellationToken ct = default);
 }

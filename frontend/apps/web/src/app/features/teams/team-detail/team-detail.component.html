@@ -191,7 +191,8 @@
         <!-- News (members only) -->
         @if (isMember()) {
           <jh-card data-testid="news">
-            <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.news' | transloco }}</h2>
+            <!-- tabindex -1: where focus lands after a post is deleted (feature 057). -->
+            <h2 id="team-news-heading" tabindex="-1" class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.news' | transloco }}</h2>
 
             <!-- Admin composer (feature 010): posting notifies the whole roster. -->
             @if (isAdmin()) {
@@ -217,12 +218,84 @@
               </div>
             }
 
+            <!-- Feature 057: what happened to a post an admin tried to act on (e.g. deleted meanwhile). -->
+            @if (newsNotice(); as notice) {
+              <p class="mb-sm text-body-sm text-muted" role="status" data-testid="news-notice">{{ notice | transloco }}</p>
+            }
+
             @if (news().length > 0) {
               <ul class="flex flex-col gap-sm">
-                @for (n of news(); track $index) {
-                  <li>
-                    <p class="text-body-sm text-body">{{ n.body }}</p>
-                    <p class="text-caption text-muted">{{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</p>
+                @for (n of news(); track n.id) {
+                  <li class="flex items-start gap-xs" data-testid="news-post">
+                    <div class="min-w-0 flex-1">
+                      @if (editingNewsId() === n.id) {
+                        <!-- Edited in place (feature 057). Save is secondary: the composer's
+                             "Post news" above stays the one coral CTA in this view. -->
+                        <div data-testid="news-editor">
+                          <textarea
+                            rows="3"
+                            maxlength="1000"
+                            [value]="newsDraft()"
+                            (input)="newsDraft.set($any($event.target).value)"
+                            [attr.aria-label]="'teams.detail.newsEditLabel' | transloco"
+                            data-testid="news-edit-input"
+                            class="w-full resize-y rounded-md border border-border-default bg-surface-card px-md py-sm text-body-sm text-body placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                          ></textarea>
+                          <p class="mt-xs text-caption text-muted">{{ 'teams.detail.newsEditHint' | transloco }}</p>
+                          @if (newsEditError(); as key) {
+                            <p class="mt-xs text-body-sm text-danger-fg" role="alert" data-testid="news-edit-error">{{ key | transloco }}</p>
+                          }
+                          <div class="mt-sm flex flex-wrap justify-end gap-sm">
+                            <button type="button" jhButton variant="ghost" size="sm" [disabled]="savingNews()" (click)="cancelEdit()" data-testid="news-edit-cancel">
+                              {{ 'common.cancel' | transloco }}
+                            </button>
+                            <button type="button" jhButton variant="secondary" size="sm" [disabled]="savingNews() || !newsDraft().trim()" (click)="saveEdit(n)" data-testid="news-edit-save">
+                              {{ (savingNews() ? 'teams.detail.newsSaving' : 'common.save') | transloco }}
+                            </button>
+                          </div>
+                        </div>
+                      } @else {
+                        <p class="whitespace-pre-line break-words text-body-sm text-body" data-testid="news-body">{{ n.body }}</p>
+                        <!-- The date and the marker wrap as one unit: at 375px in German a long
+                             name otherwise broke inside the date ("28. Sept." / "2026") or left
+                             the marker's middot stranded at a line end. -->
+                        <p class="text-caption text-muted" data-testid="news-meta">
+                          {{ n.authorDisplayName }} · <span class="whitespace-nowrap">{{ n.createdDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}@if (n.editedDate) { · {{ 'teams.detail.newsEdited' | transloco }} }</span>
+                        </p>
+                      }
+                    </div>
+
+                    <!-- Any admin may edit or delete any post (feature 057). The server decides; this
+                         is convenience. Disabled while a post is being edited, so choosing another
+                         post can never silently throw away the text being typed. -->
+                    @if (isAdmin()) {
+                      <div class="relative shrink-0" data-news-menu>
+                        <button
+                          type="button"
+                          class="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50"
+                          aria-haspopup="menu"
+                          [attr.aria-expanded]="newsMenu() === n.id"
+                          [attr.aria-label]="'teams.detail.newsManage' | transloco"
+                          [attr.data-news-menu-trigger]="n.id"
+                          [disabled]="editingNewsId() !== null"
+                          (click)="toggleNewsMenu(n.id)"
+                        >
+                          <jh-icon name="ellipsis" size="sm" />
+                        </button>
+                        @if (newsMenu() === n.id) {
+                          <div class="absolute right-0 z-10 mt-1 min-w-40 rounded-md border border-border-default bg-surface-card py-xs shadow-md" role="menu" data-testid="news-menu">
+                            <button type="button" role="menuitem" (click)="startEdit(n)" data-testid="news-edit"
+                              class="flex min-h-11 w-full items-center px-md text-left text-body-sm text-body hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                              {{ 'teams.detail.newsEdit' | transloco }}
+                            </button>
+                            <button type="button" role="menuitem" (click)="askDeleteNews(n)" data-testid="news-delete"
+                              class="flex min-h-11 w-full items-center px-md text-left text-body-sm text-danger-fg hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                              {{ 'teams.detail.newsDelete' | transloco }}
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    }
                   </li>
                 }
               </ul>
@@ -284,6 +357,33 @@
             <button type="button" (click)="dismissConfirm()" jhButton variant="secondary" size="sm">{{ (intent === 'join' ? 'teams.detail.dismiss' : 'teams.detail.keepRequest') | transloco }}</button>
             <button type="button" (click)="confirmAction()" [disabled]="requestBusy()" data-testid="join-confirm-submit"
               jhButton size="sm">{{ (intent === 'join' ? 'teams.detail.confirmJoinSubmit' : 'teams.detail.confirmCancelSubmit') | transloco }}</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Delete a news post (feature 057): the dialog above, with a destructive answer. The safe
+         answer takes focus when it opens, and Tab stays inside while it is open. -->
+    @if (deleteNewsTarget()) {
+      <div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
+        <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
+          role="dialog" aria-modal="true" aria-labelledby="news-delete-title" aria-describedby="news-delete-body"
+          (keydown.tab)="trapTab($event)" (keydown.shift.tab)="trapTab($event)"
+          data-testid="news-delete-confirm">
+          <div class="border-b border-border-muted px-md py-sm">
+            <h3 id="news-delete-title" class="text-body-lg font-semibold text-heading">{{ 'teams.detail.newsDeleteTitle' | transloco }}</h3>
+          </div>
+          <div class="px-md py-md">
+            <p id="news-delete-body" class="text-body-sm text-body">{{ 'teams.detail.newsDeleteBody' | transloco }}</p>
+            @if (newsDeleteError(); as key) {
+              <p class="mt-sm text-body-sm text-danger-fg" role="alert" data-testid="news-delete-error">{{ key | transloco }}</p>
+            }
+          </div>
+          <div class="flex flex-wrap items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
+            <button type="button" (click)="dismissDeleteNews()" [disabled]="deletingNews()" data-testid="news-delete-keep"
+              jhButton variant="secondary" size="sm">{{ 'teams.detail.newsDeleteKeep' | transloco }}</button>
+            <button type="button" (click)="confirmDeleteNews()" [disabled]="deletingNews()" data-testid="news-delete-submit"
+              jhButton variant="danger" size="sm">{{ (deletingNews() ? 'teams.detail.newsDeleting' : 'teams.detail.newsDeleteConfirm') | transloco }}</button>
           </div>
         </div>
       </div>

@@ -79,6 +79,12 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
     /// </summary>
     public Push.FakePushDispatcher PushDispatcher { get; } = new();
 
+    /// <summary>
+    /// Records the notification engine's realtime sends (new alerts, unread counts), so a test can
+    /// assert that an edit raised no alert and that a delete lowered a badge (feature 057).
+    /// </summary>
+    public Notifications.FakeNotificationRealtime NotificationRealtime { get; } = new();
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
@@ -182,6 +188,11 @@ public sealed class JuggerHubApiFactory : WebApplicationFactory<Program>, IAsync
             // still exercises the sentence a member would actually read.
             services.RemoveAll<JuggerHub.Services.Notifications.Push.IPushDispatcher>();
             services.AddSingleton<JuggerHub.Services.Notifications.Push.IPushDispatcher>(PushDispatcher);
+
+            // And for the notification engine's own realtime channel (feature 057). No test
+            // connects to the notifications hub, so nothing loses a socket it relied on.
+            services.RemoveAll<JuggerHub.Services.Notifications.Realtime.INotificationRealtime>();
+            services.AddSingleton<JuggerHub.Services.Notifications.Realtime.INotificationRealtime>(NotificationRealtime);
         });
 
         builder.ConfigureLogging(logging => logging.AddProvider(new CaptureLoggerProvider(ErrorLogs)));

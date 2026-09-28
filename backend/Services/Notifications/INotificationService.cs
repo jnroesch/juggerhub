@@ -40,6 +40,40 @@ public interface INotificationService
         string? dedupeKeyPrefix = null,
         CancellationToken ct = default);
 
+    /// <summary>
+    /// Rewrite the payload of every notification of <paramref name="type"/> that
+    /// <see cref="CreateManyAsync"/> wrote under <paramref name="dedupeKeyPrefix"/> — the same prefix
+    /// string the producer passed there (feature 057: an edited team news post corrects the excerpt
+    /// its alerts carry). Read state, inbox order and every timestamp but <c>ModifiedDate</c> are
+    /// left alone, so a corrected row is not a new alert. Pushes nothing, which makes it safe inside
+    /// the caller's transaction. Returns the number of rows rewritten.
+    /// </summary>
+    Task<int> ReplacePayloadAsync(
+        NotificationType type,
+        string dedupeKeyPrefix,
+        object payload,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Delete every notification of <paramref name="type"/> that <see cref="CreateManyAsync"/> wrote
+    /// under <paramref name="dedupeKeyPrefix"/> — every recipient's, including people no longer
+    /// connected to the source (feature 057: a deleted team news post takes its alerts with it).
+    /// Pushes nothing, which makes it safe inside the caller's transaction; returns the recipients who
+    /// lost an <em>unread</em> row, so the caller can <see cref="RefreshUnreadBadgesAsync"/> once it
+    /// has committed.
+    /// </summary>
+    Task<IReadOnlyCollection<Guid>> DeleteManyAsync(
+        NotificationType type,
+        string dedupeKeyPrefix,
+        CancellationToken ct = default);
+
+    /// <summary>
+    /// Send each recipient's current unread count to their open clients, so a badge that a deletion
+    /// lowered drops without a reload. Best-effort: a delivery failure is logged, never thrown. Call
+    /// it only after the change it reflects has committed.
+    /// </summary>
+    Task RefreshUnreadBadgesAsync(IReadOnlyCollection<Guid> recipientUserIds, CancellationToken ct = default);
+
     /// <summary>The recipient's notifications, newest-first, paginated. Never unbounded.</summary>
     Task<PagedResult<NotificationDto>> ListAsync(Guid userId, PaginationRequest pagination, CancellationToken ct = default);
 

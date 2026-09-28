@@ -431,7 +431,7 @@ public sealed class HomeService : IHomeService
                 .Where(n => myTeamIds.Contains(n.TeamId))
                 .OrderByDescending(n => n.CreatedDate).ThenByDescending(n => n.Id)
                 .Take(window)
-                .Select(n => new HomeProjections.NewsRaw("team", n.Team.Name, n.Team.Slug, n.Body, n.CreatedDate, n.Id))
+                .Select(n => new HomeProjections.NewsRaw("team", n.Team.Name, n.Team.Slug, n.Body, n.CreatedDate, n.Id, n.EditedDate))
                 .ToListAsync(ct);
 
         // Connected events: viewer/team sign-up OR viewer admins (EXISTS subqueries — no unbounded read).
@@ -442,7 +442,7 @@ public sealed class HomeService : IHomeService
                 || _db.EventAdmins.Any(a => a.EventId == n.EventId && a.UserId == userId))
             .OrderByDescending(n => n.CreatedDate).ThenByDescending(n => n.Id)
             .Take(window)
-            .Select(n => new HomeProjections.NewsRaw("event", n.Event.Name, n.Event.Id.ToString(), n.Body, n.CreatedDate, n.Id))
+            .Select(n => new HomeProjections.NewsRaw("event", n.Event.Name, n.Event.Id.ToString(), n.Body, n.CreatedDate, n.Id, (DateTime?)null))
             .ToListAsync(ct);
 
         // Party news (feature 025): posts in a party the viewer is currently an `In` member of — this
@@ -453,7 +453,8 @@ public sealed class HomeService : IHomeService
             .OrderByDescending(n => n.CreatedDate).ThenByDescending(n => n.Id)
             .Take(window)
             .Select(n => new HomeProjections.NewsRaw(
-                "party", n.Party.Team.Name + " @ " + n.Party.Event.Name, n.Party.EventId.ToString(), n.Body, n.CreatedDate, n.Id))
+                "party", n.Party.Team.Name + " @ " + n.Party.Event.Name, n.Party.EventId.ToString(), n.Body, n.CreatedDate, n.Id,
+                (DateTime?)null))
             .ToListAsync(ct);
 
         var merged = HomeNewsMerge.Merge(teamNews, eventNews, partyNews);

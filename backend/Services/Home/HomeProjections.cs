@@ -29,9 +29,13 @@ internal static class HomeProjections
         string? TeamSlug,
         string? TeamName);
 
-    /// <summary>Raw columns for a news item (either source), projected in SQL.</summary>
+    /// <summary>
+    /// Raw columns for a news item (any source), projected in SQL. <see cref="EditedDate"/> is set
+    /// only by the team source — event and party posts cannot be edited (feature 057).
+    /// </summary>
     internal sealed record NewsRaw(
-        string Source, string SourceName, string SourceSlugOrId, string Body, DateTime CreatedDate, Guid Id);
+        string Source, string SourceName, string SourceSlugOrId, string Body, DateTime CreatedDate, Guid Id,
+        DateTime? EditedDate);
 
     /// <summary>Best available human location: city, then venue, then the legacy free-text location.</summary>
     internal static string LocationLabel(string? city, string? venue, string location) =>

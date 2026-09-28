@@ -74,3 +74,37 @@ describe('TeamService logos', () => {
     expect(service.logoUrl('a b')).toBe('/api/v1/teams/a%20b/logo');
   });
 });
+
+/** Feature 057 — editing and deleting a team news post address the post by its id. */
+describe('TeamService news', () => {
+  let service: TeamService;
+  let httpMock: HttpTestingController;
+  const postId = '0199a7c2-3d41-7b10-9e2f-5c7d1a0b4e21';
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(withXhr()), provideHttpClientTesting()],
+    });
+    service = TestBed.inject(TeamService);
+    httpMock = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => httpMock.verify());
+
+  it('PATCHes the new text to the post', () => {
+    service.editNews('rhein feuer', postId, 'Training moves to Friday.').subscribe();
+
+    const req = httpMock.expectOne(`/api/v1/teams/rhein%20feuer/news/${postId}`);
+    expect(req.request.method).toBe('PATCH');
+    expect(req.request.body).toEqual({ body: 'Training moves to Friday.' });
+    req.flush({});
+  });
+
+  it('DELETEs the post', () => {
+    service.deleteNews('rheinfeuer', postId).subscribe();
+
+    const req = httpMock.expectOne(`/api/v1/teams/rheinfeuer/news/${postId}`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+  });
+});

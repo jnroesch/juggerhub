@@ -1,5 +1,6 @@
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
-import { Component, HostListener, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, ElementRef, HostListener, Injector, afterNextRender, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -42,6 +43,8 @@ export class TeamDetailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
+  private readonly injector = inject(Injector);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly slug = signal('');
   protected readonly pub = signal<TeamPublicDetail | null>(null);
@@ -90,6 +93,13 @@ export class TeamDetailComponent {
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((pm) => {
       this.slug.set(pm.get('slug') ?? '');
+      // The router reuses this component from one team to the next. An editor left open on the
+      // previous team would otherwise keep every post menu here disabled (feature 057). Only on
+      // a switch, not in load(): approving a join request reloads too, mid-edit.
+      this.newsMenu.set(null);
+      this.editingNewsId.set(null);
+      this.newsNotice.set(null);
+      this.deleteNewsTarget.set(null);
       this.load();
     });
   }
@@ -159,6 +169,166 @@ export class TeamDetailComponent {
     });
   }
 
+  // --- Editing and deleting news (feature 057): any admin, any post -----------------------------
+
+  /** The post whose menu is open, if any. */
+  protected readonly newsMenu = signal<string | null>(null);
+  /** The post being edited in place, if any. While one is open, no other menu opens. */
+  protected readonly editingNewsId = signal<string | null>(null);
+  protected readonly newsDraft = signal('');
+  protected readonly savingNews = signal(false);
+  /** Translation keys, not text, so a language switch re-renders them. */
+  protected readonly newsEditError = signal<string | null>(null);
+  protected readonly newsNotice = signal<string | null>(null);
+
+  protected toggleNewsMenu(id: string): void {
+    this.newsMenu.update((open) => (open === id ? null : id));
+  }
+
+  protected startEdit(post: TeamNews): void {
+    this.newsMenu.set(null);
+    this.newsNotice.set(null);
+    this.newsEditError.set(null);
+    this.newsDraft.set(post.body);
+    this.editingNewsId.set(post.id);
+    // Zoneless: the textarea exists only after the next render (GH #344's lesson — not an effect).
+    afterNextRender(() => this.focus('[data-testid="news-edit-input"]'), { injector: this.injector });
+  }
+
+  protected cancelEdit(): void {
+    const id = this.editingNewsId();
+    this.editingNewsId.set(null);
+    this.newsEditError.set(null);
+    if (id) {
+      afterNextRender(() => this.focus(`[data-news-menu-trigger="${id}"]`), { injector: this.injector });
+    }
+  }
+
+  protected saveEdit(post: TeamNews): void {
+    const body = this.newsDraft().trim();
+    if (body.length === 0 || this.savingNews()) {
+      return;
+    }
+    if (body === post.body) {
+      // Nothing changed, so there is nothing to send (FR-003).
+      this.cancelEdit();
+      return;
+    }
+    this.savingNews.set(true);
+    this.newsEditError.set(null);
+    this.teams.editNews(this.slug(), post.id, body).subscribe({
+      next: (updated) => {
+        this.news.update((list) => list.map((n) => (n.id === updated.id ? updated : n)));
+        this.savingNews.set(false);
+        this.cancelEdit();
+      },
+      error: (err) => {
+        this.savingNews.set(false);
+        if (isGone(err)) {
+          this.dropNews(post.id);
+          return;
+        }
+        // The editor stays open with the typed text (FR-020). Our own sentence, never the server's
+        // English `detail` (GH #179).
+        this.newsEditError.set('teams.detail.newsSaveFailed');
+      },
+    });
+  }
+
+  /** The post the delete dialog is asking about, if it is open. */
+  protected readonly deleteNewsTarget = signal<TeamNews | null>(null);
+  protected readonly deletingNews = signal(false);
+  protected readonly newsDeleteError = signal<string | null>(null);
+
+  protected askDeleteNews(post: TeamNews): void {
+    this.newsMenu.set(null);
+    this.newsNotice.set(null);
+    this.newsDeleteError.set(null);
+    this.deleteNewsTarget.set(post);
+    // The safe answer takes focus, so Enter on arrival keeps the post.
+    afterNextRender(() => this.focus('[data-testid="news-delete-keep"]'), { injector: this.injector });
+  }
+
+  protected dismissDeleteNews(): void {
+    const target = this.deleteNewsTarget();
+    if (!target || this.deletingNews()) {
+      return;
+    }
+    this.deleteNewsTarget.set(null);
+    this.newsDeleteError.set(null);
+    afterNextRender(() => this.focus(`[data-news-menu-trigger="${target.id}"]`), { injector: this.injector });
+  }
+
+  protected confirmDeleteNews(): void {
+    const target = this.deleteNewsTarget();
+    if (!target || this.deletingNews()) {
+      return;
+    }
+    this.deletingNews.set(true);
+    this.newsDeleteError.set(null);
+    this.teams.deleteNews(this.slug(), target.id).subscribe({
+      next: () => {
+        this.deletingNews.set(false);
+        this.deleteNewsTarget.set(null);
+        this.news.update((list) => list.filter((n) => n.id !== target.id));
+        // The button that opened the menu went with the post; land on the list's heading instead.
+        afterNextRender(() => this.focus('#team-news-heading'), { injector: this.injector });
+      },
+      error: (err) => {
+        this.deletingNews.set(false);
+        if (isGone(err)) {
+          this.deleteNewsTarget.set(null);
+          this.dropNews(target.id);
+          afterNextRender(() => this.focus('#team-news-heading'), { injector: this.injector });
+          return;
+        }
+        // The dialog stays open; confirming again is the retry (never automatic).
+        this.newsDeleteError.set('teams.detail.newsDeleteFailed');
+      },
+    });
+  }
+
+  /** Keep Tab inside the open dialog: `aria-modal` promises that the page behind it is inert. */
+  protected trapTab(event: Event): void {
+    const key = event as KeyboardEvent;
+    const buttons = Array.from(
+      (key.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button:not([disabled])'),
+    );
+    if (buttons.length === 0) {
+      return;
+    }
+    const first = buttons[0];
+    const last = buttons[buttons.length - 1];
+    if (key.shiftKey && document.activeElement === first) {
+      last.focus();
+      key.preventDefault();
+    } else if (!key.shiftKey && document.activeElement === last) {
+      first.focus();
+      key.preventDefault();
+    }
+  }
+
+  /** Another admin removed the post meanwhile: take it off the list and say so (FR-019). */
+  private dropNews(id: string): void {
+    this.news.update((list) => list.filter((n) => n.id !== id));
+    if (this.editingNewsId() === id) {
+      this.editingNewsId.set(null);
+    }
+    this.newsNotice.set('teams.detail.newsGone');
+  }
+
+  private focus(selector: string): void {
+    this.host.nativeElement.querySelector<HTMLElement>(selector)?.focus();
+  }
+
+  /** A click anywhere outside a post's menu closes it. */
+  @HostListener('document:click', ['$event'])
+  protected onDocumentClick(event: MouseEvent): void {
+    if (this.newsMenu() && !(event.target as Element | null)?.closest('[data-news-menu]')) {
+      this.newsMenu.set(null);
+    }
+  }
+
   private loadJoinRequests(): void {
     this.teams.getJoinRequests(this.slug()).subscribe({ next: (p) => this.joinRequests.set(p.items) });
   }
@@ -211,6 +381,15 @@ export class TeamDetailComponent {
   protected onEscape(): void {
     if (this.confirmIntent()) {
       this.dismissConfirm();
+    }
+    if (this.deleteNewsTarget()) {
+      this.dismissDeleteNews();
+    }
+    const menu = this.newsMenu();
+    if (menu) {
+      // Back to the button that opened it, or a keyboard user is left on the page body.
+      this.newsMenu.set(null);
+      this.focus(`[data-news-menu-trigger="${menu}"]`);
     }
   }
 
@@ -322,4 +501,12 @@ export class TeamDetailComponent {
 
   /** Public roster rows for the non-member view. */
   protected readonly publicRoster = computed<PublicMember[]>(() => this.pub()?.roster ?? []);
+}
+
+/**
+ * A news edit or delete answered 404: the post is gone (or the viewer no longer has access).
+ * Branch on the status, never the message — the server's text is English in every language.
+ */
+function isGone(err: unknown): boolean {
+  return err instanceof HttpErrorResponse && err.status === 404;
 }
