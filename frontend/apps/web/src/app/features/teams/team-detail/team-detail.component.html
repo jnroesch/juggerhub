@@ -98,6 +98,13 @@
             </section>
           }
         }
+        <!-- Feature 058 — at the queue's place, but shown even when the queue is now empty. -->
+        @if (joinNotice(); as key) {
+          <jh-alert tone="info" data-testid="join-notice">{{ key | transloco }}</jh-alert>
+        }
+        @if (answerError(); as key) {
+          <jh-alert data-testid="answer-error">{{ key | transloco }}</jh-alert>
+        }
         @if (isAdmin() && joinRequests().length > 0) {
           <section class="rounded-lg border border-border-accent bg-surface-accent-soft p-md" data-testid="join-queue">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.joinRequests' | transloco }}</h2>
@@ -106,7 +113,7 @@
                 <li class="flex items-center gap-sm rounded-md bg-surface-card px-sm py-xs">
                   <a [routerLink]="['/u', req.handle]" class="min-w-0 flex-1 truncate font-medium text-heading hover:text-link">{{ req.displayName }}</a>
                   <button type="button" jhButton size="sm" data-testid="approve" (click)="approve(req)">{{ 'teams.detail.approve' | transloco }}</button>
-                  <button type="button" class="rounded-md px-md py-1 text-caption font-medium text-muted hover:bg-surface-sunken" (click)="decline(req)">{{ 'common.decline' | transloco }}</button>
+                  <button type="button" class="rounded-md px-md py-1 text-caption font-medium text-muted hover:bg-surface-sunken" data-testid="decline" (click)="decline(req)">{{ 'common.decline' | transloco }}</button>
                 </li>
               }
             </ul>

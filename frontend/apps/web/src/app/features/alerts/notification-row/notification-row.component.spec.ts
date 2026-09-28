@@ -113,3 +113,44 @@ describe('NotificationRowComponent — TeamJoinRequest', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="notif-accept"]')).toBeNull();
   });
 });
+
+/** Feature 058 — the answer to the player's own request. The team answers; no admin is named. */
+describe('NotificationRowComponent — TeamJoinRequestAnswered', () => {
+  function render(accepted: boolean): ComponentFixture<NotificationRowComponent> {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NotificationRowComponent, translocoTestingModule()],
+      providers: [provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(NotificationRowComponent);
+    fixture.componentRef.setInput('notification', {
+      id: '0198c4f2-0000-7000-8000-000000000003',
+      type: 'TeamJoinRequestAnswered',
+      createdDate: new Date().toISOString(),
+      isRead: false,
+      actorDisplayName: null,
+      resolved: false,
+      payload: { teamSlug: 'hamburg-hammers', teamName: 'Hamburg Hammers', accepted },
+    } as AppNotification);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const text = (f: ComponentFixture<NotificationRowComponent>) => (f.nativeElement.textContent as string).replace(/\s+/g, ' ');
+  const href = (f: ComponentFixture<NotificationRowComponent>) =>
+    (f.nativeElement.querySelector('a[href]') as HTMLAnchorElement | null)?.getAttribute('href');
+
+  it('tells an accepted player they are in, and opens their new team', () => {
+    const fixture = render(true);
+    expect(text(fixture)).toContain("You're in: Hamburg Hammers accepted your request");
+    expect(text(fixture)).toContain('Say hello to your new team');
+    expect(href(fixture)).toBe('/t/hamburg-hammers');
+  });
+
+  it('tells a declined player so, and opens the team browser', () => {
+    const fixture = render(false);
+    expect(text(fixture)).toContain('Hamburg Hammers declined your request');
+    expect(text(fixture)).toContain('Have a look at other teams');
+    expect(href(fixture)).toBe('/browse/teams');
+  });
+});

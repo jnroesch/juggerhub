@@ -11,6 +11,7 @@ import {
   isPartyRequest,
   isTeamInvite,
   isTeamJoinRequest,
+  isTeamJoinRequestAnswered,
   isTeamNews,
   isTeamRoleChanged,
   isTrainingScheduled,
@@ -80,6 +81,10 @@ export class NotificationRowComponent {
       // Feature 058 — the team page is where a request is answered (the queue sits at its top).
       return `/t/${n.payload.teamSlug}`;
     }
+    if (isTeamJoinRequestAnswered(n)) {
+      // Accepted: the team the player just joined. Declined: where they can find another.
+      return n.payload.accepted ? `/t/${n.payload.teamSlug}` : '/browse/teams';
+    }
     return null;
   });
 
@@ -126,6 +131,12 @@ export class NotificationRowComponent {
         team: n.payload.teamName,
       });
     }
+    if (isTeamJoinRequestAnswered(n)) {
+      // The team answers, never a named admin (feature 058, FR-011).
+      return n.payload.accepted
+        ? t('alerts.row.joinAcceptedTitle', { team: n.payload.teamName })
+        : t('alerts.row.joinDeclinedTitle', { team: n.payload.teamName });
+    }
     return t('alerts.row.fallbackTitle');
   });
 
@@ -168,6 +179,9 @@ export class NotificationRowComponent {
     if (isTeamJoinRequest(n)) {
       // `resolved` is worked out when the inbox is read: answered by anyone, or the player gone.
       return n.resolved ? t('alerts.row.joinRequestHandled') : t('alerts.row.joinRequestSupporting');
+    }
+    if (isTeamJoinRequestAnswered(n)) {
+      return n.payload.accepted ? t('alerts.row.joinAcceptedSupporting') : t('alerts.row.joinDeclinedSupporting');
     }
     return '';
   });

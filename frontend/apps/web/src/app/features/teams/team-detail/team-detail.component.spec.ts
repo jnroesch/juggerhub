@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, ParamMap, convertToParamMap, provideRouter } from '@angular/router';
 import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { TeamMember, TeamNews, TeamPublicDetail, TeamViewerRelation } from '../../../core/models/team.models';
+import { JoinRequest, TeamMember, TeamNews, TeamPublicDetail, TeamViewerRelation } from '../../../core/models/team.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { PartyService } from '../../../core/services/party.service';
 import { ResultsService } from '../../../core/services/results.service';
@@ -348,5 +348,83 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
     expect(document.activeElement).toBe(el(fixture, '[data-news-menu-trigger="p1"]'));
     expect(service['deleteNews']).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * Feature 058 — answering a join request. An answer happens at most once: a request another admin
+ * answered first (or the player withdrew) comes back 404, which the page explains in its own words.
+ */
+describe('TeamDetailComponent — answering join requests (feature 058)', () => {
+  let service: Record<string, jest.Mock>;
+
+  const request: JoinRequest = {
+    id: '00000000-0000-7000-8000-0000000000c1',
+    handle: 'jonas',
+    displayName: 'Jonas Weber',
+    hasAvatar: false,
+    createdDate: '2026-09-28T08:00:00Z',
+  };
+
+  function render(): ComponentFixture<TeamDetailComponent> {
+    TestBed.resetTestingModule();
+    service = {
+      getPublicDetail: jest.fn().mockReturnValue(of(detail('Admin'))),
+      getMembers: jest.fn().mockReturnValue(of(page([]))),
+      getNews: jest.fn().mockReturnValue(of(page([]))),
+      getHappenings: jest.fn().mockReturnValue(of([])),
+      getJoinRequests: jest.fn().mockReturnValue(of(page([request]))),
+      logoUrl: jest.fn().mockReturnValue('/api/v1/teams/rheinfeuer/logo'),
+      approveJoinRequest: jest.fn(),
+      declineJoinRequest: jest.fn(),
+    };
+    TestBed.configureTestingModule({
+      imports: [TeamDetailComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        ...translocoLocaleTestingProviders(),
+        { provide: TeamService, useValue: service },
+        { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(TeamDetailComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function click(fixture: ComponentFixture<TeamDetailComponent>, testId: string): void {
+    (fixture.nativeElement.querySelector(`[data-testid="${testId}"]`) as HTMLElement).click();
+    fixture.detectChanges();
+  }
+
+  const textOf = (fixture: ComponentFixture<TeamDetailComponent>, testId: string) =>
+    (fixture.nativeElement.querySelector(`[data-testid="${testId}"]`) as HTMLElement | null)?.textContent?.trim();
+
+  it('says a request no longer waits when another admin answered first, and shows the queue as it is now', () => {
+    const fixture = render();
+    service['approveJoinRequest'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+    service['getJoinRequests'].mockReturnValue(of(page([])));
+
+    click(fixture, 'approve');
+
+    expect(textOf(fixture, 'join-notice')).toBe('This request was already answered or withdrawn.');
+    expect(fixture.nativeElement.querySelector('[data-testid="join-queue"]')).toBeNull();
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the queue and says so in its own words when an answer fails', () => {
+    const fixture = render();
+    service['declineJoinRequest'].mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 500, error: { detail: 'Some English server text' } })),
+    );
+
+    click(fixture, 'decline');
+
+    expect(textOf(fixture, 'answer-error')).toBe("We couldn't save your answer just now.");
+    expect(fixture.nativeElement.textContent).not.toContain('Some English server text');
+    expect(fixture.nativeElement.querySelector('[data-testid="join-queue"]')).not.toBeNull();
   });
 });

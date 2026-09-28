@@ -193,6 +193,186 @@ public sealed class JoinRequestNotificationTests
         Assert.Single(await AlertsAsync(team.A));
     }
 
+    // --- US2: the player hears the answer --------------------------------------------------
+
+    private const string AnswerType = "TeamJoinRequestAnswered";
+
+    [Fact]
+    public async Task Approving_tells_the_player_once_and_names_no_admin()
+    {
+        var team = await NewTeamAsync();
+        var player = await NewUserAsync();
+        await RequestAsync(player, team.Slug);
+        var requestId = await RequestIdAsync(team.Id, player.Id);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await AnswerAsync(team.A, team.Slug, requestId, approve: true)).StatusCode);
+
+        var answer = Assert.Single(await AlertsAsync(player, AnswerType));
+        var payload = answer.GetProperty("payload");
+        Assert.True(payload.GetProperty("accepted").GetBoolean());
+        Assert.Equal(team.Slug, payload.GetProperty("teamSlug").GetString());
+        Assert.Equal(team.Name, payload.GetProperty("teamName").GetString());
+        Assert.Equal(JsonValueKind.Null, answer.GetProperty("actorDisplayName").ValueKind);
+        Assert.DoesNotContain(team.A.Handle, answer.GetRawText(), StringComparison.Ordinal);
+        Assert.DoesNotContain(await DisplayNameAsync(team.A.Id), answer.GetRawText(), StringComparison.Ordinal);
+        Assert.True(await IsMemberAsync(team.Id, player.Id));
+    }
+
+    [Fact]
+    public async Task Declining_tells_the_player_once()
+    {
+        var team = await NewTeamAsync();
+        var player = await NewUserAsync();
+        await RequestAsync(player, team.Slug);
+        var requestId = await RequestIdAsync(team.Id, player.Id);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await AnswerAsync(team.B, team.Slug, requestId, approve: false)).StatusCode);
+
+        var answer = Assert.Single(await AlertsAsync(player, AnswerType));
+        Assert.False(answer.GetProperty("payload").GetProperty("accepted").GetBoolean());
+        Assert.Equal(JsonValueKind.Null, answer.GetProperty("actorDisplayName").ValueKind);
+        Assert.False(await IsMemberAsync(team.Id, player.Id));
+    }
+
+    [Fact]
+    public async Task Two_simultaneous_answers_take_effect_once()
+    {
+        // FR-012. Before feature 058 both answers were applied, which nobody could see; once the
+        // answer is sent, the player would have been told "accepted" and "declined" at once.
+        //
+        // Several requests race at once, so the two answers to each really do overlap in the
+        // database — a single pair can happen to run one after the other and pass either way.
+        var team = await NewTeamAsync();
+        var players = new List<(Actor Player, Guid RequestId)>();
+        for (var i = 0; i < 4; i++)
+        {
+            var player = await NewUserAsync();
+            await RequestAsync(player, team.Slug);
+            players.Add((player, await RequestIdAsync(team.Id, player.Id)));
+        }
+
+        var responses = await Task.WhenAll(players.SelectMany(p => new[]
+        {
+            AnswerAsync(team.A, team.Slug, p.RequestId, approve: true),
+            AnswerAsync(team.B, team.Slug, p.RequestId, approve: false),
+        }));
+
+        Assert.Equal(4, responses.Count(r => r.StatusCode == HttpStatusCode.NoContent));
+        Assert.Equal(4, responses.Count(r => r.StatusCode == HttpStatusCode.NotFound));
+
+        foreach (var (player, requestId) in players)
+        {
+            var answer = Assert.Single(await AlertsAsync(player, AnswerType));
+            var accepted = answer.GetProperty("payload").GetProperty("accepted").GetBoolean();
+            Assert.Equal(accepted, await IsMemberAsync(team.Id, player.Id));
+            Assert.Equal(
+                accepted ? JoinRequestStatus.Approved : JoinRequestStatus.Declined,
+                await HomeTestSupport.WithDbAsync(_factory, db =>
+                    db.TeamJoinRequests.Where(r => r.Id == requestId).Select(r => r.Status).SingleAsync()));
+        }
+    }
+
+    [Fact]
+    public async Task Answering_a_withdrawn_request_is_refused_and_tells_no_one()
+    {
+        var team = await NewTeamAsync();
+        var player = await NewUserAsync();
+        await RequestAsync(player, team.Slug);
+        var requestId = await RequestIdAsync(team.Id, player.Id);
+        (await player.Client.DeleteAsync($"/api/v1/teams/{team.Slug}/join-requests/mine")).EnsureSuccessStatusCode();
+
+        var response = await AnswerAsync(team.A, team.Slug, requestId, approve: true);
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.Empty(await AlertsAsync(player, AnswerType));
+        Assert.False(await IsMemberAsync(team.Id, player.Id));
+    }
+
+    [Fact]
+    public async Task Answering_a_banned_players_request_is_refused()
+    {
+        // FR-016/FR-021: only a waiting request can be answered, and a ban stops it waiting.
+        var team = await NewTeamAsync();
+        var player = await NewUserAsync();
+        await RequestAsync(player, team.Slug);
+        var requestId = await RequestIdAsync(team.Id, player.Id);
+        await SetStatusAsync(player.Id, AccountStatus.Banned);
+
+        Assert.Equal(HttpStatusCode.NotFound, (await AnswerAsync(team.A, team.Slug, requestId, approve: true)).StatusCode);
+        Assert.False(await IsMemberAsync(team.Id, player.Id));
+
+        // Lifting the ban restores the request, unchanged, and it can be answered again.
+        await SetStatusAsync(player.Id, AccountStatus.Active);
+        Assert.Equal(HttpStatusCode.NoContent, (await AnswerAsync(team.A, team.Slug, requestId, approve: true)).StatusCode);
+        Assert.True(await IsMemberAsync(team.Id, player.Id));
+    }
+
+    [Fact]
+    public async Task The_claim_sets_ModifiedDate_and_the_decision()
+    {
+        // The claim is an ExecuteUpdate, which the audit interceptor never sees (constitution III).
+        var team = await NewTeamAsync();
+        var player = await NewUserAsync();
+        await RequestAsync(player, team.Slug);
+        var requestId = await RequestIdAsync(team.Id, player.Id);
+        var before = await RequestRowAsync(requestId);
+
+        (await AnswerAsync(team.B, team.Slug, requestId, approve: false)).EnsureSuccessStatusCode();
+
+        var after = await RequestRowAsync(requestId);
+        Assert.Equal(JoinRequestStatus.Declined, after.Status);
+        Assert.Equal(team.B.Id, after.DecidedByUserId);
+        Assert.NotNull(after.DecidedDate);
+        Assert.True(after.ModifiedDate > before.ModifiedDate, "ModifiedDate did not move on the claim.");
+    }
+
+    [Fact]
+    public async Task The_player_is_emailed_the_answer_in_their_language()
+    {
+        var team = await NewTeamAsync();
+        var accepted = await NewUserAsync();
+        var declined = await NewUserAsync();
+        await SetLanguageAsync(accepted, "es");
+        await SetLanguageAsync(declined, "es");
+        await RequestAsync(accepted, team.Slug);
+        await RequestAsync(declined, team.Slug);
+
+        (await AnswerAsync(team.A, team.Slug, await RequestIdAsync(team.Id, accepted.Id), approve: true)).EnsureSuccessStatusCode();
+        (await AnswerAsync(team.A, team.Slug, await RequestIdAsync(team.Id, declined.Id), approve: false)).EnsureSuccessStatusCode();
+
+        var yes = Assert.Single(EmailsTo(accepted, team.Name));
+        Assert.Equal($"Ya formas parte de {team.Name} — JuggerHub", yes.Subject);
+        Assert.Contains($"/t/{team.Slug}", yes.HtmlBody, StringComparison.Ordinal);
+
+        var no = Assert.Single(EmailsTo(declined, team.Name));
+        Assert.Equal($"Tu solicitud para unirte a {team.Name} — JuggerHub", no.Subject);
+        Assert.Contains("/browse/teams", no.HtmlBody, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task The_device_notification_says_accepted_or_declined()
+    {
+        var team = await NewTeamAsync();
+        var accepted = await NewUserAsync();
+        var declined = await NewUserAsync();
+        await RequestAsync(accepted, team.Slug);
+        await RequestAsync(declined, team.Slug);
+        var acceptedId = await RequestIdAsync(team.Id, accepted.Id);
+
+        (await AnswerAsync(team.A, team.Slug, acceptedId, approve: true)).EnsureSuccessStatusCode();
+        (await AnswerAsync(team.A, team.Slug, await RequestIdAsync(team.Id, declined.Id), approve: false)).EnsureSuccessStatusCode();
+
+        var yes = Assert.Single(PushesTo(accepted, "join-answer:"));
+        Assert.Equal(team.Name, yes.Content.Title);
+        Assert.Equal("Your request to join was accepted", yes.Content.Body);
+        Assert.Equal($"/t/{team.Slug}", yes.Content.Url);
+        Assert.Equal($"join-answer:{acceptedId}", yes.Content.Tag);
+
+        var no = Assert.Single(PushesTo(declined, "join-answer:"));
+        Assert.Equal("Your request to join was declined", no.Content.Body);
+        Assert.Equal("/browse/teams", no.Content.Url);
+    }
+
     // --- helpers ------------------------------------------------------------
 
     private sealed record Actor(HttpClient Client, Guid Id, string Handle, string Email);
@@ -265,6 +445,25 @@ public sealed class JoinRequestNotificationTests
     private Task<string> DisplayNameAsync(Guid userId) =>
         HomeTestSupport.WithDbAsync(_factory, db =>
             db.PlayerProfiles.Where(p => p.UserId == userId).Select(p => p.DisplayName).SingleAsync());
+
+    private static Task<HttpResponseMessage> AnswerAsync(Actor admin, string slug, Guid requestId, bool approve) =>
+        admin.Client.PostAsync($"/api/v1/teams/{slug}/join-requests/{requestId}/{(approve ? "approve" : "decline")}", null);
+
+    private Task<bool> IsMemberAsync(Guid teamId, Guid userId) =>
+        HomeTestSupport.WithDbAsync(_factory, db =>
+            db.TeamMemberships.AnyAsync(m => m.TeamId == teamId && m.UserId == userId));
+
+    private Task SetStatusAsync(Guid userId, AccountStatus status) =>
+        HomeTestSupport.WithDbAsync(_factory, db => db.Users.Where(u => u.Id == userId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.Status, status)));
+
+    private sealed record RequestRow(JoinRequestStatus Status, Guid? DecidedByUserId, DateTime? DecidedDate, DateTime ModifiedDate);
+
+    private Task<RequestRow> RequestRowAsync(Guid requestId) =>
+        HomeTestSupport.WithDbAsync(_factory, db => db.TeamJoinRequests.AsNoTracking()
+            .Where(r => r.Id == requestId)
+            .Select(r => new RequestRow(r.Status, r.DecidedByUserId, r.DecidedDate, r.ModifiedDate))
+            .SingleAsync());
 
     private Task<Guid> RequestIdAsync(Guid teamId, Guid userId) =>
         HomeTestSupport.WithDbAsync(_factory, db => db.TeamJoinRequests

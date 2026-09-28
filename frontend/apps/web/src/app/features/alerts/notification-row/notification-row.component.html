@@ -10,7 +10,7 @@
     [class]="
       kind() === 'TeamInvite' || kind() === 'TeamJoinRequest'
         ? 'bg-surface-accent-soft text-brand-strong'
-        : kind() === 'TeamRoleChanged'
+        : kind() === 'TeamRoleChanged' || kind() === 'TeamJoinRequestAnswered'
           ? 'bg-info-bg text-info-fg'
           : 'bg-surface-secondary-soft text-secondary-strong'
     "
@@ -25,6 +25,9 @@
       }
       @case ('TeamJoinRequest') {
         <jh-icon name="user-plus" size="lg" />
+      }
+      @case ('TeamJoinRequestAnswered') {
+        <jh-icon name="users" size="lg" />
       }
       @default {
         <jh-icon name="volume-2" size="lg" />

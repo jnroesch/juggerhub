@@ -243,42 +243,69 @@ public sealed class TeamJoinRequestService : ITeamJoinRequestService
             return JoinDecisionOutcome.Forbidden;
         }
 
-        var request = await _db.TeamJoinRequests
-            .FirstOrDefaultAsync(r => r.Id == requestId && r.TeamId == a.TeamId && r.Status == JoinRequestStatus.Pending, ct);
-        if (request is null)
+        var playerId = await PlayerOfAsync(requestId, a.TeamId, ct);
+        if (playerId is not { } player)
         {
             return JoinDecisionOutcome.RequestNotFound;
         }
 
-        // Create the membership unless the player already joined (idempotent), then resolve the request.
-        var alreadyMember = await _db.TeamMemberships
-            .AnyAsync(m => m.TeamId == a.TeamId && m.UserId == request.UserId, ct);
-        if (!alreadyMember)
-        {
-            _db.TeamMemberships.Add(new TeamMembership
-            {
-                TeamId = a.TeamId,
-                UserId = request.UserId,
-                Role = TeamRole.Member,
-                JoinedDate = DateTime.UtcNow,
-            });
-        }
-
-        request.Status = JoinRequestStatus.Approved;
-        request.DecidedByUserId = adminUserId;
-        request.DecidedDate = DateTime.UtcNow;
-
+        // Claim and membership as ONE retriable unit (constitution VII), every mutation inside the
+        // delegate. The claim is what makes an answer happen at most once (FR-012, research R4): two
+        // admins answering together both reach this statement, the second waits on the first's row
+        // lock, PostgreSQL re-checks "still pending" against the committed row, and it matches
+        // nothing. The side effects — telling the player — come after commit, never in here, where
+        // a replay would send them twice.
+        var now = DateTime.UtcNow;
+        bool claimed;
         try
         {
-            await _db.SaveChangesAsync(ct);
+            var strategy = _db.Database.CreateExecutionStrategy();
+            claimed = await strategy.ExecuteAsync(async () =>
+            {
+                // A rollback does not undo the change tracker, so a replay must start clean or it
+                // re-applies the membership the previous attempt staged.
+                _db.ChangeTracker.Clear();
+
+                await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+                var rows = await Waiting(requestId, a.TeamId).ExecuteUpdateAsync(s => s
+                    .SetProperty(r => r.Status, JoinRequestStatus.Approved)
+                    .SetProperty(r => r.DecidedByUserId, adminUserId)
+                    .SetProperty(r => r.DecidedDate, now)
+                    // ExecuteUpdate skips the audit interceptor: set here or nowhere (constitution III).
+                    .SetProperty(r => r.ModifiedDate, now), ct);
+                if (rows == 0)
+                {
+                    return false;
+                }
+
+                _db.TeamMemberships.Add(new TeamMembership
+                {
+                    TeamId = a.TeamId,
+                    UserId = player,
+                    Role = TeamRole.Member,
+                    JoinedDate = now,
+                });
+                await _db.SaveChangesAsync(ct);
+                await tx.CommitAsync(ct);
+                return true;
+            });
         }
         catch (DbUpdateException ex) when (IsUniqueViolation(ex))
         {
-            // Concurrent join created the membership first — the request is still approved.
-            request.Status = JoinRequestStatus.Approved;
-            await _db.SaveChangesAsync(ct);
+            // The player joined another way in the same instant (an invitation accepted while the
+            // claim ran). The whole unit rolled back, so the request is untouched — and it is no
+            // longer this admin's to answer: that route ends it (FR-020).
+            _db.ChangeTracker.Clear();
+            return JoinDecisionOutcome.RequestNotFound;
         }
 
+        if (!claimed)
+        {
+            return JoinDecisionOutcome.RequestNotFound;
+        }
+
+        await NotifyAnswerAsync(requestId, player, a.TeamId, accepted: true, ct);
         return JoinDecisionOutcome.Done;
     }
 
@@ -295,19 +322,114 @@ public sealed class TeamJoinRequestService : ITeamJoinRequestService
             return JoinDecisionOutcome.Forbidden;
         }
 
-        var request = await _db.TeamJoinRequests
-            .FirstOrDefaultAsync(r => r.Id == requestId && r.TeamId == a.TeamId && r.Status == JoinRequestStatus.Pending, ct);
-        if (request is null)
+        var playerId = await PlayerOfAsync(requestId, a.TeamId, ct);
+        if (playerId is not { } player)
         {
             return JoinDecisionOutcome.RequestNotFound;
         }
 
-        request.Status = JoinRequestStatus.Declined;
-        request.DecidedByUserId = adminUserId;
-        request.DecidedDate = DateTime.UtcNow;
-        await _db.SaveChangesAsync(ct);
+        // One statement, so atomic on its own — the same claim as ApproveAsync, and for the same
+        // reason: of two answers, exactly one matches the still-waiting row (FR-012).
+        var now = DateTime.UtcNow;
+        var rows = await Waiting(requestId, a.TeamId).ExecuteUpdateAsync(s => s
+            .SetProperty(r => r.Status, JoinRequestStatus.Declined)
+            .SetProperty(r => r.DecidedByUserId, adminUserId)
+            .SetProperty(r => r.DecidedDate, now)
+            // ExecuteUpdate skips the audit interceptor: set here or nowhere (constitution III).
+            .SetProperty(r => r.ModifiedDate, now), ct);
+        if (rows == 0)
+        {
+            return JoinDecisionOutcome.RequestNotFound;
+        }
 
+        await NotifyAnswerAsync(requestId, player, a.TeamId, accepted: false, ct);
         return JoinDecisionOutcome.Done;
+    }
+
+    /// <summary>
+    /// The request, scoped to the team the slug resolved to, if it still waits (research R3). The
+    /// team scope is what keeps another team's request id inert here, even for an admin of both.
+    /// </summary>
+    private IQueryable<TeamJoinRequest> Waiting(Guid requestId, Guid teamId) =>
+        _db.TeamJoinRequests
+            .Where(r => r.Id == requestId && r.TeamId == teamId)
+            .Where(JoinRequestWaiting.Predicate(_db));
+
+    /// <summary>Who asked — read before the claim, so the answer can be addressed after it.</summary>
+    private Task<Guid?> PlayerOfAsync(Guid requestId, Guid teamId, CancellationToken ct) =>
+        _db.TeamJoinRequests.AsNoTracking()
+            .Where(r => r.Id == requestId && r.TeamId == teamId)
+            .Select(r => (Guid?)r.UserId)
+            .FirstOrDefaultAsync(ct);
+
+    /// <summary>
+    /// Tell the player the answer (feature 058, FR-008–FR-011): the Alerts row and the device
+    /// notification through the engine, the email from here. Best-effort, after the answer has
+    /// committed.
+    /// </summary>
+    /// <remarks>
+    /// <b>No admin in it</b> — no actor on the row, no name in the payload or the email: the team
+    /// answers, not a person (FR-011). The dedupe key makes a second send for the same request a
+    /// no-op even if this ran twice.
+    /// </remarks>
+    private async Task NotifyAnswerAsync(Guid requestId, Guid playerId, Guid teamId, bool accepted, CancellationToken ct)
+    {
+        var team = await _db.Teams.AsNoTracking()
+            .Where(t => t.Id == teamId)
+            .Select(t => new { t.Slug, t.Name })
+            .FirstAsync(ct);
+
+        try
+        {
+            await _notifications.CreateAsync(
+                playerId,
+                NotificationType.TeamJoinRequestAnswered,
+                new TeamJoinRequestAnsweredPayload(team.Slug, team.Name, accepted),
+                actorUserId: null,
+                dedupeKey: $"join-answer:{requestId}",
+                ct: ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to tell the player the answer to join request {RequestId}.", requestId);
+        }
+
+        try
+        {
+            if (!await _preferences.IsEnabledAsync(playerId, NotificationCategory.InvitesAndRoster, NotificationChannel.Email, ct))
+            {
+                return;
+            }
+
+            var player = await _db.Users.AsNoTracking()
+                .Where(u => u.Id == playerId)
+                .Select(u => new
+                {
+                    u.Email,
+                    u.PreferredLanguage,
+                    Name = _db.PlayerProfiles.Where(p => p.UserId == u.Id).Select(p => p.DisplayName).FirstOrDefault(),
+                })
+                .FirstOrDefaultAsync(ct);
+            if (player is null || string.IsNullOrEmpty(player.Email))
+            {
+                return;
+            }
+
+            var culture = SupportedLanguages.ResolveOrDefault(player.PreferredLanguage);
+            var name = player.Name ?? MemberPlaceholder.For(culture);
+            if (accepted)
+            {
+                await _email.SendJoinRequestAcceptedEmailAsync(player.Email, name, team.Name, team.Slug, culture, ct);
+            }
+            else
+            {
+                await _email.SendJoinRequestDeclinedEmailAsync(player.Email, name, team.Name, culture, ct);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to email the answer to join request {RequestId}.", requestId);
+        }
     }
 
     /// <summary>

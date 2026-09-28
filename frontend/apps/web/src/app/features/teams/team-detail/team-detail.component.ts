@@ -4,8 +4,9 @@ import { Component, ElementRef, HostListener, Injector, afterNextRender, compute
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
+import { Observable } from 'rxjs';
 import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
-import { ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import {
   JoinRequest,
@@ -32,7 +33,7 @@ import { TeamPlacementsComponent } from './placements/team-placements.component'
  */
 @Component({
   selector: 'jh-team-detail',
-  imports: [LoadingComponent, RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent],
+  imports: [LoadingComponent, RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent, AlertComponent],
   templateUrl: './team-detail.component.html',
   styleUrl: './team-detail.component.css',
 })
@@ -100,6 +101,9 @@ export class TeamDetailComponent {
       this.editingNewsId.set(null);
       this.newsNotice.set(null);
       this.deleteNewsTarget.set(null);
+      // Feature 058 — a note about another team's join requests has no place here.
+      this.joinNotice.set(null);
+      this.answerError.set(null);
       this.load();
     });
   }
@@ -434,17 +438,37 @@ export class TeamDetailComponent {
     });
   }
 
+  // --- Answering join requests (feature 058) ------------------------------------------------------
+
+  /** A neutral note at the queue's place — translation keys, not text, so a language switch re-renders them. */
+  protected readonly joinNotice = signal<string | null>(null);
+  protected readonly answerError = signal<string | null>(null);
+
   protected approve(request: JoinRequest): void {
-    this.teams.approveJoinRequest(this.slug(), request.id).subscribe({
-      next: () => this.load(),
-      error: (err) => this.error.set(problemDetail(err)),
-    });
+    // The roster changes too, so the whole page reloads.
+    this.answer(this.teams.approveJoinRequest(this.slug(), request.id), () => this.load());
   }
 
   protected decline(request: JoinRequest): void {
-    this.teams.declineJoinRequest(this.slug(), request.id).subscribe({
-      next: () => this.loadJoinRequests(),
-      error: (err) => this.error.set(problemDetail(err)),
+    this.answer(this.teams.declineJoinRequest(this.slug(), request.id), () => this.loadJoinRequests());
+  }
+
+  private answer(call: Observable<void>, done: () => void): void {
+    this.joinNotice.set(null);
+    this.answerError.set(null);
+    call.subscribe({
+      next: done,
+      error: (err) => {
+        if (isGone(err)) {
+          // Another admin answered first, or the player withdrew or joined another way: the request
+          // no longer waits (FR-012, FR-016). Say so, and show the queue as it is now.
+          this.joinNotice.set('teams.detail.answerGone');
+          this.load();
+          return;
+        }
+        // Branch on the status, never the server's English `detail` (GH #179).
+        this.answerError.set('teams.detail.answerFailed');
+      },
     });
   }
 
