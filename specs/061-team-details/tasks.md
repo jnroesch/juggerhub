@@ -253,25 +253,25 @@ the step (no `PUT` sent, no description).
 
 ## Phase 7: Polish & verification
 
-- [ ] T035 Run everything:
+- [X] T035 *(Done: backend 1365/1365; frontend 1015/1015 in 123 suites; lint 0 errors (46 pre-existing warnings, none in this feature's files); build OK. The e2e helper `createTeam` also needed the new step. Its callers `trainings.spec.ts` and `onboarding.spec.ts` pass 4/4 at desktop-chromium and mobile-chrome against the rebuilt stack.)* Run everything:
   - `dotnet test backend/JuggerHub.slnx`;
   - in `frontend/`: `npx nx test web --watch=false`, `npx nx lint web`, `npx nx build web`.
 
   Fix any failure. Attribute any failure that T001 already had.
-- [ ] T036 Copy `.specify/templates/ui-review-checklist-template.md` to `specs/061-team-details/checklists/ui-review.md` and verify each item against the diff (DESIGN.md wins). Pay particular attention to:
+- [X] T036 *(Done: every item checked, see `checklists/ui-review.md`. Six changes came out of it and the walk.)* Copy `.specify/templates/ui-review-checklist-template.md` to `specs/061-team-details/checklists/ui-review.md` and verify each item against the diff (DESIGN.md wins). Pay particular attention to:
   - one primary per view (Save in settings, Continue in the wizard);
   - `body-md` for the description;
   - underlined links;
   - `h2` levels;
   - 44px targets on the remove and add controls;
   - no emoji or text glyphs as icons.
-- [ ] T037 Browser walk (owner rule). Rebuild both images with `docker compose up -d --build backend frontend` and drive quickstart scenarios 1–12 with a Playwright script inside `frontend/`, using one context per actor and `locale: 'de-DE'`, at **375px and desktop**. Screenshot:
+- [X] T037 *(Done: 36/36 checks, 16 screenshots, all looked at. Found: a stranded middot, the mono fallback on addresses (#339), a 39px Add-link button, an underline-offset override, a missing focus ring, and a clipped desktop label column. All fixed and re-walked.)* Browser walk (owner rule). Rebuild both images with `docker compose up -d --build backend frontend` and drive quickstart scenarios 1–12 with a Playwright script inside `frontend/`, using one context per actor and `locale: 'de-DE'`, at **375px and desktop**. Screenshot:
   - the Team details section with five link rows and an error;
   - the About card with a long label and host;
   - the wizard step (blank, typed, failed).
 
   Read the driver's output and **look** at every screenshot. Record the results in `checklists/ui-review.md`. Delete the script afterwards.
-- [ ] T038 [P] File the follow-up issue "Player profiles have no links" (owner decision: teams only for now), referencing #359, and link it from the spec's Out of scope.
+- [X] T038 *(Done: #376, linked from the spec.)* [P] File the follow-up issue "Player profiles have no links" (owner decision: teams only for now), referencing #359, and link it from the spec's Out of scope.
 - [ ] T039 Mark the tasks done, commit `docs(061): UI review and walk results (#359, #321)`, push, and open the PR (`Closes #359`, `Closes #321`) with a summary, the verification run and the screenshots.
 
 ---

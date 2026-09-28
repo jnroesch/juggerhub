@@ -40,7 +40,7 @@ land on the same settings page, so they are specified together and the page is l
   choice for edited news, delivered alerts are brought up to date (owner decision, below).
 
 **Out of scope, deliberately**: changing a team's handle; links on player profiles (owner
-decision, follow-up issue); a description excerpt on the browse-teams list; links in the
+decision, follow-up #376); a description excerpt on the browse-teams list; links in the
 creation wizard; finding teams by words in their description; telling members that the team
 was renamed; platform-admin editing of a team's details; and any change to emails or push
 notifications already sent. Those cannot be recalled.

@@ -279,6 +279,18 @@ a description or at least one link (FR-014).
 - No "add a description" nudge for admins on the page. Owner rule (060): members' actions live
   in the side-column card, and Manage is already there.
 
+*Changed after the browser walk* (both found only by the screenshots):
+
+- **The host sits on its own line under the label, inside the link**, not beside it after a
+  `·`. At 375px a long label ("Turnierergebnisse und Archiv") pushed the host onto the next
+  line, which then began with a stranded middot. This is the same class of defect 057 fixed on
+  the news meta line. Inside the link, a screen reader also hears where it goes.
+- **The settings form's address inputs use the body face, not `font-mono`.** DESIGN.md
+  reserves mono for numbers, scores, times and counts. The walk also showed that `font-mono`
+  renders in the platform fallback, because "Mona Sans Mono" is never loaded (pre-existing,
+  #339). The character counter is a count and keeps mono. The label/address columns split
+  2:3 from `sm`.
+
 ## R11 — The wizard's `about` step
 
 **Decision**: `STEPS` becomes `basics · type · review · logo · about · invite`. `createdTeam`, a
