@@ -112,7 +112,7 @@
       }
     },
     "settings": {
-      "title": "Team-Einstellungen",
+      "title": "Team verwalten",
       "notFound": "Dieses Team existiert nicht, oder du bist kein Mitglied.",
       "logo": "Teamlogo",
       "logoHint": "Wird überall angezeigt, wo dein Team auftaucht: in der Suche, auf eurer Teamseite und im Teamchat.",
@@ -126,16 +126,19 @@
       "recruitment": "Rekrutierung",
       "beginnersWelcome": "Anfänger willkommen",
       "beginnersWelcomeHint": "Ein „Anfänger“-Abzeichen zeigen und im Anfänger-Filter erscheinen.",
-      "yourRole": "Deine Rolle",
+      "yourMembership": "Deine Mitgliedschaft",
       "stepDown": "Zum Mitglied zurücktreten",
+      "leaveTeam": "Team verlassen",
+      "leaveConfirm": "{{name}} verlassen? Du verlierst den Zugang zu News, Trainings und Chat des Teams. Du kannst später erneut eine Beitrittsanfrage stellen, oder ein Admin lädt dich wieder ein.",
+      "leaveConfirmYes": "Ja, Team verlassen",
+      "leaving": "Wird verlassen…",
       "soleAdminWarning": "Du bist der einzige Admin. Mach jemand anderen zum Admin, bevor du zurücktrittst oder das Team verlässt.",
       "dangerZone": "Gefahrenzone",
       "deleteTeam": "Team löschen",
       "deleteConfirm": "{{name}} für alle löschen? Damit werden das Team, seine News und der Kader entfernt. Das kann nicht rückgängig gemacht werden.",
       "deleteConfirmYes": "Ja, Team löschen",
       "deleting": "Wird gelöscht…",
-      "deleteHint": "Nur Admins · entfernt das Team, seine News und den Kader für alle. Nicht rückgängig zu machen.",
-      "adminsOnly": "Nur Admins können die Team-Einstellungen ändern."
+      "deleteHint": "Nur Admins · entfernt das Team, seine News und den Kader für alle. Nicht rückgängig zu machen."
     },
     "inviteAccept": {
       "loading": "Einladung wird geladen…",
@@ -242,14 +245,7 @@
       "viewTrainings": "Trainings ansehen",
       "teamTools": "Team-Tools",
       "invites": "Einladungen",
-      "settings": "Einstellungen",
-      "yourMembership": "Deine Mitgliedschaft",
-      "leaveDesc": "Wenn du das Team verlässt, bist du nicht mehr im Kader und siehst weder News, Trainings noch den Team-Chat.",
-      "leaveTeam": "Team verlassen",
-      "soleAdminLeave": "Du bist der einzige Admin und kannst das Team deshalb noch nicht verlassen. Mach zuerst jemand anderen aus dem Kader zum Admin – danach kannst du das Team verlassen oder in den Einstellungen zurücktreten.",
-      "confirmLeaveTitle": "{{name}} verlassen?",
-      "confirmLeaveBody": "Du verlierst den Zugang zu News, Trainings und Chat des Teams. Du kannst später erneut eine Beitrittsanfrage stellen, oder ein Admin lädt dich wieder ein.",
-      "stayInTeam": "Bleiben",
+      "manage": "Verwalten",
       "loading": "Team wird geladen…"
     },
     "placements": {

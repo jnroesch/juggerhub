@@ -108,7 +108,7 @@
       }
     },
     "settings": {
-      "title": "Team settings",
+      "title": "Manage team",
       "notFound": "This team doesn't exist, or you're not a member.",
       "logo": "Team logo",
       "logoHint": "Shown wherever your team appears: browse, your team page and your team chat.",
@@ -122,16 +122,19 @@
       "recruitment": "Recruitment",
       "beginnersWelcome": "Beginners welcome",
       "beginnersWelcomeHint": "Show a “Beginners” badge and appear in the beginners filter.",
-      "yourRole": "Your role",
+      "yourMembership": "Your membership",
       "stepDown": "Step down to member",
+      "leaveTeam": "Leave team",
+      "leaveConfirm": "Leave {{name}}? You'll lose access to the team's news, trainings and chat. You can request to join again later, or an admin can invite you back.",
+      "leaveConfirmYes": "Yes, leave team",
+      "leaving": "Leaving…",
       "soleAdminWarning": "You're the only admin. Make someone else an admin before you step down or leave.",
       "dangerZone": "Danger zone",
       "deleteTeam": "Delete team",
       "deleteConfirm": "Delete {{name}} for everyone? This removes the team, its news and roster. It can't be undone.",
       "deleteConfirmYes": "Yes, delete team",
       "deleting": "Deleting…",
-      "deleteHint": "Admins only · removes the team, its news and roster for everyone. Can't be undone.",
-      "adminsOnly": "Only admins can change team settings."
+      "deleteHint": "Admins only · removes the team, its news and roster for everyone. Can't be undone."
     },
     "inviteAccept": {
       "loading": "Loading invite…",
@@ -238,14 +241,7 @@
       "viewTrainings": "View trainings",
       "teamTools": "Team tools",
       "invites": "Invites",
-      "settings": "Settings",
-      "yourMembership": "Your membership",
-      "leaveDesc": "Leaving takes you off the roster and out of the team's news, trainings and chat.",
-      "leaveTeam": "Leave team",
-      "soleAdminLeave": "You're the only admin, so you can't leave yet. Make someone else an admin from the roster first. Then you can leave, or step down in the team settings.",
-      "confirmLeaveTitle": "Leave {{name}}?",
-      "confirmLeaveBody": "You'll lose access to the team's news, trainings and chat. You can request to join again later, or an admin can invite you back.",
-      "stayInTeam": "Stay",
+      "manage": "Manage",
       "loading": "Loading team…"
     },
     "placements": {

@@ -112,7 +112,7 @@
       }
     },
     "settings": {
-      "title": "Ajustes del equipo",
+      "title": "Gestionar equipo",
       "notFound": "Este equipo no existe, o no eres miembro.",
       "logo": "Logo del equipo",
       "logoHint": "Se muestra dondequiera que aparezca tu equipo: en la búsqueda, en la página del equipo y en el chat del equipo.",
@@ -126,16 +126,19 @@
       "recruitment": "Reclutamiento",
       "beginnersWelcome": "Principiantes bienvenidos",
       "beginnersWelcomeHint": "Muestra una insignia de «Principiantes» y aparece en el filtro de principiantes.",
-      "yourRole": "Tu rol",
+      "yourMembership": "Tu membresía",
       "stepDown": "Pasar a ser miembro",
+      "leaveTeam": "Salir del equipo",
+      "leaveConfirm": "¿Salir de {{name}}? Perderás el acceso a las novedades, los entrenamientos y el chat del equipo. Más adelante puedes volver a solicitar unirte, o un administrador puede invitarte de nuevo.",
+      "leaveConfirmYes": "Sí, salir del equipo",
+      "leaving": "Saliendo…",
       "soleAdminWarning": "Eres el único administrador. Haz administrador a otra persona antes de dejar el cargo o salir.",
       "dangerZone": "Zona de peligro",
       "deleteTeam": "Eliminar equipo",
       "deleteConfirm": "¿Eliminar {{name}} para todos? Esto elimina el equipo, sus novedades y su plantilla. No se puede deshacer.",
       "deleteConfirmYes": "Sí, eliminar equipo",
       "deleting": "Eliminando…",
-      "deleteHint": "Solo administradores · elimina el equipo, sus novedades y su plantilla para todos. No se puede deshacer.",
-      "adminsOnly": "Solo los administradores pueden cambiar los ajustes del equipo."
+      "deleteHint": "Solo administradores · elimina el equipo, sus novedades y su plantilla para todos. No se puede deshacer."
     },
     "inviteAccept": {
       "loading": "Cargando invitación…",
@@ -242,14 +245,7 @@
       "viewTrainings": "Ver entrenamientos",
       "teamTools": "Herramientas del equipo",
       "invites": "Invitaciones",
-      "settings": "Ajustes",
-      "yourMembership": "Tu membresía",
-      "leaveDesc": "Al salir dejas de estar en la plantilla y pierdes las novedades, los entrenamientos y el chat del equipo.",
-      "leaveTeam": "Salir del equipo",
-      "soleAdminLeave": "Eres el único administrador, así que todavía no puedes salir. Primero haz administrador a otra persona desde la plantilla. Después podrás salir o dejar el cargo en los ajustes del equipo.",
-      "confirmLeaveTitle": "¿Salir de {{name}}?",
-      "confirmLeaveBody": "Perderás el acceso a las novedades, los entrenamientos y el chat del equipo. Más adelante puedes volver a solicitar unirte, o un administrador puede invitarte de nuevo.",
-      "stayInTeam": "Quedarme",
+      "manage": "Gestionar",
       "loading": "Cargando equipo…"
     },
     "placements": {

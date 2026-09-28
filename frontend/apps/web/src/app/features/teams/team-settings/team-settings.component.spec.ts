@@ -1,8 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
+import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { TeamDetail } from '../../../core/models/team.models';
+import { AuthService } from '../../../core/services/auth.service';
 import { MembershipService } from '../../../core/services/membership.service';
 import { TeamService } from '../../../core/services/team.service';
 import { TeamSettingsComponent } from './team-settings.component';
@@ -135,5 +136,128 @@ describe('TeamSettingsComponent — team logo (feature 051)', () => {
 
     expect(teams.removeLogo).toHaveBeenCalledWith('rheinfeuer');
     expect(query(fixture, 'team-logo-preview')).toBeNull();
+  });
+});
+
+/**
+ * GH #361 — a member leaves the team from "Manage team". The server owns the rule
+ * (`MutateMembershipAsync`: self-removal is allowed, the last admin is refused); these pin what
+ * only the page can get wrong: that a plain member can open the page and is offered leave, that
+ * the sole admin gets the disabled control + warning rather than a request that would only 409,
+ * and that leaving refreshes the cached memberships before landing on "My team".
+ */
+describe('TeamSettingsComponent — leave team (GH #361)', () => {
+  const ME = '00000000-0000-7000-8000-000000000001';
+  const OTHER = '00000000-0000-7000-8000-000000000002';
+
+  let teams: { getDetail: jest.Mock; getMembers: jest.Mock; removeMember: jest.Mock; logoUrl: jest.Mock };
+  let membership: { load: jest.Mock };
+
+  function member(userId: string, role: 'Admin' | 'Member') {
+    return { userId, handle: `u${userId.slice(-1)}`, displayName: `Player ${userId.slice(-1)}`, role, hasAvatar: false, pompfen: [] };
+  }
+
+  function render(detail: TeamDetail, roster: ReturnType<typeof member>[]): ComponentFixture<TeamSettingsComponent> {
+    teams = {
+      getDetail: jest.fn().mockReturnValue(of(detail)),
+      getMembers: jest.fn().mockReturnValue(of({ items: roster, totalCount: roster.length, skip: 0, take: 50 })),
+      removeMember: jest.fn().mockReturnValue(of(undefined)),
+      logoUrl: jest.fn().mockReturnValue('/api/v1/teams/rheinfeuer/logo?v=1'),
+    };
+    membership = { load: jest.fn() };
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [TeamSettingsComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        { provide: TeamService, useValue: teams },
+        { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        { provide: MembershipService, useValue: membership },
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(TeamSettingsComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function query(fixture: ComponentFixture<TeamSettingsComponent>, testId: string): HTMLElement | null {
+    return fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
+  }
+
+  it('opens for a plain member and offers leave, with no admin controls', () => {
+    const fixture = render({ ...ADMIN_DETAIL, myRole: 'Member' }, []);
+    expect(query(fixture, 'membership')).not.toBeNull();
+    expect((query(fixture, 'leave-team') as HTMLButtonElement).disabled).toBe(false);
+    expect(query(fixture, 'step-down')).toBeNull();
+    expect(query(fixture, 'delete-team')).toBeNull();
+    expect(query(fixture, 'team-logo-pick')).toBeNull();
+  });
+
+  it('offers an admin both step down and leave while another admin remains', () => {
+    const fixture = render(ADMIN_DETAIL, [member(ME, 'Admin'), member(OTHER, 'Admin')]);
+    expect((query(fixture, 'step-down') as HTMLButtonElement).disabled).toBe(false);
+    expect((query(fixture, 'leave-team') as HTMLButtonElement).disabled).toBe(false);
+    expect(query(fixture, 'sole-admin-warning')).toBeNull();
+  });
+
+  it('disables both for the sole admin and says why', () => {
+    const fixture = render(ADMIN_DETAIL, [member(ME, 'Admin'), member(OTHER, 'Member')]);
+    expect((query(fixture, 'step-down') as HTMLButtonElement).disabled).toBe(true);
+    expect((query(fixture, 'leave-team') as HTMLButtonElement).disabled).toBe(true);
+    expect(query(fixture, 'sole-admin-warning')).not.toBeNull();
+  });
+
+  it('asks first, and cancelling leaves the membership untouched', () => {
+    const fixture = render({ ...ADMIN_DETAIL, myRole: 'Member' }, []);
+    (query(fixture, 'leave-team') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(query(fixture, 'leave-confirm')).not.toBeNull();
+
+    (query(fixture, 'leave-confirm')?.querySelectorAll('button')[1] as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(query(fixture, 'leave-confirm')).toBeNull();
+    expect(query(fixture, 'leave-team')).not.toBeNull();
+    expect(teams.removeMember).not.toHaveBeenCalled();
+  });
+
+  it('removes the viewer themselves, refreshes the cached memberships and lands on My team', () => {
+    const fixture = render({ ...ADMIN_DETAIL, myRole: 'Member' }, []);
+    const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+
+    (query(fixture, 'leave-team') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    (query(fixture, 'leave-confirm-yes') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(teams.removeMember).toHaveBeenCalledWith('rheinfeuer', ME);
+    expect(membership.load).toHaveBeenCalled();
+    expect(navigate).toHaveBeenCalledWith(['/my-team']);
+  });
+
+  it('shows the server reason and stays on the page when the leave is refused', () => {
+    const fixture = render(ADMIN_DETAIL, [member(ME, 'Admin'), member(OTHER, 'Admin')]);
+    const navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    teams.removeMember.mockReturnValue(
+      throwError(
+        () =>
+          new HttpErrorResponse({
+            status: 409,
+            error: { detail: 'Make someone else an admin before you step down or leave.' },
+          }),
+      ),
+    );
+
+    (query(fixture, 'leave-team') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    (query(fixture, 'leave-confirm-yes') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(navigate).not.toHaveBeenCalled();
+    expect(membership.load).not.toHaveBeenCalled();
+    expect(query(fixture, 'leave-confirm')).toBeNull();
+    expect(query(fixture, 'settings-error')?.textContent).toContain('Make someone else an admin');
   });
 });
