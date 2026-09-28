@@ -62,3 +62,54 @@ describe('NotificationRowComponent — EventCancelled', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="notif-decline"]')).toBeNull();
   });
 });
+
+/**
+ * Feature 058 — an admin's alert that a player wants to join. The player is the row's actor and is
+ * named from `actorDisplayName`, never from the payload (which carries no name at all).
+ */
+describe('NotificationRowComponent — TeamJoinRequest', () => {
+  function render(overrides: Partial<AppNotification> = {}): ComponentFixture<NotificationRowComponent> {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NotificationRowComponent, translocoTestingModule()],
+      providers: [provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(NotificationRowComponent);
+    fixture.componentRef.setInput('notification', {
+      id: '0198c4f2-0000-7000-8000-000000000002',
+      type: 'TeamJoinRequest',
+      createdDate: new Date().toISOString(),
+      isRead: false,
+      actorDisplayName: 'Jonas Weber',
+      resolved: false,
+      payload: { requestId: '0198c4f2-0000-7000-8000-0000000000bb', teamSlug: 'hamburg-hammers', teamName: 'Hamburg Hammers' },
+      ...overrides,
+    } as AppNotification);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const text = (f: ComponentFixture<NotificationRowComponent>) => (f.nativeElement.textContent as string).replace(/\s+/g, ' ');
+
+  it('names the player and the team', () => {
+    expect(text(render())).toContain('Jonas Weber wants to join Hamburg Hammers');
+  });
+
+  it('says nobody in particular once the player is banned or gone', () => {
+    expect(text(render({ actorDisplayName: null }))).toContain('A former player wants to join Hamburg Hammers');
+  });
+
+  it('asks for an answer while the request waits, and stops asking once it no longer does', () => {
+    expect(text(render())).toContain('Open the team page to answer');
+    const answered = text(render({ resolved: true }));
+    expect(answered).toContain('No longer waiting for an answer');
+    expect(answered).not.toContain('Open the team page to answer');
+  });
+
+  it('opens the team page and offers no inline actions', () => {
+    const fixture = render();
+    const anchor = fixture.nativeElement.querySelector('a[href]') as HTMLAnchorElement | null;
+    expect(anchor?.getAttribute('href')).toBe('/t/hamburg-hammers');
+    expect(fixture.nativeElement.querySelector('[data-testid="notif-accept"]')).toBeNull();
+  });
+});

@@ -10,6 +10,7 @@ import {
   isPartyNews,
   isPartyRequest,
   isTeamInvite,
+  isTeamJoinRequest,
   isTeamNews,
   isTeamRoleChanged,
   isTrainingScheduled,
@@ -75,6 +76,10 @@ export class NotificationRowComponent {
       // The event page stays viewable after a cancellation, which is what the email promises too.
       return `/events/${n.payload.eventId}`;
     }
+    if (isTeamJoinRequest(n)) {
+      // Feature 058 — the team page is where a request is answered (the queue sits at its top).
+      return `/t/${n.payload.teamSlug}`;
+    }
     return null;
   });
 
@@ -112,6 +117,14 @@ export class NotificationRowComponent {
     }
     if (isEventCancelled(n)) {
       return t('alerts.row.eventCancelledTitle', { event: n.payload.eventName });
+    }
+    if (isTeamJoinRequest(n)) {
+      // The player is the actor, named as they are now — never a copy in the payload, which is
+      // why a banned or deleted account reads as nobody in particular (feature 058, FR-005).
+      return t('alerts.row.joinRequestTitle', {
+        player: n.actorDisplayName ?? t('alerts.row.formerPlayer'),
+        team: n.payload.teamName,
+      });
     }
     return t('alerts.row.fallbackTitle');
   });
@@ -151,6 +164,10 @@ export class NotificationRowComponent {
     }
     if (isEventCancelled(n)) {
       return t('alerts.row.eventCancelledSupporting');
+    }
+    if (isTeamJoinRequest(n)) {
+      // `resolved` is worked out when the inbox is read: answered by anyone, or the player gone.
+      return n.resolved ? t('alerts.row.joinRequestHandled') : t('alerts.row.joinRequestSupporting');
     }
     return '';
   });

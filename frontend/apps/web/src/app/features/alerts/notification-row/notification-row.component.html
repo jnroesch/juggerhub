@@ -8,7 +8,7 @@
   <span
     class="grid h-11 w-11 shrink-0 place-items-center rounded-md"
     [class]="
-      kind() === 'TeamInvite'
+      kind() === 'TeamInvite' || kind() === 'TeamJoinRequest'
         ? 'bg-surface-accent-soft text-brand-strong'
         : kind() === 'TeamRoleChanged'
           ? 'bg-info-bg text-info-fg'
@@ -22,6 +22,9 @@
       }
       @case ('TeamRoleChanged') {
         <jh-icon name="shield-check" size="lg" />
+      }
+      @case ('TeamJoinRequest') {
+        <jh-icon name="user-plus" size="lg" />
       }
       @default {
         <jh-icon name="volume-2" size="lg" />
