@@ -117,7 +117,7 @@ export interface HomeNews {
   sourceSlugOrId: string;
   body: string;
   createdDate: string;
-  /** Feature 057 — ISO date-time of the last edit; null if never. Only team posts can be edited. */
+  /** ISO date-time of the last edit; null if never. Team posts since feature 057, event and party posts since 059. */
   editedDate: string | null;
 }
 

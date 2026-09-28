@@ -451,7 +451,8 @@ public sealed class HomeService : IHomeService
 
     /// <summary>
     /// Team news (member teams) + event news (connected events), merged newest-first. Feature 025
-    /// adds party news (US3).
+    /// adds party news (US3). Every source carries its post's EditedDate, so an edited post is marked
+    /// edited here as on its own page (team since feature 057, event and party since 059).
     /// </summary>
     private async Task<(List<HomeNewsDto> Items, int Total)> LoadNewsAsync(
         Guid userId, List<Guid> myTeamIds, int skip, int take, CancellationToken ct)
@@ -475,7 +476,7 @@ public sealed class HomeService : IHomeService
                 || _db.EventAdmins.Any(a => a.EventId == n.EventId && a.UserId == userId))
             .OrderByDescending(n => n.CreatedDate).ThenByDescending(n => n.Id)
             .Take(window)
-            .Select(n => new HomeProjections.NewsRaw("event", n.Event.Name, n.Event.Id.ToString(), n.Body, n.CreatedDate, n.Id, (DateTime?)null))
+            .Select(n => new HomeProjections.NewsRaw("event", n.Event.Name, n.Event.Id.ToString(), n.Body, n.CreatedDate, n.Id, n.EditedDate))
             .ToListAsync(ct);
 
         // Party news (feature 025): posts in a party the viewer is currently an `In` member of — this
@@ -487,7 +488,7 @@ public sealed class HomeService : IHomeService
             .Take(window)
             .Select(n => new HomeProjections.NewsRaw(
                 "party", n.Party.Team.Name + " @ " + n.Party.Event.Name, n.Party.EventId.ToString(), n.Body, n.CreatedDate, n.Id,
-                (DateTime?)null))
+                n.EditedDate))
             .ToListAsync(ct);
 
         var merged = HomeNewsMerge.Merge(teamNews, eventNews, partyNews);

@@ -110,6 +110,22 @@ export class PartyService {
     return this.http.post<PartyNews>(`${this.base}/${encodeURIComponent(id)}/news`, request);
   }
 
+  /**
+   * Feature 059 — any party admin: replace a post's text. Notifies nobody and leaves the post's
+   * alerts as they are. A 404 means the post is gone; never retried automatically.
+   */
+  editNews(id: string, postId: string, body: string): Observable<PartyNews> {
+    return this.http.patch<PartyNews>(
+      `${this.base}/${encodeURIComponent(id)}/news/${encodeURIComponent(postId)}`,
+      { body },
+    );
+  }
+
+  /** Feature 059 — any party admin: delete a post, and the alerts that announced it, for good. */
+  deleteNews(id: string, postId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${encodeURIComponent(id)}/news/${encodeURIComponent(postId)}`);
+  }
+
   // --- Co-admin invitations -------------------------------------------------
 
   getInviteLink(id: string): Observable<PartyInviteLink | null> {

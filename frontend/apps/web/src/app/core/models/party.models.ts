@@ -62,6 +62,8 @@ export interface PartyNews {
   authorRole: PartyMemberRole;
   body: string;
   createdDate: string;
+  /** Feature 059 — ISO date-time of the last change to the text; null for a post never edited. */
+  editedDate: string | null;
 }
 
 export interface PartyRequestCard {

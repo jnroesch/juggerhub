@@ -17,6 +17,7 @@ import { EventNewsFeedComponent } from './components/news-feed.component';
 import { EventParticipantGroupsComponent } from './components/participant-groups.component';
 import { EventResultsComponent } from './components/event-results.component';
 import { MarketBoardComponent } from '../../marketplace/market-board/market-board.component';
+import { NewsPostEditing } from '../../../shared/news-post/news-post-editing';
 
 /**
  * US2/US3/US5 — the public event page. Anyone can read the details, the three
@@ -44,6 +45,9 @@ import { MarketBoardComponent } from '../../marketplace/market-board/market-boar
     PluralKeyPipe,
     IconComponent,
   ],
+  // Feature 059 — the news feed's post controls keep an open editor here, on the page: the page
+  // rebuilds behind its spinner on every reload, and the typed text must survive that.
+  providers: [NewsPostEditing],
   templateUrl: './event-detail.component.html',
   styleUrl: './event-detail.component.css',
 })

@@ -1,0 +1,96 @@
+<div class="min-w-0 flex-1">
+  @if (editing()) {
+    <!-- Edited in place (feature 057). Save is secondary: the page's own composer keeps the one
+         coral CTA in this view. -->
+    <div data-testid="news-editor">
+      <textarea
+        rows="3"
+        [attr.maxlength]="maxLength()"
+        [value]="draft()"
+        (input)="draft.set($any($event.target).value)"
+        [attr.aria-label]="'news.editLabel' | transloco"
+        data-testid="news-edit-input"
+        class="w-full resize-y rounded-md border border-border-default bg-surface-card px-md py-sm text-body-sm text-body placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+      ></textarea>
+      <p class="mt-xs text-caption text-muted">{{ editHint() | transloco }}</p>
+      @if (editError(); as key) {
+        <p class="mt-xs text-body-sm text-danger-fg" role="alert" data-testid="news-edit-error">{{ key | transloco }}</p>
+      }
+      <div class="mt-sm flex flex-wrap justify-end gap-sm">
+        <button type="button" jhButton variant="ghost" size="sm" [disabled]="saving()" (click)="cancelEdit()" data-testid="news-edit-cancel">
+          {{ 'common.cancel' | transloco }}
+        </button>
+        <button type="button" jhButton variant="secondary" size="sm" [disabled]="saving() || !draft().trim()" (click)="saveEdit()" data-testid="news-edit-save">
+          {{ (saving() ? 'news.saving' : 'common.save') | transloco }}
+        </button>
+      </div>
+    </div>
+  }
+  <!-- The host's own body and meta line. Hidden, never destroyed, while the editor is open:
+       projected content is created once, so it must not sit inside an @if. -->
+  <div [hidden]="editing()">
+    <ng-content />
+  </div>
+</div>
+
+<!-- The server decides who may edit or delete; this is convenience. Disabled while a post on this
+     page is being edited, so choosing another post can never silently throw away the text being
+     typed. -->
+@if (canManage()) {
+  <div class="relative shrink-0" data-news-menu>
+    <button
+      type="button"
+      class="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="menuOpen()"
+      [attr.aria-label]="'news.manage' | transloco"
+      [attr.data-news-menu-trigger]="postId()"
+      [disabled]="locked()"
+      (click)="toggleMenu()"
+    >
+      <jh-icon name="ellipsis" size="sm" />
+    </button>
+    @if (menuOpen()) {
+      <div class="absolute right-0 z-10 mt-1 min-w-40 rounded-md border border-border-default bg-surface-card py-xs shadow-md" role="menu" data-testid="news-menu">
+        <button type="button" role="menuitem" (click)="startEdit()" data-testid="news-edit"
+          class="flex min-h-11 w-full items-center px-md text-left text-body-sm text-body hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          {{ 'news.edit' | transloco }}
+        </button>
+        <button type="button" role="menuitem" (click)="askDelete()" data-testid="news-delete"
+          class="flex min-h-11 w-full items-center px-md text-left text-body-sm text-danger-fg hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+          {{ 'news.delete' | transloco }}
+        </button>
+      </div>
+    }
+  </div>
+}
+
+<!-- Delete a post (feature 057): the page's confirmation dialog, with a destructive answer. The safe
+     answer takes focus when it opens, and Tab stays inside while it is open. Fixed, so a card's
+     clipping does not reach it (no ancestor on a news page transforms). -->
+@if (confirming()) {
+  <div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
+    <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
+      role="dialog" aria-modal="true" [attr.aria-labelledby]="'news-delete-title-' + postId()" [attr.aria-describedby]="'news-delete-body-' + postId()"
+      (keydown.tab)="trapTab($event)" (keydown.shift.tab)="trapTab($event)"
+      data-testid="news-delete-confirm">
+      <div class="border-b border-border-muted px-md py-sm">
+        <!-- h2, not h3: on the party news page the dialog sits directly under the page h1, and a level
+             must never be skipped (CHK036). Beside a section h2 it is a sibling, which is fine. -->
+        <h2 [id]="'news-delete-title-' + postId()" class="text-body-lg font-semibold text-heading">{{ 'news.deleteTitle' | transloco }}</h2>
+      </div>
+      <div class="px-md py-md">
+        <p [id]="'news-delete-body-' + postId()" class="text-body-sm text-body">{{ deleteBody() | transloco }}</p>
+        @if (deleteError(); as key) {
+          <p class="mt-sm text-body-sm text-danger-fg" role="alert" data-testid="news-delete-error">{{ key | transloco }}</p>
+        }
+      </div>
+      <div class="flex flex-wrap items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
+        <button type="button" (click)="dismissDelete()" [disabled]="deleting()" data-testid="news-delete-keep"
+          jhButton variant="secondary" size="sm">{{ 'news.deleteKeep' | transloco }}</button>
+        <button type="button" (click)="confirmDelete()" [disabled]="deleting()" data-testid="news-delete-submit"
+          jhButton variant="danger" size="sm">{{ (deleting() ? 'news.deleting' : 'news.deleteConfirm') | transloco }}</button>
+      </div>
+    </div>
+  </div>
+}

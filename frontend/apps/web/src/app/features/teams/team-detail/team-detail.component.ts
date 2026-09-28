@@ -24,6 +24,8 @@ import { problemDetail } from '../../../core/utils/problem';
 import { RecognitionDisplayComponent } from '../../profile/components/recognition-display/recognition-display.component';
 import { TeamHappeningsComponent } from './happenings/team-happenings.component';
 import { TeamPlacementsComponent } from './placements/team-placements.component';
+import { NewsPostComponent } from '../../../shared/news-post/news-post.component';
+import { NewsPostEditing } from '../../../shared/news-post/news-post-editing';
 
 /**
  * The team page (feature 009). Public to everyone: overview, roster (names + positions),
@@ -33,7 +35,8 @@ import { TeamPlacementsComponent } from './placements/team-placements.component'
  */
 @Component({
   selector: 'jh-team-detail',
-  imports: [LoadingComponent, RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent, AlertComponent],
+  imports: [LoadingComponent, RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent, AlertComponent, NewsPostComponent],
+  providers: [NewsPostEditing],
   templateUrl: './team-detail.component.html',
   styleUrl: './team-detail.component.css',
 })
@@ -94,13 +97,11 @@ export class TeamDetailComponent {
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((pm) => {
       this.slug.set(pm.get('slug') ?? '');
-      // The router reuses this component from one team to the next. An editor left open on the
-      // previous team would otherwise keep every post menu here disabled (feature 057). Only on
-      // a switch, not in load(): approving a join request reloads too, mid-edit.
-      this.newsMenu.set(null);
-      this.editingNewsId.set(null);
+      // The router reuses this component from one team to the next; an editor left open on the
+      // previous team has no place here (feature 057). Only on a switch, not in load(): approving a
+      // join request reloads too, mid-edit, and the editor and its text must survive that.
+      this.newsEditing.reset();
       this.newsNotice.set(null);
-      this.deleteNewsTarget.set(null);
       // Feature 058 — a note about another team's join requests has no place here.
       this.joinNotice.set(null);
       this.answerError.set(null);
@@ -175,163 +176,33 @@ export class TeamDetailComponent {
   }
 
   // --- Editing and deleting news (feature 057): any admin, any post -----------------------------
+  // The controls themselves are the shared jh-news-post (feature 059); the page keeps its list.
 
-  /** The post whose menu is open, if any. */
-  protected readonly newsMenu = signal<string | null>(null);
-  /** The post being edited in place, if any. While one is open, no other menu opens. */
-  protected readonly editingNewsId = signal<string | null>(null);
-  protected readonly newsDraft = signal('');
-  protected readonly savingNews = signal(false);
-  /** Translation keys, not text, so a language switch re-renders them. */
-  protected readonly newsEditError = signal<string | null>(null);
+  /** Which post is being edited, and the typed text: page state, so a reload mid-edit keeps it. */
+  private readonly newsEditing = inject(NewsPostEditing);
+  /** What happened to a post an admin tried to act on — a translation key, re-rendered on a language switch. */
   protected readonly newsNotice = signal<string | null>(null);
 
-  protected toggleNewsMenu(id: string): void {
-    this.newsMenu.update((open) => (open === id ? null : id));
-  }
+  protected readonly saveNews = (postId: string, body: string): Observable<TeamNews> =>
+    this.teams.editNews(this.slug(), postId, body);
 
-  protected startEdit(post: TeamNews): void {
-    this.newsMenu.set(null);
+  protected readonly deleteNews = (postId: string): Observable<void> => this.teams.deleteNews(this.slug(), postId);
+
+  protected replaceNews(updated: TeamNews): void {
     this.newsNotice.set(null);
-    this.newsEditError.set(null);
-    this.newsDraft.set(post.body);
-    this.editingNewsId.set(post.id);
-    // Zoneless: the textarea exists only after the next render (GH #344's lesson — not an effect).
-    afterNextRender(() => this.focus('[data-testid="news-edit-input"]'), { injector: this.injector });
+    this.news.update((list) => list.map((n) => (n.id === updated.id ? updated : n)));
   }
 
-  protected cancelEdit(): void {
-    const id = this.editingNewsId();
-    this.editingNewsId.set(null);
-    this.newsEditError.set(null);
-    if (id) {
-      afterNextRender(() => this.focus(`[data-news-menu-trigger="${id}"]`), { injector: this.injector });
-    }
-  }
-
-  protected saveEdit(post: TeamNews): void {
-    const body = this.newsDraft().trim();
-    if (body.length === 0 || this.savingNews()) {
-      return;
-    }
-    if (body === post.body) {
-      // Nothing changed, so there is nothing to send (FR-003).
-      this.cancelEdit();
-      return;
-    }
-    this.savingNews.set(true);
-    this.newsEditError.set(null);
-    this.teams.editNews(this.slug(), post.id, body).subscribe({
-      next: (updated) => {
-        this.news.update((list) => list.map((n) => (n.id === updated.id ? updated : n)));
-        this.savingNews.set(false);
-        this.cancelEdit();
-      },
-      error: (err) => {
-        this.savingNews.set(false);
-        if (isGone(err)) {
-          this.dropNews(post.id);
-          return;
-        }
-        // The editor stays open with the typed text (FR-020). Our own sentence, never the server's
-        // English `detail` (GH #179).
-        this.newsEditError.set('teams.detail.newsSaveFailed');
-      },
-    });
-  }
-
-  /** The post the delete dialog is asking about, if it is open. */
-  protected readonly deleteNewsTarget = signal<TeamNews | null>(null);
-  protected readonly deletingNews = signal(false);
-  protected readonly newsDeleteError = signal<string | null>(null);
-
-  protected askDeleteNews(post: TeamNews): void {
-    this.newsMenu.set(null);
-    this.newsNotice.set(null);
-    this.newsDeleteError.set(null);
-    this.deleteNewsTarget.set(post);
-    // The safe answer takes focus, so Enter on arrival keeps the post.
-    afterNextRender(() => this.focus('[data-testid="news-delete-keep"]'), { injector: this.injector });
-  }
-
-  protected dismissDeleteNews(): void {
-    const target = this.deleteNewsTarget();
-    if (!target || this.deletingNews()) {
-      return;
-    }
-    this.deleteNewsTarget.set(null);
-    this.newsDeleteError.set(null);
-    afterNextRender(() => this.focus(`[data-news-menu-trigger="${target.id}"]`), { injector: this.injector });
-  }
-
-  protected confirmDeleteNews(): void {
-    const target = this.deleteNewsTarget();
-    if (!target || this.deletingNews()) {
-      return;
-    }
-    this.deletingNews.set(true);
-    this.newsDeleteError.set(null);
-    this.teams.deleteNews(this.slug(), target.id).subscribe({
-      next: () => {
-        this.deletingNews.set(false);
-        this.deleteNewsTarget.set(null);
-        this.news.update((list) => list.filter((n) => n.id !== target.id));
-        // The button that opened the menu went with the post; land on the list's heading instead.
-        afterNextRender(() => this.focus('#team-news-heading'), { injector: this.injector });
-      },
-      error: (err) => {
-        this.deletingNews.set(false);
-        if (isGone(err)) {
-          this.deleteNewsTarget.set(null);
-          this.dropNews(target.id);
-          afterNextRender(() => this.focus('#team-news-heading'), { injector: this.injector });
-          return;
-        }
-        // The dialog stays open; confirming again is the retry (never automatic).
-        this.newsDeleteError.set('teams.detail.newsDeleteFailed');
-      },
-    });
-  }
-
-  /** Keep Tab inside the open dialog: `aria-modal` promises that the page behind it is inert. */
-  protected trapTab(event: Event): void {
-    const key = event as KeyboardEvent;
-    const buttons = Array.from(
-      (key.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button:not([disabled])'),
-    );
-    if (buttons.length === 0) {
-      return;
-    }
-    const first = buttons[0];
-    const last = buttons[buttons.length - 1];
-    if (key.shiftKey && document.activeElement === first) {
-      last.focus();
-      key.preventDefault();
-    } else if (!key.shiftKey && document.activeElement === last) {
-      first.focus();
-      key.preventDefault();
-    }
-  }
-
-  /** Another admin removed the post meanwhile: take it off the list and say so (FR-019). */
-  private dropNews(id: string): void {
+  /** The post is gone — deleted here, or by another admin meanwhile (FR-019), which the notice says. */
+  protected dropNews(id: string, gone: boolean): void {
     this.news.update((list) => list.filter((n) => n.id !== id));
-    if (this.editingNewsId() === id) {
-      this.editingNewsId.set(null);
-    }
-    this.newsNotice.set('teams.detail.newsGone');
+    this.newsNotice.set(gone ? 'news.gone' : null);
+    // The button that opened the menu went with the post; land on the list's heading instead.
+    afterNextRender(() => this.focus('#team-news-heading'), { injector: this.injector });
   }
 
   private focus(selector: string): void {
     this.host.nativeElement.querySelector<HTMLElement>(selector)?.focus();
-  }
-
-  /** A click anywhere outside a post's menu closes it. */
-  @HostListener('document:click', ['$event'])
-  protected onDocumentClick(event: MouseEvent): void {
-    if (this.newsMenu() && !(event.target as Element | null)?.closest('[data-news-menu]')) {
-      this.newsMenu.set(null);
-    }
   }
 
   private loadJoinRequests(): void {
@@ -386,15 +257,6 @@ export class TeamDetailComponent {
   protected onEscape(): void {
     if (this.confirmIntent()) {
       this.dismissConfirm();
-    }
-    if (this.deleteNewsTarget()) {
-      this.dismissDeleteNews();
-    }
-    const menu = this.newsMenu();
-    if (menu) {
-      // Back to the button that opened it, or a keyboard user is left on the page body.
-      this.newsMenu.set(null);
-      this.focus(`[data-news-menu-trigger="${menu}"]`);
     }
   }
 
@@ -544,8 +406,8 @@ export class TeamDetailComponent {
 }
 
 /**
- * A news edit or delete answered 404: the post is gone (or the viewer no longer has access).
- * Branch on the status, never the message — the server's text is English in every language.
+ * A join-request answer came back 404: the request no longer waits (feature 058). Branch on the
+ * status, never the message — the server's text is English in every language.
  */
 function isGone(err: unknown): boolean {
   return err instanceof HttpErrorResponse && err.status === 404;

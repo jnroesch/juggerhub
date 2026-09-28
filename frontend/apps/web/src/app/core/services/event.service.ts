@@ -91,6 +91,22 @@ export class EventService {
     return this.http.post<EventNews>(`${this.base}/${encodeURIComponent(id)}/news`, { body });
   }
 
+  /**
+   * Feature 059 — any event admin: replace a post's text. Notifies nobody. A 404 means the post is
+   * gone; never retried automatically, like every mutation.
+   */
+  editNews(id: string, postId: string, body: string): Observable<EventNews> {
+    return this.http.patch<EventNews>(
+      `${this.base}/${encodeURIComponent(id)}/news/${encodeURIComponent(postId)}`,
+      { body },
+    );
+  }
+
+  /** Feature 059 — any event admin: delete a post for good. A 404 means it was already gone. */
+  deleteNews(id: string, postId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${encodeURIComponent(id)}/news/${encodeURIComponent(postId)}`);
+  }
+
   // --- Contacts -------------------------------------------------------------
 
   getContacts(id: string, skip = 0, take = 50): Observable<PagedResult<EventContact>> {

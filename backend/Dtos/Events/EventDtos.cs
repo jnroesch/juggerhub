@@ -76,6 +76,10 @@ public sealed record CreateContactRequest(
 /// <summary>Post a news update (admin).</summary>
 public sealed record CreateNewsRequest([Required, MaxLength(2000)] string Body);
 
+/// <summary>Replace an event news post's text (feature 059, any event admin). Same rules as posting;
+/// the service trims it, and a text equal to the current one changes nothing.</summary>
+public sealed record EditEventNewsRequest([Required, MaxLength(2000)] string Body);
+
 /// <summary>Create a targeted co-admin invite for a specific user.</summary>
 public sealed record CreateEventInviteRequest([Required] Guid UserId);
 
@@ -136,8 +140,8 @@ public sealed record SignupDto(
 /// <summary>One public contact.</summary>
 public sealed record EventContactDto(Guid Id, string Name, string Role, string? Phone, string? Email);
 
-/// <summary>One public news item, newest-first.</summary>
-public sealed record EventNewsDto(Guid Id, string AuthorDisplayName, string Body, DateTime CreatedDate);
+/// <summary>One news item, newest-first. <c>EditedDate</c> is null for a post never edited (feature 059).</summary>
+public sealed record EventNewsDto(Guid Id, string AuthorDisplayName, string Body, DateTime CreatedDate, DateTime? EditedDate);
 
 /// <summary>One event admin.</summary>
 public sealed record EventAdminDto(Guid UserId, string Handle, string DisplayName);

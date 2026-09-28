@@ -182,6 +182,52 @@ public sealed class PartiesController : ControllerBase
         return result.IsOk ? Created($"/api/v1/parties/{id}/news", result.Value) : Fail(result.Outcome, result.Error);
     }
 
+    /// <summary>
+    /// Replace a party news post's text (feature 059). Any current party admin, any post; nobody is
+    /// notified. Two different 404s: the party (unknown, or the caller is not in its crew — exactly
+    /// what reading the news answers) and the post (not in this party, including one already deleted).
+    /// </summary>
+    [HttpPatch("{id:guid}/news/{postId:guid}")]
+    public async Task<ActionResult<PartyNewsDto>> EditNews(
+        Guid id, Guid postId, [FromBody] EditPartyNewsRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _news.EditAsync(id, postId, userId, request.Body, ct);
+        return result.Status switch
+        {
+            PartyNewsEditStatus.Updated => Ok(result.Post),
+            PartyNewsEditStatus.Forbidden => Fail(PartyOutcome.Forbidden, "Only a party admin can edit news."),
+            PartyNewsEditStatus.PostNotFound => NewsPostNotFound(),
+            _ => PartyNotFound(),
+        };
+    }
+
+    /// <summary>
+    /// Delete a party news post for good, with the alerts that announced it (feature 059). Any current
+    /// party admin, any post; nobody is notified. Deleting it again is a 404, not a 204.
+    /// </summary>
+    [HttpDelete("{id:guid}/news/{postId:guid}")]
+    public async Task<IActionResult> DeleteNews(Guid id, Guid postId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var status = await _news.DeleteAsync(id, postId, userId, ct);
+        return status switch
+        {
+            PartyNewsDeleteStatus.Deleted => NoContent(),
+            PartyNewsDeleteStatus.Forbidden => Fail(PartyOutcome.Forbidden, "Only a party admin can delete news."),
+            PartyNewsDeleteStatus.PostNotFound => NewsPostNotFound(),
+            _ => PartyNotFound(),
+        };
+    }
+
     // --- Co-admin invitations -------------------------------------------------
 
     [HttpGet("{id:guid}/invitations/link")]
@@ -383,6 +429,9 @@ public sealed class PartiesController : ControllerBase
         PartyOutcome.Closed => Problem(statusCode: StatusCodes.Status409Conflict, title: "Closed", detail: detail),
         _ => Problem(statusCode: StatusCodes.Status400BadRequest, title: "Request failed", detail: detail),
     };
+
+    private ObjectResult NewsPostNotFound() => Problem(statusCode: StatusCodes.Status404NotFound,
+        title: "News post not found", detail: "That post doesn't exist, or was deleted.");
 
     private ObjectResult PartyNotFound() =>
         Problem(statusCode: StatusCodes.Status404NotFound, title: "Party not found", detail: "No party matches that address.");
