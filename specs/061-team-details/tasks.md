@@ -272,7 +272,7 @@ the step (no `PUT` sent, no description).
 
   Read the driver's output and **look** at every screenshot. Record the results in `checklists/ui-review.md`. Delete the script afterwards.
 - [X] T038 *(Done: #376, linked from the spec.)* [P] File the follow-up issue "Player profiles have no links" (owner decision: teams only for now), referencing #359, and link it from the spec's Out of scope.
-- [ ] T039 Mark the tasks done, commit `docs(061): UI review and walk results (#359, #321)`, push, and open the PR (`Closes #359`, `Closes #321`) with a summary, the verification run and the screenshots.
+- [X] T039 *(Done: PR #377.)* Mark the tasks done, commit `docs(061): UI review and walk results (#359, #321)`, push, and open the PR (`Closes #359`, `Closes #321`) with a summary, the verification run and the screenshots.
 
 ---
 
