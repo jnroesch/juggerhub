@@ -31,6 +31,13 @@ writes no notification row (FR-051). The one API surface that changed is elsewhe
 and `PUT /notification-preferences/Chat/{InApp|Email}` is refused with `400`. See
 [`../../056-chat-push/contracts/chat-push-api.md`](../../056-chat-push/contracts/chat-push-api.md).
 
+**Amended by feature 060 (team chat link).** `GET /chat/team/{teamId}` was added. It returns the id
+of the team's own chat to a current member, creating the chat first if nobody has opened Chat yet,
+and gives the standard `404` to anyone else. The inbox below also changed without changing shape: a
+team whose only conversation was a contact-admins thread (027) now gets its team chat. Before, such
+a team never did, because the thread passed for the chat. See
+[`../../060-team-chat-link/contracts/team-chat-api.md`](../../060-team-chat-link/contracts/team-chat-api.md).
+
 ---
 
 ## Conversations
