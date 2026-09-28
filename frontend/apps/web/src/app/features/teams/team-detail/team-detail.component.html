@@ -217,12 +217,77 @@
               </div>
             }
 
+            <!-- Feature 057: what happened to a post an admin tried to act on (e.g. deleted meanwhile). -->
+            @if (newsNotice(); as notice) {
+              <p class="mb-sm text-body-sm text-muted" role="status" data-testid="news-notice">{{ notice | transloco }}</p>
+            }
+
             @if (news().length > 0) {
               <ul class="flex flex-col gap-sm">
                 @for (n of news(); track n.id) {
-                  <li>
-                    <p class="text-body-sm text-body">{{ n.body }}</p>
-                    <p class="text-caption text-muted">{{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</p>
+                  <li class="flex items-start gap-xs" data-testid="news-post">
+                    <div class="min-w-0 flex-1">
+                      @if (editingNewsId() === n.id) {
+                        <!-- Edited in place (feature 057). Save is secondary: the composer's
+                             "Post news" above stays the one coral CTA in this view. -->
+                        <div data-testid="news-editor">
+                          <textarea
+                            rows="3"
+                            maxlength="1000"
+                            [value]="newsDraft()"
+                            (input)="newsDraft.set($any($event.target).value)"
+                            [attr.aria-label]="'teams.detail.newsEditLabel' | transloco"
+                            data-testid="news-edit-input"
+                            class="w-full resize-y rounded-md border border-border-default bg-surface-card px-md py-sm text-body-sm text-body placeholder:text-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                          ></textarea>
+                          <p class="mt-xs text-caption text-muted">{{ 'teams.detail.newsEditHint' | transloco }}</p>
+                          @if (newsEditError(); as key) {
+                            <p class="mt-xs text-body-sm text-danger-fg" role="alert" data-testid="news-edit-error">{{ key | transloco }}</p>
+                          }
+                          <div class="mt-sm flex flex-wrap justify-end gap-sm">
+                            <button type="button" jhButton variant="ghost" size="sm" [disabled]="savingNews()" (click)="cancelEdit()" data-testid="news-edit-cancel">
+                              {{ 'common.cancel' | transloco }}
+                            </button>
+                            <button type="button" jhButton variant="secondary" size="sm" [disabled]="savingNews() || !newsDraft().trim()" (click)="saveEdit(n)" data-testid="news-edit-save">
+                              {{ (savingNews() ? 'teams.detail.newsSaving' : 'common.save') | transloco }}
+                            </button>
+                          </div>
+                        </div>
+                      } @else {
+                        <p class="whitespace-pre-line break-words text-body-sm text-body" data-testid="news-body">{{ n.body }}</p>
+                        <p class="text-caption text-muted" data-testid="news-meta">
+                          {{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}@if (n.editedDate) { · {{ 'teams.detail.newsEdited' | transloco }} }
+                        </p>
+                      }
+                    </div>
+
+                    <!-- Any admin may edit or delete any post (feature 057). The server decides; this
+                         is convenience. Disabled while a post is being edited, so choosing another
+                         post can never silently throw away the text being typed. -->
+                    @if (isAdmin()) {
+                      <div class="relative shrink-0" data-news-menu>
+                        <button
+                          type="button"
+                          class="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:opacity-50"
+                          aria-haspopup="menu"
+                          [attr.aria-expanded]="newsMenu() === n.id"
+                          [attr.aria-label]="'teams.detail.newsManage' | transloco"
+                          [attr.data-news-menu-trigger]="n.id"
+                          [disabled]="editingNewsId() !== null"
+                          (click)="toggleNewsMenu(n.id)"
+                        >
+                          <jh-icon name="ellipsis" size="sm" />
+                        </button>
+                        @if (newsMenu() === n.id) {
+                          <div class="absolute right-0 z-10 mt-1 min-w-40 rounded-md border border-border-default bg-surface-card py-xs shadow-md" role="menu" data-testid="news-menu">
+                            <button type="button" role="menuitem" (click)="startEdit(n)" data-testid="news-edit"
+                              class="block w-full px-md py-xs text-left text-body-sm text-body hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                              {{ 'teams.detail.newsEdit' | transloco }}
+                            </button>
+                          </div>
+                        }
+                      </div>
+                    }
                   </li>
                 }
               </ul>

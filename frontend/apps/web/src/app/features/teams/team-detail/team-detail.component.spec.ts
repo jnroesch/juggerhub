@@ -1,7 +1,8 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
-import { TeamMember, TeamPublicDetail, TeamViewerRelation } from '../../../core/models/team.models';
+import { of, throwError } from 'rxjs';
+import { TeamMember, TeamNews, TeamPublicDetail, TeamViewerRelation } from '../../../core/models/team.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { PartyService } from '../../../core/services/party.service';
 import { ResultsService } from '../../../core/services/results.service';
@@ -99,5 +100,165 @@ describe('TeamDetailComponent — manage link and own roster row (GH #361)', () 
   it('draws no roster menu for a plain member', () => {
     const fixture = render('Member', [member(ME, 'Member'), member(OTHER, 'Admin')]);
     expect(memberMenus(fixture)).toBe(0);
+  });
+});
+
+function post(id: string, body: string, editedDate: string | null = null): TeamNews {
+  return {
+    id,
+    authorDisplayName: 'Player 2',
+    authorHandle: 'u2',
+    authorRole: 'Admin',
+    createdDate: '2026-09-27T19:00:00Z',
+    editedDate,
+    body,
+  };
+}
+
+/**
+ * Feature 057 — any admin can edit or delete any news post, in place on the team page. The server
+ * is the boundary; these pin what the page offers and how it answers.
+ */
+describe('TeamDetailComponent — editing and deleting news (feature 057)', () => {
+  let service: Record<string, jest.Mock>;
+
+  function render(relation: TeamViewerRelation, news: TeamNews[]): ComponentFixture<TeamDetailComponent> {
+    TestBed.resetTestingModule();
+    service = {
+      getPublicDetail: jest.fn().mockReturnValue(of(detail(relation))),
+      getMembers: jest.fn().mockReturnValue(of(page([]))),
+      getNews: jest.fn().mockReturnValue(of(page(news))),
+      getHappenings: jest.fn().mockReturnValue(of([])),
+      getJoinRequests: jest.fn().mockReturnValue(of(page([]))),
+      logoUrl: jest.fn().mockReturnValue('/api/v1/teams/rheinfeuer/logo'),
+      editNews: jest.fn(),
+      deleteNews: jest.fn(),
+    };
+    TestBed.configureTestingModule({
+      imports: [TeamDetailComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        ...translocoLocaleTestingProviders(),
+        { provide: TeamService, useValue: service },
+        { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(TeamDetailComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function el<T extends HTMLElement = HTMLElement>(fixture: ComponentFixture<TeamDetailComponent>, selector: string): T | null {
+    return fixture.nativeElement.querySelector(selector);
+  }
+
+  function click(fixture: ComponentFixture<TeamDetailComponent>, selector: string): void {
+    const target = el(fixture, selector);
+    if (!target) {
+      throw new Error(`Nothing matches ${selector}`);
+    }
+    target.click();
+    fixture.detectChanges();
+  }
+
+  function openEditor(fixture: ComponentFixture<TeamDetailComponent>, id: string): HTMLTextAreaElement {
+    click(fixture, `[data-news-menu-trigger="${id}"]`);
+    click(fixture, '[data-testid="news-edit"]');
+    return el<HTMLTextAreaElement>(fixture, '[data-testid="news-edit-input"]')!;
+  }
+
+  function type(fixture: ComponentFixture<TeamDetailComponent>, input: HTMLTextAreaElement, text: string): void {
+    input.value = text;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
+  const bodies = (fixture: ComponentFixture<TeamDetailComponent>) =>
+    Array.from(fixture.nativeElement.querySelectorAll('[data-testid="news-body"]')).map((p) => (p as HTMLElement).textContent?.trim());
+
+  it('offers a plain member no way to edit or delete a post', () => {
+    const fixture = render('Member', [post('p1', 'Training moves to Thursday.')]);
+    expect(el(fixture, '[data-news-menu-trigger]')).toBeNull();
+  });
+
+  it('offers an admin the menu on every post, whoever wrote it', () => {
+    const fixture = render('Admin', [post('p1', 'One.'), post('p2', 'Two.')]);
+    expect(fixture.nativeElement.querySelectorAll('[data-news-menu-trigger]').length).toBe(2);
+    expect(el(fixture, '[data-news-menu-trigger="p1"]')?.getAttribute('aria-label')).toBe('Manage post');
+  });
+
+  it('edits a post in place: sends the trimmed text, then shows it marked edited', () => {
+    const fixture = render('Admin', [post('p1', 'Training moves to Thursday.')]);
+    service['editNews'].mockReturnValue(of(post('p1', 'Training moves to Friday.', '2026-09-28T08:00:00Z')));
+
+    const input = openEditor(fixture, 'p1');
+    expect(document.activeElement).toBe(input);
+    expect(input.value).toBe('Training moves to Thursday.');
+    type(fixture, input, '  Training moves to Friday.  ');
+    click(fixture, '[data-testid="news-edit-save"]');
+
+    expect(service['editNews']).toHaveBeenCalledWith('rheinfeuer', 'p1', 'Training moves to Friday.');
+    expect(el(fixture, '[data-testid="news-editor"]')).toBeNull();
+    expect(bodies(fixture)).toEqual(['Training moves to Friday.']);
+    expect(el(fixture, '[data-testid="news-meta"]')?.textContent).toContain('edited');
+  });
+
+  it('marks nothing edited that was never edited', () => {
+    const fixture = render('Member', [post('p1', 'Fresh.')]);
+    expect(el(fixture, '[data-testid="news-meta"]')?.textContent).not.toContain('edited');
+  });
+
+  it('sends nothing when the admin cancels, or saves the text unchanged', () => {
+    const fixture = render('Admin', [post('p1', 'Same.')]);
+
+    openEditor(fixture, 'p1');
+    click(fixture, '[data-testid="news-edit-cancel"]');
+    expect(el(fixture, '[data-testid="news-editor"]')).toBeNull();
+
+    const input = openEditor(fixture, 'p1');
+    type(fixture, input, ' Same. ');
+    click(fixture, '[data-testid="news-edit-save"]');
+
+    expect(service['editNews']).not.toHaveBeenCalled();
+    expect(el(fixture, '[data-testid="news-editor"]')).toBeNull();
+  });
+
+  it('keeps the typed text and says so when a save fails', () => {
+    const fixture = render('Admin', [post('p1', 'Before.')]);
+    service['editNews'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 503 })));
+
+    const input = openEditor(fixture, 'p1');
+    type(fixture, input, 'After.');
+    click(fixture, '[data-testid="news-edit-save"]');
+
+    expect(el<HTMLTextAreaElement>(fixture, '[data-testid="news-edit-input"]')?.value).toBe('After.');
+    expect(el(fixture, '[data-testid="news-edit-error"]')?.textContent?.trim()).toBe("We couldn't save your changes. Try again.");
+  });
+
+  it('drops a post another admin deleted meanwhile, and says so', () => {
+    const fixture = render('Admin', [post('p1', 'Gone soon.'), post('p2', 'Stays.')]);
+    service['editNews'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+
+    const input = openEditor(fixture, 'p1');
+    type(fixture, input, 'Too late.');
+    click(fixture, '[data-testid="news-edit-save"]');
+
+    expect(bodies(fixture)).toEqual(['Stays.']);
+    expect(el(fixture, '[data-testid="news-notice"]')?.textContent?.trim()).toBe('This post no longer exists.');
+  });
+
+  it('closes an open menu on Escape and hands focus back to its button', () => {
+    const fixture = render('Admin', [post('p1', 'One.')]);
+    click(fixture, '[data-news-menu-trigger="p1"]');
+    expect(el(fixture, '[data-testid="news-menu"]')).not.toBeNull();
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+
+    expect(el(fixture, '[data-testid="news-menu"]')).toBeNull();
+    expect(document.activeElement).toBe(el(fixture, '[data-news-menu-trigger="p1"]'));
   });
 });

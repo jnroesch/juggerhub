@@ -428,6 +428,30 @@ public sealed class TeamsController : ControllerBase
         };
     }
 
+    /// <summary>
+    /// Replace a news post's text (feature 057). Any current admin, any post; nobody is notified.
+    /// Two different 404s: the team (unknown, or the caller is not a member — no oracle) and the
+    /// post (not in this team, including one already deleted).
+    /// </summary>
+    [HttpPatch("{slug}/news/{postId:guid}")]
+    public async Task<ActionResult<TeamNewsDto>> EditNews(
+        string slug, Guid postId, [FromBody] EditTeamNewsRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _news.EditAsync(slug, postId, userId, request.Body, ct);
+        return result.Status switch
+        {
+            TeamNewsEditStatus.Updated => Ok(result.Post),
+            TeamNewsEditStatus.Forbidden => Forbidden("Only admins can edit team news."),
+            TeamNewsEditStatus.PostNotFound => NewsPostNotFound(),
+            _ => TeamNotFound(),
+        };
+    }
+
     // --- Invitations (admin) --------------------------------------------------
 
     [HttpGet("{slug}/invitations")]
@@ -613,6 +637,9 @@ public sealed class TeamsController : ControllerBase
 
     private ObjectResult TeamNotFound() => Problem(statusCode: StatusCodes.Status404NotFound,
         title: "Team not found", detail: "No team exists at that address, or you're not a member.");
+
+    private ObjectResult NewsPostNotFound() => Problem(statusCode: StatusCodes.Status404NotFound,
+        title: "News post not found", detail: "That post doesn't exist, or was deleted.");
 
     private ObjectResult Forbidden(string detail) => Problem(statusCode: StatusCodes.Status403Forbidden,
         title: "Forbidden", detail: detail);

@@ -150,6 +150,73 @@ public sealed class TeamNewsService : ITeamNewsService
         return new TeamNewsPostResult(TeamNewsPostStatus.Posted, dto);
     }
 
+    public async Task<TeamNewsEditResult> EditAsync(
+        string slug, Guid postId, Guid actorUserId, string body, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(slug, actorUserId, ct);
+        if (access is not { IsMember: true } a)
+        {
+            return new TeamNewsEditResult(TeamNewsEditStatus.NotFoundOrNotMember, null);
+        }
+
+        // Any current admin, for any post, whoever wrote it (spec FR-013). Authorship grants
+        // nothing on its own: an author who has since lost admin is refused like any member.
+        if (!a.IsAdmin)
+        {
+            return new TeamNewsEditResult(TeamNewsEditStatus.Forbidden, null);
+        }
+
+        // Scoped to the team the slug resolved to, so another team's post id is simply absent here
+        // (FR-012) — even for someone who administers both teams.
+        var thisPost = _db.TeamNewsPosts.Where(n => n.Id == postId && n.TeamId == a.TeamId);
+        var current = await thisPost.AsNoTracking().Select(n => n.Body).FirstOrDefaultAsync(ct);
+        if (current is null)
+        {
+            return new TeamNewsEditResult(TeamNewsEditStatus.PostNotFound, null);
+        }
+
+        // Saving the same text is not an edit (FR-003): nothing is written and the post does not
+        // become "edited".
+        var trimmed = body.Trim();
+        if (trimmed != current)
+        {
+            var now = DateTime.UtcNow;
+
+            // The post and the alerts that quote it change together or not at all (research R3).
+            // Every statement is an ExecuteUpdate with fixed values, so the execution strategy can
+            // replay the delegate safely; and ExecuteUpdate skips the audit interceptor, so
+            // ModifiedDate is set here or nowhere (constitution Principle III).
+            var strategy = _db.Database.CreateExecutionStrategy();
+            var updated = await strategy.ExecuteAsync(async () =>
+            {
+                await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+                var rows = await thisPost.ExecuteUpdateAsync(s => s
+                    .SetProperty(n => n.Body, trimmed)
+                    .SetProperty(n => n.EditedDate, now)
+                    .SetProperty(n => n.ModifiedDate, now), ct);
+                if (rows == 0)
+                {
+                    // Another admin deleted it between the read above and this write (FR-019).
+                    return false;
+                }
+
+                await tx.CommitAsync(ct);
+                return true;
+            });
+
+            if (!updated)
+            {
+                return new TeamNewsEditResult(TeamNewsEditStatus.PostNotFound, null);
+            }
+        }
+
+        var dto = await Project(thisPost.AsNoTracking(), AuthorPlaceholder()).FirstOrDefaultAsync(ct);
+        return dto is null
+            ? new TeamNewsEditResult(TeamNewsEditStatus.PostNotFound, null)
+            : new TeamNewsEditResult(TeamNewsEditStatus.Updated, dto);
+    }
+
     /// <summary>
     /// The one shape of a news item, shared by the feed and the edit response so the two cannot
     /// drift apart.
