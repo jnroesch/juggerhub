@@ -282,6 +282,6 @@ already owns the concern. New files: one predicate, two test suites, nine email 
 
 ## Follow-ups
 
-- Role-change payloads store `newRole` as a number — promotion alerts read "member" (R8, R17).
-- `TeamInvitePayload.InviterName` survives the inviter's erasure (R1, R17).
-- Marketplace applications notify no party admin (spec → Out of scope).
+- **#370** — Role-change payloads store `newRole` as a number — promotion alerts read "member" (R8, R17).
+- **#371** — `TeamInvitePayload.InviterName` survives the inviter's erasure (R1, R17).
+- **#372** — Marketplace applications notify no party admin (spec → Out of scope).

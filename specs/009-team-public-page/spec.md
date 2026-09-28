@@ -113,6 +113,6 @@ A team admin sees pending join requests on the team page and approves (the reque
 
 ## Assumptions & Out of Scope
 
-- Reuses existing teams, memberships, activity (event participations), team-mode event sign-ups (trainings), and the admin guard. Notifications for request/approval are **placeholder** (deferred with feature 008).
+- Reuses existing teams, memberships, activity (event participations), team-mode event sign-ups (trainings), and the admin guard. Notifications for request/approval are **placeholder** (deferred with feature 008). *Fulfilled by feature 058 (`specs/058-join-request-notifications/`): admins are told of each request, and the player of the answer.*
 - Widens feature 005's public/internal split (roster becomes public: names + positions only). Member **contact details** and **news** stay internal.
 - **Out of scope**: instant-join for beginners-welcome teams (chosen: approval for all), per-team privacy toggles, messaging/DMs, withdrawing a request UI (a declined/duplicate is handled, but a self-cancel button is not required), and any real notification delivery.
