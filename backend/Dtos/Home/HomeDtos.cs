@@ -54,6 +54,12 @@ public enum NeedsYouKind
     /// <c>…/decline</c>.
     /// </summary>
     JoinRequest,
+
+    /// <summary>
+    /// An open poll of one of the viewer's teams that they have not answered and did not start
+    /// (feature 062). Link-only: a poll is answered on the team page, at <c>/t/{Params.TeamSlug}#poll-{Id}</c>.
+    /// </summary>
+    TeamPoll,
 }
 
 /// <summary>
@@ -71,6 +77,7 @@ public enum NeedsYouKind
 /// <item><c>PartyRequest</c> — the party id; the event id.</item>
 /// <item><c>MarketInvite</c>, <c>MarketApplication</c> — the market request id; the event id.</item>
 /// <item><c>JoinRequest</c> — the join request id; the player's handle (their profile).</item>
+/// <item><c>TeamPoll</c> — the poll id; the team slug (the poll is on the team page).</item>
 /// </list>
 /// <para>
 /// <b>No sentence is built here</b> (feature 058, GH #141's defect class). This DTO used to carry a
@@ -105,6 +112,9 @@ public sealed record NeedsYouParamsDto
 
     /// <summary>JoinRequest: the player who asked, as they are named now.</summary>
     public string? PlayerName { get; init; }
+
+    /// <summary>TeamPoll: the question, as the poll asks it now. The admin's own words, never translated.</summary>
+    public string? Question { get; init; }
 }
 
 // ---- Up next (unified agenda) ----------------------------------------------

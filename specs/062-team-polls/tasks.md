@@ -27,11 +27,11 @@ the typed DTO.
 
 ## Phase 1: Setup
 
-- [ ] T001 Record the baseline on the fresh branch before touching code:
+- [X] T001 Record the baseline on the fresh branch before touching code:
   - run `dotnet test backend/tests/JuggerHub.Api.IntegrationTests --filter "FullyQualifiedName~Teams|FullyQualifiedName~Home|FullyQualifiedName~Notifications|FullyQualifiedName~Push|FullyQualifiedName~AccountDeletion|FullyQualifiedName~Terms|FullyQualifiedName~Email"`;
   - in `frontend/`, run `npx nx test web --watch=false --testPathPatterns="team-detail|notification-row|needs-you|catalog-|legal-catalog"`.
 
-  Write down any pre-existing failure here so it is not later mistaken for a regression.
+  Write down any pre-existing failure here so it is not later mistaken for a regression. *(Done: backend 551/551, frontend subset 117/117; no pre-existing failure.)*
 
 ---
 

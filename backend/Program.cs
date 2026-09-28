@@ -377,6 +377,7 @@ builder.Services.AddScoped<ITeamActivityService, TeamActivityService>();
 builder.Services.AddScoped<ITeamHappeningService, TeamHappeningService>(); // feature 044
 builder.Services.AddScoped<ITeamJoinRequestService, TeamJoinRequestService>(); // feature 009
 builder.Services.AddScoped<ITeamNewsService, TeamNewsService>();
+builder.Services.AddScoped<ITeamPollService, TeamPollService>();
 builder.Services.AddScoped<TeamEmailService>();
 
 // --- Events (feature 006) --------------------------------------------------

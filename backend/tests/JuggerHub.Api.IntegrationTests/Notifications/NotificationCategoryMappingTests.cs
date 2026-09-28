@@ -24,6 +24,7 @@ public sealed class NotificationCategoryMappingTests
     [InlineData(NotificationType.TeamJoinRequestAnswered, NotificationCategory.InvitesAndRoster)]
     [InlineData(NotificationType.TeamNews, NotificationCategory.TeamNews)]
     [InlineData(NotificationType.PartyNews, NotificationCategory.TeamNews)]
+    [InlineData(NotificationType.TeamPoll, NotificationCategory.TeamNews)]
     [InlineData(NotificationType.TrainingScheduled, NotificationCategory.Trainings)]
     [InlineData(NotificationType.TrainingUpdated, NotificationCategory.Trainings)]
     [InlineData(NotificationType.EventCancelled, NotificationCategory.Events)]
@@ -46,6 +47,7 @@ public sealed class NotificationCategoryMappingTests
             NotificationType.TeamJoinRequestAnswered,
             NotificationType.TeamNews,
             NotificationType.PartyNews,
+            NotificationType.TeamPoll,
             NotificationType.TrainingScheduled,
             NotificationType.TrainingUpdated,
             NotificationType.EventCancelled,

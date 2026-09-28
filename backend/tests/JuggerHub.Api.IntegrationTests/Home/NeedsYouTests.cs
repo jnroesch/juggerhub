@@ -206,6 +206,80 @@ public sealed class NeedsYouTests
         });
     }
 
+    // --- Feature 062: polls waiting for the viewer's answer ------------------------------------------
+
+    [Fact]
+    public async Task An_open_poll_waits_for_each_member_but_not_its_author_until_they_answer()
+    {
+        var (admin, adminId) = await HomeTestSupport.NewUserAsync(_factory);
+        var (member, memberId) = await HomeTestSupport.NewUserAsync(_factory);
+        var (teamId, slug) = await HomeTestSupport.SeedTeamAsync(_factory, "Poll Hounds");
+        await HomeTestSupport.AddMemberAsync(_factory, teamId, adminId, TeamRole.Admin);
+        await HomeTestSupport.AddMemberAsync(_factory, teamId, memberId);
+
+        var (pollId, optionId) = await StartPollAsync(admin, slug, "Thursday instead of Tuesday?");
+
+        var item = Assert.Single(await PollItemsAsync(member));
+        Assert.Equal(pollId.ToString(), item.GetProperty("id").GetString());
+        Assert.Equal(slug, item.GetProperty("linkTarget").GetString());
+        var p = item.GetProperty("params");
+        Assert.Equal("Poll Hounds", p.GetProperty("teamName").GetString());
+        Assert.Equal(slug, p.GetProperty("teamSlug").GetString());
+        Assert.Equal("Thursday instead of Tuesday?", p.GetProperty("question").GetString());
+
+        // The author knows it exists (spec FR-031).
+        Assert.Empty(await PollItemsAsync(admin));
+
+        (await member.PutAsJsonAsync($"/api/v1/teams/{slug}/polls/{pollId}/answer", new { optionIds = new[] { optionId } }))
+            .EnsureSuccessStatusCode();
+        Assert.Empty(await PollItemsAsync(member));
+    }
+
+    [Fact]
+    public async Task A_poll_leaves_needs_you_once_it_closes_is_deleted_or_the_member_leaves()
+    {
+        var (admin, adminId) = await HomeTestSupport.NewUserAsync(_factory);
+        var (member, memberId) = await HomeTestSupport.NewUserAsync(_factory);
+        var (teamId, slug) = await HomeTestSupport.SeedTeamAsync(_factory, "Poll Wolves");
+        await HomeTestSupport.AddMemberAsync(_factory, teamId, adminId, TeamRole.Admin);
+        await HomeTestSupport.AddMemberAsync(_factory, teamId, memberId);
+
+        var (closedEarly, _) = await StartPollAsync(admin, slug, "Closed early?");
+        var (timedOut, _) = await StartPollAsync(admin, slug, "Timed out?");
+        var (deleted, _) = await StartPollAsync(admin, slug, "Deleted?");
+        var (kept, _) = await StartPollAsync(admin, slug, "Still open?");
+        Assert.Equal(4, (await PollItemsAsync(member)).Count);
+
+        (await admin.PostAsync($"/api/v1/teams/{slug}/polls/{closedEarly}/close", null)).EnsureSuccessStatusCode();
+        (await admin.DeleteAsync($"/api/v1/teams/{slug}/polls/{deleted}")).EnsureSuccessStatusCode();
+        await HomeTestSupport.WithDbAsync(_factory, db => db.TeamPolls.Where(p => p.Id == timedOut)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.ClosesAt, DateTime.UtcNow.AddMinutes(-1))
+                .SetProperty(p => p.ModifiedDate, DateTime.UtcNow)));
+
+        var left = Assert.Single(await PollItemsAsync(member));
+        Assert.Equal(kept.ToString(), left.GetProperty("id").GetString());
+
+        await HomeTestSupport.WithDbAsync(_factory, db => db.TeamMemberships
+            .Where(m => m.TeamId == teamId && m.UserId == memberId).ExecuteDeleteAsync());
+        Assert.Empty(await PollItemsAsync(member));
+    }
+
+    private static async Task<(Guid PollId, Guid FirstOptionId)> StartPollAsync(HttpClient admin, string slug, string question)
+    {
+        var resp = await admin.PostAsJsonAsync($"/api/v1/teams/{slug}/polls", new { question, options = new[] { "Yes", "No" } });
+        resp.EnsureSuccessStatusCode();
+        var poll = await resp.Content.ReadFromJsonAsync<JsonElement>();
+        return (Guid.Parse(poll.GetProperty("id").GetString()!),
+            Guid.Parse(poll.GetProperty("options")[0].GetProperty("id").GetString()!));
+    }
+
+    private static async Task<List<JsonElement>> PollItemsAsync(HttpClient client) =>
+        (await client.GetFromJsonAsync<JsonElement>("/api/v1/home")).GetProperty("needsYou").EnumerateArray()
+            .Where(i => i.GetProperty("kind").GetString() == "TeamPoll")
+            .Select(i => i.Clone())
+            .ToList();
+
     private static async Task<List<JsonElement>> JoinRequestItemsAsync(HttpClient client) =>
         (await client.GetFromJsonAsync<JsonElement>("/api/v1/home")).GetProperty("needsYou").EnumerateArray()
             .Where(i => i.GetProperty("kind").GetString() == "JoinRequest")

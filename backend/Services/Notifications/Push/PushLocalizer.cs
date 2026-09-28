@@ -71,6 +71,14 @@ public sealed class PushLocalizer : IPushLocalizer
                 ["de"] = "Es gibt Neuigkeiten in deiner Party",
                 ["es"] = "Hay novedades en tu grupo",
             },
+            // Feature 062. No placeholder for the question, on purpose: it stays off lock screens
+            // (spec FR-028). The title already names the team.
+            ["teamPoll.body"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your team started a poll",
+                ["de"] = "Dein Team hat eine Umfrage gestartet",
+                ["es"] = "Tu equipo ha abierto una encuesta",
+            },
             // {0} = team name
             ["marketInvite.body"] = new Dictionary<string, string>
             {

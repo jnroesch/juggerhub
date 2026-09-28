@@ -211,4 +211,56 @@ public sealed class AccountErasureTests : AccountDeletionTestSupport
         Assert.True(await WithDbAsync(db => db.AdminActionRecords
             .AnyAsync(r => r.TargetUserId == leaverId && r.ActorUserId == actorId)));
     }
+
+    // --- Feature 062: team polls ----------------------------------------------------------------------
+
+    [Fact]
+    public async Task A_members_poll_answers_are_erased_and_the_polls_they_started_survive()
+    {
+        var (leaver, leaverId, _, _) = await NewMemberAsync();
+        var (_, keeperId, _, _) = await NewMemberAsync();
+        var teamId = await CreateTeamWithSoleAdminAsync(leaverId);
+        await AddTeamAdminAsync(teamId, keeperId);
+
+        // A poll the leaver started, answered by both of them, and one the keeper started that only
+        // the leaver answered.
+        var (theirPoll, keepersPoll) = await WithDbAsync(async db =>
+        {
+            var started = new TeamPoll { TeamId = teamId, AuthorUserId = leaverId, Question = "Jersey colour?" };
+            var other = new TeamPoll { TeamId = teamId, AuthorUserId = keeperId, Question = "Training day?" };
+            started.Options.Add(new TeamPollOption { Text = "Black", Position = 0 });
+            started.Options.Add(new TeamPollOption { Text = "Orange", Position = 1 });
+            other.Options.Add(new TeamPollOption { Text = "Tuesday", Position = 0 });
+            other.Options.Add(new TeamPollOption { Text = "Thursday", Position = 1 });
+            db.TeamPolls.AddRange(started, other);
+            await db.SaveChangesAsync();
+
+            db.TeamPollVotes.AddRange(
+                new TeamPollVote { PollId = started.Id, OptionId = started.Options.First().Id, UserId = leaverId },
+                new TeamPollVote { PollId = started.Id, OptionId = started.Options.Last().Id, UserId = keeperId },
+                new TeamPollVote { PollId = other.Id, OptionId = other.Options.First().Id, UserId = leaverId });
+            await db.SaveChangesAsync();
+            return (started.Id, other.Id);
+        });
+
+        var preview = await (await PreviewAsync(leaver)).Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
+        Assert.Contains("Polls", preview.GetProperty("retained").EnumerateArray().Select(e => e.GetString()));
+
+        Assert.Equal(HttpStatusCode.NoContent, (await DeleteAccountAsync(leaver)).StatusCode);
+
+        // Their answers are gone, everywhere (FR-039) — the only guard for a line whose Restrict FK
+        // forces nothing, since the account row itself is never deleted.
+        Assert.False(await WithDbAsync(db => db.TeamPollVotes.AnyAsync(v => v.UserId == leaverId)));
+        Assert.True(await WithDbAsync(db => db.TeamPollVotes.AnyAsync(v => v.UserId == keeperId)));
+
+        // The poll they started stays with the team, pointing at an account that identifies nobody.
+        var poll = await WithDbAsync(db => db.TeamPolls.AsNoTracking()
+            .Where(p => p.Id == theirPoll)
+            .Select(p => new { p.Question, p.AuthorUserId, Options = p.Options.Count })
+            .SingleAsync());
+        Assert.Equal("Jersey colour?", poll.Question);
+        Assert.Equal(leaverId, poll.AuthorUserId);
+        Assert.Equal(2, poll.Options);
+        Assert.True(await WithDbAsync(db => db.TeamPolls.AnyAsync(p => p.Id == keepersPoll)));
+    }
 }

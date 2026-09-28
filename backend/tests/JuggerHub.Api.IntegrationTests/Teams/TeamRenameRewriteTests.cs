@@ -10,12 +10,12 @@ namespace JuggerHub.Api.IntegrationTests.Teams;
 
 /// <summary>
 /// Feature 061, FR-009/FR-011: a rename brings the team's name up to date in every delivered alert
-/// that names the team — all nine kinds, for every recipient including people who have since left —
+/// that names the team — all nine kinds (ten since feature 062's polls), for every recipient including people who have since left —
 /// silently: nothing becomes unread, moves, or is sent again. Rows are found by the team's slug in
 /// the payload, never through the roster, and never through a list of types. Real API + Postgres.
 /// </summary>
 /// <remarks>
-/// The five team kinds are produced by the real flows. The four party/market kinds need an event,
+/// The six team kinds are produced by the real flows. The four party/market kinds need an event,
 /// a party and a market listing, so their rows are inserted directly, shaped exactly as their
 /// producers build them (PartyService, PartyRosterService's nudge, PartyNewsService,
 /// MarketRequestService) — including the nudge's null dedupe key, which a prefix lookup could never
@@ -48,7 +48,7 @@ public sealed class TeamRenameRewriteTests
         NotificationType[] kinds =
         [
             NotificationType.TeamInvite, NotificationType.TeamRoleChanged, NotificationType.TeamNews,
-            NotificationType.TeamJoinRequest, NotificationType.TeamJoinRequestAnswered,
+            NotificationType.TeamJoinRequest, NotificationType.TeamJoinRequestAnswered, NotificationType.TeamPoll,
             NotificationType.PartyRequest, NotificationType.PartyNews, NotificationType.MarketInvite,
         ];
         Assert.Equal(kinds.OrderBy(t => t), ours.Select(r => r.Type).Distinct().OrderBy(t => t));
@@ -179,6 +179,12 @@ public sealed class TeamRenameRewriteTests
             .EnsureSuccessStatusCode();
         (await admin.Client.PostAsJsonAsync($"/api/v1/teams/{slug}/news", new { body = "Training moves to Thursday." }))
             .EnsureSuccessStatusCode();
+        // Feature 062: a poll alert names the team too, and must follow a rename like the rest.
+        (await admin.Client.PostAsJsonAsync($"/api/v1/teams/{slug}/polls", new
+        {
+            question = "Thursday instead of Tuesday?",
+            options = new[] { "Thursday", "Tuesday" },
+        })).EnsureSuccessStatusCode();
         (await leaver.Client.DeleteAsync($"/api/v1/teams/{slug}/members/{leaver.Id}")).EnsureSuccessStatusCode();
 
         var invitee = await NewUserAsync();

@@ -49,7 +49,7 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
             ["en"] = new Dictionary<NotificationCategory, (string, string)>
             {
                 [NotificationCategory.InvitesAndRoster] = ("Invites & roster changes", "Team invites, people joining or leaving"),
-                [NotificationCategory.TeamNews] = ("Team news", "News posted to your teams"),
+                [NotificationCategory.TeamNews] = ("Team news", "News and polls posted to your teams"),
                 [NotificationCategory.Trainings] = ("Trainings", "New training sessions and schedule changes"),
                 [NotificationCategory.Events] = ("Events", "Changes to events you signed up for"),
                 [NotificationCategory.Chat] = ("Chat messages", "New messages in your conversations. Chat has its own inbox and badge, so there is nothing to send in-app or by e-mail."),
@@ -57,7 +57,7 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
             ["de"] = new Dictionary<NotificationCategory, (string, string)>
             {
                 [NotificationCategory.InvitesAndRoster] = ("Einladungen & Kaderänderungen", "Team-Einladungen, Beitritte und Austritte"),
-                [NotificationCategory.TeamNews] = ("Team-News", "Neuigkeiten, die in deinen Teams gepostet werden"),
+                [NotificationCategory.TeamNews] = ("Team-News", "Neuigkeiten und Umfragen aus deinen Teams"),
                 [NotificationCategory.Trainings] = ("Trainings", "Neue Trainingseinheiten und Terminänderungen"),
                 [NotificationCategory.Events] = ("Veranstaltungen", "Änderungen an Events, für die du angemeldet bist"),
                 [NotificationCategory.Chat] = ("Chat-Nachrichten", "Neue Nachrichten in deinen Unterhaltungen. Chat hat ein eigenes Postfach mit eigenem Zähler – in der App und per E-Mail gibt es daher nichts zu senden."),
@@ -65,7 +65,7 @@ public sealed class NotificationPreferenceService : INotificationPreferenceServi
             ["es"] = new Dictionary<NotificationCategory, (string, string)>
             {
                 [NotificationCategory.InvitesAndRoster] = ("Invitaciones y cambios de plantilla", "Invitaciones de equipo, altas y bajas"),
-                [NotificationCategory.TeamNews] = ("Noticias del equipo", "Novedades publicadas en tus equipos"),
+                [NotificationCategory.TeamNews] = ("Noticias del equipo", "Novedades y encuestas publicadas en tus equipos"),
                 [NotificationCategory.Trainings] = ("Entrenamientos", "Nuevas sesiones de entrenamiento y cambios de horario"),
                 [NotificationCategory.Events] = ("Eventos", "Cambios en los eventos a los que te apuntaste"),
                 [NotificationCategory.Chat] = ("Mensajes del chat", "Mensajes nuevos en tus conversaciones. El chat tiene su propia bandeja y su propio contador, así que no hay nada que enviar en la app ni por correo."),
