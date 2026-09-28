@@ -472,13 +472,13 @@ and delete a poll with its alerts.
 - [X] T052 [P] Amendment notes:
   - `specs/005-team-space/spec.md`: under the existing update callouts, add a line saying polls, out of scope there, are delivered by 062;
   - `specs/037-account-deletion/data-model.md`: `TeamPollVotes` erased, `TeamPolls` retained (author placeholder).
-- [ ] T053 Create `specs/062-team-polls/checklists/ui-review.md` from `.specify/templates/ui-review-checklist-template.md` and verify each item against the diff. DESIGN.md wins. Record the radio-group gap (R15) as a DESIGN.md question, not a local style, and the binding case (German at 375px, see plan Gate 7).
-- [ ] T054 Run everything:
+- [X] T053 Create `specs/062-team-polls/checklists/ui-review.md` from `.specify/templates/ui-review-checklist-template.md` and verify each item against the diff. DESIGN.md wins. Record the radio-group gap (R15) as a DESIGN.md question, not a local style, and the binding case (German at 375px, see plan Gate 7).
+- [X] T054 Run everything:
   - `dotnet test backend/JuggerHub.slnx` (gate on the exit code);
   - in `frontend/`: `npx nx test web --watch=false`, `npx nx lint web`, `npx nx build web`;
   - rebuild the containers (`docker compose up -d --build backend frontend`);
   - run the e2e suites that open team pages (`trainings`, `onboarding`) with `BASE_URL=http://localhost:3000 MAILPIT_URL=http://localhost:8025`, and fix `frontend/apps/web-e2e/src/support/*` helpers if the page change broke them.
-- [ ] T055 Browser walk (the owner's standing rule): walk [quickstart.md](./quickstart.md) scenarios 1–16 in German at **375px and desktop**, one Playwright context per actor, calling `waitFor()` before asserting. Save screenshots of the binding cases for the PR. Read the driver's output, since false passes happen. Fix what the walk finds.
+- [X] T055 Browser walk (the owner's standing rule): walk [quickstart.md](./quickstart.md) scenarios 1–16 in German at **375px and desktop**, one Playwright context per actor, calling `waitFor()` before asserting. Save screenshots of the binding cases for the PR. Read the driver's output, since false passes happen. Fix what the walk finds.
 - [ ] T056 Open the PR `feat(062): team polls (#365)` with `Closes #365`. The PR body lists:
   - the nine owner decisions;
   - the legal/Terms change;

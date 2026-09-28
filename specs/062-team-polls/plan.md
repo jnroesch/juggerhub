@@ -311,3 +311,5 @@ notification engine's composer, Home, the Alerts row and the Needs-you card.
   `Notifications`. This was accepted in 057/061, and the recorded fix is an expression index.
 - A deep link to an old closed poll that is not on the first page of closed polls lands on the
   card, not on the poll.
+- The card refetches once when a link names a poll it does not hold (found by the walk: a newer poll
+  linked while the page is already open), never more than once per link.

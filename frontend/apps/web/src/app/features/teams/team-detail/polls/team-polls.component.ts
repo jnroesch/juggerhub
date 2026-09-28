@@ -60,6 +60,8 @@ export class TeamPollsComponent {
   private readonly fragment = toSignal(inject(ActivatedRoute).fragment ?? of(null), { initialValue: null });
   /** The fragment already scrolled to, so a reload of the lists does not yank the page back. */
   private scrolledTo: string | null = null;
+  /** The fragment the lists were fetched again for, so a link to a missing poll refetches at most once. */
+  private refetchedFor: string | null = null;
 
   constructor() {
     effect(() => {
@@ -80,7 +82,7 @@ export class TeamPollsComponent {
     this.load(this.slug());
   }
 
-  private load(slug: string, quiet = false): void {
+  private load(slug: string, quiet = false, then?: () => void): void {
     if (!quiet) this.loading.set(true);
     this.loadError.set(false);
     // Keep however many closed polls the viewer already opened, so a refresh does not fold them away.
@@ -94,6 +96,7 @@ export class TeamPollsComponent {
         this.closed.set(closed.items);
         this.closedTotal.set(closed.totalCount);
         this.loading.set(false);
+        then?.();
       },
       error: () => {
         this.loadError.set(true);
@@ -169,6 +172,16 @@ export class TeamPollsComponent {
   }
 
   private scrollTo(fragment: string): void {
+    // A link to a poll this card does not hold yet: a member already on the team page followed a
+    // notice about a poll started since the page loaded. Only the fragment changed, so nothing
+    // reloaded — fetch the lists once more, then look again.
+    const id = fragment.slice('poll-'.length);
+    const known = this.open().some((p) => p.id === id) || this.closed().some((p) => p.id === id);
+    if (!known && this.refetchedFor !== fragment) {
+      this.refetchedFor = fragment;
+      this.load(this.slug(), true, () => this.scrollTo(fragment));
+      return;
+    }
     this.scrolledTo = fragment;
     afterNextRender(
       () => {

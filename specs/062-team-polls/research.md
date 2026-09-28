@@ -402,7 +402,7 @@ Focus moves via `afterNextRender`.
 
 **Deep link**: the card reads `ActivatedRoute.fragment`. After its lists land, if the fragment is
 `poll-{id}` and that poll is rendered, it scrolls it into view and focuses the poll's heading
-(`tabindex="-1"`) in `afterNextRender`. The router's own `anchorScrolling` runs at navigation
+(`tabindex="-1"`) in `afterNextRender`. *Added after the browser walk:* when a link names a poll the card does not hold (a member already on the page follows a notice about a newer poll, so only the fragment changes), the card fetches its lists **once** more for that fragment, then scrolls. The router's own `anchorScrolling` runs at navigation
 end, before the polls have loaded, so it cannot do this. A link to a poll that is not on the
 loaded pages, such as an old closed one, lands on the card heading. The notification row gains a
 `fragment()` beside `link()`. The anchor must be `[routerLink]` + `[fragment]`, never a string

@@ -14,7 +14,7 @@
     <div class="flex items-start justify-between gap-xs">
       <!-- The anchor a notice, an email or Home links to (/t/{slug}#poll-{id}); tabindex -1 so the
            card can move focus here after the scroll. Plain text, never markup (spec FR-002). -->
-      <h3 [id]="'poll-' + p.id" tabindex="-1" class="min-w-0 break-words text-body font-semibold text-heading outline-none">{{ p.question }}</h3>
+      <h3 [id]="'poll-' + p.id" tabindex="-1" class="min-w-0 scroll-mt-lg break-words text-body font-semibold text-heading outline-none">{{ p.question }}</h3>
 
       <!-- The server decides who may change, close or delete; this is convenience. -->
       @if (isAdmin()) {
@@ -169,12 +169,12 @@
     @if (p.isOpen) {
       <div class="mt-sm flex flex-wrap items-center gap-sm">
         @if (p.allowsMultiple) {
-          <button type="button" jhButton variant="secondary" size="sm" [disabled]="busy() || !selectionChanged()" (click)="saveSelection()" data-testid="poll-save-answer">
+          <button type="button" jhButton variant="secondary" [disabled]="busy() || !selectionChanged()" (click)="saveSelection()" data-testid="poll-save-answer">
             {{ (busy() ? 'teams.polls.saving' : 'teams.polls.saveAnswer') | transloco }}
           </button>
         }
         @if (answered()) {
-          <button type="button" jhButton variant="ghost" size="sm" [disabled]="busy()" (click)="withdraw()" data-testid="poll-withdraw">
+          <button type="button" jhButton variant="ghost" [disabled]="busy()" (click)="withdraw()" data-testid="poll-withdraw">
             {{ 'teams.polls.withdraw' | transloco }}
           </button>
         }
@@ -209,10 +209,10 @@
         }
       </div>
       <div class="flex flex-wrap items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
-        <button type="button" (click)="dismiss()" [disabled]="confirmBusy()" data-testid="poll-confirm-keep" jhButton variant="secondary" size="sm">
+        <button type="button" (click)="dismiss()" [disabled]="confirmBusy()" data-testid="poll-confirm-keep" jhButton variant="secondary">
           {{ (action === 'close' ? 'teams.polls.closeKeep' : 'teams.polls.deleteKeep') | transloco }}
         </button>
-        <button type="button" (click)="confirm()" [disabled]="confirmBusy()" data-testid="poll-confirm-submit" jhButton [variant]="action === 'delete' ? 'danger' : 'secondary'" size="sm">
+        <button type="button" (click)="confirm()" [disabled]="confirmBusy()" data-testid="poll-confirm-submit" jhButton [variant]="action === 'delete' ? 'danger' : 'secondary'">
           @if (action === 'close') {
             {{ (confirmBusy() ? 'teams.polls.closing' : 'teams.polls.closeConfirm') | transloco }}
           } @else {

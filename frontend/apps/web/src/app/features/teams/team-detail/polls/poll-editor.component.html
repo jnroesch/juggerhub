@@ -59,7 +59,7 @@
       }
     }
     @if (!locked()) {
-      <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" data-testid="poll-editor-add-option"
+      <button type="button" jhButton variant="secondary" class="mt-sm" data-testid="poll-editor-add-option"
         [disabled]="!canAddOption()" (click)="addOption()">
         <jh-icon name="plus" size="sm" />{{ 'teams.polls.editor.addOption' | transloco }}
       </button>
@@ -72,12 +72,12 @@
     <span [id]="ids + '-answers'" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.polls.editor.answersLegend' | transloco }}</span>
     <div class="mt-xs grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" [attr.aria-labelledby]="ids + '-answers'">
       <button type="button" data-testid="poll-editor-single" [attr.aria-pressed]="!allowsMultiple()" [disabled]="locked()" (click)="allowsMultiple.set(false)"
-        class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast disabled:cursor-not-allowed"
+        class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast disabled:cursor-not-allowed disabled:opacity-60"
         [class]="!allowsMultiple() ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">
         {{ 'teams.polls.editor.single' | transloco }}
       </button>
       <button type="button" data-testid="poll-editor-multiple" [attr.aria-pressed]="allowsMultiple()" [disabled]="locked()" (click)="allowsMultiple.set(true)"
-        class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast disabled:cursor-not-allowed"
+        class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast disabled:cursor-not-allowed disabled:opacity-60"
         [class]="allowsMultiple() ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">
         {{ 'teams.polls.editor.multiple' | transloco }}
       </button>
@@ -111,12 +111,12 @@
     <span [id]="ids + '-results'" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.polls.editor.resultsLegend' | transloco }}</span>
     <div class="mt-xs grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" [attr.aria-labelledby]="ids + '-results'">
       <button type="button" data-testid="poll-editor-results-always" [attr.aria-pressed]="!resultsAfterAnswer()" [disabled]="locked()" (click)="resultsAfterAnswer.set(false)"
-        class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast disabled:cursor-not-allowed"
+        class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast disabled:cursor-not-allowed disabled:opacity-60"
         [class]="!resultsAfterAnswer() ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">
         {{ 'teams.polls.editor.resultsAlways' | transloco }}
       </button>
       <button type="button" data-testid="poll-editor-results-after" [attr.aria-pressed]="resultsAfterAnswer()" [disabled]="locked()" (click)="resultsAfterAnswer.set(true)"
-        class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast disabled:cursor-not-allowed"
+        class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast disabled:cursor-not-allowed disabled:opacity-60"
         [class]="resultsAfterAnswer() ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">
         {{ 'teams.polls.editor.resultsAfter' | transloco }}
       </button>
@@ -136,7 +136,7 @@
         class="min-w-0 flex-1 rounded-md border bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus"
         [class.border-border-strong]="!closesError()" [class.border-danger-border]="!!closesError()" />
       @if (closesAtLocal()) {
-        <button type="button" jhButton variant="ghost" size="sm" data-testid="poll-editor-closes-clear" (click)="clearCloses()">{{ 'teams.polls.editor.clearClose' | transloco }}</button>
+        <button type="button" jhButton variant="ghost" data-testid="poll-editor-closes-clear" (click)="clearCloses()">{{ 'teams.polls.editor.clearClose' | transloco }}</button>
       }
     </div>
     <p [id]="ids + '-closes-hint'" class="mt-2xs text-body-sm text-muted">{{ 'teams.polls.editor.closesAtHint' | transloco }}</p>
@@ -149,13 +149,14 @@
     <p class="text-body-sm text-danger-fg" role="alert" data-testid="poll-editor-error">{{ key | transloco }}</p>
   }
 
+  <!-- The consequence of starting, on its own line: beside the buttons it pushed them apart at 375px. -->
+  @if (mode() === 'create') {
+    <p class="text-caption text-muted" data-testid="poll-editor-notify-hint">{{ 'teams.polls.editor.notifyHint' | transloco }}</p>
+  }
   <div class="flex flex-wrap items-center justify-end gap-sm">
-    @if (mode() === 'create') {
-      <p class="mr-auto text-caption text-muted">{{ 'teams.polls.editor.notifyHint' | transloco }}</p>
-    }
-    <button type="button" jhButton variant="ghost" size="sm" [disabled]="saving()" (click)="cancel()" data-testid="poll-editor-cancel">{{ 'common.cancel' | transloco }}</button>
+    <button type="button" jhButton variant="ghost" [disabled]="saving()" (click)="cancel()" data-testid="poll-editor-cancel">{{ 'common.cancel' | transloco }}</button>
     <!-- Secondary: the page's one coral call to action is the news composer's Post (DESIGN.md). -->
-    <button type="submit" jhButton variant="secondary" size="sm" [disabled]="!canSubmit()" data-testid="poll-editor-submit">
+    <button type="submit" jhButton variant="secondary" [disabled]="!canSubmit()" data-testid="poll-editor-submit">
       @if (mode() === 'create') {
         {{ (saving() ? 'teams.polls.editor.starting' : 'teams.polls.editor.start') | transloco }}
       } @else {

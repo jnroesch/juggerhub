@@ -107,6 +107,27 @@ describe('TeamPollsComponent', () => {
     expect(all('[data-testid="poll"]')).toHaveLength(2);
   });
 
+  it('fetches the lists once more when a link names a poll started since the page loaded', async () => {
+    build([poll('a')], []);
+    list.mockImplementation((_slug: string, state: string) => of(state === 'open' ? page([poll('abc123'), poll('a')]) : page([])));
+    const calls = list.mock.calls.length;
+
+    fragment$.next('poll-abc123');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    expect(list.mock.calls.length).toBe(calls + 2);
+    expect(el('#poll-abc123')).not.toBeNull();
+
+    // A link to a poll that is really gone refetches once, never in a loop.
+    fragment$.next('poll-dead00');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(list.mock.calls.length).toBe(calls + 4);
+  });
+
   it('goes to the poll a link names once the lists have arrived', async () => {
     build([poll('a'), poll('b')], []);
     const target = el('#poll-b') as HTMLElement;

@@ -5,7 +5,7 @@
     <h2 id="team-polls-heading" tabindex="-1" class="text-body-lg font-semibold text-heading outline-none">{{ 'teams.polls.title' | transloco }}</h2>
     <!-- Secondary: the page's one coral call to action is the news composer's Post (DESIGN.md). -->
     @if (isAdmin() && !creating()) {
-      <button type="button" jhButton variant="secondary" size="sm" (click)="startCreating()" data-testid="polls-start">
+      <button type="button" jhButton variant="secondary" (click)="startCreating()" data-testid="polls-start">
         <jh-icon name="plus" size="sm" />{{ 'teams.polls.start' | transloco }}
       </button>
     }
@@ -25,7 +25,7 @@
     <jh-loading />
   } @else if (loadError()) {
     <jh-alert tone="danger">{{ 'teams.polls.loadError' | transloco }}</jh-alert>
-    <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="retry()" data-testid="polls-retry">{{ 'common.tryAgain' | transloco }}</button>
+    <button type="button" jhButton variant="secondary" class="mt-sm" (click)="retry()" data-testid="polls-retry">{{ 'common.tryAgain' | transloco }}</button>
   } @else if (isEmpty()) {
     @if (!creating()) {
       <jh-empty-state inline>{{ (isAdmin() ? 'teams.polls.emptyAdmin' : 'teams.polls.empty') | transloco }}</jh-empty-state>
@@ -46,7 +46,7 @@
       }
     </ul>
     @if (hasOlder()) {
-      <button type="button" jhButton variant="secondary" size="sm" class="mt-md" [disabled]="loadingOlder()" (click)="showOlder()" data-testid="polls-older">
+      <button type="button" jhButton variant="secondary" class="mt-md" [disabled]="loadingOlder()" (click)="showOlder()" data-testid="polls-older">
         {{ (loadingOlder() ? 'common.loading' : 'teams.polls.showOlder') | transloco }}
       </button>
     }
