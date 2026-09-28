@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, Injector, OnInit, afterNextRender, computed, inject, signal } from '@angular/core';
 import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
@@ -10,6 +10,8 @@ import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { Party, PartyMember, PartyNews, PartyRosterGroup } from '../../../core/models/party.models';
 import { PartyService } from '../../../core/services/party.service';
 import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
+import { NewsPostComponent } from '../../../shared/news-post/news-post.component';
+import { NewsPostEditing } from '../../../shared/news-post/news-post-editing';
 
 /**
  * The party manage hub (feature 016 · wireframes 6d–6h). One page for the whole party: roster in
@@ -19,7 +21,9 @@ import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
  */
 @Component({
   selector: 'jh-party-manage',
-  imports: [RouterLink, TranslocoDatePipe, FormsModule, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent],
+  imports: [RouterLink, TranslocoDatePipe, FormsModule, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent, NewsPostComponent],
+  // Feature 059 — an open editor and its typed text belong to the page, not to one post's controls.
+  providers: [NewsPostEditing],
   templateUrl: './party-manage.component.html',
   styleUrl: './party-manage.component.css',
 })
@@ -28,6 +32,8 @@ export class PartyManageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
+  private readonly injector = inject(Injector);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly party = signal<Party | null>(null);
   protected readonly members = signal<PartyMember[]>([]);
@@ -41,6 +47,13 @@ export class PartyManageComponent implements OnInit {
   protected readonly news = signal<PartyNews[]>([]);
   protected readonly posting = signal(false);
   protected readonly newsBody = signal('');
+  /** Feature 059 — what happened to a post an admin tried to act on (a translation key). */
+  protected readonly newsNotice = signal<string | null>(null);
+
+  protected readonly saveNews = (postId: string, body: string): Observable<PartyNews> =>
+    this.parties.editNews(this.id, postId, body);
+
+  protected readonly deleteNews = (postId: string): Observable<void> => this.parties.deleteNews(this.id, postId);
 
   protected readonly isAdmin = computed(() => this.party()?.myRole === 'Admin');
   protected readonly isApplied = computed(() => this.party()?.status === 'Applied');
@@ -91,6 +104,21 @@ export class PartyManageComponent implements OnInit {
         this.loadNews();
       },
       error: () => this.posting.set(false),
+    });
+  }
+
+  protected replaceNews(updated: PartyNews): void {
+    this.newsNotice.set(null);
+    this.news.update((list) => list.map((n) => (n.id === updated.id ? updated : n)));
+  }
+
+  /** The post is gone — deleted here, or by another admin meanwhile (FR-020), which the notice says. */
+  protected dropNews(id: string, gone: boolean): void {
+    this.news.update((list) => list.filter((n) => n.id !== id));
+    this.newsNotice.set(gone ? 'news.gone' : null);
+    // The button that opened the menu went with the post; land on the section's heading instead.
+    afterNextRender(() => this.host.nativeElement.querySelector<HTMLElement>('#party-news-heading')?.focus(), {
+      injector: this.injector,
     });
   }
 

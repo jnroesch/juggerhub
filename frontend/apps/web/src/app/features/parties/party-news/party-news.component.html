@@ -1,6 +1,7 @@
 <main class="mx-auto max-w-container-md px-md py-lg">
   <a [routerLink]="['/parties', id]" class="inline-flex items-center gap-2xs text-body-sm text-muted transition-colors hover:text-body"><jh-icon name="chevron-left" size="sm" />{{ 'parties.backToParty' | transloco }}</a>
-  <h1 class="mt-xs text-h3">{{ 'parties.news.title' | transloco }}</h1>
+  <!-- tabindex -1: where focus lands after a post is deleted (feature 059). -->
+  <h1 id="party-news-heading" tabindex="-1" class="mt-xs text-h3">{{ 'parties.news.title' | transloco }}</h1>
   <p class="mt-xs text-body-sm text-muted">{{ 'parties.news.hint' | transloco }}</p>
 
   @if (isAdmin()) {
@@ -8,7 +9,7 @@
       <textarea [ngModel]="body()" (ngModelChange)="body.set($event)" name="body" rows="2" maxlength="1000"
         [placeholder]="'parties.newsPlaceholder' | transloco"
         class="w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-sm text-body outline-none focus:border-border-focus focus:ring-2 focus:ring-focus"></textarea>
-      @if (error()) { <jh-alert class="mt-xs">{{ error() }}</jh-alert> }
+      @if (error(); as key) { <jh-alert class="mt-xs">{{ key | transloco }}</jh-alert> }
       <div class="mt-sm text-right">
         <button type="submit" [disabled]="posting()"
           jhButton size="sm">{{ 'parties.postUpdate' | transloco }}</button>
@@ -16,16 +17,36 @@
     </form>
   }
 
+  <!-- Feature 059: what happened to a post an admin tried to act on (e.g. deleted meanwhile). -->
+  @if (notice(); as key) {
+    <p class="mt-md text-body-sm text-muted" role="status" data-testid="news-notice">{{ key | transloco }}</p>
+  }
+
   @if (loading()) {
     <jh-loading />
   } @else {
     <ul class="mt-md space-y-sm">
       @for (n of posts(); track n.id) {
-        <li jhCard padding="dense">
-          <p class="text-body-sm font-semibold text-heading">{{ n.authorDisplayName }}
-            <span class="ml-1 text-caption font-normal text-muted">{{ (n.authorRole === 'Admin' ? 'parties.partyAdmin' : 'parties.member') | transloco }} · {{ n.createdDate | translocoDate: { dateStyle: 'short', timeStyle: 'short' } }}</span>
-          </p>
-          <p class="mt-xs whitespace-pre-line text-body-sm text-body">{{ n.body }}</p>
+        <!-- overflowVisible: the post's menu drops below its button and must not be cut off at the
+             edge of its own card (feature 059). -->
+        <li jhCard padding="dense" overflowVisible data-testid="news-post-item">
+          <jh-news-post
+            [postId]="n.id"
+            [body]="n.body"
+            [canManage]="isAdmin()"
+            [maxLength]="1000"
+            editHint="news.editHint.party"
+            deleteBody="news.deleteBody.party"
+            [save]="saveNews"
+            [remove]="deleteNews"
+            (saved)="replaceNews($event)"
+            (removed)="dropNews(n.id, $event.gone)"
+          >
+            <p class="text-body-sm font-semibold text-heading" data-testid="news-meta">{{ n.authorDisplayName }}
+              <span class="ml-1 text-caption font-normal text-muted">{{ (n.authorRole === 'Admin' ? 'parties.partyAdmin' : 'parties.member') | transloco }} · <span class="whitespace-nowrap">{{ n.createdDate | translocoDate: { dateStyle: 'short', timeStyle: 'short' } }}@if (n.editedDate) { · {{ 'news.edited' | transloco }} }</span></span>
+            </p>
+            <p class="mt-xs whitespace-pre-line break-words text-body-sm text-body" data-testid="news-body">{{ n.body }}</p>
+          </jh-news-post>
         </li>
       } @empty {
         <li><jh-empty-state inline>{{ 'parties.noUpdates' | transloco }}</jh-empty-state></li>
