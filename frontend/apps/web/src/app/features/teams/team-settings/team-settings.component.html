@@ -79,7 +79,7 @@
                   <!-- Stacked on a phone, side by side from sm: at 375px a label and an address
                        cannot share a line without both becoming unreadable. -->
                   <li class="flex items-start gap-xs" data-testid="details-link">
-                    <div class="grid min-w-0 flex-1 grid-cols-1 gap-xs sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)]">
+                    <div class="grid min-w-0 flex-1 grid-cols-1 gap-xs sm:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
                       <input type="text" maxlength="30" autocomplete="off" data-testid="details-link-label"
                         [value]="l.label" (input)="setLink(i, 'label', $any($event.target).value)"
                         [attr.aria-label]="'teams.details.linkLabel' | transloco: { n: i + 1 }"
@@ -92,7 +92,7 @@
                         [attr.aria-label]="'teams.details.linkUrl' | transloco: { n: i + 1 }"
                         [attr.aria-invalid]="invalidLink() === i ? true : null"
                         placeholder="https://…"
-                        class="w-full rounded-md border bg-surface-card px-md py-sm font-mono text-body-sm text-body outline-none transition-shadow duration-fast placeholder:text-muted focus:border-border-focus focus:ring-2 focus:ring-focus"
+                        class="w-full rounded-md border bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast placeholder:text-muted focus:border-border-focus focus:ring-2 focus:ring-focus"
                         [class.border-border-strong]="invalidLink() !== i" [class.border-danger-border]="invalidLink() === i" />
                     </div>
                     <button type="button" data-testid="details-link-remove" (click)="removeLink(i)"
@@ -104,7 +104,7 @@
                 }
               </ul>
             }
-            <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" data-testid="details-add-link"
+            <button type="button" jhButton variant="secondary" class="mt-sm" data-testid="details-add-link"
               [disabled]="!canAddLink()" (click)="addLink()">
               <jh-icon name="plus" size="sm" />{{ 'teams.details.addLink' | transloco }}
             </button>
