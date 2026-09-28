@@ -373,9 +373,89 @@ public sealed class JoinRequestNotificationTests
         Assert.Equal("/browse/teams", no.Content.Url);
     }
 
+    // --- US3: withdrawn requests do not pile up --------------------------------------------
+
+    [Fact]
+    public async Task Withdrawing_removes_every_admins_alert()
+    {
+        // FR-022 (owner decision): the alerts go with the request — found by the dedupe prefix,
+        // never by the roster, so an admin demoted since the request loses theirs too.
+        var team = await NewTeamAsync();
+        var player = await NewUserAsync();
+        await RequestAsync(player, team.Slug);
+        await HomeTestSupport.WithDbAsync(_factory, db => db.TeamMemberships
+            .Where(m => m.TeamId == team.Id && m.UserId == team.B.Id)
+            .ExecuteUpdateAsync(s => s.SetProperty(m => m.Role, TeamRole.Member)));
+
+        var withdrawal = await player.Client.DeleteAsync($"/api/v1/teams/{team.Slug}/join-requests/mine");
+
+        Assert.Equal(HttpStatusCode.NoContent, withdrawal.StatusCode);
+        Assert.Empty(await AlertsAsync(team.A));
+        Assert.Empty(await AlertsAsync(team.B));
+    }
+
+    [Fact]
+    public async Task Withdrawing_lowers_an_unread_admins_badge()
+    {
+        var team = await NewTeamAsync();
+        var player = await NewUserAsync();
+        await RequestAsync(player, team.Slug);
+        Assert.Equal(1, await UnreadCountAsync(team.A));
+
+        (await player.Client.DeleteAsync($"/api/v1/teams/{team.Slug}/join-requests/mine")).EnsureSuccessStatusCode();
+
+        Assert.Equal(0, await UnreadCountAsync(team.A));
+        // Pushed to an open tab too, after the withdrawal committed.
+        Assert.Equal(0, _factory.NotificationRealtime.UnreadCountsFor(team.A.Id)[^1]);
+    }
+
+    [Fact]
+    public async Task A_withdrawal_after_an_answer_leaves_the_answer_alone()
+    {
+        var team = await NewTeamAsync();
+        var player = await NewUserAsync();
+        await RequestAsync(player, team.Slug);
+        var requestId = await RequestIdAsync(team.Id, player.Id);
+        (await AnswerAsync(team.A, team.Slug, requestId, approve: true)).EnsureSuccessStatusCode();
+
+        var withdrawal = await player.Client.DeleteAsync($"/api/v1/teams/{team.Slug}/join-requests/mine");
+
+        Assert.Equal(HttpStatusCode.NoContent, withdrawal.StatusCode);
+        Assert.Equal(JoinRequestStatus.Approved, (await RequestRowAsync(requestId)).Status);
+    }
+
+    [Fact]
+    public async Task Joining_by_invitation_ends_the_waiting_request()
+    {
+        // FR-020: exactly as if withdrawn — request and alerts gone, nobody told.
+        var team = await NewTeamAsync();
+        var player = await NewUserAsync();
+        await RequestAsync(player, team.Slug);
+        var requestId = await RequestIdAsync(team.Id, player.Id);
+
+        (await team.A.Client.PostAsJsonAsync($"/api/v1/teams/{team.Slug}/invitations", new { userId = player.Id }))
+            .EnsureSuccessStatusCode();
+        var token = await HomeTestSupport.WithDbAsync(_factory, db => db.TeamInvitations
+            .Where(i => i.TeamId == team.Id && i.TargetUserId == player.Id)
+            .Select(i => i.Token)
+            .SingleAsync());
+        (await player.Client.PostAsync($"/api/v1/invitations/{token}/accept", null)).EnsureSuccessStatusCode();
+
+        Assert.True(await IsMemberAsync(team.Id, player.Id));
+        Assert.False(await HomeTestSupport.WithDbAsync(_factory, db => db.TeamJoinRequests.AnyAsync(r => r.Id == requestId)));
+        Assert.Empty(await AlertsAsync(team.A));
+        Assert.Empty(await AlertsAsync(team.B));
+        Assert.Empty(await AlertsAsync(player, AnswerType));
+        var queue = await team.A.Client.GetFromJsonAsync<JsonElement>($"/api/v1/teams/{team.Slug}/join-requests");
+        Assert.Equal(0, queue.GetProperty("totalCount").GetInt32());
+    }
+
     // --- helpers ------------------------------------------------------------
 
     private sealed record Actor(HttpClient Client, Guid Id, string Handle, string Email);
+
+    private static async Task<int> UnreadCountAsync(Actor actor) =>
+        (await actor.Client.GetFromJsonAsync<JsonElement>("/api/v1/notifications/unread-count")).GetProperty("count").GetInt32();
 
     private sealed record TeamSetup(Guid Id, string Slug, string Name, Actor A, Actor B, Actor M);
 

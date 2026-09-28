@@ -179,17 +179,83 @@ public sealed class TeamJoinRequestService : ITeamJoinRequestService
 
         // Withdraw the caller's own pending request. A cancelled self-request keeps no audit trail
         // (unlike an admin decline), so the row is deleted — which also frees the partial-unique
-        // slot so the player can cleanly request again later.
-        var request = await _db.TeamJoinRequests
-            .FirstOrDefaultAsync(r => r.TeamId == a.TeamId && r.UserId == userId && r.Status == JoinRequestStatus.Pending, ct);
-        if (request is null)
+        // slot so the player can cleanly request again later — and, since feature 058, the admins'
+        // alerts about it go with it (FR-022).
+        var requestId = await PendingRequestIdAsync(a.TeamId, userId, ct);
+        if (requestId is not { } id)
         {
             return JoinCancelOutcome.NothingToCancel;
         }
 
-        _db.TeamJoinRequests.Remove(request);
-        await _db.SaveChangesAsync(ct);
-        return JoinCancelOutcome.Cancelled;
+        // Answered in the meantime: there is nothing left to withdraw, and the answer stands.
+        return await EndWithoutAnswerAsync(id, ct)
+            ? JoinCancelOutcome.Cancelled
+            : JoinCancelOutcome.NothingToCancel;
+    }
+
+    /// <inheritdoc />
+    public async Task EndForMemberAsync(Guid teamId, Guid userId, CancellationToken ct = default)
+    {
+        var requestId = await PendingRequestIdAsync(teamId, userId, ct);
+        if (requestId is { } id)
+        {
+            await EndWithoutAnswerAsync(id, ct);
+        }
+    }
+
+    private Task<Guid?> PendingRequestIdAsync(Guid teamId, Guid userId, CancellationToken ct) =>
+        _db.TeamJoinRequests.AsNoTracking()
+            .Where(r => r.TeamId == teamId && r.UserId == userId && r.Status == JoinRequestStatus.Pending)
+            .Select(r => (Guid?)r.Id)
+            .FirstOrDefaultAsync(ct);
+
+    /// <summary>
+    /// End a request nobody answered — withdrawn, or made moot by the player joining another way —
+    /// taking the admins' alerts about it with it (FR-020, FR-022; research R5). Returns false when
+    /// the request was answered first, which it then leaves alone.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>One transaction.</b> Deleted separately, a failure in between would leave the alerts
+    /// asking every admin to answer a request that no longer exists (057's lesson). Both statements
+    /// are conditional deletes, so a replay by the execution strategy converges.
+    /// </para>
+    /// <para>
+    /// <b>Conditional on Pending.</b> The delete used to be a tracked <c>Remove</c>, which deletes
+    /// by key: a withdrawal that read the request just before an admin approved it would have
+    /// erased the approved row. Now it matches nothing and the answer stands.
+    /// </para>
+    /// <para>
+    /// Nobody is notified. The unread badges go down only after commit, so a rollback can never be
+    /// contradicted by a badge that already moved.
+    /// </para>
+    /// </remarks>
+    private async Task<bool> EndWithoutAnswerAsync(Guid requestId, CancellationToken ct)
+    {
+        var strategy = _db.Database.CreateExecutionStrategy();
+        var (ended, unreadRecipients) = await strategy.ExecuteAsync(async () =>
+        {
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+            var rows = await _db.TeamJoinRequests
+                .Where(r => r.Id == requestId && r.Status == JoinRequestStatus.Pending)
+                .ExecuteDeleteAsync(ct);
+            if (rows == 0)
+            {
+                return (false, (IReadOnlyCollection<Guid>)[]);
+            }
+
+            var recipients = await _notifications.DeleteManyAsync(NotificationType.TeamJoinRequest, AlertPrefix(requestId), ct);
+            await tx.CommitAsync(ct);
+            return (true, recipients);
+        });
+
+        if (ended)
+        {
+            await _notifications.RefreshUnreadBadgesAsync(unreadRecipients, ct);
+        }
+
+        return ended;
     }
 
     public async Task<JoinQueueResult> ListPendingAsync(

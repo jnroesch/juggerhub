@@ -58,4 +58,13 @@ public interface ITeamJoinRequestService
     Task<JoinDecisionOutcome> ApproveAsync(string slug, Guid requestId, Guid adminUserId, CancellationToken ct = default);
 
     Task<JoinDecisionOutcome> DeclineAsync(string slug, Guid requestId, Guid adminUserId, CancellationToken ct = default);
+
+    /// <summary>
+    /// The player joined the team another way — an invitation (feature 058, FR-020). End their
+    /// waiting request exactly as a withdrawal would: the request and the admins' alerts about it
+    /// are removed, and nobody is notified. A no-op when nothing waits. Callers treat it as
+    /// best-effort: the membership already stands, and the shared meaning of "waiting" keeps a
+    /// request left behind by a failure from ever asking the admins to decide on a member.
+    /// </summary>
+    Task EndForMemberAsync(Guid teamId, Guid userId, CancellationToken ct = default);
 }

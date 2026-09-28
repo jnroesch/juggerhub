@@ -640,9 +640,32 @@ describe('OnboardingComponent', () => {
         .flush(null, { status: 409, statusText: 'Conflict' });
       fixture.detectChanges();
 
-      expect(comp.teamRequestError()).toBe("You're already on that team.");
+      expect(comp.teamRequestError()).toBe('onboarding.team.alreadyMember');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="onboarding-team-request-error"]').textContent.trim(),
+      ).toBe("You're already on that team.");
       expect(comp.requestedSlugs().size).toBe(0);
       // No second POST: a rejection repeated is still a rejection (constitution VII).
+      httpMock.expectNone('/api/v1/teams/berlin-jugger/join-requests');
+    });
+
+    it('reports a 429 as "try again later" and does not retry it (feature 058)', () => {
+      const fixture = createComponent();
+      const comp = goToTeamStep(fixture);
+
+      comp.selectTeam(BERLIN);
+      comp.askToJoin();
+      httpMock
+        .expectOne('/api/v1/teams/berlin-jugger/join-requests')
+        .flush(null, { status: 429, statusText: 'Too Many Requests' });
+      fixture.detectChanges();
+
+      expect(comp.teamRequestError()).toBe('onboarding.team.requestLimited');
+      expect(
+        fixture.nativeElement.querySelector('[data-testid="onboarding-team-request-error"]').textContent.trim(),
+      ).toBe("You've sent a lot of join requests in a short time. Try again in a little while.");
+      expect(comp.requestedSlugs().size).toBe(0);
+      // Our own limit: retrying it defeats it (constitution VII).
       httpMock.expectNone('/api/v1/teams/berlin-jugger/join-requests');
     });
 
@@ -657,11 +680,12 @@ describe('OnboardingComponent', () => {
         .flush(null, { status: 500, statusText: 'Server Error' });
       fixture.detectChanges();
 
-      expect(comp.teamRequestError()).toBe("We couldn't send that request just now.");
+      expect(comp.teamRequestError()).toBe('onboarding.team.requestFailed');
       expect(comp.requestedSlugs().size).toBe(0);
       const line = fixture.nativeElement.querySelector(
         '[data-testid="onboarding-team-request-error"]',
       );
+      expect(line.textContent.trim()).toBe("We couldn't send that request just now.");
       expect(line.textContent).not.toContain('500');
     });
   });

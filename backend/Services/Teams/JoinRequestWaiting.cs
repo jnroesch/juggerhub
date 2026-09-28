@@ -23,7 +23,7 @@ namespace JuggerHub.Services.Teams;
 /// </para>
 /// <para>
 /// <b>Why "not already a member".</b> Accepting an invitation ends the player's waiting request
-/// (FR-020, <c>ITeamJoinRequestService.EndForMemberAsync</c>), but only best-effort, after
+/// (FR-020, <see cref="ITeamJoinRequestService.EndForMemberAsync"/>), but only best-effort, after
 /// the membership is committed. This clause is what keeps a request left behind by a failed cleanup
 /// from ever asking the admins to decide on someone who is already in.
 /// </para>

@@ -104,6 +104,7 @@ export class TeamDetailComponent {
       // Feature 058 — a note about another team's join requests has no place here.
       this.joinNotice.set(null);
       this.answerError.set(null);
+      this.requestError.set(null);
       this.load();
     });
   }
@@ -397,12 +398,15 @@ export class TeamDetailComponent {
     }
   }
 
+  /** Feature 058 — the player's own request failed. A translation key, so a language switch re-renders it. */
+  protected readonly requestError = signal<string | null>(null);
+
   private requestToJoin(): void {
     if (this.requestBusy()) {
       return;
     }
     this.requestBusy.set(true);
-    this.error.set(null);
+    this.requestError.set(null);
     this.teams.requestToJoin(this.slug()).subscribe({
       next: () => {
         this.requestBusy.set(false);
@@ -412,7 +416,19 @@ export class TeamDetailComponent {
       error: (err) => {
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
-        this.error.set(problemDetail(err));
+        const status = err instanceof HttpErrorResponse ? err.status : 0;
+        // Branch on the status, never the server's English `detail` (GH #179). A 429 is our own
+        // limit on asking (feature 058, FR-023): say when to try again, and never retry it.
+        this.requestError.set(
+          status === 429
+            ? 'teams.detail.requestLimited'
+            : status === 409
+              ? 'teams.detail.alreadyMember'
+              : 'teams.detail.requestFailed',
+        );
+        if (status === 409) {
+          this.load(); // they are on the team after all: show the page as a member sees it
+        }
       },
     });
   }
@@ -423,17 +439,17 @@ export class TeamDetailComponent {
       return;
     }
     this.requestBusy.set(true);
-    this.error.set(null);
+    this.requestError.set(null);
     this.teams.cancelJoinRequest(this.slug()).subscribe({
       next: () => {
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
         this.load(); // relation → NonMember
       },
-      error: (err) => {
+      error: () => {
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
-        this.error.set(problemDetail(err));
+        this.requestError.set('teams.detail.cancelFailed');
       },
     });
   }

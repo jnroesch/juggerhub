@@ -62,6 +62,9 @@
     @if (error(); as e) {
       <p class="mt-sm rounded-md bg-danger-bg px-sm py-xs text-body-sm text-danger-fg" role="alert">{{ e }}</p>
     }
+    @if (requestError(); as key) {
+      <jh-alert class="mt-sm" data-testid="request-error">{{ key | transloco }}</jh-alert>
+    }
 
     <div class="mt-lg grid grid-cols-1 gap-lg lg:grid-cols-[minmax(0,1fr)_300px]">
       <div class="flex flex-col gap-lg">

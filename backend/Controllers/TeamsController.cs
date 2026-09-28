@@ -168,8 +168,13 @@ public sealed class TeamsController : ControllerBase
 
     // --- Join requests (feature 009) ------------------------------------------
 
-    /// <summary>A signed-in non-member asks to join. Idempotent while a request is pending.</summary>
+    /// <summary>
+    /// A signed-in non-member asks to join. Idempotent while a request is pending. Feature 058:
+    /// every current admin is told, so asking is rate-limited per player (10 an hour) — the only
+    /// join-request route that is; withdrawing and answering are not.
+    /// </summary>
     [HttpPost("{slug}/join-requests")]
+    [EnableRateLimiting(RateLimitPolicies.JoinRequest)]
     public async Task<IActionResult> RequestToJoin(string slug, CancellationToken ct)
     {
         if (!TryGetUserId(out var userId))

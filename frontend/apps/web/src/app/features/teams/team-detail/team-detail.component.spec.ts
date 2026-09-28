@@ -428,3 +428,68 @@ describe('TeamDetailComponent — answering join requests (feature 058)', () => 
     expect(fixture.nativeElement.querySelector('[data-testid="join-queue"]')).not.toBeNull();
   });
 });
+
+/**
+ * Feature 058 — asking to join, when the server says no. Each status gets the page's own sentence,
+ * never the server's English text, and a 429 (our own limit, FR-023) says when to try again.
+ */
+describe('TeamDetailComponent — asking to join fails (feature 058)', () => {
+  let service: Record<string, jest.Mock>;
+
+  function render(): ComponentFixture<TeamDetailComponent> {
+    TestBed.resetTestingModule();
+    service = {
+      getPublicDetail: jest.fn().mockReturnValue(of(detail('NonMember'))),
+      getMembers: jest.fn().mockReturnValue(of(page([]))),
+      getNews: jest.fn().mockReturnValue(of(page([]))),
+      getHappenings: jest.fn().mockReturnValue(of([])),
+      getJoinRequests: jest.fn().mockReturnValue(of(page([]))),
+      logoUrl: jest.fn().mockReturnValue('/api/v1/teams/rheinfeuer/logo'),
+      requestToJoin: jest.fn(),
+    };
+    TestBed.configureTestingModule({
+      imports: [TeamDetailComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        ...translocoLocaleTestingProviders(),
+        { provide: TeamService, useValue: service },
+        { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(TeamDetailComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function ask(fixture: ComponentFixture<TeamDetailComponent>, status: number): string | undefined {
+    service['requestToJoin'].mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status, error: { detail: 'Some English server text' } })),
+    );
+    (fixture.nativeElement.querySelector('[data-testid="request-to-join"]') as HTMLElement).click();
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('[data-testid="join-confirm-submit"]') as HTMLElement).click();
+    fixture.detectChanges();
+    return (fixture.nativeElement.querySelector('[data-testid="request-error"]') as HTMLElement | null)?.textContent?.trim();
+  }
+
+  it('says when to try again after too many requests, and sends nothing more', () => {
+    const fixture = render();
+    expect(ask(fixture, 429)).toBe("You've sent a lot of join requests in a short time. Try again in a little while.");
+    expect(service['requestToJoin']).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.textContent).not.toContain('Some English server text');
+  });
+
+  it('says the player is already on the team, and shows the page afresh', () => {
+    const fixture = render();
+    expect(ask(fixture, 409)).toBe("You're already on this team.");
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
+  });
+
+  it('says anything else plainly, in its own words', () => {
+    const fixture = render();
+    expect(ask(fixture, 500)).toBe("We couldn't send your request just now.");
+  });
+});

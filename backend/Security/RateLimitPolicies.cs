@@ -80,6 +80,34 @@ public static class RateLimitPolicies
     /// <summary>10/min: an import session is one link, one preview and one commit; ten leaves room for a retry or a wrong address.</summary>
     internal const int TugenyPerMinute = 10;
 
+    /// <summary>
+    /// Asking to join a team (feature 058). Only the ask — withdrawing and answering are never
+    /// limited.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Why it exists.</b> A join request has open reach, the same property that made chat's
+    /// limits load-bearing (019): any signed-in player may ask any team, with no relationship
+    /// needed. That was harmless while a request reached nobody. Since feature 058 every request
+    /// reaches each of the team's admins in their inbox, by email and on their phone, so without a
+    /// bound, asking and withdrawing is a way to message those admins as often as one likes.
+    /// </para>
+    /// <para>
+    /// <b>A fixed window</b>, like every limit here: ten per player per clock hour, across all
+    /// teams. A burst straddling the turn of an hour can therefore reach twenty, and no more (spec
+    /// FR-023 states exactly this).
+    /// </para>
+    /// <para>
+    /// <b>This <c>429</c> is our own limit</b> (constitution Principle VII): it is never retried on
+    /// either hop — the browser's retry interceptor already skips <c>429</c> — and the client maps
+    /// the status, not the body, to a "try again later" in the player's language.
+    /// </para>
+    /// </remarks>
+    public const string JoinRequest = "join-request";
+
+    /// <summary>10/hour: a new player asking two or three teams during onboarding never comes close; a loop of asks and withdrawals stops at ten.</summary>
+    internal const int JoinRequestsPerHour = 10;
+
     public static IServiceCollection AddJuggerHubRateLimiting(
         this IServiceCollection services,
         string? redisConnection)
@@ -101,12 +129,16 @@ public static class RateLimitPolicies
             options.AddPolicy(ChatTyping, PartitionByUser(ChatTyping, ChatTypingPerMinute));
             options.AddPolicy(MediaRead, PartitionByCaller(MediaRead, MediaReadPerMinute));
             options.AddPolicy(Tugeny, PartitionByUser(Tugeny, TugenyPerMinute));
+            options.AddPolicy(JoinRequest, PartitionByUser(JoinRequest, JoinRequestsPerHour, TimeSpan.FromHours(1)));
         });
 
         return services;
     }
 
     private static Func<HttpContext, RateLimitPartition<string>> PartitionByUser(string policy, int limit) =>
+        PartitionByUser(policy, limit, TimeSpan.FromMinutes(1));
+
+    private static Func<HttpContext, RateLimitPartition<string>> PartitionByUser(string policy, int limit, TimeSpan window) =>
         httpContext =>
         {
             var subject = httpContext.User.FindFirstValue(JwtRegisteredClaimNames.Sub)
@@ -114,14 +146,14 @@ public static class RateLimitPolicies
 
             // An unauthenticated caller cannot reach these endpoints ([Authorize] runs first), but if
             // one ever did, bucket them together rather than handing out an unlimited partition.
-            return Limiter(httpContext, $"{policy}:{subject ?? "anonymous"}", limit);
+            return Limiter(httpContext, $"{policy}:{subject ?? "anonymous"}", limit, window);
         };
 
     /// <summary>
     /// Partition by authenticated user when there is one, and by client IP otherwise.
     /// </summary>
     /// <remarks>
-    /// <see cref="PartitionByUser"/> does not fit the media endpoints: they serve anonymous callers
+    /// <see cref="PartitionByUser(string, int)"/> does not fit the media endpoints: they serve anonymous callers
     /// <b>by design</b> — public profiles and catalogue icons — so bucketing every signed-out
     /// visitor into a single "anonymous" partition would let one of them exhaust the limit for all
     /// of them, turning a safeguard into a denial of service against legitimate visitors. Falling
@@ -139,11 +171,11 @@ public static class RateLimitPolicies
                 ? $"u:{subject}"
                 : $"ip:{httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown"}";
 
-            return Limiter(httpContext, $"{policy}:{caller}", limit);
+            return Limiter(httpContext, $"{policy}:{caller}", limit, TimeSpan.FromMinutes(1));
         };
 
     /// <summary>Build the partition's limiter — Redis-backed everywhere it matters.</summary>
-    private static RateLimitPartition<string> Limiter(HttpContext httpContext, string key, int limit)
+    private static RateLimitPartition<string> Limiter(HttpContext httpContext, string key, int limit, TimeSpan window)
     {
         var redis = httpContext.RequestServices.GetService<IConnectionMultiplexer>();
 
@@ -155,7 +187,7 @@ public static class RateLimitPolicies
             return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = limit,
-                Window = TimeSpan.FromMinutes(1),
+                Window = window,
                 QueueLimit = 0,
                 AutoReplenishment = true,
             });
@@ -166,6 +198,6 @@ public static class RateLimitPolicies
             .CreateLogger<RedisFixedWindowRateLimiter>();
 
         return RateLimitPartition.Get(key, k => new RedisFixedWindowRateLimiter(
-            redis, k, limit, TimeSpan.FromMinutes(1), logger));
+            redis, k, limit, window, logger));
     }
 }

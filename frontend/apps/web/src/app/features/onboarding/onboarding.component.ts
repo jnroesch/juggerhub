@@ -388,12 +388,16 @@ export class OnboardingComponent implements OnInit, OnDestroy {
       error: (response: HttpErrorResponse) => {
         this.askingSlug.set(null);
         // 409 is the server reporting a different *fact* — already a member — not a
-        // different failure, so it earns its own sentence. Everything else stays
-        // generic; no status code or internal detail reaches the reader (Principle I).
+        // different failure, so it earns its own sentence, and so does 429: our own limit on
+        // asking (feature 058, FR-023), never retried. Everything else stays generic; no status
+        // code or internal detail reaches the reader (Principle I). Catalogue keys, not text —
+        // these were English-only sentences until feature 058.
         this.teamRequestError.set(
-          response.status === 409
-            ? "You're already on that team."
-            : "We couldn't send that request just now.",
+          response.status === 429
+            ? 'onboarding.team.requestLimited'
+            : response.status === 409
+              ? 'onboarding.team.alreadyMember'
+              : 'onboarding.team.requestFailed',
         );
       },
     });
