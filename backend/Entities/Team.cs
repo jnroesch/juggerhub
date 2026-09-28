@@ -36,6 +36,12 @@ public sealed class Team : BaseEntity
     public bool BeginnersWelcome { get; set; }
 
     /// <summary>
+    /// What the team says about itself (feature 061) — plain text, at most 1000 characters, line
+    /// breaks kept, never formatted and never turned into links. Null when the team has none.
+    /// </summary>
+    public string? Description { get; set; }
+
+    /// <summary>
     /// The team's identity logo (feature 051), or null when it has none. A descriptor row, not
     /// bytes — see <see cref="TeamLogo"/>. Reads that only need to know whether a logo exists
     /// project <c>Logo != null</c> rather than loading this navigation.
@@ -47,4 +53,7 @@ public sealed class Team : BaseEntity
     public ICollection<TeamInvitation> Invitations { get; set; } = [];
 
     public ICollection<TeamNewsPost> News { get; set; } = [];
+
+    /// <summary>The team's external links, at most five (feature 061). Replaced as a whole on save.</summary>
+    public ICollection<TeamLink> Links { get; set; } = [];
 }

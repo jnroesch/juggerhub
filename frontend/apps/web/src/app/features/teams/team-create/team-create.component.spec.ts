@@ -350,6 +350,10 @@ describe('TeamCreateComponent', () => {
 
     el('team-logo-next').click();
     fixture.detectChanges();
+    expect(el('team-back')).toBeNull();
+
+    el('team-about-next').click();
+    fixture.detectChanges();
     httpMock.expectOne('/api/v1/teams/kiel-krakens/invitations/link').flush(null);
     expect(el('team-back')).toBeNull();
   });
@@ -390,6 +394,102 @@ describe('TeamCreateComponent', () => {
     fixture.detectChanges();
 
     httpMock.expectNone('/api/v1/teams/kiel-krakens/logo');
+    // Feature 061 — the description step comes next.
+    expect(el('team-about-step')).not.toBeNull();
+  });
+
+  // --- The description step (feature 061) ------------------------------------
+
+  /** The created team as the server answers POST /teams — what the about step resends. */
+  const CREATED = {
+    slug: 'kiel-krakens',
+    name: 'Kiel Krakens',
+    type: 'CityTeam',
+    location: { externalId: 'osm:R:9', name: 'Kiel', region: 'Schleswig-Holstein', countryName: 'Germany', countryCode: 'DE', label: 'Kiel, Germany' },
+    memberCount: 1,
+    myRole: 'Admin',
+    beginnersWelcome: false,
+    hasLogo: false,
+    description: null,
+    links: [],
+  };
+
+  /** A created team, past the logo step, on the description step. */
+  function reachAbout(): void {
+    reachReview();
+    createBtn().click();
+    httpMock.expectOne('/api/v1/teams').flush(CREATED);
+    flushMembershipRefresh();
+    fixture.detectChanges();
+    el('team-logo-next').click();
+    fixture.detectChanges();
+  }
+
+  function aboutButton(): HTMLButtonElement {
+    return el<HTMLButtonElement>('team-about-next');
+  }
+
+  it('asks for a few words after the logo, and skipping it sends nothing (FR-021)', () => {
+    reachAbout();
+
+    expect(el('team-about-step')).not.toBeNull();
+    expect(aboutButton().textContent).toContain('Skip for now');
+
+    // Blank text is no text: still a skip.
+    type('wizard-about', '   \n ');
+    expect(aboutButton().textContent).toContain('Skip for now');
+    aboutButton().click();
+    fixture.detectChanges();
+
+    httpMock.expectNone('/api/v1/teams/kiel-krakens/details');
+    expect(el('team-invite-step')).not.toBeNull();
+    httpMock.expectOne('/api/v1/teams/kiel-krakens/invitations/link').flush(null);
+  });
+
+  it('saves the description, resending what the server recorded for the team, then moves on', () => {
+    reachAbout();
+
+    type('wizard-about', '  Wir sind neu in Kiel.\nDienstags 18 Uhr.  ');
+    expect(aboutButton().textContent).toContain('Continue');
+    aboutButton().click();
+    fixture.detectChanges();
+
+    const save = httpMock.expectOne('/api/v1/teams/kiel-krakens/details');
+    expect(save.request.method).toBe('PUT');
+    expect(save.request.body).toEqual({
+      name: 'Kiel Krakens',
+      type: 'CityTeam',
+      location: { cityExternalId: 'osm:R:9', name: 'Kiel' },
+      description: 'Wir sind neu in Kiel.\nDienstags 18 Uhr.',
+      links: [],
+    });
+    save.flush({ ...CREATED, description: 'Wir sind neu in Kiel.\nDienstags 18 Uhr.' });
+    fixture.detectChanges();
+
+    expect(el('team-invite-step')).not.toBeNull();
+    httpMock.expectOne('/api/v1/teams/kiel-krakens/invitations/link').flush(null);
+  });
+
+  it('keeps the text after a failed save, offers Skip, and never retries by itself (FR-022)', () => {
+    reachAbout();
+    type('wizard-about', 'Wir sind neu.');
+
+    aboutButton().click();
+    fixture.detectChanges();
+    httpMock.expectOne('/api/v1/teams/kiel-krakens/details').flush({ detail: 'SERVER ENGLISH' }, { status: 500, statusText: 'Error' });
+    fixture.detectChanges();
+    jest.advanceTimersByTime(10_000);
+
+    httpMock.expectNone('/api/v1/teams/kiel-krakens/details');
+    expect(el('team-about-step')).not.toBeNull();
+    expect(el<HTMLTextAreaElement>('wizard-about').value).toBe('Wir sind neu.');
+    expect(el('wizard-about-error').textContent).toContain("We couldn't save the description");
+    expect(el('wizard-about-error').textContent).not.toContain('SERVER ENGLISH');
+
+    el('team-about-skip').click();
+    fixture.detectChanges();
+
+    httpMock.expectNone('/api/v1/teams/kiel-krakens/details');
     expect(el('team-invite-step')).not.toBeNull();
     httpMock.expectOne('/api/v1/teams/kiel-krakens/invitations/link').flush(null);
   });
@@ -398,6 +498,8 @@ describe('TeamCreateComponent', () => {
   function reachInvite(link: { url: string; token: string; expiresDate: string } | null = null): void {
     createTeam();
     el('team-logo-next').click();
+    fixture.detectChanges();
+    el('team-about-next').click();
     fixture.detectChanges();
     httpMock.expectOne('/api/v1/teams/kiel-krakens/invitations/link').flush(link);
     fixture.detectChanges();

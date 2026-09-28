@@ -190,6 +190,28 @@ public sealed class NotificationService : INotificationService
                 .SetProperty(n => n.ModifiedDate, now), ct);
     }
 
+    public Task<int> ReplaceTeamNameAsync(string teamSlug, string teamName, CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+
+        // One statement, parameterised by ExecuteSqlInterpolated — EF cannot rewrite one key of a
+        // jsonb column in ExecuteUpdate. Rows are matched by the KEYS every team-naming payload
+        // carries, never by a list of types: the nine kinds today (team invites, role changes, news,
+        // join requests and answers, party requests incl. the null-dedupe nudge, party news, market
+        // invites) and any future kind are covered without anyone remembering to add it. The two
+        // literals are the camelCase PayloadJson gives the payload records' TeamSlug/TeamName.
+        // "IS DISTINCT FROM" leaves rows already carrying the name alone, so a replay is a no-op.
+        // ModifiedDate is set here or not at all: this bypasses the audit interceptor (Principle III).
+        return _db.Database.ExecuteSqlInterpolatedAsync($"""
+            UPDATE "Notifications"
+            SET "Payload" = "Payload" || jsonb_build_object('teamName', {teamName}::text),
+                "ModifiedDate" = {now}
+            WHERE "Payload" ->> 'teamSlug' = {teamSlug}
+              AND jsonb_typeof("Payload" -> 'teamName') = 'string'
+              AND "Payload" ->> 'teamName' IS DISTINCT FROM {teamName}
+            """, ct);
+    }
+
     public async Task<IReadOnlyCollection<Guid>> DeleteManyAsync(
         NotificationType type,
         string dedupeKeyPrefix,

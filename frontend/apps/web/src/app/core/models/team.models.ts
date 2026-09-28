@@ -28,6 +28,36 @@ export interface CreateTeamRequest {
   location: LocationSelection | null;
 }
 
+/** Feature 061 — one of a team's links: a label and its normalised https address. */
+export interface TeamLink {
+  label: string;
+  url: string;
+}
+
+/**
+ * Feature 061 — replace a team's name, type, city, description and links as a whole (admin only,
+ * `PUT /teams/{slug}/details`). Resend the current city's `externalId` to keep it.
+ */
+export interface UpdateTeamDetails {
+  name: string;
+  type: TeamType;
+  location: LocationSelection | null;
+  description: string | null;
+  links: TeamLink[];
+}
+
+/** Feature 061 — why a details save was refused: the `code` on the 400 ProblemDetails. */
+export type TeamDetailsErrorCode =
+  | 'nameInvalid'
+  | 'cityRequired'
+  | 'mixteamHasCity'
+  | 'cityNotFound'
+  | 'descriptionTooLong'
+  | 'tooManyLinks'
+  | 'linkLabelInvalid'
+  | 'linkUrlInvalid'
+  | 'linkDuplicate';
+
 export interface TeamDetail {
   slug: string;
   name: string;
@@ -39,6 +69,9 @@ export interface TeamDetail {
   beginnersWelcome: boolean;
   /** Feature 051 — whether the team has a logo; the URL is built from the slug. */
   hasLogo: boolean;
+  /** Feature 061 — what the team says about itself (null when none), and its links. */
+  description: string | null;
+  links: TeamLink[];
 }
 
 export interface TeamPublic {
@@ -79,6 +112,9 @@ export interface TeamPublicDetail {
   /** Feature 012 — the team's earned badges & achievements. */
   badges: EarnedRecognition[];
   achievements: EarnedRecognition[];
+  /** Feature 061 — shown to every viewer of the page: the description (null when none) and links. */
+  description: string | null;
+  links: TeamLink[];
 }
 
 /** One pending join request in the admin queue. */

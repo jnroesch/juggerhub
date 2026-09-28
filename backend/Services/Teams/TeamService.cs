@@ -78,10 +78,10 @@ public sealed class TeamService : ITeamService
 
     public async Task<CreateTeamResult> CreateAsync(Guid userId, CreateTeamRequest request, CancellationToken ct = default)
     {
-        var name = (request.Name ?? string.Empty).Trim();
-        if (name.Length < 2 || name.Length > _options.NameMaxLength)
+        var name = NormalizeName(request.Name);
+        if (name is null)
         {
-            return CreateTeamResult.Fail(CreateTeamStatus.InvalidName, $"Use a team name of 2–{_options.NameMaxLength} characters.");
+            return CreateTeamResult.Fail(CreateTeamStatus.InvalidName, NameRule);
         }
 
         var slug = TeamSlugPolicy.Normalize(request.Slug);
@@ -146,7 +146,7 @@ public sealed class TeamService : ITeamService
 
         return CreateTeamResult.Ok(new TeamDetailDto(
             team.Slug, team.Name, team.Type, LocationLabels.ToLocation(resolvedCity), 1, TeamRole.Admin,
-            BeginnersWelcome: false, HasLogo: false));
+            BeginnersWelcome: false, HasLogo: false, Description: null, Links: []));
     }
 
     public async Task<TeamDetailDto?> GetDetailAsync(string slug, Guid userId, CancellationToken ct = default)
@@ -157,8 +157,14 @@ public sealed class TeamService : ITeamService
             return null;
         }
 
+        return await ProjectDetailAsync(a.TeamId, a.Role!.Value, ct);
+    }
+
+    /// <summary>The members-only header for a team the caller is already known to be on.</summary>
+    private async Task<TeamDetailDto> ProjectDetailAsync(Guid teamId, TeamRole callerRole, CancellationToken ct)
+    {
         var header = await _db.Teams.AsNoTracking()
-            .Where(t => t.Id == a.TeamId)
+            .Where(t => t.Id == teamId)
             .Select(t => new
             {
                 t.Slug,
@@ -170,11 +176,14 @@ public sealed class TeamService : ITeamService
                 // Feature 051 — presence only; an EXISTS in the query that already runs, never a
                 // second round trip and never the descriptor itself.
                 HasLogo = t.Logo != null,
+                // Feature 061 — in the same query: the settings form edits these.
+                t.Description,
+                Links = t.Links.OrderBy(l => l.Position).Select(l => new TeamLinkDto(l.Label, l.Url)).ToList(),
             })
             .FirstAsync(ct);
 
         return new TeamDetailDto(header.Slug, header.Name, header.Type, LocationLabels.ToLocation(header.City),
-            header.MemberCount, a.Role!.Value, header.BeginnersWelcome, header.HasLogo);
+            header.MemberCount, callerRole, header.BeginnersWelcome, header.HasLogo, header.Description, header.Links);
     }
 
     public async Task<TeamPublicDto?> GetPublicAsync(string slug, CancellationToken ct = default)
@@ -214,6 +223,9 @@ public sealed class TeamService : ITeamService
                 ViewerRole = viewerUserId == null
                     ? (TeamRole?)null
                     : t.Memberships.Where(m => m.UserId == viewerUserId).Select(m => (TeamRole?)m.Role).FirstOrDefault(),
+                // Feature 061 — shown to every viewer of the page, loaded with it (SC-006).
+                t.Description,
+                Links = t.Links.OrderBy(l => l.Position).Select(l => new TeamLinkDto(l.Label, l.Url)).ToList(),
             })
             .FirstOrDefaultAsync(ct);
         if (team is null)
@@ -271,7 +283,7 @@ public sealed class TeamService : ITeamService
         return new TeamPublicDetailDto(team.Id, team.Slug, team.Name, team.Type,
             LocationLabels.ToLocation(team.City), team.MemberCount,
             team.BeginnersWelcome, team.IsActive, relation, team.HasLogo, roster, activity,
-            recognitions.Badges, recognitions.Achievements);
+            recognitions.Badges, recognitions.Achievements, team.Description, team.Links);
     }
 
     public async Task<PagedResult<TeamMemberDto>?> GetRosterAsync(string slug, Guid userId, PaginationRequest pagination, CancellationToken ct = default)
@@ -377,6 +389,161 @@ public sealed class TeamService : ITeamService
 
         return UpdateTeamSettingsStatus.Updated;
     }
+
+    public async Task<TeamDetailsResult> UpdateDetailsAsync(
+        string slug, Guid actorUserId, UpdateTeamDetailsRequest request, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(slug, actorUserId, ct);
+        if (access is not { IsMember: true } a)
+        {
+            return TeamDetailsResult.Fail(TeamDetailsStatus.NotFoundOrNotMember);
+        }
+
+        if (!a.IsAdmin)
+        {
+            return TeamDetailsResult.Fail(TeamDetailsStatus.Forbidden);
+        }
+
+        // Every rule is checked before anything is read from or written to the team: a refused save
+        // changes nothing (FR-006). Create's rules for the name and the city (FR-002).
+        var name = NormalizeName(request.Name);
+        if (name is null)
+        {
+            return Refused(TeamDetailsCode.NameInvalid, NameRule);
+        }
+
+        var selectedCityId = request.Location?.CityExternalId;
+        if (request.Type == TeamType.CityTeam && string.IsNullOrWhiteSpace(selectedCityId))
+        {
+            return Refused(TeamDetailsCode.CityRequired, "A city team needs a city.");
+        }
+
+        if (request.Type == TeamType.Mixteam && !string.IsNullOrWhiteSpace(selectedCityId))
+        {
+            return Refused(TeamDetailsCode.MixteamHasCity, "A Mixteam doesn't have a city.");
+        }
+
+        var description = TeamDetailsPolicy.NormalizeDescription(request.Description);
+        if (TeamDetailsPolicy.ValidateDescription(description) is { } descriptionProblem)
+        {
+            return TeamDetailsResult.Refused(descriptionProblem);
+        }
+
+        var (links, linkProblem) = TeamDetailsPolicy.NormalizeLinks(
+            request.Links?.Select(l => (l.Label, l.Url)).ToList());
+        if (linkProblem is not null)
+        {
+            return TeamDetailsResult.Refused(linkProblem);
+        }
+
+        // The city last, and outside the transaction: resolving a city used for the first time
+        // inserts it and saves (StructuredAddress's remarks). The form resends the current city on
+        // every save; a city already held is reused without a reference lookup, so that costs one
+        // read and cannot fail.
+        Guid? cityId = null;
+        if (request.Type == TeamType.CityTeam)
+        {
+            try
+            {
+                cityId = (await _cities.ResolveAndUpsertAsync(selectedCityId!, request.Location!.Name, ct)).Id;
+            }
+            catch (CityNotResolvableException)
+            {
+                return Refused(TeamDetailsCode.CityNotFound, "That city could not be found.");
+            }
+        }
+
+        // One retriable unit (Principle VII): every statement below is either a fixed-value
+        // ExecuteUpdate/ExecuteDelete or an insert of entities created inside the delegate, so a
+        // replay converges instead of doubling up.
+        var now = DateTime.UtcNow;
+        var strategy = _db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
+        {
+            _db.ChangeTracker.Clear();
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+            // The lock serialises two saves of the same team, so the name compared below is the
+            // committed one and a later save's rewrites always run after an earlier save's commit.
+            await _db.Database.ExecuteSqlInterpolatedAsync(
+                $"SELECT 1 FROM \"Teams\" WHERE \"Id\" = {a.TeamId} FOR UPDATE", ct);
+            var nameBefore = await _db.Teams
+                .Where(t => t.Id == a.TeamId)
+                .Select(t => t.Name)
+                .FirstAsync(ct);
+
+            // ExecuteUpdate bypasses the change tracker, so ModifiedDate is set here or not at all
+            // (constitution Principle III). BeginnersWelcome and the logo are not touched (FR-007).
+            await _db.Teams
+                .Where(t => t.Id == a.TeamId)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(t => t.Name, name)
+                    .SetProperty(t => t.Type, request.Type)
+                    .SetProperty(t => t.CityId, cityId)
+                    .SetProperty(t => t.Description, description)
+                    .SetProperty(t => t.ModifiedDate, now), ct);
+
+            // The links are replaced as a whole: nothing addresses a single one.
+            await _db.TeamLinks.Where(l => l.TeamId == a.TeamId).ExecuteDeleteAsync(ct);
+            _db.TeamLinks.AddRange(links.Select((l, i) => new TeamLink
+            {
+                TeamId = a.TeamId,
+                Label = l.Label,
+                Url = l.Url,
+                Position = i,
+            }));
+            await _db.SaveChangesAsync(ct);
+
+            if (!string.Equals(nameBefore, name, StringComparison.Ordinal))
+            {
+                await BringTeamNameUpToDateAsync(slug, a.TeamId, name, now, ct);
+            }
+
+            await tx.CommitAsync(ct);
+        });
+
+        return TeamDetailsResult.Ok(await ProjectDetailAsync(a.TeamId, a.Role!.Value, ct));
+
+        static TeamDetailsResult Refused(TeamDetailsCode code, string reason) =>
+            TeamDetailsResult.Refused(new TeamDetailsProblem(code, null, reason));
+    }
+
+    /// <summary>
+    /// A rename's reach beyond the team row (feature 061). Runs inside the caller's transaction and
+    /// only when the name actually changed (FR-011). Two places keep a copy of a team's name:
+    /// <list type="bullet">
+    /// <item>delivered alerts (FR-009, owner decision: they show the new name) — found by the team's
+    /// slug in their payload, so former members' alerts are included; Home's "role changed" entries
+    /// are read from those rows and follow for free;</item>
+    /// <item>tournament placements connected to the team (FR-010) — feature 050's rule that a
+    /// connected placement shows its team's current name. Match sides read the placement, so they
+    /// follow; the result's own "changed" date is not touched, since nobody changed a result.</item>
+    /// </list>
+    /// Nothing is sent: no alert, email, push or realtime event.
+    /// </summary>
+    private async Task BringTeamNameUpToDateAsync(string slug, Guid teamId, string name, DateTime now, CancellationToken ct)
+    {
+        await _notifications.ReplaceTeamNameAsync(slug, name, ct);
+
+        await _db.TournamentPlacements
+            .Where(p => p.TeamId == teamId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.Name, name)
+                .SetProperty(p => p.ModifiedDate, now), ct);
+    }
+
+    /// <summary>
+    /// The team-name rule, shared by create and edit so the two cannot drift: 2 to
+    /// <see cref="TeamOptions.NameMaxLength"/> characters after trimming. Names need not be unique
+    /// (feature 005). Null when the name breaks the rule.
+    /// </summary>
+    private string? NormalizeName(string? raw)
+    {
+        var name = (raw ?? string.Empty).Trim();
+        return name.Length < 2 || name.Length > _options.NameMaxLength ? null : name;
+    }
+
+    private string NameRule => $"Use a team name of 2–{_options.NameMaxLength} characters.";
 
     /// <summary>
     /// Apply a role change or removal, enforcing the last-admin guard. Serializes membership

@@ -53,6 +53,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
 
     public DbSet<TeamLogo> TeamLogos => Set<TeamLogo>();
 
+    public DbSet<TeamLink> TeamLinks => Set<TeamLink>();
+
     public DbSet<TeamMembership> TeamMemberships => Set<TeamMembership>();
 
     public DbSet<TeamInvitation> TeamInvitations => Set<TeamInvitation>();
@@ -422,6 +424,8 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
             entity.Property(t => t.Slug).HasMaxLength(30).IsRequired();
             entity.Property(t => t.Name).HasMaxLength(50).IsRequired();
             entity.Property(t => t.BeginnersWelcome).HasDefaultValue(false);
+            // Feature 061 — null means the team has no description.
+            entity.Property(t => t.Description).HasMaxLength(Services.Teams.TeamDetailsPolicy.DescriptionMaxLength);
 
             // Slug addresses the team (/t/<slug>) — unique & the true uniqueness guarantee.
             entity.HasIndex(t => t.Slug).IsUnique();
@@ -440,6 +444,22 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
             entity.HasOne(t => t.Logo)
                 .WithOne(l => l.Team)
                 .HasForeignKey<TeamLogo>(l => l.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Feature 061 — a team's external links (at most five). Cascade is safe here, unlike the
+        // logo's: a link is text in its row, with no stored object that would be stranded.
+        builder.Entity<TeamLink>(entity =>
+        {
+            entity.Property(l => l.Label).HasMaxLength(Services.Teams.TeamDetailsPolicy.LabelMaxLength).IsRequired();
+            entity.Property(l => l.Url).HasMaxLength(Services.Teams.TeamDetailsPolicy.UrlMaxLength).IsRequired();
+
+            // The order's integrity guard, and the index the FK lookup uses.
+            entity.HasIndex(l => new { l.TeamId, l.Position }).IsUnique();
+
+            entity.HasOne(l => l.Team)
+                .WithMany(t => t.Links)
+                .HasForeignKey(l => l.TeamId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, convertToParamMap, provideRouter } from '@angul
 import { of, throwError } from 'rxjs';
 import { TeamDetail } from '../../../core/models/team.models';
 import { AuthService } from '../../../core/services/auth.service';
+import { CityService } from '../../../core/services/city.service';
 import { MembershipService } from '../../../core/services/membership.service';
 import { TeamService } from '../../../core/services/team.service';
 import { TeamSettingsComponent } from './team-settings.component';
@@ -18,6 +19,8 @@ const ADMIN_DETAIL: TeamDetail = {
   myRole: 'Admin',
   beginnersWelcome: false,
   hasLogo: false,
+  description: null,
+  links: [],
 };
 
 /**
@@ -51,6 +54,8 @@ describe('TeamSettingsComponent — team logo (feature 051)', () => {
         provideRouter([]),
         { provide: TeamService, useValue: teams },
         { provide: MembershipService, useValue: { load: jest.fn() } },
+        // Feature 061 — the details section renders the city picker for a City team.
+        { provide: CityService, useValue: { search: jest.fn().mockReturnValue(of([])) } },
         {
           provide: ActivatedRoute,
           useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) },
@@ -174,6 +179,7 @@ describe('TeamSettingsComponent — leave team (GH #361)', () => {
         { provide: TeamService, useValue: teams },
         { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
         { provide: MembershipService, useValue: membership },
+        { provide: CityService, useValue: { search: jest.fn().mockReturnValue(of([])) } },
         { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
       ],
     });
@@ -259,5 +265,216 @@ describe('TeamSettingsComponent — leave team (GH #361)', () => {
     expect(membership.load).not.toHaveBeenCalled();
     expect(query(fixture, 'leave-confirm')).toBeNull();
     expect(query(fixture, 'settings-error')?.textContent).toContain('Make someone else an admin');
+  });
+});
+
+/**
+ * Feature 061 — the Team details section. The server owns every rule (TeamDetailsTests); these
+ * pin what only the page can get wrong: who sees the section, that a save sends the whole thing
+ * (the current city resent untouched, none for a Mixteam), that the page and the cached
+ * memberships follow a success, and that a refusal is shown in the reader's words — never the
+ * server's English `detail` (GH #179) — pointing at the right link row.
+ */
+describe('TeamSettingsComponent — team details (feature 061)', () => {
+  const DETAIL: TeamDetail = {
+    ...ADMIN_DETAIL,
+    location: { externalId: 'TEST:berlin', name: 'Berlin', region: null, countryName: 'Germany', countryCode: 'DE', label: 'Berlin, Germany' },
+    description: 'Wir trainieren dienstags.',
+    links: [{ label: 'Website', url: 'https://rheinfeuer.de/' }],
+  };
+
+  let teams: {
+    getDetail: jest.Mock;
+    getMembers: jest.Mock;
+    updateDetails: jest.Mock;
+    logoUrl: jest.Mock;
+  };
+  let membership: { load: jest.Mock };
+
+  function render(detail: TeamDetail = DETAIL): ComponentFixture<TeamSettingsComponent> {
+    teams = {
+      getDetail: jest.fn().mockReturnValue(of(detail)),
+      getMembers: jest.fn().mockReturnValue(of({ items: [], totalCount: 0, skip: 0, take: 50 })),
+      updateDetails: jest.fn().mockImplementation((_slug: string, body: { name: string }) => of({ ...detail, name: body.name })),
+      logoUrl: jest.fn().mockReturnValue('/api/v1/teams/rheinfeuer/logo?v=1'),
+    };
+    membership = { load: jest.fn() };
+
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [TeamSettingsComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        { provide: TeamService, useValue: teams },
+        { provide: MembershipService, useValue: membership },
+        { provide: CityService, useValue: { search: jest.fn().mockReturnValue(of([])) } },
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(TeamSettingsComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function query(fixture: ComponentFixture<TeamSettingsComponent>, testId: string): HTMLElement | null {
+    return fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
+  }
+
+  function queryAll(fixture: ComponentFixture<TeamSettingsComponent>, testId: string): HTMLElement[] {
+    return Array.from(fixture.nativeElement.querySelectorAll(`[data-testid="${testId}"]`));
+  }
+
+  function type(fixture: ComponentFixture<TeamSettingsComponent>, el: HTMLElement | null, value: string): void {
+    const input = el as HTMLInputElement | HTMLTextAreaElement;
+    input.value = value;
+    input.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+  }
+
+  function save(fixture: ComponentFixture<TeamSettingsComponent>): void {
+    (query(fixture, 'details-save') as HTMLButtonElement).click();
+    fixture.detectChanges();
+  }
+
+  function refuse(status: number, error: unknown): void {
+    teams.updateDetails.mockReturnValue(throwError(() => new HttpErrorResponse({ status, error })));
+  }
+
+  it('is the first section, prefilled, for an admin — and absent for a member', () => {
+    const fixture = render();
+    const section = query(fixture, 'team-details');
+    expect(section).not.toBeNull();
+    // First on the page: nothing admin-only comes before it.
+    expect(section?.compareDocumentPosition(query(fixture, 'team-logo-pick') as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    expect((query(fixture, 'details-name') as HTMLInputElement).value).toBe('Rheinfeuer');
+    expect((query(fixture, 'details-description') as HTMLTextAreaElement).value).toBe('Wir trainieren dienstags.');
+    expect((query(fixture, 'details-link-url') as HTMLInputElement).value).toBe('https://rheinfeuer.de/');
+    expect(query(fixture, 'details-city')).not.toBeNull();
+
+    expect(query(render({ ...DETAIL, myRole: 'Member' }), 'team-details')).toBeNull();
+  });
+
+  it('sends the whole section, resending the current city when it was not touched', () => {
+    const fixture = render();
+    type(fixture, query(fixture, 'details-name'), '  Rheinfeuer Köln ');
+
+    save(fixture);
+
+    expect(teams.updateDetails).toHaveBeenCalledWith('rheinfeuer', {
+      name: 'Rheinfeuer Köln',
+      type: 'CityTeam',
+      location: { cityExternalId: 'TEST:berlin', name: 'Berlin' },
+      description: 'Wir trainieren dienstags.',
+      links: [{ label: 'Website', url: 'https://rheinfeuer.de/' }],
+    });
+  });
+
+  it('sends no city once the team becomes a Mixteam, and says why there is none', () => {
+    const fixture = render();
+    (query(fixture, 'details-type-mix') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    expect(query(fixture, 'details-city')).toBeNull();
+    expect(query(fixture, 'details-mixteam-note')).not.toBeNull();
+
+    save(fixture);
+
+    expect(teams.updateDetails).toHaveBeenCalledWith('rheinfeuer', expect.objectContaining({ type: 'Mixteam', location: null }));
+  });
+
+  it('does not send a City team without a city, or a name too short to be one', () => {
+    const fixture = render({ ...DETAIL, type: 'Mixteam', location: null });
+    (query(fixture, 'details-type-city') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    save(fixture);
+    expect(query(fixture, 'details-error')?.textContent).toContain('A city team needs a city');
+
+    type(fixture, query(fixture, 'details-name'), 'X');
+    save(fixture);
+    expect(query(fixture, 'details-error')?.textContent).toContain('2–50 characters');
+
+    expect(teams.updateDetails).not.toHaveBeenCalled();
+  });
+
+  it('follows a successful save: the page, the cached memberships and a saved line', () => {
+    const fixture = render();
+    type(fixture, query(fixture, 'details-name'), 'Rheinfeuer Neu');
+
+    save(fixture);
+
+    expect(membership.load).toHaveBeenCalled();
+    expect(query(fixture, 'details-saved')).not.toBeNull();
+    expect((query(fixture, 'details-name') as HTMLInputElement).value).toBe('Rheinfeuer Neu');
+
+    // The next edit retires the saved line.
+    type(fixture, query(fixture, 'details-description'), 'Neu.');
+    expect(query(fixture, 'details-saved')).toBeNull();
+  });
+
+  it('shows a refusal in the reader’s words, never the server’s, and marks the link it is about', () => {
+    const fixture = render({ ...DETAIL, links: [{ label: 'Website', url: 'https://rheinfeuer.de/' }, { label: 'Blog', url: 'http://blog.example' }] });
+    refuse(400, { code: 'linkUrlInvalid', link: 1, detail: 'SERVER ENGLISH' });
+
+    save(fixture);
+
+    const error = query(fixture, 'details-error')?.textContent ?? '';
+    expect(error).toContain('Link 2 needs a secure web address');
+    expect(error).not.toContain('SERVER ENGLISH');
+    const urls = queryAll(fixture, 'details-link-url');
+    expect(urls[1].getAttribute('aria-invalid')).toBe('true');
+    expect(urls[0].getAttribute('aria-invalid')).toBeNull();
+    expect(membership.load).not.toHaveBeenCalled();
+  });
+
+  it('falls back to a general message for a refusal without a code', () => {
+    const fixture = render();
+    refuse(500, { detail: 'SERVER ENGLISH' });
+
+    save(fixture);
+
+    expect(query(fixture, 'details-error')?.textContent).toContain("We couldn't save that just now");
+  });
+
+  it('reloads the page when the admin is no longer an admin, with a notice outside the section', () => {
+    const fixture = render();
+    teams.getDetail.mockReturnValue(of({ ...DETAIL, myRole: 'Member' }));
+    refuse(403, { detail: 'Only admins can change the team’s details.' });
+
+    save(fixture);
+
+    expect(teams.getDetail).toHaveBeenCalledTimes(2);
+    expect(query(fixture, 'team-details')).toBeNull();
+    expect(query(fixture, 'settings-notice')?.textContent).toContain('not one anymore');
+  });
+
+  it('adds link rows up to five, drops empty rows, and removes a row', () => {
+    const fixture = render({ ...DETAIL, links: [] });
+
+    for (let i = 0; i < 5; i++) {
+      (query(fixture, 'details-add-link') as HTMLButtonElement).click();
+      fixture.detectChanges();
+    }
+    expect(queryAll(fixture, 'details-link')).toHaveLength(5);
+    expect((query(fixture, 'details-add-link') as HTMLButtonElement).disabled).toBe(true);
+    expect(query(fixture, 'details-links-max')).not.toBeNull();
+
+    type(fixture, queryAll(fixture, 'details-link-label')[1], 'Instagram');
+    type(fixture, queryAll(fixture, 'details-link-url')[1], 'instagram.com/rheinfeuer');
+    (queryAll(fixture, 'details-link-remove')[4] as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(queryAll(fixture, 'details-link')).toHaveLength(4);
+
+    save(fixture);
+
+    expect(teams.updateDetails).toHaveBeenCalledWith('rheinfeuer', expect.objectContaining({
+      links: [{ label: 'Instagram', url: 'instagram.com/rheinfeuer' }],
+    }));
+  });
+
+  it('counts the description against its limit', () => {
+    const fixture = render();
+    type(fixture, query(fixture, 'details-description'), 'Hallo');
+    expect(query(fixture, 'details-description-count')?.textContent?.trim()).toBe('5/1000');
   });
 });

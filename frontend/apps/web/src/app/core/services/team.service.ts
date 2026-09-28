@@ -19,6 +19,7 @@ import {
   TeamPublic,
   TeamPublicDetail,
   TeamRole,
+  UpdateTeamDetails,
 } from '../models/team.models';
 
 /**
@@ -100,6 +101,15 @@ export class TeamService {
   /** Feature 007 — admin-only: set the beginners-welcome recruitment flag. */
   updateSettings(slug: string, beginnersWelcome: boolean): Observable<void> {
     return this.http.patch<void>(`${this.base}/${encodeURIComponent(slug)}`, { beginnersWelcome });
+  }
+
+  /**
+   * Feature 061 — admin-only: replace the team's name, type, city, description and links. Returns
+   * the updated team (links normalised). A mutation, so never retried automatically (Principle VII);
+   * a refusal is a 400 whose `code` the caller translates.
+   */
+  updateDetails(slug: string, body: UpdateTeamDetails): Observable<TeamDetail> {
+    return this.http.put<TeamDetail>(`${this.base}/${encodeURIComponent(slug)}/details`, body);
   }
 
   // --- Logo (feature 051) --------------------------------------------------

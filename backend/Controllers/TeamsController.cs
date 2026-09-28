@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text.Json;
 using Asp.Versioning;
 using JuggerHub.Common;
 using JuggerHub.Dtos.Parties;
@@ -291,6 +292,52 @@ public sealed class TeamsController : ControllerBase
             UpdateTeamSettingsStatus.Updated => NoContent(),
             UpdateTeamSettingsStatus.Forbidden => Forbidden("Only admins can change team settings."),
             _ => TeamNotFound(),
+        };
+    }
+
+    /// <summary>
+    /// Replace the team's name, type, city, description and links (feature 061, admin only). A
+    /// refusal carries a machine-readable <c>code</c> (and <c>link</c>, the 0-based index of the
+    /// offending link) so the client renders its own translated sentence rather than the English
+    /// <c>detail</c> (GH #179).
+    /// </summary>
+    [HttpPut("{slug}/details")]
+    public async Task<ActionResult<TeamDetailDto>> UpdateDetails(
+        string slug, [FromBody] UpdateTeamDetailsRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _teams.UpdateDetailsAsync(slug, userId, request, ct);
+        switch (result.Status)
+        {
+            case TeamDetailsStatus.Updated:
+                return Ok(result.Team);
+            case TeamDetailsStatus.Forbidden:
+                return Forbidden("Only admins can change the team's details.");
+            case TeamDetailsStatus.NotFoundOrNotMember:
+                return TeamNotFound();
+        }
+
+        var problem = new ProblemDetails
+        {
+            Status = StatusCodes.Status400BadRequest,
+            Title = "Invalid team details",
+            Detail = result.Reason,
+            Instance = HttpContext.Request.Path,
+        };
+        problem.Extensions["code"] = JsonNamingPolicy.CamelCase.ConvertName(result.Code!.Value.ToString());
+        if (result.LinkIndex is { } link)
+        {
+            problem.Extensions["link"] = link;
+        }
+
+        return new ObjectResult(problem)
+        {
+            StatusCode = StatusCodes.Status400BadRequest,
+            ContentTypes = { "application/problem+json" },
         };
     }
 

@@ -4,8 +4,8 @@ import { pickCity } from './city';
 /**
  * Drive the team-creation wizard (feature 052, which replaced the single-screen form).
  *
- * The wizard is five steps — name+handle, type+city, review, logo, invite — and the team is
- * created at the **review** step, not at the end: the logo and invite steps are slug-addressed and
+ * The wizard is six steps — name+handle, type+city, review, logo, about (feature 061), invite — and
+ * the team is created at the **review** step, not at the end: the steps after it are slug-addressed and
  * admin-gated, so they can only act on a team that already exists. That is why {@link createTeam}
  * has to keep walking after the create press to get back to where the old form left the caller.
  *
@@ -51,17 +51,19 @@ export async function fillTeamWizard(page: Page, { name, slug, city = 'Berlin' }
 /**
  * Create a team and land on its page, exactly where the pre-052 form left the caller.
  *
- * Both optional steps are skipped: this helper exists to give a test a team to work with, not to
- * exercise the logo or invite steps, which have their own coverage.
+ * The optional steps are skipped: this helper exists to give a test a team to work with, not to
+ * exercise the logo, about or invite steps, which have their own coverage.
  */
 export async function createTeam(page: Page, input: TeamWizardInput): Promise<void> {
   await fillTeamWizard(page, input);
 
   await page.getByTestId('team-create-submit').click();
 
-  // The team now exists and the wizard is on the logo step. Skip it, then skip the invite step,
-  // which is what finally navigates to the team.
+  // The team now exists and the wizard is on the logo step. Skip it and the description step
+  // (feature 061; with nothing typed its button is a skip), then the invite step, which is what
+  // finally navigates to the team.
   await page.getByTestId('team-logo-next').click();
+  await page.getByTestId('team-about-next').click();
   await page.getByTestId('team-finish').click();
 
   await expect(page).toHaveURL(new RegExp(`/t/${input.slug}`));
