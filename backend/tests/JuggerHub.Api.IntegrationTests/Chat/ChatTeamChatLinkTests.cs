@@ -121,4 +121,187 @@ public sealed class ChatTeamChatLinkTests : ChatTestSupport
 
         Assert.Equal(1, await TeamChatCountAsync(teamId));
     }
+
+    // --- US1: GET /chat/team/{teamId} -------------------------------------------
+
+    /// <summary>FR-002: the button opens the conversation the inbox lists as the team's chat.</summary>
+    [Fact]
+    public async Task A_member_gets_the_team_chat_the_inbox_lists()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (ben, benId, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+        await AddTeamMemberAsync(teamId, benId);
+
+        var fromInbox = await InboxTeamChatIdAsync(ben, teamId);
+        var fromButton = await OpenTeamChatIdAsync(ben, teamId);
+
+        Assert.Equal(fromInbox, fromButton);
+    }
+
+    /// <summary>FR-003: nobody has opened Chat yet — pressing creates the chat and tells nobody anything.</summary>
+    [Fact]
+    public async Task A_never_opened_team_chat_is_created_and_nothing_is_sent()
+    {
+        var (ada, adaId, _) = await NewUserAsync();
+        var (ben, benId, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+        await AddTeamMemberAsync(teamId, benId);
+        Assert.Equal(0, await TeamChatCountAsync(teamId));
+
+        var notificationsBefore = await NotificationCountAsync(adaId, benId);
+        var emailsBefore = Factory.EmailSender.Sent.Count;
+
+        var id = await OpenTeamChatIdAsync(ben, teamId);
+
+        Assert.Equal(1, await TeamChatCountAsync(teamId));
+        Assert.Equal(0, (await GetMessagesAsync(ben, id)).GetProperty("items").GetArrayLength());
+        Assert.Equal(notificationsBefore, await NotificationCountAsync(adaId, benId));
+        Assert.Equal(emailsBefore, Factory.EmailSender.Sent.Count);
+        Assert.DoesNotContain(adaId, Factory.PushDispatcher.Recipients);
+        Assert.DoesNotContain(benId, Factory.PushDispatcher.Recipients);
+    }
+
+    /// <summary>
+    /// <b>FR-002 / SC-002.</b> An admin is a member of every contact-admins thread addressed to their
+    /// team. The lookup must return the team chat regardless — including when the inquiry came first.
+    /// </summary>
+    [Fact]
+    public async Task An_admin_gets_the_team_chat_never_a_contact_admins_thread()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (jon, _, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+        var inquiryId = await ContactTeamAsync(jon, teamId, "Nehmt ihr noch Leute?");
+
+        var id = await OpenTeamChatIdAsync(ada, teamId);
+
+        Assert.NotEqual(inquiryId, id);
+        var detail = await ada.GetFromJsonAsync<JsonElement>($"/api/v1/chat/conversations/{id}", Json);
+        Assert.Equal("Team", detail.GetProperty("kind").GetString());
+        Assert.Equal(teamId, detail.GetProperty("teamId").GetGuid());
+    }
+
+    /// <summary>FR-005/FR-007: a non-member is refused, and asking creates nothing for that team.</summary>
+    [Fact]
+    public async Task A_non_member_gets_404_and_creates_no_chat_for_the_team()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (jon, _, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+
+        var resp = await OpenTeamChatAsync(jon, teamId);
+
+        Assert.Equal(HttpStatusCode.NotFound, resp.StatusCode);
+        Assert.Equal(0, await TeamChatCountAsync(teamId));
+    }
+
+    /// <summary>FR-001: a pending join request is not membership.</summary>
+    [Fact]
+    public async Task A_pending_join_request_does_not_open_the_team_chat()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (rhea, rheaId, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.TeamJoinRequests.Add(new TeamJoinRequest { TeamId = teamId, UserId = rheaId });
+            await db.SaveChangesAsync();
+        }
+
+        Assert.Equal(HttpStatusCode.NotFound, (await OpenTeamChatAsync(rhea, teamId)).StatusCode);
+    }
+
+    /// <summary>
+    /// <b>FR-005 / SC-003.</b> Not a member, and no such team, read the same — so the endpoint cannot be
+    /// used to learn whether a team exists or has a chat.
+    /// </summary>
+    [Fact]
+    public async Task A_refusal_reads_the_same_whether_or_not_the_team_exists()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (ben, benId, _) = await NewUserAsync();
+        var (jon, _, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+        await AddTeamMemberAsync(teamId, benId);
+        await OpenTeamChatIdAsync(ben, teamId); // the team's chat exists
+
+        var notMember = await OpenTeamChatAsync(jon, teamId);
+        var noSuchTeam = await OpenTeamChatAsync(jon, Guid.NewGuid());
+
+        Assert.Equal(HttpStatusCode.NotFound, notMember.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, noSuchTeam.StatusCode);
+        var a = await notMember.Content.ReadFromJsonAsync<JsonElement>(Json);
+        var b = await noSuchTeam.Content.ReadFromJsonAsync<JsonElement>(Json);
+        foreach (var field in new[] { "title", "detail", "status" })
+        {
+            Assert.Equal(a.GetProperty(field).ToString(), b.GetProperty(field).ToString());
+        }
+    }
+
+    /// <summary>FR-012: hidden and muted, it still opens — and pressing changes neither flag.</summary>
+    [Fact]
+    public async Task A_hidden_and_muted_team_chat_still_opens_and_stays_so()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (ben, benId, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+        await AddTeamMemberAsync(teamId, benId);
+        var id = await OpenTeamChatIdAsync(ben, teamId);
+
+        var patch = await ben.PatchAsJsonAsync($"/api/v1/chat/conversations/{id}/state", new { isMuted = true, isHidden = true });
+        Assert.Equal(HttpStatusCode.NoContent, patch.StatusCode);
+
+        Assert.Equal(id, await OpenTeamChatIdAsync(ben, teamId));
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var state = await db.ConversationParticipants.AsNoTracking().SingleAsync(p => p.ConversationId == id && p.UserId == benId);
+        Assert.True(state.IsHidden);
+        Assert.True(state.IsMuted);
+    }
+
+    /// <summary>FR-006: the answer is the id and nothing else.</summary>
+    [Fact]
+    public async Task The_answer_carries_only_the_conversation_id()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+
+        var resp = await OpenTeamChatAsync(ada, teamId);
+        var body = await resp.Content.ReadFromJsonAsync<JsonElement>(Json);
+
+        var property = Assert.Single(body.EnumerateObject());
+        Assert.Equal("conversationId", property.Name);
+    }
+
+    /// <summary>FR-015: two members pressing at once on a never-opened chat land in the same, single chat.</summary>
+    [Fact]
+    public async Task Concurrent_first_presses_leave_one_team_chat()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (ben, benId, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+        await AddTeamMemberAsync(teamId, benId);
+
+        var ids = await Task.WhenAll(
+            OpenTeamChatIdAsync(ada, teamId),
+            OpenTeamChatIdAsync(ben, teamId),
+            OpenTeamChatIdAsync(ada, teamId));
+
+        Assert.Single(ids.Distinct());
+        Assert.Equal(1, await TeamChatCountAsync(teamId));
+    }
+
+    [Fact]
+    public async Task Without_a_session_the_answer_is_401()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(ada);
+
+        var resp = await OpenTeamChatAsync(Factory.CreateClient(), teamId);
+
+        Assert.Equal(HttpStatusCode.Unauthorized, resp.StatusCode);
+    }
 }

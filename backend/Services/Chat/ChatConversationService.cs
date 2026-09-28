@@ -1028,6 +1028,29 @@ public sealed class ChatConversationService : IChatConversationService
     public Task<Guid> EnsureForPartyAsync(Guid partyId, CancellationToken ct = default) =>
         EnsureAutoAsync(ConversationKind.Party, partyId, ct);
 
+    /// <remarks>
+    /// The order is the design (feature 060, research R2). The chat is created by the inbox's own step,
+    /// which only ever creates the caller's <em>own</em> team and party chats — so this is exactly what
+    /// opening Chat would do, and a non-member's request creates nothing for the team they asked about.
+    /// Access is then <see cref="ChatGuard"/>'s answer and no one else's. Two shortcuts are wrong:
+    /// <see cref="EnsureForTeamAsync"/> on the requested id would let anyone create any team's chat
+    /// (and a made-up id fails its foreign key as a 500), and a roster check here would be a second
+    /// copy of the membership rule the guard exists to hold.
+    /// </remarks>
+    public async Task<ChatResult<TeamChatRefDto>> OpenTeamChatAsync(Guid callerId, Guid teamId, CancellationToken ct = default)
+    {
+        await EnsureAutoChatsForAsync(callerId, ct);
+
+        var conversationId = await FindAutoAsync(ConversationKind.Team, teamId, ct);
+        if (conversationId == Guid.Empty || await _guard.ResolveAsync(conversationId, callerId, ct) is null)
+        {
+            // No such team, no chat, not a member: one answer, so none of them can be told apart.
+            return ChatResult<TeamChatRefDto>.Fail(ChatOutcome.NotFound);
+        }
+
+        return ChatResult<TeamChatRefDto>.Ok(new TeamChatRefDto(conversationId));
+    }
+
     /// <summary>
     /// Materialise a team's/party's chat on first sight. This is the whole of FR-024's "backfill":
     /// no migration writes rows for teams that may never chat — the first roster member to open Chat
