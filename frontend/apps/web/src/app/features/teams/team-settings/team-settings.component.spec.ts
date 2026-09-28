@@ -18,6 +18,8 @@ const ADMIN_DETAIL: TeamDetail = {
   myRole: 'Admin',
   beginnersWelcome: false,
   hasLogo: false,
+  description: null,
+  links: [],
 };
 
 /**

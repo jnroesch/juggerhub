@@ -30,6 +30,8 @@ function detail(viewerRelation: TeamViewerRelation): TeamPublicDetail {
     recentActivity: [],
     badges: [],
     achievements: [],
+    description: null,
+    links: [],
   };
 }
 

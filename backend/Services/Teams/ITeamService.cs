@@ -56,6 +56,30 @@ public enum UpdateTeamSettingsStatus
     NotFoundOrNotMember,
 }
 
+/// <summary>Outcome of a team-details save (feature 061).</summary>
+public enum TeamDetailsStatus
+{
+    Updated,
+    Invalid,
+    Forbidden,
+    NotFoundOrNotMember,
+}
+
+/// <summary>
+/// Result of a team-details save: the updated team, or why it was refused. <see cref="Code"/> and
+/// <see cref="LinkIndex"/> are what the client renders; <see cref="Reason"/> is English for API readers.
+/// </summary>
+public sealed record TeamDetailsResult(
+    TeamDetailsStatus Status, TeamDetailDto? Team, TeamDetailsCode? Code, int? LinkIndex, string? Reason)
+{
+    public static TeamDetailsResult Ok(TeamDetailDto team) => new(TeamDetailsStatus.Updated, team, null, null, null);
+
+    public static TeamDetailsResult Fail(TeamDetailsStatus status) => new(status, null, null, null, null);
+
+    public static TeamDetailsResult Refused(TeamDetailsProblem problem) =>
+        new(TeamDetailsStatus.Invalid, null, problem.Code, problem.LinkIndex, problem.Reason);
+}
+
 /// <summary>
 /// Team domain service: create + slug checks, member-gated reads (detail/roster), the public
 /// projection, role/remove/step-down (under the last-admin guard), and delete. Accesses EF
@@ -98,4 +122,12 @@ public interface ITeamService
     /// <summary>Update the team's self-managed settings (admin only). Feature 007.</summary>
     Task<UpdateTeamSettingsStatus> UpdateSettingsAsync(
         string slug, Guid actorUserId, UpdateTeamSettingsRequest request, CancellationToken ct = default);
+
+    /// <summary>
+    /// Replace the team's name, type, city, description and links as a whole (admin only). Feature
+    /// 061. A rename also brings the team's name up to date in every delivered alert that names it
+    /// and in every tournament placement connected to it — in the same transaction, silently.
+    /// </summary>
+    Task<TeamDetailsResult> UpdateDetailsAsync(
+        string slug, Guid actorUserId, UpdateTeamDetailsRequest request, CancellationToken ct = default);
 }

@@ -21,14 +21,14 @@ then adds its own server behaviour, its tests and its UI.
 
 ## Phase 1: Setup
 
-- [ ] T001 Record the baseline on the fresh branch. Run `dotnet test backend/tests/JuggerHub.Api.IntegrationTests --filter "FullyQualifiedName~Teams|FullyQualifiedName~TeamBrowse|FullyQualifiedName~Results|FullyQualifiedName~Notifications|FullyQualifiedName~Home"`, and in `frontend/` run `npx nx test web --watch=false --testPathPatterns="team-settings|team-detail|team-create|catalog-"`. Note any pre-existing failure so it is not later mistaken for a regression.
+- [X] T001 Record the baseline on the fresh branch. Run `dotnet test backend/tests/JuggerHub.Api.IntegrationTests --filter "FullyQualifiedName~Teams|FullyQualifiedName~TeamBrowse|FullyQualifiedName~Results|FullyQualifiedName~Notifications|FullyQualifiedName~Home"`, and in `frontend/` run `npx nx test web --watch=false --testPathPatterns="team-settings|team-detail|team-create|catalog-"`. Note any pre-existing failure so it is not later mistaken for a regression. *(Done: 292/292 backend, the frontend subset green; no pre-existing failure.)*
 
 ---
 
 ## Phase 2: Foundational (blocking: the model, the rules, the endpoint)
 
-- [ ] T002 [P] Create `backend/Entities/TeamLink.cs`: `sealed class TeamLink : BaseEntity` with `Guid TeamId`, `Team Team`, `string Label`, `string Url`, `int Position`, and XML docs (feature 061; replaced as a whole on every details save; no client-addressable identity). In `backend/Entities/Team.cs` add `string? Description` (doc: plain text ≤1000, null = none) and `ICollection<TeamLink> Links`.
-- [ ] T003 [P] Create `backend/Services/Teams/TeamDetailsPolicy.cs`, a pure static class (the `TeamSlugPolicy` precedent). It holds:
+- [X] T002 [P] Create `backend/Entities/TeamLink.cs`: `sealed class TeamLink : BaseEntity` with `Guid TeamId`, `Team Team`, `string Label`, `string Url`, `int Position`, and XML docs (feature 061; replaced as a whole on every details save; no client-addressable identity). In `backend/Entities/Team.cs` add `string? Description` (doc: plain text ≤1000, null = none) and `ICollection<TeamLink> Links`.
+- [X] T003 [P] Create `backend/Services/Teams/TeamDetailsPolicy.cs`, a pure static class (the `TeamSlugPolicy` precedent). It holds:
   - the constants `DescriptionMaxLength = 1000`, `MaxLinks = 5`, `LabelMaxLength = 30`, `UrlMaxLength = 500`;
   - `string? NormalizeDescription(string?)` (trim; blank ⇒ null);
   - a link normaliser that returns either the normalised `(Label, Url)` or a failure code, per research R6:
@@ -36,7 +36,7 @@ then adds its own server behaviour, its tests and its UI.
     - address: trim; no `://` ⇒ prefix `https://`; `Uri.TryCreate(Absolute)`; scheme exactly `https`; `HostNameType == Dns` with a `.`; empty `UserInfo`; stored value `uri.AbsoluteUri` ≤ 500;
   - a list validator (count ≤ 5, duplicates by normalised URL; the index reported is the later one);
   - the code enum `TeamDetailsCode { NameInvalid, CityRequired, MixteamHasCity, CityNotFound, DescriptionTooLong, TooManyLinks, LinkLabelInvalid, LinkUrlInvalid, LinkDuplicate }`.
-- [ ] T004 [P] Create `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamDetailsPolicyTests.cs`, pure unit tests with no factory (the `TugenyLinkParserTests` precedent), covering:
+- [X] T004 [P] Create `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamDetailsPolicyTests.cs`, pure unit tests with no factory (the `TugenyLinkParserTests` precedent), covering:
   - `instagram.com/x` ⇒ `https://instagram.com/x`;
   - refused: `http://a.de`, `javascript:alert(1)`, `javascript://x`, `mailto:a@b.de`, `data:text/html,x`, `https://instagram.com@example.net`, `https://localhost`, `ftp://a.de`;
   - an address over 500 characters after normalisation is refused;
@@ -45,18 +45,18 @@ then adds its own server behaviour, its tests and its UI.
   - duplicates are detected across case differences in the host only;
   - six links are refused;
   - the description: blank ⇒ null; 1000 accepted; 1001 refused.
-- [ ] T005 Configure the model in `backend/Data/AppDbContext.cs`:
+- [X] T005 Configure the model in `backend/Data/AppDbContext.cs`:
   - `Team.Description` max length `TeamDetailsPolicy.DescriptionMaxLength`;
   - a `builder.Entity<TeamLink>` block: `Label` (`LabelMaxLength`, required), `Url` (`UrlMaxLength`, required), `HasOne(Team).WithMany(Links).OnDelete(Cascade)`, unique index `(TeamId, Position)`, with a comment on why cascade is safe (no stored object, unlike the logo);
   - `DbSet<TeamLink> TeamLinks`.
-- [ ] T006 In `backend/Dtos/Teams/TeamDtos.cs`:
+- [X] T006 In `backend/Dtos/Teams/TeamDtos.cs`:
   - add `TeamLinkInput(string? Label, string? Url)` and `UpdateTeamDetailsRequest([Required, MaxLength(200)] string Name, [Required] TeamType Type, LocationSelectionDto? Location, [MaxLength(4000)] string? Description, [MaxLength(20)] IReadOnlyList<TeamLinkInput>? Links)`, with a doc comment stating that these attributes are payload guards looser than the rules on purpose (research R8);
   - add `TeamLinkDto(string Label, string Url)`;
   - **append** `string? Description = null, IReadOnlyList<TeamLinkDto>? Links = null` to `TeamDetailDto`;
   - **append** `string? Description, IReadOnlyList<TeamLinkDto> Links` at the END of the positional `TeamPublicDetailDto` (after `Achievements`).
-- [ ] T007 Build (`dotnet build backend/JuggerHub.slnx`, gate on its exit code: do not pipe through grep). Then generate the migration **with** a build: `dotnet ef migrations add AddTeamDescriptionAndLinks --project backend` (output lands in `backend/Data/Migrations/`). Open it and confirm it adds `Teams.Description varchar(1000) NULL` and creates `TeamLinks` with the FK (cascade) and the unique index. An empty `Up()` means the build step was skipped (056).
-- [ ] T008 In `backend/Services/Teams/ITeamService.cs` add `TeamDetailsStatus { Updated, Invalid, Forbidden, NotFoundOrNotMember }`, `TeamDetailsResult(TeamDetailsStatus Status, TeamDetailDto? Team, TeamDetailsCode? Code, int? LinkIndex, string? Reason)` with `Ok`/`Fail` factories, and `Task<TeamDetailsResult> UpdateDetailsAsync(string slug, Guid actorUserId, UpdateTeamDetailsRequest request, CancellationToken ct = default)`.
-- [ ] T009 Implement `UpdateDetailsAsync` in `backend/Services/Teams/TeamService.cs`, following research R2 **without** the rename rewrites (US1 adds them):
+- [X] T007 Build (`dotnet build backend/JuggerHub.slnx`, gate on its exit code: do not pipe through grep). Then generate the migration **with** a build: `dotnet ef migrations add AddTeamDescriptionAndLinks --project backend` (output lands in `backend/Data/Migrations/`). Open it and confirm it adds `Teams.Description varchar(1000) NULL` and creates `TeamLinks` with the FK (cascade) and the unique index. An empty `Up()` means the build step was skipped (056).
+- [X] T008 In `backend/Services/Teams/ITeamService.cs` add `TeamDetailsStatus { Updated, Invalid, Forbidden, NotFoundOrNotMember }`, `TeamDetailsResult(TeamDetailsStatus Status, TeamDetailDto? Team, TeamDetailsCode? Code, int? LinkIndex, string? Reason)` with `Ok`/`Fail` factories, and `Task<TeamDetailsResult> UpdateDetailsAsync(string slug, Guid actorUserId, UpdateTeamDetailsRequest request, CancellationToken ct = default)`.
+- [X] T009 Implement `UpdateDetailsAsync` in `backend/Services/Teams/TeamService.cs`, following research R2 **without** the rename rewrites (US1 adds them):
   1. The guard: not a member ⇒ `NotFoundOrNotMember`; not an admin ⇒ `Forbidden`.
   2. Validate in the data-model table's order. Extract create's name rule (`2..NameMaxLength` after trim) into one private helper and call it from both `CreateAsync` and here.
   3. Resolve the city per R5: skip when `CityExternalId` equals the team's current city's `ExternalId`; else `ResolveAndUpsertAsync`, catching `CityNotResolvableException` ⇒ `CityNotFound`.
@@ -64,12 +64,12 @@ then adds its own server behaviour, its tests and its UI.
   5. Re-read and return the `TeamDetailDto`.
 
   Also extend the projections in `GetDetailAsync`, `GetPublicDetailAsync` and the `CreateAsync` return with `t.Description` and `t.Links.OrderBy(l => l.Position).Select(l => new TeamLinkDto(l.Label, l.Url)).ToList()`, in the query that already runs (no second round trip).
-- [ ] T010 Add `[HttpPut("{slug}/details")] UpdateDetails` in `backend/Controllers/TeamsController.cs`, mapping the result:
+- [X] T010 Add `[HttpPut("{slug}/details")] UpdateDetails` in `backend/Controllers/TeamsController.cs`, mapping the result:
   - `Updated` ⇒ `Ok(dto)`;
   - `Forbidden` ⇒ `Forbidden("Only admins can change the team's details.")`;
   - `NotFoundOrNotMember` ⇒ `TeamNotFound()`;
   - `Invalid` ⇒ 400 ProblemDetails `title: "Invalid team details"`, `detail: reason`, with `Extensions["code"]` = the camelCase code name and `Extensions["link"]` for the three link codes. Follow `EventResultsController`'s `row` extension.
-- [ ] T011 [P] Frontend model and service:
+- [X] T011 [P] Frontend model and service:
   - in `frontend/apps/web/src/app/core/models/team.models.ts`, add `TeamLink`, `UpdateTeamDetails` and `TeamDetailsErrorCode` per the contract, and add `description: string | null; links: TeamLink[]` to `TeamDetail` and `TeamPublicDetail`;
   - in `frontend/apps/web/src/app/core/services/team.service.ts`, add `updateDetails(slug, body): Observable<TeamDetail>` (`PUT …/details`);
   - fix every fixture that builds a `TeamDetail`/`TeamPublicDetail` (run `npx tsc -p apps/web/tsconfig.app.json --noEmit` and the spec compile to list them), giving each `description: null, links: []`.

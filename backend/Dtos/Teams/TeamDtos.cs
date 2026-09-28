@@ -52,6 +52,27 @@ public sealed record CreateTargetedInviteRequest([Required] Guid UserId);
 /// beginners-welcome recruitment flag surfaced in browse.</summary>
 public sealed record UpdateTeamSettingsRequest([Required] bool BeginnersWelcome);
 
+/// <summary>One link as an admin typed it (feature 061). The service trims and normalises it.</summary>
+public sealed record TeamLinkInput(string? Label, string? Url);
+
+/// <summary>
+/// Replace a team's editable identity as a whole (feature 061, admin only): its name, type and home
+/// city — create's rules — plus its description and links. The handle is not here: it never changes.
+/// <para>
+/// The attributes are payload guards only, deliberately looser than the rules. A value over a rule's
+/// limit must reach the service, whose refusal carries a code the client translates; MVC's own 400
+/// carries none. The rules themselves live in one place each: the name in <c>TeamService</c> (shared
+/// with create) and the rest in <c>TeamDetailsPolicy</c> — the reasoning already written on
+/// <see cref="CreateTeamRequest"/>'s slug.
+/// </para></summary>
+public sealed record UpdateTeamDetailsRequest(
+    [Required, MaxLength(200)] string Name,
+    [Required] TeamType Type,
+    // Required for a CityTeam — resend the current city's ExternalId to keep it; null for a Mixteam.
+    LocationSelectionDto? Location,
+    [MaxLength(4000)] string? Description,
+    [MaxLength(20)] IReadOnlyList<TeamLinkInput>? Links);
+
 /// <summary>Post a news update to a team (feature 010, admin-only). Body length matches the
 /// <c>TeamNewsPost</c> column limit; posting fans out an in-app notification to the roster.</summary>
 public sealed record PostTeamNewsRequest([Required, MinLength(1), MaxLength(1000)] string Body);
@@ -74,7 +95,14 @@ public sealed record TeamDetailDto(
     bool BeginnersWelcome = false,
     // Feature 051 — whether a logo exists. A flag, never a URL and never the object key: the
     // client builds /teams/{slug}/logo from the slug it already has (the browse convention).
-    bool HasLogo = false);
+    bool HasLogo = false,
+    // Feature 061 — what the team says about itself; null when none. The settings form edits these.
+    string? Description = null,
+    IReadOnlyList<TeamLinkDto>? Links = null);
+
+/// <summary>One of a team's links as shown (feature 061): its label and its normalised https address.
+/// No id — the list is replaced as a whole, and nothing addresses a single link.</summary>
+public sealed record TeamLinkDto(string Label, string Url);
 
 /// <summary>Anonymous public team info. MUST NOT contain roster identities or news.</summary>
 public sealed record TeamPublicDto(
@@ -96,7 +124,8 @@ public enum TeamViewerRelation
 }
 
 /// <summary>The public team page (feature 009): overview + the viewer's relation + capped public
-/// roster and recent activity. Carries NO contact details or news. Real trainings (feature 018) live
+/// roster and recent activity. Carries NO member contact details and no news — the links it carries
+/// (feature 061) are the ones the team's admins chose to publish. Real trainings (feature 018) live
 /// on the members-only Trainings tab, not this public payload.</summary>
 public sealed record TeamPublicDetailDto(
     Guid Id,
@@ -114,7 +143,11 @@ public sealed record TeamPublicDetailDto(
     IReadOnlyList<JuggerHub.Dtos.Profile.ActivityItemDto> RecentActivity,
     // Feature 012 — the team's earned badges & achievements (active only).
     IReadOnlyList<JuggerHub.Dtos.Recognition.EarnedRecognitionDto> Badges,
-    IReadOnlyList<JuggerHub.Dtos.Recognition.EarnedRecognitionDto> Achievements);
+    IReadOnlyList<JuggerHub.Dtos.Recognition.EarnedRecognitionDto> Achievements,
+    // Feature 061 — the team's description (null when none) and links, shown to every viewer of the
+    // page. Carried here so the page needs no request of its own for them (SC-006).
+    string? Description,
+    IReadOnlyList<TeamLinkDto> Links);
 
 /// <summary>One public roster row — identity + position only, never contact details.</summary>
 public sealed record PublicMemberDto(
