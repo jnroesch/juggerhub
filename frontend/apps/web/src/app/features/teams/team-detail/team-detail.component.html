@@ -128,7 +128,8 @@
                     <span class="block truncate text-caption text-muted">{{ positions(m.pompfen) || '—' }}</span>
                   </span>
                   @if (m.role === 'Admin') { <span jhChip>{{ 'teams.detail.adminBadge' | transloco }}</span> }
-                  @if (isAdmin()) {
+                  <!-- No menu on the admin's own row: their step down and leave live on "Manage team". -->
+                  @if (isAdmin() && m.userId !== myUserId()) {
                     <div class="relative">
                       <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" (click)="toggleMenu(m.userId)"><jh-icon name="ellipsis" size="sm" /></button>
                       @if (openMenu() === m.userId) {
@@ -249,12 +250,18 @@
           </jh-card>
         }
 
-        @if (isAdmin()) {
-          <jh-card>
+        <!-- Team tools: every member gets "Manage" (GH #361 — the subpage is where an admin
+             manages the team and where any member manages their own membership, leaving included;
+             leaving is rare, so it is tucked away there rather than shown on the page). Invites
+             stay admin-only. -->
+        @if (isMember()) {
+          <jh-card data-testid="team-tools">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.teamTools' | transloco }}</h2>
             <div class="flex flex-col gap-xs">
-              <a [routerLink]="['/t', slug(), 'invitations']" jhButton variant="secondary" size="sm">{{ 'teams.detail.invites' | transloco }}</a>
-              <a [routerLink]="['/t', slug(), 'settings']" jhButton variant="secondary" size="sm">{{ 'teams.detail.settings' | transloco }}</a>
+              @if (isAdmin()) {
+                <a [routerLink]="['/t', slug(), 'invitations']" jhButton variant="secondary" size="sm">{{ 'teams.detail.invites' | transloco }}</a>
+              }
+              <a [routerLink]="['/t', slug(), 'settings']" jhButton variant="secondary" size="sm" data-testid="manage-team">{{ 'teams.detail.manage' | transloco }}</a>
             </div>
           </jh-card>
         }

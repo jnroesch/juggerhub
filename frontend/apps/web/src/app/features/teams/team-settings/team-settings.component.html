@@ -102,21 +102,47 @@
       </div>
 
       <hr class="my-lg border-border-default" />
+    }
 
-      <div class="mt-lg">
-        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.settings.yourRole' | transloco }}</p>
+    <!-- Your membership: step down (admins) and leave (everyone, GH #361). Both sit behind the
+         same last-admin guard, so the sole admin sees both disabled with the one warning that
+         names both. Leave confirms inline, the delete-team precedent below. -->
+    <div class="mt-lg" data-testid="membership">
+      <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.settings.yourMembership' | transloco }}</p>
+      @if (isAdmin()) {
         <button type="button" (click)="stepDown()" [disabled]="soleAdmin() || working()" data-testid="step-down"
           class="mt-xs flex w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-60">
           <span>{{ 'teams.settings.stepDown' | transloco }}</span>
           <jh-icon name="chevron-right" size="sm" class="text-muted" />
         </button>
-        @if (soleAdmin()) {
-          <p class="mt-xs rounded-md border border-dashed border-warning-border bg-warning-bg px-md py-sm text-body-sm text-warning-fg" data-testid="sole-admin-warning">
-            {{ 'teams.settings.soleAdminWarning' | transloco }}
-          </p>
-        }
-      </div>
+      }
+      @if (!confirmingLeave()) {
+        <button type="button" (click)="confirmingLeave.set(true)" [disabled]="soleAdmin() || working()" data-testid="leave-team"
+          class="mt-xs flex w-full items-center justify-between rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body transition-colors hover:bg-surface-sunken disabled:cursor-not-allowed disabled:opacity-60">
+          <span>{{ 'teams.settings.leaveTeam' | transloco }}</span>
+          <jh-icon name="chevron-right" size="sm" class="text-muted" />
+        </button>
+      } @else {
+        <div class="mt-xs rounded-md border border-danger-border bg-danger-bg p-md" data-testid="leave-confirm">
+          <p class="text-body-sm text-danger-fg">{{ 'teams.settings.leaveConfirm' | transloco:{ name: t.name } }}</p>
+          <div class="mt-sm flex gap-xs">
+            <button type="button" (click)="leaveTeam()" [disabled]="working()" data-testid="leave-confirm-yes"
+              class="flex-1 rounded-md bg-danger-fg px-md py-sm text-body-sm font-semibold text-on-accent disabled:opacity-60">
+              {{ (working() ? 'teams.settings.leaving' : 'teams.settings.leaveConfirmYes') | transloco }}
+            </button>
+            <button type="button" (click)="confirmingLeave.set(false)" [disabled]="working()"
+              jhButton variant="secondary" size="sm">{{ 'common.cancel' | transloco }}</button>
+          </div>
+        </div>
+      }
+      @if (soleAdmin()) {
+        <p class="mt-xs rounded-md border border-dashed border-warning-border bg-warning-bg px-md py-sm text-body-sm text-warning-fg" data-testid="sole-admin-warning">
+          {{ 'teams.settings.soleAdminWarning' | transloco }}
+        </p>
+      }
+    </div>
 
+    @if (isAdmin()) {
       <hr class="my-lg border-border-default" />
 
       <div>
@@ -141,8 +167,6 @@
         }
         <p class="mt-xs text-body-sm text-muted">{{ 'teams.settings.deleteHint' | transloco }}</p>
       </div>
-    } @else {
-      <p class="mt-lg text-body-md text-muted">{{ 'teams.settings.adminsOnly' | transloco }}</p>
     }
   }
 </section>

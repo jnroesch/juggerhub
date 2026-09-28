@@ -4,13 +4,16 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { AlertComponent, ButtonDirective, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { TeamDetail } from '../../../core/models/team.models';
+import { AuthService } from '../../../core/services/auth.service';
 import { MembershipService } from '../../../core/services/membership.service';
 import { TeamService } from '../../../core/services/team.service';
 import { problemDetail } from '../../../core/utils/problem';
 
 /**
- * US5/US6 — team settings. Step down to member (blocked if you're the only admin —
- * the last-admin guard), and the danger-zone delete (admins only, irreversible).
+ * US5/US6 — "Manage team". An admin manages the team here (logo, recruitment, step down, delete);
+ * since GH #361 EVERY member can open it, because it is also where a member manages their own
+ * membership — leaving lives here, tucked one page away from the team page, since it happens
+ * rarely. Step down and leave share the last-admin guard (the server's, `MutateMembershipAsync`).
  *
  * Feature 051 adds the team logo: upload, replace, remove. Remove is deliberately NOT a
  * danger-zone control — it is reversible by uploading another image, unlike deleting the team.
@@ -23,6 +26,7 @@ import { problemDetail } from '../../../core/utils/problem';
 })
 export class TeamSettingsComponent {
   private readonly teams = inject(TeamService);
+  private readonly auth = inject(AuthService);
   private readonly membership = inject(MembershipService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -34,6 +38,8 @@ export class TeamSettingsComponent {
   protected readonly notFound = signal(false);
   protected readonly working = signal(false);
   protected readonly confirmingDelete = signal(false);
+  /** GH #361 — the inline leave confirmation is open (same shape as the delete confirmation). */
+  protected readonly confirmingLeave = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly beginnersWelcome = signal(false);
   protected readonly savingBeginners = signal(false);
@@ -163,6 +169,33 @@ export class TeamSettingsComponent {
       },
       error: (err) => {
         this.working.set(false);
+        this.error.set(problemDetail(err));
+      },
+    });
+  }
+
+  /**
+   * GH #361 — leave the team. The member removes THEMSELVES through the endpoint an admin removes
+   * anyone with (`DELETE /teams/{slug}/members/{userId}`; the server allows self-removal). An
+   * admin who is the only admin is refused with 409, which the disabled control + warning above
+   * already explain; the error path still shows the server's reason for the raced case.
+   */
+  protected leaveTeam(): void {
+    const userId = this.auth.currentUser()?.id;
+    if (this.working() || !userId) {
+      return;
+    }
+    this.working.set(true);
+    this.error.set(null);
+    this.teams.removeMember(this.slug(), userId).subscribe({
+      next: () => {
+        // The cached memberships name this team in the nav and the team chooser (023 FR-017).
+        this.membership.load();
+        this.router.navigate(['/my-team']);
+      },
+      error: (err) => {
+        this.working.set(false);
+        this.confirmingLeave.set(false);
         this.error.set(problemDetail(err));
       },
     });

@@ -14,6 +14,7 @@ import {
   TeamNews,
   TeamPublicDetail,
 } from '../../../core/models/team.models';
+import { AuthService } from '../../../core/services/auth.service';
 import { TeamService } from '../../../core/services/team.service';
 import { PartyService } from '../../../core/services/party.service';
 import { PartyRequestCard } from '../../../core/models/party.models';
@@ -37,6 +38,7 @@ import { TeamPlacementsComponent } from './placements/team-placements.component'
 export class TeamDetailComponent {
   private readonly teams = inject(TeamService);
   private readonly parties = inject(PartyService);
+  private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
@@ -70,6 +72,11 @@ export class TeamDetailComponent {
   protected readonly requested = computed(() => this.relation() === 'Requested');
   /** Feature 027: any signed-in non-admin may contact the team's admins (FR-001/FR-002). */
   protected readonly canContactAdmins = computed(() => !this.isAnon() && !this.isAdmin());
+  /**
+   * The viewer's own id, so the roster's admin menu skips their own row (GH #361): what it
+   * offers there — step down, leave — lives on "Manage team", not in a per-member menu.
+   */
+  protected readonly myUserId = computed(() => this.auth.currentUser()?.id ?? null);
 
   /** Open a "contact the admins" thread (feature 027). Nothing persists until the first message is sent. */
   protected contactAdmins(): void {
