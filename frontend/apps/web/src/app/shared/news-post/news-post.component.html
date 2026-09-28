@@ -75,7 +75,9 @@
       (keydown.tab)="trapTab($event)" (keydown.shift.tab)="trapTab($event)"
       data-testid="news-delete-confirm">
       <div class="border-b border-border-muted px-md py-sm">
-        <h3 [id]="'news-delete-title-' + postId()" class="text-body-lg font-semibold text-heading">{{ 'news.deleteTitle' | transloco }}</h3>
+        <!-- h2, not h3: on the party news page the dialog sits directly under the page h1, and a level
+             must never be skipped (CHK036). Beside a section h2 it is a sibling, which is fine. -->
+        <h2 [id]="'news-delete-title-' + postId()" class="text-body-lg font-semibold text-heading">{{ 'news.deleteTitle' | transloco }}</h2>
       </div>
       <div class="px-md py-md">
         <p [id]="'news-delete-body-' + postId()" class="text-body-sm text-body">{{ deleteBody() | transloco }}</p>

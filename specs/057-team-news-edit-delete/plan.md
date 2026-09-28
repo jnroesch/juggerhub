@@ -241,5 +241,8 @@ suite, the realtime fake and one component spec.
   Alerts rows and sends no email.
 - **#368**: party news, edit and delete. Same shape as team news; its prefix
   `party-news:{postId}` already fits R2's operations.
+- **Followed up by 059** (`specs/059-event-party-news-edit-delete/`, GH #367 + #368): both
+  kinds, with this feature's controls moved into one shared `jh-news-post` the team page now uses.
+  #368 assumed party-news alerts quote the post; they do not, so an edit leaves them alone.
 - Not filed: aligning the roster's own menu with the news menu (44px targets, ARIA wiring). It
   is recorded in `checklists/ui-review.md`.

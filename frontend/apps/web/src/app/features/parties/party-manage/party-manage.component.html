@@ -158,7 +158,7 @@
                 (removed)="dropNews(n.id, $event.gone)"
               >
                 <p class="text-body-sm font-semibold text-heading" data-testid="news-meta">{{ n.authorDisplayName }}
-                  <span class="ml-1 text-caption font-normal text-muted">{{ (n.authorRole === 'Admin' ? 'parties.partyAdmin' : 'parties.member') | transloco }} · <span class="whitespace-nowrap">{{ n.createdDate | translocoDate: { dateStyle: 'short', timeStyle: 'short' } }}@if (n.editedDate) { · {{ 'news.edited' | transloco }} }</span></span>
+                  <span class="ml-1 text-caption font-normal text-muted"><span class="whitespace-nowrap">{{ (n.authorRole === 'Admin' ? 'parties.partyAdmin' : 'parties.member') | transloco }}</span> · <span class="whitespace-nowrap">{{ n.createdDate | translocoDate: { dateStyle: 'short', timeStyle: 'short' } }}@if (n.editedDate) { · {{ 'news.edited' | transloco }} }</span></span>
                 </p>
                 <p class="mt-xs whitespace-pre-line break-words text-body-sm text-body" data-testid="news-body">{{ n.body }}</p>
               </jh-news-post>
