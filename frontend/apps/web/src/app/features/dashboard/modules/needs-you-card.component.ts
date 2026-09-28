@@ -3,7 +3,7 @@ import { Component, computed, inject, input, output, signal } from '@angular/cor
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 import { RouterLink } from '@angular/router';
-import { AlertComponent, CardComponent, ButtonDirective, ChipDirective } from '../../../shared/ui';
+import { CardComponent, ButtonDirective, ChipDirective } from '../../../shared/ui';
 import { NeedsYouItem } from '../../../core/models/home.models';
 import { TeamService } from '../../../core/services/team.service';
 import { PartyService } from '../../../core/services/party.service';
@@ -29,7 +29,7 @@ interface Phrase {
  */
 @Component({
   selector: 'jh-needs-you-card',
-  imports: [RouterLink, CardComponent, ButtonDirective, ChipDirective, AlertComponent, TranslocoPipe],
+  imports: [RouterLink, CardComponent, ButtonDirective, ChipDirective, TranslocoPipe],
   templateUrl: './needs-you-card.component.html',
   styleUrl: './needs-you-card.component.css',
 })
@@ -41,16 +41,20 @@ export class NeedsYouCardComponent {
 
   readonly items = input.required<NeedsYouItem[]>();
   readonly resolved = output<string>();
+  /**
+   * A join request turned out to be answered already, or withdrawn, when this admin pressed
+   * (feature 058, FR-019). The host explains it and refreshes: the explanation must outlive this
+   * card, which disappears with its last item, and the page's own count of waiting things has to
+   * drop with it.
+   */
+  readonly gone = output<string>();
 
   protected readonly busyId = signal<string | null>(null);
-  /** Join requests that turned out to be answered already (or withdrawn) when this admin acted. */
+  /** Items that left before the host's refresh lands — hidden at once, so nothing can be pressed twice. */
   protected readonly stale = signal<ReadonlySet<string>>(new Set());
-  /** Why an item just left — a translation key, so a language switch re-renders it. */
-  protected readonly notice = signal<string | null>(null);
 
   protected readonly visible = computed(() => this.items().filter((item) => !this.stale().has(item.id)));
-  /** The card stays while a notice explains an item that just left, even if it was the last one. */
-  protected readonly hasAny = computed(() => this.visible().length > 0 || this.notice() !== null);
+  protected readonly hasAny = computed(() => this.visible().length > 0);
 
   protected readonly rel = injectRelativeTime();
 
@@ -166,7 +170,6 @@ export class NeedsYouCardComponent {
   private run(item: NeedsYouItem, call: Observable<unknown>): void {
     if (this.busyId()) return;
     this.busyId.set(item.id);
-    this.notice.set(null);
     call.subscribe({
       next: () => {
         this.busyId.set(null);
@@ -176,9 +179,9 @@ export class NeedsYouCardComponent {
         this.busyId.set(null);
         if (item.kind === 'JoinRequest' && err instanceof HttpErrorResponse && err.status === 404) {
           // Another admin answered first, or the player withdrew or joined another way (feature 058,
-          // FR-019). Say so and let the item go; nothing else changed, so nothing to refresh.
+          // FR-019): the item goes now, and the host says why.
           this.stale.update((ids) => new Set([...ids, item.id]));
-          this.notice.set('home.needsYouItem.noLongerWaiting');
+          this.gone.emit(item.id);
         }
       },
     });

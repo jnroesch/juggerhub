@@ -154,3 +154,43 @@ describe('NotificationRowComponent — TeamJoinRequestAnswered', () => {
     expect(href(fixture)).toBe('/browse/teams');
   });
 });
+
+/**
+ * Feature 058's browser walk caught "Wartet nicht mehr auf eine Antwort" cut to "…eine Antw…" at
+ * 375px. Only a news excerpt is a preview meant to be cut; every other supporting line wraps.
+ */
+describe('NotificationRowComponent — supporting line', () => {
+  function supportingOf(n: AppNotification): HTMLElement {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NotificationRowComponent, translocoTestingModule()],
+      providers: [provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(NotificationRowComponent);
+    fixture.componentRef.setInput('notification', n);
+    fixture.detectChanges();
+    return fixture.nativeElement.querySelectorAll('a p')[1] as HTMLElement;
+  }
+
+  const base = { createdDate: new Date().toISOString(), isRead: false, actorDisplayName: null, resolved: true };
+
+  it('wraps a sentence the reader needs whole', () => {
+    const line = supportingOf({
+      ...base,
+      id: 'n1',
+      type: 'TeamJoinRequest',
+      payload: { requestId: 'r1', teamSlug: 'hh', teamName: 'Hamburg Hammers' },
+    } as AppNotification);
+    expect(line.classList).not.toContain('truncate');
+  });
+
+  it('keeps a news excerpt to one line', () => {
+    const line = supportingOf({
+      ...base,
+      id: 'n2',
+      type: 'TeamNews',
+      payload: { teamSlug: 'hh', teamName: 'Hamburg Hammers', newsPostId: 'p1', excerpt: 'Training moves to Friday.' },
+    } as AppNotification);
+    expect(line.classList).toContain('truncate');
+  });
+});

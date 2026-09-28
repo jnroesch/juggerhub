@@ -20,13 +20,19 @@ function item(kind: NeedsYouKind, partial: Partial<NeedsYouItem> = {}): NeedsYou
 describe('NeedsYouCardComponent', () => {
   let httpMock: HttpTestingController;
 
-  function mount(items: NeedsYouItem[]): { fixture: ComponentFixture<NeedsYouCardComponent>; resolved: string[] } {
+  function mount(items: NeedsYouItem[]): {
+    fixture: ComponentFixture<NeedsYouCardComponent>;
+    resolved: string[];
+    gone: string[];
+  } {
     const fixture = TestBed.createComponent(NeedsYouCardComponent);
     const resolved: string[] = [];
+    const gone: string[] = [];
     fixture.componentRef.setInput('items', items);
     fixture.componentInstance.resolved.subscribe((id) => resolved.push(id));
+    fixture.componentInstance.gone.subscribe((id) => gone.push(id));
     fixture.detectChanges();
-    return { fixture, resolved };
+    return { fixture, resolved, gone };
   }
 
   const root = (f: ComponentFixture<NeedsYouCardComponent>) =>
@@ -140,20 +146,18 @@ describe('NeedsYouCardComponent', () => {
     req.flush(null);
   });
 
-  it('lets a request another admin already answered go, and says why — even when it was the last item', () => {
-    const { fixture, resolved } = mount([joinRequest()]);
-    (fixture.nativeElement.querySelector('li button') as HTMLButtonElement).click();
+  it('lets a request another admin already answered go at once, and tells the host why', () => {
+    const { fixture, resolved, gone } = mount([joinRequest(), item('TeamInvite', { id: 'tok-1' })]);
+    (fixture.nativeElement.querySelector('li[data-kind="JoinRequest"] button') as HTMLButtonElement).click();
     httpMock
       .expectOne('/api/v1/teams/hamburg-hammers/join-requests/req-1/approve')
       .flush(null, { status: 404, statusText: 'Not Found' });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('li')).toBeNull();
-    expect(root(fixture)).toBeTruthy();
-    expect(fixture.nativeElement.querySelector('[data-testid="needs-you-notice"]').textContent.trim()).toBe(
-      'This request was already answered or withdrawn.',
-    );
-    // Nothing changed server-side from this admin's press, so nothing asks the page to refresh.
+    expect(fixture.nativeElement.querySelector('li[data-kind="JoinRequest"]')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('li').length).toBe(1);
+    // The host explains it and refreshes — the explanation must outlive this card (feature 058).
+    expect(gone).toEqual(['req-1']);
     expect(resolved).toEqual([]);
   });
 });

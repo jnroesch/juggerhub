@@ -9,10 +9,6 @@
       }
     </div>
 
-    @if (notice(); as key) {
-      <jh-alert tone="info" class="mb-sm" data-testid="needs-you-notice">{{ key | transloco }}</jh-alert>
-    }
-
     <ul class="flex flex-col gap-sm">
       @for (item of visible(); track item.id) {
         <!-- Feature 058: the words wrap rather than truncate, and at phone width the answers move
