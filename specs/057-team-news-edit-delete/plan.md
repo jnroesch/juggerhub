@@ -237,5 +237,9 @@ suite, the realtime fake and one component spec.
 
 ## Follow-ups
 
-- Event news: edit and delete (same pattern; R2 reusable).
-- Party news: edit and delete (same pattern; prefix `party-news:{postId}` already fits R2).
+- **#367**: event news, edit and delete. Simpler than team news, since event news creates no
+  Alerts rows and sends no email.
+- **#368**: party news, edit and delete. Same shape as team news; its prefix
+  `party-news:{postId}` already fits R2's operations.
+- Not filed: aligning the roster's own menu with the news menu (44px targets, ARIA wiring). It
+  is recorded in `checklists/ui-review.md`.

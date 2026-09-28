@@ -167,7 +167,11 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
   function openEditor(fixture: ComponentFixture<TeamDetailComponent>, id: string): HTMLTextAreaElement {
     click(fixture, `[data-news-menu-trigger="${id}"]`);
     click(fixture, '[data-testid="news-edit"]');
-    return el<HTMLTextAreaElement>(fixture, '[data-testid="news-edit-input"]')!;
+    const input = el<HTMLTextAreaElement>(fixture, '[data-testid="news-edit-input"]');
+    if (!input) {
+      throw new Error('The editor did not open');
+    }
+    return input;
   }
 
   function type(fixture: ComponentFixture<TeamDetailComponent>, input: HTMLTextAreaElement, text: string): void {

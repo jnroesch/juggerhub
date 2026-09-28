@@ -32,7 +32,7 @@ describe('NewsListComponent', () => {
     fixture.componentRef.setInput('news', items);
     fixture.detectChanges();
     return Array.from((fixture.nativeElement as HTMLElement).querySelectorAll('[data-testid="news-list-meta"]')).map((el) =>
-      el.textContent!.replace(/\s+/g, ' ').trim(),
+      (el.textContent ?? '').replace(/\s+/g, ' ').trim(),
     );
   }
 
