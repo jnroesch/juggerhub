@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { ActivatedRoute, ParamMap, convertToParamMap, provideRouter } from '@angular/router';
+import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
 import { TeamMember, TeamNews, TeamPublicDetail, TeamViewerRelation } from '../../../core/models/team.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { PartyService } from '../../../core/services/party.service';
@@ -122,7 +122,11 @@ function post(id: string, body: string, editedDate: string | null = null): TeamN
 describe('TeamDetailComponent — editing and deleting news (feature 057)', () => {
   let service: Record<string, jest.Mock>;
 
-  function render(relation: TeamViewerRelation, news: TeamNews[]): ComponentFixture<TeamDetailComponent> {
+  function render(
+    relation: TeamViewerRelation,
+    news: TeamNews[],
+    paramMap: Observable<ParamMap> = of(convertToParamMap({ slug: 'rheinfeuer' })),
+  ): ComponentFixture<TeamDetailComponent> {
     TestBed.resetTestingModule();
     service = {
       getPublicDetail: jest.fn().mockReturnValue(of(detail(relation))),
@@ -143,7 +147,7 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
         { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
-        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
+        { provide: ActivatedRoute, useValue: { paramMap } },
       ],
     });
     const fixture = TestBed.createComponent(TeamDetailComponent);
@@ -319,6 +323,19 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     expect(el(fixture, '[data-testid="news-delete-confirm"]')).not.toBeNull();
     expect(el(fixture, '[data-testid="news-delete-error"]')?.textContent?.trim()).toBe("We couldn't delete the post. Try again.");
     expect(bodies(fixture)).toEqual(['Still here.']);
+  });
+
+  it('forgets an editor left open when the page switches to another team', () => {
+    // The router reuses this component between team pages (back/forward, /t/a → /t/b).
+    const params = new BehaviorSubject(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('Admin', [post('p1', 'One.')], params);
+    openEditor(fixture, 'p1');
+
+    params.next(convertToParamMap({ slug: 'another-team' }));
+    fixture.detectChanges();
+
+    expect(el(fixture, '[data-testid="news-editor"]')).toBeNull();
+    expect(el<HTMLButtonElement>(fixture, '[data-news-menu-trigger="p1"]')?.disabled).toBe(false);
   });
 
   it('closes the dialog on Escape and hands focus back to the post menu', () => {

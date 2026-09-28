@@ -93,6 +93,13 @@ export class TeamDetailComponent {
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((pm) => {
       this.slug.set(pm.get('slug') ?? '');
+      // The router reuses this component from one team to the next. An editor left open on the
+      // previous team would otherwise keep every post menu here disabled (feature 057). Only on
+      // a switch, not in load(): approving a join request reloads too, mid-edit.
+      this.newsMenu.set(null);
+      this.editingNewsId.set(null);
+      this.newsNotice.set(null);
+      this.deleteNewsTarget.set(null);
       this.load();
     });
   }
