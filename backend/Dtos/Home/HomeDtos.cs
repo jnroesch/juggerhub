@@ -47,21 +47,65 @@ public enum NeedsYouKind
 
     /// <summary>A marketplace application the viewer sent — shown pending (withdraw only) (feature 017).</summary>
     MarketApplication,
+
+    /// <summary>
+    /// A player waits for an answer to their request to join a team the viewer administers
+    /// (feature 058). Answered through <c>/teams/{Params.TeamSlug}/join-requests/{Id}/approve</c> or
+    /// <c>…/decline</c>.
+    /// </summary>
+    JoinRequest,
 }
 
 /// <summary>
 /// One invite or request awaiting the viewer's response, aggregated from its authoritative source
 /// domain (never the notification display-cache). Trainings are deliberately excluded — RSVP lives in
-/// "Up next". <see cref="Id"/> is the action key the client passes to the kind's resolving endpoint
-/// (invitation token or request id); <see cref="LinkTarget"/> is the optional navigation target.
+/// "Up next".
 /// </summary>
+/// <remarks>
+/// <para>
+/// <see cref="Id"/> is the action key the client passes to the kind's resolving endpoint, and
+/// <see cref="LinkTarget"/> the optional navigation target:
+/// </para>
+/// <list type="bullet">
+/// <item><c>TeamInvite</c>, <c>PartyCoAdminInvite</c> — the invitation token; the team slug / the event id.</item>
+/// <item><c>PartyRequest</c> — the party id; the event id.</item>
+/// <item><c>MarketInvite</c>, <c>MarketApplication</c> — the market request id; the event id.</item>
+/// <item><c>JoinRequest</c> — the join request id; the player's handle (their profile).</item>
+/// </list>
+/// <para>
+/// <b>No sentence is built here</b> (feature 058, GH #141's defect class). This DTO used to carry a
+/// <c>Title</c> and <c>Context</c> composed in English on the server, so a German dashboard read
+/// "Hamburg Hammers invited you". <see cref="Params"/> carries the names; the client picks the words
+/// in the viewer's language.
+/// </para>
+/// </remarks>
 public sealed record NeedsYouItemDto(
     NeedsYouKind Kind,
     string Id,
-    string Title,
-    string? Context,
+    NeedsYouParamsDto Params,
     string? LinkTarget,
     DateTime OccurredAt);
+
+/// <summary>
+/// The names a <see cref="NeedsYouItemDto"/>'s sentence is built from, client-side (feature 058).
+/// Only the fields its <see cref="NeedsYouItemDto.Kind"/> uses are set; the rest stay null. Names are
+/// user data and are never translated — the words around them are, from <c>home.needsYouItem.*</c>.
+/// See <see cref="ActivityParamsDto"/>, which exists for exactly the same reason.
+/// </summary>
+public sealed record NeedsYouParamsDto
+{
+    /// <summary>Every kind: the team concerned.</summary>
+    public string? TeamName { get; init; }
+
+    /// <summary>JoinRequest: the team whose endpoints answer the request.</summary>
+    public string? TeamSlug { get; init; }
+
+    /// <summary>The party and marketplace kinds: the event concerned.</summary>
+    public string? EventName { get; init; }
+
+    /// <summary>JoinRequest: the player who asked, as they are named now.</summary>
+    public string? PlayerName { get; init; }
+}
 
 // ---- Up next (unified agenda) ----------------------------------------------
 

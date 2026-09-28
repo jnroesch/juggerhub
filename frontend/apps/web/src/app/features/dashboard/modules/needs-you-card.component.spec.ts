@@ -10,8 +10,7 @@ function item(kind: NeedsYouKind, partial: Partial<NeedsYouItem> = {}): NeedsYou
   return {
     kind,
     id: 'x1',
-    title: 'Something',
-    context: 'context',
+    params: { teamName: 'Hamburg Hammers', teamSlug: null, eventName: 'Summer Slam', playerName: null },
     linkTarget: null,
     occurredAt: '2026-07-20T10:00:00Z',
     ...partial,
@@ -77,5 +76,84 @@ describe('NeedsYouCardComponent', () => {
     // "Pending", not "pending": the chip used to shout it through a CSS `uppercase`,
     // so the string was written lower-case. The chip is one text step now (GH #301).
     expect(root(fixture)!.textContent).toContain('Pending');
+  });
+
+  // --- Feature 058: every word is the client's; join requests for admins ------------------
+
+  const heading = (f: ComponentFixture<NeedsYouCardComponent>) =>
+    (f.nativeElement.querySelector('li a, li p') as HTMLElement).textContent?.trim();
+
+  it.each([
+    ['TeamInvite', 'Hamburg Hammers invited you'],
+    ['PartyCoAdminInvite', 'Co-admin a party for Summer Slam'],
+    ['PartyRequest', 'Hamburg Hammers is fielding a party'],
+    ['MarketInvite', 'Hamburg Hammers want you'],
+    ['MarketApplication', 'You applied to Hamburg Hammers'],
+  ] as [NeedsYouKind, string][])('composes the %s headline from the names the server sent', (kind, expected) => {
+    const { fixture } = mount([item(kind)]);
+    expect(heading(fixture)).toBe(expected);
+  });
+
+  it('keeps the invitation context in words and the others as the event or team', () => {
+    const { fixture } = mount([item('TeamInvite'), item('MarketInvite', { id: 'x2' })]);
+    const lines = Array.from(fixture.nativeElement.querySelectorAll('li p.text-caption')).map((p) =>
+      (p as HTMLElement).textContent?.replace(/\s+/g, ' ').trim(),
+    );
+    expect(lines[0]).toMatch(/^to join the team · /);
+    expect(lines[1]).toMatch(/^Summer Slam · /);
+  });
+
+  const joinRequest = (partial: Partial<NeedsYouItem> = {}) =>
+    item('JoinRequest', {
+      id: 'req-1',
+      params: { teamName: 'Hamburg Hammers', teamSlug: 'hamburg-hammers', eventName: null, playerName: 'Jonas Weber' },
+      linkTarget: 'jonas',
+      ...partial,
+    });
+
+  it('names the player who wants to join, links to their profile, and names the team', () => {
+    const { fixture } = mount([joinRequest()]);
+    const link = fixture.nativeElement.querySelector('li a') as HTMLAnchorElement;
+    expect(link.textContent?.trim()).toBe('Jonas Weber wants to join');
+    expect(link.getAttribute('href')).toBe('/u/jonas');
+    expect(fixture.nativeElement.querySelector('li p.text-caption').textContent).toContain('Hamburg Hammers ·');
+  });
+
+  it('approves a join request through the team endpoint and emits resolved', () => {
+    const { fixture, resolved } = mount([joinRequest()]);
+    const [approve] = Array.from(fixture.nativeElement.querySelectorAll('li button')) as HTMLButtonElement[];
+    expect(approve.textContent?.trim()).toBe('Approve');
+    approve.click();
+    const req = httpMock.expectOne('/api/v1/teams/hamburg-hammers/join-requests/req-1/approve');
+    expect(req.request.method).toBe('POST');
+    req.flush(null);
+    fixture.detectChanges();
+    expect(resolved).toEqual(['req-1']);
+  });
+
+  it('declines a join request through the team endpoint', () => {
+    const { fixture } = mount([joinRequest()]);
+    const buttons = Array.from(fixture.nativeElement.querySelectorAll('li button')) as HTMLButtonElement[];
+    buttons[1].click();
+    const req = httpMock.expectOne('/api/v1/teams/hamburg-hammers/join-requests/req-1/decline');
+    expect(req.request.method).toBe('POST');
+    req.flush(null);
+  });
+
+  it('lets a request another admin already answered go, and says why — even when it was the last item', () => {
+    const { fixture, resolved } = mount([joinRequest()]);
+    (fixture.nativeElement.querySelector('li button') as HTMLButtonElement).click();
+    httpMock
+      .expectOne('/api/v1/teams/hamburg-hammers/join-requests/req-1/approve')
+      .flush(null, { status: 404, statusText: 'Not Found' });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('li')).toBeNull();
+    expect(root(fixture)).toBeTruthy();
+    expect(fixture.nativeElement.querySelector('[data-testid="needs-you-notice"]').textContent.trim()).toBe(
+      'This request was already answered or withdrawn.',
+    );
+    // Nothing changed server-side from this admin's press, so nothing asks the page to refresh.
+    expect(resolved).toEqual([]);
   });
 });

@@ -2,38 +2,47 @@
   <jh-card data-testid="needs-you">
     <div class="mb-sm flex items-center justify-between">
       <h2 class="text-body-lg font-semibold text-heading">{{ 'home.needsYouTitle' | transloco }}</h2>
-      <span jhChip tone="secondary">
-        <span class="font-mono">{{ items().length }}</span>
-      </span>
+      @if (visible().length > 0) {
+        <span jhChip tone="secondary">
+          <span class="font-mono">{{ visible().length }}</span>
+        </span>
+      }
     </div>
 
+    @if (notice(); as key) {
+      <jh-alert tone="info" class="mb-sm" data-testid="needs-you-notice">{{ key | transloco }}</jh-alert>
+    }
+
     <ul class="flex flex-col gap-sm">
-      @for (item of items(); track item.id) {
+      @for (item of visible(); track item.id) {
+        <!-- Feature 058: the words wrap rather than truncate, and at phone width the answers move
+             under them — a German headline would otherwise keep a few characters beside two buttons. -->
         <li class="rounded-md border border-border-muted px-sm py-sm" [attr.data-kind]="item.kind">
-          <div class="flex items-start justify-between gap-sm">
+          <div class="flex flex-col gap-sm sm:flex-row sm:items-start sm:justify-between">
             <div class="min-w-0 flex-1">
+              @let headline = title(item);
               @if (link(item); as route) {
-                <a [routerLink]="route" class="block truncate font-medium text-heading hover:text-link">{{ item.title }}</a>
+                <a [routerLink]="route" class="block break-words font-medium text-heading hover:text-link">{{ headline.key | transloco: headline.params }}</a>
               } @else {
-                <p class="truncate font-medium text-heading">{{ item.title }}</p>
+                <p class="break-words font-medium text-heading">{{ headline.key | transloco: headline.params }}</p>
               }
-              <p class="truncate text-caption text-muted">
-                @if (item.context) { {{ item.context }} · }{{ rel(item.occurredAt) }}
+              <p class="break-words text-caption text-muted">
+                @if (contextKey(item); as key) { {{ key | transloco }} · } @else if (contextName(item); as name) { {{ name }} · }{{ rel(item.occurredAt) }}
               </p>
             </div>
 
             <!-- Actions by kind (invites & requests only) -->
             @switch (item.kind) {
               @case ('MarketApplication') {
-                <span class="shrink-0" jhChip tone="warning">{{ 'home.statusPendingPill' | transloco }}</span>
+                <span class="shrink-0 self-start" jhChip tone="warning">{{ 'home.statusPendingPill' | transloco }}</span>
               }
               @default {
                 <div class="flex shrink-0 gap-xs">
                   <button type="button" jhButton size="sm" [disabled]="busyId() === item.id" (click)="accept(item)">
-                    {{ (item.kind === 'PartyRequest' ? 'home.imIn' : 'common.accept') | transloco }}
+                    {{ acceptLabel(item) | transloco }}
                   </button>
                   <button type="button" jhButton variant="secondary" size="sm" [disabled]="busyId() === item.id" (click)="decline(item)">
-                    {{ (item.kind === 'PartyRequest' ? 'home.cant' : 'common.decline') | transloco }}
+                    {{ declineLabel(item) | transloco }}
                   </button>
                 </div>
               }
