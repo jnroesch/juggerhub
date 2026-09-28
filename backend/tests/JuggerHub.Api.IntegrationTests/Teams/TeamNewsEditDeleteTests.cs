@@ -327,7 +327,7 @@ public sealed class TeamNewsEditDeleteTests
     }
 
     [Fact]
-    public async Task Home_marks_an_edited_team_post_and_never_event_news()
+    public async Task Home_marks_an_edited_team_post_and_nothing_never_edited()
     {
         var team = await TeamWithMemberAsync();
         var edited = await PostAsync(team.Admin, team.Slug, "Kit order closes Thursday.");
@@ -345,6 +345,7 @@ public sealed class TeamNewsEditDeleteTests
         Assert.Equal(JsonValueKind.String, editedItem.GetProperty("editedDate").ValueKind);
         Assert.Equal(JsonValueKind.Null,
             news.Single(n => n.GetProperty("body").GetString() == "Never touched.").GetProperty("editedDate").ValueKind);
+        // An event post that was never edited carries no marker either (event news became editable in 059).
         Assert.Equal(JsonValueKind.Null,
             news.Single(n => n.GetProperty("source").GetString() == "event").GetProperty("editedDate").ValueKind);
 

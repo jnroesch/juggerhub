@@ -159,8 +159,8 @@ public sealed record HomeNewsDto(
     string SourceSlugOrId,  // team slug, event id, or event id for a party post → link target
     string Body,
     DateTime CreatedDate,
-    // Feature 057 — when the text was last edited; null if never. Only team posts can be edited,
-    // so it is always null for "event" and "party" items.
+    // When the text was last edited; null if never. Every source's posts can be edited: team news
+    // since feature 057, event and party news since 059.
     DateTime? EditedDate);
 
 // ---- What's going on (passive activity) ------------------------------------

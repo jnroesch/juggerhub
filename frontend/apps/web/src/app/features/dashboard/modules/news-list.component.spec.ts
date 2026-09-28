@@ -21,9 +21,9 @@ function item(partial: Partial<HomeNews> & Pick<HomeNews, 'body'>): HomeNews {
 }
 
 /**
- * Feature 057 — Home shows the same "edited" marker the team page does, so a member who reads team
- * news here can tell a post changed. Only team posts can be edited; the server never sets the date
- * on event or party items, and the list must not invent a marker either.
+ * Home shows the same "edited" marker as the page a post lives on, so a member who reads the news
+ * here can tell a post changed: team news since feature 057, event and party news since 059. The
+ * list marks exactly the items the server says were edited, and invents nothing.
  */
 describe('NewsListComponent', () => {
   function metaLines(items: HomeNews[], lang = 'en'): string[] {
@@ -48,6 +48,19 @@ describe('NewsListComponent', () => {
 
     expect(metaLines([edited])[0]).toMatch(/· edited$/);
     expect(metaLines([edited], 'de')[0]).toMatch(/· bearbeitet$/);
+  });
+
+  it('marks an edited event post and an edited party post the same way (feature 059)', () => {
+    const at = new Date().toISOString();
+    const lines = metaLines([
+      item({ body: 'Check-in opens at 09:00.', source: 'event', sourceName: 'Rhein Cup', sourceSlugOrId: 'e1', editedDate: at }),
+      item({ body: 'Meet at 07:00.', source: 'party', sourceName: 'Rheinfeuer @ Rhein Cup', sourceSlugOrId: 'e1', editedDate: at }),
+    ]);
+
+    expect(lines).toHaveLength(2);
+    for (const line of lines) {
+      expect(line).toMatch(/· edited$/);
+    }
   });
 
   it('marks nothing that was never edited — team, event or party', () => {

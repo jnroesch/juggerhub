@@ -142,6 +142,30 @@ public sealed class EventNewsEditDeleteTests
         Assert.Equal("Written while an admin.", feed.Single(n => Id(n) == coAdminPost.ToString()).GetProperty("body").GetString());
     }
 
+    [Fact]
+    public async Task Home_marks_an_edited_event_post_and_nothing_never_edited()
+    {
+        var ev = await EventWithAdminsAsync();
+        await HomeTestSupport.SignupUserAsync(_factory, ev.Id, ev.Reader.Id);
+        var edited = await PostAsync(ev.Creator, ev.Id, "Check-in opens at 08:00.");
+        await PostAsync(ev.Creator, ev.Id, "Never touched.");
+
+        (await EditAsync(ev.CoAdmin, ev.Id, edited, "Check-in opens at 09:00.")).EnsureSuccessStatusCode();
+
+        var news = await HomeNewsAsync(ev.Reader);
+        var editedItem = news.Single(n => n.GetProperty("body").GetString() == "Check-in opens at 09:00.");
+        Assert.Equal("event", editedItem.GetProperty("source").GetString());
+        Assert.Equal(JsonValueKind.String, editedItem.GetProperty("editedDate").ValueKind);
+        Assert.Equal(JsonValueKind.Null,
+            news.Single(n => n.GetProperty("body").GetString() == "Never touched.").GetProperty("editedDate").ValueKind);
+
+        // The dashboard's own News module reads the same item.
+        var home = await ev.Reader.Client.GetFromJsonAsync<JsonElement>("/api/v1/home");
+        var dashboardItem = home.GetProperty("news").EnumerateArray()
+            .Single(n => n.GetProperty("body").GetString() == "Check-in opens at 09:00.");
+        Assert.Equal(JsonValueKind.String, dashboardItem.GetProperty("editedDate").ValueKind);
+    }
+
     // --- Deleting ---------------------------------------------------------------------------------
 
     [Fact]

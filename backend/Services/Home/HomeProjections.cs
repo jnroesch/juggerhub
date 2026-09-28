@@ -30,8 +30,8 @@ internal static class HomeProjections
         string? TeamName);
 
     /// <summary>
-    /// Raw columns for a news item (any source), projected in SQL. <see cref="EditedDate"/> is set
-    /// only by the team source — event and party posts cannot be edited (feature 057).
+    /// Raw columns for a news item (any source), projected in SQL. <see cref="EditedDate"/> is the
+    /// post's own: team posts are editable since feature 057, event and party posts since 059.
     /// </summary>
     internal sealed record NewsRaw(
         string Source, string SourceName, string SourceSlugOrId, string Body, DateTime CreatedDate, Guid Id,

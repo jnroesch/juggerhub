@@ -162,6 +162,23 @@ public sealed class PartyNewsEditDeleteTests : PartyTestSupport
         Assert.Equal(2, (await AlertRowsAsync(post)).Count);
     }
 
+    [Fact]
+    public async Task Home_marks_an_edited_party_post_and_nothing_never_edited()
+    {
+        var party = await PartyWithCrewAsync();
+        var edited = await PostAsync(party.Admin, party.Id, "Meet 07:00 at the Aral on the A7.");
+        await PostAsync(party.Admin, party.Id, "Never touched.");
+
+        (await EditAsync(party.Admin, party.Id, edited, "Meet 07:00 at the Aral on the A1.")).EnsureSuccessStatusCode();
+
+        var news = await HomeNewsAsync(party.Crew);
+        var editedItem = news.Single(n => n.GetProperty("body").GetString() == "Meet 07:00 at the Aral on the A1.");
+        Assert.Equal("party", editedItem.GetProperty("source").GetString());
+        Assert.Equal(JsonValueKind.String, editedItem.GetProperty("editedDate").ValueKind);
+        Assert.Equal(JsonValueKind.Null,
+            news.Single(n => n.GetProperty("body").GetString() == "Never touched.").GetProperty("editedDate").ValueKind);
+    }
+
     // --- Deleting ---------------------------------------------------------------------------------
 
     [Fact]

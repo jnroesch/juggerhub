@@ -130,9 +130,9 @@ delete; event news and the team page are unchanged.
 **Independent Test**: edit an event post and a party post; Home and `/home/news` mark both;
 never-edited posts carry no marker.
 
-- [ ] T033 [US3] In `backend/Services/Home/HomeService.cs` `LoadNewsAsync`: the event and party `NewsRaw` project `n.EditedDate` instead of `(DateTime?)null`; update the method's summary (all three sources carry the marker now)
-- [ ] T034 [P] [US3] Add Home assertions: in `EventNewsEditDeleteTests.cs` an edited event post has `editedDate` on `/home/news` and in `/home`'s `news`; in `PartyNewsEditDeleteTests.cs` the same for a party post; rename 057's `Home_marks_an_edited_team_post_and_never_event_news` in `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamNewsEditDeleteTests.cs` to `Home_marks_an_edited_team_post_and_nothing_never_edited` and correct its comment (research R7)
-- [ ] T035 [P] [US3] In `frontend/apps/web/src/app/features/dashboard/modules/news-list.component.spec.ts` correct the header comment (every source can be edited now) and add a case: event and party items with an `editedDate` show the marker
+- [X] T033 [US3] In `backend/Services/Home/HomeService.cs` `LoadNewsAsync`: the event and party `NewsRaw` project `n.EditedDate` instead of `(DateTime?)null`; update the method's summary (all three sources carry the marker now)
+- [X] T034 [P] [US3] Add Home assertions: in `EventNewsEditDeleteTests.cs` an edited event post has `editedDate` on `/home/news` and in `/home`'s `news`; in `PartyNewsEditDeleteTests.cs` the same for a party post; rename 057's `Home_marks_an_edited_team_post_and_never_event_news` in `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamNewsEditDeleteTests.cs` to `Home_marks_an_edited_team_post_and_nothing_never_edited` and correct its comment (research R7)
+- [X] T035 [P] [US3] In `frontend/apps/web/src/app/features/dashboard/modules/news-list.component.spec.ts` correct the header comment (every source can be edited now) and add a case: event and party items with an `editedDate` show the marker
 
 **Checkpoint**: all three stories done.
 
