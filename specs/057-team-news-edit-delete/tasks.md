@@ -135,7 +135,7 @@ state, new text, a former member's too) and Home's news items.
 - [X] T033 Browser walk per [quickstart.md](./quickstart.md) → *Manual scenarios*: `docker compose up -d --build backend frontend`; a temporary Playwright script **inside `frontend/`** (register → Mailpit verify → sign in → dismiss onboarding, locale-agnostic waits, **one browser context per actor**) drives scenarios 1–10 at **375px and desktop in German**, saving screenshots of the menu, the open editor, the dialog, the marker on the team page and on Home, and an Alerts row before and after an edit and after a delete. Read the driver's output and **look at every screenshot** (false passes happen). Fix what the walk finds, re-walk, then delete the script
 - [X] T034 Full verification from the repo root: `dotnet build backend/JuggerHub.slnx`, `dotnet test backend/JuggerHub.slnx`; in `frontend/`: `npx nx test web --watch=false`, `npx nx lint web`, `npx nx build web`. Record results (and any failure with its output) for the PR
 - [X] T035 [P] File two follow-up issues with `gh issue create --body-file <scratchpad file>` (labels `enhancement`, `backend`, `frontend`): **Event news posts cannot be edited or deleted** and **Party news posts cannot be edited or deleted**. Each points at this feature, research R2 (the three `INotificationService` operations are producer-agnostic; party news already uses the prefix `party-news:{postId}`) and asks the owner to confirm the any-admin rule for that source
-- [ ] T036 Commit the remaining changes (checklist, fixes from the walk) referencing #363, push `057-team-news-edit-delete`, and open the PR (`Closes #363`) with a summary, the two owner decisions, the German 375px/desktop screenshots, verification results, the recorded residuals, and a call-out of the one visible change to existing posts (line breaks now render)
+- [X] T036 Commit the remaining changes (checklist, fixes from the walk) referencing #363, push `057-team-news-edit-delete`, and open the PR (`Closes #363`) with a summary, the two owner decisions, the German 375px/desktop screenshots, verification results, the recorded residuals, and a call-out of the one visible change to existing posts (line breaks now render)
 
 ---
 
@@ -195,10 +195,14 @@ pass.
 - Verification (T034, 2026-09-28): `dotnet build backend/JuggerHub.slnx` → 0 warnings,
   0 errors; `dotnet test backend/JuggerHub.slnx` → **1189 passed**, 0 failed, 0 skipped
   (15 of them new in `TeamNewsEditDeleteTests`). Frontend: `npx nx test web` → **117 suites,
-  920 tests passed**; `npx nx lint web` → 0 errors, 46 warnings, all pre-existing (the two
-  this feature first added were removed); `npx nx build web` → succeeds, no budget warning.
+  921 tests passed**; `npx nx run-many -t lint` → 0 errors, 46 warnings in `web`, all
+  pre-existing (the two this feature first added were removed); `npx nx build web` →
+  succeeds, no budget warning. A self-review after the walk found one more defect, now fixed
+  and pinned by a spec: an editor left open on one team kept every post menu disabled after
+  the router reused the page for another team.
   Browser walk (T033): 21/21 checks passed on a rebuilt stack, 26 screenshots reviewed. Two
   layout defects were found and fixed (see `checklists/ui-review.md`).
+- E2E: the Playwright suite (desktop + mobile, `docker-compose.test.yml`) → **106 passed**.
 - Follow-ups (T035): #367 event news, #368 party news.
 - Baseline (T001, 2026-09-28, `main` @ `6eba124`): `dotnet build backend/JuggerHub.slnx` →
   0 warnings, 0 errors. `npx nx test web --testPathPatterns="team-detail|team.service|catalog-"`
