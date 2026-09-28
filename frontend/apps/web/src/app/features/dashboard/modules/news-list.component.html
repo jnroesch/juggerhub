@@ -10,8 +10,8 @@
           {{ sourceLabel(item) | transloco }}
         </span>
         <span class="min-w-0 flex-1">
-          <span class="block text-body-sm text-body">{{ item.body }}</span>
-          <span class="block text-caption text-muted" data-testid="news-list-meta">{{ item.sourceName }} · {{ rel(item.createdDate) }}@if (item.editedDate) { · {{ 'home.newsEdited' | transloco }} }</span>
+          <span class="block break-words text-body-sm text-body">{{ item.body }}</span>
+          <span class="block text-caption text-muted" data-testid="news-list-meta">{{ item.sourceName }} · <span class="whitespace-nowrap">{{ rel(item.createdDate) }}@if (item.editedDate) { · {{ 'home.newsEdited' | transloco }} }</span></span>
         </span>
       </a>
     </li>

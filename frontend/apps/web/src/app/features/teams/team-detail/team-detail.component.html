@@ -256,8 +256,11 @@
                         </div>
                       } @else {
                         <p class="whitespace-pre-line break-words text-body-sm text-body" data-testid="news-body">{{ n.body }}</p>
+                        <!-- The date and the marker wrap as one unit: at 375px in German a long
+                             name otherwise broke inside the date ("28. Sept." / "2026") or left
+                             the marker's middot stranded at a line end. -->
                         <p class="text-caption text-muted" data-testid="news-meta">
-                          {{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}@if (n.editedDate) { · {{ 'teams.detail.newsEdited' | transloco }} }
+                          {{ n.authorDisplayName }} · <span class="whitespace-nowrap">{{ n.createdDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}@if (n.editedDate) { · {{ 'teams.detail.newsEdited' | transloco }} }</span>
                         </p>
                       }
                     </div>
