@@ -28,6 +28,16 @@ public enum TeamNewsEditStatus
 /// <summary>The post as it now stands, plus the outcome.</summary>
 public sealed record TeamNewsEditResult(TeamNewsEditStatus Status, TeamNewsDto? Post);
 
+/// <summary>Outcome of an attempt to delete a team news post (feature 057).</summary>
+public enum TeamNewsDeleteStatus
+{
+    Deleted,
+    NotFoundOrNotMember,
+    Forbidden,
+    /// <summary>No such post in this team: already deleted, never existed, or another team's.</summary>
+    PostNotFound,
+}
+
 /// <summary>
 /// Team news feed. Reading is member-scoped; posting (feature 010) is admin-only and fans out an
 /// in-app notification to every other current member; editing and deleting (feature 057) are
@@ -47,4 +57,11 @@ public interface ITeamNewsService
     /// (after trimming) writes nothing.
     /// </summary>
     Task<TeamNewsEditResult> EditAsync(string slug, Guid postId, Guid actorUserId, string body, CancellationToken ct = default);
+
+    /// <summary>
+    /// Delete a post for good (any current admin, any post), together with the alerts that
+    /// announced it — every recipient's, former members' included. Nobody is notified; copies
+    /// already sent by email are out of reach.
+    /// </summary>
+    Task<TeamNewsDeleteStatus> DeleteAsync(string slug, Guid postId, Guid actorUserId, CancellationToken ct = default);
 }

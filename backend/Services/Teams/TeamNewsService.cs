@@ -115,7 +115,7 @@ public sealed class TeamNewsService : ITeamNewsService
                 NotificationType.TeamNews,
                 new TeamNewsPayload(team.Slug, team.Name, post.Id, excerpt),
                 actorUserId: actorUserId,
-                dedupeKeyPrefix: $"news:{post.Id}",
+                dedupeKeyPrefix: NewsDedupePrefix(post.Id),
                 ct: ct);
         }
         catch (Exception ex)
@@ -217,6 +217,56 @@ public sealed class TeamNewsService : ITeamNewsService
             : new TeamNewsEditResult(TeamNewsEditStatus.Updated, dto);
     }
 
+    public async Task<TeamNewsDeleteStatus> DeleteAsync(
+        string slug, Guid postId, Guid actorUserId, CancellationToken ct = default)
+    {
+        var access = await _guard.ResolveAsync(slug, actorUserId, ct);
+        if (access is not { IsMember: true } a)
+        {
+            return TeamNewsDeleteStatus.NotFoundOrNotMember;
+        }
+
+        // Any current admin, for any post (FR-013).
+        if (!a.IsAdmin)
+        {
+            return TeamNewsDeleteStatus.Forbidden;
+        }
+
+        // The post and its alerts go together or not at all (research R3). Deleted separately, a
+        // failure in between would leave the post gone and its text still quoted in every inbox,
+        // with no way back: deleting again answers "not found". Both statements are idempotent
+        // ExecuteDeletes, so a replay by the execution strategy converges.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        var (deleted, unreadRecipients) = await strategy.ExecuteAsync(async () =>
+        {
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+
+            var rows = await _db.TeamNewsPosts
+                .Where(n => n.Id == postId && n.TeamId == a.TeamId)
+                .ExecuteDeleteAsync(ct);
+            if (rows == 0)
+            {
+                // Never reach the alerts for a post that is not this team's: this early return is
+                // what keeps another team's post id away from that team's rows (FR-012).
+                return (false, (IReadOnlyCollection<Guid>)[]);
+            }
+
+            var recipients = await _notifications.DeleteManyAsync(NotificationType.TeamNews, NewsDedupePrefix(postId), ct);
+            await tx.CommitAsync(ct);
+            return (true, recipients);
+        });
+
+        if (!deleted)
+        {
+            return TeamNewsDeleteStatus.PostNotFound;
+        }
+
+        // Only now that the delete is committed: a badge lowered before it could be contradicted
+        // by a rollback. Best-effort, and it never fails the delete.
+        await _notifications.RefreshUnreadBadgesAsync(unreadRecipients, ct);
+        return TeamNewsDeleteStatus.Deleted;
+    }
+
     /// <summary>
     /// The one shape of a news item, shared by the feed and the edit response so the two cannot
     /// drift apart.
@@ -244,4 +294,10 @@ public sealed class TeamNewsService : ITeamNewsService
 
     private static string Excerpt(string body) =>
         body.Length <= ExcerptLength ? body : body[..ExcerptLength].TrimEnd() + "…";
+
+    /// <summary>
+    /// The dedupe-key prefix a post's alerts are written under. Posting creates them under it, and
+    /// editing and deleting find them by it (feature 057), so it is spelled once.
+    /// </summary>
+    private static string NewsDedupePrefix(Guid postId) => $"news:{postId}";
 }

@@ -261,4 +261,71 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     expect(el(fixture, '[data-testid="news-menu"]')).toBeNull();
     expect(document.activeElement).toBe(el(fixture, '[data-news-menu-trigger="p1"]'));
   });
+
+  function openDeleteDialog(fixture: ComponentFixture<TeamDetailComponent>, id: string): void {
+    click(fixture, `[data-news-menu-trigger="${id}"]`);
+    click(fixture, '[data-testid="news-delete"]');
+  }
+
+  it('asks before deleting, with the safe answer focused, and Keep changes nothing', () => {
+    const fixture = render('Admin', [post('p1', 'One.')]);
+
+    openDeleteDialog(fixture, 'p1');
+
+    expect(el(fixture, '[data-testid="news-delete-confirm"]')?.getAttribute('aria-modal')).toBe('true');
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="news-delete-keep"]'));
+    click(fixture, '[data-testid="news-delete-keep"]');
+    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(service['deleteNews']).not.toHaveBeenCalled();
+    expect(bodies(fixture)).toEqual(['One.']);
+  });
+
+  it('deletes on confirm, takes the post off the list and lands focus on the News heading', () => {
+    const fixture = render('Admin', [post('p1', 'Wrong team.'), post('p2', 'Stays.')]);
+    service['deleteNews'].mockReturnValue(of(undefined));
+
+    openDeleteDialog(fixture, 'p1');
+    click(fixture, '[data-testid="news-delete-submit"]');
+
+    expect(service['deleteNews']).toHaveBeenCalledWith('rheinfeuer', 'p1');
+    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(bodies(fixture)).toEqual(['Stays.']);
+    expect(document.activeElement).toBe(el(fixture, '#team-news-heading'));
+  });
+
+  it('treats a post that is already gone as deleted, and says so', () => {
+    const fixture = render('Admin', [post('p1', 'Gone.')]);
+    service['deleteNews'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+
+    openDeleteDialog(fixture, 'p1');
+    click(fixture, '[data-testid="news-delete-submit"]');
+
+    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(bodies(fixture)).toEqual([]);
+    expect(el(fixture, '[data-testid="news-notice"]')?.textContent?.trim()).toBe('This post no longer exists.');
+  });
+
+  it('keeps the dialog open and says so when a delete fails', () => {
+    const fixture = render('Admin', [post('p1', 'Still here.')]);
+    service['deleteNews'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 503 })));
+
+    openDeleteDialog(fixture, 'p1');
+    click(fixture, '[data-testid="news-delete-submit"]');
+
+    expect(el(fixture, '[data-testid="news-delete-confirm"]')).not.toBeNull();
+    expect(el(fixture, '[data-testid="news-delete-error"]')?.textContent?.trim()).toBe("We couldn't delete the post. Try again.");
+    expect(bodies(fixture)).toEqual(['Still here.']);
+  });
+
+  it('closes the dialog on Escape and hands focus back to the post menu', () => {
+    const fixture = render('Admin', [post('p1', 'One.')]);
+    openDeleteDialog(fixture, 'p1');
+
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+
+    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(document.activeElement).toBe(el(fixture, '[data-news-menu-trigger="p1"]'));
+    expect(service['deleteNews']).not.toHaveBeenCalled();
+  });
 });

@@ -228,6 +228,79 @@ export class TeamDetailComponent {
     });
   }
 
+  /** The post the delete dialog is asking about, if it is open. */
+  protected readonly deleteNewsTarget = signal<TeamNews | null>(null);
+  protected readonly deletingNews = signal(false);
+  protected readonly newsDeleteError = signal<string | null>(null);
+
+  protected askDeleteNews(post: TeamNews): void {
+    this.newsMenu.set(null);
+    this.newsNotice.set(null);
+    this.newsDeleteError.set(null);
+    this.deleteNewsTarget.set(post);
+    // The safe answer takes focus, so Enter on arrival keeps the post.
+    afterNextRender(() => this.focus('[data-testid="news-delete-keep"]'), { injector: this.injector });
+  }
+
+  protected dismissDeleteNews(): void {
+    const target = this.deleteNewsTarget();
+    if (!target || this.deletingNews()) {
+      return;
+    }
+    this.deleteNewsTarget.set(null);
+    this.newsDeleteError.set(null);
+    afterNextRender(() => this.focus(`[data-news-menu-trigger="${target.id}"]`), { injector: this.injector });
+  }
+
+  protected confirmDeleteNews(): void {
+    const target = this.deleteNewsTarget();
+    if (!target || this.deletingNews()) {
+      return;
+    }
+    this.deletingNews.set(true);
+    this.newsDeleteError.set(null);
+    this.teams.deleteNews(this.slug(), target.id).subscribe({
+      next: () => {
+        this.deletingNews.set(false);
+        this.deleteNewsTarget.set(null);
+        this.news.update((list) => list.filter((n) => n.id !== target.id));
+        // The button that opened the menu went with the post; land on the list's heading instead.
+        afterNextRender(() => this.focus('#team-news-heading'), { injector: this.injector });
+      },
+      error: (err) => {
+        this.deletingNews.set(false);
+        if (isGone(err)) {
+          this.deleteNewsTarget.set(null);
+          this.dropNews(target.id);
+          afterNextRender(() => this.focus('#team-news-heading'), { injector: this.injector });
+          return;
+        }
+        // The dialog stays open; confirming again is the retry (never automatic).
+        this.newsDeleteError.set('teams.detail.newsDeleteFailed');
+      },
+    });
+  }
+
+  /** Keep Tab inside the open dialog: `aria-modal` promises that the page behind it is inert. */
+  protected trapTab(event: Event): void {
+    const key = event as KeyboardEvent;
+    const buttons = Array.from(
+      (key.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button:not([disabled])'),
+    );
+    if (buttons.length === 0) {
+      return;
+    }
+    const first = buttons[0];
+    const last = buttons[buttons.length - 1];
+    if (key.shiftKey && document.activeElement === first) {
+      last.focus();
+      key.preventDefault();
+    } else if (!key.shiftKey && document.activeElement === last) {
+      first.focus();
+      key.preventDefault();
+    }
+  }
+
   /** Another admin removed the post meanwhile: take it off the list and say so (FR-019). */
   private dropNews(id: string): void {
     this.news.update((list) => list.filter((n) => n.id !== id));
@@ -301,6 +374,9 @@ export class TeamDetailComponent {
   protected onEscape(): void {
     if (this.confirmIntent()) {
       this.dismissConfirm();
+    }
+    if (this.deleteNewsTarget()) {
+      this.dismissDeleteNews();
     }
     const menu = this.newsMenu();
     if (menu) {

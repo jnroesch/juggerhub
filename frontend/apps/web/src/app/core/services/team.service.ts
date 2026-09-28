@@ -182,6 +182,11 @@ export class TeamService {
     );
   }
 
+  /** Feature 057 — any admin: delete a post and the alerts that announced it. A 404 means it is already gone. */
+  deleteNews(slug: string, postId: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/${encodeURIComponent(slug)}/news/${encodeURIComponent(postId)}`);
+  }
+
   // --- Members & roles -----------------------------------------------------
 
   setRole(slug: string, userId: string, role: TeamRole): Observable<TeamMember> {

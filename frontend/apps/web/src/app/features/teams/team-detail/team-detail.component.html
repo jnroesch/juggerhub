@@ -191,7 +191,8 @@
         <!-- News (members only) -->
         @if (isMember()) {
           <jh-card data-testid="news">
-            <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.news' | transloco }}</h2>
+            <!-- tabindex -1: where focus lands after a post is deleted (feature 057). -->
+            <h2 id="team-news-heading" tabindex="-1" class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.news' | transloco }}</h2>
 
             <!-- Admin composer (feature 010): posting notifies the whole roster. -->
             @if (isAdmin()) {
@@ -281,8 +282,12 @@
                         @if (newsMenu() === n.id) {
                           <div class="absolute right-0 z-10 mt-1 min-w-40 rounded-md border border-border-default bg-surface-card py-xs shadow-md" role="menu" data-testid="news-menu">
                             <button type="button" role="menuitem" (click)="startEdit(n)" data-testid="news-edit"
-                              class="block w-full px-md py-xs text-left text-body-sm text-body hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                              class="flex min-h-11 w-full items-center px-md text-left text-body-sm text-body hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
                               {{ 'teams.detail.newsEdit' | transloco }}
+                            </button>
+                            <button type="button" role="menuitem" (click)="askDeleteNews(n)" data-testid="news-delete"
+                              class="flex min-h-11 w-full items-center px-md text-left text-body-sm text-danger-fg hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                              {{ 'teams.detail.newsDelete' | transloco }}
                             </button>
                           </div>
                         }
@@ -349,6 +354,33 @@
             <button type="button" (click)="dismissConfirm()" jhButton variant="secondary" size="sm">{{ (intent === 'join' ? 'teams.detail.dismiss' : 'teams.detail.keepRequest') | transloco }}</button>
             <button type="button" (click)="confirmAction()" [disabled]="requestBusy()" data-testid="join-confirm-submit"
               jhButton size="sm">{{ (intent === 'join' ? 'teams.detail.confirmJoinSubmit' : 'teams.detail.confirmCancelSubmit') | transloco }}</button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Delete a news post (feature 057): the dialog above, with a destructive answer. The safe
+         answer takes focus when it opens, and Tab stays inside while it is open. -->
+    @if (deleteNewsTarget()) {
+      <div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
+        <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
+          role="dialog" aria-modal="true" aria-labelledby="news-delete-title" aria-describedby="news-delete-body"
+          (keydown.tab)="trapTab($event)" (keydown.shift.tab)="trapTab($event)"
+          data-testid="news-delete-confirm">
+          <div class="border-b border-border-muted px-md py-sm">
+            <h3 id="news-delete-title" class="text-body-lg font-semibold text-heading">{{ 'teams.detail.newsDeleteTitle' | transloco }}</h3>
+          </div>
+          <div class="px-md py-md">
+            <p id="news-delete-body" class="text-body-sm text-body">{{ 'teams.detail.newsDeleteBody' | transloco }}</p>
+            @if (newsDeleteError(); as key) {
+              <p class="mt-sm text-body-sm text-danger-fg" role="alert" data-testid="news-delete-error">{{ key | transloco }}</p>
+            }
+          </div>
+          <div class="flex flex-wrap items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
+            <button type="button" (click)="dismissDeleteNews()" [disabled]="deletingNews()" data-testid="news-delete-keep"
+              jhButton variant="secondary" size="sm">{{ 'teams.detail.newsDeleteKeep' | transloco }}</button>
+            <button type="button" (click)="confirmDeleteNews()" [disabled]="deletingNews()" data-testid="news-delete-submit"
+              jhButton variant="danger" size="sm">{{ (deletingNews() ? 'teams.detail.newsDeleting' : 'teams.detail.newsDeleteConfirm') | transloco }}</button>
           </div>
         </div>
       </div>

@@ -99,4 +99,12 @@ describe('TeamService news', () => {
     expect(req.request.body).toEqual({ body: 'Training moves to Friday.' });
     req.flush({});
   });
+
+  it('DELETEs the post', () => {
+    service.deleteNews('rheinfeuer', postId).subscribe();
+
+    const req = httpMock.expectOne(`/api/v1/teams/rheinfeuer/news/${postId}`);
+    expect(req.request.method).toBe('DELETE');
+    req.flush(null);
+  });
 });

@@ -452,6 +452,28 @@ public sealed class TeamsController : ControllerBase
         };
     }
 
+    /// <summary>
+    /// Delete a news post for good, with the alerts that announced it (feature 057). Any current
+    /// admin, any post; nobody is notified. Deleting it again is a 404, not a 204.
+    /// </summary>
+    [HttpDelete("{slug}/news/{postId:guid}")]
+    public async Task<IActionResult> DeleteNews(string slug, Guid postId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var status = await _news.DeleteAsync(slug, postId, userId, ct);
+        return status switch
+        {
+            TeamNewsDeleteStatus.Deleted => NoContent(),
+            TeamNewsDeleteStatus.Forbidden => Forbidden("Only admins can delete team news."),
+            TeamNewsDeleteStatus.PostNotFound => NewsPostNotFound(),
+            _ => TeamNotFound(),
+        };
+    }
+
     // --- Invitations (admin) --------------------------------------------------
 
     [HttpGet("{slug}/invitations")]

@@ -181,6 +181,106 @@ public sealed class TeamNewsEditDeleteTests
         Assert.Equal(id.ToString(), Id((await FeedAsync(team.Member, team.Slug)).Single()));
     }
 
+    // --- US2: an admin removes a post -----------------------------------------------------------
+
+    [Fact]
+    public async Task A_deleted_post_is_gone_everywhere_including_a_former_members_alerts()
+    {
+        var team = await TeamWithMemberAsync();
+        var former = await NewUserAsync();
+        await JoinAsync(team.Admin, team.Slug, former);
+        var post = await PostAsync(team.Admin, team.Slug, "Posted to the wrong team.");
+        await LeaveAsync(former, team.Slug);
+
+        Assert.Single(await AlertsForPostAsync(team.Member, post));
+        Assert.Single(await AlertsForPostAsync(former, post));
+        Assert.Contains(await HomeNewsAsync(team.Member), n => n.GetProperty("body").GetString() == "Posted to the wrong team.");
+
+        var resp = await DeleteAsync(team.Admin, team.Slug, post);
+
+        Assert.Equal(HttpStatusCode.NoContent, resp.StatusCode);
+        Assert.DoesNotContain(await FeedAsync(team.Admin, team.Slug), n => Id(n) == post.ToString());
+        Assert.DoesNotContain(await HomeNewsAsync(team.Member), n => n.GetProperty("body").GetString() == "Posted to the wrong team.");
+        // FR-009: the alerts go too — for the member who has since left as well (a roster-based
+        // match would have missed them and left the text in their inbox).
+        Assert.Empty(await AlertsForPostAsync(team.Member, post));
+        Assert.Empty(await AlertsForPostAsync(former, post));
+    }
+
+    [Fact]
+    public async Task Deleting_lowers_the_badge_of_whoever_had_not_read_the_alert_and_notifies_nobody()
+    {
+        var team = await TeamWithMemberAsync();
+        var reader = await NewUserAsync();
+        await JoinAsync(team.Admin, team.Slug, reader);
+        var post = await PostAsync(team.Admin, team.Slug, "Friendly on Sunday.");
+        await MarkReadAsync(reader, (await AlertsForPostAsync(reader, post)).Single());
+
+        var unreadBefore = await UnreadCountAsync(team.Member);
+        var readerUnreadBefore = await UnreadCountAsync(reader);
+        var pushedToMember = _factory.NotificationRealtime.UnreadCountsFor(team.Member.Id).Count;
+        var pushedToReader = _factory.NotificationRealtime.UnreadCountsFor(reader.Id).Count;
+        var createdForMember = _factory.NotificationRealtime.CreatedFor(team.Member.Id).Count;
+
+        (await DeleteAsync(team.Admin, team.Slug, post)).EnsureSuccessStatusCode();
+
+        // The unread alert disappears from the count, and an open tab hears about it at once.
+        Assert.Equal(unreadBefore - 1, await UnreadCountAsync(team.Member));
+        var memberPushes = _factory.NotificationRealtime.UnreadCountsFor(team.Member.Id);
+        Assert.Equal(pushedToMember + 1, memberPushes.Count);
+        Assert.Equal(unreadBefore - 1, memberPushes[^1]);
+
+        // Someone who had already read theirs has no badge to lower, so is sent nothing.
+        Assert.Equal(readerUnreadBefore, await UnreadCountAsync(reader));
+        Assert.Equal(pushedToReader, _factory.NotificationRealtime.UnreadCountsFor(reader.Id).Count);
+
+        // And a delete announces nothing on any channel (FR-010).
+        Assert.Equal(createdForMember, _factory.NotificationRealtime.CreatedFor(team.Member.Id).Count);
+        Assert.Equal(1, NewsEmailsTo(team.Member));
+        Assert.Equal(1, PushesTo(team.Member));
+    }
+
+    [Fact]
+    public async Task Only_a_current_admin_of_the_posts_own_team_may_delete_it()
+    {
+        var team = await TeamWithMemberAsync();
+        var post = await PostAsync(team.Admin, team.Slug, "Stays put.");
+        var outsider = await NewUserAsync();
+
+        Assert.Equal(HttpStatusCode.Forbidden, (await DeleteAsync(team.Member, team.Slug, post)).StatusCode);
+
+        var outsiderResp = await DeleteAsync(outsider, team.Slug, post);
+        Assert.Equal(HttpStatusCode.NotFound, outsiderResp.StatusCode);
+        Assert.Equal("Team not found", await ProblemTitleAsync(outsiderResp));
+
+        // Under another team's address the post does not exist — and that team's delete must not
+        // reach this post's alerts either (FR-012).
+        var otherSlug = await CreateTeamAsync(team.Admin);
+        var crossResp = await DeleteAsync(team.Admin, otherSlug, post);
+        Assert.Equal(HttpStatusCode.NotFound, crossResp.StatusCode);
+        Assert.Equal("News post not found", await ProblemTitleAsync(crossResp));
+
+        Assert.Contains(await FeedAsync(team.Admin, team.Slug), n => Id(n) == post.ToString());
+        Assert.Single(await AlertsForPostAsync(team.Member, post));
+    }
+
+    [Fact]
+    public async Task Any_admin_may_delete_any_post_and_it_is_then_gone_for_edit_and_delete()
+    {
+        var team = await TeamWithMemberAsync();
+        var post = await PostAsync(team.Admin, team.Slug, "Written by the first admin.");
+        await SetRoleAsync(team.Admin, team.Slug, team.Member, "Admin");
+
+        Assert.Equal(HttpStatusCode.NoContent, (await DeleteAsync(team.Member, team.Slug, post)).StatusCode);
+
+        var again = await DeleteAsync(team.Admin, team.Slug, post);
+        Assert.Equal(HttpStatusCode.NotFound, again.StatusCode);
+        Assert.Equal("News post not found", await ProblemTitleAsync(again));
+        var edit = await EditAsync(team.Admin, team.Slug, post, "Too late.");
+        Assert.Equal(HttpStatusCode.NotFound, edit.StatusCode);
+        Assert.Equal("News post not found", await ProblemTitleAsync(edit));
+    }
+
     // --- helpers --------------------------------------------------------------------------------
 
     private sealed record Player(HttpClient Client, Guid Id, string Handle, string Email);
