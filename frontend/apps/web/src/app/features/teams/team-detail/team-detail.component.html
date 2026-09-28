@@ -219,7 +219,7 @@
 
             @if (news().length > 0) {
               <ul class="flex flex-col gap-sm">
-                @for (n of news(); track $index) {
+                @for (n of news(); track n.id) {
                   <li>
                     <p class="text-body-sm text-body">{{ n.body }}</p>
                     <p class="text-caption text-muted">{{ n.authorDisplayName }} · {{ n.createdDate | translocoDate: { year: 'numeric', month: 'short', day: 'numeric' } }}</p>

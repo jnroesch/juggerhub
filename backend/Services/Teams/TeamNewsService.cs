@@ -52,26 +52,11 @@ public sealed class TeamNewsService : ITeamNewsService
         var query = _db.TeamNewsPosts.AsNoTracking().Where(n => n.TeamId == a.TeamId);
         var total = await query.CountAsync(ct);
 
-        // The author's profile is absent once they are banned (filtered, 013) or erased (deleted,
-        // 037), so this projects to null rather than the row being missing. The post itself stays —
-        // it is a record the team relies on — and the author collapses to the neutral placeholder.
-        var placeholder = MemberPlaceholder.For(_culture.ResolveFromRequest());
-
-        var items = await query
+        var page = query
             .OrderByDescending(n => n.CreatedDate)
             .Skip(pagination.NormalizedSkip)
-            .Take(pagination.NormalizedTake)
-            .Select(n => new TeamNewsDto(
-                n.Author.Profile != null ? n.Author.Profile.DisplayName : placeholder,
-                n.Author.Profile != null ? n.Author.Profile.Handle : null,
-                // Author's current role in this team (defaults to Member if they've left).
-                _db.TeamMemberships
-                    .Where(m => m.TeamId == n.TeamId && m.UserId == n.AuthorUserId)
-                    .Select(m => m.Role)
-                    .FirstOrDefault(),
-                n.CreatedDate,
-                n.Body))
-            .ToListAsync(ct);
+            .Take(pagination.NormalizedTake);
+        var items = await Project(page, AuthorPlaceholder()).ToListAsync(ct);
 
         return new PagedResult<TeamNewsDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
     }
@@ -110,7 +95,8 @@ public sealed class TeamNewsService : ITeamNewsService
             .Select(p => new { p.DisplayName, p.Handle })
             .FirstAsync(ct);
 
-        var dto = new TeamNewsDto(author.DisplayName, author.Handle, TeamRole.Admin, post.CreatedDate, post.Body);
+        var dto = new TeamNewsDto(
+            post.Id, author.DisplayName, author.Handle, TeamRole.Admin, post.CreatedDate, EditedDate: null, post.Body);
 
         // Fan out to every other current member (never the author). Best-effort — a notification
         // failure must not fail the post itself (spec FR-016).
@@ -163,6 +149,31 @@ public sealed class TeamNewsService : ITeamNewsService
 
         return new TeamNewsPostResult(TeamNewsPostStatus.Posted, dto);
     }
+
+    /// <summary>
+    /// The one shape of a news item, shared by the feed and the edit response so the two cannot
+    /// drift apart.
+    /// </summary>
+    private IQueryable<TeamNewsDto> Project(IQueryable<TeamNewsPost> posts, string placeholder) =>
+        posts.Select(n => new TeamNewsDto(
+            n.Id,
+            n.Author.Profile != null ? n.Author.Profile.DisplayName : placeholder,
+            n.Author.Profile != null ? n.Author.Profile.Handle : null,
+            // Author's current role in this team (defaults to Member if they've left).
+            _db.TeamMemberships
+                .Where(m => m.TeamId == n.TeamId && m.UserId == n.AuthorUserId)
+                .Select(m => m.Role)
+                .FirstOrDefault(),
+            n.CreatedDate,
+            n.EditedDate,
+            n.Body));
+
+    /// <summary>
+    /// The author's profile is absent once they are banned (filtered, 013) or erased (deleted, 037),
+    /// so the projection yields null rather than the row going missing. The post itself stays — it
+    /// is a record the team relies on — and the author collapses to the neutral placeholder.
+    /// </summary>
+    private string AuthorPlaceholder() => MemberPlaceholder.For(_culture.ResolveFromRequest());
 
     private static string Excerpt(string body) =>
         body.Length <= ExcerptLength ? body : body[..ExcerptLength].TrimEnd() + "…";

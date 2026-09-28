@@ -100,12 +100,16 @@ export interface TeamMember {
 }
 
 export interface TeamNews {
+  /** Feature 057 — what an admin's edit or delete addresses. */
+  id: string;
   authorDisplayName: string;
   /** Null when the author's profile is gone (banned or deleted) — there's nothing to link to. */
   authorHandle: string | null;
   authorRole: TeamRole;
   /** ISO date-time. */
   createdDate: string;
+  /** Feature 057 — ISO date-time of the last change to the text; null for a post never edited. */
+  editedDate: string | null;
   body: string;
 }
 

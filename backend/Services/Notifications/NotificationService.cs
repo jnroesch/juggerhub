@@ -170,6 +170,52 @@ public sealed class NotificationService : INotificationService
         await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, ct);
     }
 
+    // --- The source changed (feature 057) ---------------------------------------
+
+    public async Task<int> ReplacePayloadAsync(
+        NotificationType type,
+        string dedupeKeyPrefix,
+        object payload,
+        CancellationToken ct = default)
+    {
+        var json = JsonSerializer.Serialize(payload, PayloadJson);
+        var now = DateTime.UtcNow;
+
+        // ExecuteUpdate bypasses the change tracker, so the audit interceptor never runs:
+        // ModifiedDate is set here or not at all (constitution Principle III).
+        return await WrittenUnder(type, dedupeKeyPrefix)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(n => n.Payload, json)
+                .SetProperty(n => n.ModifiedDate, now), ct);
+    }
+
+    public async Task<IReadOnlyCollection<Guid>> DeleteManyAsync(
+        NotificationType type,
+        string dedupeKeyPrefix,
+        CancellationToken ct = default)
+    {
+        var rows = WrittenUnder(type, dedupeKeyPrefix);
+
+        // Read before deleting: only a recipient who loses an UNREAD row has a badge to lower.
+        var unreadRecipients = await rows
+            .Where(n => !n.IsRead)
+            .Select(n => n.RecipientUserId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        await rows.ExecuteDeleteAsync(ct);
+        return unreadRecipients;
+    }
+
+    public async Task RefreshUnreadBadgesAsync(IReadOnlyCollection<Guid> recipientUserIds, CancellationToken ct = default)
+    {
+        foreach (var userId in recipientUserIds.Distinct())
+        {
+            // Best-effort per recipient: one failed socket never stops the rest.
+            await PushUnreadCountAsync(userId, ct);
+        }
+    }
+
     // --- Read -----------------------------------------------------------------
 
     public async Task<PagedResult<NotificationDto>> ListAsync(Guid userId, PaginationRequest pagination, CancellationToken ct = default)
@@ -316,6 +362,20 @@ public sealed class NotificationService : INotificationService
         {
             _logger.LogWarning(ex, "Realtime unread-count push failed for user {UserId}.", userId);
         }
+    }
+
+    /// <summary>
+    /// The rows <see cref="CreateManyAsync"/> wrote under <paramref name="dedupeKeyPrefix"/>. It keys
+    /// each one <c>{prefix}:{recipient}</c>, so the prefix plus its separator names exactly one
+    /// source's rows for every recipient it ever reached — including people who have since left the
+    /// team, whom a roster-based match would miss. No index serves a prefix match, so this scans the
+    /// table; it runs only when an admin edits or deletes a source (feature 057, research R1).
+    /// </summary>
+    private IQueryable<Notification> WrittenUnder(NotificationType type, string dedupeKeyPrefix)
+    {
+        var keyPrefix = dedupeKeyPrefix + ":";
+        return _db.Notifications.Where(n =>
+            n.Type == type && n.DedupeKey != null && n.DedupeKey.StartsWith(keyPrefix));
     }
 
     private static Guid? TryGetInvitationId(string payloadJson)

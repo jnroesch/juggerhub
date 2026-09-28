@@ -56,6 +56,10 @@ public sealed record UpdateTeamSettingsRequest([Required] bool BeginnersWelcome)
 /// <c>TeamNewsPost</c> column limit; posting fans out an in-app notification to the roster.</summary>
 public sealed record PostTeamNewsRequest([Required, MinLength(1), MaxLength(1000)] string Body);
 
+/// <summary>Replace a team news post's text (feature 057, any admin). Same rules as posting; the
+/// service trims it, and a text equal to the current one changes nothing.</summary>
+public sealed record EditTeamNewsRequest([Required, MinLength(1), MaxLength(1000)] string Body);
+
 // --- Responses --------------------------------------------------------------
 
 /// <summary>Members-only team header. Roster/news are fetched from their own endpoints.</summary>
@@ -137,14 +141,19 @@ public sealed record TeamMemberDto(
     bool HasAvatar,
     IReadOnlyList<Pompfe> Pompfen);
 
-/// <summary>One read-only news-feed item (author role resolved from their membership).</summary>
+/// <summary>One news-feed item (author role resolved from their membership).</summary>
 public sealed record TeamNewsDto(
+    // Feature 057 — what an admin's edit or delete addresses.
+    Guid Id,
     string AuthorDisplayName,
     // AuthorHandle is null when the author's profile is gone — banned (013) or erased (037). The
     // post survives either way; there is simply no profile left to link to (feature 037 FR-023).
     string? AuthorHandle,
     TeamRole AuthorRole,
     DateTime CreatedDate,
+    // Feature 057 — when the text was last changed; null for a post never edited. Drives the
+    // "edited" marker. Never moves the post: the feed stays ordered by CreatedDate.
+    DateTime? EditedDate,
     string Body);
 
 /// <summary>One pending invitation in the admin list (link or targeted).</summary>
