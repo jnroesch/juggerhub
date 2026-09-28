@@ -131,6 +131,36 @@
           </section>
         }
 
+        <!-- About (feature 061, GH #321 + #359): what the team says about itself, for every viewer of
+             the page. Interpolation only, so nothing in the text becomes markup or a link (FR-014);
+             links live in their own list, each beside the site it really leads to (FR-017), opened
+             outside the app with no hold on this page and no referrer (FR-018). <bdi> keeps a
+             label's text direction from spilling onto the host beside it. Hidden when the team
+             has neither. -->
+        @if (team.description || team.links.length > 0) {
+          <jh-card data-testid="about">
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.about' | transloco }}</h2>
+            @if (team.description) {
+              <p class="whitespace-pre-line break-words text-body-md text-body" data-testid="about-description">{{ team.description }}</p>
+            }
+            @if (team.links.length > 0) {
+              <ul class="flex flex-col gap-xs" [class.mt-md]="!!team.description" [attr.aria-label]="'teams.detail.links' | transloco" data-testid="about-links">
+                @for (l of team.links; track $index) {
+                  <li class="flex min-w-0 flex-wrap items-baseline gap-x-xs gap-y-2xs" data-testid="about-link-row">
+                    <a [href]="l.url" target="_blank" rel="noopener noreferrer nofollow ugc" data-testid="about-link"
+                      class="inline-flex min-w-0 max-w-full items-center gap-2xs text-body-md font-medium text-link underline underline-offset-2 hover:text-link-hover">
+                      <jh-icon name="external-link" size="sm" class="shrink-0" />
+                      <bdi class="min-w-0 break-words">{{ l.label }}</bdi>
+                      <span class="sr-only">{{ 'teams.detail.opensInNewTab' | transloco }}</span>
+                    </a>
+                    <span class="min-w-0 text-caption text-muted"><span aria-hidden="true">· </span><bdi class="break-all" data-testid="about-link-host">{{ linkHost(l.url) }}</bdi></span>
+                  </li>
+                }
+              </ul>
+            }
+          </jh-card>
+        }
+
         <!-- Roster -->
         <jh-card overflowVisible data-testid="roster">
           <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.roster' | transloco }}</h2>

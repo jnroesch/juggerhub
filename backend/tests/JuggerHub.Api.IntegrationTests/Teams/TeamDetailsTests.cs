@@ -225,6 +225,171 @@ public sealed class TeamDetailsTests
         Assert.True(await TeamModifiedDateAsync(slug) > before);
     }
 
+    // --- US2: the description ------------------------------------------------------------------------
+
+    [Fact]
+    public async Task A_description_keeps_its_line_breaks_and_every_signed_in_viewer_reads_it()
+    {
+        var admin = await NewUserAsync();
+        var slug = await CreateTeamAsync(admin);
+        const string text = "Gegründet 2019 in Altona.\n\nWir trainieren dienstags und donnerstags.";
+
+        var resp = await SaveAsync(admin, slug, Details("Rheinfeuer", description: "  " + text + "\n "));
+
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        Assert.Equal(text, (await resp.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("description").GetString());
+        Assert.Equal(text, (await DetailAsync(admin, slug)).GetProperty("description").GetString());
+        // Not a member: the public page carries it (FR-014).
+        var outsider = await NewUserAsync();
+        Assert.Equal(text, (await PublicAsync(outsider, slug)).GetProperty("description").GetString());
+    }
+
+    [Fact]
+    public async Task A_blank_description_is_no_description_and_emptying_one_clears_it()
+    {
+        var admin = await NewUserAsync();
+        var slug = await CreateTeamAsync(admin);
+        (await SaveAsync(admin, slug, Details("Rheinfeuer", description: "Wir."))).EnsureSuccessStatusCode();
+
+        (await SaveAsync(admin, slug, Details("Rheinfeuer", description: "   \n  "))).EnsureSuccessStatusCode();
+
+        Assert.Equal(JsonValueKind.Null, (await DetailAsync(admin, slug)).GetProperty("description").ValueKind);
+        Assert.Null(await HomeTestSupport.WithDbAsync(_factory, db =>
+            db.Teams.AsNoTracking().Where(t => t.Slug == slug).Select(t => t.Description).SingleAsync()));
+    }
+
+    [Fact]
+    public async Task A_description_over_1000_characters_is_refused()
+    {
+        var admin = await NewUserAsync();
+        var slug = await CreateTeamAsync(admin);
+        (await SaveAsync(admin, slug, Details("Rheinfeuer", description: "Wir."))).EnsureSuccessStatusCode();
+
+        await AssertRefusedAsync(await SaveAsync(admin, slug, Details("Rheinfeuer", description: new string('a', 1001))), "descriptionTooLong");
+
+        Assert.Equal("Wir.", (await DetailAsync(admin, slug)).GetProperty("description").GetString());
+        Assert.Equal(HttpStatusCode.OK, (await SaveAsync(admin, slug, Details("Rheinfeuer", description: new string('a', 1000)))).StatusCode);
+    }
+
+    [Fact]
+    public async Task A_new_team_has_no_description_and_no_links()
+    {
+        var admin = await NewUserAsync();
+        var slug = await CreateTeamAsync(admin);
+
+        var detail = await DetailAsync(admin, slug);
+        var outsider = await NewUserAsync();
+        var page = await PublicAsync(outsider, slug);
+
+        Assert.Equal(JsonValueKind.Null, detail.GetProperty("description").ValueKind);
+        Assert.Empty(detail.GetProperty("links").EnumerateArray());
+        Assert.Equal(JsonValueKind.Null, page.GetProperty("description").ValueKind);
+        Assert.Empty(page.GetProperty("links").EnumerateArray());
+    }
+
+    // --- US3: links ----------------------------------------------------------------------------------
+
+    [Fact]
+    public async Task Links_are_kept_in_order_normalised_and_shown_to_every_viewer()
+    {
+        var admin = await NewUserAsync();
+        var slug = await CreateTeamAsync(admin);
+
+        var resp = await SaveAsync(admin, slug, Details("Rheinfeuer", links:
+        [
+            new { label = "Website", url = "https://rheinfeuer.de" },
+            new { label = " Instagram ", url = "instagram.com/rheinfeuer" },
+            new { label = "Discord", url = "https://discord.gg/abc123" },
+        ]));
+
+        Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
+        string[] expected = ["Website|https://rheinfeuer.de/", "Instagram|https://instagram.com/rheinfeuer", "Discord|https://discord.gg/abc123"];
+        Assert.Equal(expected, Links(await resp.Content.ReadFromJsonAsync<JsonElement>()));
+        Assert.Equal(expected, Links(await DetailAsync(admin, slug)));
+        var outsider = await NewUserAsync();
+        Assert.Equal(expected, Links(await PublicAsync(outsider, slug)));
+    }
+
+    [Theory]
+    [InlineData("Blog", "http://rheinfeuer.de", "linkUrlInvalid")]
+    [InlineData("Blog", "javascript:alert(1)", "linkUrlInvalid")]
+    [InlineData("Mail", "mailto:team@rheinfeuer.de", "linkUrlInvalid")]
+    [InlineData("Instagram", "https://instagram.com@example.net", "linkUrlInvalid")]
+    [InlineData("", "https://blog.rheinfeuer.de", "linkLabelInvalid")]
+    [InlineData("1234567890123456789012345678901", "https://blog.rheinfeuer.de", "linkLabelInvalid")]
+    [InlineData("Again", "RHEINFEUER.de", "linkDuplicate")]
+    public async Task A_bad_link_is_refused_by_name_and_nothing_is_stored(string label, string url, string code)
+    {
+        var admin = await NewUserAsync();
+        var slug = await CreateTeamAsync(admin);
+        (await SaveAsync(admin, slug, Details("Rheinfeuer", links: [new { label = "Website", url = "https://rheinfeuer.de" }])))
+            .EnsureSuccessStatusCode();
+
+        var resp = await SaveAsync(admin, slug, Details("Rheinfeuer", links:
+        [
+            new { label = "Website", url = "https://rheinfeuer.de" },
+            new { label, url },
+        ]));
+
+        await AssertRefusedAsync(resp, code, link: 1);
+        Assert.Equal(["Website|https://rheinfeuer.de/"], Links(await DetailAsync(admin, slug)));
+    }
+
+    [Fact]
+    public async Task Six_links_are_refused()
+    {
+        var admin = await NewUserAsync();
+        var slug = await CreateTeamAsync(admin);
+        var six = Enumerable.Range(1, 6).Select(i => (object)new { label = $"Link {i}", url = $"https://site{i}.example" }).ToArray();
+
+        await AssertRefusedAsync(await SaveAsync(admin, slug, Details("Rheinfeuer", links: six)), "tooManyLinks");
+        Assert.Equal(HttpStatusCode.OK, (await SaveAsync(admin, slug, Details("Rheinfeuer", links: six[..5]))).StatusCode);
+    }
+
+    [Fact]
+    public async Task A_save_replaces_the_links_as_a_whole()
+    {
+        var admin = await NewUserAsync();
+        var slug = await CreateTeamAsync(admin);
+        (await SaveAsync(admin, slug, Details("Rheinfeuer", links:
+        [
+            new { label = "A", url = "https://a.example" },
+            new { label = "B", url = "https://b.example" },
+            new { label = "C", url = "https://c.example" },
+        ]))).EnsureSuccessStatusCode();
+
+        (await SaveAsync(admin, slug, Details("Rheinfeuer", links:
+        [
+            new { label = "C", url = "https://c.example" },
+            new { label = "A", url = "https://a.example" },
+        ]))).EnsureSuccessStatusCode();
+
+        Assert.Equal(["C|https://c.example/", "A|https://a.example/"], Links(await DetailAsync(admin, slug)));
+
+        (await SaveAsync(admin, slug, Details("Rheinfeuer", links: []))).EnsureSuccessStatusCode();
+        Assert.Empty(Links(await DetailAsync(admin, slug)));
+    }
+
+    [Fact]
+    public async Task Deleting_the_team_takes_its_links_with_it()
+    {
+        var admin = await NewUserAsync();
+        var slug = await CreateTeamAsync(admin);
+        (await SaveAsync(admin, slug, Details("Rheinfeuer", links: [new { label = "Website", url = "https://rheinfeuer.de" }])))
+            .EnsureSuccessStatusCode();
+        var teamId = await HomeTestSupport.WithDbAsync(_factory, db =>
+            db.Teams.AsNoTracking().Where(t => t.Slug == slug).Select(t => t.Id).SingleAsync());
+
+        (await admin.Client.DeleteAsync($"/api/v1/teams/{slug}")).EnsureSuccessStatusCode();
+
+        Assert.Equal(0, await HomeTestSupport.WithDbAsync(_factory, db => db.TeamLinks.CountAsync(l => l.TeamId == teamId)));
+    }
+
+    private static List<string> Links(JsonElement team) =>
+        team.GetProperty("links").EnumerateArray()
+            .Select(l => $"{l.GetProperty("label").GetString()}|{l.GetProperty("url").GetString()}")
+            .ToList();
+
     // --- helpers -------------------------------------------------------------------------------------
 
     private sealed record Player(HttpClient Client, Guid Id, string Handle, string Email);

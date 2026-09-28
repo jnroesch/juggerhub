@@ -22,6 +22,7 @@ import { TeamService } from '../../../core/services/team.service';
 import { PartyService } from '../../../core/services/party.service';
 import { PartyRequestCard } from '../../../core/models/party.models';
 import { problemDetail } from '../../../core/utils/problem';
+import { linkHost } from '../../../core/utils/link-host';
 import { RecognitionDisplayComponent } from '../../profile/components/recognition-display/recognition-display.component';
 import { TeamHappeningsComponent } from './happenings/team-happenings.component';
 import { TeamPlacementsComponent } from './placements/team-placements.component';
@@ -448,6 +449,9 @@ export class TeamDetailComponent {
   protected logoUrl(slug: string): string {
     return this.teams.logoUrl(slug);
   }
+
+  /** Feature 061 — the site each link leads to, shown beside its label (FR-017). */
+  protected readonly linkHost = linkHost;
 
   /** Public roster rows for the non-member view. */
   protected readonly publicRoster = computed<PublicMember[]>(() => this.pub()?.roster ?? []);

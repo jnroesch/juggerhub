@@ -166,17 +166,17 @@ page to every signed-in viewer (FR-013, FR-014).
 **Independent test**: save a description with a line break, open the page as a non-member, see
 it verbatim, clear it, and see the card disappear.
 
-- [ ] T022 [P] [US2] Add facts to `TeamDetailsTests.cs`:
+- [X] T022 [P] [US2] Add facts to `TeamDetailsTests.cs`:
   - a description with a line break round-trips, and appears in `/public` for a signed-in **non-member** and in the members' detail;
   - `"   \n  "` ⇒ `description == null`;
   - 1001 characters ⇒ 400 `descriptionTooLong`, nothing changed;
   - emptying clears it.
-- [ ] T023 [US2] In the settings Team details section, add a description textarea (`rows=5`, `maxlength=1000`, a live character counter in `caption`/`text-muted`, and the hint "plain text, line breaks kept"). Map `descriptionTooLong`. Extend the settings spec: the body carries the trimmed text, and blank sends `null`.
-- [ ] T024 [US2] In `frontend/apps/web/src/app/features/teams/team-detail/team-detail.component.html`, add the **About** `jh-card` (`data-testid="about"`, `h2` `teams.detail.about`). It goes at the top of the main column, after the join-queue block and before the roster, and renders only when `team.description || team.links.length`. The description is a `<p class="whitespace-pre-line break-words text-body-md text-body">` with interpolation only. Extend `team-detail.component.spec.ts`:
+- [X] T023 [US2] *(Built together with T018 — the section was laid out once.)* In the settings Team details section, add a description textarea (`rows=5`, `maxlength=1000`, a live character counter in `caption`/`text-muted`, and the hint "plain text, line breaks kept"). Map `descriptionTooLong`. Extend the settings spec: the body carries the trimmed text, and blank sends `null`.
+- [X] T024 [US2] In `frontend/apps/web/src/app/features/teams/team-detail/team-detail.component.html`, add the **About** `jh-card` (`data-testid="about"`, `h2` `teams.detail.about`). It goes at the top of the main column, after the join-queue block and before the roster, and renders only when `team.description || team.links.length`. The description is a `<p class="whitespace-pre-line break-words text-body-md text-body">` with interpolation only. Extend `team-detail.component.spec.ts`:
   - the card shows for a non-member;
   - text containing `<b>x</b>` and `https://x.de` renders as literal text, with no `b` element and no `a` element inside the paragraph;
   - there is no card when both the description and the links are empty.
-- [ ] T025 [US2] Add the keys `teams.detail.about` and `teams.details.{description,descriptionHint,descriptionCount}` and `teams.details.errors.descriptionTooLong` to all three catalogues. German *Über das Team*, Spanish *Sobre el equipo*.
+- [X] T025 [US2] *(All of the feature's keys went in with T020, in one change to the three catalogues.)* Add the keys `teams.detail.about` and `teams.details.{description,descriptionHint,descriptionCount}` and `teams.details.errors.descriptionTooLong` to all three catalogues. German *Über das Team*, Spanish *Sobre el equipo*.
 
 **Checkpoint**: commit `feat(061): teams have a description (#321)`.
 
@@ -191,18 +191,18 @@ with their real host (FR-015–FR-019).
 a new tab. `http`, `javascript`, a sixth link and a user-info disguise are each refused with a
 reason.
 
-- [ ] T026 [P] [US3] Add facts to `TeamDetailsTests.cs`:
+- [X] T026 [P] [US3] Add facts to `TeamDetailsTests.cs`:
   - three links are saved in order, and `instagram.com/x` comes back as `https://instagram.com/x`;
   - each of `http://…`, `javascript:alert(1)`, `mailto:…`, `https://instagram.com@example.net`, a duplicate, an empty label, a 31-character label and six links ⇒ 400 with the right `code` and `link` index, and nothing stored;
   - a second save replaces the list as a whole (fewer links, new order);
   - `/public` carries the links for a non-member;
   - `DELETE /teams/{slug}` leaves no `TeamLinks` rows (cascade).
-- [ ] T027 [P] [US3] Create `frontend/apps/web/src/app/core/utils/link-host.ts`: `linkHost(url: string): string` returns `new URL(url).host` with a leading `www.` removed, or `''` when it cannot parse. Add `link-host.spec.ts`:
+- [X] T027 [P] [US3] Create `frontend/apps/web/src/app/core/utils/link-host.ts`: `linkHost(url: string): string` returns `new URL(url).host` with a leading `www.` removed, or `''` when it cannot parse. Add `link-host.spec.ts`:
   - `https://www.instagram.com/x` ⇒ `instagram.com`;
   - an IDN host (Cyrillic `і`) ⇒ the `xn--` form;
   - `https://a.de:8443/x` keeps the port;
   - garbage ⇒ `''`.
-- [ ] T028 [US3] Add the links editor to the settings Team details section:
+- [X] T028 [US3] *(Built together with T018 — the section was laid out once.)* Add the links editor to the settings Team details section:
   - a `FormArray` (or a signal list) of `{label, url}` rows, each a label input (`maxlength=30`) and an address input (`type="url"`, `inputmode="url"`, placeholder `https://…`), **stacked on narrow screens and side by side from `sm`**, with a remove icon button (`jh-icon x`, with an `aria-label`);
   - an **Add link** secondary button, disabled at five (the count is a signal);
   - rows sent in order;
@@ -210,12 +210,12 @@ reason.
   - maps `tooManyLinks`/`linkLabelInvalid`/`linkUrlInvalid`/`linkDuplicate`.
 
   Extend the settings spec: add/remove rows, the disabled state at five, the body order, and the row highlighting from `link: 1`.
-- [ ] T029 [US3] In the About card, render the links as a list below the description. Each row is `<a [href]="l.url" target="_blank" rel="noopener noreferrer nofollow ugc">` with the label `underline break-words`, `jh-icon name="external-link" size="sm"`, an `sr-only` *(opens in a new tab)*, and `linkHost(l.url)` in `text-caption text-muted break-all`. Extend `team-detail.component.spec.ts`:
+- [X] T029 [US3] In the About card, render the links as a list below the description. Each row is `<a [href]="l.url" target="_blank" rel="noopener noreferrer nofollow ugc">` with the label `underline break-words`, `jh-icon name="external-link" size="sm"`, an `sr-only` *(opens in a new tab)*, and `linkHost(l.url)` in `text-caption text-muted break-all`. Extend `team-detail.component.spec.ts`:
   - the exact `rel`/`target` values;
   - the host text;
   - the order;
   - a card with links but no description renders without an empty paragraph.
-- [ ] T030 [US3] Add the keys `teams.details.{links,linksHint,linkLabel,linkUrl,addLink,removeLink,linksMax}`, `teams.details.errors.{tooManyLinks,linkLabelInvalid,linkUrlInvalid,linkDuplicate}` and `teams.detail.{links,opensInNewTab}` to all three catalogues. German *Links*, *Link hinzufügen*, *Bezeichnung*, *Adresse*.
+- [X] T030 [US3] Add the keys `teams.details.{links,linksHint,linkLabel,linkUrl,addLink,removeLink,linksMax}`, `teams.details.errors.{tooManyLinks,linkLabelInvalid,linkUrlInvalid,linkDuplicate}` and `teams.detail.{links,opensInNewTab}` to all three catalogues. German *Links*, *Link hinzufügen*, *Bezeichnung*, *Adresse*.
 
 **Checkpoint**: commit `feat(061): teams list up to five links (#359)`.
 

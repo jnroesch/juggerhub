@@ -675,3 +675,91 @@ describe('TeamDetailComponent — the team chat and the member card (feature 060
     expect(navigate).toHaveBeenCalledWith(['/chat', 'contact', 'team', detail('Member').id], { state: { name: 'Rheinfeuer' } });
   });
 });
+/**
+ * Feature 061 — the About card: the team's description and links, for every viewer of the page.
+ * What only the page can get wrong: the text is shown as text (never markup, never a link), the
+ * links open outside the app with no hold on this page (`noopener`) and no referrer
+ * (`noreferrer`), each beside the site it really leads to, and nothing at all is drawn for a team
+ * that has neither.
+ */
+describe('TeamDetailComponent — about the team (feature 061)', () => {
+  function render(overrides: Partial<TeamPublicDetail>, relation: TeamViewerRelation = 'NonMember'): ComponentFixture<TeamDetailComponent> {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [TeamDetailComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        ...translocoLocaleTestingProviders(),
+        {
+          provide: TeamService,
+          useValue: {
+            getPublicDetail: jest.fn().mockReturnValue(of({ ...detail(relation), ...overrides })),
+            getMembers: jest.fn().mockReturnValue(of(page([]))),
+            getNews: jest.fn().mockReturnValue(of(page([]))),
+            getHappenings: jest.fn().mockReturnValue(of([])),
+            getJoinRequests: jest.fn().mockReturnValue(of(page([]))),
+            logoUrl: jest.fn().mockReturnValue('/api/v1/teams/rheinfeuer/logo'),
+          },
+        },
+        { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        { provide: ChatService, useValue: { openTeamChat: jest.fn() } },
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
+      ],
+    });
+    const fixture = TestBed.createComponent(TeamDetailComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  function query(fixture: ComponentFixture<TeamDetailComponent>, testId: string): HTMLElement | null {
+    return fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
+  }
+
+  it('shows the description to a player who is not on the team, as plain text with its line breaks', () => {
+    const text = 'Gegründet 2019.\n\n<b>Stark</b> — mehr auf https://rheinfeuer.de';
+    const fixture = render({ description: text });
+
+    const paragraph = query(fixture, 'about-description');
+    expect(query(fixture, 'about')).not.toBeNull();
+    expect(paragraph?.textContent).toBe(text);
+    // Never markup, never a link: the address in the text stays text (FR-014).
+    expect(paragraph?.querySelector('b')).toBeNull();
+    expect(paragraph?.querySelector('a')).toBeNull();
+    expect(paragraph?.className).toContain('whitespace-pre-line');
+  });
+
+  it('draws nothing for a team with neither a description nor links', () => {
+    const fixture = render({ description: null, links: [] }, 'Member');
+    expect(query(fixture, 'about')).toBeNull();
+  });
+
+  it('lists the links in order, each opening outside the app beside the site it leads to', () => {
+    const fixture = render({
+      description: null,
+      links: [
+        { label: 'Website', url: 'https://www.rheinfeuer.de/' },
+        { label: 'Instagram', url: 'https://instagram.com/rheinfeuer' },
+      ],
+    });
+
+    const links = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="about-link"]')) as HTMLAnchorElement[];
+    expect(links.map((a) => a.getAttribute('href'))).toEqual(['https://www.rheinfeuer.de/', 'https://instagram.com/rheinfeuer']);
+    expect(links.map((a) => a.textContent)).toEqual([expect.stringContaining('Website'), expect.stringContaining('Instagram')]);
+    for (const a of links) {
+      expect(a.getAttribute('target')).toBe('_blank');
+      expect(a.getAttribute('rel')).toBe('noopener noreferrer nofollow ugc');
+      expect(a.textContent).toContain('(opens in a new tab)');
+    }
+    const hosts = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="about-link-host"]')) as HTMLElement[];
+    expect(hosts.map((h) => h.textContent)).toEqual(['rheinfeuer.de', 'instagram.com']);
+    // Links without a description: no empty paragraph above them.
+    expect(query(fixture, 'about-description')).toBeNull();
+  });
+
+  it('shows a label that says one site beside the site the link really goes to', () => {
+    const fixture = render({ description: null, links: [{ label: 'Instagram', url: 'https://іnstagram.com/x' }] });
+    expect(query(fixture, 'about-link-host')?.textContent?.startsWith('xn--')).toBe(true);
+  });
+});
