@@ -228,13 +228,13 @@ reason.
 **Independent test**: create a team with a description (the page shows it). Create one skipping
 the step (no `PUT` sent, no description).
 
-- [ ] T031 [P] [US4] Extend `frontend/apps/web/src/app/features/teams/team-create/team-create.component.spec.ts`:
+- [X] T031 [P] [US4] Extend `frontend/apps/web/src/app/features/teams/team-create/team-create.component.spec.ts`:
   - after the logo step comes `about`; its button reads Skip while blank and Continue once text is typed;
   - Skip goes to `invite` with **no** `updateDetails` call;
   - Continue with text calls `updateDetails(slug, { name, type, location, description, links: [] })` built from the create response (a City team sends the created city's external id);
   - a failure keeps the text, shows the translated error and offers a secondary Skip;
   - the step count is 6.
-- [ ] T032 [US4] Implement it in `frontend/apps/web/src/app/features/teams/team-create/team-create.component.{ts,html}`:
+- [X] T032 [US4] Implement it in `frontend/apps/web/src/app/features/teams/team-create/team-create.component.{ts,html}`:
   - `STEPS` gains `'about'` between `'logo'` and `'invite'`;
   - `continueFromLogo()` goes to `'about'`;
   - a `createdTeam` signal is set beside the `createdSlug` latch;
@@ -244,8 +244,8 @@ the step (no `PUT` sent, no description).
   - the step markup: `h1` + subtitle, the textarea (`maxlength=1000`, counter), the primary button (`skip`/`next`/`saving` labels), and a secondary Skip when `aboutFailed()`.
 
   Update the class comment's step list.
-- [ ] T033 [US4] Add the keys `teams.create.{aboutTitle,aboutSubtitle,aboutPlaceholder,aboutSaving,aboutFailed}` to all three catalogues.
-- [ ] T034 [US4] Add an amendment callout to `specs/052-team-creation-wizard/spec.md`: *Amended by 061: a sixth, optional step (the team's description) sits between the logo and invite steps.*
+- [X] T033 [US4] *(Went in with T020.)* Add the keys `teams.create.{aboutTitle,aboutSubtitle,aboutPlaceholder,aboutSaving,aboutFailed}` to all three catalogues.
+- [X] T034 [US4] Add an amendment callout to `specs/052-team-creation-wizard/spec.md`: *Amended by 061: a sixth, optional step (the team's description) sits between the logo and invite steps.*
 
 **Checkpoint**: commit `feat(061): the creation wizard asks for a description (#321)`.
 

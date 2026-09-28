@@ -8,6 +8,12 @@
 
 **Input**: User description: "Creating a team should follow the multi step wizard that we use during onboarding and Event creation. We should optionally allow to upload the logo and maybe move the description to that screen so it matches the user onboarding. We should then have an optional step to search for and invite users" (GitHub #320)
 
+> **Amended by feature 061 (2026-09-28) — a sixth, optional step: the team's description.** The
+> description this wizard could not relocate (it did not exist, GH #321) now exists, and the wizard
+> asks for it after the logo step and before the invite step. It is skippable, and skipping sends
+> nothing. It saves through `PUT /teams/{slug}/details`, resending what the create recorded. See
+> `specs/061-team-details/spec.md` (US4, FR-020–FR-022).
+
 ## Context
 
 Every other "create" flow in the product asks one calm question per screen. Onboarding (004) walks

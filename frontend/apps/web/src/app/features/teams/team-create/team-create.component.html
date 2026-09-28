@@ -189,7 +189,35 @@
         </div>
       }
 
-      <!-- 5. Invite — optional, and the last thing before the team page. The shared link comes
+      <!-- 5. About — optional (feature 061, GH #321): a few words about the team, saved before the
+           invite step so the people invited next already find it on the team page. The
+           description only; links are added in Manage team. -->
+      @case ('about') {
+        <div [animate.enter]="stepEnter()" class="space-y-md" data-testid="team-about-step">
+          <div>
+            <h1 class="text-h3">{{ 'teams.create.aboutTitle' | transloco }}</h1>
+            <p class="text-body-md text-muted">{{ 'teams.create.aboutSubtitle' | transloco }}</p>
+          </div>
+
+          <div>
+            <label for="team-about" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.details.description' | transloco }}</label>
+            <textarea id="team-about" rows="6" maxlength="1000" data-testid="wizard-about"
+              [value]="aboutText()" (input)="aboutText.set($any($event.target).value)"
+              [placeholder]="'teams.details.descriptionPlaceholder' | transloco"
+              class="mt-xs w-full resize-y rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast placeholder:text-muted focus:border-border-focus focus:ring-2 focus:ring-focus"></textarea>
+            <p class="mt-2xs flex items-baseline justify-between gap-sm text-caption text-muted">
+              <span>{{ 'teams.details.descriptionHint' | transloco }}</span>
+              <span class="shrink-0 font-mono">{{ aboutText().length }}/1000</span>
+            </p>
+          </div>
+
+          @if (aboutFailed()) {
+            <jh-alert data-testid="wizard-about-error">{{ 'teams.create.aboutFailed' | transloco }}</jh-alert>
+          }
+        </div>
+      }
+
+      <!-- 6. Invite — optional, and the last thing before the team page. The shared link comes
            first: it is the only one of the two that reaches somebody who has no account yet,
            since the search below can only find players who do. -->
       @case ('invite') {
@@ -240,6 +268,18 @@
                two names for it. The label is honest about which one this is. -->
           <button type="button" (click)="continueFromLogo()" [disabled]="uploadingLogo()" data-testid="team-logo-next"
             jhButton>{{ (hasLogo() ? 'teams.create.next' : 'teams.create.skip') | transloco }}</button>
+        }
+        @case ('about') {
+          <!-- One control, like the logo step: with nothing typed, skipping and continuing are the
+               same move. Only after a failed save are they two, so only then is Skip its own button. -->
+          <span class="flex flex-wrap items-center justify-end gap-sm">
+            @if (aboutFailed()) {
+              <button type="button" (click)="skipAbout()" [disabled]="savingAbout()" data-testid="team-about-skip"
+                jhButton variant="secondary">{{ 'teams.create.skip' | transloco }}</button>
+            }
+            <button type="button" (click)="continueFromAbout()" [disabled]="savingAbout()" data-testid="team-about-next"
+              jhButton>{{ (savingAbout() ? 'teams.details.saving' : aboutText().trim() ? 'teams.create.next' : 'teams.create.skip') | transloco }}</button>
+          </span>
         }
         @case ('invite') {
           <button type="button" (click)="finish()" data-testid="team-finish"

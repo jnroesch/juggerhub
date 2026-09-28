@@ -7,7 +7,7 @@ import { TranslocoPipe } from '@jsverse/transloco';
 import { AlertComponent, ButtonDirective, IconComponent, stepMotion } from '../../../shared/ui';
 import { LowercaseInputDirective } from '../../../shared/ui/lowercase-input/lowercase-input.directive';
 import { EMPTY, catchError, debounceTime, distinctUntilChanged, of, switchMap, tap } from 'rxjs';
-import { SlugAvailability, TeamType } from '../../../core/models/team.models';
+import { SlugAvailability, TeamDetail, TeamType } from '../../../core/models/team.models';
 import { CityOption, toSelection } from '../../../core/models/city.models';
 import { IDENTIFIER_MAX_LENGTH, IDENTIFIER_MIN_LENGTH } from '../../../core/models/identifier.models';
 import { MembershipService } from '../../../core/services/membership.service';
@@ -19,29 +19,29 @@ import { InviteSearchComponent } from '../components/invite-search/invite-search
 
 /**
  * Which screen of the wizard is showing. The first three are answered before anything exists;
- * the last two act on a team that has already been created.
+ * the last three act on a team that has already been created.
  */
-type Step = 'basics' | 'type' | 'review' | 'logo' | 'invite';
+type Step = 'basics' | 'type' | 'review' | 'logo' | 'about' | 'invite';
 
-const STEPS: readonly Step[] = ['basics', 'type', 'review', 'logo', 'invite'];
+const STEPS: readonly Step[] = ['basics', 'type', 'review', 'logo', 'about', 'invite'];
 
 /**
  * US1 — create a team, as a guided wizard (feature 052, GH #320), in the same calm
  * one-question-per-screen style as onboarding and event creation: name & team handle (with live
- * availability, like the @handle), then type & city, then a review, then two optional steps —
- * a logo, and inviting people, by the team's shared link or by searching for players. The
- * creator becomes the first admin and lands on the team page.
+ * availability, like the @handle), then type & city, then a review, then three optional steps —
+ * a logo, a few words about the team (feature 061), and inviting people, by the team's shared
+ * link or by searching for players. The creator becomes the first admin and lands on the team page.
  *
  * ## The team is created in the middle, and that is the whole design
  *
- * Both optional steps act on capabilities addressed by the team's handle and permitted only to
- * its admins (`PUT /teams/{slug}/logo`, `/teams/{slug}/invitations/*`), so neither can run
+ * The optional steps act on capabilities addressed by the team's handle and permitted only to
+ * its admins (`PUT /teams/{slug}/logo`, `PUT /teams/{slug}/details`, `/teams/{slug}/invitations/*`), so none can run
  * against a team that does not exist yet. The team is therefore created from the **review**
  * step, and {@link createdSlug} is the latch that records it.
  *
  * Everything about the second half derives from that one signal rather than from
- * `stepIndex >= 3`: the Back control is not rendered once it is set, neither optional step can
- * be entered without it, and both finish by navigating to the team. The team handle is
+ * `stepIndex >= 3`: the Back control is not rendered once it is set, no optional step can
+ * be entered without it, and they all finish by navigating to the team. The team handle is
  * `init`-only on the server — immutable once created — so there is genuinely nothing behind
  * Back to return to, and deriving that from *the team existing* keeps it one fact instead of a
  * convention three places have to agree about.
@@ -94,6 +94,13 @@ export class TeamCreateComponent {
    */
   protected readonly createdSlug = signal<string | null>(null);
 
+  /**
+   * Feature 061 — the created team as the server recorded it, set together with the latch. The
+   * about step saves through the details endpoint, which replaces name, type and city too; it
+   * resends exactly these, so the description is the only thing that step can change.
+   */
+  private readonly createdTeam = signal<TeamDetail | null>(null);
+
   protected readonly type = signal<TeamType>('CityTeam');
   protected readonly slugStatus = signal<SlugAvailability | null>(null);
   protected readonly checkingSlug = signal(false);
@@ -103,6 +110,12 @@ export class TeamCreateComponent {
   protected readonly error = signal<string | null>(null);
   // Feature 030 — structured city selection (only relevant for a CityTeam).
   protected readonly selectedCity = signal<CityOption | null>(null);
+
+  // --- About step (feature 061) ------------------------------------------------
+  // Signals, not a form control: the step is outside the create payload, and the app is zoneless.
+  protected readonly aboutText = signal('');
+  protected readonly savingAbout = signal(false);
+  protected readonly aboutFailed = signal(false);
 
   // --- Logo step (feature 051's capability, offered here) --------------------
   protected readonly uploadingLogo = signal(false);
@@ -235,6 +248,9 @@ export class TeamCreateComponent {
       case 'logo':
         this.continueFromLogo();
         return;
+      case 'about':
+        this.continueFromAbout();
+        return;
       case 'invite':
         this.finish();
         return;
@@ -320,6 +336,7 @@ export class TeamCreateComponent {
           this.membership.load();
           this.submitting.set(false);
           this.createdSlug.set(team.slug);
+          this.createdTeam.set(team);
           this.step.set('logo');
         },
         error: (err: HttpErrorResponse) => {
@@ -379,6 +396,55 @@ export class TeamCreateComponent {
   /** Leave an optional step. Carries no state: skipping and continuing are the same move. */
   protected continueFromLogo(): void {
     this.error.set(null);
+    this.step.set('about');
+  }
+
+  /**
+   * Feature 061 — leave the about step. Nothing typed means nothing sent (FR-021): skipping and
+   * continuing are then the same move, as on the logo step. With text, it is saved first through
+   * the details endpoint, resending the name, type and city the server just recorded — so nothing
+   * but the description can change — with no links (the team has none yet).
+   *
+   * **Never retried automatically** (a mutation on the browser hop, Principle VII). A failure keeps
+   * the text, says so in the reader's words, and offers Skip beside Continue — the one moment the
+   * two are different moves (FR-022). The team itself was created two steps ago and is untouched.
+   */
+  protected continueFromAbout(): void {
+    const team = this.createdTeam();
+    const description = this.aboutText().trim();
+    if (this.savingAbout()) {
+      return;
+    }
+    if (!team || !description) {
+      this.skipAbout();
+      return;
+    }
+
+    this.savingAbout.set(true);
+    this.aboutFailed.set(false);
+    this.teams
+      .updateDetails(team.slug, {
+        name: team.name,
+        type: team.type,
+        location: team.location ? { cityExternalId: team.location.externalId, name: team.location.name } : null,
+        description,
+        links: [],
+      })
+      .subscribe({
+        next: () => {
+          this.savingAbout.set(false);
+          this.step.set('invite');
+        },
+        error: () => {
+          this.savingAbout.set(false);
+          this.aboutFailed.set(true);
+        },
+      });
+  }
+
+  /** Feature 061 — go on without the description. Offered as its own button only after a failure. */
+  protected skipAbout(): void {
+    this.aboutFailed.set(false);
     this.step.set('invite');
   }
 
