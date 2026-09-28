@@ -187,6 +187,13 @@ public sealed record InquiryMessageSentDto(ConversationSummaryDto Conversation, 
 /// </summary>
 public sealed record InquiryThreadRefDto(Guid? ConversationId);
 
+/// <summary>
+/// A team's own chat, for the "Team chat" button on the team page (feature 060). Never null: a caller
+/// who may not open it gets a 404, not an empty reference. The id and nothing else — no name, members
+/// or unread count (spec FR-006).
+/// </summary>
+public sealed record TeamChatRefDto(Guid ConversationId);
+
 // --- Requests -------------------------------------------------------------------------------
 
 /// <summary>Start a chat: exactly one participant ⇒ a direct conversation; two or more ⇒ a named group.</summary>

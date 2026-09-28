@@ -189,6 +189,11 @@ export interface InquiryThreadRef {
   readonly conversationId: string | null;
 }
 
+/** A team's own chat, for the team page's "Team chat" button (feature 060). A non-member gets a 404, never a null id. */
+export interface TeamChatRef {
+  readonly conversationId: string;
+}
+
 export interface BlockedUser {
   readonly userId: string;
   readonly displayName: string;

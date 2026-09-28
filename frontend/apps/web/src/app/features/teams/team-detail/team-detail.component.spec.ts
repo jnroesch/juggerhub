@@ -1,9 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, ParamMap, convertToParamMap, provideRouter } from '@angular/router';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
+import { ActivatedRoute, ParamMap, Router, convertToParamMap, provideRouter } from '@angular/router';
+import { BehaviorSubject, Observable, Subject, of, throwError } from 'rxjs';
 import { JoinRequest, TeamMember, TeamNews, TeamPublicDetail, TeamViewerRelation } from '../../../core/models/team.models';
 import { AuthService } from '../../../core/services/auth.service';
+import { ChatService } from '../../../core/services/chat.service';
 import { PartyService } from '../../../core/services/party.service';
 import { ResultsService } from '../../../core/services/results.service';
 import { TeamService } from '../../../core/services/team.service';
@@ -65,6 +66,8 @@ describe('TeamDetailComponent — manage link and own roster row (GH #361)', () 
         { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        // Feature 060 — the team page asks the chat client only when Team chat is pressed.
+        { provide: ChatService, useValue: { openTeamChat: jest.fn() } },
         { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
       ],
     });
@@ -147,6 +150,8 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
         { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        // Feature 060 — the team page asks the chat client only when Team chat is pressed.
+        { provide: ChatService, useValue: { openTeamChat: jest.fn() } },
         { provide: ActivatedRoute, useValue: { paramMap } },
       ],
     });
@@ -387,6 +392,8 @@ describe('TeamDetailComponent — answering join requests (feature 058)', () => 
         { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        // Feature 060 — the team page asks the chat client only when Team chat is pressed.
+        { provide: ChatService, useValue: { openTeamChat: jest.fn() } },
         { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
       ],
     });
@@ -456,6 +463,8 @@ describe('TeamDetailComponent — asking to join fails (feature 058)', () => {
         { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        // Feature 060 — the team page asks the chat client only when Team chat is pressed.
+        { provide: ChatService, useValue: { openTeamChat: jest.fn() } },
         { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
       ],
     });
@@ -491,5 +500,176 @@ describe('TeamDetailComponent — asking to join fails (feature 058)', () => {
   it('says anything else plainly, in its own words', () => {
     const fixture = render();
     expect(ask(fixture, 500)).toBe("We couldn't send your request just now.");
+  });
+});
+
+/**
+ * Feature 060 (GH #362) — the team page's way into the team chat, and where a member's actions live.
+ * The server decides who may open the chat; these pin what the page offers, when it asks, and how it
+ * answers.
+ */
+describe('TeamDetailComponent — the team chat and the member card (feature 060)', () => {
+  let service: Record<string, jest.Mock>;
+  let chat: { openTeamChat: jest.Mock };
+  let navigate: jest.SpyInstance;
+
+  function render(relation: TeamViewerRelation): ComponentFixture<TeamDetailComponent> {
+    TestBed.resetTestingModule();
+    service = {
+      getPublicDetail: jest.fn().mockReturnValue(of(detail(relation))),
+      getMembers: jest.fn().mockReturnValue(of(page([]))),
+      getNews: jest.fn().mockReturnValue(of(page([]))),
+      getHappenings: jest.fn().mockReturnValue(of([])),
+      getJoinRequests: jest.fn().mockReturnValue(of(page([]))),
+      logoUrl: jest.fn().mockReturnValue('/api/v1/teams/rheinfeuer/logo'),
+    };
+    chat = { openTeamChat: jest.fn() };
+    TestBed.configureTestingModule({
+      imports: [TeamDetailComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        ...translocoLocaleTestingProviders(),
+        { provide: TeamService, useValue: service },
+        { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: AuthService, useValue: { currentUser: () => (relation === 'Anonymous' ? null : { id: ME }) } },
+        { provide: ChatService, useValue: chat },
+        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
+      ],
+    });
+    navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    const fixture = TestBed.createComponent(TeamDetailComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const el = (fixture: ComponentFixture<TeamDetailComponent>, selector: string) =>
+    fixture.nativeElement.querySelector(selector) as HTMLElement | null;
+
+  const textOf = (fixture: ComponentFixture<TeamDetailComponent>, testId: string) =>
+    el(fixture, `[data-testid="${testId}"]`)?.textContent?.trim();
+
+  /** Buttons and links beside the team's name — what the page offers at the top. */
+  const headerActions = (fixture: ComponentFixture<TeamDetailComponent>) =>
+    Array.from(fixture.nativeElement.querySelectorAll('header button, header a') as NodeListOf<HTMLElement>).map(
+      (e) => e.getAttribute('data-testid'),
+    );
+
+  function press(fixture: ComponentFixture<TeamDetailComponent>, testId: string): void {
+    el(fixture, `[data-testid="${testId}"]`)!.click();
+    fixture.detectChanges();
+  }
+
+  // --- US1: Team chat -------------------------------------------------------------------------
+
+  it.each(['Admin', 'Member'] as const)('offers Team chat to a %s, in the card', (relation) => {
+    const fixture = render(relation);
+    expect(textOf(fixture, 'team-chat')).toBe('Team chat');
+    expect(el(fixture, '[data-testid="team-tools"] [data-testid="team-chat"]')).not.toBeNull();
+  });
+
+  it.each(['NonMember', 'Requested', 'Anonymous'] as const)('offers no Team chat to a %s viewer', (relation) => {
+    const fixture = render(relation);
+    expect(el(fixture, '[data-testid="team-chat"]')).toBeNull();
+  });
+
+  it('does not look the chat up while the page loads (SC-004)', () => {
+    render('Member');
+    expect(chat.openTeamChat).not.toHaveBeenCalled();
+  });
+
+  it('opens the chat the server names for this team', () => {
+    const fixture = render('Member');
+    chat.openTeamChat.mockReturnValue(of({ conversationId: 'c9' }));
+
+    press(fixture, 'team-chat');
+
+    expect(chat.openTeamChat).toHaveBeenCalledWith(detail('Member').id);
+    expect(navigate).toHaveBeenCalledWith(['/chat', 'c9']);
+  });
+
+  it('shows that it is working and takes no second press', () => {
+    const fixture = render('Member');
+    chat.openTeamChat.mockReturnValue(new Subject());
+
+    press(fixture, 'team-chat');
+    press(fixture, 'team-chat');
+
+    const button = el(fixture, '[data-testid="team-chat"]') as HTMLButtonElement;
+    expect(button.disabled).toBe(true);
+    expect(button.textContent?.trim()).toBe('Opening…');
+    expect(chat.openTeamChat).toHaveBeenCalledTimes(1);
+  });
+
+  it('says the player is no longer on the team, and shows the page as they now see it', () => {
+    const fixture = render('Member');
+    chat.openTeamChat.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
+    service['getPublicDetail'].mockReturnValue(of(detail('NonMember')));
+
+    press(fixture, 'team-chat');
+
+    expect(textOf(fixture, 'team-chat-notice')).toBe("You're no longer on this team.");
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
+    expect(el(fixture, '[data-testid="team-tools"]')).toBeNull();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('says anything else went wrong in its own words, in the card, and can be pressed again', () => {
+    const fixture = render('Member');
+    chat.openTeamChat.mockReturnValue(
+      throwError(() => new HttpErrorResponse({ status: 500, error: { detail: 'Some English server text' } })),
+    );
+
+    press(fixture, 'team-chat');
+
+    expect(el(fixture, '[data-testid="team-tools"] [data-testid="team-chat-error"]')?.textContent?.trim()).toBe(
+      "We couldn't open the team chat just now.",
+    );
+    expect(fixture.nativeElement.textContent).not.toContain('Some English server text');
+    expect((el(fixture, '[data-testid="team-chat"]') as HTMLButtonElement).disabled).toBe(false);
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  // --- US3: a member's actions sit together in the card ---------------------------------------
+
+  it('gives a plain member Team chat, Contact admins and Manage in the card, and nothing at the top', () => {
+    const fixture = render('Member');
+    const card = Array.from(
+      fixture.nativeElement.querySelectorAll('[data-testid="team-tools"] button, [data-testid="team-tools"] a') as NodeListOf<HTMLElement>,
+    ).map((e) => e.getAttribute('data-testid'));
+
+    expect(card).toEqual(['team-chat', 'contact-admins', 'manage-team']);
+    expect(headerActions(fixture)).toEqual([]);
+  });
+
+  it('gives an admin no Contact admins, and nothing at the top', () => {
+    const fixture = render('Admin');
+    expect(el(fixture, '[data-testid="contact-admins"]')).toBeNull();
+    expect(headerActions(fixture)).toEqual([]);
+  });
+
+  it('keeps Contact admins and Request to join at the top for a non-member', () => {
+    const fixture = render('NonMember');
+    expect(headerActions(fixture)).toEqual(['contact-admins', 'request-to-join']);
+    expect(el(fixture, '[data-testid="team-tools"]')).toBeNull();
+  });
+
+  it('keeps a pending request and its withdrawal at the top', () => {
+    const fixture = render('Requested');
+    expect(headerActions(fixture)).toEqual(['contact-admins', 'cancel-request']);
+    expect(el(fixture, '[data-testid="requested"]')).not.toBeNull();
+  });
+
+  it('keeps sign-in-to-join at the top for a signed-out visitor', () => {
+    const fixture = render('Anonymous');
+    expect(headerActions(fixture)).toEqual(['signin-to-join']);
+  });
+
+  it('opens Contact admins from the card exactly as it did from the top', () => {
+    const fixture = render('Member');
+
+    press(fixture, 'contact-admins');
+
+    expect(navigate).toHaveBeenCalledWith(['/chat', 'contact', 'team', detail('Member').id], { state: { name: 'Rheinfeuer' } });
   });
 });

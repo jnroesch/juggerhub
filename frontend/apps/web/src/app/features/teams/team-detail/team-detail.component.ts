@@ -17,6 +17,7 @@ import {
   TeamPublicDetail,
 } from '../../../core/models/team.models';
 import { AuthService } from '../../../core/services/auth.service';
+import { ChatService } from '../../../core/services/chat.service';
 import { TeamService } from '../../../core/services/team.service';
 import { PartyService } from '../../../core/services/party.service';
 import { PartyRequestCard } from '../../../core/models/party.models';
@@ -43,6 +44,7 @@ import { NewsPostEditing } from '../../../shared/news-post/news-post-editing';
 export class TeamDetailComponent {
   private readonly teams = inject(TeamService);
   private readonly parties = inject(PartyService);
+  private readonly chat = inject(ChatService);
   private readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
@@ -94,6 +96,49 @@ export class TeamDetailComponent {
     void this.router.navigate(['/chat', 'contact', 'team', team.id], { state: { name: team.name } });
   }
 
+  // --- The team chat (feature 060) ---------------------------------------------------------------
+
+  protected readonly teamChatBusy = signal(false);
+  /** The chat could not be opened — shown in the card beside the button. A translation key. */
+  protected readonly teamChatError = signal<string | null>(null);
+  /**
+   * The player is no longer on the team. Page level, not in the card: the reload that follows turns
+   * the page into its non-member view, and the card goes with it. A translation key.
+   */
+  protected readonly teamChatNotice = signal<string | null>(null);
+
+  /**
+   * Open the team's own chat. Looked up on the press, never on load (the owner declined an unread
+   * count, which is the only thing a lookup on load would have bought); the server creates the chat
+   * if nobody has opened it yet.
+   */
+  protected openTeamChat(): void {
+    const team = this.pub();
+    if (!team || this.teamChatBusy()) {
+      return;
+    }
+    this.teamChatBusy.set(true);
+    this.teamChatError.set(null);
+    this.teamChatNotice.set(null);
+    this.chat.openTeamChat(team.id).subscribe({
+      next: (ref) => {
+        this.teamChatBusy.set(false);
+        void this.router.navigate(['/chat', ref.conversationId]);
+      },
+      error: (err) => {
+        this.teamChatBusy.set(false);
+        // Branch on the status, never the server's English `detail` (GH #179). A 404 means the
+        // player left or was removed since the page loaded: say so, and show the page as it now is.
+        if (err instanceof HttpErrorResponse && err.status === 404) {
+          this.teamChatNotice.set('teams.detail.teamChatNotMember');
+          this.load();
+          return;
+        }
+        this.teamChatError.set('teams.detail.teamChatFailed');
+      },
+    });
+  }
+
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((pm) => {
       this.slug.set(pm.get('slug') ?? '');
@@ -106,6 +151,9 @@ export class TeamDetailComponent {
       this.joinNotice.set(null);
       this.answerError.set(null);
       this.requestError.set(null);
+      // Feature 060 — likewise for the team chat's notes.
+      this.teamChatNotice.set(null);
+      this.teamChatError.set(null);
       this.load();
     });
   }

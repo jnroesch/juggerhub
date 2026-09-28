@@ -131,6 +131,14 @@ public interface IChatConversationService
     Task<Guid> EnsureForPartyAsync(Guid partyId, CancellationToken ct = default);
 
     /// <summary>
+    /// The team's own chat, for the team page's "Team chat" button (feature 060). A current member gets
+    /// its id — the chat created first if nobody has opened Chat yet, exactly as the inbox would. Anyone
+    /// else gets <see cref="ChatOutcome.NotFound"/>, indistinguishable from a team that does not exist,
+    /// and their request creates nothing for that team.
+    /// </summary>
+    Task<ChatResult<TeamChatRefDto>> OpenTeamChatAsync(Guid callerId, Guid teamId, CancellationToken ct = default);
+
+    /// <summary>
     /// Archive a team's chat before the team row is hard-deleted — a <b>snapshot</b>, not a flag
     /// (data-model R3a).
     /// </summary>

@@ -185,6 +185,25 @@ public sealed class ChatConversationsController : ControllerBase
         return Ok(new InquiryThreadRefDto(id));
     }
 
+    // --- Team chat (feature 060) ----------------------------------------------
+
+    /// <summary>
+    /// The team's own chat, for the team page's "Team chat" button. Creates it if nobody on the team has
+    /// opened Chat yet, as the inbox would. A non-member gets the same 404 as a team that does not
+    /// exist. A <c>GET</c> because asking again returns the same id: the creation is idempotent.
+    /// </summary>
+    [HttpGet("team/{teamId:guid}")]
+    public async Task<ActionResult<TeamChatRefDto>> OpenTeamChat(Guid teamId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _conversations.OpenTeamChatAsync(userId, teamId, ct);
+        return result.IsOk ? Ok(result.Value) : Fail(result.Outcome, result.Error);
+    }
+
     [HttpGet("conversations/{conversationId:guid}")]
     public async Task<ActionResult<ConversationDetailDto>> Detail(Guid conversationId, CancellationToken ct)
     {

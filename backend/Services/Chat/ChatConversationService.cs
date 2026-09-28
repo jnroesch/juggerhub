@@ -578,10 +578,12 @@ public sealed class ChatConversationService : IChatConversationService
     /// </remarks>
     private async Task EnsureAutoChatsForAsync(Guid callerId, CancellationToken ct)
     {
+        // By kind as well as team: a contact-admins thread carries the team's id too, and must not
+        // pass for the team's chat (feature 060 — see FindAutoAsync).
         var teamIds = await _db.TeamMemberships.AsNoTracking()
             .Where(m => m.UserId == callerId)
             .Select(m => m.TeamId)
-            .Where(id => !_db.Conversations.Any(c => c.TeamId == id))
+            .Where(id => !_db.Conversations.Any(c => c.Kind == ConversationKind.Team && c.TeamId == id))
             .ToListAsync(ct);
 
         foreach (var teamId in teamIds)
@@ -592,7 +594,7 @@ public sealed class ChatConversationService : IChatConversationService
         var partyIds = await _db.PartyMembers.AsNoTracking()
             .Where(pm => pm.UserId == callerId && pm.Status == PartyMemberStatus.In)
             .Select(pm => pm.PartyId)
-            .Where(id => !_db.Conversations.Any(c => c.PartyId == id))
+            .Where(id => !_db.Conversations.Any(c => c.Kind == ConversationKind.Party && c.PartyId == id))
             .ToListAsync(ct);
 
         foreach (var partyId in partyIds)
@@ -1026,6 +1028,29 @@ public sealed class ChatConversationService : IChatConversationService
     public Task<Guid> EnsureForPartyAsync(Guid partyId, CancellationToken ct = default) =>
         EnsureAutoAsync(ConversationKind.Party, partyId, ct);
 
+    /// <remarks>
+    /// The order is the design (feature 060, research R2). The chat is created by the inbox's own step,
+    /// which only ever creates the caller's <em>own</em> team and party chats — so this is exactly what
+    /// opening Chat would do, and a non-member's request creates nothing for the team they asked about.
+    /// Access is then <see cref="ChatGuard"/>'s answer and no one else's. Two shortcuts are wrong:
+    /// <see cref="EnsureForTeamAsync"/> on the requested id would let anyone create any team's chat
+    /// (and a made-up id fails its foreign key as a 500), and a roster check here would be a second
+    /// copy of the membership rule the guard exists to hold.
+    /// </remarks>
+    public async Task<ChatResult<TeamChatRefDto>> OpenTeamChatAsync(Guid callerId, Guid teamId, CancellationToken ct = default)
+    {
+        await EnsureAutoChatsForAsync(callerId, ct);
+
+        var conversationId = await FindAutoAsync(ConversationKind.Team, teamId, ct);
+        if (conversationId == Guid.Empty || await _guard.ResolveAsync(conversationId, callerId, ct) is null)
+        {
+            // No such team, no chat, not a member: one answer, so none of them can be told apart.
+            return ChatResult<TeamChatRefDto>.Fail(ChatOutcome.NotFound);
+        }
+
+        return ChatResult<TeamChatRefDto>.Ok(new TeamChatRefDto(conversationId));
+    }
+
     /// <summary>
     /// Materialise a team's/party's chat on first sight. This is the whole of FR-024's "backfill":
     /// no migration writes rows for teams that may never chat — the first roster member to open Chat
@@ -1070,9 +1095,18 @@ public sealed class ChatConversationService : IChatConversationService
         return conversation.Id;
     }
 
+    /// <remarks>
+    /// Matched by kind as well as owner (feature 060). Feature 027's contact-admins threads carry the
+    /// team's id too, so a lookup by <c>TeamId</c> alone could return one of them as "the team chat" —
+    /// and did: a team whose first conversation was a contact-admins thread never got its chat. The
+    /// one-chat-per-team index (<c>AppDbContext</c>) was already scoped to the Team kind; this is the
+    /// service catching up with it.
+    /// </remarks>
     private async Task<Guid> FindAutoAsync(ConversationKind kind, Guid ownerId, CancellationToken ct) =>
         await _db.Conversations.AsNoTracking()
-            .Where(c => kind == ConversationKind.Team ? c.TeamId == ownerId : c.PartyId == ownerId)
+            .Where(c => kind == ConversationKind.Team
+                ? c.Kind == ConversationKind.Team && c.TeamId == ownerId
+                : c.Kind == ConversationKind.Party && c.PartyId == ownerId)
             .Select(c => c.Id)
             .FirstOrDefaultAsync(ct);
 
