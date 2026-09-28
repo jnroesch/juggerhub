@@ -99,11 +99,15 @@
           </div>
         }
 
-        <!-- News -->
-        <div jhCard>
+        <!-- News. overflowVisible: a post's menu drops below its button and must not be cut off at
+             the card's edge under the last post (feature 059). Editing and deleting stay open on a
+             cancelled event, whose page stays readable (FR-015); only posting closes. -->
+        <div jhCard overflowVisible>
           <jh-event-news-feed
-            [news]="news()"
+            [(news)]="news"
+            [eventId]="d.id"
             [canCompose]="d.viewer.isAdmin && !cancelled()"
+            [canManage]="d.viewer.isAdmin"
             [posting]="acting()"
             (post)="postNews($event)" />
         </div>

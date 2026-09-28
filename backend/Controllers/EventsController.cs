@@ -233,7 +233,7 @@ public sealed class EventsController : ControllerBase
         return MapAdmit(await _signups.PromoteAsync(id, signupId, userId, ct));
     }
 
-    // --- News (authenticated read, admin post) --------------------------------
+    // --- News (authenticated read; admin post, edit, delete) -------------------
 
     [HttpGet("{id:guid}/news")]
     public async Task<ActionResult<PagedResult<EventNewsDto>>> GetNews(
@@ -256,6 +256,52 @@ public sealed class EventsController : ControllerBase
         {
             PostNewsStatus.Posted => Created($"/api/v1/events/{id}/news", result.Post),
             PostNewsStatus.Forbidden => Forbidden("Only an event admin can post news."),
+            _ => EventNotFound(),
+        };
+    }
+
+    /// <summary>
+    /// Replace a news post's text (feature 059). Any current event admin, any post; nobody is
+    /// notified. Two different 404s: the event (as reading its news answers) and the post (not in
+    /// this event, including one already deleted).
+    /// </summary>
+    [HttpPatch("{id:guid}/news/{postId:guid}")]
+    public async Task<ActionResult<EventNewsDto>> EditNews(
+        Guid id, Guid postId, [FromBody] EditEventNewsRequest request, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _news.EditAsync(id, postId, userId, request.Body, ct);
+        return result.Status switch
+        {
+            EventNewsEditStatus.Updated => Ok(result.Post),
+            EventNewsEditStatus.Forbidden => Forbidden("Only an event admin can edit news."),
+            EventNewsEditStatus.PostNotFound => NewsPostNotFound(),
+            _ => EventNotFound(),
+        };
+    }
+
+    /// <summary>
+    /// Delete a news post for good (feature 059). Any current event admin, any post; nobody is
+    /// notified. Deleting it again is a 404, not a 204.
+    /// </summary>
+    [HttpDelete("{id:guid}/news/{postId:guid}")]
+    public async Task<IActionResult> DeleteNews(Guid id, Guid postId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var status = await _news.DeleteAsync(id, postId, userId, ct);
+        return status switch
+        {
+            EventNewsDeleteStatus.Deleted => NoContent(),
+            EventNewsDeleteStatus.Forbidden => Forbidden("Only an event admin can delete news."),
+            EventNewsDeleteStatus.PostNotFound => NewsPostNotFound(),
             _ => EventNotFound(),
         };
     }
@@ -520,6 +566,9 @@ public sealed class EventsController : ControllerBase
     private ActionResult EventNotFound() =>
         Problem(statusCode: StatusCodes.Status404NotFound, title: "Event not found",
             detail: "No event matches that address.");
+
+    private ObjectResult NewsPostNotFound() => Problem(statusCode: StatusCodes.Status404NotFound,
+        title: "News post not found", detail: "That post doesn't exist, or was deleted.");
 
     private ObjectResult Forbidden(string detail) =>
         Problem(statusCode: StatusCodes.Status403Forbidden, title: "Forbidden", detail: detail);
