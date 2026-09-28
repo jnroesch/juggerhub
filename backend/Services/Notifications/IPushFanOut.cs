@@ -24,10 +24,18 @@ public interface IPushFanOut
     /// dispatcher. <paramref name="dedupeKey"/> becomes the collapse tag, so a repeat of the same
     /// logical event replaces the first notification rather than stacking a second.
     /// </summary>
+    /// <remarks>
+    /// <paramref name="actorUserId"/> is who caused the notification, for a sentence that names them
+    /// (feature 058: "Jonas wants to join the team"). It is resolved to a display name <b>once per
+    /// fan-out, at the moment of sending</b>, and never stored — which is the point: a name copied
+    /// into a stored payload would outlive the actor's account (037 FR-023), while this one only
+    /// ever reaches a device.
+    /// </remarks>
     Task FanOutAsync(
         IReadOnlyCollection<Guid> recipientUserIds,
         NotificationType type,
         string payloadJson,
         string? dedupeKey,
+        Guid? actorUserId = null,
         CancellationToken ct = default);
 }

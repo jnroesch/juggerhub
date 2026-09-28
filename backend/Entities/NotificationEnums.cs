@@ -35,6 +35,26 @@ public enum NotificationType
 
     /// <summary>An event the recipient signed up for was cancelled by its organiser (feature 039). Link-only.</summary>
     EventCancelled = 8,
+
+    /// <summary>
+    /// A player asked to join a team the recipient administers (feature 058). One row per admin of
+    /// the team at the moment of the request. Link-only: it opens the team page, where the request
+    /// is answered.
+    /// </summary>
+    /// <remarks>
+    /// The player is the row's <b>actor</b> and is deliberately absent from the payload. An admin's
+    /// row outlives the player's account — erasure deletes rows by recipient, never by actor — and
+    /// feature 037 (FR-023) forbids a surviving record that identifies an erased member. Read through
+    /// the actor, the name follows the player's current profile and disappears with it.
+    /// </remarks>
+    TeamJoinRequest = 9,
+
+    /// <summary>
+    /// An admin answered the recipient's request to join a team (feature 058). Link-only. The
+    /// payload says whether the request was accepted and never who answered it: the team answers,
+    /// not a person (spec FR-011), so the row carries no actor either.
+    /// </summary>
+    TeamJoinRequestAnswered = 10,
 }
 
 /// <summary>
@@ -45,7 +65,13 @@ public enum NotificationType
 /// </summary>
 public enum NotificationCategory
 {
-    /// <summary>Team invites and role/roster changes (<see cref="NotificationType.TeamInvite"/>, <see cref="NotificationType.TeamRoleChanged"/>).</summary>
+    /// <summary>
+    /// Team invites and role/roster changes (<see cref="NotificationType.TeamInvite"/>,
+    /// <see cref="NotificationType.TeamRoleChanged"/>), and — feature 058 — people asking to join
+    /// (<see cref="NotificationType.TeamJoinRequest"/>) and the answer to a request
+    /// (<see cref="NotificationType.TeamJoinRequestAnswered"/>). The settings copy already reads
+    /// "people joining or leaving", so neither needed a category of its own.
+    /// </summary>
     InvitesAndRoster = 0,
 
     /// <summary>Team news posts (<see cref="NotificationType.TeamNews"/>) and party news (<see cref="NotificationType.PartyNews"/>).</summary>
@@ -118,6 +144,8 @@ public static class NotificationCategories
         NotificationType.TeamRoleChanged => NotificationCategory.InvitesAndRoster,
         NotificationType.PartyRequest => NotificationCategory.InvitesAndRoster,
         NotificationType.MarketInvite => NotificationCategory.InvitesAndRoster,
+        NotificationType.TeamJoinRequest => NotificationCategory.InvitesAndRoster,
+        NotificationType.TeamJoinRequestAnswered => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamNews => NotificationCategory.TeamNews,
         NotificationType.PartyNews => NotificationCategory.TeamNews,
         NotificationType.TrainingScheduled => NotificationCategory.Trainings,

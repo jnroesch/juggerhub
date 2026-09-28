@@ -37,6 +37,7 @@ public sealed class PushFanOut : IPushFanOut
         NotificationType type,
         string payloadJson,
         string? dedupeKey,
+        Guid? actorUserId = null,
         CancellationToken ct = default)
     {
         if (recipientUserIds.Count == 0)
@@ -50,6 +51,17 @@ public sealed class PushFanOut : IPushFanOut
             // dedupe key there is still a stable identity to use: the type plus this payload.
             var tag = dedupeKey ?? $"{type}:{payloadJson.GetHashCode():x8}";
 
+            // Once per fan-out, not per recipient, and through the profile set, so a banned actor
+            // resolves to no name at all (feature 058). Never stored: it only reaches a device.
+            string? actorName = null;
+            if (actorUserId is { } actorId)
+            {
+                actorName = await _db.PlayerProfiles.AsNoTracking()
+                    .Where(p => p.UserId == actorId)
+                    .Select(p => p.DisplayName)
+                    .FirstOrDefaultAsync(ct);
+            }
+
             // Group by language, not by recipient: the sentence is identical for everyone who
             // reads the same one, so it is composed once per language rather than once per person.
             // The language is the RECIPIENT's stored preference — the actor's is irrelevant to them.
@@ -60,7 +72,7 @@ public sealed class PushFanOut : IPushFanOut
 
             foreach (var group in recipients.GroupBy(r => SupportedLanguages.ResolveOrDefault(r.PreferredLanguage)))
             {
-                var content = _composer.Compose(type, payloadJson, group.Key, tag);
+                var content = _composer.Compose(type, payloadJson, group.Key, tag, actorName);
                 await _dispatcher.DispatchAsync(group.Select(r => r.Id).ToList(), content, ct);
             }
         }

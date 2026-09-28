@@ -60,4 +60,18 @@ public interface IEmailTemplateService
 
     /// <summary>Generate a marketplace-invite email (feature 039), localized by <paramref name="culture"/>.</summary>
     Task<string> GenerateMarketInviteEmailAsync(string recipientName, string teamName, string eventName, string inviterName, string eventUrl, string culture = Common.SupportedLanguages.Default);
+
+    // --- Feature 058: join requests. Addressed to a recipient, so localized by their culture. -----
+
+    /// <summary>
+    /// Generate the email telling a team admin that <paramref name="playerName"/> asked to join. The
+    /// name is the player's at the moment of sending; nothing stored keeps a copy of it.
+    /// </summary>
+    Task<string> GenerateJoinRequestEmailAsync(string recipientName, string playerName, string teamName, string teamUrl, string culture = Common.SupportedLanguages.Default);
+
+    /// <summary>Generate the email telling a player the team accepted their request. It names no admin.</summary>
+    Task<string> GenerateJoinRequestAcceptedEmailAsync(string recipientName, string teamName, string teamUrl, string culture = Common.SupportedLanguages.Default);
+
+    /// <summary>Generate the email telling a player the team declined their request, pointing them at other teams. It names no admin.</summary>
+    Task<string> GenerateJoinRequestDeclinedEmailAsync(string recipientName, string teamName, string browseUrl, string culture = Common.SupportedLanguages.Default);
 }

@@ -96,8 +96,12 @@ public sealed class TeamJoinRequestService : ITeamJoinRequestService
             return new JoinQueueResult(JoinQueueGate.Forbidden, null);
         }
 
+        // Only requests that still wait (feature 058): a banned player's request and one from
+        // somebody who has joined another way are not the admins' to decide, and the queue used to
+        // show the first as a nameless row.
         var query = _db.TeamJoinRequests.AsNoTracking()
-            .Where(r => r.TeamId == a.TeamId && r.Status == JoinRequestStatus.Pending);
+            .Where(r => r.TeamId == a.TeamId)
+            .Where(JoinRequestWaiting.Predicate(_db));
 
         var total = await query.CountAsync(ct);
         var items = await query

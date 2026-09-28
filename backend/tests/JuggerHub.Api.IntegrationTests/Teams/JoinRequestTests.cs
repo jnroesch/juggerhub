@@ -2,6 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using JuggerHub.Api.IntegrationTests.Auth;
+using JuggerHub.Data;
+using JuggerHub.Entities;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace JuggerHub.Api.IntegrationTests.Teams;
 
@@ -159,7 +163,52 @@ public sealed class JoinRequestTests
         Assert.Equal(0, after.GetProperty("totalCount").GetInt32());
     }
 
+    [Fact]
+    public async Task Queue_lists_only_waiting_requests()
+    {
+        // Feature 058 (FR-015): the queue shares the one meaning of "waiting". A banned player's
+        // request, and one from somebody who became a member another way, are not the admins' to
+        // decide — and the banned one used to render as a nameless row linking to /u/null.
+        var (admin, _, _, _) = await NewUserAsync();
+        var slug = await NewTeamAsync(admin);
+        var (waiting, _, waitingHandle, _) = await NewUserAsync();
+        var (banned, bannedId, _, _) = await NewUserAsync();
+        var (joined, joinedId, _, _) = await NewUserAsync();
+        foreach (var player in new[] { waiting, banned, joined })
+        {
+            (await player.PostAsync($"/api/v1/teams/{slug}/join-requests", null)).EnsureSuccessStatusCode();
+        }
+
+        await WithDbAsync(async db =>
+        {
+            var teamId = await db.Teams.Where(t => t.Slug == slug).Select(t => t.Id).SingleAsync();
+            await db.Users.Where(u => u.Id == bannedId)
+                .ExecuteUpdateAsync(s => s.SetProperty(u => u.Status, AccountStatus.Banned));
+            db.TeamMemberships.Add(new TeamMembership
+            {
+                TeamId = teamId, UserId = joinedId, Role = TeamRole.Member, JoinedDate = DateTime.UtcNow,
+            });
+            await db.SaveChangesAsync();
+        });
+
+        var queue = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/teams/{slug}/join-requests");
+        Assert.Equal(1, queue.GetProperty("totalCount").GetInt32());
+        Assert.Equal(waitingHandle, queue.GetProperty("items")[0].GetProperty("handle").GetString());
+
+        // A ban deletes nothing and can be lifted: the request waits again (FR-021).
+        await WithDbAsync(db => db.Users.Where(u => u.Id == bannedId)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.Status, AccountStatus.Active)));
+        var after = await admin.GetFromJsonAsync<JsonElement>($"/api/v1/teams/{slug}/join-requests");
+        Assert.Equal(2, after.GetProperty("totalCount").GetInt32());
+    }
+
     // --- Helpers --------------------------------------------------------------
+
+    private async Task WithDbAsync(Func<AppDbContext, Task> action)
+    {
+        using var scope = _factory.Services.CreateScope();
+        await action(scope.ServiceProvider.GetRequiredService<AppDbContext>());
+    }
 
     private async Task<string> RelationAsync(HttpClient client, string slug)
     {

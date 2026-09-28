@@ -328,6 +328,55 @@ public class EmailTemplateService : IEmailTemplateService
         return await GenerateEmailAsync("market-invite", variables, culture);
     }
 
+    /// <inheritdoc />
+    public async Task<string> GenerateJoinRequestEmailAsync(
+        string recipientName, string playerName, string teamName, string teamUrl, string culture = SupportedLanguages.Default)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get("title.joinRequest", culture),
+            ["RECIPIENT_NAME"] = recipientName,
+            ["PLAYER_NAME"] = playerName,
+            ["TEAM_NAME"] = teamName,
+            ["TEAM_URL"] = new RawHtml(teamUrl),
+            ["FOOTER_REASON"] = _localizer.Get("footer.joinRequest", culture),
+        };
+
+        return await GenerateEmailAsync("join-request", variables, culture);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GenerateJoinRequestAcceptedEmailAsync(
+        string recipientName, string teamName, string teamUrl, string culture = SupportedLanguages.Default)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get("title.joinRequestAccepted", culture),
+            ["RECIPIENT_NAME"] = recipientName,
+            ["TEAM_NAME"] = teamName,
+            ["TEAM_URL"] = new RawHtml(teamUrl),
+            ["FOOTER_REASON"] = _localizer.Get("footer.joinRequestAnswer", culture),
+        };
+
+        return await GenerateEmailAsync("join-request-accepted", variables, culture);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GenerateJoinRequestDeclinedEmailAsync(
+        string recipientName, string teamName, string browseUrl, string culture = SupportedLanguages.Default)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get("title.joinRequestDeclined", culture),
+            ["RECIPIENT_NAME"] = recipientName,
+            ["TEAM_NAME"] = teamName,
+            ["BROWSE_URL"] = new RawHtml(browseUrl),
+            ["FOOTER_REASON"] = _localizer.Get("footer.joinRequestAnswer", culture),
+        };
+
+        return await GenerateEmailAsync("join-request-declined", variables, culture);
+    }
+
     /// <summary>
     /// Every template is wrapped in the shared header/footer, so the SPA links those chrome
     /// pieces need are supplied here rather than by each caller. The base URL is

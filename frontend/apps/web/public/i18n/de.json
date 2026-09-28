@@ -200,7 +200,7 @@
       "requested": "Angefragt",
       "cancelRequest": "Anfrage zurückziehen",
       "confirmJoinTitle": "Beitritt zu {{name}} anfragen?",
-      "confirmJoinBody": "Die Team-Admins sehen deine Anfrage und können sie annehmen. Du kannst sie bis dahin jederzeit zurückziehen.",
+      "confirmJoinBody": "Die Team-Admins sehen deine Anfrage und können sie annehmen. Wir sagen dir Bescheid, sobald sie antworten, und bis dahin kannst du sie jederzeit zurückziehen.",
       "confirmJoinSubmit": "Anfrage senden",
       "dismiss": "Jetzt nicht",
       "confirmCancelTitle": "Anfrage zurückziehen?",
@@ -261,7 +261,13 @@
       "teamTools": "Team-Tools",
       "invites": "Einladungen",
       "manage": "Verwalten",
-      "loading": "Team wird geladen…"
+      "loading": "Team wird geladen…",
+      "requestLimited": "Du hast in kurzer Zeit viele Beitrittsanfragen geschickt. Versuch es in einer Weile noch einmal.",
+      "alreadyMember": "Du bist schon in diesem Team.",
+      "requestFailed": "Wir konnten deine Anfrage gerade nicht senden.",
+      "cancelFailed": "Wir konnten deine Anfrage gerade nicht zurückziehen.",
+      "answerGone": "Diese Anfrage wurde schon beantwortet oder zurückgezogen.",
+      "answerFailed": "Wir konnten deine Antwort gerade nicht speichern."
     },
     "placements": {
       "title": "Turnierergebnisse",
@@ -998,7 +1004,17 @@
     "upNextSubtitle": "Deine anstehenden Trainings, Spiele und Events.",
     "upNextEmpty": "Gerade steht nichts an.",
     "loadEventsError": "Wir konnten deine Events nicht laden.",
-    "loading": "Deine Startseite wird geladen…"
+    "loading": "Deine Startseite wird geladen…",
+    "needsYouItem": {
+      "teamInviteTitle": "{{team}} hat dich eingeladen",
+      "teamInviteContext": "ins Team",
+      "partyCoAdminInviteTitle": "Co-Admin einer Party für {{event}}",
+      "partyRequestTitle": "{{team}} stellt eine Party auf",
+      "marketInviteTitle": "{{team}} will dich dabeihaben",
+      "marketApplicationTitle": "Du hast dich bei {{team}} beworben",
+      "joinRequestTitle": "{{player}} möchte beitreten",
+      "noLongerWaiting": "Diese Anfrage wurde schon beantwortet oder zurückgezogen."
+    }
   },
   "nav": {
     "brandHome": "JuggerHub Startseite",
@@ -1166,7 +1182,7 @@
       "players": "Spieler",
       "asked": "Angefragt",
       "beginners": "Anfänger",
-      "askedConfirmation": "Wir haben {{name}} gebeten, dich aufzunehmen. Ein Admin muss noch zustimmen.",
+      "askedConfirmation": "Wir haben {{name}} gebeten, dich aufzunehmen. Ein Admin muss noch zustimmen, und wir sagen dir Bescheid, sobald jemand antwortet.",
       "ask": "Beitritt bei {{name}} anfragen",
       "asking": "Wird angefragt…",
       "notOnTeam": "Ich bin noch in keinem Team",
@@ -1183,7 +1199,10 @@
         "expired": "Die Einladung, der du gefolgt bist, ist abgelaufen. Bitte einen Team-Admin, dir eine neue zu schicken.",
         "invalid": "Die Einladung, der du gefolgt bist, ist nicht mehr gültig. Bitte einen Team-Admin, dir eine neue zu schicken.",
         "yourInvites": "Deine Einladungen"
-      }
+      },
+      "requestLimited": "Du hast in kurzer Zeit viele Beitrittsanfragen geschickt. Versuch es in einer Weile noch einmal.",
+      "alreadyMember": "Du bist schon in diesem Team.",
+      "requestFailed": "Wir konnten die Anfrage gerade nicht senden."
     },
     "photo": {
       "title": "Mach es zu deinem",
@@ -1519,7 +1538,15 @@
       "trainingUpdatedCancelled": "Eine Einheit, auf die du geantwortet hast, wurde abgesagt",
       "trainingUpdatedChanged": "Eine anstehende Einheit hat sich geändert",
       "eventCancelledTitle": "{{event}} wurde abgesagt",
-      "eventCancelledSupporting": "Die Organisation hat ein Event abgesagt, für das du angemeldet warst"
+      "eventCancelledSupporting": "Die Organisation hat ein Event abgesagt, für das du angemeldet warst",
+      "joinRequestTitle": "{{player}} möchte {{team}} beitreten",
+      "joinRequestSupporting": "Antworte auf der Teamseite",
+      "joinRequestHandled": "Wartet nicht mehr auf eine Antwort",
+      "formerPlayer": "Ein ehemaliger Spieler",
+      "joinAcceptedTitle": "Du bist dabei: {{team}} hat deine Anfrage angenommen",
+      "joinAcceptedSupporting": "Sag deinem neuen Team Hallo",
+      "joinDeclinedTitle": "{{team}} hat deine Anfrage abgelehnt",
+      "joinDeclinedSupporting": "Schau dir andere Teams an"
     },
     "loading": "Deine Meldungen werden geladen…"
   },

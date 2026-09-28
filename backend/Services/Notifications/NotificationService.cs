@@ -98,7 +98,7 @@ public sealed class NotificationService : INotificationService
 
         if (wantsPush)
         {
-            await _push.FanOutAsync([recipientUserId], type, payloadJson, dedupeKey, ct);
+            await _push.FanOutAsync([recipientUserId], type, payloadJson, dedupeKey, actorUserId: actorUserId, ct: ct);
         }
     }
 
@@ -135,7 +135,7 @@ public sealed class NotificationService : INotificationService
 
         if (recipients.Count == 0)
         {
-            await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, ct);
+            await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, actorUserId: actorUserId, ct: ct);
             return;
         }
 
@@ -167,7 +167,7 @@ public sealed class NotificationService : INotificationService
         }
 
         // Realtime badges are out; the slow hop goes last.
-        await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, ct);
+        await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, actorUserId: actorUserId, ct: ct);
     }
 
     // --- The source changed (feature 057) ---------------------------------------

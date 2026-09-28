@@ -212,6 +212,64 @@ public sealed class EmailLocalizer : IEmailLocalizer
                 ["de"] = "Du erhältst diese E-Mail, weil dich eine Party über den JuggerHub-Marktplatz eingeladen hat.",
                 ["es"] = "Recibes este mensaje porque una party te ha invitado desde el mercado de JuggerHub.",
             },
+
+            // --- Feature 058: join requests ------------------------------------------------------
+            // The admins' email names the player — that is its point. The player's answer names the
+            // team and never the admin who gave it (spec FR-011).
+
+            // {0} = the player's display name, {1} = team name
+            ["subject.joinRequest"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} wants to join {1} — JuggerHub",
+                ["de"] = "{0} möchte {1} beitreten — JuggerHub",
+                ["es"] = "{0} quiere unirse a {1} — JuggerHub",
+            },
+            // {0} = team name
+            ["subject.joinRequestAccepted"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're in: {0} — JuggerHub",
+                ["de"] = "Du bist dabei: {0} — JuggerHub",
+                ["es"] = "Ya formas parte de {0} — JuggerHub",
+            },
+            // {0} = team name
+            ["subject.joinRequestDeclined"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your request to join {0} — JuggerHub",
+                ["de"] = "Deine Anfrage an {0} — JuggerHub",
+                ["es"] = "Tu solicitud para unirte a {0} — JuggerHub",
+            },
+
+            ["title.joinRequest"] = new Dictionary<string, string>
+            {
+                ["en"] = "Someone wants to join your team",
+                ["de"] = "Jemand möchte deinem Team beitreten",
+                ["es"] = "Alguien quiere unirse a tu equipo",
+            },
+            ["title.joinRequestAccepted"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your request to join was accepted",
+                ["de"] = "Deine Beitrittsanfrage wurde angenommen",
+                ["es"] = "Tu solicitud para unirte ha sido aceptada",
+            },
+            ["title.joinRequestDeclined"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your request to join was declined",
+                ["de"] = "Deine Beitrittsanfrage wurde abgelehnt",
+                ["es"] = "Tu solicitud para unirte ha sido rechazada",
+            },
+
+            ["footer.joinRequest"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because you're an admin of this team on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil du Admin dieses Teams auf JuggerHub bist.",
+                ["es"] = "Recibes este mensaje porque eres admin de este equipo en JuggerHub.",
+            },
+            ["footer.joinRequestAnswer"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because you asked to join this team on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil du auf JuggerHub angefragt hast, diesem Team beizutreten.",
+                ["es"] = "Recibes este mensaje porque pediste unirte a este equipo en JuggerHub.",
+            },
         };
 
     public string Get(string key, string culture)

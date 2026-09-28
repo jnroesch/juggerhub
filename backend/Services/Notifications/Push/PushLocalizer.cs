@@ -96,6 +96,38 @@ public sealed class PushLocalizer : IPushLocalizer
                 ["de"] = "Diese Veranstaltung wurde abgesagt",
                 ["es"] = "Este evento se ha cancelado",
             },
+
+            // --- Feature 058: join requests. The title is the team (the subject). ------------------
+
+            // {0} = the player's display name — resolved at send time from the actor, never read
+            // from a stored payload (037 FR-023).
+            ["teamJoinRequest.body"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} wants to join the team",
+                ["de"] = "{0} möchte dem Team beitreten",
+                ["es"] = "{0} quiere unirse al equipo",
+            },
+            // When there is no name to show (the player was banned the same moment). Still says
+            // what happened: a join request must never fall back to the generic sentence.
+            ["teamJoinRequest.bodyAnonymous"] = new Dictionary<string, string>
+            {
+                ["en"] = "Someone wants to join the team",
+                ["de"] = "Jemand möchte dem Team beitreten",
+                ["es"] = "Alguien quiere unirse al equipo",
+            },
+            // The answer never names the admin who gave it (spec FR-011): the team answers.
+            ["teamJoinRequestAccepted.body"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your request to join was accepted",
+                ["de"] = "Deine Beitrittsanfrage wurde angenommen",
+                ["es"] = "Tu solicitud para unirte ha sido aceptada",
+            },
+            ["teamJoinRequestDeclined.body"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your request to join was declined",
+                ["de"] = "Deine Beitrittsanfrage wurde abgelehnt",
+                ["es"] = "Tu solicitud para unirte ha sido rechazada",
+            },
             // Title and body used when a payload is missing the names the sentence needs. Rare, and
             // it still tells the member something happened rather than dropping the notification.
             ["fallback.title"] = new Dictionary<string, string>
