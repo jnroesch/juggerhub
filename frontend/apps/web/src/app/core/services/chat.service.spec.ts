@@ -96,6 +96,20 @@ describe('ChatService', () => {
     expect(service.conversations()[0].name).toBe('Ben R.');
   });
 
+  it('asks for the team chat by team id (feature 060)', () => {
+    TestBed.tick();
+    flushInitialUnread();
+
+    let id: string | undefined;
+    service.openTeamChat('t1').subscribe((r) => (id = r.conversationId));
+
+    const req = httpMock.expectOne('/api/v1/chat/team/t1');
+    expect(req.request.method).toBe('GET');
+    req.flush({ conversationId: 'c9' });
+
+    expect(id).toBe('c9');
+  });
+
   it('reverses the keyset page so the thread reads oldest-first', () => {
     TestBed.tick();
     flushInitialUnread();

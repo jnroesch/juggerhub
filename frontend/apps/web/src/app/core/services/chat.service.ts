@@ -15,6 +15,7 @@ import {
   InquiryMessageSent,
   InquiryThreadRef,
   MessagePage,
+  TeamChatRef,
   TypingSignal,
 } from '../models/chat.models';
 import { AuthService } from './auth.service';
@@ -193,6 +194,15 @@ export class ChatService {
   /** The caller's existing inquiry thread id for an event, or null (feature 027). Creates nothing. */
   findEventInquiry(eventId: string): Observable<InquiryThreadRef> {
     return this.http.get<InquiryThreadRef>(`${this.base}/contact/event/${eventId}`);
+  }
+
+  /**
+   * The team's own chat, for the team page's "Team chat" button (feature 060). The server creates it
+   * if nobody on the team has opened Chat yet, as the inbox would; a non-member gets a 404. Called on
+   * the press, never on page load.
+   */
+  openTeamChat(teamId: string): Observable<TeamChatRef> {
+    return this.http.get<TeamChatRef>(`${this.base}/team/${teamId}`);
   }
 
   addMembers(conversationId: string, userIds: string[]): Observable<void> {

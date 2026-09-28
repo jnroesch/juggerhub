@@ -39,24 +39,28 @@
         </p>
       </div>
 
-      <!-- Join action (state-aware) -->
-      <div class="flex w-full shrink-0 flex-col gap-sm sm:w-auto sm:flex-row sm:items-center">
-        @if (canContactAdmins()) {
-          <button type="button" jhButton variant="secondary" data-testid="contact-admins" (click)="contactAdmins()">{{ 'teams.detail.contactAdmins' | transloco }}</button>
-        }
-        @if (isAnon()) {
-          <a routerLink="/sign-in" jhButton data-testid="signin-to-join">{{ 'teams.detail.signInToJoin' | transloco }}</a>
-        } @else if (canRequest()) {
-          <button type="button" jhButton [disabled]="requestBusy()" data-testid="request-to-join" (click)="askConfirm('join')">{{ 'teams.detail.requestToJoin' | transloco }}</button>
-        } @else if (requested()) {
-          <span class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted" data-testid="requested">
-            <jh-icon name="check" size="sm" />
-            {{ 'teams.detail.requested' | transloco }}
-          </span>
-          <button type="button" [disabled]="requestBusy()" data-testid="cancel-request" (click)="askConfirm('cancel')"
-            class="rounded-md px-md py-xs text-body-sm font-medium text-muted hover:bg-surface-sunken hover:text-body disabled:opacity-50">{{ 'teams.detail.cancelRequest' | transloco }}</button>
-        }
-      </div>
+      <!-- Join action (state-aware). Only for people who are not on the team: a member's actions all
+           sit in the side column's card (feature 060, owner decision). That also spares an admin the
+           empty full-width row this block used to leave in the header. -->
+      @if (!isMember()) {
+        <div class="flex w-full shrink-0 flex-col gap-sm sm:w-auto sm:flex-row sm:items-center">
+          @if (canContactAdmins()) {
+            <button type="button" jhButton variant="secondary" data-testid="contact-admins" (click)="contactAdmins()">{{ 'teams.detail.contactAdmins' | transloco }}</button>
+          }
+          @if (isAnon()) {
+            <a routerLink="/sign-in" jhButton data-testid="signin-to-join">{{ 'teams.detail.signInToJoin' | transloco }}</a>
+          } @else if (canRequest()) {
+            <button type="button" jhButton [disabled]="requestBusy()" data-testid="request-to-join" (click)="askConfirm('join')">{{ 'teams.detail.requestToJoin' | transloco }}</button>
+          } @else if (requested()) {
+            <span class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted" data-testid="requested">
+              <jh-icon name="check" size="sm" />
+              {{ 'teams.detail.requested' | transloco }}
+            </span>
+            <button type="button" [disabled]="requestBusy()" data-testid="cancel-request" (click)="askConfirm('cancel')"
+              class="rounded-md px-md py-xs text-body-sm font-medium text-muted hover:bg-surface-sunken hover:text-body disabled:opacity-50">{{ 'teams.detail.cancelRequest' | transloco }}</button>
+          }
+        </div>
+      }
     </header>
 
     @if (error(); as e) {
@@ -64,6 +68,10 @@
     }
     @if (requestError(); as key) {
       <jh-alert class="mt-sm" data-testid="request-error">{{ key | transloco }}</jh-alert>
+    }
+    <!-- Feature 060 — outside every member-only block: it explains why the member card just went away. -->
+    @if (teamChatNotice(); as key) {
+      <jh-alert tone="info" class="mt-sm" data-testid="team-chat-notice">{{ key | transloco }}</jh-alert>
     }
 
     <div class="mt-lg grid grid-cols-1 gap-lg lg:grid-cols-[minmax(0,1fr)_300px]">
@@ -288,19 +296,31 @@
           </jh-card>
         }
 
-        <!-- Team tools: every member gets "Manage" (GH #361 — the subpage is where an admin
-             manages the team and where any member manages their own membership, leaving included;
-             leaving is rare, so it is tucked away there rather than shown on the page). Invites
-             stay admin-only. -->
+        <!-- Team tools: every action the page offers a member, together (feature 060 — the header
+             carries none for members). Team chat for everyone; Contact admins for plain members
+             (feature 027); Invites for admins; Manage for everyone (GH #361 — the subpage is where an
+             admin manages the team and where any member manages their own membership, leaving
+             included; leaving is rare, so it is tucked away there rather than shown on the page). -->
         @if (isMember()) {
           <jh-card data-testid="team-tools">
             <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.teamTools' | transloco }}</h2>
             <div class="flex flex-col gap-xs">
+              <!-- Feature 060: the team's own chat, looked up (and created if need be) on the press. -->
+              <button type="button" jhButton variant="secondary" size="sm" data-testid="team-chat" [disabled]="teamChatBusy()" (click)="openTeamChat()">
+                {{ (teamChatBusy() ? 'teams.detail.openingTeamChat' : 'teams.detail.teamChat') | transloco }}
+              </button>
+              <!-- Inside the member block, "may contact the admins" means a plain member. -->
+              @if (canContactAdmins()) {
+                <button type="button" jhButton variant="secondary" size="sm" data-testid="contact-admins" (click)="contactAdmins()">{{ 'teams.detail.contactAdmins' | transloco }}</button>
+              }
               @if (isAdmin()) {
                 <a [routerLink]="['/t', slug(), 'invitations']" jhButton variant="secondary" size="sm">{{ 'teams.detail.invites' | transloco }}</a>
               }
               <a [routerLink]="['/t', slug(), 'settings']" jhButton variant="secondary" size="sm" data-testid="manage-team">{{ 'teams.detail.manage' | transloco }}</a>
             </div>
+            @if (teamChatError(); as key) {
+              <p class="mt-xs text-body-sm text-danger-fg" role="alert" data-testid="team-chat-error">{{ key | transloco }}</p>
+            }
           </jh-card>
         }
       </aside>
