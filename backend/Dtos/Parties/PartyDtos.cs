@@ -15,6 +15,10 @@ public sealed record FormPartyRequest(
 /// <summary>Post a party news update (party admin).</summary>
 public sealed record CreatePartyNewsRequest([Required, MaxLength(1000)] string Body);
 
+/// <summary>Replace a party news post's text (feature 059, any party admin). Same rules as posting;
+/// the service trims it, and a text equal to the current one changes nothing.</summary>
+public sealed record EditPartyNewsRequest([Required, MaxLength(1000)] string Body);
+
 /// <summary>Create a targeted co-admin invite for a team member.</summary>
 public sealed record CreatePartyInviteRequest([Required] Guid UserId);
 
@@ -91,7 +95,8 @@ public sealed record PartyNewsDto(
     string AuthorDisplayName,
     PartyMemberRole AuthorRole,
     string Body,
-    DateTime CreatedDate);
+    DateTime CreatedDate,
+    DateTime? EditedDate);
 
 /// <summary>A pinned party-request card shown in the team space.</summary>
 public sealed record PartyRequestCardDto(

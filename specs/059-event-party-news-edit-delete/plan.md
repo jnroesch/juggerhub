@@ -35,7 +35,9 @@ news page (owner decision).
    shared with the market and both `Fail` switches end in a catch-all 400 (R5).
 4. **The shared component owns behaviour, the host owns layout.** The host projects the body and
    meta line. The component takes `save`/`remove` **functions** and emits `saved`/`removed`, so
-   it knows no service. The edit lock moves to a root `NewsPostEditing`, released on destroy.
+   it knows no service. The editing state (open editor + typed draft) is a **page-provided**
+   `NewsPostEditing`, so a page that rebuilds its list mid-edit (the team page reloads behind a
+   spinner) keeps it, as 057 did; the lock counts only a post on screen.
    Every 057 `data-testid` is kept, so **team-detail's existing news tests are the regression net**
    (R8).
 5. **Cards clip the menu.** `jh-card` is `overflow: hidden` and the party pages render one card
@@ -44,7 +46,7 @@ news page (owner decision).
    transform/filter/contain (R9).
 
 **Size**: 2 columns + 1 migration, 4 endpoints, 4 service methods, 2 DTO fields, 1 shared
-component (+ root lock service), 3 host pages adopt it and the team page is refactored onto it,
+component (+ page-scoped editing service), 3 host pages adopt it and the team page is refactored onto it,
 ~19 i18n keys × 3 (13 moved, 6 new). **No new entity, no new dependency, no new configuration, no
 infrastructure change, no `INotificationService` change.**
 
@@ -144,7 +146,7 @@ frontend/apps/web/
 ├── public/i18n/{en,de,es}.json                                # news.* (moved + new); teams.detail.news* removed
 └── src/app/
     ├── shared/news-post/news-post.component.{ts,html,css,spec.ts}   # NEW shared controls
-    ├── shared/news-post/news-post-editing.ts                         # NEW root edit lock
+    ├── shared/news-post/news-post-editing.ts                         # NEW page-scoped editing state (provided by each page)
     ├── core/models/event.models.ts, party.models.ts                  # + editedDate
     ├── core/services/event.service.ts (+ NEW .spec.ts)               # editNews, deleteNews
     ├── core/services/party.service.ts (+ NEW .spec.ts)               # editNews, deleteNews
@@ -201,13 +203,14 @@ already owns the concern.
 2. **`jh-news-post`** (R8): 057's menu, editor and dialog **moved** out of team-detail with their
    markup, classes, testids and comments, generalised by inputs. Behaviour state is all
    **signals** (zoneless). Focus via `afterNextRender` with the component's injector. Escape and
-   outside click are handled per instance with the own-wrapper containment check. The lock is
-   `NewsPostEditing` (root), cleared on destroy through `DestroyRef`. The host element is the
+   outside click are handled per instance with the own-wrapper containment check. The editing
+   state is `NewsPostEditing`, provided by each page (never root); instances register while on
+   screen through `DestroyRef`, and the lock counts only those. The host element is the
    post row (`flex items-start gap-xs`).
 3. **Team page**: the post `<li>` keeps its testid and wraps `jh-news-post`; team-detail keeps
    `news`, `newsNotice` and the heading focus, and loses every other news signal, `trapTab`, the
-   news branches of `onEscape` and `onDocumentClick`, and the 057 reset in the param subscription
-   (the lock releases on destroy). The News card gets `overflowVisible`. **The spec file is not
+   news branches of `onEscape` and `onDocumentClick`; it provides `NewsPostEditing` and resets it
+   on a team switch, as 057 did. The News card gets `overflowVisible`. **The spec file is not
    edited**; it must stay green.
 4. **Event page**: `jh-event-news-feed` gains `eventId` and `canManage` inputs, and `news`
    becomes a `model` bound `[(news)]="news"` so the feed updates the list itself. It gets a

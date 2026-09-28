@@ -192,11 +192,16 @@ the party's news page.
 - **The projected display is hidden, not destroyed, while editing** (`[hidden]` on a wrapper).
   Angular's guidance is not to put `<ng-content>` inside `@if`. Content is created once and
   re-projection under a conditional is fragile, and hiding keeps it simple.
-- **The edit lock**, "while one post is being edited, no menu opens" (057), moves from a page
-  signal into a root-provided `NewsPostEditing` holding the id being edited. Any instance
-  disables its trigger while it is set. The editing instance clears it on cancel, save, removal
-  **and destroy**. That also covers 057's reason for resetting on a team switch (the list empties,
-  so the instances are destroyed), without each host repeating it.
+- **The editing state** (which post's editor is open, and the typed draft) lives in
+  `NewsPostEditing`, **provided by each page component** (`providers: [NewsPostEditing]`), not in
+  the component and not in root. *Refined during implementation*: the team page replaces its whole
+  content with a spinner whenever it reloads, and approving a join request reloads it. 057 kept the
+  editor and its draft on the page for exactly that reason ("approving a join request reloads too,
+  mid-edit"), and a per-instance state would lose the typed text. Page-scoped, the state survives
+  the rebuild and dies with the page. A root service would leak an open edit onto the next page.
+  The team page still resets it on a team switch, as 057 did. The lock, "while one post is being
+  edited, no menu opens" (057), counts only a post that is **on screen**: instances register on
+  init and unregister on destroy, so a post deleted elsewhere cannot lock the page for good.
 - **One menu open at a time** needs no shared state: each instance closes its menu on a document
   click **outside its own menu wrapper**. Checking the generic `[data-news-menu]` selector (057's
   page-level form) would keep menu A open when menu B's trigger is clicked, since that click is

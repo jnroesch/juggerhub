@@ -67,7 +67,8 @@ public sealed class PartyNewsService : IPartyNewsService
                     .Select(m => m.Role)
                     .FirstOrDefault(),
                 n.Body,
-                n.CreatedDate))
+                n.CreatedDate,
+                n.EditedDate))
             .ToListAsync(ct);
 
         return new PagedResult<PartyNewsDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
@@ -100,7 +101,7 @@ public sealed class PartyNewsService : IPartyNewsService
 
         var authorName = await _db.PlayerProfiles.AsNoTracking()
             .Where(p => p.UserId == actorUserId).Select(p => p.DisplayName).FirstAsync(ct);
-        var dto = new PartyNewsDto(post.Id, authorName, PartyMemberRole.Admin, post.Body, post.CreatedDate);
+        var dto = new PartyNewsDto(post.Id, authorName, PartyMemberRole.Admin, post.Body, post.CreatedDate, EditedDate: null);
         return PartyResult<PartyNewsDto>.Ok(dto);
     }
 

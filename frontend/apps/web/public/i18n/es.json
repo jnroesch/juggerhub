@@ -240,21 +240,6 @@
       "postNews": "Publicar novedad",
       "postingNews": "Publicando…",
       "noNews": "Aún no hay novedades.",
-      "newsManage": "Gestionar novedad",
-      "newsEdit": "Editar",
-      "newsDelete": "Eliminar",
-      "newsEdited": "editada",
-      "newsEditLabel": "Texto de la novedad",
-      "newsEditHint": "Al guardar no se vuelve a avisar al equipo.",
-      "newsSaving": "Guardando…",
-      "newsSaveFailed": "No pudimos guardar tus cambios. Inténtalo de nuevo.",
-      "newsGone": "Esta novedad ya no existe.",
-      "newsDeleteTitle": "¿Eliminar esta novedad?",
-      "newsDeleteBody": "Desaparece de la página del equipo y de los avisos de todos. Quien la recibió por correo conserva su copia.",
-      "newsDeleteKeep": "Mantener novedad",
-      "newsDeleteConfirm": "Eliminar novedad",
-      "newsDeleting": "Eliminando…",
-      "newsDeleteFailed": "No pudimos eliminar la novedad. Inténtalo de nuevo.",
       "trainings": "Entrenamientos",
       "trainingsDesc": "Sesiones periódicas a las que tu equipo puede responder.",
       "viewTrainings": "Ver entrenamientos",
@@ -591,6 +576,31 @@
       },
       "treeHint": "El cuadro completo y todos los partidos están en Tugeny.",
       "treeView": "Ver el cuadro en Tugeny"
+    }
+  },
+  "news": {
+    "manage": "Gestionar novedad",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "edited": "editada",
+    "editLabel": "Texto de la novedad",
+    "saving": "Guardando…",
+    "saveFailed": "No pudimos guardar tus cambios. Inténtalo de nuevo.",
+    "gone": "Esta novedad ya no existe.",
+    "deleteTitle": "¿Eliminar esta novedad?",
+    "deleteKeep": "Mantener novedad",
+    "deleteConfirm": "Eliminar novedad",
+    "deleting": "Eliminando…",
+    "deleteFailed": "No pudimos eliminar la novedad. Inténtalo de nuevo.",
+    "editHint": {
+      "team": "Al guardar no se vuelve a avisar al equipo.",
+      "event": "Al guardar no se avisa a nadie.",
+      "party": "Al guardar no se vuelve a avisar al equipo."
+    },
+    "deleteBody": {
+      "team": "Desaparece de la página del equipo y de los avisos de todos. Quien la recibió por correo conserva su copia.",
+      "event": "Desaparece de la página del evento y de la página de inicio de todos.",
+      "party": "Desaparece para todo el equipo, junto con sus avisos. Quien la recibió por correo conserva su copia."
     }
   },
   "profile": {

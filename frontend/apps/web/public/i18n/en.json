@@ -236,21 +236,6 @@
       "postNews": "Post news",
       "postingNews": "Posting…",
       "noNews": "No news yet.",
-      "newsManage": "Manage post",
-      "newsEdit": "Edit",
-      "newsDelete": "Delete",
-      "newsEdited": "edited",
-      "newsEditLabel": "Post text",
-      "newsEditHint": "Saving won't notify the team again.",
-      "newsSaving": "Saving…",
-      "newsSaveFailed": "We couldn't save your changes. Try again.",
-      "newsGone": "This post no longer exists.",
-      "newsDeleteTitle": "Delete this post?",
-      "newsDeleteBody": "It disappears from the team page and from everyone's alerts. Anyone who got it by email keeps their copy.",
-      "newsDeleteKeep": "Keep post",
-      "newsDeleteConfirm": "Delete post",
-      "newsDeleting": "Deleting…",
-      "newsDeleteFailed": "We couldn't delete the post. Try again.",
       "trainings": "Trainings",
       "trainingsDesc": "Recurring sessions your team can respond to.",
       "viewTrainings": "View trainings",
@@ -587,6 +572,31 @@
       },
       "treeHint": "The full bracket and every match are on Tugeny.",
       "treeView": "See the bracket on Tugeny"
+    }
+  },
+  "news": {
+    "manage": "Manage post",
+    "edit": "Edit",
+    "delete": "Delete",
+    "edited": "edited",
+    "editLabel": "Post text",
+    "saving": "Saving…",
+    "saveFailed": "We couldn't save your changes. Try again.",
+    "gone": "This post no longer exists.",
+    "deleteTitle": "Delete this post?",
+    "deleteKeep": "Keep post",
+    "deleteConfirm": "Delete post",
+    "deleting": "Deleting…",
+    "deleteFailed": "We couldn't delete the post. Try again.",
+    "editHint": {
+      "team": "Saving won't notify the team again.",
+      "event": "Saving won't notify anyone.",
+      "party": "Saving won't notify the crew again."
+    },
+    "deleteBody": {
+      "team": "It disappears from the team page and from everyone's alerts. Anyone who got it by email keeps their copy.",
+      "event": "It disappears from the event page and from everyone's Home.",
+      "party": "It disappears for the whole crew, together with its alerts. Anyone who got it by email keeps their copy."
     }
   },
   "profile": {

@@ -240,21 +240,6 @@
       "postNews": "News posten",
       "postingNews": "Wird gepostet…",
       "noNews": "Noch keine Neuigkeiten.",
-      "newsManage": "Beitrag verwalten",
-      "newsEdit": "Bearbeiten",
-      "newsDelete": "Löschen",
-      "newsEdited": "bearbeitet",
-      "newsEditLabel": "Text des Beitrags",
-      "newsEditHint": "Beim Speichern wird das Team nicht noch einmal benachrichtigt.",
-      "newsSaving": "Wird gespeichert…",
-      "newsSaveFailed": "Wir konnten deine Änderungen nicht speichern. Versuch es noch einmal.",
-      "newsGone": "Diesen Beitrag gibt es nicht mehr.",
-      "newsDeleteTitle": "Diesen Beitrag löschen?",
-      "newsDeleteBody": "Er verschwindet von der Teamseite und aus den Meldungen aller Mitglieder. Wer ihn per E-Mail bekommen hat, behält diese Kopie.",
-      "newsDeleteKeep": "Beitrag behalten",
-      "newsDeleteConfirm": "Beitrag löschen",
-      "newsDeleting": "Wird gelöscht…",
-      "newsDeleteFailed": "Wir konnten den Beitrag nicht löschen. Versuch es noch einmal.",
       "trainings": "Trainings",
       "trainingsDesc": "Wiederkehrende Einheiten, auf die dein Team antworten kann.",
       "viewTrainings": "Trainings ansehen",
@@ -591,6 +576,31 @@
       },
       "treeHint": "Den ganzen Turnierbaum und alle Spiele findest du auf Tugeny.",
       "treeView": "Turnierbaum auf Tugeny ansehen"
+    }
+  },
+  "news": {
+    "manage": "Beitrag verwalten",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "edited": "bearbeitet",
+    "editLabel": "Text des Beitrags",
+    "saving": "Wird gespeichert…",
+    "saveFailed": "Wir konnten deine Änderungen nicht speichern. Versuch es noch einmal.",
+    "gone": "Diesen Beitrag gibt es nicht mehr.",
+    "deleteTitle": "Diesen Beitrag löschen?",
+    "deleteKeep": "Beitrag behalten",
+    "deleteConfirm": "Beitrag löschen",
+    "deleting": "Wird gelöscht…",
+    "deleteFailed": "Wir konnten den Beitrag nicht löschen. Versuch es noch einmal.",
+    "editHint": {
+      "team": "Beim Speichern wird das Team nicht noch einmal benachrichtigt.",
+      "event": "Beim Speichern wird niemand benachrichtigt.",
+      "party": "Beim Speichern wird die Crew nicht noch einmal benachrichtigt."
+    },
+    "deleteBody": {
+      "team": "Er verschwindet von der Teamseite und aus den Meldungen aller Mitglieder. Wer ihn per E-Mail bekommen hat, behält diese Kopie.",
+      "event": "Er verschwindet von der Event-Seite und von der Startseite aller.",
+      "party": "Er verschwindet für die ganze Crew, samt den Meldungen dazu. Wer ihn per E-Mail bekommen hat, behält diese Kopie."
     }
   },
   "profile": {

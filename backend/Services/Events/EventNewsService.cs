@@ -44,7 +44,8 @@ public sealed class EventNewsService : IEventNewsService
                 n.Id,
                 n.Author.Profile != null ? n.Author.Profile.DisplayName : placeholder,
                 n.Body,
-                n.CreatedDate))
+                n.CreatedDate,
+                n.EditedDate))
             .ToListAsync(ct);
 
         return new PagedResult<EventNewsDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
@@ -72,6 +73,6 @@ public sealed class EventNewsService : IEventNewsService
             .Select(p => p.DisplayName)
             .FirstOrDefaultAsync(ct) ?? "An organiser";
 
-        return PostNewsResult.Ok(new EventNewsDto(post.Id, displayName, post.Body, post.CreatedDate));
+        return PostNewsResult.Ok(new EventNewsDto(post.Id, displayName, post.Body, post.CreatedDate, EditedDate: null));
     }
 }

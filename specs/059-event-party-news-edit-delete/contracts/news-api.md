@@ -158,7 +158,8 @@ team page, the event page, the party page and the party news page (FR-022).
 Behaviour (moved verbatim from 057): unchanged text closes the editor without a request; a
 404 from either call ⇒ `removed({ gone: true })`; any other failure keeps the editor with the
 typed text (`news.saveFailed`) or keeps the dialog (`news.deleteFailed`); while any post is
-being edited every menu trigger is disabled (`NewsPostEditing`, root); Escape closes the open
+being edited every menu trigger is disabled (`NewsPostEditing`, provided by the page, which keeps
+an open editor and its draft across a rebuild of the list); Escape closes the open
 menu (focus → its trigger) or the dialog; Tab stays inside the dialog; initial dialog focus is
 *Keep post*; Save is `secondary` (the page's composer keeps the one coral CTA); delete is
 `danger`.
