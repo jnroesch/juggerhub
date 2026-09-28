@@ -154,8 +154,8 @@ domain (`Services/Teams`, `features/teams`) plus one engine method in `Services/
   kind.
 - **Don't touch `IsRead`/`CreatedDate`/`DedupeKey`**, and push no realtime event (FR-009 is
   silent).
-- **City resolution before the transaction** (`ResolveAndUpsertAsync` saves). Skip it when the
-  external id is unchanged (R5).
+- **City resolution before the transaction** (`ResolveAndUpsertAsync` saves). An existing city is
+  reused without a reference lookup (R5).
 - **`TeamPublicDetailDto` is positional with no defaults**: append the new members at the end.
 - **The migration must be generated with a build** (056: `--no-build` gave an empty migration).
 - **Refusals are coded**: the client maps `code` and never renders `detail`. The model-binding

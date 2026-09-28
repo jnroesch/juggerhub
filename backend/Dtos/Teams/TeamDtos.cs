@@ -66,7 +66,9 @@ public sealed record TeamLinkInput(string? Label, string? Url);
 /// <see cref="CreateTeamRequest"/>'s slug.
 /// </para></summary>
 public sealed record UpdateTeamDetailsRequest(
-    [Required, MaxLength(200)] string Name,
+    // Nullable and not [Required]: MVC's (implicit) required check refuses a blank name before the
+    // service can, with no code — the service's own refusal says "nameInvalid" instead.
+    [MaxLength(200)] string? Name,
     [Required] TeamType Type,
     // Required for a CityTeam — resend the current city's ExternalId to keep it; null for a Mixteam.
     LocationSelectionDto? Location,

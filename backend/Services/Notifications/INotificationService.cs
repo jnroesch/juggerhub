@@ -55,6 +55,19 @@ public interface INotificationService
         CancellationToken ct = default);
 
     /// <summary>
+    /// A team was renamed (feature 061): write <paramref name="teamName"/> into every notification
+    /// whose payload names the team with the slug <paramref name="teamSlug"/>, whoever received it —
+    /// people who have since left the team included, since rows are found by the team and never
+    /// through its roster. Only the payload's <c>teamName</c> and <c>ModifiedDate</c> change: read
+    /// state, inbox order and every other key are left alone, and nothing is pushed, so it is silent
+    /// and safe inside the caller's transaction. Returns the number of rows rewritten.
+    /// </summary>
+    Task<int> ReplaceTeamNameAsync(
+        string teamSlug,
+        string teamName,
+        CancellationToken ct = default);
+
+    /// <summary>
     /// Delete every notification of <paramref name="type"/> that <see cref="CreateManyAsync"/> wrote
     /// under <paramref name="dedupeKeyPrefix"/> — every recipient's, including people no longer
     /// connected to the source (feature 057: a deleted team news post takes its alerts with it).

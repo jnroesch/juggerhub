@@ -10,8 +10,128 @@
     @if (error()) {
       <jh-alert class="mt-md" data-testid="settings-error">{{ error() }}</jh-alert>
     }
+    <!-- Feature 061 — outside the admin-only block: it explains why the details section just went away. -->
+    @if (pageNotice(); as key) {
+      <jh-alert tone="info" class="mt-md" data-testid="settings-notice">{{ key | transloco }}</jh-alert>
+    }
 
     @if (isAdmin()) {
+      <!-- Feature 061 — Team details: name, type, city, description and links, saved together as one
+           replacement. The handle is shown as fixed, because it is. -->
+      <form class="mt-lg" data-testid="team-details" novalidate (submit)="$event.preventDefault(); saveDetails()">
+        <p class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.details.title' | transloco }}</p>
+        <div class="mt-xs space-y-md rounded-md border border-border-strong bg-surface-card px-md py-md">
+          <div>
+            <label for="details-name" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.name' | transloco }}</label>
+            <input id="details-name" type="text" maxlength="50" autocomplete="off" data-testid="details-name"
+              [value]="detailsName()" (input)="setDetailsName($any($event.target).value)"
+              class="mt-xs w-full rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast focus:border-border-focus focus:ring-2 focus:ring-focus" />
+            <p class="mt-xs text-body-sm text-muted">{{ 'teams.details.addressFixed' | transloco: { slug: t.slug } }}</p>
+          </div>
+
+          <div>
+            <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.type' | transloco }}</span>
+            <div class="mt-xs grid grid-cols-2 gap-xs rounded-md border border-border-strong p-1" role="group" [attr.aria-label]="'teams.create.type' | transloco">
+              <button type="button" (click)="setDetailsType('CityTeam')" data-testid="details-type-city" [attr.aria-pressed]="detailsType() === 'CityTeam'"
+                class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+                [class]="detailsType() === 'CityTeam' ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">
+                {{ 'teams.create.cityTeam' | transloco }}
+              </button>
+              <button type="button" (click)="setDetailsType('Mixteam')" data-testid="details-type-mix" [attr.aria-pressed]="detailsType() === 'Mixteam'"
+                class="rounded-sm px-md py-sm text-body-sm font-semibold transition-colors duration-fast"
+                [class]="detailsType() === 'Mixteam' ? 'bg-brand-strong text-on-accent' : 'text-muted hover:bg-surface-sunken'">
+                {{ 'teams.create.mixteam' | transloco }}
+              </button>
+            </div>
+          </div>
+
+          @if (detailsType() === 'CityTeam') {
+            <div data-testid="details-city">
+              <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.create.city' | transloco }}</span>
+              <div class="mt-xs">
+                <jh-city-picker [initial]="detailsInitialCity()" [placeholder]="'onboarding.city.placeholder' | transloco" (selectedChange)="onDetailsCitySelected($event)" />
+              </div>
+            </div>
+          } @else {
+            <div class="rounded-md border border-dashed border-info-border bg-info-bg px-md py-sm text-body-sm text-info-fg" data-testid="details-mixteam-note">
+              {{ 'teams.create.mixteamNote' | transloco }}
+            </div>
+          }
+
+          <div>
+            <label for="details-description" class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.details.description' | transloco }}</label>
+            <textarea id="details-description" rows="5" maxlength="1000" data-testid="details-description"
+              [value]="detailsDescription()" (input)="setDetailsDescription($any($event.target).value)"
+              [placeholder]="'teams.details.descriptionPlaceholder' | transloco"
+              class="mt-xs w-full resize-y rounded-md border border-border-strong bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast placeholder:text-muted focus:border-border-focus focus:ring-2 focus:ring-focus"></textarea>
+            <p class="mt-2xs flex items-baseline justify-between gap-sm text-caption text-muted">
+              <span>{{ 'teams.details.descriptionHint' | transloco }}</span>
+              <span class="shrink-0 font-mono" data-testid="details-description-count">{{ detailsDescription().length }}/{{ descriptionMax }}</span>
+            </p>
+          </div>
+
+          <div>
+            <span class="text-eyebrow font-semibold uppercase tracking-[0.06em] text-muted">{{ 'teams.details.links' | transloco }}</span>
+            <p class="mt-2xs text-body-sm text-muted">{{ 'teams.details.linksHint' | transloco: { max: maxLinks } }}</p>
+            @if (detailsLinks().length > 0) {
+              <ul class="mt-sm flex flex-col gap-sm" data-testid="details-links">
+                @for (l of detailsLinks(); track $index; let i = $index) {
+                  <!-- Stacked on a phone, side by side from sm: at 375px a label and an address
+                       cannot share a line without both becoming unreadable. -->
+                  <li class="flex items-start gap-xs" data-testid="details-link">
+                    <div class="grid min-w-0 flex-1 grid-cols-1 gap-xs sm:grid-cols-[minmax(0,10rem)_minmax(0,1fr)]">
+                      <input type="text" maxlength="30" autocomplete="off" data-testid="details-link-label"
+                        [value]="l.label" (input)="setLink(i, 'label', $any($event.target).value)"
+                        [attr.aria-label]="'teams.details.linkLabel' | transloco: { n: i + 1 }"
+                        [attr.aria-invalid]="invalidLink() === i ? true : null"
+                        [placeholder]="'teams.details.linkLabelPlaceholder' | transloco"
+                        class="w-full rounded-md border bg-surface-card px-md py-sm text-body-md text-body outline-none transition-shadow duration-fast placeholder:text-muted focus:border-border-focus focus:ring-2 focus:ring-focus"
+                        [class.border-border-strong]="invalidLink() !== i" [class.border-danger-border]="invalidLink() === i" />
+                      <input type="url" inputmode="url" maxlength="500" autocapitalize="none" autocomplete="off" spellcheck="false" data-testid="details-link-url"
+                        [value]="l.url" (input)="setLink(i, 'url', $any($event.target).value)"
+                        [attr.aria-label]="'teams.details.linkUrl' | transloco: { n: i + 1 }"
+                        [attr.aria-invalid]="invalidLink() === i ? true : null"
+                        placeholder="https://…"
+                        class="w-full rounded-md border bg-surface-card px-md py-sm font-mono text-body-sm text-body outline-none transition-shadow duration-fast placeholder:text-muted focus:border-border-focus focus:ring-2 focus:ring-focus"
+                        [class.border-border-strong]="invalidLink() !== i" [class.border-danger-border]="invalidLink() === i" />
+                    </div>
+                    <button type="button" data-testid="details-link-remove" (click)="removeLink(i)"
+                      [attr.aria-label]="'teams.details.removeLink' | transloco: { n: i + 1 }"
+                      class="grid h-11 w-11 shrink-0 place-items-center rounded-md text-muted transition-colors hover:bg-surface-sunken hover:text-body">
+                      <jh-icon name="x" />
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+            <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" data-testid="details-add-link"
+              [disabled]="!canAddLink()" (click)="addLink()">
+              <jh-icon name="plus" size="sm" />{{ 'teams.details.addLink' | transloco }}
+            </button>
+            @if (!canAddLink()) {
+              <p class="mt-xs text-body-sm text-muted" data-testid="details-links-max">{{ 'teams.details.linksMax' | transloco: { max: maxLinks } }}</p>
+            }
+          </div>
+
+          @if (detailsError(); as key) {
+            <jh-alert data-testid="details-error">{{ key | transloco: { n: (invalidLink() ?? 0) + 1, max: maxLinks } }}</jh-alert>
+          }
+
+          <div class="flex flex-wrap items-center justify-end gap-sm">
+            @if (detailsSaved()) {
+              <p class="flex items-center gap-2xs text-body-sm text-success-fg" role="status" data-testid="details-saved">
+                <jh-icon name="check" size="sm" />{{ 'teams.details.saved' | transloco }}
+              </p>
+            }
+            <button type="submit" jhButton [disabled]="savingDetails()" data-testid="details-save">
+              {{ (savingDetails() ? 'teams.details.saving' : 'common.save') | transloco }}
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <hr class="my-lg border-border-default" />
+
       <!-- Feature 051 — the team's logo. The picker itself stays hidden; the button below is the
            visible control, the same pattern the avatar and chat-attachment uploads use. -->
       <div class="mt-lg">

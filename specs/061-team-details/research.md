@@ -148,20 +148,23 @@ scan. The recorded fix, if it is ever needed, is an expression index on
 - 050's data-model rule 3 gains "renaming the connected team sets `Name = Team.Name`". An
   amendment note is added to that file.
 
-## R5 — The city: re-resolve only a CHANGED city
+## R5 — The city: create's rules, and the current city is simply resent
 
 **Decision**:
 - `CityTeam` with no `CityExternalId` → `cityRequired`.
 - `Mixteam` with a `CityExternalId` → `mixteamHasCity` (create's rule, FR-002).
-- `CityTeam` whose `CityExternalId` equals the team's **current** city's `ExternalId` → keep
-  `CityId` with no resolver call.
-- Otherwise `ResolveAndUpsertAsync`, where `CityNotResolvableException` → `cityNotFound`.
+- `CityTeam` → `ResolveAndUpsertAsync`, where `CityNotResolvableException` → `cityNotFound`.
 - `Mixteam` → `CityId = null` (FR-003).
 
 **Rationale**: the settings form resends the current city on every save (`LocationDto` already
-echoes `ExternalId` "so an edit form can resend the current city without re-picking"). Skipping
-resolution when it is unchanged means a save that only touches the description can never fail on
-the city, for example after a reference-dataset refresh. It also costs no lookup.
+echoes `ExternalId` "so an edit form can resend the current city without re-picking").
+`ResolveAndUpsertAsync` reuses a city it already holds **without** a reference lookup
+(`CityService.cs:140`), so resending the current city costs one read and cannot fail.
+
+*Corrected during implementation*: the plan first proposed skipping resolution when the city is
+unchanged, "so a save can never fail on the city after a reference-dataset refresh". Reading
+`CityService` showed that failure cannot happen: an existing city never needs its reference row.
+The skip was dropped as complexity with nothing to guard.
 
 ## R6 — Link rules live in one pure class, `TeamDetailsPolicy`
 
@@ -186,6 +189,19 @@ precedent) with the constants and the pure normalisers:
 - Name rules are **not** duplicated here. They stay `2..TeamOptions.NameMaxLength` exactly as
   `CreateAsync` has them. The two call the same private helper, so create and edit cannot drift
   apart.
+
+*Refined during implementation* (both in `TeamDetailsPolicy`, both unit-tested):
+
+- **Is there a scheme?** A leading `scheme:` (`^[A-Za-z][A-Za-z0-9+.-]*:`) decides it, not the
+  `://` check the virtual-link precedent uses. Otherwise `a.de/?u=https://b.de` would be
+  mistaken for an address that has a scheme and refused. `javascript:` and `mailto:` are
+  recognised as schemes and refused directly.
+- **Labels refuse bidirectional formatting characters** (U+061C, U+200E/F, U+202A–E,
+  U+2066–9) as well as control characters. The label is rendered right before the host. An
+  unterminated right-to-left override in it would visually **reverse the host beside it**,
+  which is exactly the disguise FR-017 exists to prevent. The template also isolates each part
+  with `<bdi>` as defence in depth (R10).
+- IP-literal hosts (`https://192.168.0.1`, `https://[::1]`) are refused by the DNS-host rule.
 
 **Why constants and not `TeamOptions`**: the limits are also **column lengths** (R9). An options
 knob raised above its column would turn a validation message into a 500. `NameMaxLength` already

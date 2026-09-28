@@ -90,7 +90,7 @@ connected team sets `Name = Team.Name`". A note is added to `specs/050-tournamen
 |---|---|---|
 | `name` | trim; 2–50 | `nameInvalid` |
 | `type` + `location` | `CityTeam` ⇒ a city; `Mixteam` ⇒ none | `cityRequired` / `mixteamHasCity` |
-| `location.cityExternalId` (changed) | resolvable in the local city reference | `cityNotFound` |
+| `location.cityExternalId` | a city already held, or resolvable in the local city reference | `cityNotFound` |
 | `description` | trim; blank ⇒ null; ≤ 1000 | `descriptionTooLong` |
 | `links` | ≤ 5 | `tooManyLinks` |
 | `links[i].label` | trim; 1–30; no control characters | `linkLabelInvalid` (+ `link: i`) |

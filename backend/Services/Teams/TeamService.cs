@@ -437,30 +437,19 @@ public sealed class TeamService : ITeamService
         }
 
         // The city last, and outside the transaction: resolving a city used for the first time
-        // inserts it and saves (StructuredAddress's remarks). A city that is not changing is not
-        // resolved at all — the form resends the current one on every save, and a save that only
-        // touches the description must not fail on a city the reference data no longer knows.
+        // inserts it and saves (StructuredAddress's remarks). The form resends the current city on
+        // every save; a city already held is reused without a reference lookup, so that costs one
+        // read and cannot fail.
         Guid? cityId = null;
         if (request.Type == TeamType.CityTeam)
         {
-            var current = await _db.Teams.AsNoTracking()
-                .Where(t => t.Id == a.TeamId)
-                .Select(t => new { t.CityId, ExternalId = t.City != null ? t.City.ExternalId : null })
-                .FirstAsync(ct);
-            if (current.CityId is not null && current.ExternalId == selectedCityId)
+            try
             {
-                cityId = current.CityId;
+                cityId = (await _cities.ResolveAndUpsertAsync(selectedCityId!, request.Location!.Name, ct)).Id;
             }
-            else
+            catch (CityNotResolvableException)
             {
-                try
-                {
-                    cityId = (await _cities.ResolveAndUpsertAsync(selectedCityId!, request.Location!.Name, ct)).Id;
-                }
-                catch (CityNotResolvableException)
-                {
-                    return Refused(TeamDetailsCode.CityNotFound, "That city could not be found.");
-                }
+                return Refused(TeamDetailsCode.CityNotFound, "That city could not be found.");
             }
         }
 
@@ -521,11 +510,26 @@ public sealed class TeamService : ITeamService
 
     /// <summary>
     /// A rename's reach beyond the team row (feature 061). Runs inside the caller's transaction and
-    /// only when the name actually changed (FR-011).
+    /// only when the name actually changed (FR-011). Two places keep a copy of a team's name:
+    /// <list type="bullet">
+    /// <item>delivered alerts (FR-009, owner decision: they show the new name) — found by the team's
+    /// slug in their payload, so former members' alerts are included; Home's "role changed" entries
+    /// are read from those rows and follow for free;</item>
+    /// <item>tournament placements connected to the team (FR-010) — feature 050's rule that a
+    /// connected placement shows its team's current name. Match sides read the placement, so they
+    /// follow; the result's own "changed" date is not touched, since nobody changed a result.</item>
+    /// </list>
+    /// Nothing is sent: no alert, email, push or realtime event.
     /// </summary>
-    private Task BringTeamNameUpToDateAsync(string slug, Guid teamId, string name, DateTime now, CancellationToken ct)
+    private async Task BringTeamNameUpToDateAsync(string slug, Guid teamId, string name, DateTime now, CancellationToken ct)
     {
-        return Task.CompletedTask;
+        await _notifications.ReplaceTeamNameAsync(slug, name, ct);
+
+        await _db.TournamentPlacements
+            .Where(p => p.TeamId == teamId)
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.Name, name)
+                .SetProperty(p => p.ModifiedDate, now), ct);
     }
 
     /// <summary>

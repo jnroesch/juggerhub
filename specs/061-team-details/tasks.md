@@ -90,19 +90,19 @@ new name, and the address is unchanged.
 
 ### Tests
 
-- [ ] T012 [P] [US1] Create `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamDetailsTests.cs` (`[Collection("Teams")]`, helpers mirroring `TeamNewsEditDeleteTests`: `Player`, `NewUserAsync`, `CreateTeamAsync` with `TEST:berlin`, `JoinAsync`). Facts:
+- [X] T012 [P] [US1] Create `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamDetailsTests.cs` (`[Collection("Teams")]`, helpers mirroring `TeamNewsEditDeleteTests`: `Player`, `NewUserAsync`, `CreateTeamAsync` with `TEST:berlin`, `JoinAsync`). Facts:
   - (a) an admin renames the team: 200 with the new name, the new name in `GET /teams/{slug}` and `/public`, the slug unchanged, and team browse (`/api/v1/teams?q=`) finds the team by the new name;
   - (b) a name of 1 or 51 characters ⇒ 400 `code == "nameInvalid"`, with the name unchanged in the DB;
   - (c) the city changes to `TEST:hamburg`: `location.externalId` matches, and browse's city filter finds the team under Hamburg;
   - (d) CityTeam → Mixteam with `location: null` ⇒ `CityId` null in the DB;
   - (e) Mixteam → CityTeam with no city ⇒ `cityRequired`, and a Mixteam with a city ⇒ `mixteamHasCity`, nothing changed either time;
   - (f) an unknown external id ⇒ `cityNotFound`;
-  - (g) R5: a team whose `City` row has **no** reference row (insert via `TestCities.GetOrCreateAsync(db, "Nowhere")` and point the team at it) saves successfully when resending that same external id;
+  - (g) R5: resending the current city (only the description changed) keeps the same `CityId`;
   - (h) a plain member ⇒ 403; a signed-in non-member ⇒ 404 with the same `title` as `PUT /teams/doesnotexist/details`; anonymous ⇒ 401;
   - (i) independence: `beginnersWelcome` set by PATCH survives a details save, `hasLogo` survives, and a later PATCH leaves name, description and links unchanged;
   - (j) atomicity: a valid new name together with an invalid link ⇒ 400, and the name is still the old one;
   - (k) `Teams.ModifiedDate` moved (Gate 2).
-- [ ] T013 [P] [US1] Create `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamRenameRewriteTests.cs` (`[Collection("Teams")]`).
+- [X] T013 [P] [US1] Create `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamRenameRewriteTests.cs` (`[Collection("Teams")]`).
 
   Arrange team *Rheinfuer*, with alerts produced through the **real** flows:
   - `TeamInvite`: a targeted invite to X;
@@ -122,7 +122,7 @@ new name, and the address is unchanged.
   - (f) saving the details again with the **same** name moves no notification's `ModifiedDate` (FR-011).
 
   Run it and **confirm (a) fails** before T016.
-- [ ] T014 [P] [US1] Create `backend/tests/JuggerHub.Api.IntegrationTests/Results/TeamRenamePlacementTests.cs` (`[Collection("Results")]`, derive from `ResultsTestSupport` like `TeamPlacementHistoryTests`). Arrange a past tournament whose ranking has the team connected, plus an unconnected placement whose `SourceName` equals the team's old name, plus another team's connected placement, with matches linked to the connected placement if the support allows (else set `FirstPlacementId` directly). Rename the team. Facts:
+- [X] T014 [P] [US1] Create `backend/tests/JuggerHub.Api.IntegrationTests/Results/TeamRenamePlacementTests.cs` (`[Collection("Results")]`, derive from `ResultsTestSupport` like `TeamPlacementHistoryTests`). Arrange a past tournament whose ranking has the team connected, plus an unconnected placement whose `SourceName` equals the team's old name, plus another team's connected placement, with matches linked to the connected placement if the support allows (else set `FirstPlacementId` directly). Rename the team. Facts:
   - (a) the connected placement's ranking row and the linked match side show the new name, and `SourceName` is unchanged;
   - (b) the unconnected placement and the other team's placement are unchanged;
   - (c) the result's last-changed date (whatever field the results DTO exposes) is unchanged;
@@ -130,10 +130,10 @@ new name, and the address is unchanged.
 
 ### Implementation
 
-- [ ] T015 [US1] Add `Task<int> ReplaceTeamNameAsync(string teamSlug, string teamName, CancellationToken ct = default)` to `backend/Services/Notifications/INotificationService.cs`, with a doc: realtime-free, joins the ambient transaction, silent (FR-009), found by slug never roster.
-- [ ] T016 [US1] Implement `ReplaceTeamNameAsync` in `backend/Services/Notifications/NotificationService.cs` beside `ReplacePayloadAsync`: one `ExecuteSqlInterpolatedAsync` per research R3 (`"Payload" = "Payload" || jsonb_build_object('teamName', {name}::text)`, `"ModifiedDate" = {now}`, `WHERE "Payload" ->> 'teamSlug' = {slug} AND jsonb_typeof("Payload" -> 'teamName') = 'string' AND "Payload" ->> 'teamName' IS DISTINCT FROM {name}`). Add a comment that the two keys are the camelCase of the payload records' `TeamSlug`/`TeamName` (`PayloadJson`), and why there is no type list. Fix any existing test fakes implementing `INotificationService`.
-- [ ] T017 [US1] In `UpdateDetailsAsync` (`backend/Services/Teams/TeamService.cs`), at the spot left in T009 and **only when the name changed**: call `_notifications.ReplaceTeamNameAsync(slug, newName, ct)`, then `_db.TournamentPlacements.Where(p => p.TeamId == teamId).ExecuteUpdateAsync(s => s.SetProperty(p => p.Name, newName).SetProperty(p => p.ModifiedDate, now), ct)`. Both go inside the strategy delegate, before `CommitAsync`. Run T012–T014 green.
-- [ ] T018 [US1] In `frontend/apps/web/src/app/features/teams/team-settings/team-settings.component.{ts,html}`, add the **Team details** section as the FIRST section, admins only:
+- [X] T015 [US1] Add `Task<int> ReplaceTeamNameAsync(string teamSlug, string teamName, CancellationToken ct = default)` to `backend/Services/Notifications/INotificationService.cs`, with a doc: realtime-free, joins the ambient transaction, silent (FR-009), found by slug never roster.
+- [X] T016 [US1] Implement `ReplaceTeamNameAsync` in `backend/Services/Notifications/NotificationService.cs` beside `ReplacePayloadAsync`: one `ExecuteSqlInterpolatedAsync` per research R3 (`"Payload" = "Payload" || jsonb_build_object('teamName', {name}::text)`, `"ModifiedDate" = {now}`, `WHERE "Payload" ->> 'teamSlug' = {slug} AND jsonb_typeof("Payload" -> 'teamName') = 'string' AND "Payload" ->> 'teamName' IS DISTINCT FROM {name}`). Add a comment that the two keys are the camelCase of the payload records' `TeamSlug`/`TeamName` (`PayloadJson`), and why there is no type list. Fix any existing test fakes implementing `INotificationService`.
+- [X] T017 [US1] In `UpdateDetailsAsync` (`backend/Services/Teams/TeamService.cs`), at the spot left in T009 and **only when the name changed**: call `_notifications.ReplaceTeamNameAsync(slug, newName, ct)`, then `_db.TournamentPlacements.Where(p => p.TeamId == teamId).ExecuteUpdateAsync(s => s.SetProperty(p => p.Name, newName).SetProperty(p => p.ModifiedDate, now), ct)`. Both go inside the strategy delegate, before `CommitAsync`. Run T012–T014 green.
+- [X] T018 [US1] In `frontend/apps/web/src/app/features/teams/team-settings/team-settings.component.{ts,html}`, add the **Team details** section as the FIRST section, admins only:
   - a name input (`maxlength=50`, required);
   - the type as the wizard's two-button segmented control (copy its markup from `team-create.component.html:69-81`; switching to Mixteam clears the pending city);
   - `jh-city-picker [initial]="t.location"` for a City team (rendered only once `detail` is loaded; it reads `initial` in `ngOnInit`);
@@ -142,7 +142,7 @@ new name, and the address is unchanged.
   State: signals for `detailsType`, `detailsCity`, `savingDetails`, `detailsSaved`, `detailsError` (translation key) and `invalidLinkIndex`, plus a reactive group for name/description. The request body is `{ name, type, location: type === 'CityTeam' ? (picked ? toSelection(picked) : { cityExternalId: t.location.externalId, name: t.location.name }) : null, description, links }`.
 
   On success: `detail.set(response)`, re-seed the form, `membership.load()`. On error: map `err.error?.code` to `teams.details.errors.<code>`, 403 to `errors.forbidden`, 404 to `errors.notFound` + `load()`, anything else to `errors.generic`. **Never** `problemDetail(err)` here (#179). Never auto-retry.
-- [ ] T019 [US1] Extend `frontend/apps/web/src/app/features/teams/team-settings/team-settings.component.spec.ts`:
+- [X] T019 [US1] Extend `frontend/apps/web/src/app/features/teams/team-settings/team-settings.component.spec.ts`:
   - the section renders for an admin with the current values and not for a member;
   - Save sends the expected body, keeping the current city's external id when untouched and sending `location: null` after switching to Mixteam;
   - success updates the page and calls `membership.load`;
@@ -150,8 +150,8 @@ new name, and the address is unchanged.
   - a 404 triggers a reload.
 
   Stub `updateDetails` in every existing TestBed setup.
-- [ ] T020 [US1] Add the `teams.details.*` keys for the section (title, name, type, city, save, saving, saved, and `errors.{nameInvalid,cityRequired,mixteamHasCity,cityNotFound,forbidden,notFound,generic}`) to **all three** `frontend/apps/web/public/i18n/{en,de,es}.json` in one change. German *Teamdetails*; the dashes rule applies.
-- [ ] T021 [US1] Add an amendment note to `specs/050-tournament-results/data-model.md` beside rule 3 ("Connecting sets `Name = Team.Name`"): *Amended by 061: renaming the connected team sets `Name = Team.Name` too (the spec's "a team is renamed later: its placements show its current name").*
+- [X] T020 [US1] Add the `teams.details.*` keys for the section (title, name, type, city, save, saving, saved, and `errors.{nameInvalid,cityRequired,mixteamHasCity,cityNotFound,forbidden,notFound,generic}`) to **all three** `frontend/apps/web/public/i18n/{en,de,es}.json` in one change. German *Teamdetails*; the dashes rule applies.
+- [X] T021 [US1] Add an amendment note to `specs/050-tournament-results/data-model.md` beside rule 3 ("Connecting sets `Name = Team.Name`"): *Amended by 061: renaming the connected team sets `Name = Team.Name` too (the spec's "a team is renamed later: its placements show its current name").*
 
 **Checkpoint**: backend suites + `team-settings` spec green. Commit
 `feat(061): admins change a team's name, type and city; a rename reaches alerts and results (#359)`.

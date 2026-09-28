@@ -69,7 +69,7 @@ One line of a ranking.
 **Invariants** (enforced in the service; the DB index backs FR-005):
 1. `TeamId != null ⇔ ConnectedByUserId != null ⇔ ConnectedAt != null`.
 2. A connection may be created only by (a) an admin of the event, to a team with a `Joined` `EventSignup` at that event (R4), or (b) a platform admin, to any existing team.
-3. Connecting sets `Name = Team.Name`. Disconnecting sets `Name = SourceName`.
+3. Connecting sets `Name = Team.Name`. Disconnecting sets `Name = SourceName`. *Amended by feature 061:* renaming the connected team sets `Name = Team.Name` too, in the rename's own transaction. That keeps the spec's "a team is renamed later: its placements show its current name", which the snapshot could not honour once a rename existed. `SourceName` and the result's `ResultsChangedAt` are not touched.
 4. At most 128 placements per result.
 
 ---
