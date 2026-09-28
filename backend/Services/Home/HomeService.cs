@@ -3,6 +3,7 @@ using JuggerHub.Common;
 using JuggerHub.Data;
 using JuggerHub.Dtos.Home;
 using JuggerHub.Entities;
+using JuggerHub.Services.Teams;
 using JuggerHub.Services.Trainings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -116,9 +117,15 @@ public sealed class HomeService : IHomeService
     /// "Needs you" — the actionable items awaiting the viewer's response, aggregated from each
     /// authoritative source domain (never the notification display-cache, so a read/stale notification
     /// can never leave a ghost action). Feature 025: pending targeted team invites + party co-admin
-    /// invites (token action), party participation requests where the viewer has not answered, pending
-    /// marketplace invites/applications, and near-window un-answered trainings. Capped.
+    /// invites (token action), party participation requests where the viewer has not answered, and
+    /// pending marketplace invites/applications. Feature 058: join requests waiting on the viewer as an
+    /// admin. Capped.
     /// </summary>
+    /// <remarks>
+    /// Every item carries <b>names, never a sentence</b> (feature 058): the words are the client's, in
+    /// the viewer's language. This method used to concatenate English titles ("… invited you"),
+    /// which no catalogue guard could see because they never became keys (GH #141's lesson).
+    /// </remarks>
     private async Task<List<NeedsYouItemDto>> LoadNeedsYouAsync(
         Guid userId, List<Guid> myTeamIds, DateTime now, CancellationToken ct)
     {
@@ -131,7 +138,8 @@ public sealed class HomeService : IHomeService
             .Take(cap)
             .Select(i => new NeedsYouItemDto(
                 NeedsYouKind.TeamInvite, i.Token,
-                i.Team.Name + " invited you", "to join the team", i.Team.Slug, i.CreatedDate))
+                new NeedsYouParamsDto { TeamName = i.Team.Name },
+                i.Team.Slug, i.CreatedDate))
             .ToListAsync(ct);
 
         var coAdminInvites = await _db.PartyAdminInvitations.AsNoTracking()
@@ -141,7 +149,7 @@ public sealed class HomeService : IHomeService
             .Take(cap)
             .Select(i => new NeedsYouItemDto(
                 NeedsYouKind.PartyCoAdminInvite, i.Token,
-                "Co-admin a party for " + i.Party.Event.Name, i.Party.Team.Name,
+                new NeedsYouParamsDto { TeamName = i.Party.Team.Name, EventName = i.Party.Event.Name },
                 i.Party.EventId.ToString(), i.CreatedDate))
             .ToListAsync(ct);
 
@@ -157,7 +165,8 @@ public sealed class HomeService : IHomeService
                 .Take(cap)
                 .Select(p => new NeedsYouItemDto(
                     NeedsYouKind.PartyRequest, p.Id.ToString(),
-                    p.Team.Name + " is fielding a party", p.Event.Name, p.EventId.ToString(), p.CreatedDate))
+                    new NeedsYouParamsDto { TeamName = p.Team.Name, EventName = p.Event.Name },
+                    p.EventId.ToString(), p.CreatedDate))
                 .ToListAsync(ct);
 
         var market = await _db.MarketRequests.AsNoTracking()
@@ -167,8 +176,31 @@ public sealed class HomeService : IHomeService
             .Select(r => new NeedsYouItemDto(
                 r.Direction == MarketRequestDirection.Invite ? NeedsYouKind.MarketInvite : NeedsYouKind.MarketApplication,
                 r.Id.ToString(),
-                r.Direction == MarketRequestDirection.Invite ? r.Party.Team.Name + " want you" : "You applied to " + r.Party.Team.Name,
-                r.Party.Event.Name, r.Party.EventId.ToString(), r.CreatedDate))
+                new NeedsYouParamsDto { TeamName = r.Party.Team.Name, EventName = r.Party.Event.Name },
+                r.Party.EventId.ToString(), r.CreatedDate))
+            .ToListAsync(ct);
+
+        // Join requests waiting on the viewer as an admin (feature 058). Only teams the viewer is an
+        // admin of NOW, and only requests that still wait — the one meaning of waiting, shared with
+        // the team page's queue, so an item here always resolves through the queue's endpoints.
+        // The player is named through the profile set, never r.User.Profile (the ban filter makes
+        // that navigation misbehave, 044); the predicate already excludes a banned player.
+        var joinRequests = await _db.TeamJoinRequests.AsNoTracking()
+            .Where(r => _db.TeamMemberships.Any(m => m.TeamId == r.TeamId && m.UserId == userId && m.Role == TeamRole.Admin))
+            .Where(JoinRequestWaiting.Predicate(_db))
+            .OrderByDescending(r => r.CreatedDate)
+            .Take(cap)
+            .Select(r => new NeedsYouItemDto(
+                NeedsYouKind.JoinRequest,
+                r.Id.ToString(),
+                new NeedsYouParamsDto
+                {
+                    TeamName = r.Team.Name,
+                    TeamSlug = r.Team.Slug,
+                    PlayerName = _db.PlayerProfiles.Where(p => p.UserId == r.UserId).Select(p => p.DisplayName).FirstOrDefault(),
+                },
+                _db.PlayerProfiles.Where(p => p.UserId == r.UserId).Select(p => p.Handle).FirstOrDefault(),
+                r.CreatedDate))
             .ToListAsync(ct);
 
         // Trainings are intentionally NOT here (feature 025 revision): "Needs you" is invites and
@@ -178,6 +210,7 @@ public sealed class HomeService : IHomeService
             .Concat(coAdminInvites)
             .Concat(partyRequests)
             .Concat(market)
+            .Concat(joinRequests)
             .OrderByDescending(x => x.OccurredAt)
             .Take(cap)
             .ToList();

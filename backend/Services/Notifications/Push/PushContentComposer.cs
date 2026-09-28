@@ -11,9 +11,11 @@ public interface IPushContentComposer
     /// <summary>
     /// Composes the notification for one recipient. <paramref name="payloadJson"/> is the same
     /// camelCase JSON the in-app row stores, and <paramref name="culture"/> is the RECIPIENT's
-    /// language — never the actor's, and never the request's.
+    /// language — never the actor's, and never the request's. <paramref name="actorName"/> is the
+    /// actor's current display name, or null when there is none to show (feature 058); only
+    /// sentences that name who did something use it.
     /// </summary>
-    PushContent Compose(NotificationType type, string payloadJson, string culture, string tag);
+    PushContent Compose(NotificationType type, string payloadJson, string culture, string tag, string? actorName = null);
 }
 
 /// <inheritdoc cref="IPushContentComposer" />
@@ -24,7 +26,7 @@ public sealed class PushContentComposer : IPushContentComposer
     public PushContentComposer(IPushLocalizer localizer) => _localizer = localizer;
 
     /// <inheritdoc />
-    public PushContent Compose(NotificationType type, string payloadJson, string culture, string tag)
+    public PushContent Compose(NotificationType type, string payloadJson, string culture, string tag, string? actorName = null)
     {
         JsonElement payload;
         try
@@ -38,7 +40,7 @@ public sealed class PushContentComposer : IPushContentComposer
         }
 
         var title = TitleFor(type, payload, culture);
-        var body = BodyFor(type, payload, culture);
+        var body = BodyFor(type, payload, culture, actorName);
         var url = UrlFor(type, payload);
 
         return new PushContent(title, body, url, tag);
@@ -53,7 +55,9 @@ public sealed class PushContentComposer : IPushContentComposer
     {
         NotificationType.TeamInvite
             or NotificationType.TeamRoleChanged
-            or NotificationType.TeamNews => Text(payload, "teamName"),
+            or NotificationType.TeamNews
+            or NotificationType.TeamJoinRequest
+            or NotificationType.TeamJoinRequestAnswered => Text(payload, "teamName"),
 
         NotificationType.PartyRequest
             or NotificationType.PartyNews
@@ -66,7 +70,7 @@ public sealed class PushContentComposer : IPushContentComposer
         _ => string.Empty,
     } is { Length: > 0 } named ? named : _localizer.Get("fallback.title", culture);
 
-    private string BodyFor(NotificationType type, JsonElement payload, string culture) => type switch
+    private string BodyFor(NotificationType type, JsonElement payload, string culture, string? actorName) => type switch
     {
         NotificationType.TeamInvite => Sentence("teamInvite.body", culture, Text(payload, "inviterName")),
         NotificationType.TeamRoleChanged => _localizer.Get("teamRoleChanged.body", culture),
@@ -77,6 +81,20 @@ public sealed class PushContentComposer : IPushContentComposer
         NotificationType.TrainingScheduled => _localizer.Get("trainingScheduled.body", culture),
         NotificationType.TrainingUpdated => _localizer.Get("trainingUpdated.body", culture),
         NotificationType.EventCancelled => _localizer.Get("eventCancelled.body", culture),
+
+        // Feature 058. The player's name comes from the actor, resolved at the moment of sending —
+        // never from the payload, which must not carry it. With no name to show (a banned actor),
+        // the sentence still says what happened rather than falling back to the generic one.
+        NotificationType.TeamJoinRequest => actorName is { Length: > 0 }
+            ? _localizer.Get("teamJoinRequest.body", culture, actorName)
+            : _localizer.Get("teamJoinRequest.bodyAnonymous", culture),
+        NotificationType.TeamJoinRequestAnswered => Flag(payload, "accepted") switch
+        {
+            true => _localizer.Get("teamJoinRequestAccepted.body", culture),
+            false => _localizer.Get("teamJoinRequestDeclined.body", culture),
+            null => _localizer.Get("fallback.body", culture),
+        },
+
         _ => _localizer.Get("fallback.body", culture),
     };
 
@@ -90,7 +108,16 @@ public sealed class PushContentComposer : IPushContentComposer
     {
         NotificationType.TeamInvite
             or NotificationType.TeamRoleChanged
-            or NotificationType.TeamNews => Slug(payload, "teamSlug") is { } slug ? $"/t/{slug}" : "/",
+            or NotificationType.TeamNews
+            or NotificationType.TeamJoinRequest => Slug(payload, "teamSlug") is { } slug ? $"/t/{slug}" : "/",
+
+        // Accepted: to the team the player just joined. Declined: to where they can find another.
+        NotificationType.TeamJoinRequestAnswered => Flag(payload, "accepted") switch
+        {
+            true => Slug(payload, "teamSlug") is { } slug ? $"/t/{slug}" : "/",
+            false => "/browse/teams",
+            null => "/",
+        },
 
         NotificationType.PartyRequest => Id(payload, "partyId") is { } party ? $"/parties/{party}" : "/",
         NotificationType.PartyNews => Id(payload, "partyId") is { } party ? $"/parties/{party}/news" : "/",
@@ -123,6 +150,14 @@ public sealed class PushContentComposer : IPushContentComposer
         && value.ValueKind == JsonValueKind.String
             ? value.GetString() ?? string.Empty
             : string.Empty;
+
+    /// <summary>A boolean, or null when the property is missing or not a boolean.</summary>
+    private static bool? Flag(JsonElement payload, string property) =>
+        payload.ValueKind == JsonValueKind.Object
+        && payload.TryGetProperty(property, out var value)
+        && value.ValueKind is JsonValueKind.True or JsonValueKind.False
+            ? value.GetBoolean()
+            : null;
 
     /// <summary>A GUID, or null. Parsed rather than interpolated, so nothing unexpected reaches a path.</summary>
     private static Guid? Id(JsonElement payload, string property) =>

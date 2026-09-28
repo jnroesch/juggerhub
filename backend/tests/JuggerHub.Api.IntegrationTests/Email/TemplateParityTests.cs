@@ -30,6 +30,10 @@ public sealed class TemplateParityTests
         "party-news.html",
         "market-invite.html",
         "account-deleted.html",
+        // Feature 058 — both directions of a join request.
+        "join-request.html",
+        "join-request-accepted.html",
+        "join-request-declined.html",
     ];
 
     [Theory]

@@ -62,3 +62,135 @@ describe('NotificationRowComponent — EventCancelled', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="notif-decline"]')).toBeNull();
   });
 });
+
+/**
+ * Feature 058 — an admin's alert that a player wants to join. The player is the row's actor and is
+ * named from `actorDisplayName`, never from the payload (which carries no name at all).
+ */
+describe('NotificationRowComponent — TeamJoinRequest', () => {
+  function render(overrides: Partial<AppNotification> = {}): ComponentFixture<NotificationRowComponent> {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NotificationRowComponent, translocoTestingModule()],
+      providers: [provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(NotificationRowComponent);
+    fixture.componentRef.setInput('notification', {
+      id: '0198c4f2-0000-7000-8000-000000000002',
+      type: 'TeamJoinRequest',
+      createdDate: new Date().toISOString(),
+      isRead: false,
+      actorDisplayName: 'Jonas Weber',
+      resolved: false,
+      payload: { requestId: '0198c4f2-0000-7000-8000-0000000000bb', teamSlug: 'hamburg-hammers', teamName: 'Hamburg Hammers' },
+      ...overrides,
+    } as AppNotification);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const text = (f: ComponentFixture<NotificationRowComponent>) => (f.nativeElement.textContent as string).replace(/\s+/g, ' ');
+
+  it('names the player and the team', () => {
+    expect(text(render())).toContain('Jonas Weber wants to join Hamburg Hammers');
+  });
+
+  it('says nobody in particular once the player is banned or gone', () => {
+    expect(text(render({ actorDisplayName: null }))).toContain('A former player wants to join Hamburg Hammers');
+  });
+
+  it('asks for an answer while the request waits, and stops asking once it no longer does', () => {
+    expect(text(render())).toContain('Open the team page to answer');
+    const answered = text(render({ resolved: true }));
+    expect(answered).toContain('No longer waiting for an answer');
+    expect(answered).not.toContain('Open the team page to answer');
+  });
+
+  it('opens the team page and offers no inline actions', () => {
+    const fixture = render();
+    const anchor = fixture.nativeElement.querySelector('a[href]') as HTMLAnchorElement | null;
+    expect(anchor?.getAttribute('href')).toBe('/t/hamburg-hammers');
+    expect(fixture.nativeElement.querySelector('[data-testid="notif-accept"]')).toBeNull();
+  });
+});
+
+/** Feature 058 — the answer to the player's own request. The team answers; no admin is named. */
+describe('NotificationRowComponent — TeamJoinRequestAnswered', () => {
+  function render(accepted: boolean): ComponentFixture<NotificationRowComponent> {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NotificationRowComponent, translocoTestingModule()],
+      providers: [provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(NotificationRowComponent);
+    fixture.componentRef.setInput('notification', {
+      id: '0198c4f2-0000-7000-8000-000000000003',
+      type: 'TeamJoinRequestAnswered',
+      createdDate: new Date().toISOString(),
+      isRead: false,
+      actorDisplayName: null,
+      resolved: false,
+      payload: { teamSlug: 'hamburg-hammers', teamName: 'Hamburg Hammers', accepted },
+    } as AppNotification);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const text = (f: ComponentFixture<NotificationRowComponent>) => (f.nativeElement.textContent as string).replace(/\s+/g, ' ');
+  const href = (f: ComponentFixture<NotificationRowComponent>) =>
+    (f.nativeElement.querySelector('a[href]') as HTMLAnchorElement | null)?.getAttribute('href');
+
+  it('tells an accepted player they are in, and opens their new team', () => {
+    const fixture = render(true);
+    expect(text(fixture)).toContain("You're in: Hamburg Hammers accepted your request");
+    expect(text(fixture)).toContain('Say hello to your new team');
+    expect(href(fixture)).toBe('/t/hamburg-hammers');
+  });
+
+  it('tells a declined player so, and opens the team browser', () => {
+    const fixture = render(false);
+    expect(text(fixture)).toContain('Hamburg Hammers declined your request');
+    expect(text(fixture)).toContain('Have a look at other teams');
+    expect(href(fixture)).toBe('/browse/teams');
+  });
+});
+
+/**
+ * Feature 058's browser walk caught "Wartet nicht mehr auf eine Antwort" cut to "…eine Antw…" at
+ * 375px. Only a news excerpt is a preview meant to be cut; every other supporting line wraps.
+ */
+describe('NotificationRowComponent — supporting line', () => {
+  function supportingOf(n: AppNotification): HTMLElement {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NotificationRowComponent, translocoTestingModule()],
+      providers: [provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(NotificationRowComponent);
+    fixture.componentRef.setInput('notification', n);
+    fixture.detectChanges();
+    return fixture.nativeElement.querySelectorAll('a p')[1] as HTMLElement;
+  }
+
+  const base = { createdDate: new Date().toISOString(), isRead: false, actorDisplayName: null, resolved: true };
+
+  it('wraps a sentence the reader needs whole', () => {
+    const line = supportingOf({
+      ...base,
+      id: 'n1',
+      type: 'TeamJoinRequest',
+      payload: { requestId: 'r1', teamSlug: 'hh', teamName: 'Hamburg Hammers' },
+    } as AppNotification);
+    expect(line.classList).not.toContain('truncate');
+  });
+
+  it('keeps a news excerpt to one line', () => {
+    const line = supportingOf({
+      ...base,
+      id: 'n2',
+      type: 'TeamNews',
+      payload: { teamSlug: 'hh', teamName: 'Hamburg Hammers', newsPostId: 'p1', excerpt: 'Training moves to Friday.' },
+    } as AppNotification);
+    expect(line.classList).toContain('truncate');
+  });
+});

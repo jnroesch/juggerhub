@@ -44,18 +44,33 @@ export type NeedsYouKind =
   | 'PartyRequest'
   | 'PartyCoAdminInvite'
   | 'MarketInvite'
-  | 'MarketApplication';
+  | 'MarketApplication'
+  | 'JoinRequest';
+
+/**
+ * The names an item's sentence is built from (feature 058). Only the fields its kind uses are set.
+ * They are user data and never translated; the words around them come from `home.needsYouItem.*`,
+ * in the viewer's language. The server used to send finished English sentences instead.
+ */
+export interface NeedsYouParams {
+  teamName: string | null;
+  /** JoinRequest: the team whose endpoints answer the request. */
+  teamSlug: string | null;
+  eventName: string | null;
+  /** JoinRequest: the player who asked. */
+  playerName: string | null;
+}
 
 /**
  * One item awaiting the viewer's response, aggregated from its authoritative source domain.
- * `id` is the action key passed to the kind's resolving endpoint (invitation token, request id, or
- * session id); `linkTarget` is the optional navigation target.
+ * `id` is the action key passed to the kind's resolving endpoint (invitation token or request id);
+ * `linkTarget` is the optional navigation target — a team slug, an event id, or for a join request
+ * the player's handle.
  */
 export interface NeedsYouItem {
   kind: NeedsYouKind;
   id: string;
-  title: string;
-  context: string | null;
+  params: NeedsYouParams;
   linkTarget: string | null;
   occurredAt: string;
 }

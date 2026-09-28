@@ -196,7 +196,7 @@
       "requested": "Requested",
       "cancelRequest": "Cancel request",
       "confirmJoinTitle": "Request to join {{name}}?",
-      "confirmJoinBody": "The team's admins will see your request and can approve it. You can withdraw it anytime before then.",
+      "confirmJoinBody": "The team's admins will see your request and can approve it. You'll be told when they answer, and you can withdraw it anytime before then.",
       "confirmJoinSubmit": "Send request",
       "dismiss": "Not now",
       "confirmCancelTitle": "Withdraw your request?",
@@ -257,7 +257,13 @@
       "teamTools": "Team tools",
       "invites": "Invites",
       "manage": "Manage",
-      "loading": "Loading team…"
+      "loading": "Loading team…",
+      "requestLimited": "You've sent a lot of join requests in a short time. Try again in a little while.",
+      "alreadyMember": "You're already on this team.",
+      "requestFailed": "We couldn't send your request just now.",
+      "cancelFailed": "We couldn't withdraw your request just now.",
+      "answerGone": "This request was already answered or withdrawn.",
+      "answerFailed": "We couldn't save your answer just now."
     },
     "placements": {
       "title": "Tournament results",
@@ -994,7 +1000,17 @@
     "upNextSubtitle": "Your upcoming trainings, matches, and events.",
     "upNextEmpty": "Nothing coming up right now.",
     "loadEventsError": "We couldn't load your events.",
-    "loading": "Loading your home page…"
+    "loading": "Loading your home page…",
+    "needsYouItem": {
+      "teamInviteTitle": "{{team}} invited you",
+      "teamInviteContext": "to join the team",
+      "partyCoAdminInviteTitle": "Co-admin a party for {{event}}",
+      "partyRequestTitle": "{{team}} is fielding a party",
+      "marketInviteTitle": "{{team}} want you",
+      "marketApplicationTitle": "You applied to {{team}}",
+      "joinRequestTitle": "{{player}} wants to join",
+      "noLongerWaiting": "This request was already answered or withdrawn."
+    }
   },
   "nav": {
     "brandHome": "JuggerHub home",
@@ -1162,7 +1178,7 @@
       "players": "players",
       "asked": "Asked",
       "beginners": "Beginners",
-      "askedConfirmation": "We've asked {{name}} to let you in. An admin still has to say yes.",
+      "askedConfirmation": "We've asked {{name}} to let you in. An admin still has to say yes, and you'll be told when they answer.",
       "ask": "Ask to join {{name}}",
       "asking": "Asking…",
       "notOnTeam": "I'm not on a team yet",
@@ -1179,7 +1195,10 @@
         "expired": "The invite you followed has expired. Ask a team admin for a new one.",
         "invalid": "The invite you followed is no longer valid. Ask a team admin for a new one.",
         "yourInvites": "Your invites"
-      }
+      },
+      "requestLimited": "You've sent a lot of join requests in a short time. Try again in a little while.",
+      "alreadyMember": "You're already on that team.",
+      "requestFailed": "We couldn't send that request just now."
     },
     "photo": {
       "title": "Make it yours",
@@ -1515,7 +1534,15 @@
       "trainingUpdatedCancelled": "A session you responded to was cancelled",
       "trainingUpdatedChanged": "An upcoming session changed",
       "eventCancelledTitle": "{{event}} was cancelled",
-      "eventCancelledSupporting": "The organiser called off an event you signed up for"
+      "eventCancelledSupporting": "The organiser called off an event you signed up for",
+      "joinRequestTitle": "{{player}} wants to join {{team}}",
+      "joinRequestSupporting": "Open the team page to answer",
+      "joinRequestHandled": "No longer waiting for an answer",
+      "formerPlayer": "A former player",
+      "joinAcceptedTitle": "You're in: {{team}} accepted your request",
+      "joinAcceptedSupporting": "Say hello to your new team",
+      "joinDeclinedTitle": "{{team}} declined your request",
+      "joinDeclinedSupporting": "Have a look at other teams"
     },
     "loading": "Loading your alerts…"
   },

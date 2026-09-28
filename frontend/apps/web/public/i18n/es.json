@@ -200,7 +200,7 @@
       "requested": "Solicitado",
       "cancelRequest": "Cancelar solicitud",
       "confirmJoinTitle": "¿Solicitar unirse a {{name}}?",
-      "confirmJoinBody": "Los administradores del equipo verán tu solicitud y podrán aprobarla. Puedes retirarla en cualquier momento antes de eso.",
+      "confirmJoinBody": "Los administradores del equipo verán tu solicitud y podrán aprobarla. Te avisaremos cuando respondan, y hasta entonces puedes retirarla en cualquier momento.",
       "confirmJoinSubmit": "Enviar solicitud",
       "dismiss": "Ahora no",
       "confirmCancelTitle": "¿Retirar tu solicitud?",
@@ -261,7 +261,13 @@
       "teamTools": "Herramientas del equipo",
       "invites": "Invitaciones",
       "manage": "Gestionar",
-      "loading": "Cargando equipo…"
+      "loading": "Cargando equipo…",
+      "requestLimited": "Has enviado muchas solicitudes en poco tiempo. Vuelve a intentarlo dentro de un rato.",
+      "alreadyMember": "Ya formas parte de este equipo.",
+      "requestFailed": "No hemos podido enviar tu solicitud ahora mismo.",
+      "cancelFailed": "No hemos podido retirar tu solicitud ahora mismo.",
+      "answerGone": "Esta solicitud ya se ha respondido o se ha retirado.",
+      "answerFailed": "No hemos podido guardar tu respuesta ahora mismo."
     },
     "placements": {
       "title": "Resultados en torneos",
@@ -998,7 +1004,17 @@
     "upNextSubtitle": "Tus próximos entrenamientos, partidos y eventos.",
     "upNextEmpty": "Nada próximo por ahora.",
     "loadEventsError": "No pudimos cargar tus eventos.",
-    "loading": "Cargando tu página de inicio…"
+    "loading": "Cargando tu página de inicio…",
+    "needsYouItem": {
+      "teamInviteTitle": "{{team}} te invitó",
+      "teamInviteContext": "a unirte al equipo",
+      "partyCoAdminInviteTitle": "Co-admin de una party para {{event}}",
+      "partyRequestTitle": "{{team}} está formando una party",
+      "marketInviteTitle": "{{team}} te quiere en su equipo",
+      "marketApplicationTitle": "Te postulaste a {{team}}",
+      "joinRequestTitle": "{{player}} quiere unirse",
+      "noLongerWaiting": "Esta solicitud ya se ha respondido o se ha retirado."
+    }
   },
   "nav": {
     "brandHome": "Inicio de JuggerHub",
@@ -1166,7 +1182,7 @@
       "players": "jugadores",
       "asked": "Solicitado",
       "beginners": "Principiantes",
-      "askedConfirmation": "Le hemos pedido a {{name}} que te admita. Un administrador todavía tiene que aceptar.",
+      "askedConfirmation": "Le hemos pedido a {{name}} que te admita. Un administrador todavía tiene que aceptar, y te avisaremos cuando alguien responda.",
       "ask": "Solicitar unirse a {{name}}",
       "asking": "Solicitando…",
       "notOnTeam": "Todavía no estoy en un equipo",
@@ -1183,7 +1199,10 @@
         "expired": "La invitación que seguiste ha caducado. Pide a un administrador del equipo que te envíe una nueva.",
         "invalid": "La invitación que seguiste ya no es válida. Pide a un administrador del equipo que te envíe una nueva.",
         "yourInvites": "Tus invitaciones"
-      }
+      },
+      "requestLimited": "Has enviado muchas solicitudes en poco tiempo. Vuelve a intentarlo dentro de un rato.",
+      "alreadyMember": "Ya formas parte de ese equipo.",
+      "requestFailed": "No hemos podido enviar esa solicitud ahora mismo."
     },
     "photo": {
       "title": "Hazlo tuyo",
@@ -1519,7 +1538,15 @@
       "trainingUpdatedCancelled": "Una sesión a la que respondiste fue cancelada",
       "trainingUpdatedChanged": "Una sesión próxima cambió",
       "eventCancelledTitle": "{{event}} se ha cancelado",
-      "eventCancelledSupporting": "La organización canceló un evento al que te habías apuntado"
+      "eventCancelledSupporting": "La organización canceló un evento al que te habías apuntado",
+      "joinRequestTitle": "{{player}} quiere unirse a {{team}}",
+      "joinRequestSupporting": "Responde desde la página del equipo",
+      "joinRequestHandled": "Ya no espera respuesta",
+      "formerPlayer": "Un jugador anterior",
+      "joinAcceptedTitle": "Ya formas parte: {{team}} aceptó tu solicitud",
+      "joinAcceptedSupporting": "Saluda a tu nuevo equipo",
+      "joinDeclinedTitle": "{{team}} rechazó tu solicitud",
+      "joinDeclinedSupporting": "Echa un vistazo a otros equipos"
     },
     "loading": "Cargando tus avisos…"
   },

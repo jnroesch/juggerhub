@@ -20,6 +20,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
     private readonly TeamEmailService _email;
     private readonly INotificationService _notifications;
     private readonly INotificationPreferenceService _preferences;
+    private readonly ITeamJoinRequestService _joinRequests;
     private readonly ILogger<TeamInvitationService> _logger;
     private readonly TeamOptions _teamOptions;
     private readonly EmailOptions _emailOptions;
@@ -30,6 +31,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
         TeamEmailService email,
         INotificationService notifications,
         INotificationPreferenceService preferences,
+        ITeamJoinRequestService joinRequests,
         ILogger<TeamInvitationService> logger,
         IOptions<TeamOptions> teamOptions,
         IOptions<EmailOptions> emailOptions)
@@ -39,6 +41,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
         _email = email;
         _notifications = notifications;
         _preferences = preferences;
+        _joinRequests = joinRequests;
         _logger = logger;
         _teamOptions = teamOptions.Value;
         _emailOptions = emailOptions.Value;
@@ -395,6 +398,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
                 await _db.SaveChangesAsync(ct);
             }
 
+            await EndWaitingRequestAsync(invite.TeamId, userId, ct);
             return new AcceptResult(AcceptStatus.AlreadyMember, teamSlug);
         }
 
@@ -422,7 +426,26 @@ public sealed class TeamInvitationService : ITeamInvitationService
             return new AcceptResult(AcceptStatus.AlreadyMember, teamSlug);
         }
 
+        await EndWaitingRequestAsync(invite.TeamId, userId, ct);
         return new AcceptResult(AcceptStatus.Joined, teamSlug);
+    }
+
+    /// <summary>
+    /// The player is in, so a request of theirs to this team no longer asks anything (feature 058,
+    /// FR-020): it ends exactly as a withdrawal would, taking the admins' alerts with it. After the
+    /// membership has committed, and best-effort — a cleanup failure must never undo a join, and
+    /// the shared meaning of "waiting" keeps a leftover request from ever reading as one.
+    /// </summary>
+    private async Task EndWaitingRequestAsync(Guid teamId, Guid userId, CancellationToken ct)
+    {
+        try
+        {
+            await _joinRequests.EndForMemberAsync(teamId, userId, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to end the waiting join request of user {UserId} on team {TeamId}.", userId, teamId);
+        }
     }
 
     public async Task<DeclineStatus> DeclineAsync(string token, Guid userId, CancellationToken ct = default)

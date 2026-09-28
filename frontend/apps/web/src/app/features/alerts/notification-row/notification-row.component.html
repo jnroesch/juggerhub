@@ -8,9 +8,9 @@
   <span
     class="grid h-11 w-11 shrink-0 place-items-center rounded-md"
     [class]="
-      kind() === 'TeamInvite'
+      kind() === 'TeamInvite' || kind() === 'TeamJoinRequest'
         ? 'bg-surface-accent-soft text-brand-strong'
-        : kind() === 'TeamRoleChanged'
+        : kind() === 'TeamRoleChanged' || kind() === 'TeamJoinRequestAnswered'
           ? 'bg-info-bg text-info-fg'
           : 'bg-surface-secondary-soft text-secondary-strong'
     "
@@ -22,6 +22,12 @@
       }
       @case ('TeamRoleChanged') {
         <jh-icon name="shield-check" size="lg" />
+      }
+      @case ('TeamJoinRequest') {
+        <jh-icon name="user-plus" size="lg" />
+      }
+      @case ('TeamJoinRequestAnswered') {
+        <jh-icon name="users" size="lg" />
       }
       @default {
         <jh-icon name="volume-2" size="lg" />
@@ -38,7 +44,10 @@
         class="block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >
         <p class="text-body-sm font-semibold text-heading">{{ title() }}</p>
-        <p class="mt-0.5 truncate text-body-sm text-muted">{{ supporting() }}</p>
+        <!-- Only a news excerpt is a preview, cut to one line. Every other supporting line is a
+             sentence the reader needs whole, and in German at 375px it no longer fits on one
+             (feature 058: "Wartet nicht mehr auf eine Antwort" was being cut). -->
+        <p class="mt-0.5 break-words text-body-sm text-muted" [class.truncate]="kind() === 'TeamNews'">{{ supporting() }}</p>
       </a>
     } @else {
       <p class="text-body-sm font-semibold text-heading">{{ title() }}</p>

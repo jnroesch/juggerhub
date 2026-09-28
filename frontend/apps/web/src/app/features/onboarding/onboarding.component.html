@@ -386,8 +386,8 @@
           }
         }
 
-        @if (teamRequestError()) {
-          <jh-alert class="mt-sm" data-testid="onboarding-team-request-error">{{ teamRequestError() }}</jh-alert>
+        @if (teamRequestError(); as key) {
+          <jh-alert class="mt-sm" data-testid="onboarding-team-request-error">{{ key | transloco }}</jh-alert>
         }
       </div>
       <div class="space-y-sm">

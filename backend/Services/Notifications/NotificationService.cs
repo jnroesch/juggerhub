@@ -4,6 +4,7 @@ using JuggerHub.Data;
 using JuggerHub.Dtos.Notifications;
 using JuggerHub.Entities;
 using JuggerHub.Services.Notifications.Realtime;
+using JuggerHub.Services.Teams;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -98,7 +99,7 @@ public sealed class NotificationService : INotificationService
 
         if (wantsPush)
         {
-            await _push.FanOutAsync([recipientUserId], type, payloadJson, dedupeKey, ct);
+            await _push.FanOutAsync([recipientUserId], type, payloadJson, dedupeKey, actorUserId: actorUserId, ct: ct);
         }
     }
 
@@ -135,7 +136,7 @@ public sealed class NotificationService : INotificationService
 
         if (recipients.Count == 0)
         {
-            await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, ct);
+            await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, actorUserId: actorUserId, ct: ct);
             return;
         }
 
@@ -167,7 +168,7 @@ public sealed class NotificationService : INotificationService
         }
 
         // Realtime badges are out; the slow hop goes last.
-        await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, ct);
+        await _push.FanOutAsync(pushRecipients, type, json, dedupeKeyPrefix, actorUserId: actorUserId, ct: ct);
     }
 
     // --- The source changed (feature 057) ---------------------------------------
@@ -238,13 +239,7 @@ public sealed class NotificationService : INotificationService
 
         // Resolve invite usability for the TeamInvite rows on this page in a single query, so an
         // invite accepted/declined/expired out-of-band renders as resolved (actions hidden).
-        var inviteIds = rows
-            .Where(r => r.Type == NotificationType.TeamInvite)
-            .Select(r => TryGetInvitationId(r.Payload))
-            .Where(id => id is not null)
-            .Select(id => id!.Value)
-            .Distinct()
-            .ToList();
+        var inviteIds = IdsOnPage(rows, NotificationType.TeamInvite, "invitationId");
 
         var usable = new HashSet<Guid>();
         if (inviteIds.Count > 0)
@@ -257,14 +252,35 @@ public sealed class NotificationService : INotificationService
             usable = found.ToHashSet();
         }
 
+        // The same for join requests (feature 058): an admin's alert stops asking for an answer once
+        // the request no longer waits — answered by anyone, the player banned or gone, the team
+        // gone. Worked out here from the one shared meaning of "waiting"; nothing is rewritten in
+        // other admins' inboxes when a request is answered.
+        var requestIds = IdsOnPage(rows, NotificationType.TeamJoinRequest, "requestId");
+
+        var waiting = new HashSet<Guid>();
+        if (requestIds.Count > 0)
+        {
+            var found = await _db.TeamJoinRequests.AsNoTracking()
+                .Where(r => requestIds.Contains(r.Id))
+                .Where(JoinRequestWaiting.Predicate(_db))
+                .Select(r => r.Id)
+                .ToListAsync(ct);
+            waiting = found.ToHashSet();
+        }
+
         var items = rows.Select(r => new NotificationDto(
             r.Id,
             r.Type,
             r.CreatedDate,
             r.IsRead,
             r.ActorDisplayName,
-            Resolved: r.Type == NotificationType.TeamInvite
-                && !(TryGetInvitationId(r.Payload) is Guid id && usable.Contains(id)),
+            Resolved: r.Type switch
+            {
+                NotificationType.TeamInvite => !(TryGetGuid(r.Payload, "invitationId") is Guid id && usable.Contains(id)),
+                NotificationType.TeamJoinRequest => !(TryGetGuid(r.Payload, "requestId") is Guid id && waiting.Contains(id)),
+                _ => false,
+            },
             Payload: JsonSerializer.Deserialize<JsonElement>(r.Payload))).ToList();
 
         return new PagedResult<NotificationDto>(items, total, pagination.NormalizedSkip, pagination.NormalizedTake);
@@ -378,19 +394,31 @@ public sealed class NotificationService : INotificationService
             n.Type == type && n.DedupeKey != null && n.DedupeKey.StartsWith(keyPrefix));
     }
 
-    private static Guid? TryGetInvitationId(string payloadJson)
+    /// <summary>The distinct ids of <paramref name="type"/>'s rows on this page, read from <paramref name="property"/>.</summary>
+    private static List<Guid> IdsOnPage(IEnumerable<Row> rows, NotificationType type, string property) =>
+        rows.Where(r => r.Type == type)
+            .Select(r => TryGetGuid(r.Payload, property))
+            .Where(id => id is not null)
+            .Select(id => id!.Value)
+            .Distinct()
+            .ToList();
+
+    private static Guid? TryGetGuid(string payloadJson, string property)
     {
         try
         {
             using var doc = JsonDocument.Parse(payloadJson);
-            if (doc.RootElement.TryGetProperty("invitationId", out var prop) && prop.TryGetGuid(out var id))
+            if (doc.RootElement.ValueKind == JsonValueKind.Object
+                && doc.RootElement.TryGetProperty(property, out var prop)
+                && prop.ValueKind == JsonValueKind.String
+                && prop.TryGetGuid(out var id))
             {
                 return id;
             }
         }
         catch (JsonException)
         {
-            // Malformed payload — treat as no invite id.
+            // Malformed payload — treat as carrying no id.
         }
 
         return null;

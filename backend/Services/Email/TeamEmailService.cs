@@ -16,12 +16,18 @@ public sealed class TeamEmailService
     private readonly IEmailTemplateService _templates;
     private readonly IEmailSender _sender;
     private readonly EmailOptions _options;
+    private readonly IEmailLocalizer _localizer;
 
-    public TeamEmailService(IEmailTemplateService templates, IEmailSender sender, IOptions<EmailOptions> options)
+    public TeamEmailService(
+        IEmailTemplateService templates,
+        IEmailSender sender,
+        IOptions<EmailOptions> options,
+        IEmailLocalizer localizer)
     {
         _templates = templates;
         _sender = sender;
         _options = options.Value;
+        _localizer = localizer;
     }
 
     public async Task SendTeamInviteEmailAsync(
@@ -65,6 +71,42 @@ public sealed class TeamEmailService
         var html = await _templates.GenerateTeamNewsEmailAsync(teamName, url, authorName, excerpt);
         await _sender.SendAsync(toEmail, $"News from {teamName} — JuggerHub", html, ct);
     }
+
+    // --- Feature 058: join requests. Unlike the three above, these render in the RECIPIENT's
+    // language (the 039 pattern) — they are addressed to a person, not to whoever caused them.
+
+    /// <summary>Tells one admin that <paramref name="playerName"/> asked to join, linking to the team page.</summary>
+    public async Task SendJoinRequestEmailAsync(
+        string toEmail, string recipientName, string playerName, string teamName, string slug,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
+    {
+        var url = BuildTeamLink(_options.FrontendBaseUrl, slug);
+        var html = await _templates.GenerateJoinRequestEmailAsync(recipientName, playerName, teamName, url, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.joinRequest", culture, playerName, teamName), html, ct);
+    }
+
+    /// <summary>Tells the player the team accepted them, linking to the team. Names no admin.</summary>
+    public async Task SendJoinRequestAcceptedEmailAsync(
+        string toEmail, string recipientName, string teamName, string slug,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
+    {
+        var url = BuildTeamLink(_options.FrontendBaseUrl, slug);
+        var html = await _templates.GenerateJoinRequestAcceptedEmailAsync(recipientName, teamName, url, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.joinRequestAccepted", culture, teamName), html, ct);
+    }
+
+    /// <summary>Tells the player the team declined, pointing them at other teams. Names no admin.</summary>
+    public async Task SendJoinRequestDeclinedEmailAsync(
+        string toEmail, string recipientName, string teamName,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
+    {
+        var url = BuildBrowseTeamsLink(_options.FrontendBaseUrl);
+        var html = await _templates.GenerateJoinRequestDeclinedEmailAsync(recipientName, teamName, url, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.joinRequestDeclined", culture, teamName), html, ct);
+    }
+
+    internal static string BuildBrowseTeamsLink(string frontendBaseUrl) =>
+        $"{frontendBaseUrl.TrimEnd('/')}/browse/teams";
 
     internal static string BuildJoinLink(string frontendBaseUrl, string slug, string token)
     {

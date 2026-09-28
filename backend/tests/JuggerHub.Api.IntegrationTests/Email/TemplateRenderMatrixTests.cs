@@ -65,6 +65,51 @@ public sealed class TemplateRenderMatrixTests
         Assert.Contains("Jonas", html, StringComparison.Ordinal);
     }
 
+    // --- Feature 058: join requests ---------------------------------------------------------
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Join_request_renders(string culture)
+    {
+        var html = await Service().GenerateJoinRequestEmailAsync(
+            "Mira", "Jonas Weber", "Rheinfeuer", $"{BaseUrl}/t/rf", culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Jonas Weber", html, StringComparison.Ordinal);
+        Assert.Contains("Rheinfeuer", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/t/rf\"", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Join_request_accepted_renders(string culture)
+    {
+        var html = await Service().GenerateJoinRequestAcceptedEmailAsync("Jonas", "Rheinfeuer", $"{BaseUrl}/t/rf", culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Rheinfeuer", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/t/rf\"", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Join_request_declined_renders(string culture)
+    {
+        var html = await Service().GenerateJoinRequestDeclinedEmailAsync("Jonas", "Rheinfeuer", $"{BaseUrl}/browse/teams", culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Rheinfeuer", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/browse/teams\"", html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task A_players_name_is_escaped_in_the_admins_email()
+    {
+        // The player chose their display name; it reaches another member's mailbox (FR-006).
+        var html = await Service().GenerateJoinRequestEmailAsync(
+            "Mira", "<img src=x>", "Rheinfeuer", $"{BaseUrl}/t/rf", "en");
+
+        Assert.DoesNotContain("<img src=x>", html, StringComparison.Ordinal);
+        Assert.Contains("&lt;img src=x&gt;", html, StringComparison.Ordinal);
+    }
+
     /// <summary>
     /// Accented characters survive the escaping pass. This is the assertion that would have caught
     /// the first implementation, which used an encoder that turned every non-ASCII character into a

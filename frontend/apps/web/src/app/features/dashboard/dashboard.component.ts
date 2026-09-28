@@ -1,5 +1,5 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ButtonDirective, EmptyStateComponent, LoadingComponent, RiseDirective, RiseScope } from '../../shared/ui';
+import { AlertComponent, ButtonDirective, EmptyStateComponent, LoadingComponent, RiseDirective, RiseScope } from '../../shared/ui';
 import { RouterLink } from '@angular/router';
 import { HomeService } from '../../core/services/home.service';
 import { Home } from '../../core/models/home.models';
@@ -19,7 +19,7 @@ import { PluralKeyPipe } from '../../core/i18n/plural-key.pipe';
  */
 @Component({
   selector: 'jh-dashboard',
-  imports: [LoadingComponent, RouterLink, NeedsYouCardComponent, UpNextCardComponent, NewsListComponent, ActivityListComponent, ButtonDirective, EmptyStateComponent, TranslocoPipe, PluralKeyPipe, RiseDirective],
+  imports: [LoadingComponent, RouterLink, NeedsYouCardComponent, UpNextCardComponent, NewsListComponent, ActivityListComponent, ButtonDirective, EmptyStateComponent, TranslocoPipe, PluralKeyPipe, RiseDirective, AlertComponent],
   providers: [RiseScope],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
@@ -52,8 +52,29 @@ export class DashboardComponent implements OnInit {
     });
   }
 
+  /**
+   * Why a "Needs you" item just left without the viewer answering it (feature 058) — a translation
+   * key, so a language switch re-renders it. Kept here rather than in the card, because the card
+   * disappears with its last item and the explanation must not go with it.
+   */
+  protected readonly needsYouNotice = signal<string | null>(null);
+
   /** A "Needs you" item was resolved in place — refresh the composite so all sections reconcile. */
-  protected onResolved(_id: string): void {
+  protected onResolved(): void {
+    this.needsYouNotice.set(null);
+    this.refresh();
+  }
+
+  /**
+   * A join request another admin answered first (or the player withdrew) — say so, and refresh so
+   * the greeting's count of waiting things drops with the item (feature 058, FR-019).
+   */
+  protected onGone(): void {
+    this.needsYouNotice.set('home.needsYouItem.noLongerWaiting');
+    this.refresh();
+  }
+
+  private refresh(): void {
     this.home.getHome().subscribe({ next: (h) => this.data.set(h) });
   }
 }

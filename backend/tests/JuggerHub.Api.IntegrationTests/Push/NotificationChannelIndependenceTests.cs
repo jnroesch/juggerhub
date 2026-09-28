@@ -125,7 +125,44 @@ public sealed class NotificationChannelIndependenceTests
         Assert.StartsWith("/t/", dispatch.Content.Url);
     }
 
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task A_join_request_reaches_each_admin_on_each_channel_independently(bool inApp, bool push)
+    {
+        // Feature 058: the admins' alert is a new producer, so the same four-way guard applies to it.
+        var (admin, adminId, _, _) = await NewUserAsync();
+        var slug = await NewTeamOwnedByAsync(admin);
+        var (player, _, _, _) = await NewUserAsync();
+        await SetAsync(admin, "InvitesAndRoster", "InApp", inApp);
+        await SetAsync(admin, "InvitesAndRoster", "Push", push);
+        _factory.PushDispatcher.Clear();
+
+        (await player.PostAsync($"/api/v1/teams/{slug}/join-requests", null)).EnsureSuccessStatusCode();
+
+        var rows = (await ListNotificationsAsync(admin)).EnumerateArray()
+            .Count(n => n.GetProperty("type").GetString() == "TeamJoinRequest");
+        Assert.Equal(inApp ? 1 : 0, rows);
+        Assert.Equal(push, _factory.PushDispatcher.Recipients.Contains(adminId));
+    }
+
     // --- helpers ------------------------------------------------------------
+
+    private static async Task<string> NewTeamOwnedByAsync(HttpClient admin)
+    {
+        var slug = "t" + Guid.NewGuid().ToString("N")[..12];
+        var created = await admin.PostAsJsonAsync("/api/v1/teams", new
+        {
+            name = "Rheinfeuer",
+            slug,
+            type = "CityTeam",
+            location = new { cityExternalId = "TEST:berlin" },
+        });
+        created.EnsureSuccessStatusCode();
+        return slug;
+    }
 
     private static Task<HttpResponseMessage> SetAsync(
         HttpClient client, string category, string channel, bool enabled) =>

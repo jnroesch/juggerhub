@@ -17,7 +17,9 @@ export type NotificationType =
   | 'MarketInvite'
   | 'TrainingScheduled'
   | 'TrainingUpdated'
-  | 'EventCancelled';
+  | 'EventCancelled'
+  | 'TeamJoinRequest'
+  | 'TeamJoinRequestAnswered';
 
 export interface TeamInvitePayload {
   invitationId: string;
@@ -88,6 +90,28 @@ export interface EventCancelledPayload {
   eventName: string;
 }
 
+/**
+ * Someone asked to join a team the recipient administers (feature 058). There is deliberately no
+ * name here: the player is the notification's actor, so `actorDisplayName` carries their current
+ * name — and null once they are banned or have deleted their account. `resolved` is true once the
+ * request no longer waits for an answer.
+ */
+export interface TeamJoinRequestPayload {
+  requestId: string;
+  teamSlug: string;
+  teamName: string;
+}
+
+/**
+ * The answer to the recipient's request to join (feature 058). Names the team, never the admin who
+ * answered.
+ */
+export interface TeamJoinRequestAnsweredPayload {
+  teamSlug: string;
+  teamName: string;
+  accepted: boolean;
+}
+
 export type NotificationPayload =
   | TeamInvitePayload
   | TeamRoleChangedPayload
@@ -96,7 +120,9 @@ export type NotificationPayload =
   | MarketInvitePayload
   | TrainingScheduledPayload
   | TrainingUpdatedPayload
-  | EventCancelledPayload;
+  | EventCancelledPayload
+  | TeamJoinRequestPayload
+  | TeamJoinRequestAnsweredPayload;
 
 export interface AppNotification {
   id: string;
@@ -165,4 +191,16 @@ export function isEventCancelled(
   n: AppNotification,
 ): n is AppNotification & { type: 'EventCancelled'; payload: EventCancelledPayload } {
   return n.type === 'EventCancelled';
+}
+
+export function isTeamJoinRequest(
+  n: AppNotification,
+): n is AppNotification & { type: 'TeamJoinRequest'; payload: TeamJoinRequestPayload } {
+  return n.type === 'TeamJoinRequest';
+}
+
+export function isTeamJoinRequestAnswered(
+  n: AppNotification,
+): n is AppNotification & { type: 'TeamJoinRequestAnswered'; payload: TeamJoinRequestAnsweredPayload } {
+  return n.type === 'TeamJoinRequestAnswered';
 }

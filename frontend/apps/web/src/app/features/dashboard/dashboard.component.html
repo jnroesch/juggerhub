@@ -32,9 +32,13 @@
     <div class="mt-lg grid items-start gap-lg lg:grid-cols-[minmax(0,1fr)_minmax(0,340px)]">
       <!-- Main column -->
       <div class="flex min-w-0 flex-col gap-lg">
-        <!-- 1. Needs you — actionable, pinned top -->
+        <!-- 1. Needs you — actionable, pinned top. The notice explains an item that left without an
+             answer from this viewer, and outlives the card when that was the last item (058). -->
+        @if (needsYouNotice(); as key) {
+          <jh-alert tone="info" data-testid="needs-you-notice">{{ key | transloco }}</jh-alert>
+        }
         @if (home.needsYou.length > 0) {
-          <jh-needs-you-card [jhRise]="0" [items]="home.needsYou" (resolved)="onResolved($event)" />
+          <jh-needs-you-card [jhRise]="0" [items]="home.needsYou" (resolved)="onResolved()" (gone)="onGone()" />
         }
 
         @if (hasTeam()) {

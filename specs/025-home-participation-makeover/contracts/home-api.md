@@ -2,6 +2,8 @@
 
 All endpoints unchanged in **surface** (`HomeController`), reshaped in **payload**. JWT-cookie auth; acts only on the authenticated subject; every section entitlement-scoped server-side.
 
+> **Amended by feature 058.** `needsYou` items no longer carry `title`/`context` (English sentences built on the server); they carry `params` — names only — and the client composes the words in the viewer's language. The `JoinRequest` kind was added for admins. See [`specs/058-join-request-notifications/contracts/home-needs-you.md`](../../058-join-request-notifications/contracts/home-needs-you.md). The example below shows the original shape.
+
 ---
 
 ## `GET /api/v1/home` — composite dashboard
