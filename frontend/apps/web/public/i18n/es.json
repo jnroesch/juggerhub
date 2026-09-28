@@ -243,6 +243,13 @@
       "teamTools": "Herramientas del equipo",
       "invites": "Invitaciones",
       "settings": "Ajustes",
+      "yourMembership": "Tu membresía",
+      "leaveDesc": "Al salir dejas de estar en la plantilla y pierdes las novedades, los entrenamientos y el chat del equipo.",
+      "leaveTeam": "Salir del equipo",
+      "soleAdminLeave": "Eres el único administrador, así que todavía no puedes salir. Primero haz administrador a otra persona desde la plantilla. Después podrás salir o dejar el cargo en los ajustes del equipo.",
+      "confirmLeaveTitle": "¿Salir de {{name}}?",
+      "confirmLeaveBody": "Perderás el acceso a las novedades, los entrenamientos y el chat del equipo. Más adelante puedes volver a solicitar unirte, o un administrador puede invitarte de nuevo.",
+      "stayInTeam": "Quedarme",
       "loading": "Cargando equipo…"
     },
     "placements": {

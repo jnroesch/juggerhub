@@ -243,6 +243,13 @@
       "teamTools": "Team-Tools",
       "invites": "Einladungen",
       "settings": "Einstellungen",
+      "yourMembership": "Deine Mitgliedschaft",
+      "leaveDesc": "Wenn du das Team verlässt, bist du nicht mehr im Kader und siehst weder News, Trainings noch den Team-Chat.",
+      "leaveTeam": "Team verlassen",
+      "soleAdminLeave": "Du bist der einzige Admin und kannst das Team deshalb noch nicht verlassen. Mach zuerst jemand anderen aus dem Kader zum Admin – danach kannst du das Team verlassen oder in den Einstellungen zurücktreten.",
+      "confirmLeaveTitle": "{{name}} verlassen?",
+      "confirmLeaveBody": "Du verlierst den Zugang zu News, Trainings und Chat des Teams. Du kannst später erneut eine Beitrittsanfrage stellen, oder ein Admin lädt dich wieder ein.",
+      "stayInTeam": "Bleiben",
       "loading": "Team wird geladen…"
     },
     "placements": {

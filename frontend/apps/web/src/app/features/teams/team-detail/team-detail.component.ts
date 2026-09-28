@@ -14,6 +14,8 @@ import {
   TeamNews,
   TeamPublicDetail,
 } from '../../../core/models/team.models';
+import { AuthService } from '../../../core/services/auth.service';
+import { MembershipService } from '../../../core/services/membership.service';
 import { TeamService } from '../../../core/services/team.service';
 import { PartyService } from '../../../core/services/party.service';
 import { PartyRequestCard } from '../../../core/models/party.models';
@@ -27,7 +29,43 @@ import { TeamPlacementsComponent } from './placements/team-placements.component'
  * recent activity, and upcoming trainings, plus a state-aware request-to-join action. Members
  * additionally see the news feed; admins additionally see the join-request queue and the roster
  * admin controls + team tools. The viewer's relation is decided server-side.
+ *
+ * GH #361: a member leaves the team from here (the "Your membership" card in the right rail) —
+ * settings is admin-only, so the team page is the one member-facing home for it. The last-admin
+ * guard is the server's (`MutateMembershipAsync`); the sole admin sees an explanation instead of
+ * a button that would only ever answer 409.
  */
+
+/** The three actions the page's confirmation modal gates, with the copy each one shows. */
+type ConfirmIntent = 'join' | 'cancel' | 'leave';
+
+interface ConfirmCopy {
+  title: string;
+  body: string;
+  submit: string;
+  dismiss: string;
+}
+
+const CONFIRM_COPY: Record<ConfirmIntent, ConfirmCopy> = {
+  join: {
+    title: 'teams.detail.confirmJoinTitle',
+    body: 'teams.detail.confirmJoinBody',
+    submit: 'teams.detail.confirmJoinSubmit',
+    dismiss: 'teams.detail.dismiss',
+  },
+  cancel: {
+    title: 'teams.detail.confirmCancelTitle',
+    body: 'teams.detail.confirmCancelBody',
+    submit: 'teams.detail.confirmCancelSubmit',
+    dismiss: 'teams.detail.keepRequest',
+  },
+  leave: {
+    title: 'teams.detail.confirmLeaveTitle',
+    body: 'teams.detail.confirmLeaveBody',
+    submit: 'teams.detail.leaveTeam',
+    dismiss: 'teams.detail.stayInTeam',
+  },
+};
 @Component({
   selector: 'jh-team-detail',
   imports: [LoadingComponent, RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent],
@@ -37,6 +75,8 @@ import { TeamPlacementsComponent } from './placements/team-placements.component'
 export class TeamDetailComponent {
   private readonly teams = inject(TeamService);
   private readonly parties = inject(PartyService);
+  private readonly auth = inject(AuthService);
+  private readonly membership = inject(MembershipService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
@@ -49,6 +89,12 @@ export class TeamDetailComponent {
 
   // Members/admins load the full roster (with ids + admin menu) + news; admins load the queue.
   protected readonly members = signal<TeamMember[]>([]);
+  /**
+   * Whether the roster has arrived. The leave control for an ADMIN depends on how many admins the
+   * roster holds, and `members()` is empty until it loads — without this flag the sole-admin
+   * explanation would flash for every admin on every load.
+   */
+  protected readonly membersLoaded = signal(false);
   protected readonly news = signal<TeamNews[]>([]);
   /** Feature 044 — the team-internal "What's happening" feed (members only). */
   protected readonly happenings = signal<TeamHappening[]>([]);
@@ -59,8 +105,13 @@ export class TeamDetailComponent {
   protected readonly openMenu = signal<string | null>(null);
 
   protected readonly requestBusy = signal(false);
-  /** Which join action a confirmation modal is currently gating (null = closed). */
-  protected readonly confirmIntent = signal<'join' | 'cancel' | null>(null);
+  /** Which action the confirmation modal is currently gating (null = closed). */
+  protected readonly confirmIntent = signal<ConfirmIntent | null>(null);
+  /** The copy keys for the open confirmation — the template reads one record, not three ternaries. */
+  protected readonly confirmCopy = computed<ConfirmCopy | null>(() => {
+    const intent = this.confirmIntent();
+    return intent ? CONFIRM_COPY[intent] : null;
+  });
 
   protected readonly relation = computed(() => this.pub()?.viewerRelation ?? 'Anonymous');
   protected readonly isMember = computed(() => this.relation() === 'Member' || this.relation() === 'Admin');
@@ -70,6 +121,20 @@ export class TeamDetailComponent {
   protected readonly requested = computed(() => this.relation() === 'Requested');
   /** Feature 027: any signed-in non-admin may contact the team's admins (FR-001/FR-002). */
   protected readonly canContactAdmins = computed(() => !this.isAnon() && !this.isAdmin());
+
+  private readonly adminCount = computed(() => this.members().filter((m) => m.role === 'Admin').length);
+  /**
+   * GH #361 — the viewer is the team's only admin, so the server would refuse a leave (409
+   * LastAdmin, the same guard as step-down). Known only once the roster is in.
+   */
+  protected readonly soleAdmin = computed(() => this.isAdmin() && this.membersLoaded() && this.adminCount() <= 1);
+  /**
+   * GH #361 — a non-admin member may always leave; an admin only once the roster shows another
+   * admin. Until the roster loads an admin sees neither the button nor the explanation.
+   */
+  protected readonly canLeave = computed(
+    () => this.isMember() && (!this.isAdmin() || (this.membersLoaded() && this.adminCount() > 1)),
+  );
 
   /** Open a "contact the admins" thread (feature 027). Nothing persists until the first message is sent. */
   protected contactAdmins(): void {
@@ -91,6 +156,7 @@ export class TeamDetailComponent {
     this.loading.set(true);
     this.notFound.set(false);
     this.members.set([]);
+    this.membersLoaded.set(false);
     this.news.set([]);
     this.happenings.set([]);
     this.joinRequests.set([]);
@@ -117,7 +183,12 @@ export class TeamDetailComponent {
   }
 
   private loadMembers(): void {
-    this.teams.getMembers(this.slug()).subscribe({ next: (p) => this.members.set(p.items) });
+    this.teams.getMembers(this.slug()).subscribe({
+      next: (p) => {
+        this.members.set(p.items);
+        this.membersLoaded.set(true);
+      },
+    });
   }
 
   private loadNews(): void {
@@ -179,8 +250,8 @@ export class TeamDetailComponent {
     });
   }
 
-  /** Open the confirmation modal for a join action (feature 009 — guards accidental clicks). */
-  protected askConfirm(intent: 'join' | 'cancel'): void {
+  /** Open the confirmation modal for an action (feature 009 — guards accidental clicks). */
+  protected askConfirm(intent: ConfirmIntent): void {
     if (this.requestBusy()) {
       return;
     }
@@ -197,6 +268,8 @@ export class TeamDetailComponent {
       this.requestToJoin();
     } else if (this.confirmIntent() === 'cancel') {
       this.cancelRequest();
+    } else if (this.confirmIntent() === 'leave') {
+      this.leaveTeam();
     }
   }
 
@@ -244,6 +317,35 @@ export class TeamDetailComponent {
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
         this.error.set(problemDetail(err));
+      },
+    });
+  }
+
+  /**
+   * GH #361 — leave the team: the member removes THEMSELVES through the same endpoint an admin
+   * removes anyone with (`DELETE /teams/{slug}/members/{userId}`; the server allows self-removal
+   * for a plain member). On success the cached memberships are refreshed (023 FR-017) so the nav
+   * and the team chooser stop naming this team, then the player lands on "My team".
+   */
+  private leaveTeam(): void {
+    const userId = this.auth.currentUser()?.id;
+    if (this.requestBusy() || !userId) {
+      return;
+    }
+    this.requestBusy.set(true);
+    this.error.set(null);
+    this.teams.removeMember(this.slug(), userId).subscribe({
+      next: () => {
+        this.membership.load();
+        void this.router.navigate(['/my-team']);
+      },
+      error: (err) => {
+        this.requestBusy.set(false);
+        this.confirmIntent.set(null);
+        this.error.set(problemDetail(err));
+        // A 409 here means the other admin stepped down or left while the modal was open — the
+        // roster decides whether the button or the sole-admin explanation is right now.
+        this.loadMembers();
       },
     });
   }

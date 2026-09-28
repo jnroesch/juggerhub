@@ -258,28 +258,47 @@
             </div>
           </jh-card>
         }
+
+        <!-- Your membership (GH #361): the one member-facing way out of a team. Last in the rail —
+             a way to leave is not what a member came to the page for. The sole admin gets an
+             explanation, never a button the server would only answer with 409. -->
+        @if (isMember()) {
+          <jh-card data-testid="membership">
+            <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.yourMembership' | transloco }}</h2>
+            @if (soleAdmin()) {
+              <p class="text-body-sm text-muted" data-testid="sole-admin-note">{{ 'teams.detail.soleAdminLeave' | transloco }}</p>
+            } @else if (canLeave()) {
+              <p class="text-body-sm text-muted">{{ 'teams.detail.leaveDesc' | transloco }}</p>
+              <button type="button" jhButton variant="danger" size="sm" class="mt-sm" [disabled]="requestBusy()" data-testid="leave-team" (click)="askConfirm('leave')">{{ 'teams.detail.leaveTeam' | transloco }}</button>
+            }
+          </jh-card>
+        }
       </aside>
     </div>
 
-    <!-- Join / cancel confirmation (feature 009 — guards accidental clicks) -->
+    <!-- Join / cancel / leave confirmation (feature 009 — guards accidental clicks; GH #361 adds leave) -->
     @if (confirmIntent(); as intent) {
-      <div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
-        <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
-          role="dialog" aria-modal="true" [attr.aria-label]="(intent === 'join' ? 'teams.detail.confirmJoinTitle' : 'teams.detail.confirmCancelTitle') | transloco:{ name: team.name }"
-          data-testid="join-confirm">
-          <div class="border-b border-border-muted px-md py-sm">
-            <h3 class="text-body-lg font-semibold text-heading">{{ (intent === 'join' ? 'teams.detail.confirmJoinTitle' : 'teams.detail.confirmCancelTitle') | transloco:{ name: team.name } }}</h3>
-          </div>
-          <div class="px-md py-md">
-            <p class="text-body-sm text-body">{{ (intent === 'join' ? 'teams.detail.confirmJoinBody' : 'teams.detail.confirmCancelBody') | transloco:{ name: team.name } }}</p>
-          </div>
-          <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
-            <button type="button" (click)="dismissConfirm()" jhButton variant="secondary" size="sm">{{ (intent === 'join' ? 'teams.detail.dismiss' : 'teams.detail.keepRequest') | transloco }}</button>
-            <button type="button" (click)="confirmAction()" [disabled]="requestBusy()" data-testid="join-confirm-submit"
-              jhButton size="sm">{{ (intent === 'join' ? 'teams.detail.confirmJoinSubmit' : 'teams.detail.confirmCancelSubmit') | transloco }}</button>
+      @if (confirmCopy(); as copy) {
+        <div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
+          <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
+            role="dialog" aria-modal="true" [attr.aria-label]="copy.title | transloco:{ name: team.name }"
+            [attr.data-testid]="intent === 'leave' ? 'leave-confirm' : 'join-confirm'">
+            <div class="border-b border-border-muted px-md py-sm">
+              <h3 class="text-body-lg font-semibold text-heading">{{ copy.title | transloco:{ name: team.name } }}</h3>
+            </div>
+            <div class="px-md py-md">
+              <p class="text-body-sm text-body">{{ copy.body | transloco:{ name: team.name } }}</p>
+            </div>
+            <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
+              <button type="button" (click)="dismissConfirm()" jhButton variant="secondary" size="sm">{{ copy.dismiss | transloco }}</button>
+              <!-- Leaving is the destructive answer, so it wears the danger variant, not the coral CTA. -->
+              <button type="button" (click)="confirmAction()" [disabled]="requestBusy()"
+                [attr.data-testid]="intent === 'leave' ? 'leave-confirm-submit' : 'join-confirm-submit'"
+                jhButton [variant]="intent === 'leave' ? 'danger' : 'primary'" size="sm">{{ copy.submit | transloco }}</button>
+            </div>
           </div>
         </div>
-      </div>
+      }
     }
   }
 </section>

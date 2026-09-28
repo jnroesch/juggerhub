@@ -239,6 +239,13 @@
       "teamTools": "Team tools",
       "invites": "Invites",
       "settings": "Settings",
+      "yourMembership": "Your membership",
+      "leaveDesc": "Leaving takes you off the roster and out of the team's news, trainings and chat.",
+      "leaveTeam": "Leave team",
+      "soleAdminLeave": "You're the only admin, so you can't leave yet. Make someone else an admin from the roster first. Then you can leave, or step down in the team settings.",
+      "confirmLeaveTitle": "Leave {{name}}?",
+      "confirmLeaveBody": "You'll lose access to the team's news, trainings and chat. You can request to join again later, or an admin can invite you back.",
+      "stayInTeam": "Stay",
       "loading": "Loading team…"
     },
     "placements": {
