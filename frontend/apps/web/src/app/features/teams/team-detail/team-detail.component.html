@@ -128,7 +128,8 @@
                     <span class="block truncate text-caption text-muted">{{ positions(m.pompfen) || '—' }}</span>
                   </span>
                   @if (m.role === 'Admin') { <span jhChip>{{ 'teams.detail.adminBadge' | transloco }}</span> }
-                  @if (isAdmin()) {
+                  <!-- No menu on the admin's own row: their step down and leave live on "Manage team". -->
+                  @if (isAdmin() && m.userId !== myUserId()) {
                     <div class="relative">
                       <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" (click)="toggleMenu(m.userId)"><jh-icon name="ellipsis" size="sm" /></button>
                       @if (openMenu() === m.userId) {
