@@ -190,3 +190,6 @@ alone, so it layers on top of P1.
   the minimal admin-only posting action needed to trigger the team-news notification producer; a
   richer news-management experience (edit/delete, rich text) is out of scope and can follow in a
   team-space spec. This is intentional cross-feature drift into 005-team-space, recorded here.
+  *Followed up by feature 057 (GH #363): any admin may edit or delete a team news post; an edit
+  refreshes the excerpt in the `TeamNews` rows already delivered, and a delete removes them — see
+  `specs/057-team-news-edit-delete/`.*
