@@ -45,7 +45,8 @@ export type NeedsYouKind =
   | 'PartyCoAdminInvite'
   | 'MarketInvite'
   | 'MarketApplication'
-  | 'JoinRequest';
+  | 'JoinRequest'
+  | 'TeamPoll';
 
 /**
  * The names an item's sentence is built from (feature 058). Only the fields its kind uses are set.
@@ -59,6 +60,8 @@ export interface NeedsYouParams {
   eventName: string | null;
   /** JoinRequest: the player who asked. */
   playerName: string | null;
+  /** TeamPoll: the question, in the admin's own words (feature 062). */
+  question?: string | null;
 }
 
 /**

@@ -1,0 +1,54 @@
+<!-- overflowVisible: a poll's menu drops below its button and must not be cut off at the card's edge. -->
+<jh-card data-testid="polls" overflowVisible>
+  <div class="mb-sm flex flex-wrap items-center justify-between gap-sm">
+    <!-- tabindex -1: where focus lands after a poll is deleted, or when a link names a poll not shown. -->
+    <h2 id="team-polls-heading" tabindex="-1" class="text-body-lg font-semibold text-heading outline-none">{{ 'teams.polls.title' | transloco }}</h2>
+    <!-- Secondary: the page's one coral call to action is the news composer's Post (DESIGN.md). -->
+    @if (isAdmin() && !creating()) {
+      <button type="button" jhButton variant="secondary" size="sm" (click)="startCreating()" data-testid="polls-start">
+        <jh-icon name="plus" size="sm" />{{ 'teams.polls.start' | transloco }}
+      </button>
+    }
+  </div>
+
+  @if (notice(); as key) {
+    <div class="mb-sm"><jh-alert tone="info" data-testid="polls-notice">{{ key | transloco }}</jh-alert></div>
+  }
+
+  @if (creating()) {
+    <div class="mb-md rounded-md border border-border-muted p-md">
+      <jh-poll-editor mode="create" [slug]="slug()" (saved)="onCreated($event)" (cancelled)="onCreateCancelled()" />
+    </div>
+  }
+
+  @if (loading()) {
+    <jh-loading />
+  } @else if (loadError()) {
+    <jh-alert tone="danger">{{ 'teams.polls.loadError' | transloco }}</jh-alert>
+    <button type="button" jhButton variant="secondary" size="sm" class="mt-sm" (click)="retry()" data-testid="polls-retry">{{ 'common.tryAgain' | transloco }}</button>
+  } @else if (isEmpty()) {
+    @if (!creating()) {
+      <jh-empty-state inline>{{ (isAdmin() ? 'teams.polls.emptyAdmin' : 'teams.polls.empty') | transloco }}</jh-empty-state>
+    }
+  } @else {
+    <ul class="flex flex-col gap-md">
+      @for (poll of open(); track poll.id) {
+        <li>
+          <jh-poll-item [poll]="poll" [slug]="slug()" [isAdmin]="isAdmin()"
+            (changed)="onChanged($event)" (removed)="onRemoved(poll.id, $event)" (stale)="onStale()" />
+        </li>
+      }
+      @for (poll of closed(); track poll.id) {
+        <li>
+          <jh-poll-item [poll]="poll" [slug]="slug()" [isAdmin]="isAdmin()"
+            (changed)="onChanged($event)" (removed)="onRemoved(poll.id, $event)" (stale)="onStale()" />
+        </li>
+      }
+    </ul>
+    @if (hasOlder()) {
+      <button type="button" jhButton variant="secondary" size="sm" class="mt-md" [disabled]="loadingOlder()" (click)="showOlder()" data-testid="polls-older">
+        {{ (loadingOlder() ? 'common.loading' : 'teams.polls.showOlder') | transloco }}
+      </button>
+    }
+  }
+</jh-card>

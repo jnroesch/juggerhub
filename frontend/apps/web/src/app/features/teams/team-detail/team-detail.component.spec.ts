@@ -5,6 +5,7 @@ import { BehaviorSubject, Observable, Subject, of, throwError } from 'rxjs';
 import { JoinRequest, TeamMember, TeamNews, TeamPublicDetail, TeamViewerRelation } from '../../../core/models/team.models';
 import { AuthService } from '../../../core/services/auth.service';
 import { ChatService } from '../../../core/services/chat.service';
+import { PollService } from '../../../core/services/poll.service';
 import { PartyService } from '../../../core/services/party.service';
 import { ResultsService } from '../../../core/services/results.service';
 import { TeamService } from '../../../core/services/team.service';
@@ -70,6 +71,8 @@ describe('TeamDetailComponent — manage link and own roster row (GH #361)', () 
         { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
         // Feature 060 — the team page asks the chat client only when Team chat is pressed.
         { provide: ChatService, useValue: { openTeamChat: jest.fn() } },
+        // Feature 062: the member-only Polls card loads its own lists.
+        { provide: PollService, useValue: { list: jest.fn().mockReturnValue(of(page([]))) } },
         { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
       ],
     });

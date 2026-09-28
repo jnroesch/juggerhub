@@ -238,6 +238,14 @@
           <jh-recognition-display [badges]="team.badges" [achievements]="team.achievements" />
         </jh-card>
 
+        <!-- Polls (feature 062, members only): in the team-internal section, before News. Placed here
+             rather than at the top so a team that never asks leaves no empty card high on every
+             member's page; a notice, an email or Home links straight to the poll, and the card scrolls
+             there. A non-member's page renders nothing and requests nothing (spec SC-009). -->
+        @if (isMember()) {
+          <jh-team-polls [slug]="team.slug" [isAdmin]="isAdmin()" />
+        }
+
         <!-- News (members only) -->
         @if (isMember()) {
           <!-- overflowVisible: a post's menu drops below its button and must not be cut off at the

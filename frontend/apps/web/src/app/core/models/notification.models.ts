@@ -19,7 +19,8 @@ export type NotificationType =
   | 'TrainingUpdated'
   | 'EventCancelled'
   | 'TeamJoinRequest'
-  | 'TeamJoinRequestAnswered';
+  | 'TeamJoinRequestAnswered'
+  | 'TeamPoll';
 
 export interface TeamInvitePayload {
   invitationId: string;
@@ -112,6 +113,17 @@ export interface TeamJoinRequestAnsweredPayload {
   accepted: boolean;
 }
 
+/**
+ * A team the recipient belongs to started a poll (feature 062). Carries the question, and no person
+ * — the author is the row's actor.
+ */
+export interface TeamPollPayload {
+  teamSlug: string;
+  teamName: string;
+  pollId: string;
+  question: string;
+}
+
 export type NotificationPayload =
   | TeamInvitePayload
   | TeamRoleChangedPayload
@@ -122,7 +134,8 @@ export type NotificationPayload =
   | TrainingUpdatedPayload
   | EventCancelledPayload
   | TeamJoinRequestPayload
-  | TeamJoinRequestAnsweredPayload;
+  | TeamJoinRequestAnsweredPayload
+  | TeamPollPayload;
 
 export interface AppNotification {
   id: string;
@@ -203,4 +216,8 @@ export function isTeamJoinRequestAnswered(
   n: AppNotification,
 ): n is AppNotification & { type: 'TeamJoinRequestAnswered'; payload: TeamJoinRequestAnsweredPayload } {
   return n.type === 'TeamJoinRequestAnswered';
+}
+
+export function isTeamPoll(n: AppNotification): n is AppNotification & { type: 'TeamPoll'; payload: TeamPollPayload } {
+  return n.type === 'TeamPoll';
 }

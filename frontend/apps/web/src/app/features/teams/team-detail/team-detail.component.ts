@@ -26,6 +26,7 @@ import { linkHost } from '../../../core/utils/link-host';
 import { RecognitionDisplayComponent } from '../../profile/components/recognition-display/recognition-display.component';
 import { TeamHappeningsComponent } from './happenings/team-happenings.component';
 import { TeamPlacementsComponent } from './placements/team-placements.component';
+import { TeamPollsComponent } from './polls/team-polls.component';
 import { NewsPostComponent } from '../../../shared/news-post/news-post.component';
 import { NewsPostEditing } from '../../../shared/news-post/news-post-editing';
 
@@ -37,7 +38,7 @@ import { NewsPostEditing } from '../../../shared/news-post/news-post-editing';
  */
 @Component({
   selector: 'jh-team-detail',
-  imports: [LoadingComponent, RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent, AlertComponent, NewsPostComponent],
+  imports: [LoadingComponent, RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, TeamPollsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent, AlertComponent, NewsPostComponent],
   providers: [NewsPostEditing],
   templateUrl: './team-detail.component.html',
   styleUrl: './team-detail.component.css',

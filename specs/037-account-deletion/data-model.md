@@ -78,6 +78,7 @@ Verified against [AppDbContext.cs](backend/Data/AppDbContext.cs). **Delete** = r
 | `MercenaryListing` | Cascade | FR-018 |
 | `MarketRequest` (as `User`) | Cascade | FR-018 |
 | `TeamJoinRequest` (as `User`) | Cascade | FR-018 |
+| `TeamPollVote` (as `User`) | **Restrict** | FR-018 — *amended by feature 062*: a member's poll answers. Restrict forces nothing here (the user row is never deleted), so the erasure test is the only guard |
 | `ConversationParticipant` | Cascade | Membership, not content |
 | `UserBlock` (both directions) | **Restrict** | FR-020 — must be deleted explicitly before the user row is touched |
 | Identity `UserRoles`/`Claims`/`Logins`/`Tokens` | Cascade | Credentials |
@@ -92,6 +93,7 @@ Verified against [AppDbContext.cs](backend/Data/AppDbContext.cs). **Delete** = r
 | `TeamNewsPost` (as `Author`) | Restrict | FR-024 | Post verbatim, author = placeholder |
 | `EventNewsPost` (as `Author`) | Restrict | FR-024 | Post verbatim, author = placeholder |
 | `PartyNewsPost` (as `Author`) | Restrict | FR-024 | Post verbatim, author = placeholder |
+| `TeamPoll` (as `Author`) | Restrict | FR-024 — *amended by feature 062* | Poll and every other member's answers intact, author = placeholder; listed to the member as `Polls` before they delete |
 | `AdminActionRecord` (Actor/Target) | Restrict | FR-022 | Moderation history intact |
 | `BadgeAward.GrantedBy` | Restrict | FR-021 | Someone else's award keeps its provenance |
 | `AchievementAward.GrantedBy` | Restrict | FR-021 | ditto |

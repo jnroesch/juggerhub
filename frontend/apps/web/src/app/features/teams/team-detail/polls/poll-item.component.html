@@ -1,0 +1,225 @@
+@let p = poll();
+<article class="rounded-md border border-border-muted p-md" [attr.aria-labelledby]="'poll-' + p.id" [attr.data-poll-id]="p.id" data-testid="poll">
+  @if (editing()) {
+    <jh-poll-editor
+      mode="edit"
+      [slug]="slug()"
+      [poll]="p"
+      (saved)="onSaved($event)"
+      (cancelled)="onCancelled()"
+      (stale)="onEditorStale()"
+      (gone)="onEditorGone()"
+    />
+  } @else {
+    <div class="flex items-start justify-between gap-xs">
+      <!-- The anchor a notice, an email or Home links to (/t/{slug}#poll-{id}); tabindex -1 so the
+           card can move focus here after the scroll. Plain text, never markup (spec FR-002). -->
+      <h3 [id]="'poll-' + p.id" tabindex="-1" class="min-w-0 break-words text-body font-semibold text-heading outline-none">{{ p.question }}</h3>
+
+      <!-- The server decides who may change, close or delete; this is convenience. -->
+      @if (isAdmin()) {
+        <div class="relative shrink-0" data-poll-menu>
+          <button
+            type="button"
+            class="inline-flex h-11 w-11 items-center justify-center rounded-md text-muted transition-colors duration-fast hover:bg-surface-sunken hover:text-body focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+            aria-haspopup="menu"
+            [attr.aria-expanded]="menuOpen()"
+            [attr.aria-label]="'teams.polls.manage' | transloco"
+            data-poll-menu-trigger
+            data-testid="poll-menu-trigger"
+            (click)="toggleMenu()"
+          >
+            <jh-icon name="ellipsis" size="sm" />
+          </button>
+          @if (menuOpen()) {
+            <div class="absolute right-0 z-10 mt-1 min-w-40 rounded-md border border-border-default bg-surface-card py-xs shadow-md" role="menu" data-testid="poll-menu">
+              @if (p.isOpen) {
+                <button type="button" role="menuitem" (click)="startEdit()" data-testid="poll-edit"
+                  class="flex min-h-11 w-full items-center px-md text-left text-body-sm text-body hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                  {{ 'teams.polls.edit' | transloco }}
+                </button>
+                <button type="button" role="menuitem" (click)="ask('close')" data-testid="poll-close"
+                  class="flex min-h-11 w-full items-center px-md text-left text-body-sm text-body hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                  {{ 'teams.polls.closeNow' | transloco }}
+                </button>
+              }
+              <button type="button" role="menuitem" (click)="ask('delete')" data-testid="poll-delete"
+                class="flex min-h-11 w-full items-center px-md text-left text-body-sm text-danger-fg hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">
+                {{ 'teams.polls.delete' | transloco }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Who asked and when, and when it closes. The date and the time wrap as one unit. -->
+    <p class="mt-2xs text-caption text-muted">
+      <span>{{ 'teams.polls.askedBy' | transloco: { name: p.authorName ?? ('alerts.row.formerPlayer' | transloco) } }}</span>
+      <span> · {{ rel(p.createdDate) }}</span>
+      @if (p.isOpen && p.closesAt) {
+        <span class="whitespace-nowrap"> · {{ 'teams.polls.closesAt' | transloco: { when: (p.closesAt | translocoDate: { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) } }}</span>
+      }
+      @if (!p.isOpen && p.closedAt) {
+        <span class="whitespace-nowrap"> · {{ 'teams.polls.closedAt' | transloco: { when: (p.closedAt | translocoDate: { day: 'numeric', month: 'short', year: 'numeric' }) } }}</span>
+      }
+    </p>
+
+    <!-- What kind of poll this is, visible before answering (spec FR-017). -->
+    <div class="mt-xs flex flex-wrap gap-xs">
+      @if (!p.isOpen) {
+        <span jhChip tone="muted" data-testid="poll-chip-closed">{{ 'teams.polls.chip.closed' | transloco }}</span>
+      }
+      <span jhChip [tone]="p.isAnonymous ? 'secondary' : 'muted'" data-testid="poll-chip-names">
+        {{ (p.isAnonymous ? 'teams.polls.chip.anonymous' : 'teams.polls.chip.named') | transloco }}
+      </span>
+      @if (p.resultsAfterAnswer) {
+        <span jhChip tone="muted">{{ 'teams.polls.chip.resultsAfterAnswer' | transloco }}</span>
+      }
+      @if (p.allowsMultiple) {
+        <span jhChip tone="muted">{{ 'teams.polls.chip.multiple' | transloco }}</span>
+      }
+    </div>
+
+    <!-- The promise an anonymous poll makes, in the words FR-019 allows: nobody SEES who chose what. -->
+    @if (p.isAnonymous) {
+      <p class="mt-xs text-caption text-muted" data-testid="poll-anonymous-notice">{{ 'teams.polls.anonymousNotice' | transloco }}</p>
+    }
+
+    <!-- The options. Open: each is a button (one press records a one-answer poll). Closed: a plain list. -->
+    <div class="mt-sm flex flex-col gap-xs" role="group" [attr.aria-labelledby]="'poll-' + p.id">
+      @for (o of p.options; track o.id) {
+        @let chosen = isChosen(o);
+        <div>
+          @if (p.isOpen) {
+            <button
+              type="button"
+              class="relative block min-h-11 w-full overflow-hidden rounded-md border bg-surface-card px-md py-sm text-left transition-colors duration-fast hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-wait"
+              [class.border-border-accent]="chosen"
+              [class.border-border-default]="!chosen"
+              [attr.aria-pressed]="chosen"
+              [disabled]="busy()"
+              (click)="choose(o)"
+              data-testid="poll-option"
+            >
+              <ng-container *ngTemplateOutlet="optionBody; context: { $implicit: o, chosen: chosen }" />
+            </button>
+          } @else {
+            <div class="relative min-h-11 overflow-hidden rounded-md border px-md py-sm" [class.border-border-accent]="chosen" [class.border-border-muted]="!chosen" data-testid="poll-option-result">
+              <ng-container *ngTemplateOutlet="optionBody; context: { $implicit: o, chosen: chosen }" />
+            </div>
+          }
+          <!-- Who chose it: only ever sent for a named poll whose result this viewer may see. -->
+          @if (o.voters; as voters) {
+            @if (names(voters).length > 0) {
+              <p class="mt-2xs break-words px-md text-caption text-muted" data-testid="poll-voters">
+                <span class="sr-only">{{ 'teams.polls.chosenBy' | transloco }}: </span>
+                @for (v of names(voters); track v.handle; let last = $last) {
+                  <a [routerLink]="['/u', v.handle]" class="underline-offset-2 hover:text-link hover:underline">{{ v.name }}</a>@if (!last) {<span>, </span>}
+                }
+              </p>
+            }
+          }
+        </div>
+      }
+    </div>
+
+    <ng-template #optionBody let-o let-chosen="chosen">
+      @if (p.resultsVisible) {
+        <!-- The share of those who answered. Decoration: the number beside it says the same in words. -->
+        <span aria-hidden="true" class="absolute inset-y-0 left-0 bg-surface-accent-soft" [style.width.%]="share(o)"></span>
+      }
+      <span class="relative flex items-start justify-between gap-sm">
+        <span class="flex min-w-0 items-start gap-xs">
+          @if (chosen) {
+            <jh-icon name="check" size="sm" class="mt-0.5 shrink-0 text-brand-strong" />
+            <span class="sr-only">{{ 'teams.polls.yourAnswer' | transloco }}:</span>
+          }
+          <span class="min-w-0 break-words text-body-sm text-body">{{ o.text }}</span>
+        </span>
+        @if (o.count !== null) {
+          <span class="shrink-0 font-mono text-body-sm text-muted" data-testid="poll-count">
+            <span class="sr-only">{{ 'teams.polls.countSr' | transloco }} </span>{{ o.count }}
+          </span>
+        }
+      </span>
+    </ng-template>
+
+    <!-- How many have answered: always shown, even while the result itself is hidden (spec FR-012a). -->
+    <p class="mt-sm text-caption text-muted" data-testid="poll-answered">
+      {{ 'teams.polls.answered' | transloco: { answered: p.answeredCount, members: p.memberCount } }}
+    </p>
+
+    @if (!p.resultsVisible) {
+      <p class="mt-2xs text-caption text-muted" data-testid="poll-results-hidden">{{ 'teams.polls.resultsHiddenHint' | transloco }}</p>
+    }
+
+    <!-- Admins of a named poll: who is still missing (spec FR-014a). The server sends this to no one else. -->
+    @if (p.notAnswered; as missing) {
+      @if (names(missing).length > 0) {
+        <p class="mt-2xs break-words text-caption text-muted" data-testid="poll-not-answered">
+          {{ (p.isOpen ? 'teams.polls.notAnswered' : 'teams.polls.didNotAnswer') | transloco }}:
+          @for (m of names(missing); track m.handle; let last = $last) {
+            <a [routerLink]="['/u', m.handle]" class="underline-offset-2 hover:text-link hover:underline">{{ m.name }}</a>@if (!last) {<span>, </span>}
+          }
+        </p>
+      }
+    }
+
+    @if (p.isOpen) {
+      <div class="mt-sm flex flex-wrap items-center gap-sm">
+        @if (p.allowsMultiple) {
+          <button type="button" jhButton variant="secondary" size="sm" [disabled]="busy() || !selectionChanged()" (click)="saveSelection()" data-testid="poll-save-answer">
+            {{ (busy() ? 'teams.polls.saving' : 'teams.polls.saveAnswer') | transloco }}
+          </button>
+        }
+        @if (answered()) {
+          <button type="button" jhButton variant="ghost" size="sm" [disabled]="busy()" (click)="withdraw()" data-testid="poll-withdraw">
+            {{ 'teams.polls.withdraw' | transloco }}
+          </button>
+        }
+      </div>
+    }
+
+    @if (error(); as key) {
+      <p class="mt-xs text-body-sm text-danger-fg" role="alert" data-testid="poll-error">{{ key | transloco }}</p>
+    }
+  }
+</article>
+
+<!-- Close or delete: the page's confirmation dialog. The safe answer takes focus, and Tab stays inside.
+     Fixed, so the card's clipping does not reach it (no ancestor on the team page transforms). -->
+@if (confirming(); as action) {
+  <div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
+    <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
+      role="dialog" aria-modal="true" [attr.aria-labelledby]="'poll-confirm-title-' + poll().id" [attr.aria-describedby]="'poll-confirm-body-' + poll().id"
+      (keydown.tab)="trapTab($event)" (keydown.shift.tab)="trapTab($event)"
+      data-testid="poll-confirm">
+      <div class="border-b border-border-muted px-md py-sm">
+        <h2 [id]="'poll-confirm-title-' + poll().id" class="text-body-lg font-semibold text-heading">
+          {{ (action === 'close' ? 'teams.polls.closeTitle' : 'teams.polls.deleteTitle') | transloco }}
+        </h2>
+      </div>
+      <div class="px-md py-md">
+        <p [id]="'poll-confirm-body-' + poll().id" class="text-body-sm text-body">
+          {{ (action === 'close' ? 'teams.polls.closeBody' : 'teams.polls.deleteBody') | transloco }}
+        </p>
+        @if (confirmError(); as key) {
+          <p class="mt-sm text-body-sm text-danger-fg" role="alert" data-testid="poll-confirm-error">{{ key | transloco }}</p>
+        }
+      </div>
+      <div class="flex flex-wrap items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
+        <button type="button" (click)="dismiss()" [disabled]="confirmBusy()" data-testid="poll-confirm-keep" jhButton variant="secondary" size="sm">
+          {{ (action === 'close' ? 'teams.polls.closeKeep' : 'teams.polls.deleteKeep') | transloco }}
+        </button>
+        <button type="button" (click)="confirm()" [disabled]="confirmBusy()" data-testid="poll-confirm-submit" jhButton [variant]="action === 'delete' ? 'danger' : 'secondary'" size="sm">
+          @if (action === 'close') {
+            {{ (confirmBusy() ? 'teams.polls.closing' : 'teams.polls.closeConfirm') | transloco }}
+          } @else {
+            {{ (confirmBusy() ? 'teams.polls.deleting' : 'teams.polls.deleteConfirm') | transloco }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

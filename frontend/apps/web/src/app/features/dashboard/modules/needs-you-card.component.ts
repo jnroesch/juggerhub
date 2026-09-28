@@ -72,6 +72,9 @@ export class NeedsYouCardComponent {
         return { key: 'home.needsYouItem.marketInviteTitle', params: { team: p.teamName ?? '' } };
       case 'MarketApplication':
         return { key: 'home.needsYouItem.marketApplicationTitle', params: { team: p.teamName ?? '' } };
+      case 'TeamPoll':
+        // Feature 062: the question itself is the headline — it is what the member is asked to answer.
+        return { key: 'home.needsYouItem.teamPollTitle', params: { team: p.teamName ?? '', question: p.question ?? '' } };
       case 'JoinRequest':
         return {
           key: 'home.needsYouItem.joinRequestTitle',
@@ -114,9 +117,17 @@ export class NeedsYouCardComponent {
       case 'JoinRequest':
         // Who is asking: the admin looks at the player before answering (FR-019).
         return ['/u', item.linkTarget];
+      case 'TeamPoll':
+        // Feature 062: the team page, at the poll (fragment()).
+        return ['/t', item.linkTarget];
       default:
         return null;
     }
+  }
+
+  /** Where on the page a link lands: a poll's own anchor (feature 062). Undefined for every other kind. */
+  protected fragment(item: NeedsYouItem): string | undefined {
+    return item.kind === 'TeamPoll' ? `poll-${item.id}` : undefined;
   }
 
   protected acceptLabel(item: NeedsYouItem): string {
