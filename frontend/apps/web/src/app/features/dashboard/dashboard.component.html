@@ -38,7 +38,7 @@
           <jh-alert tone="info" data-testid="needs-you-notice">{{ key | transloco }}</jh-alert>
         }
         @if (home.needsYou.length > 0) {
-          <jh-needs-you-card [jhRise]="0" [items]="home.needsYou" (resolved)="onResolved($event)" (gone)="onGone($event)" />
+          <jh-needs-you-card [jhRise]="0" [items]="home.needsYou" (resolved)="onResolved()" (gone)="onGone()" />
         }
 
         @if (hasTeam()) {

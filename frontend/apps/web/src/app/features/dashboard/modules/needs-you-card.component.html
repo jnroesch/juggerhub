@@ -18,7 +18,7 @@
             <div class="min-w-0 flex-1">
               @let headline = title(item);
               @if (link(item); as route) {
-                <a [routerLink]="route" class="block break-words font-medium text-heading hover:text-link">{{ headline.key | transloco: headline.params }}</a>
+                <a [routerLink]="route" class="block break-words rounded-sm font-medium text-heading hover:text-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">{{ headline.key | transloco: headline.params }}</a>
               } @else {
                 <p class="break-words font-medium text-heading">{{ headline.key | transloco: headline.params }}</p>
               }

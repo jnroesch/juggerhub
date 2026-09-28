@@ -94,7 +94,7 @@ describe('DashboardComponent', () => {
       ],
     });
     f.detectChanges();
-    expect(q(f, 'home-greeting')!.textContent).toContain('1 thing');
+    expect(q(f, 'home-greeting')?.textContent).toContain('1 thing');
 
     (f.nativeElement.querySelector('[data-testid="needs-you"] li button') as HTMLButtonElement).click();
     httpMock.expectOne('/api/v1/teams/hh/join-requests/req-1/approve').flush(null, { status: 404, statusText: 'Not Found' });
@@ -103,7 +103,7 @@ describe('DashboardComponent', () => {
 
     // The card went with its last item; the explanation did not, and nothing counts it any more.
     expect(q(f, 'needs-you')).toBeNull();
-    expect(q(f, 'needs-you-notice')!.textContent!.trim()).toBe('This request was already answered or withdrawn.');
-    expect(q(f, 'home-greeting')!.textContent).not.toContain('1 thing');
+    expect(q(f, 'needs-you-notice')?.textContent?.trim()).toBe('This request was already answered or withdrawn.');
+    expect(q(f, 'home-greeting')?.textContent).not.toContain('1 thing');
   });
 });

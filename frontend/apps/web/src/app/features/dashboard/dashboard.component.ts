@@ -60,7 +60,7 @@ export class DashboardComponent implements OnInit {
   protected readonly needsYouNotice = signal<string | null>(null);
 
   /** A "Needs you" item was resolved in place — refresh the composite so all sections reconcile. */
-  protected onResolved(_id: string): void {
+  protected onResolved(): void {
     this.needsYouNotice.set(null);
     this.refresh();
   }
@@ -69,7 +69,7 @@ export class DashboardComponent implements OnInit {
    * A join request another admin answered first (or the player withdrew) — say so, and refresh so
    * the greeting's count of waiting things drops with the item (feature 058, FR-019).
    */
-  protected onGone(_id: string): void {
+  protected onGone(): void {
     this.needsYouNotice.set('home.needsYouItem.noLongerWaiting');
     this.refresh();
   }
