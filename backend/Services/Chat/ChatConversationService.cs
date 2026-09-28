@@ -578,10 +578,12 @@ public sealed class ChatConversationService : IChatConversationService
     /// </remarks>
     private async Task EnsureAutoChatsForAsync(Guid callerId, CancellationToken ct)
     {
+        // By kind as well as team: a contact-admins thread carries the team's id too, and must not
+        // pass for the team's chat (feature 060 — see FindAutoAsync).
         var teamIds = await _db.TeamMemberships.AsNoTracking()
             .Where(m => m.UserId == callerId)
             .Select(m => m.TeamId)
-            .Where(id => !_db.Conversations.Any(c => c.TeamId == id))
+            .Where(id => !_db.Conversations.Any(c => c.Kind == ConversationKind.Team && c.TeamId == id))
             .ToListAsync(ct);
 
         foreach (var teamId in teamIds)
@@ -592,7 +594,7 @@ public sealed class ChatConversationService : IChatConversationService
         var partyIds = await _db.PartyMembers.AsNoTracking()
             .Where(pm => pm.UserId == callerId && pm.Status == PartyMemberStatus.In)
             .Select(pm => pm.PartyId)
-            .Where(id => !_db.Conversations.Any(c => c.PartyId == id))
+            .Where(id => !_db.Conversations.Any(c => c.Kind == ConversationKind.Party && c.PartyId == id))
             .ToListAsync(ct);
 
         foreach (var partyId in partyIds)
@@ -1070,9 +1072,18 @@ public sealed class ChatConversationService : IChatConversationService
         return conversation.Id;
     }
 
+    /// <remarks>
+    /// Matched by kind as well as owner (feature 060). Feature 027's contact-admins threads carry the
+    /// team's id too, so a lookup by <c>TeamId</c> alone could return one of them as "the team chat" —
+    /// and did: a team whose first conversation was a contact-admins thread never got its chat. The
+    /// one-chat-per-team index (<c>AppDbContext</c>) was already scoped to the Team kind; this is the
+    /// service catching up with it.
+    /// </remarks>
     private async Task<Guid> FindAutoAsync(ConversationKind kind, Guid ownerId, CancellationToken ct) =>
         await _db.Conversations.AsNoTracking()
-            .Where(c => kind == ConversationKind.Team ? c.TeamId == ownerId : c.PartyId == ownerId)
+            .Where(c => kind == ConversationKind.Team
+                ? c.Kind == ConversationKind.Team && c.TeamId == ownerId
+                : c.Kind == ConversationKind.Party && c.PartyId == ownerId)
             .Select(c => c.Id)
             .FirstOrDefaultAsync(ct);
 
