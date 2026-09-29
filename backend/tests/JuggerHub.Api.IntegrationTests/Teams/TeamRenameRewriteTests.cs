@@ -49,6 +49,7 @@ public sealed class TeamRenameRewriteTests
         [
             NotificationType.TeamInvite, NotificationType.TeamRoleChanged, NotificationType.TeamNews,
             NotificationType.TeamJoinRequest, NotificationType.TeamJoinRequestAnswered, NotificationType.TeamPoll,
+            NotificationType.TeamMemberRemoved, NotificationType.TeamMemberDeparted,
             NotificationType.PartyRequest, NotificationType.PartyNews, NotificationType.MarketInvite,
         ];
         Assert.Equal(kinds.OrderBy(t => t), ours.Select(r => r.Type).Distinct().OrderBy(t => t));
@@ -155,15 +156,17 @@ public sealed class TeamRenameRewriteTests
         Player Promoted,
         Player Leaver,
         Player Invitee,
-        Player Requester)
+        Player Requester,
+        Player Removed)
     {
-        public IReadOnlyList<Guid> Recipients => [Admin.Id, Promoted.Id, Leaver.Id, Invitee.Id, Requester.Id];
+        public IReadOnlyList<Guid> Recipients => [Admin.Id, Promoted.Id, Leaver.Id, Invitee.Id, Requester.Id, Removed.Id];
     }
 
     /// <summary>
     /// Team <see cref="OldName"/> with one delivered alert of every kind: a role change (Promoted), team
     /// news (Promoted, and Leaver — who then leaves), an invitation (Invitee), a join request (to both
-    /// admins) and its answer (Requester), and seeded party/market alerts to the admin — one of them
+    /// admins) and its answer (Requester), a removal (Removed; feature 064 — the leave and the removal
+    /// also reach the admins), and seeded party/market alerts to the admin — one of them
     /// read. Plus a second team with the same display name, with an alert of its own.
     /// </summary>
     private async Task<Setup> ArrangeAsync()
@@ -186,6 +189,10 @@ public sealed class TeamRenameRewriteTests
             options = new[] { "Thursday", "Tuesday" },
         })).EnsureSuccessStatusCode();
         (await leaver.Client.DeleteAsync($"/api/v1/teams/{slug}/members/{leaver.Id}")).EnsureSuccessStatusCode();
+        // Feature 064: a removal tells the removed player, and both departures tell the admins.
+        var removed = await NewUserAsync();
+        await JoinAsync(admin, slug, removed);
+        (await admin.Client.DeleteAsync($"/api/v1/teams/{slug}/members/{removed.Id}")).EnsureSuccessStatusCode();
 
         var invitee = await NewUserAsync();
         (await admin.Client.PostAsJsonAsync($"/api/v1/teams/{slug}/invitations", new { userId = invitee.Id }))
@@ -228,7 +235,7 @@ public sealed class TeamRenameRewriteTests
             await db.SaveChangesAsync();
         });
 
-        return new Setup(slug, otherSlug, admin, promoted, leaver, invitee, requester);
+        return new Setup(slug, otherSlug, admin, promoted, leaver, invitee, requester, removed);
     }
 
     private static Notification Seeded(Guid recipient, NotificationType type, string? dedupeKey, object payload, bool read = false) =>

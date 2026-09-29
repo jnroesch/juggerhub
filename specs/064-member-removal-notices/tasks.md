@@ -76,7 +76,7 @@ alongside once the dialog exists.
 
 **Independent Test**: remove a player; they have one alert, one email, one push naming the team and no admin.
 
-- [ ] T019 [US2] Create `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamDepartureNoticeTests.cs` (`[Collection("Teams")]`, class doc naming GH #385; helpers copied from `JoinRequestNotificationTests`: `NewUserAsync`, a team of admins A + B and members, `AlertsAsync(user, type)`, `EmailsTo`, push recipients from `_factory.PushDispatcher`, `WithDbAsync`, `SetPreferenceAsync` via `PUT /api/v1/notification-preferences/InvitesAndRoster/{channel}`). US2 facts:
+- [X] T019 [US2] Create `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamDepartureNoticeTests.cs` (`[Collection("Teams")]`, class doc naming GH #385; helpers copied from `JoinRequestNotificationTests`: `NewUserAsync`, a team of admins A + B and members, `AlertsAsync(user, type)`, `EmailsTo`, push recipients from `_factory.PushDispatcher`, `WithDbAsync`, `SetPreferenceAsync` via `PUT /api/v1/notification-preferences/InvitesAndRoster/{channel}`). US2 facts:
   - A removes M → M has exactly one `TeamMemberRemoved` alert; payload keys exactly `teamName, teamSlug`; `ActorUserId == null`; `DedupeKey == "team-removed:{membershipId}"` (read the membership id before removing);
   - M gets exactly one email and one push; neither contains A's display name or handle; push URL `/t/{slug}`;
   - M's language German → the email subject/body are German;
@@ -88,8 +88,8 @@ alongside once the dialog exists.
   - the team is deleted / M's account is banned → no `TeamMemberRemoved` for anyone (FR-019);
   - the team is renamed after the alert → the alert's `teamName` is the new name (FR-023; or cover in T025).
   Build and run: the notice facts fail.
-- [ ] T020 [US2] In `backend/Services/Teams/TeamService.cs` `MutateMembershipAsync`: the delegate returns a private record `MembershipChange(MemberOpResult? Failure, TeamRole? PreviousRole, Guid MembershipId)` (capture `target.Id` before `Remove`); on `remove` call `await AnnounceDepartureAsync(a.TeamId, actorUserId, targetUserId, membershipId, removedBySomeoneElse: !isSelf, ct)` then `return MemberOpResult.Ok()`. Keep the existing comment about side effects living outside the delegate.
-- [ ] T021 [US2] Add `private async Task AnnounceDepartureAsync(...)` to `TeamService.cs` with a doc comment (feature 064; after commit; best-effort; who is told; no admin named). This task implements the **removed-player half**: if `removedBySomeoneElse`, `_notifications.CreateAsync(targetUserId, TeamMemberRemoved, new TeamMemberRemovedPayload(slug, name), actorUserId: null, dedupeKey: $"team-removed:{membershipId}")` in its own `try`, then the email under `IsEnabledAsync(target, InvitesAndRoster, Email)` in its own `try` (recipient projection with `_db.PlayerProfiles` name → `MemberPlaceholder.For(culture)` fallback; culture from `PreferredLanguage`). Logs carry ids only, never names or addresses. Run T019's US2 facts green.
+- [X] T020 [US2] In `backend/Services/Teams/TeamService.cs` `MutateMembershipAsync`: the delegate returns a private record `MembershipChange(MemberOpResult? Failure, TeamRole? PreviousRole, Guid MembershipId)` (capture `target.Id` before `Remove`); on `remove` call `await AnnounceDepartureAsync(a.TeamId, actorUserId, targetUserId, membershipId, removedBySomeoneElse: !isSelf, ct)` then `return MemberOpResult.Ok()`. Keep the existing comment about side effects living outside the delegate.
+- [X] T021 [US2] Add `private async Task AnnounceDepartureAsync(...)` to `TeamService.cs` with a doc comment (feature 064; after commit; best-effort; who is told; no admin named). This task implements the **removed-player half**: if `removedBySomeoneElse`, `_notifications.CreateAsync(targetUserId, TeamMemberRemoved, new TeamMemberRemovedPayload(slug, name), actorUserId: null, dedupeKey: $"team-removed:{membershipId}")` in its own `try`, then the email under `IsEnabledAsync(target, InvitesAndRoster, Email)` in its own `try` (recipient projection with `_db.PlayerProfiles` name → `MemberPlaceholder.For(culture)` fallback; culture from `PreferredLanguage`). Logs carry ids only, never names or addresses. Run T019's US2 facts green.
 
 **Checkpoint**: commit `feat(064): a removed player is told, naming the team only (#385)`.
 
@@ -101,7 +101,7 @@ alongside once the dialog exists.
 
 **Independent Test**: three admins; one removes a member → the other two are told; a member leaves → all three.
 
-- [ ] T022 [US3] Add US3 facts to `TeamDepartureNoticeTests.cs`:
+- [X] T022 [US3] Add US3 facts to `TeamDepartureNoticeTests.cs`:
   - A removes M → B and C each get one `TeamMemberDeparted` (`removed: true`), A gets none, M gets none of this type;
   - L leaves → A, B, C each get one (`removed: false`), L none;
   - admin B leaves → A and C are told, B is not;
@@ -112,9 +112,9 @@ alongside once the dialog exists.
   - a banned admin is not told;
   - emails: B gets one "… wurde aus … entfernt"-style mail in B's language naming M and not A; an email failure for one admin (make `TestEmailSender` throw for one address if it supports it — otherwise assert per-recipient `try` by code review and note it) does not stop the other admin's mail;
   - each channel off for B → only that channel missing.
-- [ ] T023 [US3] Complete `AnnounceDepartureAsync` in `TeamService.cs`: read admins after commit (`TeamMemberships` of the team, `Role == Admin`, `User.Status != Banned`, `UserId != actorUserId`, projecting `UserId`, `Email`, `PreferredLanguage`, name via `_db.PlayerProfiles`); `CreateManyAsync(adminIds, TeamMemberDeparted, new TeamMemberDepartedPayload(slug, name, removedBySomeoneElse), actorUserId: targetUserId, dedupeKeyPrefix: $"team-departure:{membershipId}")` in its own `try`; then email: `GetEnabledRecipientsAsync(adminIds, InvitesAndRoster, Email)`, the departing player's name read once through `_db.PlayerProfiles` (placeholder per recipient culture when null), **one `try` per recipient**. Read the team `{Slug, Name}` once for both halves. Run T022 green.
-- [ ] T024 [P] [US3] Add `TeamMemberRemoved` and `TeamMemberDeparted` to the kinds list in `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamRenameRewriteTests.cs` (seed rows with `teamSlug` payloads like its siblings) and run it (FR-023).
-- [ ] T025 [P] [US3] Add a fact to `backend/tests/JuggerHub.Api.IntegrationTests/Parties/` (the existing party roster test file or a new `PartyRemovalSendsNothingTests.cs` on `PartyTestSupport`): a party admin removes an In crew member and a Declined player → no new `Notifications` rows, no email, no push for them (FR-009).
+- [X] T023 [US3] Complete `AnnounceDepartureAsync` in `TeamService.cs`: read admins after commit (`TeamMemberships` of the team, `Role == Admin`, `User.Status != Banned`, `UserId != actorUserId`, projecting `UserId`, `Email`, `PreferredLanguage`, name via `_db.PlayerProfiles`); `CreateManyAsync(adminIds, TeamMemberDeparted, new TeamMemberDepartedPayload(slug, name, removedBySomeoneElse), actorUserId: targetUserId, dedupeKeyPrefix: $"team-departure:{membershipId}")` in its own `try`; then email: `GetEnabledRecipientsAsync(adminIds, InvitesAndRoster, Email)`, the departing player's name read once through `_db.PlayerProfiles` (placeholder per recipient culture when null), **one `try` per recipient**. Read the team `{Slug, Name}` once for both halves. Run T022 green.
+- [X] T024 [P] [US3] Add `TeamMemberRemoved` and `TeamMemberDeparted` to the kinds list in `backend/tests/JuggerHub.Api.IntegrationTests/Teams/TeamRenameRewriteTests.cs` (seed rows with `teamSlug` payloads like its siblings) and run it (FR-023).
+- [X] T025 [P] [US3] Add a fact to `backend/tests/JuggerHub.Api.IntegrationTests/Parties/` (the existing party roster test file or a new `PartyRemovalSendsNothingTests.cs` on `PartyTestSupport`): a party admin removes an In crew member and a Declined player → no new `Notifications` rows, no email, no push for them (FR-009).
 
 **Checkpoint**: full backend suite for `Teams|Parties|Notification|Push|Email` green; commit `feat(064): admins hear when a member leaves or is removed (#385)`.
 
