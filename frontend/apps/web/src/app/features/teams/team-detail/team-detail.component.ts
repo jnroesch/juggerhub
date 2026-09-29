@@ -6,7 +6,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
 import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
-import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, ConfirmDialogComponent, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import {
   JoinRequest,
@@ -38,7 +38,7 @@ import { NewsPostEditing } from '../../../shared/news-post/news-post-editing';
  */
 @Component({
   selector: 'jh-team-detail',
-  imports: [LoadingComponent, RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, TeamPollsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent, AlertComponent, NewsPostComponent],
+  imports: [LoadingComponent, RouterLink, TranslocoDatePipe, RecognitionDisplayComponent, TeamHappeningsComponent, TeamPlacementsComponent, TeamPollsComponent, ButtonDirective, ChipDirective, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent, AlertComponent, NewsPostComponent, ConfirmDialogComponent],
   providers: [NewsPostEditing],
   templateUrl: './team-detail.component.html',
   styleUrl: './team-detail.component.css',
@@ -416,15 +416,76 @@ export class TeamDetailComponent {
     });
   }
 
-  protected remove(member: TeamMember): void {
-    this.error.set(null);
+  // --- Removing a teammate (feature 064): asked first, told in our own words ----------------------
+
+  /** The teammate the confirmation is asking about (null = closed). */
+  protected readonly removing = signal<TeamMember | null>(null);
+  protected readonly removeBusy = signal(false);
+  /** Why the last attempt failed, shown in the dialog. A translation key. */
+  protected readonly removeError = signal<string | null>(null);
+  /**
+   * What became of an attempt the dialog could not finish — the player already left, or the viewer
+   * is no longer an admin. Page level: the reload that follows redraws the roster (and may take the
+   * menus away). A translation key and the name it needs.
+   */
+  protected readonly removeNotice = signal<{ key: string; name: string } | null>(null);
+
+  protected askRemove(member: TeamMember): void {
+    this.openMenu.set(null);
+    this.removeError.set(null);
+    this.removeNotice.set(null);
+    this.removing.set(member);
+  }
+
+  protected dismissRemove(): void {
+    const member = this.removing();
+    if (!member || this.removeBusy()) {
+      return;
+    }
+    this.removing.set(null);
+    this.removeError.set(null);
+    // Back to the button that asked, or a keyboard user is left on the page body.
+    afterNextRender(() => this.focus(`[data-member-menu="${member.userId}"]`), { injector: this.injector });
+  }
+
+  protected confirmRemove(): void {
+    const member = this.removing();
+    if (!member || this.removeBusy()) {
+      return;
+    }
+    this.removeBusy.set(true);
+    this.removeError.set(null);
     this.teams.removeMember(this.slug(), member.userId).subscribe({
       next: () => {
-        this.openMenu.set(null);
+        this.removeBusy.set(false);
+        this.removing.set(null);
         this.load();
+        // The row and its menu button went with the teammate; land on the roster's heading.
+        afterNextRender(() => this.focus('#team-roster-heading'), { injector: this.injector });
       },
-      error: (err) => this.error.set(problemDetail(err)),
+      error: (err) => {
+        this.removeBusy.set(false);
+        const status = err instanceof HttpErrorResponse ? err.status : 0;
+        // Branch on the status, never the server's English `detail` (GH #179). A 404: they already
+        // left, or another admin removed them. A 403: the viewer is no longer an admin.
+        if (status === 404 || status === 403) {
+          this.removing.set(null);
+          this.removeNotice.set({
+            key: status === 404 ? 'teams.detail.removeGone' : 'teams.detail.removeForbidden',
+            name: this.memberName(member),
+          });
+          this.load();
+          return;
+        }
+        // The dialog stays open; confirming again is the retry (never automatic).
+        this.removeError.set('teams.detail.removeFailed');
+      },
     });
+  }
+
+  /** The name the roster shows for a teammate. */
+  protected memberName(member: TeamMember): string {
+    return member.displayName || member.handle;
   }
 
   protected positions(pompfen: Pompfe[]): string {
