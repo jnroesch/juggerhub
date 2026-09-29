@@ -24,8 +24,9 @@ public sealed record AdminActivityItemDto(string Title, DateTime Date);
 
 /// <summary>
 /// Everything an admin needs about one player (feature 013 US4, wireframe 1d).
-/// <see cref="UserId"/> is the wireframe's "player id"; <see cref="LastActiveAt"/> and
-/// <see cref="RecentActivity"/> derive from existing participation data (no new tracking).
+/// <see cref="UserId"/> is the wireframe's "player id". <see cref="RecentActivity"/> derives from
+/// existing participation data; <see cref="LastActiveAt"/> is the newer of that and the newest
+/// session record (sign-in or token rotation, GH #378). Neither adds tracking.
 /// </summary>
 public sealed record AdminUserDetailDto(
     Guid UserId,

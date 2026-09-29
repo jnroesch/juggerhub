@@ -66,7 +66,7 @@ One round trip for the landing page.
   "status": "Active", "statusChangedAt": null, "isAdmin": false,
   "teams": [ { "name": "Berlin Bloodhounds", "slug": "berlin-bloodhounds" } ],
   "pompfen": ["Laeufer", "QTip", "Kette"],  // positions played (profile pompfen)
-  "lastActiveAt": "...",            // newest activity item date or null → "—"
+  "lastActiveAt": "...",            // newer of newest participation / newest session record (GH #378), or null → "—"
   "recentActivity": [               // feature-003 activity items, newest first, capped
     { "title": "RSVP'd Saturday open training", "date": "..." }
   ]

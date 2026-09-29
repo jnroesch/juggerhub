@@ -117,7 +117,13 @@ public sealed class AdminUserService : IAdminUserService
                     .OrderBy(m => m.Team.Name)
                     .Select(m => new AdminUserTeamDto(m.Team.Name, m.Team.Slug)).ToList(),
                 p.Pompfen.OrderBy(pp => pp.Pompfe).Select(pp => pp.Pompfe).ToList(),
-                p.Participations.Max(ep => (DateTime?)ep.CreatedDate),
+                // GH #378: the newest session record — every sign-in and every token rotation writes
+                // one — or a newer event participation. Participations alone left this "—" for every
+                // player who had signed in. Spent session rows are swept about 30 days after sign-in
+                // (ExpiredRefreshTokenSweep), so an account dormant for longer reads "—" again.
+                p.Participations.Select(ep => ep.CreatedDate)
+                    .Concat(_db.RefreshTokens.Where(t => t.UserId == p.UserId).Select(t => t.CreatedDate))
+                    .Max(d => (DateTime?)d),
                 p.Participations.OrderByDescending(ep => ep.Event.StartsAt)
                     .Take(ActivityCap)
                     .Select(ep => new AdminActivityItemDto(ep.Event.Name, ep.Event.StartsAt)).ToList(),

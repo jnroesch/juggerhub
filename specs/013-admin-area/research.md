@@ -155,7 +155,9 @@ continues to live on 012's `BadgeAward`/`AchievementAward` rows — not duplicat
 Services `IAdminUserService` / `IAdminOverviewService` own all logic (queries use
 `IgnoreQueryFilters` + `AsNoTracking` + projections; actions are tracked saves).
 "Last active" derives from the newest event-participation activity (no new tracking,
-per spec assumption); absent data renders as "—".
+per spec assumption); absent data renders as "—". **Amended by GH #378**: also the newest
+refresh-token row (sign-in or rotation), whichever is newer — participations are never
+written, so on their own every player read "—".
 
 The reset-password action reuses the internals of `ForgotPasswordAsync` (generate
 token → `SendPasswordResetEmailAsync`) for the *target* user; response is only
