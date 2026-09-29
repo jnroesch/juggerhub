@@ -6,7 +6,6 @@
 
 # Must be LF — these run under bash/sh (incl. git-bash on Windows, and CI):
 *.sh         text eol=lf
-.githooks/*  text eol=lf
 
 # Version-pin config read by CI / version managers (a stray CR can break nvm):
 .nvmrc       text eol=lf

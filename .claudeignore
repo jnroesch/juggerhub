@@ -65,7 +65,6 @@ Thumbs.db
 .git/
 
 # --- AI tooling: local & generated (keep specs/design readable) ---
-graphify-out/
 .claude/settings.local.json
 # Do NOT ignore: .specify/, DESIGN.md, CLAUDE.md — these are the
 # source-of-truth context the workflow depends on.

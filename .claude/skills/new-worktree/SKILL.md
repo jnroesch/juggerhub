@@ -23,7 +23,7 @@ Concretely, in this session:
   which is the opposite of what was asked. Everything below uses plain git + the
   project hook instead.
 * Do not read the feature's spec, plan, or issue "to get oriented".
-* Do not query Graphify, inspect the affected code, or sketch an approach.
+* Do not inspect the affected code or sketch an approach.
 * Do not create a spec, plan, tasks, or branch beyond the one the hook makes.
 * Do not commit anything in the new worktree.
 

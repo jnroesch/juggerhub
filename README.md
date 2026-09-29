@@ -244,32 +244,25 @@ JuggerHub is developed with an integrated, spec-driven AI toolchain. It's not
 required to use the app or to contribute a small fix, but it's part of what makes
 this repo tick — and it's all here in the open.
 
-> **Spec-Kit** decides · **DESIGN.md** styles · **GitHub Issues** queue ·
-> **Graphify** maps.
+> **Spec-Kit** decides · **DESIGN.md** styles · **GitHub Issues** queue.
 
 | Tool | Role | UI |
 |------|------|----|
 | **[Spec-Kit](https://github.com/github/spec-kit)** | Specs, plans, tasks, constitution — the source of truth for behavior | — |
 | **DESIGN.md** | Visual identity / design tokens | the `DESIGN.md` file |
 | **GitHub Issues** | Intake & prioritization | GitHub issue tracker + `gh` CLI |
-| **Graphify** | Codebase knowledge graph / impact analysis | interactive graph (HTML) |
 
 The full workflow rules, source-of-truth ordering, and tool routing live in
 [**CLAUDE.md**](CLAUDE.md).
 
 ### Setting up the toolchain (optional)
 
-The global CLIs and Claude plugin aren't committed, so reinstall them after
-cloning. Requires **Node 20+**, **uv**, and **git**.
+The global CLIs aren't committed, so reinstall them after cloning. Requires **Node 20+**, **uv**, and **git**.
 
 ```bash
 # Global CLIs
 npm install -g @google/design.md
 uv  tool install specify-cli --from git+https://github.com/github/spec-kit.git@v0.11.9
-uv  tool install graphifyy && graphify install --platform claude
-
-# Enable Graphify auto-rebuild git hooks (tracked in .githooks/)
-git config core.hooksPath .githooks
 ```
 
 ---
