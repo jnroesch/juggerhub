@@ -287,8 +287,7 @@ page with the `poll-{id}` fragment.
 
 **Rationale**: FR-029 requires the recipient's language. Team *news* email is English-only today
 (`team-news.html` exists only in `en/`), so copying that path would ship a known defect.
-`TemplateParityTests` already fails when a template is missing from any locale, so the three
-files are guarded for free.
+`TemplateParityTests` checks the three variants of each template for the same placeholders, but its template list is **opt-in** (`FullyTranslatedTemplates`), so `team-poll.html` has to be added to it. *Corrected at PR time: this line first claimed the guard applied for free.*
 
 **Values are user text**: team name, question and author name go through the template engine's
 HTML-escaping, like every existing variable. Only the URL is `RawHtml`.
