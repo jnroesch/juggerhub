@@ -204,6 +204,7 @@ As a platform administrator on a player's admin detail, I see their badges & ach
 - **Configuration changes require a restart** to affect the admin set; no hot-reload of the designation sync is expected this pass.
 - The existing password-reset (forgot-password) flow is reused as-is; the admin surface only triggers it for a target account.
 - "Recent activity" and "last active" on the player detail reuse the platform's existing activity/event data (feature 003's activity model); no new tracking is introduced for this pass.
+  > **Amended by GH #378**: nothing in the product writes event participations, so "last active" read "—" for every player. It is now the newer of the newest participation and the newest session record (`RefreshToken.CreatedDate` — every sign-in and token rotation writes one). Still no new tracking. Session rows are swept ~30 days after sign-in, so an account dormant for longer reads "—" again. "Recent activity" is unchanged.
 - The fixed badge/achievement catalogues and their management UI from feature 012 remain; this feature re-homes only the *grant-to-player* flow into the player detail. The existing 012 catalogue-management surface remains reachable within the admin area.
 - Account states apply to the account as a whole (not per-team/per-event). No email is sent to the affected player on suspend/ban this pass; a suspended player learns of the state when attempting to sign in.
 - The registration denylist matches on the banned account's email address; evasion via a different email address is out of scope this pass.

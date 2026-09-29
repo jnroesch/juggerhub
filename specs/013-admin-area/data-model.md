@@ -91,3 +91,5 @@ modelBuilder.Entity<PlayerProfile>()
   name, subject, grantor, date (012 data).
 - **Last active / recent activity**: newest event-participation activity items
   (feature 003 `EventActivityService` data); `null` renders as "—".
+  **Amended by GH #378**: last active = `max(Participations.CreatedDate,
+  RefreshTokens.CreatedDate)` for the player's user; recent activity unchanged.
