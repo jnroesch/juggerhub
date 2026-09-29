@@ -12,7 +12,7 @@
       <span class="font-mono text-body-sm text-muted">{{ p.inCount }} / {{ p.rosterCap }} {{ 'parties.manage.inSuffix' | transloco }}</span>
     </div>
     <p class="mt-xs text-body-sm text-muted">{{ p.startsAt | translocoDate: { dateStyle: 'medium' } }}
-      @if (isApplied()) { · <span class="font-semibold text-success-fg">{{ 'parties.manage.applied' | transloco }} · {{ p.appliedGroup }}</span> }
+      @if (isApplied()) { · <span class="font-semibold text-success-fg" data-testid="applied-status">{{ 'parties.manage.applied' | transloco }}@if (appliedGroupKey(); as key) { · {{ key | transloco }}}</span> }
     </p>
 
     <!-- fill bar -->

@@ -13,6 +13,13 @@ import { PartyService } from '../../../core/services/party.service';
 import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import { NewsPostComponent } from '../../../shared/news-post/news-post.component';
 import { NewsPostEditing } from '../../../shared/news-post/news-post-editing';
+import { SignupStatus } from '../../../core/models/event.models';
+
+const APPLIED_GROUP_KEYS: Record<SignupStatus, string> = {
+  Joined: 'parties.manage.appliedJoined',
+  AwaitingApproval: 'parties.manage.appliedAwaiting',
+  Waitlisted: 'parties.manage.appliedWaitlisted',
+};
 
 /**
  * The party manage hub (feature 016 · wireframes 6d–6h). One page for the whole party: roster in
@@ -60,6 +67,11 @@ export class PartyManageComponent implements OnInit {
 
   protected readonly isAdmin = computed(() => this.party()?.myRole === 'Admin');
   protected readonly isApplied = computed(() => this.party()?.status === 'Applied');
+  /** Where the party's entry landed on the event, as a translation key (GH #388 — it showed the raw value). */
+  protected readonly appliedGroupKey = computed(() => {
+    const group = this.party()?.appliedGroup;
+    return group ? APPLIED_GROUP_KEYS[group] : null;
+  });
   /** Crew members (In or Admin) can see the private news feed. */
   protected readonly isCrew = computed(() => {
     const s = this.party()?.myState;
