@@ -8,6 +8,7 @@ import { Observable } from 'rxjs';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
 import { PluralKeyPipe } from '../../../core/i18n/plural-key.pipe';
 import { Party, PartyMember, PartyNews, PartyRosterGroup } from '../../../core/models/party.models';
+import { ChatService } from '../../../core/services/chat.service';
 import { PartyService } from '../../../core/services/party.service';
 import { Pompfe, pompfeLabelKey } from '../../../shared/pompfen.catalog';
 import { NewsPostComponent } from '../../../shared/news-post/news-post.component';
@@ -18,6 +19,7 @@ import { NewsPostEditing } from '../../../shared/news-post/news-post-editing';
  * three groups (In / Declined / No reply), readiness, the primary "Apply to event" action, party
  * tools (news, co-admins, disband + LATER placeholders), and — for a non-admin crew member — the
  * join/leave affordances. Admin controls are gated on the viewer's party role (server-enforced too).
+ * The crew also gets a way into the party's chat, in whichever of those two cards is theirs (feature 063).
  */
 @Component({
   selector: 'jh-party-manage',
@@ -29,6 +31,7 @@ import { NewsPostEditing } from '../../../shared/news-post/news-post-editing';
 })
 export class PartyManageComponent implements OnInit {
   private readonly parties = inject(PartyService);
+  private readonly chat = inject(ChatService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
@@ -134,6 +137,48 @@ export class PartyManageComponent implements OnInit {
     });
   }
 
+  // --- The party chat (feature 063) -----------------------------------------
+
+  protected readonly partyChatBusy = signal(false);
+  /** The chat could not be opened — shown in the card beside the button. A translation key. */
+  protected readonly partyChatError = signal<string | null>(null);
+  /**
+   * The player is no longer in the crew. Page level, not in the card: the reload that follows swaps the
+   * crew card for the request card (or the whole page for "not found"). A translation key.
+   */
+  protected readonly partyChatNotice = signal<string | null>(null);
+
+  /**
+   * Open the party's own chat. Looked up on the press, never on load (as the team page does, feature
+   * 060); the server creates the chat if nobody in the crew has opened it yet.
+   */
+  protected openPartyChat(): void {
+    if (this.partyChatBusy()) {
+      return;
+    }
+    this.partyChatBusy.set(true);
+    this.partyChatError.set(null);
+    this.partyChatNotice.set(null);
+    this.chat.openPartyChat(this.id).subscribe({
+      next: (ref) => {
+        this.partyChatBusy.set(false);
+        void this.router.navigate(['/chat', ref.conversationId]);
+      },
+      error: (err) => {
+        this.partyChatBusy.set(false);
+        // Branch on the status, never the server's English `detail` (GH #179) — which is why this does
+        // not go through fail(). A 404 means the player left or was removed since the page loaded, or
+        // the party was disbanded: say so, and show the page as it now is.
+        if (err instanceof HttpErrorResponse && err.status === 404) {
+          this.partyChatNotice.set('parties.manage.partyChatNotCrew');
+          this.reload();
+          return;
+        }
+        this.partyChatError.set('parties.manage.partyChatFailed');
+      },
+    });
+  }
+
   // --- Self actions (crew member) ------------------------------------------
 
   protected join(): void {
@@ -186,6 +231,10 @@ export class PartyManageComponent implements OnInit {
     }
     this.acting.set(true);
     this.error.set(null);
+    // A note about the party chat describes the page before this action (e.g. "no longer in this
+    // crew" and then "I'm in" again), so it goes with it.
+    this.partyChatNotice.set(null);
+    this.partyChatError.set(null);
     op().subscribe({
       next: () => {
         this.acting.set(false);
