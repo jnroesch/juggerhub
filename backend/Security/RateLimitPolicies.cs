@@ -108,6 +108,38 @@ public static class RateLimitPolicies
     /// <summary>10/hour: a new player asking two or three teams during onboarding never comes close; a loop of asks and withdrawals stops at ten.</summary>
     internal const int JoinRequestsPerHour = 10;
 
+    /// <summary>
+    /// Accepting a team invitation (feature 064) — by shared link or addressed to the player; the two
+    /// share one route, and accepting is one action whichever it is. Only the accept: declining and
+    /// the anonymous preview are never limited.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>Why it exists.</b> A shared link stays usable after someone joins with it, and joining by it
+    /// needs no admin. That was harmless while leaving a team reached no one. Since feature 064 every
+    /// departure reaches each of the team's admins in their inbox, by email and on their phone, so
+    /// without a bound, joining by link and leaving again is a way to message those admins as often
+    /// as one likes. Joining is the only step of that loop the player takes alone, so the bound sits
+    /// here (owner decision, spec Clarifications).
+    /// </para>
+    /// <para>
+    /// <b>A fixed window</b>, like every limit here: ten per player per clock hour, across all teams.
+    /// A burst straddling the turn of an hour can therefore reach twenty, and no more (spec FR-024).
+    /// "Clock hour" is the Redis limiter's window, which is every deployed environment; the in-memory
+    /// fallback a Redis-less Development host uses starts its hour at the player's first accept instead
+    /// (see <see cref="Limiter"/>).
+    /// </para>
+    /// <para>
+    /// <b>This <c>429</c> is our own limit</b> (constitution Principle VII): it is never retried on
+    /// either hop — the browser's retry interceptor already skips <c>429</c> and retries no POST — and
+    /// every client maps the status, never the body, to a "try again later" in the player's language.
+    /// </para>
+    /// </remarks>
+    public const string TeamInviteAccept = "team-invite-accept";
+
+    /// <summary>10/hour: joining one or two teams in a sitting never comes close; a join-and-leave loop stops at ten.</summary>
+    internal const int TeamInviteAcceptsPerHour = 10;
+
     public static IServiceCollection AddJuggerHubRateLimiting(
         this IServiceCollection services,
         string? redisConnection)
@@ -130,6 +162,7 @@ public static class RateLimitPolicies
             options.AddPolicy(MediaRead, PartitionByCaller(MediaRead, MediaReadPerMinute));
             options.AddPolicy(Tugeny, PartitionByUser(Tugeny, TugenyPerMinute));
             options.AddPolicy(JoinRequest, PartitionByUser(JoinRequest, JoinRequestsPerHour, TimeSpan.FromHours(1)));
+            options.AddPolicy(TeamInviteAccept, PartitionByUser(TeamInviteAccept, TeamInviteAcceptsPerHour, TimeSpan.FromHours(1)));
         });
 
         return services;
@@ -184,6 +217,9 @@ public static class RateLimitPolicies
             // Development without Redis only (Program.cs makes this fatal everywhere else). The
             // in-memory limiter is correct on a single instance and would be silently wrong on
             // several — which is exactly why it is not allowed to reach a deployed environment.
+            // Its window also differs in phase: it starts at a partition's first request, while the
+            // Redis windows are cut from wall-clock time. The limit per window is the same; only the
+            // boundary moves, which is why the hourly policies say "clock hour" of Redis only.
             return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = limit,

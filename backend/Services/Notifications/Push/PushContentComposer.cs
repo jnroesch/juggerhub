@@ -58,6 +58,8 @@ public sealed class PushContentComposer : IPushContentComposer
             or NotificationType.TeamNews
             or NotificationType.TeamJoinRequest
             or NotificationType.TeamJoinRequestAnswered
+            or NotificationType.TeamMemberRemoved
+            or NotificationType.TeamMemberDeparted
             or NotificationType.TeamPoll => Text(payload, "teamName"),
 
         NotificationType.PartyRequest
@@ -101,6 +103,21 @@ public sealed class PushContentComposer : IPushContentComposer
             null => _localizer.Get("fallback.body", culture),
         },
 
+        // Feature 064. The removed player's notice never uses the actor name — the row has no actor,
+        // and even if one were passed the removing admin must not be named (spec FR-011).
+        NotificationType.TeamMemberRemoved => _localizer.Get("teamMemberRemoved.body", culture),
+
+        // The admins' notice names the departing player, from the actor at send time; without a name
+        // it still says which kind of departure it was.
+        NotificationType.TeamMemberDeparted => (Flag(payload, "removed"), actorName is { Length: > 0 }) switch
+        {
+            (false, true) => _localizer.Get("teamMemberLeft.body", culture, actorName!),
+            (false, false) => _localizer.Get("teamMemberLeft.bodyAnonymous", culture),
+            (true, true) => _localizer.Get("teamMemberRemovedByAdmin.body", culture, actorName!),
+            (true, false) => _localizer.Get("teamMemberRemovedByAdmin.bodyAnonymous", culture),
+            (null, _) => _localizer.Get("fallback.body", culture),
+        },
+
         _ => _localizer.Get("fallback.body", culture),
     };
 
@@ -115,7 +132,9 @@ public sealed class PushContentComposer : IPushContentComposer
         NotificationType.TeamInvite
             or NotificationType.TeamRoleChanged
             or NotificationType.TeamNews
-            or NotificationType.TeamJoinRequest => Slug(payload, "teamSlug") is { } slug ? $"/t/{slug}" : "/",
+            or NotificationType.TeamJoinRequest
+            or NotificationType.TeamMemberRemoved
+            or NotificationType.TeamMemberDeparted => Slug(payload, "teamSlug") is { } slug ? $"/t/{slug}" : "/",
 
         // Accepted: to the team the player just joined. Declined: to where they can find another.
         NotificationType.TeamJoinRequestAnswered => Flag(payload, "accepted") switch

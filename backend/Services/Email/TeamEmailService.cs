@@ -94,6 +94,35 @@ public sealed class TeamEmailService
         await _sender.SendAsync(toEmail, _localizer.Get("subject.joinRequestDeclined", culture, teamName), html, ct);
     }
 
+    // --- Feature 064: departures. Neither email names the admin who removed someone. ----------------
+
+    /// <summary>Tells a player an admin removed them from a team, linking to the team page. Names the team only.</summary>
+    public async Task SendRemovedFromTeamEmailAsync(
+        string toEmail, string recipientName, string teamName, string slug,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
+    {
+        var url = BuildTeamLink(_options.FrontendBaseUrl, slug);
+        var html = await _templates.GenerateRemovedFromTeamEmailAsync(recipientName, teamName, url, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.removedFromTeam", culture, teamName), html, ct);
+    }
+
+    /// <summary>
+    /// Tells one admin that <paramref name="playerName"/> left the team (<paramref name="removed"/>
+    /// false) or was removed from it (true), linking to the team page. Which admin removed them is
+    /// stated nowhere.
+    /// </summary>
+    public async Task SendMemberDepartedEmailAsync(
+        string toEmail, string recipientName, string playerName, string teamName, string slug, bool removed,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
+    {
+        var url = BuildTeamLink(_options.FrontendBaseUrl, slug);
+        var html = removed
+            ? await _templates.GenerateMemberRemovedEmailAsync(recipientName, playerName, teamName, url, culture)
+            : await _templates.GenerateMemberLeftEmailAsync(recipientName, playerName, teamName, url, culture);
+        var subject = _localizer.Get(removed ? "subject.memberRemoved" : "subject.memberLeft", culture, playerName, teamName);
+        await _sender.SendAsync(toEmail, subject, html, ct);
+    }
+
     internal static string BuildBrowseTeamsLink(string frontendBaseUrl) =>
         $"{frontendBaseUrl.TrimEnd('/')}/browse/teams";
 

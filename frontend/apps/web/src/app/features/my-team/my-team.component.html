@@ -37,7 +37,7 @@
     <p class="mt-xs text-body-sm text-muted">{{ 'myTeam.emptySub' | transloco }}</p>
 
     @if (notice(); as msg) {
-      <p role="status" data-testid="my-team-notice" class="mt-md rounded-md border border-warning-border bg-warning-bg px-md py-sm text-body-sm text-warning-fg">{{ msg }}</p>
+      <p role="status" data-testid="my-team-notice" class="mt-md rounded-md border border-warning-border bg-warning-bg px-md py-sm text-body-sm text-warning-fg">{{ msg.key | transloco: msg.params }}</p>
     }
 
     @if (invites().length > 0) {

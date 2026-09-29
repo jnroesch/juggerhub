@@ -34,6 +34,9 @@
       @if (error()) {
         <jh-alert class="mt-md" data-testid="accept-error">{{ error() }}</jh-alert>
       }
+      @if (limited()) {
+        <jh-alert tone="info" class="mt-md" data-testid="accept-limited">{{ 'teams.inviteLimited' | transloco }}</jh-alert>
+      }
 
       <button type="button" (click)="accept()" [disabled]="working()" data-testid="accept-join"
         class="mt-lg w-full rounded-md bg-surface-inverse px-lg py-sm text-body-md font-semibold text-on-inverse transition-colors hover:bg-sand-8 active:translate-y-px disabled:opacity-60">

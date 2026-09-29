@@ -101,6 +101,42 @@ public sealed class TemplateRenderMatrixTests
         Assert.Contains($"href=\"{BaseUrl}/browse/teams\"", html, StringComparison.Ordinal);
     }
 
+    // --- Feature 064: departures ------------------------------------------------------------
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Removed_from_team_renders(string culture)
+    {
+        var html = await Service().GenerateRemovedFromTeamEmailAsync("Jonas", "Rheinfeuer", $"{BaseUrl}/t/rf", culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Rheinfeuer", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/t/rf\"", html, StringComparison.Ordinal);
+        // The team and nobody else: no slot for an admin or another player exists (spec FR-011).
+        Assert.DoesNotContain("PLAYER_NAME", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Member_left_renders(string culture)
+    {
+        var html = await Service().GenerateMemberLeftEmailAsync("Mira", "Jonas Weber", "Rheinfeuer", $"{BaseUrl}/t/rf", culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Jonas Weber", html, StringComparison.Ordinal);
+        Assert.Contains("Rheinfeuer", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/t/rf\"", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Member_removed_renders(string culture)
+    {
+        var html = await Service().GenerateMemberRemovedEmailAsync("Mira", "Jonas Weber", "Rheinfeuer", $"{BaseUrl}/t/rf", culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Jonas Weber", html, StringComparison.Ordinal);
+        Assert.Contains("Rheinfeuer", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/t/rf\"", html, StringComparison.Ordinal);
+    }
+
     // --- GH #379: the five emails that were English for everyone ------------------------------
 
     private static readonly DateTime Expiry = new(2026, 10, 6, 14, 30, 0, DateTimeKind.Utc);

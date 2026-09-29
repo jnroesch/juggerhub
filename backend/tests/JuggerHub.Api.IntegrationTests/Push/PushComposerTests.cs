@@ -177,7 +177,58 @@ public sealed class PushComposerTests
         [NotificationType.TeamJoinRequest] = JoinRequestPayload,
         [NotificationType.TeamJoinRequestAnswered] = """{"teamSlug":"hh","teamName":"Hamburg Hammers","accepted":true}""",
         [NotificationType.TeamPoll] = """{"teamSlug":"hh","teamName":"Hamburg Hammers","pollId":"0199f3c2-0000-7000-8000-000000000004","question":"Grillen am Samstag?"}""",
+        [NotificationType.TeamMemberRemoved] = RemovedPayload,
+        [NotificationType.TeamMemberDeparted] = """{"teamSlug":"hh","teamName":"Hamburg Hammers","removed":false}""",
     };
+
+    // --- Feature 064: departures -------------------------------------------------------------
+
+    private const string RemovedPayload = """{"teamSlug":"rheinfeuer","teamName":"Rheinfeuer"}""";
+
+    [Theory]
+    [InlineData("en", "You're no longer a member of this team")]
+    [InlineData("de", "Du bist kein Mitglied dieses Teams mehr")]
+    [InlineData("es", "Ya no eres miembro de este equipo")]
+    public void A_removal_names_the_team_and_nobody_else(string culture, string body)
+    {
+        // Even if an actor name reached the composer, the removing admin must not be named (FR-011).
+        var content = _composer.Compose(NotificationType.TeamMemberRemoved, RemovedPayload, culture, "tag", actorName: "Mara");
+
+        Assert.Equal("Rheinfeuer", content.Title);
+        Assert.Equal(body, content.Body);
+        Assert.DoesNotContain("Mara", content.Title + content.Body, StringComparison.Ordinal);
+        Assert.Equal("/t/rheinfeuer", content.Url);
+    }
+
+    [Theory]
+    [InlineData(false, "en", "Jonas", "Jonas left the team")]
+    [InlineData(true, "en", "Jonas", "Jonas was removed from the team")]
+    [InlineData(false, "de", "Jonas", "Jonas hat das Team verlassen")]
+    [InlineData(true, "de", "Jonas", "Jonas wurde aus dem Team entfernt")]
+    [InlineData(false, "en", null, "A player left the team")]
+    [InlineData(true, "en", null, "A player was removed from the team")]
+    [InlineData(true, "de", null, "Jemand wurde aus dem Team entfernt")]
+    public void A_departure_names_the_player_and_says_how_they_went(bool removed, string culture, string? actor, string body)
+    {
+        var flag = removed ? "true" : "false";
+        var payload = $$"""{"teamSlug":"rheinfeuer","teamName":"Rheinfeuer","removed":{{flag}}}""";
+
+        var content = _composer.Compose(NotificationType.TeamMemberDeparted, payload, culture, "tag", actorName: actor);
+
+        Assert.Equal("Rheinfeuer", content.Title);
+        Assert.Equal(body, content.Body);
+        Assert.Equal("/t/rheinfeuer", content.Url);
+    }
+
+    [Theory]
+    [InlineData(NotificationType.TeamMemberRemoved)]
+    [InlineData(NotificationType.TeamMemberDeparted)]
+    public void A_departure_slug_that_is_not_a_slug_cannot_reach_the_url(NotificationType type)
+    {
+        var content = _composer.Compose(type, """{"teamSlug":"../evil","teamName":"X","removed":true}""", "en", "tag");
+
+        Assert.Equal("/", content.Url);
+    }
 
     [Fact]
     public void Every_notification_type_has_its_own_title_body_and_url()

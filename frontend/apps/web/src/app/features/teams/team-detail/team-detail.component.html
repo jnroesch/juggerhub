@@ -73,6 +73,10 @@
     @if (teamChatNotice(); as key) {
       <jh-alert tone="info" class="mt-sm" data-testid="team-chat-notice">{{ key | transloco }}</jh-alert>
     }
+    <!-- Feature 064 — page level too: the reload that follows redraws the roster it would sit in. -->
+    @if (removeNotice(); as notice) {
+      <jh-alert tone="info" class="mt-sm outline-none" tabindex="-1" data-testid="remove-notice">{{ notice.key | transloco: { name: notice.name } }}</jh-alert>
+    }
 
     <div class="mt-lg grid grid-cols-1 gap-lg lg:grid-cols-[minmax(0,1fr)_300px]">
       <div class="flex flex-col gap-lg">
@@ -165,7 +169,8 @@
 
         <!-- Roster -->
         <jh-card overflowVisible data-testid="roster">
-          <h2 class="mb-sm text-body-lg font-semibold text-heading">{{ 'teams.detail.roster' | transloco }}</h2>
+          <!-- Focusable (tabindex -1): where focus lands after a teammate is removed (feature 064). -->
+          <h2 id="team-roster-heading" tabindex="-1" class="mb-sm text-body-lg font-semibold text-heading outline-none">{{ 'teams.detail.roster' | transloco }}</h2>
           @if (isMember()) {
             <ul class="flex flex-col">
               @for (m of members(); track m.userId) {
@@ -181,11 +186,12 @@
                   <!-- No menu on the admin's own row: their step down and leave live on "Manage team". -->
                   @if (isAdmin() && m.userId !== myUserId()) {
                     <div class="relative">
-                      <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" (click)="toggleMenu(m.userId)"><jh-icon name="ellipsis" size="sm" /></button>
+                      <button type="button" class="grid h-8 w-8 place-items-center rounded-md text-muted hover:bg-surface-sunken" [attr.aria-label]="'teams.detail.manageMember' | transloco" [attr.data-member-menu]="m.userId" (click)="toggleMenu(m.userId)"><jh-icon name="ellipsis" size="sm" /></button>
                       @if (openMenu() === m.userId) {
                         <div class="absolute right-0 z-10 mt-1 w-40 rounded-md border border-border-default bg-surface-card py-xs shadow-md" role="menu">
                           <button type="button" class="block w-full px-md py-xs text-left text-body-sm hover:bg-surface-sunken" (click)="toggleAdmin(m)">{{ (m.role === 'Admin' ? 'teams.detail.makeMember' : 'teams.detail.makeAdmin') | transloco }}</button>
-                          <button type="button" class="block w-full px-md py-xs text-left text-body-sm text-danger-fg hover:bg-surface-sunken" (click)="remove(m)">{{ 'teams.detail.remove' | transloco }}</button>
+                          <!-- Feature 064: asks first (the dialog below), never removes on this press. -->
+                          <button type="button" class="block w-full px-md py-xs text-left text-body-sm text-danger-fg hover:bg-surface-sunken" data-testid="remove-member" (click)="askRemove(m)">{{ 'teams.detail.remove' | transloco }}</button>
                         </div>
                       }
                     </div>
@@ -365,6 +371,21 @@
         }
       </aside>
     </div>
+
+    <!-- Remove a teammate (feature 064). Page level, outside every card: cards clip. -->
+    @if (removing(); as m) {
+      <jh-confirm-dialog
+        [heading]="'teams.detail.removeTitle' | transloco: { name: memberName(m), team: team.name }"
+        [body]="'teams.detail.removeBody' | transloco"
+        [keepLabel]="'teams.detail.removeKeep' | transloco: { name: memberName(m) }"
+        [confirmLabel]="'teams.detail.removeConfirm' | transloco"
+        [busyLabel]="'teams.detail.removing' | transloco"
+        [busy]="removeBusy()"
+        [error]="removeError() ? (removeError()! | transloco) : null"
+        (confirmed)="confirmRemove()"
+        (dismissed)="dismissRemove()"
+      />
+    }
 
     <!-- Join / cancel confirmation (feature 009 — guards accidental clicks) -->
     @if (confirmIntent(); as intent) {

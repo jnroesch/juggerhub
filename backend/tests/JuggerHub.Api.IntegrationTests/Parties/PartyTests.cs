@@ -280,6 +280,37 @@ public sealed class PartyTests : PartyTestSupport
     }
 
     [Fact]
+    public async Task Removing_a_player_from_the_party_tells_nobody()
+    {
+        // Feature 064, FR-009 (owner decision): the party page asks first, and nobody is told — not
+        // the crew member taken out, not a player whose "can't make it" answer is cleared.
+        var (admin, _, _, _) = await NewUserAsync();
+        var (teamId, _) = await CreateTeamAsync(admin);
+        var (member, memberId, _, memberEmail) = await NewUserAsync();
+        var (decliner, declinerId, _, declinerEmail) = await NewUserAsync();
+        await AddTeamMemberAsync(teamId, memberId);
+        await AddTeamMemberAsync(teamId, declinerId);
+        var eventId = await CreateTeamsEventAsync(admin);
+        var partyId = await FormPartyAsync(admin, eventId, teamId);
+        await member.PostAsync($"/api/v1/parties/{partyId}/join", null);
+        await decliner.PostAsync($"/api/v1/parties/{partyId}/decline", null);
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Task<int> Alerts(Guid userId) => db.Notifications.CountAsync(n => n.RecipientUserId == userId);
+        var alertsBefore = (await Alerts(memberId), await Alerts(declinerId));
+        var emailsBefore = Factory.EmailSender.Sent.Count(e => e.To == memberEmail || e.To == declinerEmail);
+        var pushesBefore = Factory.PushDispatcher.Recipients.Count(r => r == memberId || r == declinerId);
+
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.DeleteAsync($"/api/v1/parties/{partyId}/members/{memberId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NoContent, (await admin.DeleteAsync($"/api/v1/parties/{partyId}/members/{declinerId}")).StatusCode);
+
+        Assert.Equal(alertsBefore, (await Alerts(memberId), await Alerts(declinerId)));
+        Assert.Equal(emailsBefore, Factory.EmailSender.Sent.Count(e => e.To == memberEmail || e.To == declinerEmail));
+        Assert.Equal(pushesBefore, Factory.PushDispatcher.Recipients.Count(r => r == memberId || r == declinerId));
+    }
+
+    [Fact]
     public async Task Last_admin_cannot_leave()
     {
         var (admin, _, _, _) = await NewUserAsync();

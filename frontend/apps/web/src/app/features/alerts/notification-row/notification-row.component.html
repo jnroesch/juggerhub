@@ -10,7 +10,7 @@
     [class]="
       kind() === 'TeamInvite' || kind() === 'TeamJoinRequest'
         ? 'bg-surface-accent-soft text-brand-strong'
-        : kind() === 'TeamRoleChanged' || kind() === 'TeamJoinRequestAnswered'
+        : kind() === 'TeamRoleChanged' || kind() === 'TeamJoinRequestAnswered' || kind() === 'TeamMemberRemoved' || kind() === 'TeamMemberDeparted'
           ? 'bg-info-bg text-info-fg'
           : 'bg-surface-secondary-soft text-secondary-strong'
     "
@@ -31,6 +31,12 @@
       }
       @case ('TeamPoll') {
         <jh-icon name="circle-help" size="lg" />
+      }
+      @case ('TeamMemberRemoved') {
+        <jh-icon name="user-minus" size="lg" />
+      }
+      @case ('TeamMemberDeparted') {
+        <jh-icon name="user-minus" size="lg" />
       }
       @default {
         <jh-icon name="volume-2" size="lg" />

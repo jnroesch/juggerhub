@@ -20,7 +20,9 @@ export type NotificationType =
   | 'EventCancelled'
   | 'TeamJoinRequest'
   | 'TeamJoinRequestAnswered'
-  | 'TeamPoll';
+  | 'TeamPoll'
+  | 'TeamMemberRemoved'
+  | 'TeamMemberDeparted';
 
 export interface TeamInvitePayload {
   invitationId: string;
@@ -124,6 +126,27 @@ export interface TeamPollPayload {
   question: string;
 }
 
+/**
+ * An admin removed the recipient from a team (feature 064). The team and nothing else: the row has no
+ * actor, so nothing here names the admin who removed them.
+ */
+export interface TeamMemberRemovedPayload {
+  teamSlug: string;
+  teamName: string;
+}
+
+/**
+ * A player left a team the recipient administers, or was removed from it (feature 064). The player is
+ * the row's actor (`actorDisplayName`, null once banned or erased), never a field here; which admin
+ * removed them is stated nowhere.
+ */
+export interface TeamMemberDepartedPayload {
+  teamSlug: string;
+  teamName: string;
+  /** False: they left on their own. True: another admin removed them. */
+  removed: boolean;
+}
+
 export type NotificationPayload =
   | TeamInvitePayload
   | TeamRoleChangedPayload
@@ -135,7 +158,9 @@ export type NotificationPayload =
   | EventCancelledPayload
   | TeamJoinRequestPayload
   | TeamJoinRequestAnsweredPayload
-  | TeamPollPayload;
+  | TeamPollPayload
+  | TeamMemberRemovedPayload
+  | TeamMemberDepartedPayload;
 
 export interface AppNotification {
   id: string;
@@ -220,4 +245,16 @@ export function isTeamJoinRequestAnswered(
 
 export function isTeamPoll(n: AppNotification): n is AppNotification & { type: 'TeamPoll'; payload: TeamPollPayload } {
   return n.type === 'TeamPoll';
+}
+
+export function isTeamMemberRemoved(
+  n: AppNotification,
+): n is AppNotification & { type: 'TeamMemberRemoved'; payload: TeamMemberRemovedPayload } {
+  return n.type === 'TeamMemberRemoved';
+}
+
+export function isTeamMemberDeparted(
+  n: AppNotification,
+): n is AppNotification & { type: 'TeamMemberDeparted'; payload: TeamMemberDepartedPayload } {
+  return n.type === 'TeamMemberDeparted';
 }

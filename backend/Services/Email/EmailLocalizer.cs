@@ -270,6 +270,58 @@ public sealed class EmailLocalizer : IEmailLocalizer
                 ["es"] = "Recibes este mensaje porque pediste unirte a este equipo en JuggerHub.",
             },
 
+            // --- Feature 064: departures -------------------------------------------------------------
+            // The removed player is told the team and nothing else; the admins are told the player.
+            // Neither ever names the admin who removed someone (spec FR-011, FR-015).
+
+            // {0} = team name
+            ["subject.removedFromTeam"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're no longer a member of {0} — JuggerHub",
+                ["de"] = "Du bist kein Mitglied von {0} mehr — JuggerHub",
+                ["es"] = "Ya no eres miembro de {0} — JuggerHub",
+            },
+            // {0} = the player's display name, {1} = team name
+            ["subject.memberLeft"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} left {1} — JuggerHub",
+                ["de"] = "{0} hat {1} verlassen — JuggerHub",
+                ["es"] = "{0} ha dejado {1} — JuggerHub",
+            },
+            // {0} = the player's display name, {1} = team name
+            ["subject.memberRemoved"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} was removed from {1} — JuggerHub",
+                ["de"] = "{0} wurde aus {1} entfernt — JuggerHub",
+                ["es"] = "Se ha retirado a {0} de {1} — JuggerHub",
+            },
+
+            ["title.removedFromTeam"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're no longer a member of a team",
+                ["de"] = "Du bist kein Mitglied eines Teams mehr",
+                ["es"] = "Ya no eres miembro de un equipo",
+            },
+            ["title.memberLeft"] = new Dictionary<string, string>
+            {
+                ["en"] = "Someone left your team",
+                ["de"] = "Jemand hat dein Team verlassen",
+                ["es"] = "Alguien ha dejado tu equipo",
+            },
+            ["title.memberRemoved"] = new Dictionary<string, string>
+            {
+                ["en"] = "Someone was removed from your team",
+                ["de"] = "Jemand wurde aus deinem Team entfernt",
+                ["es"] = "Se ha retirado a alguien de tu equipo",
+            },
+
+            ["footer.removedFromTeam"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because you were a member of this team on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil du auf JuggerHub Mitglied dieses Teams warst.",
+                ["es"] = "Recibes este mensaje porque eras miembro de este equipo en JuggerHub.",
+            },
+
             // --- Feature 062: team polls -------------------------------------------------------------
             // The subject names the team and never the question: a mail app shows the subject on a
             // locked screen, and the owner kept poll questions off lock screens (spec FR-028's reason).

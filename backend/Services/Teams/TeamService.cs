@@ -572,7 +572,7 @@ public sealed class TeamService : ITeamService
         // lock and mutation lives inside the delegate; the notification/email side effects
         // deliberately do NOT, because a replayed delegate would send them twice.
         var strategy = _db.Database.CreateExecutionStrategy();
-        var (failure, previousRole) = await strategy.ExecuteAsync(async () =>
+        var (failure, previousRole, membershipId) = await strategy.ExecuteAsync(async () =>
         {
             // A rollback does not undo the change tracker, so a replay must start clean or it
             // re-applies what the previous attempt already staged.
@@ -588,7 +588,7 @@ public sealed class TeamService : ITeamService
                 .FirstOrDefaultAsync(m => m.TeamId == a.TeamId && m.UserId == targetUserId, ct);
             if (target is null)
             {
-                return (MemberOpResult.Fail(MemberOpStatus.MemberNotFound), (TeamRole?)null);
+                return (MemberOpResult.Fail(MemberOpStatus.MemberNotFound), (TeamRole?)null, Guid.Empty);
             }
 
             var removesAdmin = target.Role == TeamRole.Admin
@@ -602,7 +602,7 @@ public sealed class TeamService : ITeamService
                     return (
                         MemberOpResult.Fail(MemberOpStatus.LastAdmin,
                             "Make someone else an admin before you step down or leave."),
-                        (TeamRole?)null);
+                        (TeamRole?)null, Guid.Empty);
                 }
             }
 
@@ -619,7 +619,9 @@ public sealed class TeamService : ITeamService
             await _db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
 
-            return ((MemberOpResult?)null, (TeamRole?)roleBefore);
+            // The removed row's id is what the departure notices are keyed by (feature 064): each stay
+            // on a team is its own row, so a later departure after a rejoin is told as a new one.
+            return ((MemberOpResult?)null, (TeamRole?)roleBefore, target.Id);
         });
 
         if (failure is not null)
@@ -629,6 +631,12 @@ public sealed class TeamService : ITeamService
 
         if (remove)
         {
+            // Feature 064: the departure has committed, so now — and only now — the people it
+            // concerns are told. Best-effort: nothing here can fail or undo the removal.
+            // Not the request's token: the departure has already happened, so a caller hanging up
+            // must not decide whether the admins hear of it. Every step is still bounded — database
+            // command timeouts, and the email and push senders' own time limits (Principle VII).
+            await AnnounceDepartureAsync(a.TeamId, actorUserId, targetUserId, membershipId, removedByAdmin: !isSelf, CancellationToken.None);
             return MemberOpResult.Ok();
         }
 
@@ -695,6 +703,202 @@ public sealed class TeamService : ITeamService
             .FirstOrDefaultAsync(ct);
 
         return MemberOpResult.Ok(dto);
+    }
+
+    /// <summary>
+    /// Tell the people a departure concerns (feature 064, GH #385). Runs after the removal has
+    /// committed, outside the retried unit, and is best-effort throughout: each notice and each
+    /// email is tried on its own, so one failure never fails the departure or silences anyone else
+    /// (spec FR-020).
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>The removed player</b> (only when an admin removed them — a player who leaves is not told
+    /// about their own departure): <see cref="NotificationType.TeamMemberRemoved"/> naming the team
+    /// and nobody else. The row carries no actor, and the email names no admin (FR-011).
+    /// </para>
+    /// <para>
+    /// <b>The team's admins</b>, as they are now — the departing player is already gone from the
+    /// roster, the admin who acted is left out, and a banned admin is not told:
+    /// <see cref="NotificationType.TeamMemberDeparted"/>, whose actor is the departing player so that
+    /// their name is read from their current profile and disappears with it (037 FR-023). Which admin
+    /// removed them is stated nowhere (FR-015).
+    /// </para>
+    /// <para>
+    /// Both are keyed by the removed membership row, never by player and team: the dedupe index is
+    /// permanent, and a player who rejoins and departs again is a new departure (FR-018).
+    /// </para>
+    /// </remarks>
+    private async Task AnnounceDepartureAsync(
+        Guid teamId, Guid actorUserId, Guid playerId, Guid membershipId, bool removedByAdmin, CancellationToken ct)
+    {
+        // The outer guard covers the reads the inner ones do not (the team, the admins): the removal
+        // has committed, so a failure here may cost a notice but must never turn the answer into a
+        // 500 (FR-020). The inner guards keep one recipient's or one channel's failure from
+        // silencing the rest.
+        try
+        {
+            var team = await _db.Teams.AsNoTracking()
+                .Where(t => t.Id == teamId)
+                .Select(t => new { t.Slug, t.Name })
+                .FirstOrDefaultAsync(ct);
+            if (team is null)
+            {
+                return;
+            }
+
+            if (removedByAdmin)
+            {
+                await TellRemovedPlayerAsync(playerId, membershipId, team.Slug, team.Name, ct);
+            }
+
+            await TellAdminsAsync(teamId, actorUserId, playerId, membershipId, team.Slug, team.Name, removedByAdmin, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to announce a departure from team {TeamId} (membership {MembershipId}).",
+                teamId, membershipId);
+        }
+    }
+
+    private async Task TellRemovedPlayerAsync(Guid playerId, Guid membershipId, string slug, string teamName, CancellationToken ct)
+    {
+        try
+        {
+            await _notifications.CreateAsync(
+                playerId,
+                NotificationType.TeamMemberRemoved,
+                new TeamMemberRemovedPayload(slug, teamName),
+                actorUserId: null,
+                dedupeKey: $"team-removed:{membershipId}",
+                ct: ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to tell user {UserId} they were removed from a team (membership {MembershipId}).",
+                playerId, membershipId);
+        }
+
+        try
+        {
+            if (!await _preferences.IsEnabledAsync(playerId, NotificationCategory.InvitesAndRoster, NotificationChannel.Email, ct))
+            {
+                return;
+            }
+
+            // Through the profile set, never User.Profile: the ban filter makes that navigation
+            // misbehave (044).
+            var player = await _db.Users.AsNoTracking()
+                .Where(u => u.Id == playerId)
+                .Select(u => new
+                {
+                    u.Email,
+                    u.PreferredLanguage,
+                    Name = _db.PlayerProfiles.Where(p => p.UserId == u.Id).Select(p => p.DisplayName).FirstOrDefault(),
+                })
+                .FirstOrDefaultAsync(ct);
+            if (player is null || string.IsNullOrEmpty(player.Email))
+            {
+                return;
+            }
+
+            var culture = SupportedLanguages.ResolveOrDefault(player.PreferredLanguage);
+            await _email.SendRemovedFromTeamEmailAsync(
+                player.Email, player.Name ?? MemberPlaceholder.For(culture), teamName, slug, culture, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to email user {UserId} that they were removed from a team (membership {MembershipId}).",
+                playerId, membershipId);
+        }
+    }
+
+    private async Task TellAdminsAsync(
+        Guid teamId, Guid actorUserId, Guid playerId, Guid membershipId, string slug, string teamName, bool removed,
+        CancellationToken ct)
+    {
+        // The admins as they are now, with everything the email needs, in one projection. The acting
+        // admin is left out (they know); the departing player is no longer on the roster.
+        var admins = await _db.TeamMemberships.AsNoTracking()
+            .Where(m => m.TeamId == teamId
+                && m.Role == TeamRole.Admin
+                && m.UserId != actorUserId
+                && m.User.Status != AccountStatus.Banned)
+            .Select(m => new
+            {
+                m.UserId,
+                m.User.Email,
+                m.User.PreferredLanguage,
+                Name = _db.PlayerProfiles.Where(p => p.UserId == m.UserId).Select(p => p.DisplayName).FirstOrDefault(),
+            })
+            .ToListAsync(ct);
+        if (admins.Count == 0)
+        {
+            return;
+        }
+
+        var adminIds = admins.Select(x => x.UserId).ToList();
+
+        try
+        {
+            await _notifications.CreateManyAsync(
+                adminIds,
+                NotificationType.TeamMemberDeparted,
+                new TeamMemberDepartedPayload(slug, teamName, removed),
+                actorUserId: playerId,
+                dedupeKeyPrefix: $"team-departure:{membershipId}",
+                ct: ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to tell the admins of team {TeamId} about a departure (membership {MembershipId}).",
+                teamId, membershipId);
+        }
+
+        IReadOnlyCollection<Guid> emailRecipients;
+        string? playerName;
+        try
+        {
+            emailRecipients = await _preferences.GetEnabledRecipientsAsync(
+                adminIds, NotificationCategory.InvitesAndRoster, NotificationChannel.Email, ct);
+            if (emailRecipients.Count == 0)
+            {
+                return;
+            }
+
+            playerName = await _db.PlayerProfiles.AsNoTracking()
+                .Where(p => p.UserId == playerId)
+                .Select(p => p.DisplayName)
+                .FirstOrDefaultAsync(ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to prepare the departure emails for team {TeamId} (membership {MembershipId}).",
+                teamId, membershipId);
+            return;
+        }
+
+        // One try per admin: a bad address or a provider hiccup for one never stops the rest.
+        foreach (var admin in admins.Where(x => !string.IsNullOrEmpty(x.Email) && emailRecipients.Contains(x.UserId)))
+        {
+            try
+            {
+                var culture = SupportedLanguages.ResolveOrDefault(admin.PreferredLanguage);
+                await _email.SendMemberDepartedEmailAsync(
+                    admin.Email!,
+                    admin.Name ?? MemberPlaceholder.For(culture),
+                    playerName ?? MemberPlaceholder.For(culture),
+                    teamName,
+                    slug,
+                    removed,
+                    culture,
+                    ct);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to email admin {UserId} about a departure from team {TeamId}.", admin.UserId, teamId);
+            }
+        }
     }
 
     private static bool IsUniqueViolation(Exception ex) =>

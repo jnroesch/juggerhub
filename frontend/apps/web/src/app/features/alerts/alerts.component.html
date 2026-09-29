@@ -51,6 +51,10 @@
 
   <!-- List -->
   @else {
+    <!-- Feature 064 — why an Accept did nothing; the invite itself stays actionable below. -->
+    @if (inviteNotice(); as key) {
+      <jh-alert tone="info" class="mt-lg block" data-testid="invite-notice">{{ key | transloco }}</jh-alert>
+    }
     <ul class="mt-lg space-y-md">
       @for (n of items(); track n.id) {
         <li>

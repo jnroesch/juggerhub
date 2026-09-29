@@ -30,3 +30,4 @@ export { RiseDirective, RiseScope } from './rise/rise.directive';
 export { stepMotion } from './step-motion/step-motion';
 export { LegalLinksComponent } from './legal-links/legal-links.component';
 export type { LegalLinksVariant } from './legal-links/legal-links.component';
+export { ConfirmDialogComponent } from './confirm-dialog/confirm-dialog.component';

@@ -244,3 +244,89 @@ describe('NotificationRowComponent — TeamPoll', () => {
     expect(fixture.nativeElement.querySelectorAll('button')).toHaveLength(0);
   });
 });
+
+/**
+ * Feature 064 (GH #385) — a removed player's notice and the admins' departure notice. What the row
+ * must never do: name the admin who removed someone (the removed player's row has no actor at all),
+ * or keep a departed player's name once the server stops giving it.
+ */
+describe('NotificationRowComponent — departures (feature 064)', () => {
+  function render(n: Partial<AppNotification>): ComponentFixture<NotificationRowComponent> {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NotificationRowComponent, translocoTestingModule()],
+      providers: [provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(NotificationRowComponent);
+    fixture.componentRef.setInput('notification', {
+      id: '0198c4f2-0000-7000-8000-000000000064',
+      createdDate: new Date().toISOString(),
+      isRead: false,
+      actorDisplayName: null,
+      resolved: false,
+      ...n,
+    } as AppNotification);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const text = (f: ComponentFixture<NotificationRowComponent>) => (f.nativeElement.textContent as string).replace(/\s+/g, ' ');
+  const href = (f: ComponentFixture<NotificationRowComponent>) =>
+    (f.nativeElement.querySelector('a[href]') as HTMLAnchorElement | null)?.getAttribute('href');
+
+  it('tells a removed player the team, and nothing about who', () => {
+    // Even if a name reached the client, the row has nobody to name (FR-011).
+    const fixture = render({
+      type: 'TeamMemberRemoved',
+      actorDisplayName: 'Mara Admin',
+      payload: { teamSlug: 'rheinfeuer', teamName: 'Rheinfeuer' },
+    });
+
+    expect(text(fixture)).toContain("You're no longer a member of Rheinfeuer");
+    expect(text(fixture)).toContain("The team's members-only pages and chat are closed to you now");
+    expect(text(fixture)).not.toContain('Mara');
+    expect(href(fixture)).toBe('/t/rheinfeuer');
+    expect(fixture.nativeElement.querySelectorAll('button')).toHaveLength(0);
+  });
+
+  it('tells an admin who left, by their current name', () => {
+    const fixture = render({
+      type: 'TeamMemberDeparted',
+      actorDisplayName: 'Jonas Weber',
+      payload: { teamSlug: 'rheinfeuer', teamName: 'Rheinfeuer', removed: false },
+    });
+
+    expect(text(fixture)).toContain('Jonas Weber left Rheinfeuer');
+    expect(text(fixture)).toContain("No longer on the team's roster");
+    expect(href(fixture)).toBe('/t/rheinfeuer');
+  });
+
+  it('tells an admin who was removed, without naming who removed them', () => {
+    const fixture = render({
+      type: 'TeamMemberDeparted',
+      actorDisplayName: 'Jonas Weber',
+      payload: { teamSlug: 'rheinfeuer', teamName: 'Rheinfeuer', removed: true },
+    });
+
+    expect(text(fixture)).toContain('Jonas Weber was removed from Rheinfeuer');
+  });
+
+  it('names nobody once the player is gone', () => {
+    const fixture = render({
+      type: 'TeamMemberDeparted',
+      actorDisplayName: null,
+      payload: { teamSlug: 'rheinfeuer', teamName: 'Rheinfeuer', removed: false },
+    });
+
+    expect(text(fixture)).toContain('A former player left Rheinfeuer');
+  });
+
+  it('draws both with the user-minus glyph in the info tone', () => {
+    for (const type of ['TeamMemberRemoved', 'TeamMemberDeparted'] as const) {
+      const fixture = render({ type, payload: { teamSlug: 'rheinfeuer', teamName: 'Rheinfeuer', removed: true } });
+      const badge = fixture.nativeElement.querySelector('span[aria-hidden="true"]') as HTMLElement;
+      expect(badge.className).toContain('bg-info-bg');
+      expect(badge.innerHTML).toContain('x1="22" x2="16" y1="11" y2="11"');
+    }
+  });
+});

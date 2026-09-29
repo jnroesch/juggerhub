@@ -74,6 +74,14 @@ export class DashboardComponent implements OnInit {
     this.refresh();
   }
 
+  /**
+   * Accepting a team invite met our own limit on joining by invitation (feature 064). The item stays
+   * and nothing changed, so there is nothing to refresh — only the note.
+   */
+  protected onLimited(): void {
+    this.needsYouNotice.set('teams.inviteLimited');
+  }
+
   private refresh(): void {
     this.home.getHome().subscribe({ next: (h) => this.data.set(h) });
   }

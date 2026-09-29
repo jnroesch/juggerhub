@@ -48,6 +48,12 @@ export class NeedsYouCardComponent {
    * drop with it.
    */
   readonly gone = output<string>();
+  /**
+   * Accepting a team invite met our own limit on joining by invitation (feature 064): a 429, never
+   * retried. The item stays — the invitation is still good — and the host says to try later, beside
+   * the card like the note above.
+   */
+  readonly limited = output<string>();
 
   protected readonly busyId = signal<string | null>(null);
   /** Items that left before the host's refresh lands — hidden at once, so nothing can be pressed twice. */
@@ -193,6 +199,9 @@ export class NeedsYouCardComponent {
           // FR-019): the item goes now, and the host says why.
           this.stale.update((ids) => new Set([...ids, item.id]));
           this.gone.emit(item.id);
+        }
+        if (item.kind === 'TeamInvite' && err instanceof HttpErrorResponse && err.status === 429) {
+          this.limited.emit(item.id);
         }
       },
     });

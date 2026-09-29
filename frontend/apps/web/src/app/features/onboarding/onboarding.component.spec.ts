@@ -931,6 +931,23 @@ describe('OnboardingComponent', () => {
       expect(el(fixture, 'onboarding-invite-joined')).not.toBeNull();
     });
 
+    it('our own limit on joining says to come back later, and is never retried (feature 064)', () => {
+      const fixture = createWithInvite(USABLE);
+      const comp = goToTeamStep(fixture);
+
+      comp.acceptInvite(TOKEN, 'berlin-jugger');
+      httpMock
+        .expectOne(`/api/v1/invitations/${TOKEN}/accept`)
+        .flush(null, { status: 429, statusText: 'Too Many Requests' });
+      fixture.detectChanges();
+
+      // afterEach's verify() would catch an automatic second POST.
+      expect(el(fixture, 'onboarding-invite-error')?.textContent).toContain(
+        "You've joined a lot of teams in a short time. Try again in a while.",
+      );
+      expect((el(fixture, 'onboarding-invite-accept') as HTMLButtonElement).disabled).toBe(false);
+    });
+
     it('a team the player already belongs to shows no Accept and is not an error', () => {
       const fixture = createWithInvite(USABLE, [], ['berlin-jugger']);
       goToTeamStep(fixture);

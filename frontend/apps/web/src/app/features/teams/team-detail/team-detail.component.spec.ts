@@ -766,3 +766,189 @@ describe('TeamDetailComponent — about the team (feature 061)', () => {
     expect(query(fixture, 'about-link-host')?.textContent?.startsWith('xn--')).toBe(true);
   });
 });
+
+/**
+ * Feature 064 (GH #385) — Remove in the roster menu asks first. What only the page can get wrong:
+ * nothing is removed until the admin confirms, the safe answer is where focus lands, a second press
+ * cannot remove twice, and every failure is told in our own words, never the server's.
+ */
+describe('TeamDetailComponent — removing a teammate asks first (feature 064)', () => {
+  let service: Record<string, jest.Mock>;
+
+  function render(
+    paramMap: Observable<ParamMap> = of(convertToParamMap({ slug: 'rheinfeuer' })),
+  ): ComponentFixture<TeamDetailComponent> {
+    TestBed.resetTestingModule();
+    service = {
+      getPublicDetail: jest.fn().mockReturnValue(of(detail('Admin'))),
+      getMembers: jest.fn().mockReturnValue(of(page([member(ME, 'Admin'), member(OTHER, 'Member')]))),
+      getNews: jest.fn().mockReturnValue(of(page([]))),
+      getHappenings: jest.fn().mockReturnValue(of([])),
+      getJoinRequests: jest.fn().mockReturnValue(of(page([]))),
+      logoUrl: jest.fn().mockReturnValue('/api/v1/teams/rheinfeuer/logo'),
+      removeMember: jest.fn(),
+    };
+    TestBed.configureTestingModule({
+      imports: [TeamDetailComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        ...translocoLocaleTestingProviders(),
+        { provide: TeamService, useValue: service },
+        { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        { provide: ChatService, useValue: { openTeamChat: jest.fn() } },
+        { provide: PollService, useValue: { list: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: ActivatedRoute, useValue: { paramMap } },
+      ],
+    });
+    const fixture = TestBed.createComponent(TeamDetailComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const el = <T extends HTMLElement = HTMLElement>(fixture: ComponentFixture<TeamDetailComponent>, selector: string): T | null =>
+    fixture.nativeElement.querySelector(selector);
+
+  function click(fixture: ComponentFixture<TeamDetailComponent>, selector: string): void {
+    const target = el(fixture, selector);
+    if (!target) {
+      throw new Error(`Nothing matches ${selector}`);
+    }
+    target.click();
+    fixture.detectChanges();
+  }
+
+  function askToRemove(fixture: ComponentFixture<TeamDetailComponent>): void {
+    click(fixture, `[data-member-menu="${OTHER}"]`);
+    click(fixture, '[data-testid="remove-member"]');
+  }
+
+  const dialog = (fixture: ComponentFixture<TeamDetailComponent>) => el(fixture, '[data-testid="confirm-dialog"]');
+  const failure = (status: number) =>
+    throwError(() => new HttpErrorResponse({ status, error: { detail: 'Server wording, never shown' } }));
+
+  it('opens the question naming the teammate and the team, and removes nobody yet', () => {
+    const fixture = render();
+
+    askToRemove(fixture);
+
+    expect(dialog(fixture)?.textContent).toContain('Remove Player 2 from Rheinfeuer?');
+    expect(dialog(fixture)?.textContent).toContain("We'll let them know.");
+    expect(el(fixture, '[data-testid="confirm-dialog-keep"]')?.textContent?.trim()).toBe('Keep Player 2');
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="confirm-dialog-keep"]'));
+    expect(service['removeMember']).not.toHaveBeenCalled();
+    // The menu that asked is closed behind the dialog.
+    expect(el(fixture, '[data-testid="remove-member"]')).toBeNull();
+  });
+
+  it('keeps the teammate on Keep and on Escape, and hands focus back to their menu button', () => {
+    const fixture = render();
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-keep"]');
+    expect(dialog(fixture)).toBeNull();
+    expect(document.activeElement).toBe(el(fixture, `[data-member-menu="${OTHER}"]`));
+
+    askToRemove(fixture);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(dialog(fixture)).toBeNull();
+
+    expect(service['removeMember']).not.toHaveBeenCalled();
+  });
+
+  it('removes the teammate once on confirm, then shows the team as it now is', () => {
+    const fixture = render();
+    service['removeMember'].mockReturnValue(of(undefined));
+    // The reload answers later, as it does over a network: until then the page is the loading line,
+    // and focus must wait for the roster rather than fire into it (CodeRabbit on PR #394).
+    const reload = new Subject<TeamPublicDetail>();
+    service['getPublicDetail'].mockReturnValueOnce(reload);
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    expect(el(fixture, '#team-roster-heading')).toBeNull();
+    reload.next(detail('Admin'));
+    fixture.detectChanges();
+
+    expect(service['removeMember']).toHaveBeenCalledTimes(1);
+    expect(service['removeMember']).toHaveBeenCalledWith('rheinfeuer', OTHER);
+    expect(dialog(fixture)).toBeNull();
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
+    // Focus lands on the reloaded roster, not on the loading line that stood in for it.
+    expect(document.activeElement).toBe(el(fixture, '#team-roster-heading'));
+  });
+
+  it('takes no second press while the removal is on its way', () => {
+    const fixture = render();
+    const pending = new Subject<void>();
+    service['removeMember'].mockReturnValue(pending);
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    const confirm = el<HTMLButtonElement>(fixture, '[data-testid="confirm-dialog-confirm"]');
+    confirm?.click();
+
+    expect(service['removeMember']).toHaveBeenCalledTimes(1);
+    expect(confirm?.disabled).toBe(true);
+    expect(confirm?.textContent?.trim()).toBe('Removing…');
+  });
+
+  it('says the player is no longer on the team when they already left, and reloads', () => {
+    const fixture = render();
+    service['removeMember'].mockReturnValue(failure(404));
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+
+    expect(dialog(fixture)).toBeNull();
+    expect(el(fixture, '[data-testid="remove-notice"]')?.textContent).toContain('Player 2 is no longer on the team.');
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="remove-notice"]'));
+    expect(fixture.nativeElement.textContent).not.toContain('Server wording');
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
+  });
+
+  it('says the viewer is no longer an admin when the server refuses, and reloads', () => {
+    const fixture = render();
+    service['removeMember'].mockReturnValue(failure(403));
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+
+    expect(dialog(fixture)).toBeNull();
+    expect(el(fixture, '[data-testid="remove-notice"]')?.textContent).toContain("You're no longer an admin of this team.");
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
+  });
+
+  it('drops a pending question when the page moves to another team, so it cannot remove anyone there', () => {
+    // CodeRabbit on PR #394: the component is reused from team to team.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render(route);
+
+    askToRemove(fixture);
+    expect(dialog(fixture)).not.toBeNull();
+
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    fixture.detectChanges();
+
+    expect(dialog(fixture)).toBeNull();
+    expect(service['removeMember']).not.toHaveBeenCalled();
+  });
+
+  it('keeps the question open on any other failure, in our words, and confirming again retries', () => {
+    const fixture = render();
+    service['removeMember'].mockReturnValueOnce(failure(500)).mockReturnValueOnce(of(undefined));
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+
+    expect(dialog(fixture)).not.toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog-error"]')?.textContent).toContain("That didn't work.");
+    expect(fixture.nativeElement.textContent).not.toContain('Server wording');
+
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    expect(service['removeMember']).toHaveBeenCalledTimes(2);
+    expect(dialog(fixture)).toBeNull();
+  });
+});

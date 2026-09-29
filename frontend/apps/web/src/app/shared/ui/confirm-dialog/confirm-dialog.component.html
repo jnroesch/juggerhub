@@ -1,0 +1,28 @@
+<!-- Fixed, so a card's clipping never reaches it; the host renders it at page level. The scrim is
+     DESIGN.md's `surface-inverse/40`. No motion: like the page's other confirmations, it simply appears. -->
+<div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
+  <!-- tabindex -1: the panel holds focus while both answers are disabled (see confirm()). -->
+  <div #panel tabindex="-1" class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl outline-none sm:rounded-xl"
+    role="dialog" aria-modal="true" [attr.aria-labelledby]="id + '-title'" [attr.aria-describedby]="id + '-body'"
+    (keydown.tab)="trapTab($event)" (keydown.shift.tab)="trapTab($event)"
+    data-testid="confirm-dialog">
+    <div class="border-b border-border-muted px-md py-sm">
+      <h2 [id]="id + '-title'" class="break-words text-body-lg font-semibold text-heading">{{ heading() }}</h2>
+    </div>
+    <div class="px-md py-md">
+      <p [id]="id + '-body'" class="text-body-sm text-body">{{ body() }}</p>
+      @if (error(); as message) {
+        <p class="mt-sm text-body-sm text-danger-fg" role="alert" data-testid="confirm-dialog-error">{{ message }}</p>
+      }
+    </div>
+    <!-- Default size (44px): both answers are touch targets. On a phone they stack, each the full width of
+         the sheet — a label wraps only when even that is too narrow for it (a long name in "Keep {name}"),
+         and is never clipped. From `sm` they sit side by side at their natural width, on the right. -->
+    <div class="flex flex-col gap-sm border-t border-border-muted px-md py-sm sm:flex-row sm:flex-wrap sm:items-center sm:justify-end">
+      <button #keep type="button" (click)="dismiss()" [disabled]="busy()" data-testid="confirm-dialog-keep"
+        jhButton variant="secondary" class="w-full sm:w-auto">{{ keepLabel() }}</button>
+      <button type="button" (click)="confirm()" [disabled]="busy()" data-testid="confirm-dialog-confirm"
+        jhButton variant="danger" class="w-full sm:w-auto">{{ busy() && busyLabel() ? busyLabel() : confirmLabel() }}</button>
+    </div>
+  </div>
+</div>

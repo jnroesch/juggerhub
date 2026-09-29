@@ -1,6 +1,7 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ButtonDirective, CardComponent, IconComponent, LoadingComponent } from '../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, IconComponent, LoadingComponent } from '../../shared/ui';
 import { NotificationService } from '../../core/services/notification.service';
 import { TeamService } from '../../core/services/team.service';
 import { MembershipService } from '../../core/services/membership.service';
@@ -16,7 +17,7 @@ import { NotificationRowComponent } from './notification-row/notification-row.co
  */
 @Component({
   selector: 'jh-alerts',
-  imports: [LoadingComponent, CardComponent, NotificationRowComponent, ButtonDirective, TranslocoPipe, IconComponent],
+  imports: [LoadingComponent, CardComponent, NotificationRowComponent, ButtonDirective, TranslocoPipe, IconComponent, AlertComponent],
   templateUrl: './alerts.component.html',
   styleUrl: './alerts.component.css',
 })
@@ -34,6 +35,11 @@ export class AlertsComponent implements OnInit {
   protected readonly loadingMore = signal(false);
   /** Ids with an in-flight inline action, so the row's buttons can't be double-fired. */
   protected readonly busy = signal<ReadonlySet<string>>(new Set());
+  /**
+   * Why an Accept did nothing, as a translation key (feature 064): the player hit the limit on
+   * joining teams by invitation. The invite stays actionable; the note sits above the list.
+   */
+  protected readonly inviteNotice = signal<string | null>(null);
 
   protected readonly isEmpty = computed(() => !this.loading() && !this.failed() && this.items().length === 0);
   protected readonly hasUnread = computed(() => this.unread() > 0);
@@ -80,6 +86,7 @@ export class AlertsComponent implements OnInit {
       return;
     }
     this.setBusy(n.id, true);
+    this.inviteNotice.set(null);
     this.teams.acceptInvite(n.payload.token).subscribe({
       next: () => {
         this.notifications.markInviteResolved(n.id);
@@ -88,10 +95,16 @@ export class AlertsComponent implements OnInit {
         this.membership.load();
         this.setBusy(n.id, false);
       },
-      // Expired/revoked/out-of-band: reconcile the row to resolved rather than erroring at the user.
-      error: () => {
-        this.notifications.markInviteResolved(n.id);
+      error: (err) => {
         this.setBusy(n.id, false);
+        // Feature 064: our own limit on joining by invitation (a 429, never retried). The invitation
+        // is still good, so the row stays actionable — resolving it here would throw a valid invite away.
+        if (err instanceof HttpErrorResponse && err.status === 429) {
+          this.inviteNotice.set('teams.inviteLimited');
+          return;
+        }
+        // Expired/revoked/out-of-band: reconcile the row to resolved rather than erroring at the user.
+        this.notifications.markInviteResolved(n.id);
       },
     });
   }

@@ -421,6 +421,52 @@ public class EmailTemplateService : IEmailTemplateService
         return await GenerateEmailAsync("join-request-declined", variables, culture);
     }
 
+    // --- Feature 064 -------------------------------------------------------------------------------
+
+    /// <inheritdoc />
+    public async Task<string> GenerateRemovedFromTeamEmailAsync(
+        string recipientName, string teamName, string teamUrl, string culture = SupportedLanguages.Default)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get("title.removedFromTeam", culture),
+            ["RECIPIENT_NAME"] = recipientName,
+            ["TEAM_NAME"] = teamName,
+            ["TEAM_URL"] = new RawHtml(teamUrl),
+            ["FOOTER_REASON"] = _localizer.Get("footer.removedFromTeam", culture),
+        };
+
+        return await GenerateEmailAsync("removed-from-team", variables, culture);
+    }
+
+    /// <inheritdoc />
+    public Task<string> GenerateMemberLeftEmailAsync(
+        string recipientName, string playerName, string teamName, string teamUrl, string culture = SupportedLanguages.Default) =>
+        GenerateDepartureEmailAsync("member-left", "title.memberLeft", recipientName, playerName, teamName, teamUrl, culture);
+
+    /// <inheritdoc />
+    public Task<string> GenerateMemberRemovedEmailAsync(
+        string recipientName, string playerName, string teamName, string teamUrl, string culture = SupportedLanguages.Default) =>
+        GenerateDepartureEmailAsync("member-removed", "title.memberRemoved", recipientName, playerName, teamName, teamUrl, culture);
+
+    /// <summary>The admins' two departure emails differ only in their template and title.</summary>
+    private async Task<string> GenerateDepartureEmailAsync(
+        string template, string titleKey, string recipientName, string playerName, string teamName, string teamUrl, string culture)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get(titleKey, culture),
+            ["RECIPIENT_NAME"] = recipientName,
+            ["PLAYER_NAME"] = playerName,
+            ["TEAM_NAME"] = teamName,
+            ["TEAM_URL"] = new RawHtml(teamUrl),
+            // The admins' footer is the one join requests already use: they get this as an admin.
+            ["FOOTER_REASON"] = _localizer.Get("footer.joinRequest", culture),
+        };
+
+        return await GenerateEmailAsync(template, variables, culture);
+    }
+
     // --- Feature 062 -------------------------------------------------------------------------------
 
     /// <inheritdoc />
