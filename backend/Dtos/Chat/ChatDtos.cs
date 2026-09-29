@@ -194,6 +194,13 @@ public sealed record InquiryThreadRefDto(Guid? ConversationId);
 /// </summary>
 public sealed record TeamChatRefDto(Guid ConversationId);
 
+/// <summary>
+/// A party's own chat, for the "Party chat" button on the party page (feature 063). Never null: anyone
+/// outside the crew gets a 404, not an empty reference. The id and nothing else — no name, members or
+/// unread count (spec FR-006).
+/// </summary>
+public sealed record PartyChatRefDto(Guid ConversationId);
+
 // --- Requests -------------------------------------------------------------------------------
 
 /// <summary>Start a chat: exactly one participant ⇒ a direct conversation; two or more ⇒ a named group.</summary>

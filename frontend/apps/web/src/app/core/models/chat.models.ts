@@ -194,6 +194,11 @@ export interface TeamChatRef {
   readonly conversationId: string;
 }
 
+/** A party's own chat, for the party page's "Party chat" button (feature 063). Anyone outside the crew gets a 404, never a null id. */
+export interface PartyChatRef {
+  readonly conversationId: string;
+}
+
 export interface BlockedUser {
   readonly userId: string;
   readonly displayName: string;

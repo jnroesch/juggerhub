@@ -204,6 +204,26 @@ public sealed class ChatConversationsController : ControllerBase
         return result.IsOk ? Ok(result.Value) : Fail(result.Outcome, result.Error);
     }
 
+    // --- Party chat (feature 063) ---------------------------------------------
+
+    /// <summary>
+    /// The party's own chat, for the party page's "Party chat" button. Creates it if nobody in the crew
+    /// has opened Chat yet, as the inbox would. Anyone outside the crew — a team member who has not said
+    /// they are in included — gets the same 404 as a party that does not exist or was disbanded. A
+    /// <c>GET</c> for the same reason as <see cref="OpenTeamChat"/>.
+    /// </summary>
+    [HttpGet("party/{partyId:guid}")]
+    public async Task<ActionResult<PartyChatRefDto>> OpenPartyChat(Guid partyId, CancellationToken ct)
+    {
+        if (!TryGetUserId(out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var result = await _conversations.OpenPartyChatAsync(userId, partyId, ct);
+        return result.IsOk ? Ok(result.Value) : Fail(result.Outcome, result.Error);
+    }
+
     [HttpGet("conversations/{conversationId:guid}")]
     public async Task<ActionResult<ConversationDetailDto>> Detail(Guid conversationId, CancellationToken ct)
     {

@@ -1028,27 +1028,47 @@ public sealed class ChatConversationService : IChatConversationService
     public Task<Guid> EnsureForPartyAsync(Guid partyId, CancellationToken ct = default) =>
         EnsureAutoAsync(ConversationKind.Party, partyId, ct);
 
+    public async Task<ChatResult<TeamChatRefDto>> OpenTeamChatAsync(Guid callerId, Guid teamId, CancellationToken ct = default)
+    {
+        var conversationId = await OpenAutoChatAsync(callerId, ConversationKind.Team, teamId, ct);
+        return conversationId == Guid.Empty
+            ? ChatResult<TeamChatRefDto>.Fail(ChatOutcome.NotFound)
+            : ChatResult<TeamChatRefDto>.Ok(new TeamChatRefDto(conversationId));
+    }
+
+    public async Task<ChatResult<PartyChatRefDto>> OpenPartyChatAsync(Guid callerId, Guid partyId, CancellationToken ct = default)
+    {
+        var conversationId = await OpenAutoChatAsync(callerId, ConversationKind.Party, partyId, ct);
+        return conversationId == Guid.Empty
+            ? ChatResult<PartyChatRefDto>.Fail(ChatOutcome.NotFound)
+            : ChatResult<PartyChatRefDto>.Ok(new PartyChatRefDto(conversationId));
+    }
+
+    /// <summary>
+    /// The team or party chat the caller may open, or <see cref="Guid.Empty"/> — shared by the team page's
+    /// and the party page's buttons (features 060 and 063), so the order below exists once.
+    /// </summary>
     /// <remarks>
     /// The order is the design (feature 060, research R2). The chat is created by the inbox's own step,
     /// which only ever creates the caller's <em>own</em> team and party chats — so this is exactly what
-    /// opening Chat would do, and a non-member's request creates nothing for the team they asked about.
-    /// Access is then <see cref="ChatGuard"/>'s answer and no one else's. Two shortcuts are wrong:
-    /// <see cref="EnsureForTeamAsync"/> on the requested id would let anyone create any team's chat
-    /// (and a made-up id fails its foreign key as a 500), and a roster check here would be a second
-    /// copy of the membership rule the guard exists to hold.
+    /// opening Chat would do, and a request from outside the roster creates nothing for the team or party
+    /// asked about. Access is then <see cref="ChatGuard"/>'s answer and no one else's. Two shortcuts are
+    /// wrong: <see cref="EnsureForTeamAsync"/> / <see cref="EnsureForPartyAsync"/> on the requested id
+    /// would let anyone create anyone's chat (and a made-up id fails its foreign key as a 500), and a
+    /// roster check here would be a second copy of the membership rule the guard exists to hold.
     /// </remarks>
-    public async Task<ChatResult<TeamChatRefDto>> OpenTeamChatAsync(Guid callerId, Guid teamId, CancellationToken ct = default)
+    private async Task<Guid> OpenAutoChatAsync(Guid callerId, ConversationKind kind, Guid ownerId, CancellationToken ct)
     {
         await EnsureAutoChatsForAsync(callerId, ct);
 
-        var conversationId = await FindAutoAsync(ConversationKind.Team, teamId, ct);
+        var conversationId = await FindAutoAsync(kind, ownerId, ct);
         if (conversationId == Guid.Empty || await _guard.ResolveAsync(conversationId, callerId, ct) is null)
         {
-            // No such team, no chat, not a member: one answer, so none of them can be told apart.
-            return ChatResult<TeamChatRefDto>.Fail(ChatOutcome.NotFound);
+            // No such team or party, no chat, not a member: one answer, so none of them can be told apart.
+            return Guid.Empty;
         }
 
-        return ChatResult<TeamChatRefDto>.Ok(new TeamChatRefDto(conversationId));
+        return conversationId;
     }
 
     /// <summary>

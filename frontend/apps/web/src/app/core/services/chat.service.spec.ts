@@ -110,6 +110,20 @@ describe('ChatService', () => {
     expect(id).toBe('c9');
   });
 
+  it('asks for the party chat by party id (feature 063)', () => {
+    TestBed.tick();
+    flushInitialUnread();
+
+    let id: string | undefined;
+    service.openPartyChat('p1').subscribe((r) => (id = r.conversationId));
+
+    const req = httpMock.expectOne('/api/v1/chat/party/p1');
+    expect(req.request.method).toBe('GET');
+    req.flush({ conversationId: 'c7' });
+
+    expect(id).toBe('c7');
+  });
+
   it('reverses the keyset page so the thread reads oldest-first', () => {
     TestBed.tick();
     flushInitialUnread();
