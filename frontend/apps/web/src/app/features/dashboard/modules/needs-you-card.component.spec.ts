@@ -109,6 +109,30 @@ describe('NeedsYouCardComponent', () => {
     expect(lines[1]).toMatch(/^Summer Slam · /);
   });
 
+  // --- Feature 062: a poll waiting for the viewer's answer ------------------------------------------
+
+  const teamPoll = () =>
+    item('TeamPoll', {
+      id: 'poll-1',
+      params: { teamName: 'Hamburg Hammers', teamSlug: 'hamburg-hammers', eventName: null, playerName: null, question: 'Which jersey colour?' },
+      linkTarget: 'hamburg-hammers',
+    });
+
+  it('headlines a poll with the team and its question and links to the poll itself', () => {
+    const { fixture } = mount([teamPoll()]);
+    const link = fixture.nativeElement.querySelector('li a') as HTMLAnchorElement;
+    expect(link.textContent?.trim()).toBe('Hamburg Hammers asks: Which jersey colour?');
+    expect(link.getAttribute('href')).toBe('/t/hamburg-hammers#poll-poll-1');
+  });
+
+  it('answers a poll on the team page, never from here', () => {
+    const { fixture } = mount([teamPoll()]);
+    const answer = fixture.nativeElement.querySelector('[data-testid="needs-you-answer-poll"]') as HTMLAnchorElement;
+    expect(answer.textContent?.trim()).toBe('Answer');
+    expect(answer.getAttribute('href')).toBe('/t/hamburg-hammers#poll-poll-1');
+    expect(fixture.nativeElement.querySelectorAll('li[data-kind="TeamPoll"] button')).toHaveLength(0);
+  });
+
   const joinRequest = (partial: Partial<NeedsYouItem> = {}) =>
     item('JoinRequest', {
       id: 'req-1',

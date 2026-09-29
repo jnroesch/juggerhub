@@ -57,7 +57,8 @@ public sealed class PushContentComposer : IPushContentComposer
             or NotificationType.TeamRoleChanged
             or NotificationType.TeamNews
             or NotificationType.TeamJoinRequest
-            or NotificationType.TeamJoinRequestAnswered => Text(payload, "teamName"),
+            or NotificationType.TeamJoinRequestAnswered
+            or NotificationType.TeamPoll => Text(payload, "teamName"),
 
         NotificationType.PartyRequest
             or NotificationType.PartyNews
@@ -75,6 +76,11 @@ public sealed class PushContentComposer : IPushContentComposer
         NotificationType.TeamInvite => Sentence("teamInvite.body", culture, Text(payload, "inviterName")),
         NotificationType.TeamRoleChanged => _localizer.Get("teamRoleChanged.body", culture),
         NotificationType.TeamNews => _localizer.Get("teamNews.body", culture),
+
+        // Feature 062. A fixed sentence, never the question: the owner kept poll questions off lock
+        // screens (spec FR-028). The question is in the Alerts row and the email.
+        NotificationType.TeamPoll => _localizer.Get("teamPoll.body", culture),
+
         NotificationType.PartyRequest => Sentence("partyRequest.body", culture, Text(payload, "teamName")),
         NotificationType.PartyNews => _localizer.Get("partyNews.body", culture),
         NotificationType.MarketInvite => Sentence("marketInvite.body", culture, Text(payload, "teamName")),
@@ -118,6 +124,12 @@ public sealed class PushContentComposer : IPushContentComposer
             false => "/browse/teams",
             null => "/",
         },
+
+        // Feature 062: straight to the poll on the team page. Both parts are validated — the slug by
+        // its character set, the poll by parsing it as a GUID — so nothing free-form reaches the path.
+        NotificationType.TeamPoll => Slug(payload, "teamSlug") is { } pollTeam
+            ? Id(payload, "pollId") is { } poll ? $"/t/{pollTeam}#poll-{poll}" : $"/t/{pollTeam}"
+            : "/",
 
         NotificationType.PartyRequest => Id(payload, "partyId") is { } party ? $"/parties/{party}" : "/",
         NotificationType.PartyNews => Id(payload, "partyId") is { } party ? $"/parties/{party}/news" : "/",

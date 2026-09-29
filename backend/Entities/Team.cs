@@ -56,4 +56,7 @@ public sealed class Team : BaseEntity
 
     /// <summary>The team's external links, at most five (feature 061). Replaced as a whole on save.</summary>
     public ICollection<TeamLink> Links { get; set; } = [];
+
+    /// <summary>The team's polls (feature 062). Deleting the team deletes them and every answer.</summary>
+    public ICollection<TeamPoll> Polls { get; set; } = [];
 }

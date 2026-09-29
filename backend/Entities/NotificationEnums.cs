@@ -55,6 +55,17 @@ public enum NotificationType
     /// not a person (spec FR-011), so the row carries no actor either.
     /// </summary>
     TeamJoinRequestAnswered = 10,
+
+    /// <summary>
+    /// A team the recipient belongs to started a poll (feature 062). One row per current member but
+    /// the author. Link-only: it opens the poll on the team page, where it is answered.
+    /// </summary>
+    /// <remarks>
+    /// The payload carries the team and the question and names no person: the author is the row's
+    /// actor, so an erased author's name disappears with their profile (feature 037, FR-023). The
+    /// payload's <c>teamSlug</c> is what a team rename finds the row by (feature 061).
+    /// </remarks>
+    TeamPoll = 11,
 }
 
 /// <summary>
@@ -74,7 +85,11 @@ public enum NotificationCategory
     /// </summary>
     InvitesAndRoster = 0,
 
-    /// <summary>Team news posts (<see cref="NotificationType.TeamNews"/>) and party news (<see cref="NotificationType.PartyNews"/>).</summary>
+    /// <summary>
+    /// Team news posts (<see cref="NotificationType.TeamNews"/>), party news
+    /// (<see cref="NotificationType.PartyNews"/>) and — feature 062 — polls a team starts
+    /// (<see cref="NotificationType.TeamPoll"/>). The settings copy says "news and polls".
+    /// </summary>
     TeamNews = 1,
 
     /// <summary>Training heads-up and change notices (<see cref="NotificationType.TrainingScheduled"/>, <see cref="NotificationType.TrainingUpdated"/>) — feature 018.</summary>
@@ -148,6 +163,7 @@ public static class NotificationCategories
         NotificationType.TeamJoinRequestAnswered => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamNews => NotificationCategory.TeamNews,
         NotificationType.PartyNews => NotificationCategory.TeamNews,
+        NotificationType.TeamPoll => NotificationCategory.TeamNews,
         NotificationType.TrainingScheduled => NotificationCategory.Trainings,
         NotificationType.TrainingUpdated => NotificationCategory.Trainings,
         NotificationType.EventCancelled => NotificationCategory.Events,

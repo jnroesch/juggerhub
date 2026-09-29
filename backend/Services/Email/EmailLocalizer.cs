@@ -270,6 +270,31 @@ public sealed class EmailLocalizer : IEmailLocalizer
                 ["de"] = "Du erhältst diese E-Mail, weil du auf JuggerHub angefragt hast, diesem Team beizutreten.",
                 ["es"] = "Recibes este mensaje porque pediste unirte a este equipo en JuggerHub.",
             },
+
+            // --- Feature 062: team polls -------------------------------------------------------------
+            // The subject names the team and never the question: a mail app shows the subject on a
+            // locked screen, and the owner kept poll questions off lock screens (spec FR-028's reason).
+            // The question is in the body.
+
+            // {0} = team name
+            ["subject.teamPoll"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} started a poll — JuggerHub",
+                ["de"] = "{0} hat eine Umfrage gestartet — JuggerHub",
+                ["es"] = "{0} ha abierto una encuesta — JuggerHub",
+            },
+            ["title.teamPoll"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your team is asking",
+                ["de"] = "Dein Team fragt",
+                ["es"] = "Tu equipo pregunta",
+            },
+            ["footer.teamPoll"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because you're a member of this team on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil du Mitglied dieses Teams auf JuggerHub bist.",
+                ["es"] = "Recibes este mensaje porque eres miembro de este equipo en JuggerHub.",
+            },
         };
 
     public string Get(string key, string culture)

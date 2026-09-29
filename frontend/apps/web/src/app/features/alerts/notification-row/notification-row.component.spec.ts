@@ -194,3 +194,53 @@ describe('NotificationRowComponent — supporting line', () => {
     expect(line.classList).toContain('truncate');
   });
 });
+
+/**
+ * Feature 062 — a team started a poll. The row quotes the question in full (it is what the member is
+ * asked) and opens the team page AT the poll, via routerLink + fragment.
+ */
+describe('NotificationRowComponent — TeamPoll', () => {
+  let fixture: ComponentFixture<NotificationRowComponent>;
+
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NotificationRowComponent, translocoTestingModule()],
+      providers: [provideRouter([])],
+    });
+    fixture = TestBed.createComponent(NotificationRowComponent);
+    fixture.componentRef.setInput('notification', {
+      id: '0198c4f2-0000-7000-8000-000000000009',
+      type: 'TeamPoll',
+      createdDate: new Date().toISOString(),
+      isRead: false,
+      actorDisplayName: 'Ada',
+      resolved: false,
+      payload: {
+        teamSlug: 'hamburg-hammers',
+        teamName: 'Hamburg Hammers',
+        pollId: '0199f3c2-0000-7000-8000-000000000004',
+        question: 'Thursday instead of Tuesday this week? We would need to book the second pitch too.',
+      },
+    } as AppNotification);
+    fixture.detectChanges();
+  });
+
+  const text = () => (fixture.nativeElement.textContent as string).replace(/\s+/g, ' ');
+
+  it('names the team and quotes the question whole', () => {
+    expect(text()).toContain('Hamburg Hammers asks');
+    expect(text()).toContain('We would need to book the second pitch too.');
+    const supporting = fixture.nativeElement.querySelector('a p.text-muted') as HTMLElement;
+    expect(supporting.classList).not.toContain('truncate');
+  });
+
+  it('opens the poll on the team page', () => {
+    const link = fixture.nativeElement.querySelector('a[href]') as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/t/hamburg-hammers#poll-0199f3c2-0000-7000-8000-000000000004');
+  });
+
+  it('offers no inline actions', () => {
+    expect(fixture.nativeElement.querySelectorAll('button')).toHaveLength(0);
+  });
+});

@@ -61,6 +61,12 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
 
     public DbSet<TeamNewsPost> TeamNewsPosts => Set<TeamNewsPost>();
 
+    public DbSet<TeamPoll> TeamPolls => Set<TeamPoll>();
+
+    public DbSet<TeamPollOption> TeamPollOptions => Set<TeamPollOption>();
+
+    public DbSet<TeamPollVote> TeamPollVotes => Set<TeamPollVote>();
+
     public DbSet<EventSignup> EventSignups => Set<EventSignup>();
 
     public DbSet<EventAdmin> EventAdmins => Set<EventAdmin>();
@@ -538,6 +544,67 @@ public class AppDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>, I
             entity.HasOne(n => n.Author)
                 .WithMany()
                 .HasForeignKey(n => n.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ---- Feature 062: team polls ----
+
+        builder.Entity<TeamPoll>(entity =>
+        {
+            entity.Property(p => p.Question).HasMaxLength(Services.Teams.TeamPollRules.QuestionMaxLength).IsRequired();
+            // The team's list and Home's per-team scan (the TeamNewsPost shape).
+            entity.HasIndex(p => new { p.TeamId, p.CreatedDate });
+
+            entity.HasOne(p => p.Team)
+                .WithMany(t => t.Polls)
+                .HasForeignKey(p => p.TeamId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Restrict, as for news authors: the account row is never deleted (feature 037 neutralises
+            // it), so an erased author's poll stays with the team and names no one.
+            entity.HasOne(p => p.Author)
+                .WithMany()
+                .HasForeignKey(p => p.AuthorUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        builder.Entity<TeamPollOption>(entity =>
+        {
+            entity.Property(o => o.Text).HasMaxLength(Services.Teams.TeamPollRules.OptionMaxLength).IsRequired();
+
+            // The order's integrity guard, and the index the FK lookup uses (the TeamLink shape).
+            entity.HasIndex(o => new { o.PollId, o.Position }).IsUnique();
+
+            entity.HasOne(o => o.Poll)
+                .WithMany(p => p.Options)
+                .HasForeignKey(o => o.PollId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<TeamPollVote>(entity =>
+        {
+            // The same option twice for one member is impossible. "One option per member" in a
+            // one-answer poll is NOT expressible here — the setting lives on the poll — so the service
+            // enforces it under a lock on the poll row (research R2/R3).
+            entity.HasIndex(v => new { v.OptionId, v.UserId }).IsUnique();
+            // "Has this member answered?", "remove this member's answer", and Home's unanswered check.
+            entity.HasIndex(v => new { v.PollId, v.UserId });
+
+            entity.HasOne(v => v.Poll)
+                .WithMany(p => p.Votes)
+                .HasForeignKey(v => v.PollId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(v => v.Option)
+                .WithMany()
+                .HasForeignKey(v => v.OptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Restrict forces nothing — the account row is never deleted — so account erasure removes
+            // these rows explicitly, and its test is the only guard (research R13).
+            entity.HasOne(v => v.User)
+                .WithMany()
+                .HasForeignKey(v => v.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

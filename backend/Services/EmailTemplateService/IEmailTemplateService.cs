@@ -74,4 +74,12 @@ public interface IEmailTemplateService
 
     /// <summary>Generate the email telling a player the team declined their request, pointing them at other teams. It names no admin.</summary>
     Task<string> GenerateJoinRequestDeclinedEmailAsync(string recipientName, string teamName, string browseUrl, string culture = Common.SupportedLanguages.Default);
+
+    // --- Feature 062: team polls. Addressed to a member, so localized by their culture. -------------
+
+    /// <summary>
+    /// Generate the email telling a member their team started a poll. The question is the admin's own
+    /// words and is escaped like every other value; only <paramref name="pollUrl"/> is inserted raw.
+    /// </summary>
+    Task<string> GenerateTeamPollEmailAsync(string recipientName, string teamName, string question, string pollUrl, string culture = Common.SupportedLanguages.Default);
 }

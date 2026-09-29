@@ -203,6 +203,26 @@ public sealed class HomeService : IHomeService
                 r.CreatedDate))
             .ToListAsync(ct);
 
+        // Polls waiting for the viewer's answer (feature 062): open — by the ONE meaning of open the
+        // team page and the answer endpoint use too — on a team the viewer is on, not started by them,
+        // and not yet answered by them. Only ever the viewer's own polls, so the item reveals nothing
+        // about anyone else's participation (spec FR-018).
+        var polls = myTeamIds.Count == 0
+            ? new List<NeedsYouItemDto>()
+            : await _db.TeamPolls.AsNoTracking()
+                .Where(p => myTeamIds.Contains(p.TeamId) && p.AuthorUserId != userId)
+                .Where(TeamPollOpen.At(now))
+                .Where(p => !p.Votes.Any(v => v.UserId == userId))
+                .OrderByDescending(p => p.CreatedDate)
+                .Take(cap)
+                .Select(p => new NeedsYouItemDto(
+                    NeedsYouKind.TeamPoll,
+                    p.Id.ToString(),
+                    new NeedsYouParamsDto { TeamName = p.Team.Name, TeamSlug = p.Team.Slug, Question = p.Question },
+                    p.Team.Slug,
+                    p.CreatedDate))
+                .ToListAsync(ct);
+
         // Trainings are intentionally NOT here (feature 025 revision): "Needs you" is invites and
         // requests only. Training RSVP lives inline in "Up next" — keeping the top section free of
         // agenda RSVP avoids duplicating a training across both sections.
@@ -211,6 +231,7 @@ public sealed class HomeService : IHomeService
             .Concat(partyRequests)
             .Concat(market)
             .Concat(joinRequests)
+            .Concat(polls)
             .OrderByDescending(x => x.OccurredAt)
             .Take(cap)
             .ToList();

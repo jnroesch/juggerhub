@@ -36,7 +36,7 @@ public sealed class TermsOptions
     /// Version identifier of the currently published Terms of Use, in date form. Recorded on
     /// every acceptance; a registration quoting any other value is refused with <c>409</c>.
     /// </summary>
-    public string CurrentVersion { get; set; } = "2026-08-03";
+    public string CurrentVersion { get; set; } = "2026-09-28";
 
     /// <summary>
     /// The configured version, or the built-in default when the section is present but blank.
@@ -44,5 +44,5 @@ public sealed class TermsOptions
     /// otherwise make every acceptance record name nothing at all.
     /// </summary>
     public string ResolvedVersion =>
-        string.IsNullOrWhiteSpace(CurrentVersion) ? "2026-08-03" : CurrentVersion.Trim();
+        string.IsNullOrWhiteSpace(CurrentVersion) ? "2026-09-28" : CurrentVersion.Trim();
 }

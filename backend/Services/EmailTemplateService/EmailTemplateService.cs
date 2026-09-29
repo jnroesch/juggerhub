@@ -377,6 +377,25 @@ public class EmailTemplateService : IEmailTemplateService
         return await GenerateEmailAsync("join-request-declined", variables, culture);
     }
 
+    // --- Feature 062 -------------------------------------------------------------------------------
+
+    /// <inheritdoc />
+    public async Task<string> GenerateTeamPollEmailAsync(
+        string recipientName, string teamName, string question, string pollUrl, string culture = SupportedLanguages.Default)
+    {
+        var variables = new Dictionary<string, object>
+        {
+            ["EMAIL_TITLE"] = _localizer.Get("title.teamPoll", culture),
+            ["RECIPIENT_NAME"] = recipientName,
+            ["TEAM_NAME"] = teamName,
+            ["QUESTION"] = question,
+            ["POLL_URL"] = new RawHtml(pollUrl),
+            ["FOOTER_REASON"] = _localizer.Get("footer.teamPoll", culture),
+        };
+
+        return await GenerateEmailAsync("team-poll", variables, culture);
+    }
+
     /// <summary>
     /// Every template is wrapped in the shared header/footer, so the SPA links those chrome
     /// pieces need are supplied here rather than by each caller. The base URL is

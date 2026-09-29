@@ -29,6 +29,9 @@
       @case ('TeamJoinRequestAnswered') {
         <jh-icon name="users" size="lg" />
       }
+      @case ('TeamPoll') {
+        <jh-icon name="circle-help" size="lg" />
+      }
       @default {
         <jh-icon name="volume-2" size="lg" />
       }
@@ -40,6 +43,7 @@
     @if (link(); as href) {
       <a
         [routerLink]="href"
+        [fragment]="fragment()"
         (click)="open.emit()"
         class="block rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
       >

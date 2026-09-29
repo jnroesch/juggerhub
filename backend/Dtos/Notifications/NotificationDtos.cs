@@ -84,3 +84,25 @@ public sealed record TeamJoinRequestAnsweredPayload(
     string TeamSlug,
     string TeamName,
     bool Accepted);
+
+/// <summary>
+/// Payload for <see cref="NotificationType.TeamPoll"/> (feature 062): which team started which poll,
+/// and the question it asks. The question is at most 200 characters, so it is carried whole.
+/// </summary>
+/// <remarks>
+/// <para>
+/// <b>Never add the author's name, or anyone's.</b> A recipient's row outlives the author's account,
+/// and feature 037 (FR-023) forbids a surviving record that identifies an erased member; the author
+/// is the row's actor instead.
+/// </para>
+/// <para>
+/// <see cref="TeamSlug"/> and <see cref="TeamName"/> are what a team rename finds and rewrites
+/// (feature 061), and <see cref="Question"/> is what an edit before the first answer corrects in
+/// place (spec FR-030).
+/// </para>
+/// </remarks>
+public sealed record TeamPollPayload(
+    string TeamSlug,
+    string TeamName,
+    Guid PollId,
+    string Question);

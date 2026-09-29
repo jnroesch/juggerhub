@@ -114,6 +114,21 @@ public sealed class TeamEmailService
         return $"{baseUrl}/join/{Uri.EscapeDataString(slug)}/{Uri.EscapeDataString(token)}";
     }
 
+    // --- Feature 062: team polls. In the recipient's language, like the join-request emails above. ----
+
+    /// <summary>
+    /// Tells one member that their team started a poll, quoting the question and linking straight to
+    /// it on the team page. The subject names the team only (see <c>subject.teamPoll</c>).
+    /// </summary>
+    public async Task SendTeamPollEmailAsync(
+        string toEmail, string recipientName, string teamName, string slug, Guid pollId, string question,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
+    {
+        var url = $"{BuildTeamLink(_options.FrontendBaseUrl, slug)}#poll-{pollId}";
+        var html = await _templates.GenerateTeamPollEmailAsync(recipientName, teamName, question, url, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.teamPoll", culture, teamName), html, ct);
+    }
+
     internal static string BuildTeamLink(string frontendBaseUrl, string slug) =>
         $"{frontendBaseUrl.TrimEnd('/')}/t/{Uri.EscapeDataString(slug)}";
 }

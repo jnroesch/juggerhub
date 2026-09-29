@@ -10,6 +10,8 @@
 
 > **Update (2026-07-08, feature 009 — public team page):** the "dedicated public view" anticipated above now exists. `/t/:slug` is a **public** page: the team overview, **roster** (display name + position only — no contact details), recent activity, and upcoming trainings are visible to anyone; **news** and member **contact details** remain members-only, and admin tools remain admin-only. This **widens 005's original public/internal split** (roster was members-only here). Feature 009 also adds a **request-to-join** workflow (`TeamJoinRequest` + admin approval), complementing this feature's invite-only joining. See `specs/009-team-public-page/`.
 
+> **Update (2026-09-28, feature 062 — team polls):** polls, named here and put out of scope, now exist. Team admins put a question with fixed answers to their team in a members-only **Polls** card on the team page; members answer, see the result, and are notified through the *Team news* setting. See `specs/062-team-polls/`.
+
 ## Clarifications
 
 ### Session 2026-07-02

@@ -61,10 +61,29 @@ public sealed class PushComposerTests
     }
 
     [Theory]
+    [InlineData("en", "Your team started a poll")]
+    [InlineData("de", "Dein Team hat eine Umfrage gestartet")]
+    [InlineData("es", "Tu equipo ha abierto una encuesta")]
+    public void A_poll_names_the_team_and_keeps_the_question_off_the_lock_screen(string culture, string body)
+    {
+        // Feature 062, clarified: the question stays in the Alerts row and the email (spec FR-028).
+        var payload = """{"teamSlug":"hh","teamName":"Hamburg Hammers","pollId":"0199f3c2-0000-7000-8000-000000000004","question":"Surprise party for Nia?"}""";
+
+        var content = _composer.Compose(NotificationType.TeamPoll, payload, culture, "tag");
+
+        Assert.Equal("Hamburg Hammers", content.Title);
+        Assert.Equal(body, content.Body);
+        Assert.DoesNotContain("Surprise", content.Title + content.Body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Theory]
     [InlineData(NotificationType.PartyNews, """{"partyId":"0199f3c2-0000-7000-8000-000000000001"}""", "/parties/0199f3c2-0000-7000-8000-000000000001/news")]
     [InlineData(NotificationType.EventCancelled, """{"eventId":"0199f3c2-0000-7000-8000-000000000002","eventName":"Turnier"}""", "/events/0199f3c2-0000-7000-8000-000000000002")]
     [InlineData(NotificationType.TrainingUpdated, """{"teamSlug":"hh","sessionId":"0199f3c2-0000-7000-8000-000000000003"}""", "/trainings/sessions/0199f3c2-0000-7000-8000-000000000003")]
     [InlineData(NotificationType.TrainingScheduled, """{"teamSlug":"hh","trainingName":"Dienstag"}""", "/t/hh/trainings")]
+    [InlineData(NotificationType.TeamPoll, """{"teamSlug":"hh","pollId":"0199f3c2-0000-7000-8000-000000000004","question":"Q?"}""", "/t/hh#poll-0199f3c2-0000-7000-8000-000000000004")]
+    [InlineData(NotificationType.TeamPoll, """{"teamSlug":"hh","pollId":"not-a-guid"}""", "/t/hh")]
+    [InlineData(NotificationType.TeamPoll, """{"teamSlug":"../evil","pollId":"0199f3c2-0000-7000-8000-000000000004"}""", "/")]
     public void The_url_mirrors_the_in_app_rows_own_link(NotificationType type, string payload, string expected)
     {
         var content = _composer.Compose(type, payload, "en", "tag");
@@ -157,6 +176,7 @@ public sealed class PushComposerTests
         [NotificationType.EventCancelled] = """{"eventId":"0199f3c2-0000-7000-8000-000000000002","eventName":"Turnier"}""",
         [NotificationType.TeamJoinRequest] = JoinRequestPayload,
         [NotificationType.TeamJoinRequestAnswered] = """{"teamSlug":"hh","teamName":"Hamburg Hammers","accepted":true}""",
+        [NotificationType.TeamPoll] = """{"teamSlug":"hh","teamName":"Hamburg Hammers","pollId":"0199f3c2-0000-7000-8000-000000000004","question":"Grillen am Samstag?"}""",
     };
 
     [Fact]

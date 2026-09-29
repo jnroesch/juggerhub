@@ -34,6 +34,8 @@ public sealed class TemplateParityTests
         "join-request.html",
         "join-request-accepted.html",
         "join-request-declined.html",
+        // Feature 062 — a team started a poll.
+        "team-poll.html",
     ];
 
     [Theory]

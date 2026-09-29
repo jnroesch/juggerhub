@@ -66,7 +66,7 @@ public sealed class AccountDeletionService : IAccountDeletionService
     /// expect (FR-025), which is why they lead.
     /// </summary>
     private static readonly string[] RetainedCategories =
-        ["ChatMessages", "NewsPosts", "ModerationRecords", "AwardsGrantedToOthers"];
+        ["ChatMessages", "NewsPosts", "Polls", "ModerationRecords", "AwardsGrantedToOthers"];
 
     /// <summary>
     /// The confirmation literal, per supported language (feature 037 T064). The server accepts the
@@ -299,6 +299,11 @@ public sealed class AccountDeletionService : IAccountDeletionService
         await _db.EventAdmins.Where(a => a.UserId == userId).ExecuteDeleteAsync(ct);
         await _db.PartyMembers.Where(m => m.UserId == userId).ExecuteDeleteAsync(ct);
         await _db.TrainingResponses.Where(r => r.UserId == userId).ExecuteDeleteAsync(ct);
+        // Feature 062 — their poll answers. The voter foreign key is Restrict, but that forces nothing
+        // here: this method never deletes the account row, so forgetting this line would fail silently
+        // and leave a named answer behind. The erasure test is the only guard. The polls an erased
+        // admin STARTED stay with their team (RetainedCategories "Polls").
+        await _db.TeamPollVotes.Where(v => v.UserId == userId).ExecuteDeleteAsync(ct);
         await _db.MercenaryListings.Where(l => l.UserId == userId).ExecuteDeleteAsync(ct);
         await _db.MarketRequests.Where(r => r.UserId == userId).ExecuteDeleteAsync(ct);
 

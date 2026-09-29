@@ -13,6 +13,7 @@ import {
   isTeamJoinRequest,
   isTeamJoinRequestAnswered,
   isTeamNews,
+  isTeamPoll,
   isTeamRoleChanged,
   isTrainingScheduled,
   isTrainingUpdated,
@@ -85,7 +86,21 @@ export class NotificationRowComponent {
       // Accepted: the team the player just joined. Declined: where they can find another.
       return n.payload.accepted ? `/t/${n.payload.teamSlug}` : '/browse/teams';
     }
+    if (isTeamPoll(n)) {
+      // Feature 062 — the poll is answered on the team page; fragment() points at the poll itself.
+      return `/t/${n.payload.teamSlug}`;
+    }
     return null;
+  });
+
+  /**
+   * The part of the page a row opens at (feature 062): a poll's own anchor on the team page. Bound as
+   * routerLink + fragment, never a "#" inside the route string, which the router would encode (and a bare
+   * href="#…" resolves against <base href>, feature 036's lesson).
+   */
+  protected readonly fragment = computed<string | undefined>(() => {
+    const n = this.notification();
+    return isTeamPoll(n) ? `poll-${n.payload.pollId}` : undefined;
   });
 
   protected readonly title = computed(() => {
@@ -102,6 +117,9 @@ export class NotificationRowComponent {
     }
     if (isTeamNews(n)) {
       return t('alerts.row.teamNewsTitle', { team: n.payload.teamName });
+    }
+    if (isTeamPoll(n)) {
+      return t('alerts.row.teamPollTitle', { team: n.payload.teamName });
     }
     if (isPartyRequest(n)) {
       return t('alerts.row.partyRequestTitle', { team: n.payload.teamName });
@@ -156,6 +174,10 @@ export class NotificationRowComponent {
     }
     if (isTeamNews(n)) {
       return n.payload.excerpt;
+    }
+    if (isTeamPoll(n)) {
+      // The admin's own words, shown whole: it is the question the member is being asked.
+      return n.payload.question;
     }
     if (isPartyRequest(n)) {
       return t('alerts.row.partyRequestSupporting', { event: n.payload.eventName });

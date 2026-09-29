@@ -18,7 +18,7 @@
             <div class="min-w-0 flex-1">
               @let headline = title(item);
               @if (link(item); as route) {
-                <a [routerLink]="route" class="block break-words rounded-sm font-medium text-heading hover:text-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">{{ headline.key | transloco: headline.params }}</a>
+                <a [routerLink]="route" [fragment]="fragment(item)" class="block break-words rounded-sm font-medium text-heading hover:text-link focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus">{{ headline.key | transloco: headline.params }}</a>
               } @else {
                 <p class="break-words font-medium text-heading">{{ headline.key | transloco: headline.params }}</p>
               }
@@ -29,6 +29,12 @@
 
             <!-- Actions by kind (invites & requests only) -->
             @switch (item.kind) {
+              @case ('TeamPoll') {
+                <!-- Feature 062: a poll is answered on the team page, never from here. -->
+                @if (link(item); as route) {
+                  <a jhButton variant="secondary" size="sm" class="shrink-0 self-start" [routerLink]="route" [fragment]="fragment(item)" data-testid="needs-you-answer-poll">{{ 'home.needsYouItem.answerPoll' | transloco }}</a>
+                }
+              }
               @case ('MarketApplication') {
                 <span class="shrink-0 self-start" jhChip tone="warning">{{ 'home.statusPendingPill' | transloco }}</span>
               }
