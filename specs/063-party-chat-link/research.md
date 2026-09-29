@@ -125,6 +125,30 @@ at the default size, so it wraps to two lines. `flex-wrap` is already on that ro
 accepted. The crew row *Party-Chat* + *Party verlassen* is about 300px and may or may not wrap. The
 walk's screenshots decide whether either needs `w-full`. Truncation is not an option (SC-006).
 
+**Decided by the walk (2026-09-29).** The crew row did wrap at 375px, leaving two left-aligned
+buttons of different widths. The same card's other state (*Ich bin dabei / Kann nicht*) uses equal
+`flex-1` buttons, so the crew row does too. `flex-1` alone kept both on one line and broke *Party
+verlassen* over two lines inside its button, so both labels are also `whitespace-nowrap`. Where
+they don't fit side by side, the row wraps and each button takes the full width (375px and 320px);
+on desktop they sit side by side at equal widths. The admin row keeps content widths (coral Apply,
+then Party chat below at 375px). Widening the existing coral Apply would change a control this
+feature has no reason to touch.
+
+## R8 — Found by the walk: party chats had no name (pre-existing, fixed here)
+
+The first walk landed on a chat header reading "…". A live party chat stores no name and is called
+by `ChatDisplayName`'s fallback. Feature 056 moved the fallbacks into `ChatNameFallbacks`, a `record
+struct` with defaulted primary-constructor parameters, and built the English set with `new()`. For a
+struct, `new()` is the zero-filling parameterless constructor and never runs that primary
+constructor. So all four fallbacks were null. The detail API returned `name: null`, the header showed
+"…", and the inbox row (`{{ c.name }}`) was blank for every live party chat since 2026-09-26. The
+push composer was unaffected, because it constructs the type with explicit values.
+
+**Decision.** Fix it in this branch, in its own commit, because it breaks the screen the new button
+lands on. The type becomes a `sealed record` class, for which `new()` does run the primary
+constructor with its defaults. A regression test (`PartyChatLinkTests.The_party_chat_is_named_in_the_inbox_and_its_header`)
+failed on `null` first. The restored name is the pre-056 English "Party chat" (046 drift, unchanged).
+
 ## R7 — Copy
 
 Four keys under `parties.manage`, in all three catalogues in one commit (`catalog-parity.spec.ts`):

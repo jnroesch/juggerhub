@@ -27,6 +27,13 @@ own test suite is the regression net for the extraction and must pass unedited.
 filtered on `PartyId IS NOT NULL` alone), and 060 already scoped both party lookups by kind
 (`ChatConversationService.cs:594-598`, `:1105-1110`). Checked by reading, not assumed (research R2).
 
+**Found by the browser walk, fixed here (research R8)**: every live party chat had **no name** since
+056. `ChatNameFallbacks` was a `record struct` built with `new()`, which for a struct never runs the
+defaulted primary constructor. The inbox row was blank and the chat header read "…", which is the
+screen the new button lands on. It is now a `sealed record` class, in its own commit, with a
+regression test. Also seen and filed, not fixed: the page prints the applied status as a raw
+English "Joined" (GH #388).
+
 **Owner decisions (spec Clarifications)**:
 
 - **Placement: the viewer's own card at the top.** A crew member who is not a party admin gets it

@@ -38,6 +38,14 @@ team whose only conversation was a contact-admins thread (027) now gets its team
 a team never did, because the thread passed for the chat. See
 [`../../060-team-chat-link/contracts/team-chat-api.md`](../../060-team-chat-link/contracts/team-chat-api.md).
 
+**Amended by feature 063 (party chat link).** `GET /chat/party/{partyId}` was added, the party
+sibling of 060's endpoint. It returns the id of the party's own chat to anyone in the crew (party
+admins, team members and marketplace guests who are in), creating the chat first if nobody has opened
+Chat yet. Anyone else, including a team member who has not said they are in, and a disbanded party get
+the standard `404`. Both endpoints share one ensure → find → guard step, so their rules cannot drift
+apart. No existing endpoint changed. See
+[`../../063-party-chat-link/contracts/party-chat-api.md`](../../063-party-chat-link/contracts/party-chat-api.md).
+
 ---
 
 ## Conversations
