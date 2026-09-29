@@ -251,3 +251,49 @@ describe('PartyManageComponent — the party chat (feature 063)', () => {
     expect(buttonsIn(fixture, 'crew-card')).toEqual(['party-chat', 'leave-party']);
   });
 });
+
+/** GH #388 — where the party's entry landed on the event reads as words, never the raw status. */
+describe('PartyManageComponent — the applied status', () => {
+  function render(overrides: Partial<Party>): ComponentFixture<PartyManageComponent> {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [PartyManageComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        ...translocoLocaleTestingProviders(),
+        {
+          provide: PartyService,
+          useValue: {
+            getParty: jest.fn().mockReturnValue(of(party(overrides))),
+            listMembers: jest.fn().mockReturnValue(of(page([]))),
+            listNews: jest.fn().mockReturnValue(of(page([]))),
+          },
+        },
+        { provide: ChatService, useValue: { openPartyChat: jest.fn() } },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: 'party-1' }) } } },
+      ],
+    });
+    const fixture = TestBed.createComponent(PartyManageComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const status = (fixture: ComponentFixture<PartyManageComponent>) =>
+    (fixture.nativeElement.querySelector('[data-testid="applied-status"]') as HTMLElement | null)?.textContent?.trim();
+
+  it.each([
+    ['Joined', 'applied · confirmed'],
+    ['AwaitingApproval', 'applied · awaiting approval'],
+    ['Waitlisted', 'applied · on the waiting list'],
+  ] as const)('reads %s as "%s"', (appliedGroup, expected) => {
+    expect(status(render({ status: 'Applied', appliedGroup }))).toBe(expected);
+  });
+
+  it('says only "applied" when the entry has no status to show', () => {
+    expect(status(render({ status: 'Applied', appliedGroup: null }))).toBe('applied');
+  });
+
+  it('shows no applied status before the party applies', () => {
+    expect(status(render({ status: 'Open', appliedGroup: null }))).toBeUndefined();
+  });
+});
