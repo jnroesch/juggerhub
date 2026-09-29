@@ -86,15 +86,15 @@ template, so they run one after the other, never alongside.
 
 **Independent test**: as the party's creator, before and after applying, the readiness card holds Party chat and Apply stays the only primary button.
 
-- [ ] T014 [US2] Add to `party-manage.component.spec.ts`:
-  - admin, not applied (`myRole 'Admin'`, `myState 'Admin'`, `status 'Open'`): `party-chat` is inside `[data-testid="readiness-card"]`, after `apply-to-event`; `apply-to-event` is the only element in the page carrying the primary variant's class (`bg-brand-strong`), and `party-chat` does not carry it;
+- [X] T014 [US2] Add to `party-manage.component.spec.ts`:
+  - admin, not applied (`myRole 'Admin'`, `myState 'Admin'`, `status 'Open'`): `party-chat` is inside `[data-testid="readiness-card"]`, after `apply-to-event`; `apply-to-event` carries the primary variant's class (`bg-brand-strong`) and `party-chat` does not. *(Not "the only one on the page": the admin's news composer already has a primary *Post update*, pre-existing, recorded in the UI review.)*;
   - admin, applied (`status 'Applied'`, `appliedGroup 'Joined'`): `party-chat` is beside `withdraw-from-event`;
   - no `crew-card` is rendered for an admin (the card stays non-admin only);
   - pressing the admin's `party-chat` calls `openPartyChat('party-1')`;
   - 500 → `party-chat-error` shows inside `readiness-card`.
 
   Run them: they fail.
-- [ ] T015 [US2] In `party-manage.component.html`: give the admin readiness card `data-testid="readiness-card"`, the Apply button `data-testid="apply-to-event"` and the Withdraw button `data-testid="withdraw-from-event"` (dropping Withdraw's `size="sm"`, research R6). Append the same Party chat button after the `@if (!isApplied()) … @else …` block inside the existing `mt-md flex flex-wrap gap-sm` row, and the same `party-chat-error` line under the row. Keep the button markup identical to the crew card's. Run the spec until green.
+- [X] T015 [US2] In `party-manage.component.html`: give the admin readiness card `data-testid="readiness-card"`, the Apply button `data-testid="apply-to-event"` and the Withdraw button `data-testid="withdraw-from-event"` (dropping Withdraw's `size="sm"`, research R6). Append the same Party chat button after the `@if (!isApplied()) … @else …` block inside the existing `mt-md flex flex-wrap gap-sm` row, and the same `party-chat-error` line under the row. Keep the button markup identical to the crew card's. Run the spec until green.
 
 **Checkpoint**: commit `feat(063): party admins open the party chat from the readiness card (#382)`.
 

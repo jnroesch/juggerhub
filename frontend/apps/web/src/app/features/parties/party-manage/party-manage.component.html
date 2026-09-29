@@ -61,7 +61,7 @@
 
     <!-- Readiness + apply (admin) -->
     @if (isAdmin()) {
-      <jh-card class="mt-md">
+      <jh-card class="mt-md" data-testid="readiness-card">
         <ul class="space-y-1 text-body-sm text-muted">
           <li class="flex items-center gap-xs">
             <jh-icon [name]="p.readiness.enoughToFieldTeam ? 'check' : 'circle'" size="sm" class="shrink-0" />
@@ -76,15 +76,23 @@
             <span>{{ 'parties.manage.readinessUnanswered' | pluralKey: p.readiness.unanswered | transloco:{ count: p.readiness.unanswered } }}</span>
           </li>
         </ul>
+        <!-- Default size throughout: 44px touch targets (DESIGN.md), one height for the row. -->
         <div class="mt-md flex flex-wrap gap-sm">
           @if (!isApplied()) {
             <button type="button" (click)="apply()" [disabled]="acting()"
-              jhButton>{{ 'parties.manage.applyToEvent' | transloco }}</button>
+              jhButton data-testid="apply-to-event">{{ 'parties.manage.applyToEvent' | transloco }}</button>
           } @else {
             <button type="button" (click)="withdraw()" [disabled]="acting()"
-              jhButton variant="secondary" size="sm">{{ 'parties.manage.withdrawFromEvent' | transloco }}</button>
+              jhButton variant="secondary" data-testid="withdraw-from-event">{{ 'parties.manage.withdrawFromEvent' | transloco }}</button>
           }
+          <!-- Feature 063: the same button as the crew card's; secondary, so Apply keeps the coral. -->
+          <button type="button" jhButton variant="secondary" data-testid="party-chat" [disabled]="partyChatBusy()" (click)="openPartyChat()">
+            {{ (partyChatBusy() ? 'parties.manage.openingPartyChat' : 'parties.manage.partyChat') | transloco }}
+          </button>
         </div>
+        @if (partyChatError(); as key) {
+          <p class="mt-xs text-body-sm text-danger-fg" role="alert" data-testid="party-chat-error">{{ key | transloco }}</p>
+        }
       </jh-card>
     }
 

@@ -161,4 +161,51 @@ describe('PartyManageComponent — the party chat (feature 063)', () => {
     expect((el(fixture, '[data-testid="party-chat"]') as HTMLButtonElement).disabled).toBe(false);
     expect(navigate).not.toHaveBeenCalled();
   });
+
+  // --- US2: a party admin -------------------------------------------------------
+
+  const admin: Partial<Party> = { myState: 'Admin', myRole: 'Admin' };
+
+  it('offers a party admin the party chat beside Apply, as a secondary action', () => {
+    const fixture = render({ ...admin, status: 'Open' });
+
+    expect(buttonsIn(fixture, 'readiness-card')).toEqual(['apply-to-event', 'party-chat']);
+    // Apply keeps the coral; Party chat never takes it (one coral CTA per view, DESIGN.md).
+    expect(el(fixture, '[data-testid="apply-to-event"]')?.classList).toContain('bg-brand-strong');
+    expect(el(fixture, '[data-testid="party-chat"]')?.classList).not.toContain('bg-brand-strong');
+  });
+
+  it('keeps it beside Withdraw once the party has applied', () => {
+    const fixture = render({ ...admin, status: 'Applied', appliedGroup: 'Joined' });
+
+    expect(buttonsIn(fixture, 'readiness-card')).toEqual(['withdraw-from-event', 'party-chat']);
+  });
+
+  it('shows an admin one Party chat, in the readiness card only', () => {
+    const fixture = render(admin);
+
+    expect(el(fixture, '[data-testid="crew-card"]')).toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('[data-testid="party-chat"]').length).toBe(1);
+  });
+
+  it("opens the chat from the admin's card too", () => {
+    const fixture = render(admin);
+    chat.openPartyChat.mockReturnValue(of({ conversationId: 'c9' }));
+
+    press(fixture, 'party-chat');
+
+    expect(chat.openPartyChat).toHaveBeenCalledWith('party-1');
+    expect(navigate).toHaveBeenCalledWith(['/chat', 'c9']);
+  });
+
+  it("reports a failure inside the admin's card", () => {
+    const fixture = render(admin);
+    chat.openPartyChat.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 503 })));
+
+    press(fixture, 'party-chat');
+
+    expect(el(fixture, '[data-testid="readiness-card"] [data-testid="party-chat-error"]')?.textContent?.trim()).toBe(
+      "We couldn't open the party chat just now.",
+    );
+  });
 });
