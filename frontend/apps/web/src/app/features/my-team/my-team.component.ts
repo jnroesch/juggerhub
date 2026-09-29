@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, effect, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { TranslocoPipe } from '@jsverse/transloco';
@@ -32,8 +33,11 @@ export class MyTeamComponent implements OnInit {
 
   /** The teamless player's pending invitations (feature 023). */
   protected readonly invites = signal<MyInvitation[]>([]);
-  /** A friendly notice, e.g. when an invitation went stale before it could be acted on. */
-  protected readonly notice = signal<string | null>(null);
+  /**
+   * A friendly notice, e.g. when an invitation went stale before it could be acted on. A translation
+   * key and its parameters, so it follows a language switch (it was an English sentence until 064).
+   */
+  protected readonly notice = signal<{ key: string; params?: Record<string, string> } | null>(null);
   private invitesRequested = false;
 
   constructor() {
@@ -76,10 +80,16 @@ export class MyTeamComponent implements OnInit {
         this.membership.load();
         this.router.navigateByUrl(`/t/${r.teamSlug}`);
       },
-      // Expired/revoked/consumed since load — reconcile the row and tell the player, never error raw.
-      error: () => {
+      error: (err) => {
+        // Feature 064: our own limit on joining by invitation (a 429, never retried). The invitation
+        // is still good, so it stays in the list — removing it would throw a valid invite away.
+        if (err instanceof HttpErrorResponse && err.status === 429) {
+          this.notice.set({ key: 'teams.inviteLimited' });
+          return;
+        }
+        // Expired/revoked/consumed since load — reconcile the row and tell the player, never error raw.
         this.removeInvite(inv.token);
-        this.notice.set(`That invitation to ${inv.teamName} is no longer available.`);
+        this.notice.set({ key: 'myTeam.inviteGone', params: { team: inv.teamName } });
       },
     });
   }

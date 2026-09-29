@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
@@ -128,6 +129,21 @@ describe('MyTeamComponent', () => {
     fixture.detectChanges();
     expect(el(fixture, 'invite-rot')).toBeNull();
     expect(el(fixture, 'my-team-notice')).not.toBeNull();
+    expect(navSpy).not.toHaveBeenCalled();
+  });
+
+  it('keeps an invitation the limit refused, and says to try again later (feature 064)', () => {
+    invitations.listMine.mockReturnValue(of(paged([invite('rot')])));
+    teamApi.acceptInvite.mockReturnValue(throwError(() => new HttpErrorResponse({ status: 429 })));
+    const fixture = create();
+    (el(fixture, 'accept-rot') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    // A 429 is our own limit on joining, not a dead invitation: throwing the row away would lose it.
+    expect(el(fixture, 'invite-rot')).not.toBeNull();
+    expect(el(fixture, 'my-team-notice')?.textContent?.trim()).toBe(
+      "You've joined a lot of teams in a short time. Try again in a while.",
+    );
+    expect(teamApi.acceptInvite).toHaveBeenCalledTimes(1);
     expect(navSpy).not.toHaveBeenCalled();
   });
 

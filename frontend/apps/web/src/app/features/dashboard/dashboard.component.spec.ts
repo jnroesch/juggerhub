@@ -106,4 +106,34 @@ describe('DashboardComponent', () => {
     expect(q(f, 'needs-you-notice')?.textContent?.trim()).toBe('This request was already answered or withdrawn.');
     expect(q(f, 'home-greeting')?.textContent).not.toContain('1 thing');
   });
+
+  it('says to try again later when accepting an invite meets the joining limit, and keeps the item (feature 064)', () => {
+    const f = mount();
+    const viewer = { displayName: 'Mira', handle: 'mira', hasAvatar: false };
+    httpMock.expectOne('/api/v1/home').flush({
+      viewer,
+      teams: [],
+      ...EMPTY,
+      needsYou: [
+        {
+          kind: 'TeamInvite',
+          id: 'tok-1',
+          params: { teamName: 'Rheinfeuer', teamSlug: 'rheinfeuer', eventName: null, playerName: 'Mara' },
+          linkTarget: 'rheinfeuer',
+          occurredAt: '2026-09-28T08:00:00Z',
+        },
+      ],
+    });
+    f.detectChanges();
+
+    (f.nativeElement.querySelector('[data-testid="needs-you"] li button') as HTMLButtonElement).click();
+    httpMock.expectOne('/api/v1/invitations/tok-1/accept').flush(null, { status: 429, statusText: 'Too Many Requests' });
+    f.detectChanges();
+
+    // No refresh (verify() would catch a second /home), the item stays, and the note says why.
+    expect(q(f, 'needs-you-notice')?.textContent?.trim()).toBe(
+      "You've joined a lot of teams in a short time. Try again in a while.",
+    );
+    expect(q(f, 'needs-you')).not.toBeNull();
+  });
 });

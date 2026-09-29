@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -42,6 +43,11 @@ export class InviteAcceptComponent {
   protected readonly notFound = signal(false);
   protected readonly working = signal(false);
   protected readonly error = signal<string | null>(null);
+  /**
+   * Feature 064: the accept met our own limit on joining by invitation. A flag rather than text, so
+   * the page says it in the player's language (never the server's wording) and follows a switch.
+   */
+  protected readonly limited = signal(false);
 
   private resumed = false;
 
@@ -117,6 +123,7 @@ export class InviteAcceptComponent {
   private doAccept(): void {
     this.working.set(true);
     this.error.set(null);
+    this.limited.set(false);
     this.teams.acceptInvite(this.token()).subscribe({
       next: (r) => {
         // Refresh the nav's "My team" cache so it reflects the team just joined.
@@ -125,6 +132,11 @@ export class InviteAcceptComponent {
       },
       error: (err) => {
         this.working.set(false);
+        // A 429 is our own limit (feature 064): never retried, and the invitation is still good.
+        if (err instanceof HttpErrorResponse && err.status === 429) {
+          this.limited.set(true);
+          return;
+        }
         this.error.set(problemDetail(err));
       },
     });

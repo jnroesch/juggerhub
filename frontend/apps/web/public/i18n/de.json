@@ -58,12 +58,14 @@
       "other": "Mitglieder"
     },
     "invitedBy": "Eingeladen von {{name}}",
+    "inviteGone": "Die Einladung zu {{team}} ist nicht mehr gültig.",
     "orFindOwn": "Oder finde dein eigenes Team",
     "findYourTeam": "Finde dein Team",
     "findSub": "Entdecke Teams in deiner Nähe. Viele leihen Ausrüstung und heißen Neulinge willkommen.",
     "createOwn": "Gründe dein eigenes Team"
   },
   "teams": {
+    "inviteLimited": "Du bist in kurzer Zeit vielen Teams beigetreten. Versuch es später noch einmal.",
     "create": {
       "title": "Team erstellen",
       "subtitle": "Du wirst der erste Admin des Teams.",

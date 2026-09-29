@@ -427,11 +427,13 @@ export class OnboardingComponent implements OnInit, OnDestroy {
         // The nav's "My team" cache and the already-member set both read this.
         this.membership.load();
       },
-      error: () => {
+      error: (err) => {
         this.acceptingToken.set(null);
-        // One plain sentence whatever the status: the card's state on reload tells the truth,
-        // and no code or internal detail reaches the reader (Principle I, FR-024).
-        this.inviteError.set(this.transloco.translate('onboarding.team.invite.acceptError'));
+        // One plain sentence per kind of failure: the card's state on reload tells the truth, and no
+        // code or internal detail reaches the reader (Principle I, FR-024). A 429 is our own limit on
+        // joining by invitation (feature 064) — never retried, and it says to come back later.
+        const limited = err instanceof HttpErrorResponse && err.status === 429;
+        this.inviteError.set(this.transloco.translate(limited ? 'teams.inviteLimited' : 'onboarding.team.invite.acceptError'));
       },
     });
   }

@@ -184,4 +184,20 @@ describe('NeedsYouCardComponent', () => {
     expect(gone).toEqual(['req-1']);
     expect(resolved).toEqual([]);
   });
+
+  it('keeps a team invite the joining limit refused, and tells the host (feature 064)', () => {
+    const { fixture, resolved, gone } = mount([item('TeamInvite', { id: 'tok-1' })]);
+    const limited: string[] = [];
+    fixture.componentInstance.limited.subscribe((id) => limited.push(id));
+
+    (fixture.nativeElement.querySelector('button') as HTMLButtonElement).click();
+    httpMock.expectOne('/api/v1/invitations/tok-1/accept').flush(null, { status: 429, statusText: 'Too Many Requests' });
+    fixture.detectChanges();
+
+    // Our own limit, not a dead invitation: the item stays, nothing is retried (verify() in afterEach).
+    expect(fixture.nativeElement.querySelectorAll('li').length).toBe(1);
+    expect(limited).toEqual(['tok-1']);
+    expect(resolved).toEqual([]);
+    expect(gone).toEqual([]);
+  });
 });

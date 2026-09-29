@@ -54,12 +54,14 @@
       "other": "members"
     },
     "invitedBy": "Invited by {{name}}",
+    "inviteGone": "That invitation to {{team}} is no longer available.",
     "orFindOwn": "Or find your own team",
     "findYourTeam": "Find your team",
     "findSub": "Discover teams near you. Many lend gear and welcome newcomers.",
     "createOwn": "Create your own team"
   },
   "teams": {
+    "inviteLimited": "You've joined a lot of teams in a short time. Try again in a while.",
     "create": {
       "title": "Create a team",
       "subtitle": "You'll be the team's first admin.",

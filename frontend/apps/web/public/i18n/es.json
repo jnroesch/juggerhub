@@ -58,12 +58,14 @@
       "other": "miembros"
     },
     "invitedBy": "Invitado por {{name}}",
+    "inviteGone": "La invitación a {{team}} ya no está disponible.",
     "orFindOwn": "O crea tu propio equipo",
     "findYourTeam": "Encuentra tu equipo",
     "findSub": "Descubre equipos cerca de ti. Muchos prestan equipamiento y dan la bienvenida a los novatos.",
     "createOwn": "Crea tu propio equipo"
   },
   "teams": {
+    "inviteLimited": "Te has unido a muchos equipos en poco tiempo. Vuelve a intentarlo más tarde.",
     "create": {
       "title": "Crear un equipo",
       "subtitle": "Serás el primer administrador del equipo.",
