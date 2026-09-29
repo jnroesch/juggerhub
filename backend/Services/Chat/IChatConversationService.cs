@@ -139,6 +139,15 @@ public interface IChatConversationService
     Task<ChatResult<TeamChatRefDto>> OpenTeamChatAsync(Guid callerId, Guid teamId, CancellationToken ct = default);
 
     /// <summary>
+    /// The party's own chat, for the party page's "Party chat" button (feature 063). A member of the crew
+    /// (anyone who is in: party admins, team members, marketplace guests) gets its id — the chat created
+    /// first if nobody has opened Chat yet, exactly as the inbox would. Anyone else, and a disbanded party,
+    /// gets <see cref="ChatOutcome.NotFound"/>, indistinguishable from a party that does not exist, and
+    /// their request creates nothing for that party.
+    /// </summary>
+    Task<ChatResult<PartyChatRefDto>> OpenPartyChatAsync(Guid callerId, Guid partyId, CancellationToken ct = default);
+
+    /// <summary>
     /// Archive a team's chat before the team row is hard-deleted — a <b>snapshot</b>, not a flag
     /// (data-model R3a).
     /// </summary>

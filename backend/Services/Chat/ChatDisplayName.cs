@@ -17,12 +17,19 @@ namespace JuggerHub.Services.Chat;
 /// is called exactly this. Feature 046 recorded it as minor drift; naming a party chat after its
 /// party is still an open gap and not this type's business.
 /// </para>
+/// <para>
+/// <b>A class, not a struct, on purpose.</b> This was a <c>record struct</c>, and for a struct
+/// <c>new()</c> is the zero-filling parameterless constructor — it never runs a primary constructor
+/// whose parameters all have defaults. So <see cref="English"/> held four nulls, and every live party
+/// chat came back nameless: a blank inbox row and a header reading "…" (found by feature 063's
+/// browser walk). For a class, <c>new()</c> is the primary constructor with its defaults.
+/// </para>
 /// </remarks>
 /// <param name="Group">A manual group whose name is somehow missing. In practice unreachable — a group's name is required.</param>
 /// <param name="Team">A team chat with no team name. In practice unreachable while the chat is live.</param>
 /// <param name="Party">A live party chat. Always used, see the remarks.</param>
 /// <param name="Other">Any kind not otherwise handled.</param>
-internal readonly record struct ChatNameFallbacks(
+internal sealed record ChatNameFallbacks(
     string Group = "Group",
     string Team = "Team chat",
     string Party = "Party chat",

@@ -15,6 +15,7 @@ import {
   InquiryMessageSent,
   InquiryThreadRef,
   MessagePage,
+  PartyChatRef,
   TeamChatRef,
   TypingSignal,
 } from '../models/chat.models';
@@ -203,6 +204,15 @@ export class ChatService {
    */
   openTeamChat(teamId: string): Observable<TeamChatRef> {
     return this.http.get<TeamChatRef>(`${this.base}/team/${teamId}`);
+  }
+
+  /**
+   * The party's own chat, for the party page's "Party chat" button (feature 063). The server creates it
+   * if nobody in the crew has opened Chat yet, as the inbox would; anyone outside the crew gets a 404.
+   * Called on the press, never on page load.
+   */
+  openPartyChat(partyId: string): Observable<PartyChatRef> {
+    return this.http.get<PartyChatRef>(`${this.base}/party/${partyId}`);
   }
 
   addMembers(conversationId: string, userIds: string[]): Observable<void> {
