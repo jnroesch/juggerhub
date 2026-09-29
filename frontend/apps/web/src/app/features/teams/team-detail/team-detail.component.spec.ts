@@ -775,7 +775,9 @@ describe('TeamDetailComponent — about the team (feature 061)', () => {
 describe('TeamDetailComponent — removing a teammate asks first (feature 064)', () => {
   let service: Record<string, jest.Mock>;
 
-  function render(): ComponentFixture<TeamDetailComponent> {
+  function render(
+    paramMap: Observable<ParamMap> = of(convertToParamMap({ slug: 'rheinfeuer' })),
+  ): ComponentFixture<TeamDetailComponent> {
     TestBed.resetTestingModule();
     service = {
       getPublicDetail: jest.fn().mockReturnValue(of(detail('Admin'))),
@@ -797,7 +799,7 @@ describe('TeamDetailComponent — removing a teammate asks first (feature 064)',
         { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
         { provide: ChatService, useValue: { openTeamChat: jest.fn() } },
         { provide: PollService, useValue: { list: jest.fn().mockReturnValue(of(page([]))) } },
-        { provide: ActivatedRoute, useValue: { paramMap: of(convertToParamMap({ slug: 'rheinfeuer' })) } },
+        { provide: ActivatedRoute, useValue: { paramMap } },
       ],
     });
     const fixture = TestBed.createComponent(TeamDetailComponent);
@@ -859,14 +861,23 @@ describe('TeamDetailComponent — removing a teammate asks first (feature 064)',
   it('removes the teammate once on confirm, then shows the team as it now is', () => {
     const fixture = render();
     service['removeMember'].mockReturnValue(of(undefined));
+    // The reload answers later, as it does over a network: until then the page is the loading line,
+    // and focus must wait for the roster rather than fire into it (CodeRabbit on PR #394).
+    const reload = new Subject<TeamPublicDetail>();
+    service['getPublicDetail'].mockReturnValueOnce(reload);
 
     askToRemove(fixture);
     click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    expect(el(fixture, '#team-roster-heading')).toBeNull();
+    reload.next(detail('Admin'));
+    fixture.detectChanges();
 
     expect(service['removeMember']).toHaveBeenCalledTimes(1);
     expect(service['removeMember']).toHaveBeenCalledWith('rheinfeuer', OTHER);
     expect(dialog(fixture)).toBeNull();
     expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
+    // Focus lands on the reloaded roster, not on the loading line that stood in for it.
+    expect(document.activeElement).toBe(el(fixture, '#team-roster-heading'));
   });
 
   it('takes no second press while the removal is on its way', () => {
@@ -893,6 +904,7 @@ describe('TeamDetailComponent — removing a teammate asks first (feature 064)',
 
     expect(dialog(fixture)).toBeNull();
     expect(el(fixture, '[data-testid="remove-notice"]')?.textContent).toContain('Player 2 is no longer on the team.');
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="remove-notice"]'));
     expect(fixture.nativeElement.textContent).not.toContain('Server wording');
     expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
   });
@@ -907,6 +919,21 @@ describe('TeamDetailComponent — removing a teammate asks first (feature 064)',
     expect(dialog(fixture)).toBeNull();
     expect(el(fixture, '[data-testid="remove-notice"]')?.textContent).toContain("You're no longer an admin of this team.");
     expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
+  });
+
+  it('drops a pending question when the page moves to another team, so it cannot remove anyone there', () => {
+    // CodeRabbit on PR #394: the component is reused from team to team.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render(route);
+
+    askToRemove(fixture);
+    expect(dialog(fixture)).not.toBeNull();
+
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    fixture.detectChanges();
+
+    expect(dialog(fixture)).toBeNull();
+    expect(service['removeMember']).not.toHaveBeenCalled();
   });
 
   it('keeps the question open on any other failure, in our words, and confirming again retries', () => {

@@ -40,6 +40,7 @@ export class ConfirmDialogComponent {
 
   protected readonly id = `jh-confirm-${++nextId}`;
   private readonly keepButton = viewChild.required<ElementRef<HTMLButtonElement>>('keep');
+  private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');
 
   constructor() {
     // Zoneless: the button exists only after the first render (GH #344 — never an effect).
@@ -54,6 +55,9 @@ export class ConfirmDialogComponent {
 
   protected confirm(): void {
     if (!this.busy()) {
+      // Both answers are about to be disabled while the host works, and a disabled button drops focus
+      // onto the page behind the modal. Hold it on the panel instead; Tab from there comes back in.
+      this.panel().nativeElement.focus();
       this.confirmed.emit();
     }
   }
@@ -66,14 +70,22 @@ export class ConfirmDialogComponent {
   /** Keep Tab inside the open dialog: `aria-modal` promises that the page behind it is inert. */
   protected trapTab(event: Event): void {
     const key = event as KeyboardEvent;
-    const buttons = Array.from(
-      (key.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button:not([disabled])'),
-    );
+    const panel = key.currentTarget as HTMLElement;
+    const buttons = Array.from(panel.querySelectorAll<HTMLElement>('button:not([disabled])'));
     if (buttons.length === 0) {
+      // Busy: nothing to move to, and nowhere outside to go. Stay on the panel.
+      key.preventDefault();
+      panel.focus();
       return;
     }
     const first = buttons[0];
     const last = buttons[buttons.length - 1];
+    if (document.activeElement === panel) {
+      // Held here while busy (see confirm()); the answers are back, so Tab enters them.
+      key.preventDefault();
+      (key.shiftKey ? last : first).focus();
+      return;
+    }
     if (key.shiftKey && document.activeElement === first) {
       last.focus();
       key.preventDefault();

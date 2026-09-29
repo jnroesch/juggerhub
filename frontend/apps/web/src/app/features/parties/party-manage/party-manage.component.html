@@ -30,7 +30,7 @@
     }
     <!-- Feature 064 — page level too: the reload that follows redraws the roster it would sit in. -->
     @if (removeNotice(); as notice) {
-      <jh-alert tone="info" class="mt-sm" data-testid="party-remove-notice">{{ notice.key | transloco: { name: notice.name } }}</jh-alert>
+      <jh-alert tone="info" class="mt-sm outline-none" tabindex="-1" data-testid="party-remove-notice">{{ notice.key | transloco: { name: notice.name } }}</jh-alert>
     }
 
     <!-- Member (non-admin) self actions -->
@@ -105,13 +105,13 @@
     <!-- Roster tabs -->
     <section class="mt-md">
       <div class="flex gap-xs text-body-sm">
-        <button type="button" (click)="loadTab('In')"
+        <button type="button" (click)="loadTab('In')" data-roster-tab="In"
           [class]="activeTab() === 'In' ? 'font-semibold text-heading' : 'text-muted'"
           class="rounded-md px-sm py-xs">{{ 'parties.manage.tabIn' | transloco }} · {{ p.inCount }}</button>
-        <button type="button" (click)="loadTab('Declined')"
+        <button type="button" (click)="loadTab('Declined')" data-roster-tab="Declined"
           [class]="activeTab() === 'Declined' ? 'font-semibold text-heading' : 'text-muted'"
           class="rounded-md px-sm py-xs">{{ 'parties.manage.tabDeclined' | transloco }} · {{ p.declinedCount }}</button>
-        <button type="button" (click)="loadTab('NoResponse')"
+        <button type="button" (click)="loadTab('NoResponse')" data-roster-tab="NoResponse"
           [class]="activeTab() === 'NoResponse' ? 'font-semibold text-heading' : 'text-muted'"
           class="rounded-md px-sm py-xs">{{ 'parties.manage.tabNoReply' | transloco }} · {{ p.noResponseCount }}</button>
       </div>

@@ -156,11 +156,21 @@ export class TeamDetailComponent {
       // Feature 060 — likewise for the team chat's notes.
       this.teamChatNotice.set(null);
       this.teamChatError.set(null);
+      // Feature 064 — a pending removal was asked about a member of the PREVIOUS team: confirming it
+      // here would send that member's id with this team's slug. It goes, with its notes.
+      this.removing.set(null);
+      this.removeBusy.set(false);
+      this.removeError.set(null);
+      this.removeNotice.set(null);
       this.load();
     });
   }
 
-  private load(): void {
+  /**
+   * Reload the page. `then` runs after the reloaded page has rendered — not after the next render,
+   * which is the loading line: the page's own elements do not exist until the detail arrives.
+   */
+  private load(then?: () => void): void {
     this.loading.set(true);
     this.notFound.set(false);
     this.members.set([]);
@@ -172,6 +182,9 @@ export class TeamDetailComponent {
       next: (d) => {
         this.pub.set(d);
         this.loading.set(false);
+        if (then) {
+          afterNextRender(then, { injector: this.injector });
+        }
         if (d.viewerRelation === 'Member' || d.viewerRelation === 'Admin') {
           this.loadMembers();
           this.loadNews();
@@ -455,15 +468,22 @@ export class TeamDetailComponent {
     }
     this.removeBusy.set(true);
     this.removeError.set(null);
-    this.teams.removeMember(this.slug(), member.userId).subscribe({
+    const slug = this.slug();
+    this.teams.removeMember(slug, member.userId).subscribe({
       next: () => {
+        if (this.slug() !== slug) {
+          return; // the page moved to another team meanwhile; this answer is not about it
+        }
         this.removeBusy.set(false);
         this.removing.set(null);
-        this.load();
-        // The row and its menu button went with the teammate; land on the roster's heading.
-        afterNextRender(() => this.focus('#team-roster-heading'), { injector: this.injector });
+        // The row and its menu button went with the teammate; land on the roster's heading once the
+        // reloaded roster is on screen.
+        this.load(() => this.focus('#team-roster-heading'));
       },
       error: (err) => {
+        if (this.slug() !== slug) {
+          return;
+        }
         this.removeBusy.set(false);
         const status = err instanceof HttpErrorResponse ? err.status : 0;
         // Branch on the status, never the server's English `detail` (GH #179). A 404: they already
@@ -474,7 +494,8 @@ export class TeamDetailComponent {
             key: status === 404 ? 'teams.detail.removeGone' : 'teams.detail.removeForbidden',
             name: this.memberName(member),
           });
-          this.load();
+          // Focus the note that says why: the button that asked may be gone with the reload.
+          this.load(() => this.focus('[data-testid="remove-notice"]'));
           return;
         }
         // The dialog stays open; confirming again is the retry (never automatic).

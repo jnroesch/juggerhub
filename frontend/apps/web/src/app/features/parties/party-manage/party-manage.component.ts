@@ -308,6 +308,9 @@ export class PartyManageComponent implements OnInit {
         this.confirmBusy.set(false);
         this.pendingConfirm.set(null);
         this.reload();
+        // The dialog and the row that asked are gone. The tab they were on stays through the reload
+        // (the page never swaps to a loading state here) and now counts one fewer: land there.
+        this.focusAfterRender(`[data-roster-tab="${pending.tab}"]`);
       },
       error: (err) => {
         this.confirmBusy.set(false);
@@ -317,6 +320,8 @@ export class PartyManageComponent implements OnInit {
           this.pendingConfirm.set(null);
           this.removeNotice.set({ key: 'parties.manage.removeGone', name: pending.member.displayName });
           this.reload();
+          // Focus the note that says why; the button that asked may go with the reload.
+          this.focusAfterRender('[data-testid="party-remove-notice"]');
           return;
         }
         this.confirmError.set('parties.manage.removeFailed');

@@ -92,6 +92,17 @@ script was deleted afterwards.
 - [x] CHK042 **The admins' rows name the player and say how they went, never by whom** (05: *Lena Hoffmann hat Rheinfeuer Köln verlassen*, *Jonas Weber wurde aus Rheinfeuer Köln entfernt*). The acting admin received none (walk: Mara's inbox has only Lena's leave).
 - [x] CHK043 **The invitation limit is told in the player's language and never retried** (11: *Du bist in kurzer Zeit vielen Teams beigetreten. Versuch es später noch einmal.*; one accept request in the network log).
 
+## After review (CodeRabbit on PR #394)
+
+- **CHK030, revised**: `whitespace-nowrap` could clip a long name in *Keep {name}* (a display name may be 50
+  characters). On a phone the answers now stack at full width and a label wraps only when even that is too
+  narrow; from `sm` they sit side by side. Re-walked with a 50-character name: it wraps inside the answer at
+  375px, and nothing is clipped at 1280px.
+- **CHK035, revised**: focus after a removal is moved only once the reloaded page has rendered (the team page
+  shows its loading line in between). Walk: the roster heading after a team removal, the *Dabei* tab after a
+  party removal, the page-level note after a 404. While busy, focus is held on the dialog panel and Tab
+  cannot leave it.
+
 ## Notes
 
 - **Seen, pre-existing, filed**: after Tom was *promoted to admin*, his role-change alert reads *Du bist

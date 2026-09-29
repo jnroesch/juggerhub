@@ -417,6 +417,8 @@ describe('PartyManageComponent — asking before removing or disbanding (feature
     expect(parties['removeMember']).toHaveBeenCalledWith('party-1', crew.userId);
     expect(dialog(fixture)).toBeNull();
     expect(parties['getParty']).toHaveBeenCalledTimes(2);
+    // The dialog and the row that asked are gone; focus lands on the tab, which stays (CodeRabbit, PR #394).
+    expect(document.activeElement).toBe(el(fixture, '[data-roster-tab="In"]'));
   });
 
   it('takes no second press while the removal is on its way', () => {
@@ -440,6 +442,7 @@ describe('PartyManageComponent — asking before removing or disbanding (feature
 
     expect(dialog(fixture)).toBeNull();
     expect(el(fixture, '[data-testid="party-remove-notice"]')?.textContent).toContain("Lena isn't in the party any more.");
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="party-remove-notice"]'));
     expect(fixture.nativeElement.textContent).not.toContain('Server wording');
     expect(parties['getParty']).toHaveBeenCalledTimes(2);
   });

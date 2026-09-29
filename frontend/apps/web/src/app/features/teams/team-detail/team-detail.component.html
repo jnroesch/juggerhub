@@ -75,7 +75,7 @@
     }
     <!-- Feature 064 — page level too: the reload that follows redraws the roster it would sit in. -->
     @if (removeNotice(); as notice) {
-      <jh-alert tone="info" class="mt-sm" data-testid="remove-notice">{{ notice.key | transloco: { name: notice.name } }}</jh-alert>
+      <jh-alert tone="info" class="mt-sm outline-none" tabindex="-1" data-testid="remove-notice">{{ notice.key | transloco: { name: notice.name } }}</jh-alert>
     }
 
     <div class="mt-lg grid grid-cols-1 gap-lg lg:grid-cols-[minmax(0,1fr)_300px]">
