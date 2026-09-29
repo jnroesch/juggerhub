@@ -297,3 +297,195 @@ describe('PartyManageComponent — the applied status', () => {
     expect(status(render({ status: 'Open', appliedGroup: null }))).toBeUndefined();
   });
 });
+
+/**
+ * Feature 064 (GH #385) — the party page asks before it removes a player or disbands the party, in
+ * its own dialog (never the browser's `confirm`), and nobody is sent anything about a removal. These
+ * pin what the page asks, that nothing happens before the answer, and how each outcome is told.
+ */
+describe('PartyManageComponent — asking before removing or disbanding (feature 064)', () => {
+  let parties: Record<string, jest.Mock>;
+  let navigate: jest.SpyInstance;
+  let confirmSpy: jest.SpyInstance;
+
+  const crew = { userId: 'u-lena', handle: 'lena', displayName: 'Lena', role: 'Member', isYou: false, pompfen: [], viaMarket: false };
+  const decliner = { userId: 'u-jonas', handle: 'jonas', displayName: 'Jonas', role: 'Member', isYou: false, pompfen: [], viaMarket: false };
+
+  function render(): ComponentFixture<PartyManageComponent> {
+    TestBed.resetTestingModule();
+    parties = {
+      getParty: jest.fn().mockReturnValue(of(party({ myState: 'Admin', myRole: 'Admin' }))),
+      listMembers: jest.fn((_id: string, group: string) => of(page(group === 'Declined' ? [decliner] : [crew]))),
+      listNews: jest.fn().mockReturnValue(of(page([]))),
+      removeMember: jest.fn(),
+      disband: jest.fn(),
+    };
+    TestBed.configureTestingModule({
+      imports: [PartyManageComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        ...translocoLocaleTestingProviders(),
+        { provide: PartyService, useValue: parties },
+        { provide: ChatService, useValue: { openPartyChat: jest.fn() } },
+        { provide: ActivatedRoute, useValue: { snapshot: { paramMap: convertToParamMap({ id: 'party-1' }) } } },
+      ],
+    });
+    navigate = jest.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
+    confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+    const fixture = TestBed.createComponent(PartyManageComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  afterEach(() => confirmSpy.mockRestore());
+
+  const el = <T extends HTMLElement = HTMLElement>(fixture: ComponentFixture<PartyManageComponent>, selector: string): T | null =>
+    fixture.nativeElement.querySelector(selector);
+
+  function click(fixture: ComponentFixture<PartyManageComponent>, selector: string): void {
+    const target = el(fixture, selector);
+    if (!target) {
+      throw new Error(`Nothing matches ${selector}`);
+    }
+    target.click();
+    fixture.detectChanges();
+  }
+
+  function openTab(fixture: ComponentFixture<PartyManageComponent>, label: string): void {
+    const tab = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>).find((b) =>
+      b.textContent?.trim().startsWith(label),
+    );
+    if (!tab) {
+      throw new Error(`No tab ${label}`);
+    }
+    tab.click();
+    fixture.detectChanges();
+  }
+
+  const dialog = (fixture: ComponentFixture<PartyManageComponent>) => el(fixture, '[data-testid="confirm-dialog"]');
+  const failure = (status: number) =>
+    throwError(() => new HttpErrorResponse({ status, error: { detail: 'Server wording, never shown' } }));
+
+  it('asks before taking a crew member out, and takes nobody out yet', () => {
+    const fixture = render();
+
+    click(fixture, `[data-party-remove="${crew.userId}"]`);
+
+    expect(dialog(fixture)?.textContent).toContain('Take Lena out of the party?');
+    expect(dialog(fixture)?.textContent).toContain("They won't be sent a message about it.");
+    expect(el(fixture, '[data-testid="confirm-dialog-keep"]')?.textContent?.trim()).toBe('Keep Lena');
+    expect(el(fixture, '[data-testid="confirm-dialog-confirm"]')?.textContent?.trim()).toBe('Remove from party');
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="confirm-dialog-keep"]'));
+    expect(parties['removeMember']).not.toHaveBeenCalled();
+  });
+
+  it('asks about clearing the answer on the Declined tab', () => {
+    const fixture = render();
+
+    openTab(fixture, 'Declined');
+    click(fixture, `[data-party-remove="${decliner.userId}"]`);
+
+    expect(dialog(fixture)?.textContent).toContain("Clear Jonas's answer?");
+    expect(dialog(fixture)?.textContent).toContain('No reply');
+    expect(el(fixture, '[data-testid="confirm-dialog-confirm"]')?.textContent?.trim()).toBe('Clear answer');
+  });
+
+  it('changes nothing on Keep or Escape, and hands focus back to the Remove button', () => {
+    const fixture = render();
+
+    click(fixture, `[data-party-remove="${crew.userId}"]`);
+    click(fixture, '[data-testid="confirm-dialog-keep"]');
+    expect(dialog(fixture)).toBeNull();
+    expect(document.activeElement).toBe(el(fixture, `[data-party-remove="${crew.userId}"]`));
+
+    click(fixture, `[data-party-remove="${crew.userId}"]`);
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+    expect(dialog(fixture)).toBeNull();
+
+    expect(parties['removeMember']).not.toHaveBeenCalled();
+  });
+
+  it('removes once on confirm and shows the party as it now is', () => {
+    const fixture = render();
+    parties['removeMember'].mockReturnValue(of(undefined));
+
+    click(fixture, `[data-party-remove="${crew.userId}"]`);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+
+    expect(parties['removeMember']).toHaveBeenCalledTimes(1);
+    expect(parties['removeMember']).toHaveBeenCalledWith('party-1', crew.userId);
+    expect(dialog(fixture)).toBeNull();
+    expect(parties['getParty']).toHaveBeenCalledTimes(2);
+  });
+
+  it('takes no second press while the removal is on its way', () => {
+    const fixture = render();
+    parties['removeMember'].mockReturnValue(new Subject<void>());
+
+    click(fixture, `[data-party-remove="${crew.userId}"]`);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    el<HTMLButtonElement>(fixture, '[data-testid="confirm-dialog-confirm"]')?.click();
+
+    expect(parties['removeMember']).toHaveBeenCalledTimes(1);
+    expect(el<HTMLButtonElement>(fixture, '[data-testid="confirm-dialog-confirm"]')?.textContent?.trim()).toBe('Removing…');
+  });
+
+  it('says the player is no longer in the party when they already left, and reloads', () => {
+    const fixture = render();
+    parties['removeMember'].mockReturnValue(failure(404));
+
+    click(fixture, `[data-party-remove="${crew.userId}"]`);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+
+    expect(dialog(fixture)).toBeNull();
+    expect(el(fixture, '[data-testid="party-remove-notice"]')?.textContent).toContain("Lena isn't in the party any more.");
+    expect(fixture.nativeElement.textContent).not.toContain('Server wording');
+    expect(parties['getParty']).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the question open on any other failure, in our words', () => {
+    const fixture = render();
+    parties['removeMember'].mockReturnValue(failure(500));
+
+    click(fixture, `[data-party-remove="${crew.userId}"]`);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+
+    expect(dialog(fixture)).not.toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog-error"]')?.textContent).toContain("That didn't work.");
+    expect(fixture.nativeElement.textContent).not.toContain('Server wording');
+  });
+
+  it('asks before disbanding in its own dialog, never the browser box, and disbands on confirm', () => {
+    const fixture = render();
+    parties['disband'].mockReturnValue(of(undefined));
+
+    click(fixture, '[data-testid="party-disband"]');
+
+    expect(dialog(fixture)?.textContent).toContain('Disband this party?');
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="confirm-dialog-keep"]'));
+    expect(parties['disband']).not.toHaveBeenCalled();
+
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+
+    expect(parties['disband']).toHaveBeenCalledWith('party-1');
+    expect(navigate).toHaveBeenCalledWith(['/t', 'rheinfeuer']);
+    expect(confirmSpy).not.toHaveBeenCalled();
+  });
+
+  it('keeps the party on Keep, and reports a failed disband in the dialog', () => {
+    const fixture = render();
+    parties['disband'].mockReturnValue(failure(500));
+
+    click(fixture, '[data-testid="party-disband"]');
+    click(fixture, '[data-testid="confirm-dialog-keep"]');
+    expect(parties['disband']).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="party-disband"]'));
+
+    click(fixture, '[data-testid="party-disband"]');
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    expect(el(fixture, '[data-testid="confirm-dialog-error"]')?.textContent).toContain("The party couldn't be disbanded.");
+    expect(navigate).not.toHaveBeenCalled();
+    expect(confirmSpy).not.toHaveBeenCalled();
+  });
+});

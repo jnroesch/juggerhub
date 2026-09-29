@@ -1,5 +1,5 @@
 import { Component, ElementRef, Injector, OnInit, afterNextRender, computed, inject, signal } from '@angular/core';
-import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, ChipDirective, ConfirmDialogComponent, EmptyStateComponent, IconComponent, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { FormsModule } from '@angular/forms';
@@ -30,7 +30,7 @@ const APPLIED_GROUP_KEYS: Record<SignupStatus, string> = {
  */
 @Component({
   selector: 'jh-party-manage',
-  imports: [RouterLink, TranslocoDatePipe, FormsModule, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent, NewsPostComponent],
+  imports: [RouterLink, TranslocoDatePipe, FormsModule, ButtonDirective, ChipDirective, LoadingComponent, AlertComponent, EmptyStateComponent, CardComponent, TranslocoPipe, PluralKeyPipe, IconComponent, NewsPostComponent, ConfirmDialogComponent],
   // Feature 059 — an open editor and its typed text belong to the page, not to one post's controls.
   providers: [NewsPostEditing],
   templateUrl: './party-manage.component.html',
@@ -211,8 +211,121 @@ export class PartyManageComponent implements OnInit {
     this.parties.nudge(this.id, userId).subscribe({ error: () => undefined });
   }
 
-  protected remove(userId: string): void {
-    this.run(() => this.parties.removeMember(this.id, userId));
+  // --- Asking first (feature 064): Remove and Disband go through one in-page dialog ---------------
+
+  /**
+   * What the dialog is asking about (null = closed). A removal remembers the tab it was asked from:
+   * on *In* it takes a player out of the crew, on *Declined* it clears their answer — two different
+   * questions for one button.
+   */
+  protected readonly pendingConfirm = signal<
+    { kind: 'remove'; member: PartyMember; tab: PartyRosterGroup } | { kind: 'disband' } | null
+  >(null);
+  protected readonly confirmBusy = signal(false);
+  /** Why the last attempt failed, shown in the dialog. A translation key. */
+  protected readonly confirmError = signal<string | null>(null);
+  /**
+   * The player was already gone when the removal was confirmed. Page level: the reload that follows
+   * redraws the roster the note would otherwise sit in. A translation key and the name it needs.
+   */
+  protected readonly removeNotice = signal<{ key: string; name: string } | null>(null);
+
+  /** The dialog's wording, by what it is asking about. Translation keys. */
+  protected readonly confirmCopy = computed(() => {
+    const pending = this.pendingConfirm();
+    if (!pending) {
+      return null;
+    }
+    if (pending.kind === 'disband') {
+      return {
+        title: 'parties.manage.disbandTitle',
+        body: 'parties.manage.disbandBody',
+        keep: 'parties.manage.disbandKeep',
+        confirm: 'parties.manage.disbandConfirm',
+        busy: 'parties.manage.disbanding',
+        name: '',
+      };
+    }
+    const declined = pending.tab === 'Declined';
+    return {
+      title: declined ? 'parties.manage.removeDeclinedTitle' : 'parties.manage.removeInTitle',
+      body: declined ? 'parties.manage.removeDeclinedBody' : 'parties.manage.removeInBody',
+      keep: declined ? 'parties.manage.keepAnswer' : 'parties.manage.keepMember',
+      confirm: declined ? 'parties.manage.removeDeclinedConfirm' : 'parties.manage.removeInConfirm',
+      busy: declined ? 'parties.manage.clearing' : 'parties.manage.removing',
+      name: pending.member.displayName,
+    };
+  });
+
+  protected askRemove(member: PartyMember): void {
+    this.confirmError.set(null);
+    this.removeNotice.set(null);
+    this.pendingConfirm.set({ kind: 'remove', member, tab: this.activeTab() });
+  }
+
+  protected askDisband(): void {
+    this.confirmError.set(null);
+    this.pendingConfirm.set({ kind: 'disband' });
+  }
+
+  protected dismissConfirm(): void {
+    const pending = this.pendingConfirm();
+    if (!pending || this.confirmBusy()) {
+      return;
+    }
+    this.pendingConfirm.set(null);
+    this.confirmError.set(null);
+    // Back to the button that asked, or a keyboard user is left on the page body.
+    this.focusAfterRender(pending.kind === 'disband' ? '[data-testid="party-disband"]' : `[data-party-remove="${pending.member.userId}"]`);
+  }
+
+  protected confirmPending(): void {
+    const pending = this.pendingConfirm();
+    if (!pending || this.confirmBusy()) {
+      return;
+    }
+    this.confirmBusy.set(true);
+    this.confirmError.set(null);
+    if (pending.kind === 'disband') {
+      this.parties.disband(this.id).subscribe({
+        next: () => {
+          this.confirmBusy.set(false);
+          this.pendingConfirm.set(null);
+          const slug = this.party()?.teamSlug;
+          this.router.navigate(slug ? ['/t', slug] : ['/']);
+        },
+        error: () => {
+          // Our own sentence, never the server's English `detail` (GH #179); confirming again is the retry.
+          this.confirmBusy.set(false);
+          this.confirmError.set('parties.manage.disbandFailed');
+        },
+      });
+      return;
+    }
+
+    this.parties.removeMember(this.id, pending.member.userId).subscribe({
+      next: () => {
+        this.confirmBusy.set(false);
+        this.pendingConfirm.set(null);
+        this.reload();
+      },
+      error: (err) => {
+        this.confirmBusy.set(false);
+        // Branch on the status, never the server's `detail` (GH #179). A 404: the player already left,
+        // or the party is gone — say so, and show the page as it now is.
+        if (err instanceof HttpErrorResponse && err.status === 404) {
+          this.pendingConfirm.set(null);
+          this.removeNotice.set({ key: 'parties.manage.removeGone', name: pending.member.displayName });
+          this.reload();
+          return;
+        }
+        this.confirmError.set('parties.manage.removeFailed');
+      },
+    });
+  }
+
+  private focusAfterRender(selector: string): void {
+    afterNextRender(() => this.host.nativeElement.querySelector<HTMLElement>(selector)?.focus(), { injector: this.injector });
   }
 
   protected apply(): void {
@@ -221,20 +334,6 @@ export class PartyManageComponent implements OnInit {
 
   protected withdraw(): void {
     this.run(() => this.parties.withdraw(this.id));
-  }
-
-  protected disband(): void {
-    if (!confirm(this.transloco.translate('parties.manage.confirmDisband'))) {
-      return;
-    }
-    this.acting.set(true);
-    this.parties.disband(this.id).subscribe({
-      next: () => {
-        const slug = this.party()?.teamSlug;
-        this.router.navigate(slug ? ['/t', slug] : ['/']);
-      },
-      error: (err) => this.fail(err),
-    });
   }
 
   private run(op: () => Observable<unknown>): void {

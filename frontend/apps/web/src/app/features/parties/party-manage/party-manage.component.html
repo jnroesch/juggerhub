@@ -28,6 +28,10 @@
     @if (partyChatNotice(); as key) {
       <jh-alert tone="info" class="mt-sm" data-testid="party-chat-notice">{{ key | transloco }}</jh-alert>
     }
+    <!-- Feature 064 — page level too: the reload that follows redraws the roster it would sit in. -->
+    @if (removeNotice(); as notice) {
+      <jh-alert tone="info" class="mt-sm" data-testid="party-remove-notice">{{ notice.key | transloco: { name: notice.name } }}</jh-alert>
+    }
 
     <!-- Member (non-admin) self actions -->
     @if (!isAdmin()) {
@@ -133,7 +137,9 @@
                 @if (activeTab() === 'NoResponse') {
                   <button type="button" (click)="nudge(m.userId)" jhButton variant="secondary" size="sm">{{ 'parties.manage.nudge' | transloco }}</button>
                 } @else if (!m.isYou) {
-                  <button type="button" (click)="remove(m.userId)" jhButton variant="danger" size="sm">{{ 'parties.manage.remove' | transloco }}</button>
+                  <!-- Feature 064: asks first (the dialog below), never removes on this press. -->
+                  <button type="button" (click)="askRemove(m)" [attr.data-party-remove]="m.userId" data-testid="party-remove"
+                    jhButton variant="danger" size="sm">{{ 'parties.manage.remove' | transloco }}</button>
                 }
               </div>
             }
@@ -205,11 +211,27 @@
           <div class="flex items-center justify-between rounded-md border border-border-muted px-md py-sm text-body-sm text-muted">{{ 'parties.manage.travelCarpool' | transloco }} <span jhChip>{{ 'parties.manage.later' | transloco }}</span></div>
         </div>
         <div class="mt-md border-t border-border-muted pt-md">
-          <button type="button" (click)="disband()" [disabled]="acting()"
+          <button type="button" (click)="askDisband()" [disabled]="acting()" data-testid="party-disband"
             jhButton variant="danger" class="w-full">{{ 'parties.manage.disband' | transloco }}</button>
           <p class="mt-xs text-center text-caption text-muted">{{ 'parties.manage.disbandHint' | transloco }}</p>
         </div>
       </jh-card>
+    }
+
+    <!-- Remove a player or disband the party (feature 064): one in-page question, never the browser's
+         own box. Page level, outside every card: cards clip. -->
+    @if (confirmCopy(); as copy) {
+      <jh-confirm-dialog
+        [heading]="copy.title | transloco: { name: copy.name }"
+        [body]="copy.body | transloco"
+        [keepLabel]="copy.keep | transloco: { name: copy.name }"
+        [confirmLabel]="copy.confirm | transloco"
+        [busyLabel]="copy.busy | transloco"
+        [busy]="confirmBusy()"
+        [error]="confirmError() ? (confirmError()! | transloco) : null"
+        (confirmed)="confirmPending()"
+        (dismissed)="dismissConfirm()"
+      />
     }
   }
 </main>
