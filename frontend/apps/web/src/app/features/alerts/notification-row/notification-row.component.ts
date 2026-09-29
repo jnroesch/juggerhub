@@ -12,6 +12,8 @@ import {
   isTeamInvite,
   isTeamJoinRequest,
   isTeamJoinRequestAnswered,
+  isTeamMemberDeparted,
+  isTeamMemberRemoved,
   isTeamNews,
   isTeamPoll,
   isTeamRoleChanged,
@@ -90,6 +92,10 @@ export class NotificationRowComponent {
       // Feature 062 — the poll is answered on the team page; fragment() points at the poll itself.
       return `/t/${n.payload.teamSlug}`;
     }
+    if (isTeamMemberRemoved(n) || isTeamMemberDeparted(n)) {
+      // Feature 064 — the team page: as a non-member now, or the roster the player left.
+      return `/t/${n.payload.teamSlug}`;
+    }
     return null;
   });
 
@@ -155,6 +161,15 @@ export class NotificationRowComponent {
         ? t('alerts.row.joinAcceptedTitle', { team: n.payload.teamName })
         : t('alerts.row.joinDeclinedTitle', { team: n.payload.teamName });
     }
+    if (isTeamMemberRemoved(n)) {
+      // The team and nothing else: the row has no actor, and would name nobody if it had one (feature 064, FR-011).
+      return t('alerts.row.memberRemovedTitle', { team: n.payload.teamName });
+    }
+    if (isTeamMemberDeparted(n)) {
+      // The player is the actor, named as they are now; which admin removed them is stated nowhere (FR-015/FR-016).
+      const params = { player: n.actorDisplayName ?? t('alerts.row.formerPlayer'), team: n.payload.teamName };
+      return n.payload.removed ? t('alerts.row.memberRemovedByAdminTitle', params) : t('alerts.row.memberLeftTitle', params);
+    }
     return t('alerts.row.fallbackTitle');
   });
 
@@ -204,6 +219,12 @@ export class NotificationRowComponent {
     }
     if (isTeamJoinRequestAnswered(n)) {
       return n.payload.accepted ? t('alerts.row.joinAcceptedSupporting') : t('alerts.row.joinDeclinedSupporting');
+    }
+    if (isTeamMemberRemoved(n)) {
+      return t('alerts.row.memberRemovedSupporting');
+    }
+    if (isTeamMemberDeparted(n)) {
+      return t('alerts.row.memberDepartedSupporting');
     }
     return '';
   });

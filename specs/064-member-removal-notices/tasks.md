@@ -47,7 +47,7 @@ alongside once the dialog exists.
 
 ### Frontend shared
 
-- [ ] T012 [P] Add Lucide's `user-minus` glyph (verbatim: `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="22" x2="16" y1="11" y2="11"/>`) in alphabetical position in `frontend/apps/web/src/app/shared/ui/icon/icons.ts`.
+- [X] T012 [P] Add Lucide's `user-minus` glyph (verbatim: `<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="22" x2="16" y1="11" y2="11"/>`) in alphabetical position in `frontend/apps/web/src/app/shared/ui/icon/icons.ts`.
 - [X] T013 Write `frontend/apps/web/src/app/shared/ui/confirm-dialog/confirm-dialog.component.spec.ts` first: renders heading/body/answers; `role="dialog"`, `aria-modal`, `aria-labelledby`/`describedby` resolve; the keep answer is `document.activeElement` after first render; Escape emits `dismissed`; keep emits `dismissed`; confirm emits `confirmed`; while `busy` both answers are disabled, the confirm answer shows `busyLabel`, and Escape emits nothing; Tab from the last answer wraps to the first and Shift+Tab from the first to the last; `error` renders one `role="alert"` line.
 - [X] T014 Create `frontend/apps/web/src/app/shared/ui/confirm-dialog/confirm-dialog.component.{ts,html,css}` per [contracts/ui.md](./contracts/ui.md): signal inputs `heading`, `body`, `keepLabel`, `confirmLabel`, `busyLabel`, `busy`, `error`; outputs `confirmed`, `dismissed`; markup copied from the news-post delete dialog (fixed scrim, `items-end` bottom sheet → `sm:items-center`, `max-w-container-sm`, header/body/footer borders, `flex flex-wrap` answers, keep `secondary`, confirm `danger`, both at the **default** size — 44px touch targets, never `size="sm"`'s 36px, the 063 lesson); focus the keep answer in `afterNextRender` (zoneless — never an effect, GH #344); `trapTab`; `@HostListener('document:keydown.escape')`. `data-testid`s from the contract. Export it from `frontend/apps/web/src/app/shared/ui/index.ts`. Run T013 green.
 
@@ -137,10 +137,10 @@ alongside once the dialog exists.
 
 ## Phase 7: The new Alerts rows (serves US2 and US3)
 
-- [ ] T030 [P] [US2] Add keys ×3: `alerts.row.memberRemovedTitle` ("You're no longer a member of {{team}}"), `alerts.row.memberLeftTitle` ("{{name}} left {{team}}"), `alerts.row.memberRemovedByAdminTitle` ("{{name}} was removed from {{team}}"). Reuse the placeholder key the `TeamJoinRequest` row uses for a missing actor name.
-- [ ] T031 [US2] In `frontend/apps/web/src/app/core/models/notification.models.ts`: add both types to the union, payload interfaces (`removed: boolean`), and `isTeamMemberRemoved` / `isTeamMemberDeparted` guards, mirroring `TeamJoinRequestAnswered`.
-- [ ] T032 [US2] Extend `frontend/apps/web/src/app/features/alerts/notification-row/notification-row.component.spec.ts`: Removed → title with team, no supporting line, link `/t/{slug}`, no actor rendered even if `actorDisplayName` were set; Departed left/removed → the right title with the actor name, placeholder when `actorDisplayName` is null, link `/t/{slug}`; both use the `user-minus` icon in the info tone.
-- [ ] T033 [US2] In `notification-row.component.ts`/`.html`: `link()`, `title()` arms (supporting `''`), the icon `@case` for both → `user-minus`, and the tone class list (info, like `TeamRoleChanged`). Run T032 green.
+- [X] T030 [P] [US2] Add keys ×3: `alerts.row.memberRemovedTitle` ("You're no longer a member of {{team}}"), `alerts.row.memberLeftTitle` ("{{name}} left {{team}}"), `alerts.row.memberRemovedByAdminTitle` ("{{name}} was removed from {{team}}"). Reuse the placeholder key the `TeamJoinRequest` row uses for a missing actor name.
+- [X] T031 [US2] In `frontend/apps/web/src/app/core/models/notification.models.ts`: add both types to the union, payload interfaces (`removed: boolean`), and `isTeamMemberRemoved` / `isTeamMemberDeparted` guards, mirroring `TeamJoinRequestAnswered`.
+- [X] T032 [US2] Extend `frontend/apps/web/src/app/features/alerts/notification-row/notification-row.component.spec.ts`: Removed → title with team, no supporting line, link `/t/{slug}`, no actor rendered even if `actorDisplayName` were set; Departed left/removed → the right title with the actor name, placeholder when `actorDisplayName` is null, link `/t/{slug}`; both use the `user-minus` icon in the info tone.
+- [X] T033 [US2] In `notification-row.component.ts`/`.html`: `link()`, `title()` arms (supporting `''`), the icon `@case` for both → `user-minus`, and the tone class list (info, like `TeamRoleChanged`). Run T032 green.
 
 **Checkpoint**: commit `feat(064): the Alerts inbox shows removals and departures (#385)`.
 
