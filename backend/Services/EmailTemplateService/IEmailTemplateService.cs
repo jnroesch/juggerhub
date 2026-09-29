@@ -84,6 +84,17 @@ public interface IEmailTemplateService
     /// <summary>Generate the email telling a player the team declined their request, pointing them at other teams. It names no admin.</summary>
     Task<string> GenerateJoinRequestDeclinedEmailAsync(string recipientName, string teamName, string browseUrl, string culture = Common.SupportedLanguages.Default);
 
+    // --- Feature 064: departures. Neither email names the admin who removed someone. -------------
+
+    /// <summary>Generate the email telling a player they are no longer a member of a team. It names the team and nothing else.</summary>
+    Task<string> GenerateRemovedFromTeamEmailAsync(string recipientName, string teamName, string teamUrl, string culture = Common.SupportedLanguages.Default);
+
+    /// <summary>Generate the email telling one of a team's admins that a player left the team.</summary>
+    Task<string> GenerateMemberLeftEmailAsync(string recipientName, string playerName, string teamName, string teamUrl, string culture = Common.SupportedLanguages.Default);
+
+    /// <summary>Generate the email telling one of a team's admins that a player was removed from the team.</summary>
+    Task<string> GenerateMemberRemovedEmailAsync(string recipientName, string playerName, string teamName, string teamUrl, string culture = Common.SupportedLanguages.Default);
+
     // --- Feature 062: team polls. Addressed to a member, so localized by their culture. -------------
 
     /// <summary>

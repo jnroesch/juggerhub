@@ -136,6 +136,43 @@ public sealed class PushLocalizer : IPushLocalizer
                 ["de"] = "Deine Beitrittsanfrage wurde abgelehnt",
                 ["es"] = "Tu solicitud para unirte ha sido rechazada",
             },
+
+            // --- Feature 064: departures. The title is the team (the subject). --------------------
+
+            // To the removed player. Names no admin and gives no reason (spec FR-011).
+            ["teamMemberRemoved.body"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're no longer a member of this team",
+                ["de"] = "Du bist kein Mitglied dieses Teams mehr",
+                ["es"] = "Ya no eres miembro de este equipo",
+            },
+            // To the team's admins. {0} = the departing player's display name — resolved at send time
+            // from the actor, never read from a stored payload (037 FR-023). Neither names the admin
+            // who removed them (spec FR-015).
+            ["teamMemberLeft.body"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} left the team",
+                ["de"] = "{0} hat das Team verlassen",
+                ["es"] = "{0} ha dejado el equipo",
+            },
+            ["teamMemberLeft.bodyAnonymous"] = new Dictionary<string, string>
+            {
+                ["en"] = "A player left the team",
+                ["de"] = "Jemand hat das Team verlassen",
+                ["es"] = "Alguien ha dejado el equipo",
+            },
+            ["teamMemberRemovedByAdmin.body"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} was removed from the team",
+                ["de"] = "{0} wurde aus dem Team entfernt",
+                ["es"] = "Se ha retirado a {0} del equipo",
+            },
+            ["teamMemberRemovedByAdmin.bodyAnonymous"] = new Dictionary<string, string>
+            {
+                ["en"] = "A player was removed from the team",
+                ["de"] = "Jemand wurde aus dem Team entfernt",
+                ["es"] = "Se ha retirado a alguien del equipo",
+            },
             // Title and body used when a payload is missing the names the sentence needs. Rare, and
             // it still tells the member something happened rather than dropping the notification.
             ["fallback.title"] = new Dictionary<string, string>

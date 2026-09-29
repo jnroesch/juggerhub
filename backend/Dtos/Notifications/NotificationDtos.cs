@@ -106,3 +106,38 @@ public sealed record TeamPollPayload(
     string TeamName,
     Guid PollId,
     string Question);
+
+/// <summary>
+/// Payload for <see cref="NotificationType.TeamMemberRemoved"/> (feature 064): the team an admin
+/// removed the recipient from. The team and nothing else — the notice names no admin, gives no
+/// reason and suggests nothing (spec FR-011).
+/// </summary>
+/// <remarks>
+/// <b>Never add the removing admin</b>, not even as an id: the row carries no actor for the same
+/// reason. <see cref="TeamSlug"/> and <see cref="TeamName"/> are what a team rename rewrites
+/// (feature 061).
+/// </remarks>
+public sealed record TeamMemberRemovedPayload(
+    string TeamSlug,
+    string TeamName);
+
+/// <summary>
+/// Payload for <see cref="NotificationType.TeamMemberDeparted"/> (feature 064): which team a player
+/// left, and whether they left on their own (<c>false</c>) or another admin removed them
+/// (<c>true</c>).
+/// </summary>
+/// <remarks>
+/// <para>
+/// <b>Never add the player's name, or anyone's.</b> An admin's row outlives the departed player's
+/// account, and feature 037 (FR-023) forbids a surviving record that identifies an erased member; the
+/// player is the row's actor instead. Which admin removed them is stated nowhere (spec FR-015).
+/// </para>
+/// <para>
+/// <see cref="Removed"/> is a bool for the reason given on
+/// <see cref="TeamJoinRequestAnsweredPayload"/>: an enum here would be stored as a number (#370).
+/// </para>
+/// </remarks>
+public sealed record TeamMemberDepartedPayload(
+    string TeamSlug,
+    string TeamName,
+    bool Removed);

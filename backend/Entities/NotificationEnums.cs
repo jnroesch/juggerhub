@@ -66,6 +66,28 @@ public enum NotificationType
     /// payload's <c>teamSlug</c> is what a team rename finds the row by (feature 061).
     /// </remarks>
     TeamPoll = 11,
+
+    /// <summary>
+    /// An admin removed the recipient from a team (feature 064). Link-only: it opens the team page.
+    /// </summary>
+    /// <remarks>
+    /// The payload names the team and nothing else, and the row carries <b>no actor, ever</b>: the
+    /// removal notice must not identify the admin who removed them, in any channel (spec FR-011), and
+    /// a field the client merely chooses not to render would still identify them.
+    /// </remarks>
+    TeamMemberRemoved = 12,
+
+    /// <summary>
+    /// A member left a team the recipient administers, or another admin removed them (feature 064).
+    /// One row per current admin but the one who acted. Link-only: it opens the team page. The
+    /// payload's <c>removed</c> says which of the two happened, and never who removed them.
+    /// </summary>
+    /// <remarks>
+    /// The departing player is the row's <b>actor</b> and is deliberately absent from the payload,
+    /// for the reason given on <see cref="TeamJoinRequest"/>: an admin's row outlives the player's
+    /// account, and feature 037 (FR-023) forbids a surviving record that identifies an erased member.
+    /// </remarks>
+    TeamMemberDeparted = 13,
 }
 
 /// <summary>
@@ -81,7 +103,10 @@ public enum NotificationCategory
     /// <see cref="NotificationType.TeamRoleChanged"/>), and — feature 058 — people asking to join
     /// (<see cref="NotificationType.TeamJoinRequest"/>) and the answer to a request
     /// (<see cref="NotificationType.TeamJoinRequestAnswered"/>). The settings copy already reads
-    /// "people joining or leaving", so neither needed a category of its own.
+    /// "people joining or leaving", so neither needed a category of its own. Feature 064 made the
+    /// "leaving" half true: a removed player hears of it
+    /// (<see cref="NotificationType.TeamMemberRemoved"/>) and the team's admins hear of every
+    /// departure (<see cref="NotificationType.TeamMemberDeparted"/>).
     /// </summary>
     InvitesAndRoster = 0,
 
@@ -161,6 +186,8 @@ public static class NotificationCategories
         NotificationType.MarketInvite => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamJoinRequest => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamJoinRequestAnswered => NotificationCategory.InvitesAndRoster,
+        NotificationType.TeamMemberRemoved => NotificationCategory.InvitesAndRoster,
+        NotificationType.TeamMemberDeparted => NotificationCategory.InvitesAndRoster,
         NotificationType.TeamNews => NotificationCategory.TeamNews,
         NotificationType.PartyNews => NotificationCategory.TeamNews,
         NotificationType.TeamPoll => NotificationCategory.TeamNews,

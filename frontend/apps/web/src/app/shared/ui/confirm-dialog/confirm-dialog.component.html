@@ -1,0 +1,26 @@
+<!-- Fixed, so a card's clipping never reaches it; the host renders it at page level. The scrim is
+     DESIGN.md's `surface-inverse/40`. No motion: like the page's other confirmations, it simply appears. -->
+<div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
+  <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
+    role="dialog" aria-modal="true" [attr.aria-labelledby]="id + '-title'" [attr.aria-describedby]="id + '-body'"
+    (keydown.tab)="trapTab($event)" (keydown.shift.tab)="trapTab($event)"
+    data-testid="confirm-dialog">
+    <div class="border-b border-border-muted px-md py-sm">
+      <h2 [id]="id + '-title'" class="break-words text-body-lg font-semibold text-heading">{{ heading() }}</h2>
+    </div>
+    <div class="px-md py-md">
+      <p [id]="id + '-body'" class="text-body-sm text-body">{{ body() }}</p>
+      @if (error(); as message) {
+        <p class="mt-sm text-body-sm text-danger-fg" role="alert" data-testid="confirm-dialog-error">{{ message }}</p>
+      }
+    </div>
+    <!-- Default size (44px): both answers are touch targets. They wrap as whole buttons on a narrow
+         screen rather than truncating a label. -->
+    <div class="flex flex-wrap items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
+      <button #keep type="button" (click)="dismiss()" [disabled]="busy()" data-testid="confirm-dialog-keep"
+        jhButton variant="secondary">{{ keepLabel() }}</button>
+      <button type="button" (click)="confirm()" [disabled]="busy()" data-testid="confirm-dialog-confirm"
+        jhButton variant="danger">{{ busy() && busyLabel() ? busyLabel() : confirmLabel() }}</button>
+    </div>
+  </div>
+</div>
