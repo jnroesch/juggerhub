@@ -479,7 +479,7 @@ and delete a poll with its alerts.
   - rebuild the containers (`docker compose up -d --build backend frontend`);
   - run the e2e suites that open team pages (`trainings`, `onboarding`) with `BASE_URL=http://localhost:3000 MAILPIT_URL=http://localhost:8025`, and fix `frontend/apps/web-e2e/src/support/*` helpers if the page change broke them.
 - [X] T055 Browser walk (the owner's standing rule): walk [quickstart.md](./quickstart.md) scenarios 1–16 in German at **375px and desktop**, one Playwright context per actor, calling `waitFor()` before asserting. Save screenshots of the binding cases for the PR. Read the driver's output, since false passes happen. Fix what the walk finds.
-- [ ] T056 Open the PR `feat(062): team polls (#365)` with `Closes #365`. The PR body lists:
+- [X] T056 Open the PR `feat(062): team polls (#365)` with `Closes #365`. The PR body lists:
   - the nine owner decisions;
   - the legal/Terms change;
   - the residuals from the plan;
