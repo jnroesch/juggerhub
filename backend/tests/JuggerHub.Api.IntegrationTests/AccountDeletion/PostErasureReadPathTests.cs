@@ -178,7 +178,9 @@ public sealed class PostErasureReadPathTests : AccountDeletionTestSupport
             Assert.Null(author.Email);
             Assert.Null(author.NormalizedEmail);
             Assert.Null(author.PhoneNumber);
-            Assert.DoesNotContain("Ada", author.UserName!, StringComparison.OrdinalIgnoreCase);
+            // The placeholder is fresh randomness and nothing else (FR-026). Asserted by shape: a
+            // case-insensitive "no 'Ada' in it" failed whenever the random hex happened to spell "ada".
+            Assert.Matches("^deleted-[0-9a-f]{32}$", author.UserName!);
 
             // And no profile row anywhere, filtered or not.
             Assert.False(await db.PlayerProfiles.IgnoreQueryFilters().AnyAsync(p => p.UserId == leaverId));
