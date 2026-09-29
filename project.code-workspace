@@ -60,7 +60,7 @@
       "specs": true
     },
     "terminal.integrated.defaultProfile.windows": "PowerShell",
-    // The profiles below that run repo-level commands (compose files, graphify-out) `Set-Location`
+    // The profiles below that run repo-level commands (compose files) `Set-Location`
     // to the repository root first: in a multi-root workspace a new terminal opens in whichever
     // folder you pick, and `-f docker-compose.debug.yml` is resolved against that.
     "terminal.integrated.profiles.windows": {
@@ -130,18 +130,6 @@
         "args": ["-NoExit", "-Command", "kubectl config current-context; kubectl -n juggerhub port-forward svc/postgres 5433:5432"],
         "icon": "plug",
         "color": "terminal.ansiCyan"
-      },
-      "Graphify: View Graph": {
-        "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder:Repo}'; Start-Process \"$PWD/graphify-out/graph.html\""],
-        "icon": "graph",
-        "color": "terminal.ansiGreen"
-      },
-      "Graphify: Rebuild + View": {
-        "path": "pwsh.exe",
-        "args": ["-NoExit", "-Command", "Set-Location '${workspaceFolder:Repo}'; graphify update .; Start-Process \"$PWD/graphify-out/graph.html\""],
-        "icon": "sync",
-        "color": "terminal.ansiGreen"
       }
     },
     "nxConsole.nxWorkspacePath": "frontend",
@@ -206,7 +194,7 @@
   },
   "tasks": {
     "version": "2.0.0",
-    // Every task below runs repo-level commands (compose files, graphify), so they all run from
+    // Every task below runs repo-level commands (compose files), so they all run from
     // the repository root rather than whichever folder a workspace-level task would default to.
     "options": { "cwd": "${workspaceFolder:Repo}" },
     "tasks": [
@@ -331,36 +319,6 @@
           "reveal": "always",
           "panel": "new"
         }
-      },
-      {
-        "label": "🕸️ Graphify: View Graph",
-        "detail": "Open the interactive knowledge graph (graphify-out/graph.html) in your browser",
-        "type": "shell",
-        "command": "xdg-open \"${workspaceFolder:Repo}/graphify-out/graph.html\"",
-        "windows": {
-          "command": "Start-Process \"${workspaceFolder:Repo}/graphify-out/graph.html\""
-        },
-        "osx": {
-          "command": "open \"${workspaceFolder:Repo}/graphify-out/graph.html\""
-        },
-        "icon": { "id": "graph", "color": "terminal.ansiGreen" },
-        "problemMatcher": [],
-        "presentation": { "reveal": "silent", "panel": "shared", "close": true }
-      },
-      {
-        "label": "🕸️ Graphify: Rebuild + View Graph",
-        "detail": "Run `graphify update .` (fast, no-LLM) then open the refreshed graph",
-        "type": "shell",
-        "command": "graphify update . ; xdg-open \"${workspaceFolder:Repo}/graphify-out/graph.html\"",
-        "windows": {
-          "command": "graphify update . ; Start-Process \"${workspaceFolder:Repo}/graphify-out/graph.html\""
-        },
-        "osx": {
-          "command": "graphify update . ; open \"${workspaceFolder:Repo}/graphify-out/graph.html\""
-        },
-        "icon": { "id": "sync", "color": "terminal.ansiGreen" },
-        "problemMatcher": [],
-        "presentation": { "reveal": "always", "panel": "dedicated" }
       }
     ]
   }

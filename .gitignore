@@ -95,10 +95,8 @@ Thumbs.db
 # Git worktrees created by Claude Code. The rest of .claude/ IS tracked (settings.json,
 # skills/), so without this a worktree lands inside a directory git watches and shows up as
 # untracked noise in the main checkout. Prefer creating worktrees as siblings of the repo
-# instead — nothing else that walks the tree from the root (graphify) honours .gitignore.
+# instead.
 .claude/worktrees/
-# Graphify generated knowledge-graph output
-graphify-out/
 # CI-only Playwright artifact dir (bind-mounted out of the e2e container)
 playwright-artifacts/
 # Raw GeoNames downloads used only to regenerate the city seed. Only the gzipped RESULT

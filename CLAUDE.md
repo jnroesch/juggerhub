@@ -5,7 +5,6 @@ This project uses:
 * **Spec-Kit** for product requirements, architecture, plans, and tasks.
 * **DESIGN.md** for UI style, visual identity, and frontend consistency.
 * **GitHub Issues** for intake and prioritization.
-* **Graphify** for codebase understanding and impact analysis.
 * **Custom skills** for specialist workflows.
 
 Implementation is executed directly — task-by-task with small commits and
@@ -13,7 +12,7 @@ verification — or, for a Spec-Kit `tasks.md`, via the `/speckit-implement` ski
 
 Core rule:
 
-> Spec-Kit decides. DESIGN.md styles. GitHub Issues queue. Graphify maps. Skills specialize.
+> Spec-Kit decides. DESIGN.md styles. GitHub Issues queue. Skills specialize.
 
 ---
 
@@ -26,10 +25,9 @@ When sources conflict, use this priority order:
 3. Spec-Kit specs, plans, tasks, and constitution
 4. DESIGN.md for UI/design decisions
 5. GitHub Issue description
-6. Graphify output
-7. General model knowledge
+6. General model knowledge
 
-Never let GitHub Issues, Graphify, or skills override Spec-Kit.
+Never let GitHub Issues or skills override Spec-Kit.
 
 Do not mix OpenSpec into this workflow.
 
@@ -109,38 +107,14 @@ When an issue is selected, classify it:
 
 Then route it:
 
-* Tiny fix → Graphify or direct inspection → implement → verify
-* UI fix → DESIGN.md → Graphify → UI skill → implement → verify
-* Bug → Graphify → inspect code/tests → implement → verify
-* Feature → Spec-Kit → Graphify → DESIGN.md if needed → skills → implement → verify
-* Architecture/refactor → Spec-Kit if architecture changes → Graphify → skills → implement → verify
-* Research → Graphify/specs → summarize findings, no code changes
+* Tiny fix → direct inspection → implement → verify
+* UI fix → DESIGN.md → UI skill → implement → verify
+* Bug → inspect code/tests → implement → verify
+* Feature → Spec-Kit → DESIGN.md if needed → skills → implement → verify
+* Architecture/refactor → Spec-Kit if architecture changes → skills → implement → verify
+* Research → specs/code → summarize findings, no code changes
 
 Promote an issue into Spec-Kit only when it changes behavior, APIs, schema, auth, permissions, billing, architecture, or has unclear acceptance criteria.
-
----
-
-### Graphify
-
-Use Graphify before working in unfamiliar code or estimating impact.
-
-Use it to find:
-
-* related files
-* existing patterns
-* dependencies
-* affected modules
-* backend/frontend flows
-* cross-cutting impact
-
-Prefer scoped queries before broad manual searching, for example:
-
-* `graphify query "where is authentication implemented?"`
-* `graphify query "what handles Stripe webhooks?"`
-* `graphify query "which modules depend on UserService?"`
-* `graphify query "where are team settings implemented?"`
-
-Graphify is contextual, not authoritative. Validate important findings against source code and tests.
 
 ---
 
@@ -151,7 +125,7 @@ Execute known work directly — or, for a Spec-Kit `tasks.md`, via the
 
 * read relevant Spec-Kit files first
 * read DESIGN.md before UI work
-* query Graphify before unfamiliar code edits
+* read the affected code and its tests before unfamiliar edits
 * use relevant skills
 * work in small phases with small commits
 * verify changes
@@ -178,28 +152,26 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 3. Clarify
 4. Create/update plan
 5. Create tasks
-6. Query Graphify
-7. Read DESIGN.md if UI is involved
-8. Select skills
-9. Execute via `/speckit-implement`
-10. Verify
-11. Report changes and spec drift
+6. Read DESIGN.md if UI is involved
+7. Select skills
+8. Execute via `/speckit-implement`
+9. Verify
+10. Report changes and spec drift
 
 ### Bug Fix
 
 1. Read bug report
-2. Query Graphify
-3. Inspect code/tests
-4. Determine expected behavior
-5. Use Spec-Kit only if expected behavior is unclear
-6. Fix it
-7. Add/update tests when useful
-8. Verify
+2. Inspect code/tests
+3. Determine expected behavior
+4. Use Spec-Kit only if expected behavior is unclear
+5. Fix it
+6. Add/update tests when useful
+7. Verify
 
 ### UI Work
 
 1. Read DESIGN.md
-2. Query Graphify for affected components/routes/state
+2. Inspect the affected components/routes/state
 3. Use UI/design skill
 4. Use Spec-Kit if behavior changes
 5. Execute the change
@@ -211,7 +183,7 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 
 ### Refactor
 
-1. Query Graphify for dependencies and impact
+1. Find callers and dependencies to gauge impact
 2. Use Spec-Kit if architecture changes
 3. Preserve behavior unless explicitly told otherwise
 4. Execute in small phases
@@ -220,10 +192,9 @@ Skills guide execution but do not override user instructions, code/tests, Spec-K
 ### Research
 
 1. Read relevant specs/docs
-2. Query Graphify
-3. Inspect code as needed
-4. Summarize findings
-5. Do not modify code unless asked
+2. Inspect code as needed
+3. Summarize findings
+4. Do not modify code unless asked
 
 ---
 
@@ -234,7 +205,7 @@ Before editing code, answer:
 * What type of task is this?
 * Does it require Spec-Kit?
 * Does it affect UI and require DESIGN.md?
-* Has Graphify identified the affected area?
+* Has the affected area been identified?
 * Which skills apply?
 * What verification should run?
 
@@ -250,7 +221,7 @@ If the task is significant and has no spec, use Spec-Kit before implementation.
 * Do not silently change scope.
 * Do not overwrite unrelated changes.
 * Do not ignore failing tests.
-* Do not store secrets in code, docs, specs, GitHub Issues, or Graphify.
+* Do not store secrets in code, docs, specs, or GitHub Issues.
 * Keep code aligned with Spec-Kit and UI aligned with DESIGN.md.
 
 ---
@@ -285,10 +256,10 @@ Never claim verification passed if it was not run.
 
 * “What should I work on next?” → GitHub Issues
 * “Build this feature” → Spec-Kit first
-* “Implement this task” → Spec-Kit/GitHub Issue context → Graphify → implement
-* “Fix this bug” → Graphify → inspect code/tests → implement
-* “Change this UI” → DESIGN.md → Graphify → UI skill → implement
-* “Refactor this” → Graphify first, Spec-Kit if architecture changes
+* “Implement this task” → Spec-Kit/GitHub Issue context → implement
+* “Fix this bug” → inspect code/tests → implement
+* “Change this UI” → DESIGN.md → UI skill → implement
+* “Refactor this” → find callers and dependencies first, Spec-Kit if architecture changes
 * “Continue from last time” → git history, specs, and open GitHub Issues, then validate against code
 
 Always choose the smallest responsible process.
