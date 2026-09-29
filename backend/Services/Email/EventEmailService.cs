@@ -5,8 +5,8 @@ using Microsoft.Extensions.Options;
 namespace JuggerHub.Services.Email;
 
 /// <summary>
-/// Composes the events transactional emails — the co-admin invite (reusing the shared invitation
-/// template) and the cancellation notice — and hands the HTML to <see cref="IEmailSender"/>
+/// Composes the events transactional emails — the co-admin invite and the cancellation notice,
+/// both in the recipient's language — and hands the HTML to <see cref="IEmailSender"/>
 /// (Mailpit locally, Resend on Dev/Prod). Links are built from
 /// <see cref="EmailOptions.FrontendBaseUrl"/>. No new infrastructure.
 /// </summary>
@@ -29,26 +29,14 @@ public sealed class EventEmailService
         _localizer = localizer;
     }
 
+    /// <summary>A targeted co-admin invite, in the recipient's language (GH #379).</summary>
     public async Task SendCoAdminInviteEmailAsync(
-        string toEmail,
-        string recipientName,
-        string eventName,
-        string inviterName,
-        string token,
-        DateTime expiresDate,
-        CancellationToken ct = default)
+        string toEmail, string eventName, string inviterName, string token, DateTime expiresDate,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
     {
         var url = BuildInviteLink(_options.FrontendBaseUrl, token);
-        var html = await _templates.GenerateInvitationEmailAsync(
-            recipientName: recipientName,
-            inviterName: inviterName,
-            inviterEmail: string.Empty,
-            organizationName: eventName,
-            invitationUrl: url,
-            role: "co-admin",
-            expirationDate: expiresDate);
-
-        await _sender.SendAsync(toEmail, $"You're invited to co-administer {eventName} — JuggerHub", html, ct);
+        var html = await _templates.GenerateEventAdminInviteEmailAsync(inviterName, eventName, url, expiresDate, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.eventAdminInvite", culture, eventName), html, ct);
     }
 
     /// <summary>

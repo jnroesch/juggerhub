@@ -1,0 +1,45 @@
+<!-- i18n: es draft — native-speaker review pending (#77) -->
+<div class="content">
+    <p class="eyebrow">Invitación de co-admin de party</p>
+    <h1>Ayuda a dirigir la party en {{EVENT_NAME}}.</h1>
+
+    <p>{{INVITER_NAME}} te ha invitado a codirigir la party de {{TEAM_NAME}} en {{EVENT_NAME}}. Los co-admins de la party gestionan la plantilla, publican novedades y se inscriben al evento.</p>
+
+    <!-- Party card -->
+    <div style="border:1px solid #EAE1D2;border-radius:16px;overflow:hidden;margin:22px 0 0;">
+        <div style="height:6px;background:linear-gradient(105deg,#F5623A,#7A9B87);line-height:6px;font-size:0;">&nbsp;</div>
+        <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
+            <tr>
+                <td valign="middle" style="padding:16px;width:48px;">
+                    <div style="width:48px;height:48px;border-radius:12px;background:#DBE6DE;text-align:center;line-height:48px;">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B5145" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                </td>
+                <td valign="middle" style="padding:16px 16px 16px 0;">
+                    <div style="font-family:'Hubot Sans',Arial,sans-serif;font-weight:800;font-size:18px;color:#241F18;">{{TEAM_NAME}} @ {{EVENT_NAME}}</div>
+                    <div style="margin-top:6px;">
+                        <span style="display:inline-block;padding:3px 10px;background:#EEF3EF;color:#3B5145;font-size:12px;font-weight:600;border-radius:999px;">co-admin de party</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <p style="margin:24px 0 4px;">
+        <a href="{{INVITATION_URL}}" class="button">Aceptar invitación</a>
+    </p>
+
+    <p class="alt-link">
+        ¿El botón no funciona? Pega este enlace en tu navegador:<br>
+        <a href="{{INVITATION_URL}}">{{INVITATION_URL}}</a>
+    </p>
+
+    <hr class="divider">
+
+    <p class="fine-print">Esta invitación caduca el {{EXPIRATION_DATE}} a las {{EXPIRATION_TIME}} UTC. ¿No conoces a {{INVITER_NAME}}? Puedes ignorar este correo sin problema.</p>
+</div>

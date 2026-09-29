@@ -131,7 +131,7 @@ public sealed class PartyInvitationService : IPartyInvitationService
 
         var target = await _db.Users.AsNoTracking()
             .Where(u => u.Id == targetUserId)
-            .Select(u => new { u.Email, DisplayName = u.Profile!.DisplayName })
+            .Select(u => new { u.Email, u.PreferredLanguage, DisplayName = u.Profile!.DisplayName })
             .FirstOrDefaultAsync(ct);
         if (target is null || string.IsNullOrEmpty(target.Email))
         {
@@ -161,7 +161,7 @@ public sealed class PartyInvitationService : IPartyInvitationService
         }
 
         var inviterName = await _db.PlayerProfiles.AsNoTracking()
-            .Where(p => p.UserId == actorUserId).Select(p => p.DisplayName).FirstOrDefaultAsync(ct) ?? "A team admin";
+            .Where(p => p.UserId == actorUserId).Select(p => p.DisplayName).FirstOrDefaultAsync(ct);
 
         var invite = new PartyAdminInvitation
         {
@@ -184,8 +184,11 @@ public sealed class PartyInvitationService : IPartyInvitationService
             return PartyResult<PartyInvitationDto>.Fail(PartyOutcome.Conflict, "That member has already been invited.");
         }
 
+        // In the target's language (GH #379).
+        var culture = SupportedLanguages.ResolveOrDefault(target.PreferredLanguage);
         await _email.SendCoAdminInviteEmailAsync(
-            target.Email!, target.DisplayName, info.TeamName, info.EventName, inviterName, invite.Token, invite.ExpiresDate, ct);
+            target.Email!, info.TeamName, info.EventName, inviterName ?? MemberPlaceholder.For(culture),
+            invite.Token, invite.ExpiresDate, culture, ct);
 
         return PartyResult<PartyInvitationDto>.Ok(new PartyInvitationDto(
             invite.Id, InvitationKind.Targeted, target.DisplayName, invite.CreatedDate, invite.ExpiresDate, InvitationStatus.Pending));

@@ -1,10 +1,10 @@
 <div class="content">
-    <p class="eyebrow">Team update</p>
-    <h1>Your role in {{TEAM_NAME}} changed.</h1>
+    <p class="eyebrow">Co-admin invite</p>
+    <h1>Help run {{EVENT_NAME}}.</h1>
 
-    <p>{{ACTOR_NAME}} updated your role. You're now {{ROLE_PHRASE}} of {{TEAM_NAME}}.</p>
+    <p>{{INVITER_NAME}} invited you to help administer {{EVENT_NAME}}. Co-admins can edit the event, post news, and manage participants.</p>
 
-    <!-- Team card -->
+    <!-- Event card -->
     <div style="border:1px solid #EAE1D2;border-radius:16px;overflow:hidden;margin:22px 0 0;">
         <div style="height:6px;background:linear-gradient(105deg,#F5623A,#7A9B87);line-height:6px;font-size:0;">&nbsp;</div>
         <table role="presentation" cellpadding="0" cellspacing="0" width="100%" style="border-collapse:collapse;">
@@ -12,15 +12,17 @@
                 <td valign="middle" style="padding:16px;width:48px;">
                     <div style="width:48px;height:48px;border-radius:12px;background:#DBE6DE;text-align:center;line-height:48px;">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B5145" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;">
-                            <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path>
-                            <path d="m9 12 2 2 4-4"></path>
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
                         </svg>
                     </div>
                 </td>
                 <td valign="middle" style="padding:16px 16px 16px 0;">
-                    <div style="font-family:'Hubot Sans',Arial,sans-serif;font-weight:800;font-size:18px;color:#241F18;">{{TEAM_NAME}}</div>
+                    <div style="font-family:'Hubot Sans',Arial,sans-serif;font-weight:800;font-size:18px;color:#241F18;">{{EVENT_NAME}}</div>
                     <div style="margin-top:6px;">
-                        <span style="display:inline-block;padding:3px 10px;background:#EEF3EF;color:#3B5145;font-size:12px;font-weight:600;border-radius:999px;">{{ROLE_LABEL}}</span>
+                        <span style="display:inline-block;padding:3px 10px;background:#EEF3EF;color:#3B5145;font-size:12px;font-weight:600;border-radius:999px;">co-admin</span>
                     </div>
                 </td>
             </tr>
@@ -28,11 +30,15 @@
     </div>
 
     <p style="margin:24px 0 4px;">
-        <a href="{{TEAM_URL}}" class="button">Open your team</a>
+        <a href="{{INVITATION_URL}}" class="button">Accept invite</a>
     </p>
 
     <p class="alt-link">
         Button not working? Paste this link into your browser:<br>
-        <a href="{{TEAM_URL}}">{{TEAM_URL}}</a>
+        <a href="{{INVITATION_URL}}">{{INVITATION_URL}}</a>
     </p>
+
+    <hr class="divider">
+
+    <p class="fine-print">This invite expires on {{EXPIRATION_DATE}} at {{EXPIRATION_TIME}} UTC. Don't know {{INVITER_NAME}}? You can safely ignore this email.</p>
 </div>

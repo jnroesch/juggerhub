@@ -6,10 +6,10 @@ using Microsoft.Extensions.Options;
 namespace JuggerHub.Services.Email;
 
 /// <summary>
-/// Composes the team-invite transactional email: renders the existing shared invitation
-/// template via <see cref="IEmailTemplateService"/>, builds the <c>/join/{slug}/{token}</c>
-/// link from <see cref="EmailOptions.FrontendBaseUrl"/>, and hands the HTML to
-/// <see cref="IEmailSender"/> (Mailpit locally, Resend on Dev/Prod). No new infrastructure.
+/// Composes the team transactional emails — the invite, role change, news, join requests and
+/// polls: renders each template via <see cref="IEmailTemplateService"/>, builds the links from
+/// <see cref="EmailOptions.FrontendBaseUrl"/>, and hands the HTML to <see cref="IEmailSender"/>
+/// (Mailpit locally, Resend on Dev/Prod). No new infrastructure.
 /// </summary>
 public sealed class TeamEmailService
 {
@@ -30,50 +30,39 @@ public sealed class TeamEmailService
         _localizer = localizer;
     }
 
+    // Every email here renders in the RECIPIENT's language (the 039 pattern): it is addressed to a
+    // person, not to whoever caused it. The three below were English for everyone until GH #379.
+
     public async Task SendTeamInviteEmailAsync(
-        string toEmail,
-        string recipientName,
-        string teamName,
-        string inviterName,
-        string slug,
-        string token,
-        DateTime expiresDate,
-        CancellationToken ct = default)
+        string toEmail, string teamName, string inviterName, string slug, string token, DateTime expiresDate,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
     {
         var url = BuildJoinLink(_options.FrontendBaseUrl, slug, token);
-        var html = await _templates.GenerateInvitationEmailAsync(
-            recipientName: recipientName,
-            inviterName: inviterName,
-            inviterEmail: string.Empty,
-            organizationName: teamName,
-            invitationUrl: url,
-            role: "player",
-            expirationDate: expiresDate);
-
-        await _sender.SendAsync(toEmail, $"You're invited to join {teamName} — JuggerHub", html, ct);
+        var html = await _templates.GenerateTeamInviteEmailAsync(inviterName, teamName, url, expiresDate, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.teamInvite", culture, teamName), html, ct);
     }
 
     /// <summary>Team role-change email (feature 011), gated by the recipient's Email preference.</summary>
     public async Task SendRoleChangedEmailAsync(
-        string toEmail, string teamName, string slug, string? actorName, TeamRole newRole, CancellationToken ct = default)
+        string toEmail, string teamName, string slug, string? actorName, TeamRole newRole,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
     {
         var url = BuildTeamLink(_options.FrontendBaseUrl, slug);
-        var rolePhrase = newRole == TeamRole.Admin ? "an admin" : "a member";
-        var html = await _templates.GenerateTeamRoleChangedEmailAsync(teamName, url, actorName, newRole.ToString(), rolePhrase);
-        await _sender.SendAsync(toEmail, $"Your role in {teamName} changed — JuggerHub", html, ct);
+        var html = await _templates.GenerateTeamRoleChangedEmailAsync(teamName, url, actorName, newRole, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.teamRoleChanged", culture, teamName), html, ct);
     }
 
     /// <summary>Team-news email (feature 011), sent to each member whose Email preference is on.</summary>
     public async Task SendTeamNewsEmailAsync(
-        string toEmail, string teamName, string slug, string? authorName, string excerpt, CancellationToken ct = default)
+        string toEmail, string teamName, string slug, string? authorName, string excerpt,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
     {
         var url = BuildTeamLink(_options.FrontendBaseUrl, slug);
-        var html = await _templates.GenerateTeamNewsEmailAsync(teamName, url, authorName, excerpt);
-        await _sender.SendAsync(toEmail, $"News from {teamName} — JuggerHub", html, ct);
+        var html = await _templates.GenerateTeamNewsEmailAsync(teamName, url, authorName, excerpt, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.teamNews", culture, teamName), html, ct);
     }
 
-    // --- Feature 058: join requests. Unlike the three above, these render in the RECIPIENT's
-    // language (the 039 pattern) — they are addressed to a person, not to whoever caused them.
+    // --- Feature 058: join requests.
 
     /// <summary>Tells one admin that <paramref name="playerName"/> asked to join, linking to the team page.</summary>
     public async Task SendJoinRequestEmailAsync(

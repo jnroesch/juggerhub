@@ -151,7 +151,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
 
         var target = await _db.Users.AsNoTracking()
             .Where(u => u.Id == targetUserId)
-            .Select(u => new { u.Email, DisplayName = u.Profile!.DisplayName })
+            .Select(u => new { u.Email, u.PreferredLanguage, DisplayName = u.Profile!.DisplayName })
             .FirstOrDefaultAsync(ct);
         if (target is null || string.IsNullOrEmpty(target.Email))
         {
@@ -178,7 +178,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
         var inviterName = await _db.PlayerProfiles.AsNoTracking()
             .Where(p => p.UserId == actorUserId)
             .Select(p => p.DisplayName)
-            .FirstOrDefaultAsync(ct) ?? "A teammate";
+            .FirstOrDefaultAsync(ct);
 
         var invite = new TeamInvitation
         {
@@ -202,11 +202,14 @@ public sealed class TeamInvitationService : ITeamInvitationService
             return new TargetedInviteResult(TargetedInviteStatus.AlreadyInvited, null);
         }
 
-        // Email is gated by the target's Invites & roster → Email preference (feature 011).
+        // Email is gated by the target's Invites & roster → Email preference (feature 011), and is
+        // in the target's language (GH #379).
         if (await _preferences.IsEnabledAsync(targetUserId, NotificationCategory.InvitesAndRoster, NotificationChannel.Email, ct))
         {
+            var culture = SupportedLanguages.ResolveOrDefault(target.PreferredLanguage);
             await _email.SendTeamInviteEmailAsync(
-                target.Email, target.DisplayName, team.Name, inviterName, team.Slug, invite.Token, invite.ExpiresDate, ct);
+                target.Email, team.Name, inviterName ?? MemberPlaceholder.For(culture), team.Slug,
+                invite.Token, invite.ExpiresDate, culture, ct);
         }
 
         // In-app notification (feature 010) — complements the email, never blocks the invite.
@@ -215,7 +218,7 @@ public sealed class TeamInvitationService : ITeamInvitationService
             await _notifications.CreateAsync(
                 recipientUserId: targetUserId,
                 type: NotificationType.TeamInvite,
-                payload: new TeamInvitePayload(invite.Id, invite.Token, team.Slug, team.Name, inviterName),
+                payload: new TeamInvitePayload(invite.Id, invite.Token, team.Slug, team.Name, inviterName ?? "A teammate"),
                 actorUserId: actorUserId,
                 dedupeKey: $"invite:{invite.Id}",
                 ct: ct);

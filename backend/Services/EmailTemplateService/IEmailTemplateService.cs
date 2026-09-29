@@ -13,10 +13,6 @@ public interface IEmailTemplateService
     /// </summary>
     Task<string> GeneratePasswordChangeNotificationEmailAsync(string recipientName, string recipientEmail, DateTime changeDate, string ipAddress, string culture = Common.SupportedLanguages.Default);
 
-    /// <summary>
-    /// Generate an invitation email
-    /// </summary>
-    Task<string> GenerateInvitationEmailAsync(string recipientName, string inviterName, string inviterEmail, string organizationName, string invitationUrl, string role, DateTime expirationDate);
     Task<string> GenerateSubscriptionWelcomeEmailAsync(string recipientName, string planName, List<string> features);
 
     /// <summary>Generate an email-verification email (localized by <paramref name="culture"/>).</summary>
@@ -32,12 +28,25 @@ public interface IEmailTemplateService
     /// </summary>
     Task<string> GenerateAccountDeletedEmailAsync(string recipientName, string recipientEmail, DateTime deletedAt, string culture = Common.SupportedLanguages.Default);
 
-    /// <summary>Generate a team role-change email (feature 011). <paramref name="rolePhrase"/> is a
-    /// natural phrase like "an admin"; <paramref name="roleLabel"/> is the badge, e.g. "Admin".</summary>
-    Task<string> GenerateTeamRoleChangedEmailAsync(string teamName, string teamUrl, string? actorName, string roleLabel, string rolePhrase);
+    // --- GH #379: addressed to a recipient, so localized by their culture like everything below. -----
+
+    /// <summary>Generate the email inviting a player to join a team (feature 005).</summary>
+    Task<string> GenerateTeamInviteEmailAsync(string inviterName, string teamName, string invitationUrl, DateTime expirationDate, string culture = Common.SupportedLanguages.Default);
+
+    /// <summary>Generate the email inviting a player to help administer an event (feature 006).</summary>
+    Task<string> GenerateEventAdminInviteEmailAsync(string inviterName, string eventName, string invitationUrl, DateTime expirationDate, string culture = Common.SupportedLanguages.Default);
+
+    /// <summary>Generate the email inviting a team member to co-run their team's party at an event (feature 016).</summary>
+    Task<string> GeneratePartyAdminInviteEmailAsync(string inviterName, string teamName, string eventName, string invitationUrl, DateTime expirationDate, string culture = Common.SupportedLanguages.Default);
+
+    /// <summary>
+    /// Generate a team role-change email (feature 011). The role's words come from the localizer, so
+    /// the enum name never reaches the reader.
+    /// </summary>
+    Task<string> GenerateTeamRoleChangedEmailAsync(string teamName, string teamUrl, string? actorName, Entities.TeamRole newRole, string culture = Common.SupportedLanguages.Default);
 
     /// <summary>Generate a team-news email (feature 011) with a short body excerpt.</summary>
-    Task<string> GenerateTeamNewsEmailAsync(string teamName, string teamUrl, string? authorName, string excerpt);
+    Task<string> GenerateTeamNewsEmailAsync(string teamName, string teamUrl, string? authorName, string excerpt, string culture = Common.SupportedLanguages.Default);
 
     // --- Feature 039 -----------------------------------------------------------------------
     // The four emails that were composed as inline HTML until this feature. All take the

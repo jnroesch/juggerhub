@@ -131,14 +131,17 @@ public sealed class TeamNewsService : ITeamNewsService
 
             if (emailRecipients.Count > 0)
             {
-                var emails = await _db.Users.AsNoTracking()
+                var addressees = await _db.Users.AsNoTracking()
                     .Where(u => emailRecipients.Contains(u.Id) && u.Email != null)
-                    .Select(u => u.Email!)
+                    .Select(u => new { Email = u.Email!, u.PreferredLanguage })
                     .ToListAsync(ct);
 
-                foreach (var email in emails)
+                foreach (var addressee in addressees)
                 {
-                    await _email.SendTeamNewsEmailAsync(email, team.Name, team.Slug, author.DisplayName, excerpt, ct);
+                    // The recipient's language, not the author's (GH #379).
+                    await _email.SendTeamNewsEmailAsync(
+                        addressee.Email, team.Name, team.Slug, author.DisplayName, excerpt,
+                        SupportedLanguages.ResolveOrDefault(addressee.PreferredLanguage), ct);
                 }
             }
         }
