@@ -290,7 +290,9 @@ public sealed class TeamDepartureNoticeTests
         await LeaveAsync(erased, team.Slug);
 
         await HomeTestSupport.WithDbAsync(_factory, db => db.PlayerProfiles.Where(p => p.UserId == team.M.Id)
-            .ExecuteUpdateAsync(s => s.SetProperty(p => p.DisplayName, "Renamed Rita")));
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(p => p.DisplayName, "Renamed Rita")
+                .SetProperty(p => p.ModifiedDate, DateTime.UtcNow)));
         await SetStatusAsync(banned.Id, AccountStatus.Banned);
         (await erased.Client.PostAsJsonAsync(
             "/api/v1/account/deletion", new { password = AuthTestHelpers.ValidPassword, confirmation = "DELETE" }))

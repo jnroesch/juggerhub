@@ -633,7 +633,10 @@ public sealed class TeamService : ITeamService
         {
             // Feature 064: the departure has committed, so now — and only now — the people it
             // concerns are told. Best-effort: nothing here can fail or undo the removal.
-            await AnnounceDepartureAsync(a.TeamId, actorUserId, targetUserId, membershipId, removedByAdmin: !isSelf, ct);
+            // Not the request's token: the departure has already happened, so a caller hanging up
+            // must not decide whether the admins hear of it. Every step is still bounded — database
+            // command timeouts, and the email and push senders' own time limits (Principle VII).
+            await AnnounceDepartureAsync(a.TeamId, actorUserId, targetUserId, membershipId, removedByAdmin: !isSelf, CancellationToken.None);
             return MemberOpResult.Ok();
         }
 
@@ -729,21 +732,33 @@ public sealed class TeamService : ITeamService
     private async Task AnnounceDepartureAsync(
         Guid teamId, Guid actorUserId, Guid playerId, Guid membershipId, bool removedByAdmin, CancellationToken ct)
     {
-        var team = await _db.Teams.AsNoTracking()
-            .Where(t => t.Id == teamId)
-            .Select(t => new { t.Slug, t.Name })
-            .FirstOrDefaultAsync(ct);
-        if (team is null)
+        // The outer guard covers the reads the inner ones do not (the team, the admins): the removal
+        // has committed, so a failure here may cost a notice but must never turn the answer into a
+        // 500 (FR-020). The inner guards keep one recipient's or one channel's failure from
+        // silencing the rest.
+        try
         {
-            return;
-        }
+            var team = await _db.Teams.AsNoTracking()
+                .Where(t => t.Id == teamId)
+                .Select(t => new { t.Slug, t.Name })
+                .FirstOrDefaultAsync(ct);
+            if (team is null)
+            {
+                return;
+            }
 
-        if (removedByAdmin)
+            if (removedByAdmin)
+            {
+                await TellRemovedPlayerAsync(playerId, membershipId, team.Slug, team.Name, ct);
+            }
+
+            await TellAdminsAsync(teamId, actorUserId, playerId, membershipId, team.Slug, team.Name, removedByAdmin, ct);
+        }
+        catch (Exception ex)
         {
-            await TellRemovedPlayerAsync(playerId, membershipId, team.Slug, team.Name, ct);
+            _logger.LogWarning(ex, "Failed to announce a departure from team {TeamId} (membership {MembershipId}).",
+                teamId, membershipId);
         }
-
-        await TellAdminsAsync(teamId, actorUserId, playerId, membershipId, team.Slug, team.Name, removedByAdmin, ct);
     }
 
     private async Task TellRemovedPlayerAsync(Guid playerId, Guid membershipId, string slug, string teamName, CancellationToken ct)

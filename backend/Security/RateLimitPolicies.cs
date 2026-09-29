@@ -125,6 +125,9 @@ public static class RateLimitPolicies
     /// <para>
     /// <b>A fixed window</b>, like every limit here: ten per player per clock hour, across all teams.
     /// A burst straddling the turn of an hour can therefore reach twenty, and no more (spec FR-024).
+    /// "Clock hour" is the Redis limiter's window, which is every deployed environment; the in-memory
+    /// fallback a Redis-less Development host uses starts its hour at the player's first accept instead
+    /// (see <see cref="Limiter"/>).
     /// </para>
     /// <para>
     /// <b>This <c>429</c> is our own limit</b> (constitution Principle VII): it is never retried on
@@ -214,6 +217,9 @@ public static class RateLimitPolicies
             // Development without Redis only (Program.cs makes this fatal everywhere else). The
             // in-memory limiter is correct on a single instance and would be silently wrong on
             // several — which is exactly why it is not allowed to reach a deployed environment.
+            // Its window also differs in phase: it starts at a partition's first request, while the
+            // Redis windows are cut from wall-clock time. The limit per window is the same; only the
+            // boundary moves, which is why the hourly policies say "clock hour" of Redis only.
             return RateLimitPartition.GetFixedWindowLimiter(key, _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = limit,
