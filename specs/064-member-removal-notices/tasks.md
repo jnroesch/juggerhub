@@ -171,7 +171,7 @@ alongside once the dialog exists.
 - [X] T043 Run everything: `dotnet build backend/JuggerHub.slnx` (exit code), `dotnet test backend/JuggerHub.slnx`, and in `frontend/`: `npx nx test web --watch=false`, `npx nx lint web`, `npx nx build web`. Fix what fails; never skip a failing test.
 - [X] T044 Browser walk per [quickstart.md](./quickstart.md) scenarios 1–8: `docker compose up -d --build backend frontend`, a standalone Playwright script inside `frontend/` (one context per actor, `locale: 'de-DE'`), screenshots at 375px and 1280px of: the team Remove dialog, the party In/Declined/Disband dialogs, J's and T's Meldungen rows, the German emails in Mailpit, the invite-limit message. Read the driver's output and look at every screenshot. Delete the script after.
 - [X] T045 File follow-ups: move the news-post delete dialog and the team page's join confirmation onto `jh-confirm-dialog`; telling admins when someone joins by accepting an invitation. Update memory with the feature's decisions and traps.
-- [ ] T046 Push the branch and open the PR (`Closes #385`), body: summary, owner decisions, verification run, screenshots, residuals (sent emails/pushes are not recalled; fixed-window limit; addressed invitations share the limit).
+- [X] T046 Push the branch and open the PR (`Closes #385`), body: summary, owner decisions, verification run, screenshots, residuals (sent emails/pushes are not recalled; fixed-window limit; addressed invitations share the limit).
 
 ---
 
