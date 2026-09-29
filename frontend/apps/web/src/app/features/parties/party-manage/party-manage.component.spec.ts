@@ -208,4 +208,46 @@ describe('PartyManageComponent — the party chat (feature 063)', () => {
       "We couldn't open the party chat just now.",
     );
   });
+
+  // --- US3: team members outside the crew see the page as before ------------------------
+
+  /** The labels of the buttons in the viewer's own card. */
+  const crewCardLabels = (fixture: ComponentFixture<PartyManageComponent>) =>
+    Array.from(fixture.nativeElement.querySelectorAll('[data-testid="crew-card"] button') as NodeListOf<HTMLElement>).map(
+      (b) => b.textContent?.trim(),
+    );
+
+  it('offers no party chat to a team member who has not answered — only the request', () => {
+    const fixture = render({ myState: 'NoResponse', myRole: null });
+
+    expect(el(fixture, '[data-testid="party-chat"]')).toBeNull();
+    expect(crewCardLabels(fixture)).toEqual(["I'm in", "Can't make it"]);
+  });
+
+  it('offers no party chat to a team member who declined', () => {
+    const fixture = render({ myState: 'Declined', myRole: null });
+
+    expect(el(fixture, '[data-testid="party-chat"]')).toBeNull();
+    expect(crewCardLabels(fixture)).toEqual(["I'm in", "Can't make it"]);
+  });
+
+  it('offers no party chat when the party is full and the player is not in it', () => {
+    const fixture = render({ myState: 'NoResponse', myRole: null, isFull: true });
+
+    expect(el(fixture, '[data-testid="party-chat"]')).toBeNull();
+    expect(crewCardLabels(fixture)).toEqual([]);
+  });
+
+  it('offers the party chat once the player says they are in', () => {
+    const fixture = render({ myState: 'NoResponse', myRole: null }, { myState: 'In', myRole: 'Member' });
+
+    const imIn = Array.from(fixture.nativeElement.querySelectorAll('[data-testid="crew-card"] button') as NodeListOf<HTMLElement>).find(
+      (b) => b.textContent?.trim() === "I'm in",
+    );
+    imIn?.click();
+    fixture.detectChanges();
+
+    expect(parties['join']).toHaveBeenCalledWith('party-1');
+    expect(buttonsIn(fixture, 'crew-card')).toEqual(['party-chat', 'leave-party']);
+  });
 });

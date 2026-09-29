@@ -106,7 +106,7 @@ template, so they run one after the other, never alongside.
 
 **Independent test**: render the page for a team member with no answer and for one who declined; no `party-chat` anywhere; *I'm in* then reveals it.
 
-- [ ] T016 [US3] Add to `party-manage.component.spec.ts`:
+- [X] T016 [US3] Add to `party-manage.component.spec.ts`:
   - `myState 'NoResponse'` (not full): no `party-chat`; the card still shows *I'm in* and *Can't make it*;
   - `myState 'Declined'`: no `party-chat`;
   - `myState 'NoResponse'` with `isFull: true`: no `party-chat` (the "full, reopens" line only);
