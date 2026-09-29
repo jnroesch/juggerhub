@@ -1,8 +1,10 @@
+using System.Globalization;
 using System.Net;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using JuggerHub.Common;
+using JuggerHub.Entities;
 using JuggerHub.Services.Email;
 using Microsoft.Extensions.Options;
 
@@ -83,25 +85,64 @@ public class EmailTemplateService : IEmailTemplateService
         return await GenerateEmailAsync("password-reset", variables, culture);
     }
 
+    // --- GH #379: the three invites. One template each: they used to share invitation.html, whose
+    // body is a team invite's ("see training times, chat with teammates"), so an event or party
+    // co-admin was sent the wrong pitch.
+
     /// <inheritdoc />
-    public async Task<string> GenerateInvitationEmailAsync(string recipientName, string inviterName, string inviterEmail, string organizationName, string invitationUrl, string role, DateTime expirationDate)
+    public async Task<string> GenerateTeamInviteEmailAsync(
+        string inviterName, string teamName, string invitationUrl, DateTime expirationDate, string culture = SupportedLanguages.Default)
     {
-        var variables = new Dictionary<string, object>
+        var variables = InviteVariables(inviterName, invitationUrl, expirationDate, culture);
+        variables["EMAIL_TITLE"] = _localizer.Get("title.teamInvite", culture, inviterName, teamName);
+        variables["TEAM_NAME"] = teamName;
+        variables["FOOTER_REASON"] = _localizer.Get("footer.teamInvite", culture, inviterName);
+
+        return await GenerateEmailAsync("team-invite", variables, culture);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GenerateEventAdminInviteEmailAsync(
+        string inviterName, string eventName, string invitationUrl, DateTime expirationDate, string culture = SupportedLanguages.Default)
+    {
+        var variables = InviteVariables(inviterName, invitationUrl, expirationDate, culture);
+        variables["EMAIL_TITLE"] = _localizer.Get("title.eventAdminInvite", culture, inviterName, eventName);
+        variables["EVENT_NAME"] = eventName;
+        variables["FOOTER_REASON"] = _localizer.Get("footer.eventAdminInvite", culture, inviterName);
+
+        return await GenerateEmailAsync("event-admin-invite", variables, culture);
+    }
+
+    /// <inheritdoc />
+    public async Task<string> GeneratePartyAdminInviteEmailAsync(
+        string inviterName, string teamName, string eventName, string invitationUrl, DateTime expirationDate, string culture = SupportedLanguages.Default)
+    {
+        var variables = InviteVariables(inviterName, invitationUrl, expirationDate, culture);
+        variables["EMAIL_TITLE"] = _localizer.Get("title.partyAdminInvite", culture, inviterName);
+        variables["TEAM_NAME"] = teamName;
+        variables["EVENT_NAME"] = eventName;
+        variables["FOOTER_REASON"] = _localizer.Get("footer.partyAdminInvite", culture, inviterName);
+
+        return await GenerateEmailAsync("party-admin-invite", variables, culture);
+    }
+
+    /// <summary>What every invite shows: who sent it, the link, and when it stops working.</summary>
+    private Dictionary<string, object> InviteVariables(string inviterName, string invitationUrl, DateTime expirationDate, string culture) =>
+        new()
         {
-            {"EMAIL_TITLE", $"{inviterName} invited you to join {organizationName}"},
-            {"RECIPIENT_NAME", recipientName},
-            {"INVITER_NAME", inviterName},
-            {"INVITER_EMAIL", inviterEmail},
-            {"ORGANIZATION_NAME", organizationName},
-            {"INVITATION_URL", new RawHtml(invitationUrl)},
-            {"USER_ROLE", role},
-            {"EXPIRATION_DATE", expirationDate.ToString("MMMM dd, yyyy")},
-            {"EXPIRATION_TIME", expirationDate.ToString("HH:mm")},
-            {"FOOTER_REASON", $"You're getting this because {inviterName} invited you to their team on JuggerHub."}
+            ["INVITER_NAME"] = inviterName,
+            ["INVITATION_URL"] = new RawHtml(invitationUrl),
+            ["EXPIRATION_DATE"] = LocalDate(expirationDate, culture),
+            ["EXPIRATION_TIME"] = expirationDate.ToString("HH:mm", CultureInfo.InvariantCulture),
         };
 
-        return await GenerateEmailAsync("invitation", variables);
-    }
+    /// <summary>
+    /// A date as the reader's language writes it. The app runs globalization-invariant, so formatting
+    /// through a <see cref="CultureInfo"/> would print English month names whatever the culture; the
+    /// pattern comes from the localizer instead (<c>format.date</c>).
+    /// </summary>
+    private string LocalDate(DateTime date, string culture) =>
+        date.ToString(_localizer.Get("format.date", culture), CultureInfo.InvariantCulture);
 
     /// <inheritdoc />
     public async Task<string> GenerateSubscriptionWelcomeEmailAsync(string recipientName, string planName, List<string> features)
@@ -144,7 +185,7 @@ public class EmailTemplateService : IEmailTemplateService
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
             {"COMPANY_NAME", companyName},
-            {"CREATED_DATE", createdDate.ToString("MMMM dd, yyyy")},
+            {"CREATED_DATE", LocalDate(createdDate, culture)},
             {"FOOTER_REASON", _localizer.Get("footer.welcome", culture)}
         };
 
@@ -159,7 +200,7 @@ public class EmailTemplateService : IEmailTemplateService
             ["EMAIL_TITLE"] = _localizer.Get("title.passwordChanged", culture),
             ["RECIPIENT_NAME"] = recipientName,
             ["RECIPIENT_EMAIL"] = recipientEmail,
-            ["CHANGE_DATE"] = changeDate.ToString("MMMM dd, yyyy"),
+            ["CHANGE_DATE"] = LocalDate(changeDate, culture),
             ["CHANGE_TIME"] = changeDate.ToString("HH:mm:ss UTC"),
             ["IP_ADDRESS"] = ipAddress,
             ["FOOTER_REASON"] = _localizer.Get("footer.passwordChanged", culture)
@@ -177,7 +218,7 @@ public class EmailTemplateService : IEmailTemplateService
             ["EMAIL_TITLE"] = _localizer.Get("title.accountDeleted", culture),
             ["RECIPIENT_NAME"] = recipientName,
             ["RECIPIENT_EMAIL"] = recipientEmail,
-            ["DELETED_DATE"] = deletedAt.ToString("MMMM dd, yyyy"),
+            ["DELETED_DATE"] = LocalDate(deletedAt, culture),
             ["DELETED_TIME"] = deletedAt.ToString("HH:mm:ss UTC"),
             ["FOOTER_REASON"] = _localizer.Get("footer.accountDeleted", culture),
         };
@@ -227,36 +268,39 @@ public class EmailTemplateService : IEmailTemplateService
     }
 
     /// <inheritdoc />
-    public async Task<string> GenerateTeamRoleChangedEmailAsync(string teamName, string teamUrl, string? actorName, string roleLabel, string rolePhrase)
+    public async Task<string> GenerateTeamRoleChangedEmailAsync(
+        string teamName, string teamUrl, string? actorName, TeamRole newRole, string culture = SupportedLanguages.Default)
     {
+        var role = newRole == TeamRole.Admin ? "admin" : "member";
         var variables = new Dictionary<string, object>
         {
-            ["EMAIL_TITLE"] = $"Your role in {teamName} changed",
+            ["EMAIL_TITLE"] = _localizer.Get("title.teamRoleChanged", culture, teamName),
             ["TEAM_NAME"] = teamName,
             ["TEAM_URL"] = new RawHtml(teamUrl),
-            ["ACTOR_LINE"] = string.IsNullOrWhiteSpace(actorName) ? "Your role was updated." : $"{actorName} updated your role.",
-            ["ROLE_LABEL"] = roleLabel,
-            ["ROLE_PHRASE"] = rolePhrase,
-            ["FOOTER_REASON"] = "You're getting this because your role on a JuggerHub team changed."
+            ["ACTOR_NAME"] = string.IsNullOrWhiteSpace(actorName) ? MemberPlaceholder.For(culture) : actorName,
+            ["ROLE_LABEL"] = _localizer.Get($"role.label.{role}", culture),
+            ["ROLE_PHRASE"] = _localizer.Get($"role.phrase.{role}", culture),
+            ["FOOTER_REASON"] = _localizer.Get("footer.teamRoleChanged", culture),
         };
 
-        return await GenerateEmailAsync("team-role-changed", variables);
+        return await GenerateEmailAsync("team-role-changed", variables, culture);
     }
 
     /// <inheritdoc />
-    public async Task<string> GenerateTeamNewsEmailAsync(string teamName, string teamUrl, string? authorName, string excerpt)
+    public async Task<string> GenerateTeamNewsEmailAsync(
+        string teamName, string teamUrl, string? authorName, string excerpt, string culture = SupportedLanguages.Default)
     {
         var variables = new Dictionary<string, object>
         {
-            ["EMAIL_TITLE"] = $"News from {teamName}",
+            ["EMAIL_TITLE"] = _localizer.Get("title.teamNews", culture, teamName),
             ["TEAM_NAME"] = teamName,
             ["TEAM_URL"] = new RawHtml(teamUrl),
-            ["AUTHOR_LINE"] = string.IsNullOrWhiteSpace(authorName) ? "Someone" : authorName!,
+            ["AUTHOR_NAME"] = string.IsNullOrWhiteSpace(authorName) ? MemberPlaceholder.For(culture) : authorName,
             ["NEWS_EXCERPT"] = excerpt,
-            ["FOOTER_REASON"] = "You're getting this because you're a member of this team on JuggerHub."
+            ["FOOTER_REASON"] = _localizer.Get("footer.teamNews", culture),
         };
 
-        return await GenerateEmailAsync("team-news", variables);
+        return await GenerateEmailAsync("team-news", variables, culture);
     }
 
     // --- Feature 039 -----------------------------------------------------------------------

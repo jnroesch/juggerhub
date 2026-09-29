@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using JuggerHub.Common;
+using JuggerHub.Entities;
 using JuggerHub.Services;
 using JuggerHub.Services.Email;
 using Microsoft.AspNetCore.Hosting;
@@ -10,8 +11,9 @@ using Microsoft.Extensions.Options;
 namespace JuggerHub.Api.IntegrationTests.Email;
 
 /// <summary>
-/// Renders each of the four emails introduced by feature 039 in each supported language — the full
-/// 4 × 3 matrix behind SC-002 — through the real <see cref="EmailTemplateService"/>.
+/// Renders each recipient-addressed email in each supported language through the real
+/// <see cref="EmailTemplateService"/>. Began as feature 039's 4 × 3 matrix (SC-002); 058 and GH #379
+/// added their emails.
 ///
 /// Drives the service directly rather than through the API so the whole matrix is covered without a
 /// database: the thing under test is the template pipeline (load → wrap in header/footer →
@@ -97,6 +99,135 @@ public sealed class TemplateRenderMatrixTests
         AssertWellFormed(html, culture);
         Assert.Contains("Rheinfeuer", html, StringComparison.Ordinal);
         Assert.Contains($"href=\"{BaseUrl}/browse/teams\"", html, StringComparison.Ordinal);
+    }
+
+    // --- GH #379: the five emails that were English for everyone ------------------------------
+
+    private static readonly DateTime Expiry = new(2026, 10, 6, 14, 30, 0, DateTimeKind.Utc);
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Team_invite_renders(string culture)
+    {
+        var html = await Service().GenerateTeamInviteEmailAsync("Jonas", "Rheinfeuer", $"{BaseUrl}/join/rf/tok", Expiry, culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Rheinfeuer", html, StringComparison.Ordinal);
+        Assert.Contains("Jonas", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/join/rf/tok\"", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Event_admin_invite_renders(string culture)
+    {
+        var html = await Service().GenerateEventAdminInviteEmailAsync("Jonas", "Hamburg Autumn Open", $"{BaseUrl}/event-invite/tok", Expiry, culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Hamburg Autumn Open", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/event-invite/tok\"", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Party_admin_invite_renders(string culture)
+    {
+        var html = await Service().GeneratePartyAdminInviteEmailAsync(
+            "Jonas", "Rheinfeuer", "Hamburg Autumn Open", $"{BaseUrl}/party-invite/tok", Expiry, culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Rheinfeuer @ Hamburg Autumn Open", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/party-invite/tok\"", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Team_role_changed_renders(string culture)
+    {
+        var html = await Service().GenerateTeamRoleChangedEmailAsync("Rheinfeuer", $"{BaseUrl}/t/rf", "Jonas", TeamRole.Admin, culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Jonas", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/t/rf\"", html, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [MemberData(nameof(Cultures))]
+    public async Task Team_news_renders(string culture)
+    {
+        var html = await Service().GenerateTeamNewsEmailAsync("Rheinfeuer", $"{BaseUrl}/t/rf", "Jonas", "Bring the spare chains.", culture);
+        AssertWellFormed(html, culture);
+        Assert.Contains("Bring the spare chains.", html, StringComparison.Ordinal);
+        Assert.Contains($"href=\"{BaseUrl}/t/rf\"", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Only English spells the month. The app runs globalization-invariant, so a month-name pattern
+    /// would print "October" inside a German or Spanish sentence.
+    /// </summary>
+    [Theory]
+    [InlineData("en", "October 06, 2026 at 14:30 UTC")]
+    [InlineData("de", "am 06.10.2026 um 14:30 UTC")]
+    [InlineData("es", "el 06/10/2026 a las 14:30 UTC")]
+    public async Task An_invites_expiry_reads_in_the_recipients_language(string culture, string expected)
+    {
+        var html = await Service().GenerateTeamInviteEmailAsync("Jonas", "Rheinfeuer", $"{BaseUrl}/join/rf/tok", Expiry, culture);
+        Assert.Contains(expected, html, StringComparison.Ordinal);
+    }
+
+    /// <summary>The emails that were already translated carry their dates the same way.</summary>
+    [Theory]
+    [InlineData("en", "October 06, 2026")]
+    [InlineData("de", "06.10.2026")]
+    [InlineData("es", "06/10/2026")]
+    public async Task Every_dated_email_writes_the_date_in_the_recipients_language(string culture, string expected)
+    {
+        var service = Service();
+        var emails = new[]
+        {
+            await service.GenerateWelcomeEmailAsync("Mira", "mira@example.com", "JuggerHub", Expiry, culture),
+            await service.GeneratePasswordChangeNotificationEmailAsync("Mira", "mira@example.com", Expiry, "203.0.113.7", culture),
+            await service.GenerateAccountDeletedEmailAsync("Mira", "mira@example.com", Expiry, culture),
+        };
+
+        Assert.All(emails, html => Assert.Contains(expected, html, StringComparison.Ordinal));
+        if (culture != "en")
+        {
+            Assert.All(emails, html => Assert.DoesNotContain("October", html, StringComparison.Ordinal));
+        }
+    }
+
+    /// <summary>The role reaches the reader in words of their language, never as the enum's name.</summary>
+    [Theory]
+    [InlineData("en", TeamRole.Admin, "You're now an admin of Rheinfeuer.", "Admin")]
+    [InlineData("en", TeamRole.Member, "You're now a member of Rheinfeuer.", "Member")]
+    [InlineData("de", TeamRole.Admin, "Du bist jetzt Admin von Rheinfeuer.", "Admin")]
+    [InlineData("de", TeamRole.Member, "Du bist jetzt Mitglied von Rheinfeuer.", "Mitglied")]
+    [InlineData("es", TeamRole.Admin, "Ahora eres admin de Rheinfeuer.", "Admin")]
+    [InlineData("es", TeamRole.Member, "Ahora eres miembro de Rheinfeuer.", "Miembro")]
+    public async Task The_role_change_names_the_role_in_the_recipients_language(
+        string culture, TeamRole role, string sentence, string badge)
+    {
+        var html = await Service().GenerateTeamRoleChangedEmailAsync("Rheinfeuer", $"{BaseUrl}/t/rf", "Jonas", role, culture);
+        Assert.Contains(sentence, html, StringComparison.Ordinal);
+        Assert.Contains($">{badge}</span>", html, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// A name that cannot be resolved (banned or erased) falls back to the product's placeholder in
+    /// the reader's language, not to an English word the server made up.
+    /// </summary>
+    [Fact]
+    public async Task A_missing_author_reads_as_the_placeholder_in_the_readers_language()
+    {
+        var html = await Service().GenerateTeamNewsEmailAsync("Rheinfeuer", $"{BaseUrl}/t/rf", null, "Bring the spare chains.", "de");
+        Assert.Contains(MemberPlaceholder.For("de"), html, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task An_inviters_name_is_escaped_in_the_invite()
+    {
+        // The inviter chose their display name; it reaches another player's mailbox (FR-006).
+        var html = await Service().GenerateTeamInviteEmailAsync("<img src=x>", "Rheinfeuer", $"{BaseUrl}/join/rf/tok", Expiry, "de");
+
+        Assert.DoesNotContain("<img src=x>", html, StringComparison.Ordinal);
+        Assert.Contains("&lt;img src=x&gt;", html, StringComparison.Ordinal);
     }
 
     [Fact]

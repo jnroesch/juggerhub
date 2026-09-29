@@ -29,9 +29,8 @@ public interface IEmailLocalizer
 
 public sealed class EmailLocalizer : IEmailLocalizer
 {
-    // key -> culture -> text. Only the auth transactional set is fully translated for launch;
-    // other emails keep English copy (and English bodies via en/ template fallback) pending the
-    // native-review pass (#77). English is always present as the fallback.
+    // key -> culture -> text. The de/es copy is a draft pending the native-speaker review (#84).
+    // English is always present as the fallback.
     private static readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Strings =
         new Dictionary<string, IReadOnlyDictionary<string, string>>
         {
@@ -294,6 +293,154 @@ public sealed class EmailLocalizer : IEmailLocalizer
                 ["en"] = "You're getting this because you're a member of this team on JuggerHub.",
                 ["de"] = "Du erhältst diese E-Mail, weil du Mitglied dieses Teams auf JuggerHub bist.",
                 ["es"] = "Recibes este mensaje porque eres miembro de este equipo en JuggerHub.",
+            },
+
+            // --- GH #379: the three invites, the role change and team news ----------------------
+            // These five were English for every recipient until #379. The English values are the
+            // strings the senders used to build inline, unchanged.
+
+            // {0} = team name
+            ["subject.teamInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're invited to join {0} — JuggerHub",
+                ["de"] = "Du bist zu {0} eingeladen — JuggerHub",
+                ["es"] = "Te han invitado a unirte a {0} — JuggerHub",
+            },
+            // {0} = event name
+            ["subject.eventAdminInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're invited to co-administer {0} — JuggerHub",
+                ["de"] = "Du bist eingeladen, {0} mitzuverwalten — JuggerHub",
+                ["es"] = "Te han invitado a coadministrar {0} — JuggerHub",
+            },
+            // {0} = team name, {1} = event name
+            ["subject.partyAdminInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're invited to co-run {0}'s party at {1} — JuggerHub",
+                ["de"] = "Du bist eingeladen, die Party von {0} bei {1} mitzuführen — JuggerHub",
+                ["es"] = "Te han invitado a codirigir la party de {0} en {1} — JuggerHub",
+            },
+            // {0} = team name
+            ["subject.teamRoleChanged"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your role in {0} changed — JuggerHub",
+                ["de"] = "Deine Rolle in {0} hat sich geändert — JuggerHub",
+                ["es"] = "Tu rol en {0} ha cambiado — JuggerHub",
+            },
+            // {0} = team name
+            ["subject.teamNews"] = new Dictionary<string, string>
+            {
+                ["en"] = "News from {0} — JuggerHub",
+                ["de"] = "Neuigkeiten von {0} — JuggerHub",
+                ["es"] = "Noticias de {0} — JuggerHub",
+            },
+
+            // {0} = inviter's name, {1} = team name
+            ["title.teamInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} invited you to join {1}",
+                ["de"] = "{0} hat dich zu {1} eingeladen",
+                ["es"] = "{0} te ha invitado a unirte a {1}",
+            },
+            // {0} = inviter's name, {1} = event name
+            ["title.eventAdminInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} invited you to help run {1}",
+                ["de"] = "{0} hat dich eingeladen, {1} mitzuverwalten",
+                ["es"] = "{0} te ha invitado a ayudar a organizar {1}",
+            },
+            // {0} = inviter's name
+            ["title.partyAdminInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "{0} invited you to co-run a party",
+                ["de"] = "{0} hat dich eingeladen, eine Party mitzuführen",
+                ["es"] = "{0} te ha invitado a codirigir una party",
+            },
+            // {0} = team name
+            ["title.teamRoleChanged"] = new Dictionary<string, string>
+            {
+                ["en"] = "Your role in {0} changed",
+                ["de"] = "Deine Rolle in {0} hat sich geändert",
+                ["es"] = "Tu rol en {0} ha cambiado",
+            },
+            // {0} = team name
+            ["title.teamNews"] = new Dictionary<string, string>
+            {
+                ["en"] = "News from {0}",
+                ["de"] = "Neuigkeiten von {0}",
+                ["es"] = "Noticias de {0}",
+            },
+
+            // {0} = inviter's name
+            ["footer.teamInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because {0} invited you to their team on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil {0} dich auf JuggerHub in ein Team eingeladen hat.",
+                ["es"] = "Recibes este mensaje porque {0} te ha invitado a su equipo en JuggerHub.",
+            },
+            // {0} = inviter's name
+            ["footer.eventAdminInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because {0} invited you to help run an event on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil {0} dich eingeladen hat, ein Event auf JuggerHub mitzuverwalten.",
+                ["es"] = "Recibes este mensaje porque {0} te ha invitado a ayudar a organizar un evento en JuggerHub.",
+            },
+            // {0} = inviter's name
+            ["footer.partyAdminInvite"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because {0} invited you to co-run a party on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil {0} dich eingeladen hat, eine Party auf JuggerHub mitzuführen.",
+                ["es"] = "Recibes este mensaje porque {0} te ha invitado a codirigir una party en JuggerHub.",
+            },
+            ["footer.teamRoleChanged"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because your role on a JuggerHub team changed.",
+                ["de"] = "Du erhältst diese E-Mail, weil sich deine Rolle in einem Team auf JuggerHub geändert hat.",
+                ["es"] = "Recibes este mensaje porque tu rol en un equipo de JuggerHub ha cambiado.",
+            },
+            ["footer.teamNews"] = new Dictionary<string, string>
+            {
+                ["en"] = "You're getting this because you're a member of this team on JuggerHub.",
+                ["de"] = "Du erhältst diese E-Mail, weil du Mitglied dieses Teams auf JuggerHub bist.",
+                ["es"] = "Recibes este mensaje porque eres miembro de este equipo en JuggerHub.",
+            },
+
+            // The role-change email's two role words. The phrase completes "You're now … of {team}"
+            // in each template, so it carries the article where the language needs one ("an admin")
+            // and none where it doesn't ("Du bist jetzt Admin"). The label is the badge.
+            ["role.phrase.admin"] = new Dictionary<string, string>
+            {
+                ["en"] = "an admin",
+                ["de"] = "Admin",
+                ["es"] = "admin",
+            },
+            ["role.phrase.member"] = new Dictionary<string, string>
+            {
+                ["en"] = "a member",
+                ["de"] = "Mitglied",
+                ["es"] = "miembro",
+            },
+            ["role.label.admin"] = new Dictionary<string, string>
+            {
+                ["en"] = "Admin",
+                ["de"] = "Admin",
+                ["es"] = "Admin",
+            },
+            ["role.label.member"] = new Dictionary<string, string>
+            {
+                ["en"] = "Member",
+                ["de"] = "Mitglied",
+                ["es"] = "Miembro",
+            },
+
+            // A date pattern, not prose. The app runs globalization-invariant, so a month-name
+            // pattern always yields English month names: only English uses one. The others are
+            // numeric, which reads natively in their language.
+            ["format.date"] = new Dictionary<string, string>
+            {
+                ["en"] = "MMMM dd, yyyy",
+                ["de"] = "dd.MM.yyyy",
+                ["es"] = "dd/MM/yyyy",
             },
         };
 

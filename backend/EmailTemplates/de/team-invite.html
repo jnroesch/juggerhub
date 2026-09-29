@@ -1,8 +1,9 @@
+<!-- i18n: de draft — native-speaker review pending (#77) -->
 <div class="content">
-    <p class="eyebrow">Team update</p>
-    <h1>Your role in {{TEAM_NAME}} changed.</h1>
+    <p class="eyebrow">Team-Einladung</p>
+    <h1>Du bist zu {{TEAM_NAME}} eingeladen.</h1>
 
-    <p>{{ACTOR_NAME}} updated your role. You're now {{ROLE_PHRASE}} of {{TEAM_NAME}}.</p>
+    <p>{{INVITER_NAME}} findet, dass du super zur Crew passt. Nimm die Einladung an, um die Trainingszeiten zu sehen, mit dem Team zu chatten und für dein erstes Spiel zuzusagen.</p>
 
     <!-- Team card -->
     <div style="border:1px solid #EAE1D2;border-radius:16px;overflow:hidden;margin:22px 0 0;">
@@ -12,15 +13,17 @@
                 <td valign="middle" style="padding:16px;width:48px;">
                     <div style="width:48px;height:48px;border-radius:12px;background:#DBE6DE;text-align:center;line-height:48px;">
                         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B5145" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;">
-                            <path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"></path>
-                            <path d="m9 12 2 2 4-4"></path>
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
                     </div>
                 </td>
                 <td valign="middle" style="padding:16px 16px 16px 0;">
                     <div style="font-family:'Hubot Sans',Arial,sans-serif;font-weight:800;font-size:18px;color:#241F18;">{{TEAM_NAME}}</div>
                     <div style="margin-top:6px;">
-                        <span style="display:inline-block;padding:3px 10px;background:#EEF3EF;color:#3B5145;font-size:12px;font-weight:600;border-radius:999px;">{{ROLE_LABEL}}</span>
+                        <span style="display:inline-block;padding:3px 10px;background:#EEF3EF;color:#3B5145;font-size:12px;font-weight:600;border-radius:999px;">Spieler</span>
                     </div>
                 </td>
             </tr>
@@ -28,11 +31,15 @@
     </div>
 
     <p style="margin:24px 0 4px;">
-        <a href="{{TEAM_URL}}" class="button">Open your team</a>
+        <a href="{{INVITATION_URL}}" class="button">Einladung annehmen</a>
     </p>
 
     <p class="alt-link">
-        Button not working? Paste this link into your browser:<br>
-        <a href="{{TEAM_URL}}">{{TEAM_URL}}</a>
+        Button funktioniert nicht? Füge diesen Link in deinen Browser ein:<br>
+        <a href="{{INVITATION_URL}}">{{INVITATION_URL}}</a>
     </p>
+
+    <hr class="divider">
+
+    <p class="fine-print">Diese Einladung läuft am {{EXPIRATION_DATE}} um {{EXPIRATION_TIME}} UTC ab. Du kennst {{INVITER_NAME}} nicht? Dann kannst du diese E-Mail einfach ignorieren.</p>
 </div>

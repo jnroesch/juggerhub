@@ -6,14 +6,15 @@ namespace JuggerHub.Services.Email;
 
 /// <summary>
 /// Composes the party transactional emails (feature 016) — the participation request / nudge, a
-/// party news notice, and the co-admin invite (reusing the shared invitation template) — and hands
+/// party news notice, and the co-admin invite — and hands
 /// the HTML to <see cref="IEmailSender"/> (Mailpit locally, Resend on Dev/Prod). Links are built
 /// from <see cref="EmailOptions.FrontendBaseUrl"/>. No new infrastructure; mirrors
 /// <see cref="EventEmailService"/>.
 ///
 /// Feature 039 replaced the hand-rolled request/news bodies with the dedicated
 /// <c>party-request.html</c> / <c>party-news.html</c> templates promised here, so all three
-/// messages now carry the shared chrome and render in the recipient's language.
+/// messages carry the shared chrome. The co-admin invite has rendered in the recipient's language
+/// since GH #379; the other two since 039.
 /// </summary>
 public sealed class PartyEmailService
 {
@@ -57,22 +58,14 @@ public sealed class PartyEmailService
         await _sender.SendAsync(toEmail, _localizer.Get("subject.partyNews", culture, teamName, eventName), html, ct);
     }
 
-    /// <summary>A targeted co-admin invite, reusing the shared invitation template.</summary>
+    /// <summary>A targeted co-admin invite, in the recipient's language (GH #379).</summary>
     public async Task SendCoAdminInviteEmailAsync(
-        string toEmail, string recipientName, string teamName, string eventName,
-        string inviterName, string token, DateTime expiresDate, CancellationToken ct = default)
+        string toEmail, string teamName, string eventName, string inviterName, string token, DateTime expiresDate,
+        string culture = SupportedLanguages.Default, CancellationToken ct = default)
     {
         var url = BuildInviteLink(_options.FrontendBaseUrl, token);
-        var html = await _templates.GenerateInvitationEmailAsync(
-            recipientName: recipientName,
-            inviterName: inviterName,
-            inviterEmail: string.Empty,
-            organizationName: $"{teamName} @ {eventName}",
-            invitationUrl: url,
-            role: "party co-admin",
-            expirationDate: expiresDate);
-
-        await _sender.SendAsync(toEmail, $"You're invited to co-run {teamName}'s party at {eventName} — JuggerHub", html, ct);
+        var html = await _templates.GeneratePartyAdminInviteEmailAsync(inviterName, teamName, eventName, url, expiresDate, culture);
+        await _sender.SendAsync(toEmail, _localizer.Get("subject.partyAdminInvite", culture, teamName, eventName), html, ct);
     }
 
     internal static string BuildInviteLink(string frontendBaseUrl, string token)

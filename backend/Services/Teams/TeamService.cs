@@ -662,14 +662,17 @@ public sealed class TeamService : ITeamService
             {
                 if (await _preferences.IsEnabledAsync(targetUserId, NotificationCategory.InvitesAndRoster, NotificationChannel.Email, ct))
                 {
-                    var recipientEmail = await _db.Users.AsNoTracking()
-                        .Where(u => u.Id == targetUserId).Select(u => u.Email).FirstOrDefaultAsync(ct);
+                    var recipient = await _db.Users.AsNoTracking()
+                        .Where(u => u.Id == targetUserId).Select(u => new { u.Email, u.PreferredLanguage }).FirstOrDefaultAsync(ct);
                     var actorName = await _db.PlayerProfiles.AsNoTracking()
                         .Where(p => p.UserId == actorUserId).Select(p => p.DisplayName).FirstOrDefaultAsync(ct);
 
-                    if (!string.IsNullOrEmpty(recipientEmail))
+                    if (!string.IsNullOrEmpty(recipient?.Email))
                     {
-                        await _email.SendRoleChangedEmailAsync(recipientEmail, team.Name, team.Slug, actorName, changedRole, ct);
+                        // In the recipient's language (GH #379).
+                        await _email.SendRoleChangedEmailAsync(
+                            recipient.Email, team.Name, team.Slug, actorName, changedRole,
+                            SupportedLanguages.ResolveOrDefault(recipient.PreferredLanguage), ct);
                     }
                 }
             }

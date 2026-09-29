@@ -137,7 +137,7 @@ public sealed class EventInvitationService : IEventInvitationService
 
         var target = await _db.Users.AsNoTracking()
             .Where(us => us.Id == targetUserId)
-            .Select(us => new { us.Email, DisplayName = us.Profile!.DisplayName })
+            .Select(us => new { us.Email, us.PreferredLanguage, DisplayName = us.Profile!.DisplayName })
             .FirstOrDefaultAsync(ct);
         if (target is null || string.IsNullOrEmpty(target.Email))
         {
@@ -164,7 +164,7 @@ public sealed class EventInvitationService : IEventInvitationService
         var inviterName = await _db.PlayerProfiles.AsNoTracking()
             .Where(p => p.UserId == actorUserId)
             .Select(p => p.DisplayName)
-            .FirstOrDefaultAsync(ct) ?? "An organiser";
+            .FirstOrDefaultAsync(ct);
 
         var invite = new EventAdminInvitation
         {
@@ -187,8 +187,10 @@ public sealed class EventInvitationService : IEventInvitationService
             return new EventTargetedInviteResult(TargetedInviteOutcome.AlreadyInvited, null);
         }
 
+        // In the target's language (GH #379).
+        var culture = SupportedLanguages.ResolveOrDefault(target.PreferredLanguage);
         await _email.SendCoAdminInviteEmailAsync(
-            target.Email, target.DisplayName, eventName, inviterName, invite.Token, invite.ExpiresDate, ct);
+            target.Email, eventName, inviterName ?? MemberPlaceholder.For(culture), invite.Token, invite.ExpiresDate, culture, ct);
 
         return new EventTargetedInviteResult(TargetedInviteOutcome.Created,
             new EventInvitationDto(invite.Id, InvitationKind.Targeted, target.DisplayName, invite.CreatedDate, invite.ExpiresDate, InvitationStatus.Pending));

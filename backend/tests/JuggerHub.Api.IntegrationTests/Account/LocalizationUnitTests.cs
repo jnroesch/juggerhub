@@ -1,3 +1,4 @@
+using System.Reflection;
 using JuggerHub.Common;
 using JuggerHub.Services.Email;
 
@@ -43,5 +44,26 @@ public sealed class LocalizationUnitTests
     {
         var loc = new EmailLocalizer();
         Assert.Equal(loc.Get("subject.welcome", "en"), loc.Get("subject.welcome", "fr"));
+    }
+
+    /// <summary>
+    /// Every email string exists in every supported language (GH #379). A key missing one language
+    /// falls back to English without a trace, which is how a German email gets an English subject.
+    /// Reads the private table because the fallback makes the gap invisible through <c>Get</c>.
+    /// </summary>
+    [Fact]
+    public void EmailLocalizer_has_every_key_in_every_supported_language()
+    {
+        var field = typeof(EmailLocalizer).GetField("Strings", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(field);
+        var strings = Assert.IsAssignableFrom<IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>>(field.GetValue(null));
+
+        var gaps = strings
+            .SelectMany(entry => SupportedLanguages.All
+                .Where(language => !entry.Value.TryGetValue(language, out var text) || string.IsNullOrWhiteSpace(text))
+                .Select(language => $"{entry.Key} [{language}]"))
+            .ToList();
+
+        Assert.True(gaps.Count == 0, $"Email strings missing a language: {string.Join(", ", gaps)}");
     }
 }
