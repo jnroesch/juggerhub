@@ -2,10 +2,12 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Asp.Versioning;
 using JuggerHub.Dtos.Teams;
+using JuggerHub.Security.RateLimiting;
 using JuggerHub.Services.Teams;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace JuggerHub.Controllers;
 
@@ -35,8 +37,14 @@ public sealed class InvitationsController : ControllerBase
             : Ok(preview);
     }
 
+    /// <remarks>
+    /// Limited to ten acceptances per player per hour (feature 064, <see cref="RateLimitPolicies.TeamInviteAccept"/>):
+    /// a shared link stays usable, and every departure now reaches the team's admins, so joining and
+    /// leaving in a loop would otherwise message them as often as one likes. Decline is not limited.
+    /// </remarks>
     [HttpPost("{token}/accept")]
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
+    [EnableRateLimiting(RateLimitPolicies.TeamInviteAccept)]
     public async Task<ActionResult<AcceptInviteResultDto>> Accept(string token, CancellationToken ct)
     {
         if (!TryGetUserId(out var userId))
