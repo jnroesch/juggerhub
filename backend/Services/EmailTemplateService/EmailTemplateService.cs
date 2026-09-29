@@ -132,9 +132,17 @@ public class EmailTemplateService : IEmailTemplateService
         {
             ["INVITER_NAME"] = inviterName,
             ["INVITATION_URL"] = new RawHtml(invitationUrl),
-            ["EXPIRATION_DATE"] = expirationDate.ToString(_localizer.Get("format.date", culture), CultureInfo.InvariantCulture),
+            ["EXPIRATION_DATE"] = LocalDate(expirationDate, culture),
             ["EXPIRATION_TIME"] = expirationDate.ToString("HH:mm", CultureInfo.InvariantCulture),
         };
+
+    /// <summary>
+    /// A date as the reader's language writes it. The app runs globalization-invariant, so formatting
+    /// through a <see cref="CultureInfo"/> would print English month names whatever the culture; the
+    /// pattern comes from the localizer instead (<c>format.date</c>).
+    /// </summary>
+    private string LocalDate(DateTime date, string culture) =>
+        date.ToString(_localizer.Get("format.date", culture), CultureInfo.InvariantCulture);
 
     /// <inheritdoc />
     public async Task<string> GenerateSubscriptionWelcomeEmailAsync(string recipientName, string planName, List<string> features)
@@ -177,7 +185,7 @@ public class EmailTemplateService : IEmailTemplateService
             {"USER_NAME", recipientName},
             {"USER_EMAIL", recipientEmail},
             {"COMPANY_NAME", companyName},
-            {"CREATED_DATE", createdDate.ToString("MMMM dd, yyyy")},
+            {"CREATED_DATE", LocalDate(createdDate, culture)},
             {"FOOTER_REASON", _localizer.Get("footer.welcome", culture)}
         };
 
@@ -192,7 +200,7 @@ public class EmailTemplateService : IEmailTemplateService
             ["EMAIL_TITLE"] = _localizer.Get("title.passwordChanged", culture),
             ["RECIPIENT_NAME"] = recipientName,
             ["RECIPIENT_EMAIL"] = recipientEmail,
-            ["CHANGE_DATE"] = changeDate.ToString("MMMM dd, yyyy"),
+            ["CHANGE_DATE"] = LocalDate(changeDate, culture),
             ["CHANGE_TIME"] = changeDate.ToString("HH:mm:ss UTC"),
             ["IP_ADDRESS"] = ipAddress,
             ["FOOTER_REASON"] = _localizer.Get("footer.passwordChanged", culture)
@@ -210,7 +218,7 @@ public class EmailTemplateService : IEmailTemplateService
             ["EMAIL_TITLE"] = _localizer.Get("title.accountDeleted", culture),
             ["RECIPIENT_NAME"] = recipientName,
             ["RECIPIENT_EMAIL"] = recipientEmail,
-            ["DELETED_DATE"] = deletedAt.ToString("MMMM dd, yyyy"),
+            ["DELETED_DATE"] = LocalDate(deletedAt, culture),
             ["DELETED_TIME"] = deletedAt.ToString("HH:mm:ss UTC"),
             ["FOOTER_REASON"] = _localizer.Get("footer.accountDeleted", culture),
         };

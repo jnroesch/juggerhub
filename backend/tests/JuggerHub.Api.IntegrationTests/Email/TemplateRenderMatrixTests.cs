@@ -171,6 +171,28 @@ public sealed class TemplateRenderMatrixTests
         Assert.Contains(expected, html, StringComparison.Ordinal);
     }
 
+    /// <summary>The emails that were already translated carry their dates the same way.</summary>
+    [Theory]
+    [InlineData("en", "October 06, 2026")]
+    [InlineData("de", "06.10.2026")]
+    [InlineData("es", "06/10/2026")]
+    public async Task Every_dated_email_writes_the_date_in_the_recipients_language(string culture, string expected)
+    {
+        var service = Service();
+        var emails = new[]
+        {
+            await service.GenerateWelcomeEmailAsync("Mira", "mira@example.com", "JuggerHub", Expiry, culture),
+            await service.GeneratePasswordChangeNotificationEmailAsync("Mira", "mira@example.com", Expiry, "203.0.113.7", culture),
+            await service.GenerateAccountDeletedEmailAsync("Mira", "mira@example.com", Expiry, culture),
+        };
+
+        Assert.All(emails, html => Assert.Contains(expected, html, StringComparison.Ordinal));
+        if (culture != "en")
+        {
+            Assert.All(emails, html => Assert.DoesNotContain("October", html, StringComparison.Ordinal));
+        }
+    }
+
     /// <summary>The role reaches the reader in words of their language, never as the enum's name.</summary>
     [Theory]
     [InlineData("en", TeamRole.Admin, "You're now an admin of Rheinfeuer.", "Admin")]
