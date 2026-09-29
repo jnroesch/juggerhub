@@ -200,12 +200,15 @@ reviews:
       - name: ModifiedDate on bulk updates
         mode: warning
         instructions: |
-          Pass if no added or changed line in backend/ calls `ExecuteUpdate` or
-          `ExecuteUpdateAsync`. Otherwise, for each such call whose target entity derives from
-          `BaseEntity` (backend/Entities), fail unless that same call includes
-          `.SetProperty(x => x.ModifiedDate, ...)`. List every failing call with its file and
-          line. Reason: bulk updates bypass the AuditFieldsInterceptor (constitution
-          Principle III, quality gate 2).
+          Consider every `ExecuteUpdate` or `ExecuteUpdateAsync` call in backend/ whose
+          expression the pull request touches: the call is added, or any line of it is added,
+          changed or removed (a removed `.SetProperty(...)` line counts, even when the line
+          naming `ExecuteUpdateAsync` is unchanged). Judge the whole expression as it stands
+          after the change. For each such call whose target entity derives from `BaseEntity`
+          (backend/Entities), fail unless that call includes
+          `.SetProperty(x => x.ModifiedDate, ...)`. Pass if no such call is touched. List every
+          failing call with its file and line. Reason: bulk updates bypass the
+          AuditFieldsInterceptor (constitution Principle III, quality gate 2).
       - name: Migration matches the model change
         mode: warning
         instructions: |
@@ -232,8 +235,12 @@ reviews:
           `.AddJuggerHubResilience(...)` together with a matching configuration section, if the
           diff adds a hand-rolled retry loop, `Task.Delay` backoff or a per-client
           `HttpClient.Timeout`, or if an SDK's built-in retry is left enabled alongside the
-          shared pipeline. Pass if no outbound call is added. Reason: constitution
-          Principle VII, quality gate 8.
+          shared pipeline. Apply the same criteria when the diff changes an existing outbound
+          client instead of adding one: fail if it removes `.AddJuggerHubResilience(...)` from an
+          existing registration, or adds a hand-rolled retry, `Task.Delay` backoff or per-client
+          timeout around an existing outbound call. Pass if the diff neither adds an outbound
+          call nor changes an existing client's registration or retry behaviour. Reason:
+          constitution Principle VII, quality gate 8.
       - name: Translations in all three languages
         mode: warning
         instructions: |
