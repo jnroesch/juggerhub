@@ -16,27 +16,37 @@ namespace JuggerHub.Api.IntegrationTests.Email;
 public sealed class TemplateParityTests
 {
     /// <summary>
-    /// Every template that exists in all three languages. Feature 039 authored the first four;
-    /// <c>account-deleted.html</c> arrived with feature 037 and is included here because the guard
-    /// is about the *property* (three variants, one placeholder set), not about who wrote the file.
-    ///
-    /// Deliberately excludes <c>invitation.html</c> and <c>team-news.html</c>, which are en-only by
-    /// design and fall back — see #84.
+    /// The English templates that are deliberately not translated. Keep this short: anything named
+    /// here is sent in English to everyone.
     /// </summary>
-    public static TheoryData<string> FullyTranslatedTemplates =>
+    private static readonly string[] NotTranslated =
     [
-        "event-cancelled.html",
-        "party-request.html",
-        "party-news.html",
-        "market-invite.html",
-        "account-deleted.html",
-        // Feature 058 — both directions of a join request.
-        "join-request.html",
-        "join-request-accepted.html",
-        "join-request-declined.html",
-        // Feature 062 — a team started a poll.
-        "team-poll.html",
+        // No words in them: the stylesheet and the logo.
+        "base-styles.html",
+        "header.html",
+        // Never sent — nothing calls GenerateSubscriptionWelcomeEmailAsync.
+        "subscription-welcome.html",
     ];
+
+    /// <summary>
+    /// Every English template except <see cref="NotTranslated"/>. The list is <b>opt-out</b> (GH #379):
+    /// it used to be an opt-in list, and three English-only templates sat outside it with nothing
+    /// failing, so a German or Spanish member got those emails in English. A new template now fails
+    /// here until it has all three variants or is named above.
+    /// </summary>
+    public static TheoryData<string> FullyTranslatedTemplates
+    {
+        get
+        {
+            var data = new TheoryData<string>();
+            foreach (var name in TemplateNames("en").Except(NotTranslated).Order(StringComparer.Ordinal))
+            {
+                data.Add(name);
+            }
+
+            return data;
+        }
+    }
 
     [Theory]
     [MemberData(nameof(FullyTranslatedTemplates))]
@@ -83,23 +93,48 @@ public sealed class TemplateParityTests
         }
     }
 
-    /// <summary>The shared footer carries the legal links, so it must be present per language too.</summary>
+    /// <summary>
+    /// The shared footer carries the legal links, so it must be present per language too. It is in
+    /// <see cref="FullyTranslatedTemplates"/> like any other template; this names it on purpose.
+    /// </summary>
     [Fact]
-    public void Footer_variants_declare_the_same_placeholders()
+    public void The_footer_is_checked()
     {
-        var root = TemplateRoot();
-        var english = Placeholders(File.ReadAllText(Path.Combine(root, "en", "footer.html")));
+        Assert.Contains("footer.html", FullyTranslatedTemplates.Cast<object[]>().Select(row => (string)row[0]));
+    }
+
+    /// <summary>An allowlist entry for a file that is gone would hide the next file of that name.</summary>
+    [Fact]
+    public void Every_untranslated_template_still_exists()
+    {
+        foreach (var name in NotTranslated)
+        {
+            Assert.True(
+                File.Exists(Path.Combine(TemplateRoot(), "en", name)),
+                $"en/{name} is named as untranslated but no longer exists; drop it from the list.");
+        }
+    }
+
+    /// <summary>
+    /// A translation without an English original is never loaded: <c>EmailTemplateService</c> is
+    /// called by the English name. This is what a rename that missed one language leaves behind.
+    /// </summary>
+    [Fact]
+    public void Every_translation_has_an_english_original()
+    {
+        var english = TemplateNames("en").ToHashSet(StringComparer.Ordinal);
 
         foreach (var culture in new[] { "de", "es" })
         {
-            var localized = Placeholders(File.ReadAllText(Path.Combine(root, culture, "footer.html")));
+            var orphans = TemplateNames(culture).Where(name => !english.Contains(name)).Order(StringComparer.Ordinal).ToList();
             Assert.True(
-                english.SetEquals(localized),
-                $"{culture}/footer.html placeholders differ from English: "
-                + $"missing [{string.Join(", ", english.Except(localized))}] "
-                + $"extra [{string.Join(", ", localized.Except(english))}]");
+                orphans.Count == 0,
+                $"{culture}/ has template(s) with no English original: {string.Join(", ", orphans)}");
         }
     }
+
+    private static IEnumerable<string> TemplateNames(string culture) =>
+        Directory.GetFiles(Path.Combine(TemplateRoot(), culture), "*.html").Select(path => Path.GetFileName(path));
 
     private static HashSet<string> Placeholders(string template) =>
         Regex.Matches(template, @"\{\{([A-Z0-9_]+)\}\}")
