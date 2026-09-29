@@ -315,6 +315,27 @@ public sealed class PartyChatLinkTests : PartyTestSupport
         Assert.Equal(1, await PartyChatCountAsync(partyId));
     }
 
+    /// <summary>
+    /// Where the button lands (found by 063's browser walk). A live party chat stores no name, so it is
+    /// called by the fallback. Feature 056 moved the fallbacks into a record struct whose <c>new()</c>
+    /// skipped the defaulted primary constructor, and every party chat came back nameless: a blank inbox
+    /// row and a header reading "…".
+    /// </summary>
+    [Fact]
+    public async Task The_party_chat_is_named_in_the_inbox_and_its_header()
+    {
+        var (_, _, member, _, _, partyId) = await PartyAsync();
+        await JoinAsync(member, partyId);
+        var id = await OpenPartyChatIdAsync(member, partyId);
+
+        var detail = await member.GetFromJsonAsync<JsonElement>($"/api/v1/chat/conversations/{id}", Json);
+        var inbox = await member.GetFromJsonAsync<JsonElement>("/api/v1/chat/conversations", Json);
+        var row = inbox.GetProperty("items").EnumerateArray().Single(c => c.GetProperty("id").GetGuid() == id);
+
+        Assert.Equal("Party chat", detail.GetProperty("name").GetString());
+        Assert.Equal("Party chat", row.GetProperty("name").GetString());
+    }
+
     [Fact]
     public async Task Without_a_session_the_answer_is_401()
     {
