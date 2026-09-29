@@ -34,14 +34,16 @@
       <jh-card class="mt-md" data-testid="crew-card">
         @if (p.myState === 'In') {
           <p class="text-body-sm text-body">{{ 'parties.manage.youreInCrew' | transloco }}</p>
-          <!-- Default size, both: 44px touch targets (DESIGN.md), one height for the row. -->
+          <!-- Default size, both: 44px touch targets (DESIGN.md), one height for the row. Equal widths
+               like this card's I'm in / Can't make it. Labels never break, so where both don't fit
+               (German at 375px) the row wraps and each button takes the full width. -->
           <div class="mt-sm flex flex-wrap gap-sm">
             <!-- Feature 063: the party's own chat, looked up (and created if need be) on the press. -->
-            <button type="button" jhButton variant="secondary" data-testid="party-chat" [disabled]="partyChatBusy()" (click)="openPartyChat()">
+            <button type="button" jhButton variant="secondary" data-testid="party-chat" class="flex-1 whitespace-nowrap" [disabled]="partyChatBusy()" (click)="openPartyChat()">
               {{ (partyChatBusy() ? 'parties.manage.openingPartyChat' : 'parties.manage.partyChat') | transloco }}
             </button>
             <button type="button" (click)="leave()" [disabled]="acting()"
-              jhButton variant="secondary" data-testid="leave-party">{{ 'parties.manage.leaveParty' | transloco }}</button>
+              jhButton variant="secondary" data-testid="leave-party" class="flex-1 whitespace-nowrap">{{ 'parties.manage.leaveParty' | transloco }}</button>
           </div>
           @if (partyChatError(); as key) {
             <p class="mt-xs text-body-sm text-danger-fg" role="alert" data-testid="party-chat-error">{{ key | transloco }}</p>
