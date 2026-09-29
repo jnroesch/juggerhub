@@ -14,13 +14,15 @@
         <p class="mt-sm text-body-sm text-danger-fg" role="alert" data-testid="confirm-dialog-error">{{ message }}</p>
       }
     </div>
-    <!-- Default size (44px): both answers are touch targets. They wrap as whole buttons on a narrow
-         screen rather than truncating a label. -->
+    <!-- Default size (44px): both answers are touch targets. On a phone they share the row equally and a
+         label never breaks inside its button, so where both don't fit (German at 375px) the row wraps
+         and each answer takes the full width — the 063 pattern; ragged right-aligned buttons otherwise.
+         From `sm` they take their natural width at the right. -->
     <div class="flex flex-wrap items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
       <button #keep type="button" (click)="dismiss()" [disabled]="busy()" data-testid="confirm-dialog-keep"
-        jhButton variant="secondary">{{ keepLabel() }}</button>
+        jhButton variant="secondary" class="flex-1 whitespace-nowrap sm:flex-none">{{ keepLabel() }}</button>
       <button type="button" (click)="confirm()" [disabled]="busy()" data-testid="confirm-dialog-confirm"
-        jhButton variant="danger">{{ busy() && busyLabel() ? busyLabel() : confirmLabel() }}</button>
+        jhButton variant="danger" class="flex-1 whitespace-nowrap sm:flex-none">{{ busy() && busyLabel() ? busyLabel() : confirmLabel() }}</button>
     </div>
   </div>
 </div>

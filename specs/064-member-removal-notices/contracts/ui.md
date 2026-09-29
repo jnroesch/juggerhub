@@ -36,7 +36,9 @@ answer receives focus after first render; Tab and Shift+Tab stay inside; answers
 
 ## Party page (`/parties/{id}`)
 
-- *In* tab Remove → heading *Take {name} out of the party?*, answers *Keep {name}* / *Remove from party*.
+- *In* tab Remove → heading *Take {name} out of the party?*, body ends *They won't be sent a message
+  about it.* (the team dialog says the opposite, so an admin who knows one does not assume the
+  other), answers *Keep {name}* / *Remove from party*.
 - *Declined* tab Remove → heading *Clear {name}'s answer?*, body says they will count as not having
   answered, answers *Keep answer* / *Clear answer*.
 - Disband → heading *Disband this party?*, body keeps today's meaning (cannot be undone), answers
@@ -47,10 +49,14 @@ answer receives focus after first render; Tab and Shift+Tab stay inside; answers
 
 | Type | Icon | Title | Supporting | Link |
 |------|------|-------|------------|------|
-| `TeamMemberRemoved` | `user-minus` (info tone) | *You're no longer a member of {team}* | — | `/t/{slug}` |
-| `TeamMemberDeparted` | `user-minus` (info tone) | *{name} left {team}* / *{name} was removed from {team}* | — | `/t/{slug}` |
+| `TeamMemberRemoved` | `user-minus` (info tone) | *You're no longer a member of {team}* | *The team's members-only pages and chat are closed to you now* | `/t/{slug}` |
+| `TeamMemberDeparted` | `user-minus` (info tone) | *{name} left {team}* / *{name} was removed from {team}* | *No longer on the team's roster* | `/t/{slug}` |
 
-`{name}` is `actorDisplayName ?? 'alerts.row.formerPlayer'`-style placeholder (the one 058 uses).
+`{name}` is `actorDisplayName ?? alerts.row.formerPlayer` (the placeholder 058 uses).
+
+> **Changed during implementation**: the plan had no supporting line for either row. Every other row
+> has one, and the row's spec treats an empty supporting line as a broken row (feature 039), so each
+> got a factual line. Neither names a person, gives a reason or makes a suggestion (FR-011, FR-015).
 
 ## Accept sites — `429`
 
