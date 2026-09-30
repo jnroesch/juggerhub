@@ -748,6 +748,41 @@ describe('TeamDetailComponent — the join confirmation (GH #392)', () => {
     expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
     expect(el<HTMLButtonElement>(fixture, 'cancel-request')?.disabled).toBe(false);
   });
+
+  it('drops an old answer even when the page has come back to the team it was about', () => {
+    // CodeRabbit on PR #398: A → B → A. The slug is the same again, so comparing slugs lets the old
+    // answer through, and it would close the question the page is now waiting on and unlock it.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('NonMember', route);
+    const first = new Subject<void>();
+    const second = new Subject<void>();
+    service['requestToJoin'].mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    expect(service['requestToJoin']).toHaveBeenCalledTimes(2);
+    const loads = service['getPublicDetail'].mock.calls.length;
+
+    first.error(new HttpErrorResponse({ status: 500 }));
+    fixture.detectChanges();
+
+    // The newer request is still under way: its question stays, locked, and nothing is said yet.
+    expect(el(fixture, 'confirm-dialog')).not.toBeNull();
+    expect(el<HTMLButtonElement>(fixture, 'confirm-dialog-keep')?.disabled).toBe(true);
+    expect(el(fixture, 'request-error')).toBeNull();
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+
+    // Its own answer still lands.
+    second.next();
+    fixture.detectChanges();
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+  });
 });
 
 /**
@@ -1176,6 +1211,33 @@ describe('TeamDetailComponent — removing a teammate asks first (feature 064)',
 
     expect(dialog(fixture)).toBeNull();
     expect(service['removeMember']).not.toHaveBeenCalled();
+  });
+
+  it('drops an old answer even when the page has come back to the same team', () => {
+    // CodeRabbit on PR #398: A → B → A. Comparing slugs cannot tell this from never having left, and
+    // the old answer would close the question the page is now waiting on.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render(route);
+    const first = new Subject<void>();
+    const second = new Subject<void>();
+    service['removeMember'].mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    expect(service['removeMember']).toHaveBeenCalledTimes(2);
+    const loads = service['getPublicDetail'].mock.calls.length;
+
+    first.next();
+    fixture.detectChanges();
+
+    expect(dialog(fixture)).not.toBeNull();
+    expect(el<HTMLButtonElement>(fixture, '[data-testid="confirm-dialog-confirm"]')?.disabled).toBe(true);
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
   });
 
   it('keeps the question open on any other failure, in our words, and confirming again retries', () => {

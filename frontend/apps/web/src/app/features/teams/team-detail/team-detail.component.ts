@@ -55,6 +55,13 @@ export class TeamDetailComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly slug = signal('');
+  /**
+   * Counts the teams this page has shown. The router reuses the component from one team to the next,
+   * so an answer can arrive for a team the page has left — or left and come back to, which a
+   * comparison of slugs cannot tell from never having left. A call notes the count when it starts,
+   * and its answer is dropped if the count has moved on.
+   */
+  private visit = 0;
   protected readonly pub = signal<TeamPublicDetail | null>(null);
   protected readonly loading = signal(true);
   protected readonly notFound = signal(false);
@@ -144,6 +151,7 @@ export class TeamDetailComponent {
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((pm) => {
       this.slug.set(pm.get('slug') ?? '');
+      this.visit++;
       // The router reuses this component from one team to the next; an editor left open on the
       // previous team has no place here (feature 057). Only on a switch, not in load(): approving a
       // join request reloads too, mid-edit, and the editor and its text must survive that.
@@ -155,7 +163,7 @@ export class TeamDetailComponent {
       this.requestError.set(null);
       // A join confirmation left open was asked about the PREVIOUS team: here it would ask, unprompted,
       // about this one. A request still on its way belongs to that team too: its answer is dropped
-      // when it arrives (see requestToJoin), so the busy flag it would have cleared is cleared here.
+      // when it arrives (see `visit`), so the busy flag it would have cleared is cleared here.
       this.confirmIntent.set(null);
       this.requestBusy.set(false);
       // Feature 060 — likewise for the team chat's notes.
@@ -364,11 +372,11 @@ export class TeamDetailComponent {
     }
     this.requestBusy.set(true);
     this.requestError.set(null);
-    const slug = this.slug();
-    this.teams.requestToJoin(slug).subscribe({
+    const visit = this.visit;
+    this.teams.requestToJoin(this.slug()).subscribe({
       next: () => {
-        if (this.slug() !== slug) {
-          return; // the page moved to another team meanwhile; this answer is not about it
+        if (this.visit !== visit) {
+          return; // the page moved on meanwhile (even if it came back); this answer is not about it
         }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
@@ -377,7 +385,7 @@ export class TeamDetailComponent {
         this.load(() => this.focus('[data-testid="requested"]'));
       },
       error: (err) => {
-        if (this.slug() !== slug) {
+        if (this.visit !== visit) {
           return;
         }
         this.requestBusy.set(false);
@@ -410,11 +418,11 @@ export class TeamDetailComponent {
     }
     this.requestBusy.set(true);
     this.requestError.set(null);
-    const slug = this.slug();
-    this.teams.cancelJoinRequest(slug).subscribe({
+    const visit = this.visit;
+    this.teams.cancelJoinRequest(this.slug()).subscribe({
       next: () => {
-        if (this.slug() !== slug) {
-          return; // the page moved to another team meanwhile; this answer is not about it
+        if (this.visit !== visit) {
+          return; // the page moved on meanwhile (even if it came back); this answer is not about it
         }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
@@ -422,7 +430,7 @@ export class TeamDetailComponent {
         this.load(() => this.focus(REQUEST_BUTTON));
       },
       error: () => {
-        if (this.slug() !== slug) {
+        if (this.visit !== visit) {
           return;
         }
         this.requestBusy.set(false);
@@ -522,11 +530,11 @@ export class TeamDetailComponent {
     }
     this.removeBusy.set(true);
     this.removeError.set(null);
-    const slug = this.slug();
-    this.teams.removeMember(slug, member.userId).subscribe({
+    const visit = this.visit;
+    this.teams.removeMember(this.slug(), member.userId).subscribe({
       next: () => {
-        if (this.slug() !== slug) {
-          return; // the page moved to another team meanwhile; this answer is not about it
+        if (this.visit !== visit) {
+          return; // the page moved on meanwhile (even if it came back); this answer is not about it
         }
         this.removeBusy.set(false);
         this.removing.set(null);
@@ -535,7 +543,7 @@ export class TeamDetailComponent {
         this.load(() => this.focus('#team-roster-heading'));
       },
       error: (err) => {
-        if (this.slug() !== slug) {
+        if (this.visit !== visit) {
           return;
         }
         this.removeBusy.set(false);
