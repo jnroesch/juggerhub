@@ -9,7 +9,15 @@ import { AuthUser } from '../models/auth.models';
 import { AuthService } from './auth.service';
 import { HubSessionService } from './hub-session.service';
 
-const USER: AuthUser = { id: 'u1', email: 'a@example.com', emailConfirmed: true, onboardingCompleted: true, handle: 'a-handle' };
+const USER: AuthUser = {
+  id: 'u1',
+  email: 'a@example.com',
+  emailConfirmed: true,
+  onboardingCompleted: true,
+  handle: 'a-handle',
+  hasAvatar: false,
+  preferredLanguage: null,
+};
 const NEGOTIATE = 'http://localhost/hubs/chat/negotiate?negotiateVersion=1';
 
 const refused = () => new signalR.HttpError('Unauthorized', 401);

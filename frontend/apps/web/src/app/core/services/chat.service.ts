@@ -82,6 +82,11 @@ export class ChatService {
 
   private hub?: HubConnection;
   private connecting = false;
+  /**
+   * Whether the inbox has been loaded in this session. Not "holds any rows": a loaded inbox can be
+   * empty, and that is exactly the one a first conversation started during a reconnect must reach.
+   */
+  private inboxLoaded = false;
   private lastTypingSentAt = 0;
   /** The conversation whose read was held back because the tab was hidden — see {@link markReadToLatest}. */
   private deferredReadId: string | null = null;
@@ -98,6 +103,7 @@ export class ChatService {
       } else {
         this.disconnect();
         this._conversations.set([]);
+        this.inboxLoaded = false;
         this._messages.set([]);
         this._openId.set(null);
         this._unread.set(0);
@@ -114,7 +120,12 @@ export class ChatService {
       .get<PagedResult<Conversation>>(`${this.base}/conversations`, {
         params: new HttpParams().set('skip', 0).set('take', take),
       })
-      .pipe(tap((page) => this._conversations.set([...page.items])));
+      .pipe(
+        tap((page) => {
+          this._conversations.set([...page.items]);
+          this.inboxLoaded = true;
+        }),
+      );
   }
 
   /**
@@ -546,7 +557,7 @@ export class ChatService {
    */
   private onReconnected(): void {
     this.refreshUnread();
-    if (this._conversations().length > 0) {
+    if (this.inboxLoaded) {
       this.loadInbox().subscribe({ error: () => undefined });
     }
     const open = this._openId();
@@ -571,9 +582,14 @@ export class ChatService {
    * read at once for a reader at the bottom, behind the divider for one scrolled up.
    */
   private catchUpThread(conversationId: string): void {
+    const askedAs = this.auth.currentUser()?.id;
+    const heldWhenAsked = new Set(this._messages().map((m) => m.id));
+
     this.http.get<MessagePage>(`${this.base}/conversations/${conversationId}/messages`).subscribe({
       next: (page) => {
-        if (this._openId() !== conversationId) {
+        // An answer belongs to the account that asked and the thread it asked about. Signed out,
+        // signed in as someone else, or moved to another conversation meanwhile: it is dropped.
+        if (!askedAs || this.auth.currentUser()?.id !== askedAs || this._openId() !== conversationId) {
           return;
         }
 
@@ -593,8 +609,11 @@ export class ChatService {
         if (lastShared < 0) {
           // Nothing in common: the thread was still empty, or more than a page arrived while away
           // and what is held no longer joins up with it. Start again from the newest page rather
-          // than show a thread with a hole in it.
-          this._messages.set(newest);
+          // than show a thread with a hole in it — keeping only what landed over the new socket
+          // while this answer was on its way, which is newer than the page and not in it.
+          const inPage = new Set(newest.map((m) => m.id));
+          const arrivedMeanwhile = held.filter((m) => !heldWhenAsked.has(m.id) && !inPage.has(m.id));
+          this._messages.set([...newest, ...arrivedMeanwhile]);
           this._nextBefore.set(page.nextBefore);
           return;
         }

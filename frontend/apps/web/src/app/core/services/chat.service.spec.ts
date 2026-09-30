@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideHttpClient, withXhr } from '@angular/common/http';
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { ChatService } from './chat.service';
 import { AuthService } from './auth.service';
 import { ChatMessage, Conversation } from '../models/chat.models';
@@ -17,6 +17,8 @@ describe('ChatService', () => {
   let service: ChatService;
   let httpMock: HttpTestingController;
   const authed = signal(true);
+  /** Whose session it is — so a test can switch accounts without an intervening sign-out. */
+  const userId = signal('u1');
 
   const conversation = (over: Partial<Conversation> = {}): Conversation => ({
     id: 'c1',
@@ -52,13 +54,17 @@ describe('ChatService', () => {
 
   beforeEach(() => {
     authed.set(true);
+    userId.set('u1');
 
     TestBed.configureTestingModule({
       providers: [
         ChatService,
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        { provide: AuthService, useValue: { isAuthenticated: authed } },
+        {
+          provide: AuthService,
+          useValue: { isAuthenticated: authed, currentUser: computed(() => (authed() ? { id: userId() } : null)) },
+        },
       ],
     });
 
@@ -580,21 +586,46 @@ describe('ChatService', () => {
       expect(service.messages().map((m) => m.id)).toEqual(['n1']);
     });
 
-    it('re-seeds the inbox only when one is loaded', () => {
+    it('keeps a message that landed meanwhile even when it starts again from the newest page', () => {
+      reconnect();
+      const catchUp = httpMock.expectOne('/api/v1/chat/conversations/c1/messages');
+      service['onMessageCreated']('c1', message({ id: 'm99', body: 'just now' }));
+      httpMock.match('/api/v1/chat/conversations?skip=0&take=20').forEach((r) => r.flush({ items: [], totalCount: 0, skip: 0, take: 20 }));
+      catchUp.flush({ items: [message({ id: 'm9' }), message({ id: 'm8' })], nextBefore: 'm8' });
+
+      // Replacing the thread with the page alone would have dropped it: it is newer than the page.
+      expect(service.messages().map((m) => m.id)).toEqual(['m8', 'm9', 'm99']);
+    });
+
+    it('drops an answer that was asked for by another account', () => {
+      reconnect();
+      const stale = httpMock.expectOne('/api/v1/chat/conversations/c1/messages');
+
+      // Signed in as someone else while the answer was on its way (a slow network is enough).
+      userId.set('u2');
+      stale.flush({ items: [message({ id: 'm3' }), message({ id: 'm2' }), message({ id: 'm1' })], nextBefore: 'm1' });
+
+      expect(service.messages().map((m) => m.id)).toEqual(['m1', 'm2']);
+    });
+
+    it('re-seeds the inbox only when one is loaded — even an empty one', () => {
       reconnect();
       httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({ items: [], nextBefore: null });
       httpMock.expectNone('/api/v1/chat/conversations?skip=0&take=20');
 
+      // Loaded and empty: the inbox a first conversation started during the reconnect has to reach.
       service.loadInbox().subscribe();
       httpMock
         .expectOne('/api/v1/chat/conversations?skip=0&take=20')
-        .flush({ items: [conversation()], totalCount: 1, skip: 0, take: 20 });
+        .flush({ items: [], totalCount: 0, skip: 0, take: 20 });
 
       reconnect();
       httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({ items: [], nextBefore: null });
       httpMock
         .expectOne('/api/v1/chat/conversations?skip=0&take=20')
         .flush({ items: [conversation()], totalCount: 1, skip: 0, take: 20 });
+
+      expect(service.conversations().map((c) => c.id)).toEqual(['c1']);
     });
   });
 

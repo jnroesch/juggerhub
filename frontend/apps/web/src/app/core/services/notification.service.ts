@@ -38,6 +38,11 @@ export class NotificationService {
 
   private hub?: HubConnection;
   private connecting = false;
+  /**
+   * Whether the Alerts list has been loaded in this session. Not "holds any alerts": a loaded list
+   * can be empty, and that is exactly the one an alert raised during a reconnect must reach.
+   */
+  private inboxLoaded = false;
 
   constructor() {
     // Follow auth state: connect + seed when signed in, tear down + clear on sign-out.
@@ -47,6 +52,7 @@ export class NotificationService {
         void this.connect();
       } else {
         this.disconnect();
+        this.inboxLoaded = false;
         this._items.set([]);
         this._total.set(0);
         this._unread.set(0);
@@ -66,6 +72,7 @@ export class NotificationService {
         tap((page) => {
           this._items.set(page.items);
           this._total.set(page.totalCount);
+          this.inboxLoaded = true;
         }),
       );
   }
@@ -189,7 +196,7 @@ export class NotificationService {
    */
   private onReconnected(): void {
     this.refreshUnread();
-    if (this._items().length > 0) {
+    if (this.inboxLoaded) {
       this.catchUpInbox();
     }
   }
@@ -209,14 +216,17 @@ export class NotificationService {
    * its way. It is newer than the page, so it stays on top rather than being taken for a removal.
    */
   private catchUpInbox(): void {
+    const askedAs = this.auth.currentUser()?.id;
     const heldWhenAsked = new Set(this._items().map((i) => i.id));
 
     this.http
       .get<PagedResult<AppNotification>>(this.base, { params: new HttpParams().set('skip', 0).set('take', 20) })
       .subscribe({
         next: (page) => {
-          // Signed out while the answer was on its way: an anonymous client holds nothing.
-          if (!this.auth.isAuthenticated()) {
+          // An answer belongs to the account that asked. Signed out while it was on its way, or
+          // signed in as someone else: an anonymous client holds nothing, and nobody holds
+          // another account's alerts.
+          if (!askedAs || this.auth.currentUser()?.id !== askedAs) {
             return;
           }
 
@@ -225,14 +235,17 @@ export class NotificationService {
           const firstOld = held.findIndex((i) => heldWhenAsked.has(i.id));
           const arrivedMeanwhile = held.slice(0, Math.max(firstOld, 0)).filter((i) => !inPage.has(i.id));
 
-          const known = new Set(held.map((i) => i.id));
+          // Everything else is compared with the page. Set apart first, so nothing can end up in
+          // the list twice — a repeated id would give the template's `track` duplicate keys.
+          const rest = held.filter((i) => !arrivedMeanwhile.includes(i));
+          const known = new Set(rest.map((i) => i.id));
           let lastShared = page.items.length - 1;
           while (lastShared >= 0 && !known.has(page.items[lastShared].id)) {
             lastShared--;
           }
 
           const below =
-            lastShared < 0 ? [] : held.slice(held.findIndex((i) => i.id === page.items[lastShared].id) + 1);
+            lastShared < 0 ? [] : rest.slice(rest.findIndex((i) => i.id === page.items[lastShared].id) + 1);
           const range = below.length > 0 ? page.items.slice(0, lastShared + 1) : page.items;
 
           this._items.set([...arrivedMeanwhile, ...range, ...below]);

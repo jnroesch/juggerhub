@@ -1,6 +1,6 @@
 import { provideHttpClient, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { signal } from '@angular/core';
+import { computed, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { AppNotification } from '../models/notification.models';
 import { AuthService } from './auth.service';
@@ -17,6 +17,8 @@ describe('NotificationService', () => {
   let service: NotificationService;
   let httpMock: HttpTestingController;
   const authed = signal(true);
+  /** Whose session it is — so a test can switch accounts without an intervening sign-out. */
+  const userId = signal('u1');
 
   const FIRST_PAGE = '/api/v1/notifications?skip=0&take=20';
 
@@ -37,13 +39,17 @@ describe('NotificationService', () => {
 
   beforeEach(() => {
     authed.set(true);
+    userId.set('u1');
 
     TestBed.configureTestingModule({
       providers: [
         NotificationService,
         provideHttpClient(withXhr()),
         provideHttpClientTesting(),
-        { provide: AuthService, useValue: { isAuthenticated: authed } },
+        {
+          provide: AuthService,
+          useValue: { isAuthenticated: authed, currentUser: computed(() => (authed() ? { id: userId() } : null)) },
+        },
       ],
     });
 
@@ -154,7 +160,34 @@ describe('NotificationService', () => {
     expect(ids()).toEqual([]);
   });
 
+  it('holds nothing of an answer that was asked for by another account', () => {
+    loadTwoPages();
+
+    reconnect();
+    const catchUp = httpMock.expectOne(FIRST_PAGE);
+    // Signed in as someone else while the answer was on its way (a slow network is enough).
+    userId.set('u2');
+    catchUp.flush({ items: alerts(26, 7), totalCount: 26, skip: 0, take: 20 });
+
+    expect(ids()).not.toContain('n26');
+  });
+
+  it('catches up an inbox that was opened and is empty', () => {
+    service.loadFirstPage().subscribe();
+    httpMock.expectOne(FIRST_PAGE).flush({ items: [], totalCount: 0, skip: 0, take: 20 });
+
+    reconnect();
+    // Raised while the socket was down: the badge would count it, and the open list must show it.
+    httpMock.expectOne(FIRST_PAGE).flush({ items: [alert(1)], totalCount: 1, skip: 0, take: 20 });
+
+    expect(ids()).toEqual(['n01']);
+    expect(service.total()).toBe(1);
+  });
+
   it('fetches nothing for an inbox that was never opened', () => {
+    // Alerts pushed live are held, but the list itself was never loaded.
+    service['onCreated'](alert(1));
+
     reconnect();
 
     httpMock.expectNone(FIRST_PAGE);
