@@ -100,6 +100,29 @@ describe('ConfirmDialogComponent', () => {
     expect(document.activeElement).toBe(keep());
   });
 
+  it('takes the focus off the button that asked before the dialog is in the page', () => {
+    // GH #392, found in the browser: asked for by a menu item that its menu then removes, the dialog
+    // was already in the page when the browser lost its focused element and restyled everything —
+    // and its answers, classed a moment later, grew in from nothing. So the focus leaves first.
+    host.open.set(false);
+    fixture.detectChanges();
+    const opener = must('[data-testid="opener"]');
+    opener.focus();
+    let dialogInPageWhenFocusLeft: boolean | null = null;
+    opener.addEventListener('blur', () => (dialogInPageWhenFocusLeft = el('[data-testid="confirm-dialog"]') !== null));
+
+    host.open.set(true);
+    fixture.detectChanges();
+
+    expect(dialogInPageWhenFocusLeft).toBe(false);
+    expect(document.activeElement).toBe(keep());
+  });
+
+  it('has no box of its own, so a host that spaces its children out does not make room for it', () => {
+    // GH #392, found in the browser: in a news post's row the open dialog pushed the menu button aside.
+    expect(must('jh-confirm-dialog').classList).toContain('contents');
+  });
+
   it('dismisses on the safe answer and on Escape, and confirms only on the destructive answer', () => {
     keep().click();
     press('Escape');

@@ -25,6 +25,10 @@ let nextId = 0;
   imports: [ButtonDirective],
   templateUrl: './confirm-dialog.component.html',
   styleUrl: './confirm-dialog.component.css',
+  // No box of its own: everything it draws is fixed to the viewport. With a box, a host that lays its
+  // children out with a gap (a news post's row) would make room for it, and the page behind the open
+  // dialog would shift.
+  host: { class: 'contents' },
 })
 export class ConfirmDialogComponent {
   readonly heading = input.required<string>();
@@ -52,6 +56,16 @@ export class ConfirmDialogComponent {
   private readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');
 
   constructor() {
+    // The focus leaves the page now, before this dialog is in it; the safe answer takes it below.
+    // Leaving it until then made the answers grow in from nothing. A dialog is usually asked for by a
+    // menu item, and the menu closes in the same pass: a browser that loses its focused element
+    // restyles the page at once — with this dialog already in it, its buttons not yet wearing their
+    // classes. Those then arrive as a change and are animated: padding, corners and weight, none of
+    // which DESIGN.md lets move.
+    const focused = document.activeElement;
+    if (focused instanceof HTMLElement) {
+      focused.blur();
+    }
     // Zoneless: the button exists only after the first render (GH #344 — never an effect).
     afterNextRender(() => this.keepButton().nativeElement.focus());
   }
