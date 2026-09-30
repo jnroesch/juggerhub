@@ -829,6 +829,85 @@ describe('TeamDetailComponent — the join confirmation (GH #392)', () => {
     expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
     expect(el(fixture, 'request-to-join')).not.toBeNull();
   });
+
+  it('makes up a refresh it had to skip, when the newer request that was in the way fails', () => {
+    // CodeRabbit on PR #398: the earlier request landed while a newer one was under way, so the page
+    // was not reloaded then. The newer one is refused (429), which reloads nothing on its own — and
+    // the page would go on offering a request that is already in.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('NonMember', route);
+    const first = new Subject<void>();
+    const second = new Subject<void>();
+    service['requestToJoin'].mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    const loads = service['getPublicDetail'].mock.calls.length;
+    service['getPublicDetail'].mockReturnValue(of(detail('Requested')));
+
+    first.next();
+    fixture.detectChanges();
+    // Not yet: the newer question is still on screen, locked.
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+    expect(el(fixture, 'confirm-dialog')).not.toBeNull();
+
+    second.error(new HttpErrorResponse({ status: 429 }));
+    fixture.detectChanges();
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(el(fixture, 'requested')).not.toBeNull();
+    expect(el(fixture, 'request-error')?.textContent).toContain("You've sent a lot of join requests");
+    expect(document.activeElement).toBe(el(fixture, 'request-error'));
+  });
+
+  it('makes up a skipped refresh when the newer withdrawal fails, too', () => {
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('Requested', route);
+    const first = new Subject<void>();
+    const second = new Subject<void>();
+    service['cancelJoinRequest'].mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+    const loads = service['getPublicDetail'].mock.calls.length;
+    service['getPublicDetail'].mockReturnValue(of(detail('NonMember')));
+
+    first.next();
+    fixture.detectChanges();
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+
+    second.error(new HttpErrorResponse({ status: 500 }));
+    fixture.detectChanges();
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+    expect(el(fixture, 'request-to-join')).not.toBeNull();
+    expect(document.activeElement).toBe(el(fixture, 'request-error'));
+  });
+
+  it('makes up no refresh when none was skipped', () => {
+    // The ordinary failure: nothing landed behind the page, so nothing reloads and focus goes back
+    // to the button that asked.
+    const fixture = render('NonMember');
+    service['requestToJoin'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 429 })));
+    const loads = service['getPublicDetail'].mock.calls.length;
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+    expect(document.activeElement).toBe(el(fixture, 'request-to-join'));
+  });
 });
 
 /**
@@ -1308,6 +1387,45 @@ describe('TeamDetailComponent — removing a teammate asks first (feature 064)',
     expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
     expect(service['getMembers']).toHaveBeenCalledTimes(rosters + 1);
     expect(dialog(fixture)).toBeNull();
+  });
+
+  it('makes up a roster refresh it had to skip, when the newer removal that was in the way fails', () => {
+    // CodeRabbit on PR #398: the earlier removal landed while a newer one was under way. The newer one
+    // fails, which keeps its question open and reloads nothing on its own.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render(route);
+    const first = new Subject<void>();
+    const second = new Subject<void>();
+    service['removeMember'].mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    const rosters = service['getMembers'].mock.calls.length;
+
+    first.next();
+    fixture.detectChanges();
+    expect(service['getMembers']).toHaveBeenCalledTimes(rosters);
+
+    // The reload answers later, as it does over a network: the page is its loading line meanwhile.
+    const reload = new Subject<TeamPublicDetail>();
+    service['getPublicDetail'].mockReturnValueOnce(reload);
+    second.error(new HttpErrorResponse({ status: 500 }));
+    fixture.detectChanges();
+    expect(dialog(fixture)).toBeNull();
+    reload.next(detail('Admin'));
+    fixture.detectChanges();
+
+    expect(service['getMembers']).toHaveBeenCalledTimes(rosters + 1);
+    // The question is page state: it is back with the roster, to retry, with its error line and the
+    // focus on the safe answer.
+    expect(dialog(fixture)).not.toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog-error"]')?.textContent).toContain("That didn't work.");
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="confirm-dialog-keep"]'));
   });
 
   it('keeps the question open on any other failure, in our words, and confirming again retries', () => {

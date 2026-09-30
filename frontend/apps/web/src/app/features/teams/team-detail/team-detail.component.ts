@@ -184,6 +184,7 @@ export class TeamDetailComponent {
    * which is the loading line: the page's own elements do not exist until the detail arrives.
    */
   private load(then?: () => void): void {
+    this.refreshDue = false;
     this.loading.set(true);
     this.notFound.set(false);
     this.members.set([]);
@@ -359,16 +360,28 @@ export class TeamDetailComponent {
   }
 
   /**
+   * The team changed behind what the page shows, and the page could not be shown afresh at that
+   * moment (see showAfreshAfterLateSuccess). Whatever ends the call that was in the way reloads the
+   * page: its own reload if it makes one, or one made for this. Every `load()` clears it.
+   */
+  private refreshDue = false;
+
+  /**
    * A call from a visit that is over has succeeded. Its answer is not acted on, but the team did
    * change. If the page is on that team again, what it shows may be older than the change (it loaded
    * before the call landed), so it is shown afresh. Not while a newer call is under way: a reload
-   * would take its question off the screen, and its own answer reloads the page (asking and
-   * withdrawing twice are both fine by the server).
+   * would take its question off the screen. The refresh is noted instead, and made when that call
+   * ends — even if it fails, which on its own reloads nothing.
    */
   private showAfreshAfterLateSuccess(slug: string): void {
-    if (this.slug() === slug && !this.requestBusy() && !this.removeBusy()) {
-      this.load();
+    if (this.slug() !== slug) {
+      return;
     }
+    if (this.requestBusy() || this.removeBusy()) {
+      this.refreshDue = true;
+      return;
+    }
+    this.load();
   }
 
   /** Zoneless: what to focus exists only after the next render (GH #344's lesson — not an effect). */
@@ -416,9 +429,10 @@ export class TeamDetailComponent {
               ? 'teams.detail.alreadyMember'
               : 'teams.detail.requestFailed',
         );
-        if (status === 409) {
-          // They are on the team after all: show the page as a member sees it. The button that asked
-          // goes with that, so focus lands on the note that says why.
+        if (status === 409 || this.refreshDue) {
+          // A 409: they are on the team after all, so show the page as a member sees it. Or a change
+          // from an earlier visit is waiting to be shown. Either way the button that asked may go
+          // with the reload, so focus lands on the note that says why.
           this.load(() => this.focus('[data-testid="request-error"]'));
         } else {
           this.focusAfterRender(REQUEST_BUTTON);
@@ -455,7 +469,12 @@ export class TeamDetailComponent {
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
         this.requestError.set('teams.detail.cancelFailed');
-        this.focusAfterRender(CANCEL_BUTTON);
+        if (this.refreshDue) {
+          // A change from an earlier visit is waiting to be shown; the button that asked may go with it.
+          this.load(() => this.focus('[data-testid="request-error"]'));
+        } else {
+          this.focusAfterRender(CANCEL_BUTTON);
+        }
       },
     });
   }
@@ -584,6 +603,11 @@ export class TeamDetailComponent {
         }
         // The dialog stays open; confirming again is the retry (never automatic).
         this.removeError.set('teams.detail.removeFailed');
+        if (this.refreshDue) {
+          // A removal from an earlier visit is waiting to be shown. The question and its error line
+          // are page state: they leave with the page and are back, to retry, once the roster is.
+          this.load();
+        }
       },
     });
   }
