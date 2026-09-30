@@ -21,6 +21,7 @@ import {
 } from '../models/chat.models';
 import { AuthService } from './auth.service';
 import { IndefiniteHubRetryPolicy } from './hub-reconnect.policy';
+import { HubSessionService } from './hub-session.service';
 
 /** Client-side debounce for the typing signal: at most one call per this many ms while composing. */
 const TYPING_DEBOUNCE_MS = 3000;
@@ -43,6 +44,7 @@ const TYPING_EXPIRY_MS = 5000;
 export class ChatService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly hubSession = inject(HubSessionService);
   private readonly document = inject(DOCUMENT);
   private readonly base = '/api/v1/chat';
 
@@ -367,8 +369,8 @@ export class ChatService {
    * **Only while the page is visible.** A conversation left open in a background tab is not being
    * read: marking it would hold the badge at zero and stop chat push (056) from ever telling the
    * player about it. The read is remembered instead and caught up by {@link flushDeferredRead} when
-   * the tab comes back (GH #344). The rule lives here rather than in the callers so every path —
-   * including the re-open after a socket reconnect — obeys it.
+   * the tab comes back (GH #344). The rule lives here rather than in the callers so every path
+   * obeys it.
    */
   markReadToLatest(conversationId: string): void {
     if (this.document.visibilityState === 'hidden') {
@@ -489,19 +491,22 @@ export class ChatService {
     this.connecting = true;
 
     try {
-      const { HubConnectionBuilder, LogLevel } = await import('@microsoft/signalr');
+      const signalR = await import('@microsoft/signalr');
 
       // Sign-out may have raced the dynamic import.
       if (!this.auth.isAuthenticated()) {
         return;
       }
 
-      const hub = new HubConnectionBuilder()
-        .withUrl('/hubs/chat') // same-origin: the httpOnly auth cookie rides the handshake
+      const hub = new signalR.HubConnectionBuilder()
+        // Same-origin: the httpOnly auth cookie rides the handshake. The server ends the connection
+        // when that cookie's token expires, so the handshake renews the session when it is refused
+        // (GH #402) — see HubSessionService.
+        .withUrl('/hubs/chat', { httpClient: this.hubSession.createHttpClient(signalR) })
         // Indefinite backoff rather than the default schedule, which gives up permanently after
         // ~42s and silently stops delivering (feature 028, FR-012).
         .withAutomaticReconnect(new IndefiniteHubRetryPolicy())
-        .configureLogging(LogLevel.Warning)
+        .configureLogging(signalR.LogLevel.Warning)
         .build();
 
       hub.on('chatMessageCreated', (e: { conversationId: string; message: ChatMessage }) =>
@@ -518,18 +523,7 @@ export class ChatService {
         this.onTyping(e),
       );
 
-      hub.onreconnected(() => {
-        // A short outage may have missed events — re-seed everything the socket would have carried.
-        // This is what makes "live is an enhancement, never the source of truth" true on the client.
-        this.refreshUnread();
-        if (this._conversations().length > 0) {
-          this.loadInbox().subscribe({ error: () => undefined });
-        }
-        const open = this._openId();
-        if (open) {
-          this.openConversation(open).subscribe({ error: () => undefined });
-        }
-      });
+      hub.onreconnected(() => this.onReconnected());
 
       this.hub = hub;
       await hub.start().catch(() => {
@@ -540,6 +534,84 @@ export class ChatService {
     } finally {
       this.connecting = false;
     }
+  }
+
+  /**
+   * Back after the socket was down: re-seed everything it would have carried. This is what makes
+   * "live is an enhancement, never the source of truth" true on the client.
+   *
+   * **It has to be invisible.** A reconnect is routine, not an outage: the server ends every
+   * connection when the access token it was made with expires (GH #402), so this runs about four
+   * times an hour in every open tab, in the middle of whatever the reader is doing.
+   */
+  private onReconnected(): void {
+    this.refreshUnread();
+    if (this._conversations().length > 0) {
+      this.loadInbox().subscribe({ error: () => undefined });
+    }
+    const open = this._openId();
+    if (open) {
+      this.catchUpThread(open);
+    }
+  }
+
+  /**
+   * Bring the open thread up to date with whatever was sent while the socket was down, without
+   * disturbing it.
+   *
+   * Deliberately NOT {@link openConversation}, which this used to call: that empties the thread and
+   * loads the newest page again — dropping the history the reader had paged back through and their
+   * place in it — and marks the conversation read. The second is the worse half: the thread stays
+   * "open" here after the reader has left Chat for another page, so a reconnect would mark read a
+   * conversation that is not on screen, clearing a badge for messages nobody saw.
+   *
+   * So: what arrived is appended, what is already held is refreshed in place (a message withdrawn
+   * meanwhile becomes its tombstone, a receipt moves to read), and nothing is marked read. If the
+   * thread is on screen, its component treats the appended messages exactly as live arrivals —
+   * read at once for a reader at the bottom, behind the divider for one scrolled up.
+   */
+  private catchUpThread(conversationId: string): void {
+    this.http.get<MessagePage>(`${this.base}/conversations/${conversationId}/messages`).subscribe({
+      next: (page) => {
+        if (this._openId() !== conversationId) {
+          return;
+        }
+
+        if (page.items.length === 0) {
+          return;
+        }
+
+        // The API pages newest-first (keyset); the thread renders oldest-first.
+        const newest = [...page.items].reverse();
+        const held = this._messages();
+        const known = new Set(held.map((m) => m.id));
+        let lastShared = newest.length - 1;
+        while (lastShared >= 0 && !known.has(newest[lastShared].id)) {
+          lastShared--;
+        }
+
+        if (lastShared < 0) {
+          // Nothing in common: the thread was still empty, or more than a page arrived while away
+          // and what is held no longer joins up with it. Start again from the newest page rather
+          // than show a thread with a hole in it.
+          this._messages.set(newest);
+          this._nextBefore.set(page.nextBefore);
+          return;
+        }
+
+        // What the page holds past the last message both know goes in right behind that message.
+        // Anything the thread holds after it is not in the page, so it is newer than the page: it
+        // was sent or arrived while this answer was on its way, and stays last.
+        const current = new Map(newest.map((m) => [m.id, m]));
+        const anchor = held.findIndex((m) => m.id === newest[lastShared].id);
+        this._messages.set([
+          ...held.slice(0, anchor + 1).map((m) => current.get(m.id) ?? m),
+          ...newest.slice(lastShared + 1),
+          ...held.slice(anchor + 1),
+        ]);
+      },
+      error: () => undefined,
+    });
   }
 
   private onMessageCreated(conversationId: string, message: ChatMessage): void {

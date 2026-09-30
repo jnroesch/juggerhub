@@ -472,6 +472,132 @@ describe('ChatService', () => {
     });
   });
 
+  /**
+   * A reconnect is routine: the server ends every hub connection when its access token expires,
+   * about four times an hour (GH #402). What the client does afterwards happens under a reader who
+   * noticed nothing, so it must not disturb the thread they are in.
+   */
+  describe('catching up after a reconnect (GH #402)', () => {
+    const reconnect = () => {
+      service['onReconnected']();
+      httpMock.match('/api/v1/chat/conversations/unread-count').forEach((r) => r.flush({ unreadCount: 0 }));
+    };
+
+    beforeEach(() => {
+      TestBed.tick();
+      flushInitialUnread();
+      openWithMoreHistory();
+    });
+
+    it('appends what arrived meanwhile and keeps the history the reader paged back through', () => {
+      service.loadOlder('c1').subscribe();
+      httpMock
+        .expectOne('/api/v1/chat/conversations/c1/messages?before=m1')
+        .flush({ items: [message({ id: 'm0', body: 'older' })], nextBefore: 'm0' });
+
+      reconnect();
+      httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({
+        items: [message({ id: 'm3', body: 'missed' }), message({ id: 'm2', body: 'second' }), message({ id: 'm1', body: 'first' })],
+        nextBefore: 'm1',
+      });
+
+      expect(service.messages().map((m) => m.id)).toEqual(['m0', 'm1', 'm2', 'm3']);
+      // The cursor still points past what the reader loaded, not back at the newest page's edge.
+      service.loadOlder('c1').subscribe();
+      httpMock.expectOne('/api/v1/chat/conversations/c1/messages?before=m0').flush({ items: [], nextBefore: null });
+    });
+
+    it('never empties the thread while it waits for the answer', () => {
+      reconnect();
+
+      expect(service.messages().map((m) => m.id)).toEqual(['m1', 'm2']);
+      httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({ items: [], nextBefore: null });
+    });
+
+    it('marks nothing read', () => {
+      reconnect();
+      httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({
+        items: [message({ id: 'm3', body: 'missed' }), message({ id: 'm2' }), message({ id: 'm1' })],
+        nextBefore: 'm1',
+      });
+
+      // The thread stays "open" here after the reader has left Chat for another page. Reading is
+      // the on-screen thread's call, never the socket's.
+      httpMock.expectNone('/api/v1/chat/conversations/c1/read');
+    });
+
+    it('refreshes a message it already holds', () => {
+      reconnect();
+      httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({
+        items: [message({ id: 'm2', body: '', isDeleted: true }), message({ id: 'm1', body: 'first' })],
+        nextBefore: 'm1',
+      });
+
+      // Withdrawn while the socket was down: the deletion push was missed, the tombstone is not.
+      expect(service.messages().map((m) => [m.id, m.isDeleted])).toEqual([['m1', false], ['m2', true]]);
+    });
+
+    it('keeps a message that landed while the answer was on its way in its place: last', () => {
+      reconnect();
+      const catchUp = httpMock.expectOne('/api/v1/chat/conversations/c1/messages');
+      // Over the new socket, after the server had already read the page it is about to answer with.
+      service['onMessageCreated']('c1', message({ id: 'm4', body: 'just now' }));
+      httpMock.match('/api/v1/chat/conversations?skip=0&take=20').forEach((r) => r.flush({ items: [], totalCount: 0, skip: 0, take: 20 }));
+      catchUp.flush({
+        items: [message({ id: 'm3', body: 'missed' }), message({ id: 'm2' }), message({ id: 'm1' })],
+        nextBefore: 'm1',
+      });
+
+      expect(service.messages().map((m) => m.id)).toEqual(['m1', 'm2', 'm3', 'm4']);
+    });
+
+    it('starts again from the newest page when nothing joins up with the thread', () => {
+      reconnect();
+      httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({
+        items: [message({ id: 'm9' }), message({ id: 'm8' })],
+        nextBefore: 'm8',
+      });
+
+      // More than a page arrived while away. A thread with a hole in it would be worse than a reset.
+      expect(service.messages().map((m) => m.id)).toEqual(['m8', 'm9']);
+      service.loadOlder('c1').subscribe();
+      httpMock.expectOne('/api/v1/chat/conversations/c1/messages?before=m8').flush({ items: [], nextBefore: null });
+    });
+
+    it('drops an answer for a conversation the reader has moved on from', () => {
+      reconnect();
+      const stale = httpMock.expectOne('/api/v1/chat/conversations/c1/messages');
+
+      service.openConversation('c2').subscribe();
+      httpMock
+        .expectOne('/api/v1/chat/conversations/c2/messages')
+        .flush({ items: [message({ id: 'n1' })], nextBefore: null });
+      httpMock.expectOne('/api/v1/chat/conversations/c2/read').flush(null);
+      httpMock.match('/api/v1/chat/conversations/unread-count').forEach((r) => r.flush({ unreadCount: 0 }));
+
+      stale.flush({ items: [message({ id: 'm3' }), message({ id: 'm2' })], nextBefore: null });
+
+      expect(service.messages().map((m) => m.id)).toEqual(['n1']);
+    });
+
+    it('re-seeds the inbox only when one is loaded', () => {
+      reconnect();
+      httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({ items: [], nextBefore: null });
+      httpMock.expectNone('/api/v1/chat/conversations?skip=0&take=20');
+
+      service.loadInbox().subscribe();
+      httpMock
+        .expectOne('/api/v1/chat/conversations?skip=0&take=20')
+        .flush({ items: [conversation()], totalCount: 1, skip: 0, take: 20 });
+
+      reconnect();
+      httpMock.expectOne('/api/v1/chat/conversations/c1/messages').flush({ items: [], nextBefore: null });
+      httpMock
+        .expectOne('/api/v1/chat/conversations?skip=0&take=20')
+        .flush({ items: [conversation()], totalCount: 1, skip: 0, take: 20 });
+    });
+  });
+
   describe('a hidden tab is not reading (GH #344)', () => {
     let visibility: jest.SpyInstance;
 
