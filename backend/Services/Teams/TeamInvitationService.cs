@@ -380,7 +380,10 @@ public sealed class TeamInvitationService : ITeamInvitationService
     {
         var now = DateTime.UtcNow;
         var invite = await _db.TeamInvitations.FirstOrDefaultAsync(i => i.Token == token, ct);
-        if (invite is null)
+
+        // A targeted invitation is its recipient's alone (GH #401). Anyone else holding the token is
+        // answered exactly as for a token that does not exist, before anything about it is read.
+        if (invite is null || !InvitationRecipient.Includes(invite.Kind, invite.TargetUserId, userId))
         {
             return new AcceptResult(AcceptStatus.NotFound, null);
         }
@@ -454,7 +457,10 @@ public sealed class TeamInvitationService : ITeamInvitationService
     public async Task<DeclineStatus> DeclineAsync(string token, Guid userId, CancellationToken ct = default)
     {
         var invite = await _db.TeamInvitations.FirstOrDefaultAsync(i => i.Token == token, ct);
-        if (invite is null)
+
+        // Only the recipient can turn a targeted invitation down (GH #401) — otherwise anyone holding
+        // the token could use it up. Refused exactly as an unknown token is.
+        if (invite is null || !InvitationRecipient.Includes(invite.Kind, invite.TargetUserId, userId))
         {
             return DeclineStatus.NotFound;
         }
