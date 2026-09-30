@@ -14,6 +14,9 @@
         @if (error()) {
           <jh-alert class="mt-sm">{{ error() }}</jh-alert>
         }
+        @if (otherAccount()) {
+          <jh-alert tone="info" class="mt-sm" data-testid="invite-other-account">{{ 'common.inviteOtherAccount' | transloco }}</jh-alert>
+        }
         <div class="mt-lg flex gap-sm">
           <button type="button" (click)="accept()" [disabled]="acting()"
             jhButton class="flex-1">{{ 'parties.inviteAccept.imIn' | transloco }}</button>

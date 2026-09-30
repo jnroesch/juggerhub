@@ -25,7 +25,8 @@
     "tryAgain": "Erneut versuchen",
     "seeAll": "Alle ansehen",
     "accept": "Annehmen",
-    "decline": "Ablehnen"
+    "decline": "Ablehnen",
+    "inviteOtherAccount": "Diese Einladung kann mit diesem Konto nicht verwendet werden. Falls sie an ein anderes deiner Konten ging, melde dich dort an."
   },
   "address": {
     "optional": "(optional)",

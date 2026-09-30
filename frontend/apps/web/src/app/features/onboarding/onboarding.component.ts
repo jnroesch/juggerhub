@@ -431,9 +431,17 @@ export class OnboardingComponent implements OnInit, OnDestroy {
         this.acceptingToken.set(null);
         // One plain sentence per kind of failure: the card's state on reload tells the truth, and no
         // code or internal detail reaches the reader (Principle I, FR-024). A 429 is our own limit on
-        // joining by invitation (feature 064) — never retried, and it says to come back later.
-        const limited = err instanceof HttpErrorResponse && err.status === 429;
-        this.inviteError.set(this.transloco.translate(limited ? 'teams.inviteLimited' : 'onboarding.team.invite.acceptError'));
+        // joining by invitation (feature 064) — never retried, and it says to come back later. A 404
+        // on the invite the player arrived with means it was addressed to another account (GH #401):
+        // its preview was usable a moment ago, and pressing again with this account cannot help.
+        const status = err instanceof HttpErrorResponse ? err.status : 0;
+        const key =
+          status === 429
+            ? 'teams.inviteLimited'
+            : status === 404 && token === this.carriedInvite?.token
+              ? 'common.inviteOtherAccount'
+              : 'onboarding.team.invite.acceptError';
+        this.inviteError.set(this.transloco.translate(key));
       },
     });
   }

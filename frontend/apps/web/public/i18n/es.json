@@ -25,7 +25,8 @@
     "tryAgain": "Reintentar",
     "seeAll": "Ver todo",
     "accept": "Aceptar",
-    "decline": "Rechazar"
+    "decline": "Rechazar",
+    "inviteOtherAccount": "Esta invitación no se puede usar con esta cuenta. Si se envió a otra de tus cuentas, inicia sesión con esa."
   },
   "address": {
     "optional": "(opcional)",

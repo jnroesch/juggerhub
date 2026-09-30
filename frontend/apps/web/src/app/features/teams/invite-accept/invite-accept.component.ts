@@ -48,6 +48,12 @@ export class InviteAcceptComponent {
    * the page says it in the player's language (never the server's wording) and follows a switch.
    */
   protected readonly limited = signal(false);
+  /**
+   * GH #401: the preview was usable, yet accepting or declining answered "no such invitation". A
+   * targeted invitation does that for every account but its recipient's, so the page says which
+   * account to use instead of showing the server's wording.
+   */
+  protected readonly otherAccount = signal(false);
 
   private resumed = false;
 
@@ -124,6 +130,7 @@ export class InviteAcceptComponent {
     this.working.set(true);
     this.error.set(null);
     this.limited.set(false);
+    this.otherAccount.set(false);
     this.teams.acceptInvite(this.token()).subscribe({
       next: (r) => {
         // Refresh the nav's "My team" cache so it reflects the team just joined.
@@ -137,6 +144,10 @@ export class InviteAcceptComponent {
           this.limited.set(true);
           return;
         }
+        if (isNotFound(err)) {
+          this.otherAccount.set(true);
+          return;
+        }
         this.error.set(problemDetail(err));
       },
     });
@@ -144,9 +155,24 @@ export class InviteAcceptComponent {
 
   private doDecline(): void {
     this.working.set(true);
+    this.error.set(null);
+    this.limited.set(false);
+    this.otherAccount.set(false);
     this.teams.declineInvite(this.token()).subscribe({
       next: () => this.router.navigate(['/']),
-      error: () => this.router.navigate(['/']),
+      error: (err) => {
+        // Not this account's to decline (GH #401): nothing was declined, so say so and stay.
+        if (isNotFound(err)) {
+          this.working.set(false);
+          this.otherAccount.set(true);
+          return;
+        }
+        this.router.navigate(['/']);
+      },
     });
   }
+}
+
+function isNotFound(err: unknown): boolean {
+  return err instanceof HttpErrorResponse && err.status === 404;
 }
