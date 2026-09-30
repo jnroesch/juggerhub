@@ -15,7 +15,7 @@ import {
 } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
 import { Observable } from 'rxjs';
-import { ButtonDirective, IconComponent } from '../ui';
+import { ButtonDirective, ConfirmDialogComponent, IconComponent } from '../ui';
 import { NewsPostEditing } from './news-post-editing';
 
 /** What became of a post the controls removed from view. */
@@ -40,7 +40,7 @@ export interface NewsPostRemoval {
  */
 @Component({
   selector: 'jh-news-post',
-  imports: [ButtonDirective, IconComponent, TranslocoPipe],
+  imports: [ButtonDirective, ConfirmDialogComponent, IconComponent, TranslocoPipe],
   templateUrl: './news-post.component.html',
   styleUrl: './news-post.component.css',
   host: { class: 'flex items-start gap-xs' },
@@ -148,11 +148,11 @@ export class NewsPostComponent<T> implements OnInit {
   protected askDelete(): void {
     this.menuOpen.set(false);
     this.deleteError.set(null);
+    // The dialog puts the focus on its safe answer, so Enter on arrival keeps the post.
     this.confirming.set(true);
-    // The safe answer takes focus, so Enter on arrival keeps the post.
-    this.focusAfterRender('[data-testid="news-delete-keep"]');
   }
 
+  /** The dialog's safe answer, or Escape. It asks neither while a delete is under way. */
   protected dismissDelete(): void {
     if (!this.confirming() || this.deleting()) {
       return;
@@ -188,31 +188,8 @@ export class NewsPostComponent<T> implements OnInit {
     });
   }
 
-  /** Keep Tab inside the open dialog: `aria-modal` promises that the page behind it is inert. */
-  protected trapTab(event: Event): void {
-    const key = event as KeyboardEvent;
-    const buttons = Array.from(
-      (key.currentTarget as HTMLElement).querySelectorAll<HTMLElement>('button:not([disabled])'),
-    );
-    if (buttons.length === 0) {
-      return;
-    }
-    const first = buttons[0];
-    const last = buttons[buttons.length - 1];
-    if (key.shiftKey && document.activeElement === first) {
-      last.focus();
-      key.preventDefault();
-    } else if (!key.shiftKey && document.activeElement === last) {
-      first.focus();
-      key.preventDefault();
-    }
-  }
-
   @HostListener('document:keydown.escape')
   protected onEscape(): void {
-    if (this.confirming()) {
-      this.dismissDelete();
-    }
     if (this.menuOpen()) {
       // Back to the button that opened it, or a keyboard user is left on the page body.
       this.menuOpen.set(false);

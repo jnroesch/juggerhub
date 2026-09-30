@@ -212,6 +212,13 @@ the party's news page.
   `news-delete-confirm`, `data-news-menu-trigger="{id}"`, …). **`team-detail.component.spec.ts`'s
   twelve news tests are the regression net for FR-023/SC-007** and must pass unchanged.
 
+  > **Amended by GH #392**: the delete dialog is now the shared `jh-confirm-dialog` (feature 064),
+  > which owns the focus, Tab and Escape rules this component used to carry by hand. Its four ids
+  > became the shared dialog's — `news-delete-confirm` → `confirm-dialog`, `news-delete-keep` →
+  > `confirm-dialog-keep`, `news-delete-submit` → `confirm-dialog-confirm`, `news-delete-error` →
+  > `confirm-dialog-error` — and the twelve tests pass with only those selectors changed. The menu's
+  > and the editor's ids are untouched.
+
 **Rationale**: the four surfaces must not drift (FR-022). The logic being shared is behaviour,
 not layout: focus order, the no-op on unchanged text, status-branching errors, and the lock.
 The 052 precedent extracted exactly this kind of rule-bearing piece (the invite search's

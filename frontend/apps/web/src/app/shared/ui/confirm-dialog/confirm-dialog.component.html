@@ -1,5 +1,5 @@
-<!-- Fixed, so a card's clipping never reaches it; the host renders it at page level. The scrim is
-     DESIGN.md's `surface-inverse/40`. No motion: like the page's other confirmations, it simply appears. -->
+<!-- Fixed, so a card's clipping never reaches it (only a transforming ancestor would). The scrim is
+     DESIGN.md's `surface-inverse/40`. No motion: a confirmation simply appears. -->
 <div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
   <!-- tabindex -1: the panel holds focus while both answers are disabled (see confirm()). -->
   <div #panel tabindex="-1" class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl outline-none sm:rounded-xl"
@@ -22,7 +22,7 @@
       <button #keep type="button" (click)="dismiss()" [disabled]="busy()" data-testid="confirm-dialog-keep"
         jhButton variant="secondary" class="w-full sm:w-auto">{{ keepLabel() }}</button>
       <button type="button" (click)="confirm()" [disabled]="busy()" data-testid="confirm-dialog-confirm"
-        jhButton variant="danger" class="w-full sm:w-auto">{{ busy() && busyLabel() ? busyLabel() : confirmLabel() }}</button>
+        jhButton [variant]="confirmVariant()" class="w-full sm:w-auto">{{ busy() && busyLabel() ? busyLabel() : confirmLabel() }}</button>
     </div>
   </div>
 </div>

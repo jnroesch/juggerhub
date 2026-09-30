@@ -290,10 +290,10 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
 
     openDeleteDialog(fixture, 'p1');
 
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')?.getAttribute('aria-modal')).toBe('true');
-    expect(document.activeElement).toBe(el(fixture, '[data-testid="news-delete-keep"]'));
-    click(fixture, '[data-testid="news-delete-keep"]');
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog"]')?.getAttribute('aria-modal')).toBe('true');
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="confirm-dialog-keep"]'));
+    click(fixture, '[data-testid="confirm-dialog-keep"]');
+    expect(el(fixture, '[data-testid="confirm-dialog"]')).toBeNull();
     expect(service['deleteNews']).not.toHaveBeenCalled();
     expect(bodies(fixture)).toEqual(['One.']);
   });
@@ -303,10 +303,10 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     service['deleteNews'].mockReturnValue(of(undefined));
 
     openDeleteDialog(fixture, 'p1');
-    click(fixture, '[data-testid="news-delete-submit"]');
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
 
     expect(service['deleteNews']).toHaveBeenCalledWith('rheinfeuer', 'p1');
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog"]')).toBeNull();
     expect(bodies(fixture)).toEqual(['Stays.']);
     expect(document.activeElement).toBe(el(fixture, '#team-news-heading'));
   });
@@ -316,9 +316,9 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     service['deleteNews'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
 
     openDeleteDialog(fixture, 'p1');
-    click(fixture, '[data-testid="news-delete-submit"]');
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
 
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog"]')).toBeNull();
     expect(bodies(fixture)).toEqual([]);
     expect(el(fixture, '[data-testid="news-notice"]')?.textContent?.trim()).toBe('This post no longer exists.');
   });
@@ -328,10 +328,10 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     service['deleteNews'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 503 })));
 
     openDeleteDialog(fixture, 'p1');
-    click(fixture, '[data-testid="news-delete-submit"]');
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
 
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')).not.toBeNull();
-    expect(el(fixture, '[data-testid="news-delete-error"]')?.textContent?.trim()).toBe("We couldn't delete the post. Try again.");
+    expect(el(fixture, '[data-testid="confirm-dialog"]')).not.toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog-error"]')?.textContent?.trim()).toBe("We couldn't delete the post. Try again.");
     expect(bodies(fixture)).toEqual(['Still here.']);
   });
 
@@ -355,7 +355,7 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     fixture.detectChanges();
 
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog"]')).toBeNull();
     expect(document.activeElement).toBe(el(fixture, '[data-news-menu-trigger="p1"]'));
     expect(service['deleteNews']).not.toHaveBeenCalled();
   });
@@ -484,7 +484,7 @@ describe('TeamDetailComponent — asking to join fails (feature 058)', () => {
     );
     (fixture.nativeElement.querySelector('[data-testid="request-to-join"]') as HTMLElement).click();
     fixture.detectChanges();
-    (fixture.nativeElement.querySelector('[data-testid="join-confirm-submit"]') as HTMLElement).click();
+    (fixture.nativeElement.querySelector('[data-testid="confirm-dialog-confirm"]') as HTMLElement).click();
     fixture.detectChanges();
     return (fixture.nativeElement.querySelector('[data-testid="request-error"]') as HTMLElement | null)?.textContent?.trim();
   }
@@ -500,11 +500,413 @@ describe('TeamDetailComponent — asking to join fails (feature 058)', () => {
     const fixture = render();
     expect(ask(fixture, 409)).toBe("You're already on this team.");
     expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
+    // The button that asked went with the reload; focus is on the note that says why (GH #392).
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('[data-testid="request-error"]'));
   });
 
   it('says anything else plainly, in its own words', () => {
     const fixture = render();
     expect(ask(fixture, 500)).toBe("We couldn't send your request just now.");
+    // The dialog closed; focus is back on the button that asked, not on the page body (GH #392).
+    expect(fixture.nativeElement.querySelector('[data-testid="confirm-dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('[data-testid="request-to-join"]'));
+  });
+});
+
+/**
+ * GH #392 — the join / withdraw confirmation (feature 009) asks through the shared dialog. What that
+ * buys, and what only the page can get wrong: the safe answer has the focus, nothing is sent twice,
+ * and focus goes somewhere sensible when the dialog closes — it never falls to the page body.
+ */
+describe('TeamDetailComponent — the join confirmation (GH #392)', () => {
+  let service: Record<string, jest.Mock>;
+
+  function render(
+    relation: TeamViewerRelation,
+    paramMap: Observable<ParamMap> = of(convertToParamMap({ slug: 'rheinfeuer' })),
+  ): ComponentFixture<TeamDetailComponent> {
+    TestBed.resetTestingModule();
+    service = {
+      getPublicDetail: jest.fn().mockReturnValue(of(detail(relation))),
+      logoUrl: jest.fn().mockReturnValue('/api/v1/teams/rheinfeuer/logo'),
+      requestToJoin: jest.fn(),
+      cancelJoinRequest: jest.fn(),
+    };
+    TestBed.configureTestingModule({
+      imports: [TeamDetailComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        ...translocoLocaleTestingProviders(),
+        { provide: TeamService, useValue: service },
+        { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        { provide: ChatService, useValue: { openTeamChat: jest.fn() } },
+        { provide: ActivatedRoute, useValue: { paramMap } },
+      ],
+    });
+    const fixture = TestBed.createComponent(TeamDetailComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const el = <T extends HTMLElement = HTMLElement>(fixture: ComponentFixture<TeamDetailComponent>, testId: string): T | null =>
+    fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
+
+  function click(fixture: ComponentFixture<TeamDetailComponent>, testId: string): void {
+    const target = el(fixture, testId);
+    if (!target) {
+      throw new Error(`Nothing matches ${testId}`);
+    }
+    target.click();
+    fixture.detectChanges();
+  }
+
+  function escape(fixture: ComponentFixture<TeamDetailComponent>): void {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+  }
+
+  it('asks by name, with the focus on the safe answer and a primary — not a red — acting answer', () => {
+    const fixture = render('NonMember');
+
+    click(fixture, 'request-to-join');
+
+    const dialog = el(fixture, 'confirm-dialog');
+    expect(dialog?.getAttribute('aria-modal')).toBe('true');
+    expect(dialog?.textContent).toContain('Request to join Rheinfeuer?');
+    expect(el(fixture, 'confirm-dialog-keep')?.textContent?.trim()).toBe('Not now');
+    expect(document.activeElement).toBe(el(fixture, 'confirm-dialog-keep'));
+    const send = el(fixture, 'confirm-dialog-confirm');
+    expect(send?.textContent?.trim()).toBe('Send request');
+    expect(send?.classList).toContain('bg-brand-strong');
+    expect(send?.classList).not.toContain('text-danger-fg');
+    // Both answers are touch targets: the default 44px size, not the 36px small one.
+    expect(send?.classList).toContain('min-h-11');
+    expect(service['requestToJoin']).not.toHaveBeenCalled();
+  });
+
+  it('sends nothing on Not now or on Escape, and hands focus back to the button that asked', () => {
+    const fixture = render('NonMember');
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-keep');
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(document.activeElement).toBe(el(fixture, 'request-to-join'));
+
+    click(fixture, 'request-to-join');
+    escape(fixture);
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(document.activeElement).toBe(el(fixture, 'request-to-join'));
+
+    expect(service['requestToJoin']).not.toHaveBeenCalled();
+  });
+
+  it('sends the request once, takes no other answer meanwhile, then lands on the line that says it is in', () => {
+    const fixture = render('NonMember');
+    const sending = new Subject<void>();
+    service['requestToJoin'].mockReturnValue(sending);
+    // The reload answers later, as it does over a network: focus must wait for the page, not fire
+    // into the loading line that stands in for it.
+    const reload = new Subject<TeamPublicDetail>();
+    service['getPublicDetail'].mockReturnValueOnce(reload);
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    el(fixture, 'confirm-dialog-confirm')?.click();
+    escape(fixture);
+
+    expect(service['requestToJoin']).toHaveBeenCalledTimes(1);
+    expect(el(fixture, 'confirm-dialog')).not.toBeNull();
+    expect(el<HTMLButtonElement>(fixture, 'confirm-dialog-keep')?.disabled).toBe(true);
+
+    sending.next();
+    fixture.detectChanges();
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    reload.next(detail('Requested'));
+    fixture.detectChanges();
+
+    expect(el(fixture, 'requested')).not.toBeNull();
+    expect(document.activeElement).toBe(el(fixture, 'requested'));
+  });
+
+  it('asks before withdrawing, keeps the request on Keep request, and hands focus back', () => {
+    const fixture = render('Requested');
+
+    click(fixture, 'cancel-request');
+
+    expect(el(fixture, 'confirm-dialog')?.textContent).toContain('Withdraw your request?');
+    expect(document.activeElement).toBe(el(fixture, 'confirm-dialog-keep'));
+    click(fixture, 'confirm-dialog-keep');
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(service['cancelJoinRequest']).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(el(fixture, 'cancel-request'));
+  });
+
+  it('withdraws on confirm and lands on the button that offers the request again', () => {
+    const fixture = render('Requested');
+    service['cancelJoinRequest'].mockReturnValue(of(undefined));
+    service['getPublicDetail'].mockReturnValue(of(detail('NonMember')));
+
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+
+    expect(service['cancelJoinRequest']).toHaveBeenCalledWith('rheinfeuer');
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(document.activeElement).toBe(el(fixture, 'request-to-join'));
+  });
+
+  it('says a withdrawal failed at the top of the page, with the focus back on the button that asked', () => {
+    const fixture = render('Requested');
+    service['cancelJoinRequest'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(el(fixture, 'request-error')?.textContent?.trim()).toBe("We couldn't withdraw your request just now.");
+    expect(document.activeElement).toBe(el(fixture, 'cancel-request'));
+  });
+
+  it('drops an open question when the page moves to another team', () => {
+    // The component is reused from team to team: the question would otherwise ask, unprompted,
+    // about the team the page moved to.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('NonMember', route);
+
+    click(fixture, 'request-to-join');
+    expect(el(fixture, 'confirm-dialog')).not.toBeNull();
+
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    fixture.detectChanges();
+
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(service['requestToJoin']).not.toHaveBeenCalled();
+  });
+
+  it('shows the focus ring on both places it sends the focus to', () => {
+    // CodeRabbit on PR #398: a target that takes the focus without showing it leaves a keyboard user
+    // not knowing where they are. `focus-visible`, like every control: a mouse user gets no ring.
+    const ring = ['focus-visible:ring-2', 'focus-visible:ring-focus'];
+    const sent = render('NonMember');
+    service['requestToJoin'].mockReturnValue(of(undefined));
+    service['getPublicDetail'].mockReturnValue(of(detail('Requested')));
+    click(sent, 'request-to-join');
+    click(sent, 'confirm-dialog-confirm');
+    expect(document.activeElement).toBe(el(sent, 'requested'));
+    expect(Array.from(el(sent, 'requested')?.classList ?? [])).toEqual(expect.arrayContaining(ring));
+
+    const refused = render('NonMember');
+    service['requestToJoin'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
+    click(refused, 'request-to-join');
+    click(refused, 'confirm-dialog-confirm');
+    expect(document.activeElement).toBe(el(refused, 'request-error'));
+    expect(Array.from(el(refused, 'request-error')?.classList ?? [])).toEqual(expect.arrayContaining(ring));
+  });
+
+  it('drops an answer that arrives after the page moved to another team', () => {
+    // CodeRabbit on PR #398: the component is reused from team to team, and an answer about the team
+    // the page left would reload this one, move the focus on it, or pin a failure note to it.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('NonMember', route);
+    const sending = new Subject<void>();
+    service['requestToJoin'].mockReturnValue(sending);
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    fixture.detectChanges();
+    const loads = service['getPublicDetail'].mock.calls.length;
+    // The request on its way was the other team's: this page's own button is not held by it.
+    expect(el<HTMLButtonElement>(fixture, 'request-to-join')?.disabled).toBe(false);
+    const focusedBefore = document.activeElement;
+
+    sending.error(new HttpErrorResponse({ status: 500 }));
+    fixture.detectChanges();
+
+    expect(el(fixture, 'request-error')).toBeNull();
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+    expect(document.activeElement).toBe(focusedBefore);
+  });
+
+  it('drops a late withdrawal answer the same way', () => {
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('Requested', route);
+    const withdrawing = new Subject<void>();
+    service['cancelJoinRequest'].mockReturnValue(withdrawing);
+
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    fixture.detectChanges();
+    const loads = service['getPublicDetail'].mock.calls.length;
+
+    withdrawing.next();
+    fixture.detectChanges();
+
+    // No reload of the team the page is now on, and its own withdraw button is not held.
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+    expect(el<HTMLButtonElement>(fixture, 'cancel-request')?.disabled).toBe(false);
+  });
+
+  it('drops an old answer even when the page has come back to the team it was about', () => {
+    // CodeRabbit on PR #398: A → B → A. The slug is the same again, so comparing slugs lets the old
+    // answer through, and it would close the question the page is now waiting on and unlock it.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('NonMember', route);
+    const first = new Subject<void>();
+    const second = new Subject<void>();
+    service['requestToJoin'].mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    expect(service['requestToJoin']).toHaveBeenCalledTimes(2);
+    const loads = service['getPublicDetail'].mock.calls.length;
+
+    first.error(new HttpErrorResponse({ status: 500 }));
+    fixture.detectChanges();
+
+    // The newer request is still under way: its question stays, locked, and nothing is said yet.
+    expect(el(fixture, 'confirm-dialog')).not.toBeNull();
+    expect(el<HTMLButtonElement>(fixture, 'confirm-dialog-keep')?.disabled).toBe(true);
+    expect(el(fixture, 'request-error')).toBeNull();
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+
+    // Its own answer still lands.
+    second.next();
+    fixture.detectChanges();
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+  });
+
+  it('shows the team afresh when a request sent on an earlier visit lands after the page came back', () => {
+    // CodeRabbit on PR #398: the old answer is not acted on, but the request did go in. The page
+    // loaded before it landed, so it still offers to send one.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('NonMember', route);
+    const sending = new Subject<void>();
+    service['requestToJoin'].mockReturnValue(sending);
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    expect(el(fixture, 'request-to-join')).not.toBeNull();
+    const loads = service['getPublicDetail'].mock.calls.length;
+    service['getPublicDetail'].mockReturnValue(of(detail('Requested')));
+
+    sending.next();
+    fixture.detectChanges();
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+    expect(el(fixture, 'requested')).not.toBeNull();
+    expect(el(fixture, 'request-to-join')).toBeNull();
+  });
+
+  it('shows the team afresh when a withdrawal from an earlier visit lands after the page came back', () => {
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('Requested', route);
+    const withdrawing = new Subject<void>();
+    service['cancelJoinRequest'].mockReturnValue(withdrawing);
+
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    const loads = service['getPublicDetail'].mock.calls.length;
+    service['getPublicDetail'].mockReturnValue(of(detail('NonMember')));
+
+    withdrawing.next();
+    fixture.detectChanges();
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+    expect(el(fixture, 'request-to-join')).not.toBeNull();
+  });
+
+  it('makes up a refresh it had to skip, when the newer request that was in the way fails', () => {
+    // CodeRabbit on PR #398: the earlier request landed while a newer one was under way, so the page
+    // was not reloaded then. The newer one is refused (429), which reloads nothing on its own — and
+    // the page would go on offering a request that is already in.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('NonMember', route);
+    const first = new Subject<void>();
+    const second = new Subject<void>();
+    service['requestToJoin'].mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    const loads = service['getPublicDetail'].mock.calls.length;
+    service['getPublicDetail'].mockReturnValue(of(detail('Requested')));
+
+    first.next();
+    fixture.detectChanges();
+    // Not yet: the newer question is still on screen, locked.
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+    expect(el(fixture, 'confirm-dialog')).not.toBeNull();
+
+    second.error(new HttpErrorResponse({ status: 429 }));
+    fixture.detectChanges();
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(el(fixture, 'requested')).not.toBeNull();
+    expect(el(fixture, 'request-error')?.textContent).toContain("You've sent a lot of join requests");
+    expect(document.activeElement).toBe(el(fixture, 'request-error'));
+  });
+
+  it('makes up a skipped refresh when the newer withdrawal fails, too', () => {
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('Requested', route);
+    const first = new Subject<void>();
+    const second = new Subject<void>();
+    service['cancelJoinRequest'].mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+    const loads = service['getPublicDetail'].mock.calls.length;
+    service['getPublicDetail'].mockReturnValue(of(detail('NonMember')));
+
+    first.next();
+    fixture.detectChanges();
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+
+    second.error(new HttpErrorResponse({ status: 500 }));
+    fixture.detectChanges();
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+    expect(el(fixture, 'request-to-join')).not.toBeNull();
+    expect(document.activeElement).toBe(el(fixture, 'request-error'));
+  });
+
+  it('makes up no refresh when none was skipped', () => {
+    // The ordinary failure: nothing landed behind the page, so nothing reloads and focus goes back
+    // to the button that asked.
+    const fixture = render('NonMember');
+    service['requestToJoin'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 429 })));
+    const loads = service['getPublicDetail'].mock.calls.length;
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+    expect(document.activeElement).toBe(el(fixture, 'request-to-join'));
   });
 });
 
@@ -934,6 +1336,96 @@ describe('TeamDetailComponent — removing a teammate asks first (feature 064)',
 
     expect(dialog(fixture)).toBeNull();
     expect(service['removeMember']).not.toHaveBeenCalled();
+  });
+
+  it('drops an old answer even when the page has come back to the same team', () => {
+    // CodeRabbit on PR #398: A → B → A. Comparing slugs cannot tell this from never having left, and
+    // the old answer would close the question the page is now waiting on.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render(route);
+    const first = new Subject<void>();
+    const second = new Subject<void>();
+    service['removeMember'].mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    expect(service['removeMember']).toHaveBeenCalledTimes(2);
+    const loads = service['getPublicDetail'].mock.calls.length;
+
+    first.next();
+    fixture.detectChanges();
+
+    expect(dialog(fixture)).not.toBeNull();
+    expect(el<HTMLButtonElement>(fixture, '[data-testid="confirm-dialog-confirm"]')?.disabled).toBe(true);
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+  });
+
+  it('shows the roster afresh when a removal from an earlier visit lands after the page came back', () => {
+    // CodeRabbit on PR #398: the old answer is not acted on, but the teammate is gone. The page loaded
+    // before the removal landed and still lists them.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render(route);
+    const removing = new Subject<void>();
+    service['removeMember'].mockReturnValue(removing);
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    const loads = service['getPublicDetail'].mock.calls.length;
+    const rosters = service['getMembers'].mock.calls.length;
+
+    removing.next();
+    fixture.detectChanges();
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+    expect(service['getMembers']).toHaveBeenCalledTimes(rosters + 1);
+    expect(dialog(fixture)).toBeNull();
+  });
+
+  it('makes up a roster refresh it had to skip, when the newer removal that was in the way fails', () => {
+    // CodeRabbit on PR #398: the earlier removal landed while a newer one was under way. The newer one
+    // fails, which keeps its question open and reloads nothing on its own.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render(route);
+    const first = new Subject<void>();
+    const second = new Subject<void>();
+    service['removeMember'].mockReturnValueOnce(first).mockReturnValueOnce(second);
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    const rosters = service['getMembers'].mock.calls.length;
+
+    first.next();
+    fixture.detectChanges();
+    expect(service['getMembers']).toHaveBeenCalledTimes(rosters);
+
+    // The reload answers later, as it does over a network: the page is its loading line meanwhile.
+    const reload = new Subject<TeamPublicDetail>();
+    service['getPublicDetail'].mockReturnValueOnce(reload);
+    second.error(new HttpErrorResponse({ status: 500 }));
+    fixture.detectChanges();
+    expect(dialog(fixture)).toBeNull();
+    reload.next(detail('Admin'));
+    fixture.detectChanges();
+
+    expect(service['getMembers']).toHaveBeenCalledTimes(rosters + 1);
+    // The question is page state: it is back with the roster, to retry, with its error line and the
+    // focus on the safe answer.
+    expect(dialog(fixture)).not.toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog-error"]')?.textContent).toContain("That didn't work.");
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="confirm-dialog-keep"]'));
   });
 
   it('keeps the question open on any other failure, in our words, and confirming again retries', () => {

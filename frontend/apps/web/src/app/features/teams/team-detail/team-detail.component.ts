@@ -1,6 +1,6 @@
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostListener, Injector, afterNextRender, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, Injector, afterNextRender, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -55,6 +55,13 @@ export class TeamDetailComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   protected readonly slug = signal('');
+  /**
+   * Counts the teams this page has shown. The router reuses the component from one team to the next,
+   * so an answer can arrive for a team the page has left — or left and come back to, which a
+   * comparison of slugs cannot tell from never having left. A call notes the count when it starts,
+   * and its answer is dropped if the count has moved on.
+   */
+  private visit = 0;
   protected readonly pub = signal<TeamPublicDetail | null>(null);
   protected readonly loading = signal(true);
   protected readonly notFound = signal(false);
@@ -144,6 +151,7 @@ export class TeamDetailComponent {
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((pm) => {
       this.slug.set(pm.get('slug') ?? '');
+      this.visit++;
       // The router reuses this component from one team to the next; an editor left open on the
       // previous team has no place here (feature 057). Only on a switch, not in load(): approving a
       // join request reloads too, mid-edit, and the editor and its text must survive that.
@@ -153,6 +161,11 @@ export class TeamDetailComponent {
       this.joinNotice.set(null);
       this.answerError.set(null);
       this.requestError.set(null);
+      // A join confirmation left open was asked about the PREVIOUS team: here it would ask, unprompted,
+      // about this one. A request still on its way belongs to that team too: its answer is dropped
+      // when it arrives (see `visit`), so the busy flag it would have cleared is cleared here.
+      this.confirmIntent.set(null);
+      this.requestBusy.set(false);
       // Feature 060 — likewise for the team chat's notes.
       this.teamChatNotice.set(null);
       this.teamChatError.set(null);
@@ -171,6 +184,7 @@ export class TeamDetailComponent {
    * which is the loading line: the page's own elements do not exist until the detail arrives.
    */
   private load(then?: () => void): void {
+    this.refreshDue = false;
     this.loading.set(true);
     this.notFound.set(false);
     this.members.set([]);
@@ -295,6 +309,28 @@ export class TeamDetailComponent {
     });
   }
 
+  /** The confirmation's wording, by what it is asking about. Translation keys. */
+  protected readonly confirmCopy = computed(() => {
+    switch (this.confirmIntent()) {
+      case 'join':
+        return {
+          title: 'teams.detail.confirmJoinTitle',
+          body: 'teams.detail.confirmJoinBody',
+          keep: 'teams.detail.dismiss',
+          confirm: 'teams.detail.confirmJoinSubmit',
+        };
+      case 'cancel':
+        return {
+          title: 'teams.detail.confirmCancelTitle',
+          body: 'teams.detail.confirmCancelBody',
+          keep: 'teams.detail.keepRequest',
+          confirm: 'teams.detail.confirmCancelSubmit',
+        };
+      default:
+        return null;
+    }
+  });
+
   /** Open the confirmation modal for a join action (feature 009 — guards accidental clicks). */
   protected askConfirm(intent: 'join' | 'cancel'): void {
     if (this.requestBusy()) {
@@ -303,8 +339,15 @@ export class TeamDetailComponent {
     this.confirmIntent.set(intent);
   }
 
+  /** The dialog's safe answer, or Escape. It asks neither while the request is under way. */
   protected dismissConfirm(): void {
+    const intent = this.confirmIntent();
+    if (!intent || this.requestBusy()) {
+      return;
+    }
     this.confirmIntent.set(null);
+    // Back to the button that asked, or a keyboard user is left on the page body.
+    this.focusAfterRender(intent === 'join' ? REQUEST_BUTTON : CANCEL_BUTTON);
   }
 
   /** Run the action the confirmation modal is gating. */
@@ -316,11 +359,34 @@ export class TeamDetailComponent {
     }
   }
 
-  @HostListener('document:keydown.escape')
-  protected onEscape(): void {
-    if (this.confirmIntent()) {
-      this.dismissConfirm();
+  /**
+   * The team changed behind what the page shows, and the page could not be shown afresh at that
+   * moment (see showAfreshAfterLateSuccess). Whatever ends the call that was in the way reloads the
+   * page: its own reload if it makes one, or one made for this. Every `load()` clears it.
+   */
+  private refreshDue = false;
+
+  /**
+   * A call from a visit that is over has succeeded. Its answer is not acted on, but the team did
+   * change. If the page is on that team again, what it shows may be older than the change (it loaded
+   * before the call landed), so it is shown afresh. Not while a newer call is under way: a reload
+   * would take its question off the screen. The refresh is noted instead, and made when that call
+   * ends — even if it fails, which on its own reloads nothing.
+   */
+  private showAfreshAfterLateSuccess(slug: string): void {
+    if (this.slug() !== slug) {
+      return;
     }
+    if (this.requestBusy() || this.removeBusy()) {
+      this.refreshDue = true;
+      return;
+    }
+    this.load();
+  }
+
+  /** Zoneless: what to focus exists only after the next render (GH #344's lesson — not an effect). */
+  private focusAfterRender(selector: string): void {
+    afterNextRender(() => this.focus(selector), { injector: this.injector });
   }
 
   /** Feature 058 — the player's own request failed. A translation key, so a language switch re-renders it. */
@@ -332,13 +398,25 @@ export class TeamDetailComponent {
     }
     this.requestBusy.set(true);
     this.requestError.set(null);
-    this.teams.requestToJoin(this.slug()).subscribe({
+    const visit = this.visit;
+    const slug = this.slug();
+    this.teams.requestToJoin(slug).subscribe({
       next: () => {
+        if (this.visit !== visit) {
+          // The page moved on meanwhile (even if it came back); this answer is not acted on.
+          this.showAfreshAfterLateSuccess(slug);
+          return;
+        }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
-        this.load(); // relation → Requested
+        // relation → Requested. The dialog and the button that asked are gone; land on the line that
+        // says the request is in, once the reloaded page is on screen.
+        this.load(() => this.focus('[data-testid="requested"]'));
       },
       error: (err) => {
+        if (this.visit !== visit) {
+          return;
+        }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
         const status = err instanceof HttpErrorResponse ? err.status : 0;
@@ -351,8 +429,13 @@ export class TeamDetailComponent {
               ? 'teams.detail.alreadyMember'
               : 'teams.detail.requestFailed',
         );
-        if (status === 409) {
-          this.load(); // they are on the team after all: show the page as a member sees it
+        if (status === 409 || this.refreshDue) {
+          // A 409: they are on the team after all, so show the page as a member sees it. Or a change
+          // from an earlier visit is waiting to be shown. Either way the button that asked may go
+          // with the reload, so focus lands on the note that says why.
+          this.load(() => this.focus('[data-testid="request-error"]'));
+        } else {
+          this.focusAfterRender(REQUEST_BUTTON);
         }
       },
     });
@@ -365,16 +448,33 @@ export class TeamDetailComponent {
     }
     this.requestBusy.set(true);
     this.requestError.set(null);
-    this.teams.cancelJoinRequest(this.slug()).subscribe({
+    const visit = this.visit;
+    const slug = this.slug();
+    this.teams.cancelJoinRequest(slug).subscribe({
       next: () => {
+        if (this.visit !== visit) {
+          // The page moved on meanwhile (even if it came back); this answer is not acted on.
+          this.showAfreshAfterLateSuccess(slug);
+          return;
+        }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
-        this.load(); // relation → NonMember
+        // relation → NonMember: the page offers the request again, and focus lands there.
+        this.load(() => this.focus(REQUEST_BUTTON));
       },
       error: () => {
+        if (this.visit !== visit) {
+          return;
+        }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
         this.requestError.set('teams.detail.cancelFailed');
+        if (this.refreshDue) {
+          // A change from an earlier visit is waiting to be shown; the button that asked may go with it.
+          this.load(() => this.focus('[data-testid="request-error"]'));
+        } else {
+          this.focusAfterRender(CANCEL_BUTTON);
+        }
       },
     });
   }
@@ -468,11 +568,14 @@ export class TeamDetailComponent {
     }
     this.removeBusy.set(true);
     this.removeError.set(null);
+    const visit = this.visit;
     const slug = this.slug();
     this.teams.removeMember(slug, member.userId).subscribe({
       next: () => {
-        if (this.slug() !== slug) {
-          return; // the page moved to another team meanwhile; this answer is not about it
+        if (this.visit !== visit) {
+          // The page moved on meanwhile (even if it came back); this answer is not acted on.
+          this.showAfreshAfterLateSuccess(slug);
+          return;
         }
         this.removeBusy.set(false);
         this.removing.set(null);
@@ -481,7 +584,7 @@ export class TeamDetailComponent {
         this.load(() => this.focus('#team-roster-heading'));
       },
       error: (err) => {
-        if (this.slug() !== slug) {
+        if (this.visit !== visit) {
           return;
         }
         this.removeBusy.set(false);
@@ -500,6 +603,11 @@ export class TeamDetailComponent {
         }
         // The dialog stays open; confirming again is the retry (never automatic).
         this.removeError.set('teams.detail.removeFailed');
+        if (this.refreshDue) {
+          // A removal from an earlier visit is waiting to be shown. The question and its error line
+          // are page state: they leave with the page and are back, to retry, once the roster is.
+          this.load();
+        }
       },
     });
   }
@@ -539,6 +647,10 @@ export class TeamDetailComponent {
   /** Public roster rows for the non-member view. */
   protected readonly publicRoster = computed<PublicMember[]>(() => this.pub()?.roster ?? []);
 }
+
+/** The header's two join actions: each opens the confirmation, and takes the focus back when it closes. */
+const REQUEST_BUTTON = '[data-testid="request-to-join"]';
+const CANCEL_BUTTON = '[data-testid="cancel-request"]';
 
 /**
  * A join-request answer came back 404: the request no longer waits (feature 058). Branch on the

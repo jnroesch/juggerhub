@@ -65,32 +65,19 @@
   </div>
 }
 
-<!-- Delete a post (feature 057): the page's confirmation dialog, with a destructive answer. The safe
-     answer takes focus when it opens, and Tab stays inside while it is open. Fixed, so a card's
-     clipping does not reach it (no ancestor on a news page transforms). -->
+<!-- Delete a post (feature 057): asked through the shared confirmation dialog (GH #392), which owns the
+     focus and keyboard rules. It is fixed, and no ancestor on a news page transforms, so the card the
+     post sits in does not clip it. -->
 @if (confirming()) {
-  <div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
-    <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
-      role="dialog" aria-modal="true" [attr.aria-labelledby]="'news-delete-title-' + postId()" [attr.aria-describedby]="'news-delete-body-' + postId()"
-      (keydown.tab)="trapTab($event)" (keydown.shift.tab)="trapTab($event)"
-      data-testid="news-delete-confirm">
-      <div class="border-b border-border-muted px-md py-sm">
-        <!-- h2, not h3: on the party news page the dialog sits directly under the page h1, and a level
-             must never be skipped (CHK036). Beside a section h2 it is a sibling, which is fine. -->
-        <h2 [id]="'news-delete-title-' + postId()" class="text-body-lg font-semibold text-heading">{{ 'news.deleteTitle' | transloco }}</h2>
-      </div>
-      <div class="px-md py-md">
-        <p [id]="'news-delete-body-' + postId()" class="text-body-sm text-body">{{ deleteBody() | transloco }}</p>
-        @if (deleteError(); as key) {
-          <p class="mt-sm text-body-sm text-danger-fg" role="alert" data-testid="news-delete-error">{{ key | transloco }}</p>
-        }
-      </div>
-      <div class="flex flex-wrap items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
-        <button type="button" (click)="dismissDelete()" [disabled]="deleting()" data-testid="news-delete-keep"
-          jhButton variant="secondary" size="sm">{{ 'news.deleteKeep' | transloco }}</button>
-        <button type="button" (click)="confirmDelete()" [disabled]="deleting()" data-testid="news-delete-submit"
-          jhButton variant="danger" size="sm">{{ (deleting() ? 'news.deleting' : 'news.deleteConfirm') | transloco }}</button>
-      </div>
-    </div>
-  </div>
+  <jh-confirm-dialog
+    [heading]="'news.deleteTitle' | transloco"
+    [body]="deleteBody() | transloco"
+    [keepLabel]="'news.deleteKeep' | transloco"
+    [confirmLabel]="'news.deleteConfirm' | transloco"
+    [busyLabel]="'news.deleting' | transloco"
+    [busy]="deleting()"
+    [error]="deleteError() ? (deleteError()! | transloco) : null"
+    (confirmed)="confirmDelete()"
+    (dismissed)="dismissDelete()"
+  />
 }
