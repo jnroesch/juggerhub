@@ -565,6 +565,11 @@ public sealed class ChatGuard
     /// to insert when someone joins a roster, so the row only appears the first time the player needs
     /// somewhere to keep state. It is <b>state only and never authority</b>: its absence does not deny
     /// access and its presence does not grant it. Only <see cref="ResolveAsync"/> decides access.
+    /// <para>
+    /// That holds while the chat is live. Nothing removes the row when its player leaves the roster,
+    /// so archival — the point at which rows <em>become</em> the membership — must close the rows of
+    /// everyone outside the roster (<c>ChatConversationService.ArchiveConversationAsync</c>, GH #400).
+    /// </para>
     /// </remarks>
     public async Task<ConversationParticipant> EnsureParticipantStateAsync(
         Guid conversationId,

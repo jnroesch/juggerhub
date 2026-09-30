@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using JuggerHub.Api.IntegrationTests.Auth;
@@ -154,6 +155,22 @@ public abstract class ChatTestSupport
         var resp = await client.PostAsJsonAsync($"/api/v1/chat/conversations/{conversationId}/read",
             new { lastReadMessageId = messageId });
         resp.EnsureSuccessStatusCode();
+    }
+
+    /// <summary>
+    /// The caller has no way into a conversation: it is not in their inbox, and asking for it or for
+    /// its history answers 404 — never 403, which would confirm that it exists (spec FR-048).
+    /// </summary>
+    protected static async Task AssertShutOutAsync(HttpClient client, Guid conversationId)
+    {
+        var inbox = await GetInboxAsync(client);
+        Assert.DoesNotContain(inbox.GetProperty("items").EnumerateArray(),
+            c => c.GetProperty("id").GetGuid() == conversationId);
+
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await client.GetAsync($"/api/v1/chat/conversations/{conversationId}")).StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound,
+            (await client.GetAsync($"/api/v1/chat/conversations/{conversationId}/messages")).StatusCode);
     }
 
     protected async Task BlockAsync(Guid blockerUserId, Guid blockedUserId)

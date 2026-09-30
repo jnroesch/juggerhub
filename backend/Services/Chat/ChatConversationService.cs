@@ -1194,6 +1194,16 @@ public sealed class ChatConversationService : IChatConversationService
     /// So: freeze the roster into real participant rows, freeze the name, drop the link. One-way and
     /// idempotent. Works uniformly for <see cref="ConversationKind.Team"/>, <see cref="ConversationKind.Party"/>,
     /// and the two inquiry kinds (feature 027).
+    /// <para>
+    /// <b>The snapshot is the roster, exactly — it also closes the rows of everyone outside it</b>
+    /// (GH #400). While the chat was live its participant rows were state only (read marker, mute,
+    /// hide), and nothing retires one when its player leaves the team, is removed from the crew or
+    /// stops being an admin. From this save on, a row with a null <c>LeftDate</c> <em>is</em> the
+    /// membership, so a leftover row would hand a former member the whole history back, including
+    /// what was written after they left. Their rows get a <c>LeftDate</c> in the same save that
+    /// sets the state, so there is no moment at which the conversation is archived and still open
+    /// to them.
+    /// </para>
     /// </remarks>
     private async Task ArchiveConversationAsync(Guid conversationId, CancellationToken ct)
     {
@@ -1204,7 +1214,7 @@ public sealed class ChatConversationService : IChatConversationService
         }
 
         // 1. Freeze the derived roster into stored membership, while the roster still exists.
-        var rosterUserIds = await _guard.ResolveParticipantUserIdsAsync(conversationId, ct);
+        var rosterUserIds = (await _guard.ResolveParticipantUserIdsAsync(conversationId, ct)).ToHashSet();
         var haveRows = await _db.ConversationParticipants
             .Where(p => p.ConversationId == conversationId)
             .ToListAsync(ct);
@@ -1226,6 +1236,13 @@ public sealed class ChatConversationService : IChatConversationService
             {
                 row.LeftDate = null;
             }
+        }
+
+        // 1a. …and close every row that is NOT in the roster (GH #400). These belong to people who
+        //     opened the chat while they were members and have since left; see the remarks.
+        foreach (var row in haveRows.Where(p => !rosterUserIds.Contains(p.UserId)))
+        {
+            row.LeftDate ??= now;
         }
 
         // 2. Freeze the display name — the link it was derived from is about to vanish. An inquiry's

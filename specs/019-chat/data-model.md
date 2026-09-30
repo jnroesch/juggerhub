@@ -61,7 +61,8 @@ public enum ChatSystemEvent { Joined = 0, Left = 1, Removed = 2, GroupCreated = 
   membership from that roster (R5), a naive archive-and-delete would leave a conversation that
   *nobody* can read — the roster it consults is gone — silently breaking FR-027's "members can still
   read the history". Archiving must therefore, **before** the team/party row is deleted:
-  1. materialise the derived roster into real `ConversationParticipant` rows,
+  1. materialise the derived roster into real `ConversationParticipant` rows — **and set `LeftDate`
+     on every existing row whose player is not in that roster** *(GH #400, see the note below)*,
   2. freeze the display name into `Name`,
   3. null `TeamId`/`PartyId`,
   4. set `State = Archived`.
@@ -71,6 +72,15 @@ public enum ChatSystemEvent { Joined = 0, Left = 1, Removed = 2, GroupCreated = 
   The FKs are **`Restrict`** on purpose: a future delete path that forgets to archive first fails
   loudly in development rather than silently orphaning an `Active` conversation whose membership
   resolves to nobody. Fails closed, not quiet.
+
+  > **Corrected by GH #400 (2026-09-30).** Step 1 used to add rows for the roster and leave every
+  > other row alone. But R7's state rows are never removed when a player leaves the team, is removed
+  > from the crew or stops being an admin, and once archived a row with a null `LeftDate` *is* the
+  > membership (R5 reads participant rows for an archived chat). So a former member who had ever
+  > read or muted the chat got the whole history back on archival, including what was written after
+  > they left. The snapshot is now the roster **exactly**: rows outside it are closed in the same
+  > save that sets `State`. Chats archived before this fix cannot be repaired from the data — the
+  > roster is gone, and a former member's row looks the same as a then-current member's.
 - **R4** — `LastMessageDate` is denormalised **only** to keep the inbox's ORDER BY off a correlated
   subquery over `ChatMessages`. It is a cache of `MAX(ChatMessages.CreatedDate)`, never authoritative
   for ordering *within* a conversation (that is `Id`, always).
@@ -98,7 +108,7 @@ Membership for those kinds is a roster query (research §4).
 | `IsMuted` | `bool` | excluded from the nav unread total (FR-018, FR-028) |
 | `IsHidden` | `bool` | excluded from the inbox list (FR-029) |
 | `JoinedDate` | `DateTime` | for the member list and system lines |
-| `LeftDate` | `DateTime?` | set when leaving a `Group`; the row is kept, not deleted |
+| `LeftDate` | `DateTime?` | set when leaving a `Group`; the row is kept, not deleted. Also set by archival on the rows of players outside the roster (R3a, GH #400) |
 
 **Rules**
 
@@ -114,7 +124,9 @@ Membership for those kinds is a roster query (research §4).
   messages keep an attributable sender and the group's history stays coherent (US3 #6). A left
   participant fails R5, so they read nothing.
 - **R7** — `Team`/`Party` rows are created on demand (`EnsureParticipantStateAsync`) purely so mute /
-  hide / read-marker have somewhere to live. Never used to decide access.
+  hide / read-marker have somewhere to live. Never used to decide access **while the chat is live**;
+  archival is where they become the membership, which is why it closes the ones outside the roster
+  (R3a).
 - **R8** — Unread for a participant:
   ```
   ChatMessages.Count(m => m.ConversationId == c.Id

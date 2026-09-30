@@ -83,6 +83,85 @@ public sealed class ChatArchiveTests : ChatTestSupport
         Assert.Equal("Archived", row.GetProperty("state").GetString());
     }
 
+    /// <summary>
+    /// <b>GH #400.</b> The snapshot is the roster at the moment of archiving and nobody else. Reading a
+    /// team chat leaves a state row behind (the read marker), and nothing removes it when the player
+    /// leaves the team. Once archived, rows are the membership — so without closing that row the
+    /// archive hands a former member the whole history back, including what was written after they left.
+    /// </summary>
+    [Fact]
+    public async Task A_member_who_left_before_the_team_was_deleted_does_not_get_the_chat_back()
+    {
+        var (ada, adaId, _) = await NewUserAsync();
+        var (ben, benId, _) = await NewUserAsync();
+        var (teamId, slug) = await CreateTeamAsync(ada);
+        await AddTeamMemberAsync(teamId, benId);
+
+        // Ben opens the chat and reads it, which is what gives him a state row.
+        var conversationId = await TeamChatIdAsync(ben, teamId);
+        var seen = await SendAsync(ada, conversationId, "see you at training");
+        await MarkReadAsync(ben, conversationId, seen);
+
+        // Ben leaves the team, by the route the app uses. The live chat is closed to him at once.
+        var leave = await ben.DeleteAsync($"/api/v1/teams/{slug}/members/{benId}");
+        Assert.Equal(HttpStatusCode.NoContent, leave.StatusCode);
+        await AssertShutOutAsync(ben, conversationId);
+
+        await SendAsync(ada, conversationId, "written after ben left");
+
+        var delete = await ada.DeleteAsync($"/api/v1/teams/{slug}");
+        Assert.True(delete.IsSuccessStatusCode, $"team delete failed: {(int)delete.StatusCode}");
+
+        // Archiving must not reopen it for him.
+        await AssertShutOutAsync(ben, conversationId);
+
+        // The archived chat's member list is the roster it was archived with, so Ben is not in it…
+        var members = await ada.GetFromJsonAsync<JsonElement>(
+            $"/api/v1/chat/conversations/{conversationId}/members", Json);
+        var memberIds = members.GetProperty("items").EnumerateArray()
+            .Select(m => m.GetProperty("userId").GetGuid())
+            .ToList();
+        Assert.Equal(new[] { adaId }, memberIds);
+
+        // …and the member who stayed still reads all of it.
+        var page = await GetMessagesAsync(ada, conversationId);
+        Assert.Contains(page.GetProperty("items").EnumerateArray(),
+            m => m.GetProperty("body").GetString() == "written after ben left");
+    }
+
+    /// <summary>
+    /// The other half of GH #400's rule: a state row that belongs to someone still on the roster is
+    /// left open, and keeps what it held. Ben read the chat and muted it, stayed, and keeps both.
+    /// </summary>
+    [Fact]
+    public async Task A_member_who_opened_the_chat_and_stayed_keeps_it_and_its_state()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (ben, benId, _) = await NewUserAsync();
+        var (teamId, slug) = await CreateTeamAsync(ada);
+        await AddTeamMemberAsync(teamId, benId);
+
+        var conversationId = await TeamChatIdAsync(ben, teamId);
+        var seen = await SendAsync(ada, conversationId, "see you at training");
+        await MarkReadAsync(ben, conversationId, seen);
+        var mute = await ben.PatchAsJsonAsync($"/api/v1/chat/conversations/{conversationId}/state", new { isMuted = true });
+        Assert.Equal(HttpStatusCode.NoContent, mute.StatusCode);
+
+        var delete = await ada.DeleteAsync($"/api/v1/teams/{slug}");
+        Assert.True(delete.IsSuccessStatusCode, $"team delete failed: {(int)delete.StatusCode}");
+
+        var page = await GetMessagesAsync(ben, conversationId);
+        Assert.Contains(page.GetProperty("items").EnumerateArray(),
+            m => m.GetProperty("body").GetString() == "see you at training");
+
+        var inbox = await GetInboxAsync(ben);
+        var row = inbox.GetProperty("items").EnumerateArray()
+            .Single(c => c.GetProperty("id").GetGuid() == conversationId);
+        Assert.Equal("Archived", row.GetProperty("state").GetString());
+        Assert.True(row.GetProperty("isMuted").GetBoolean());
+        Assert.Equal(0, row.GetProperty("unreadCount").GetInt32());
+    }
+
     [Fact]
     public async Task An_archived_chat_is_read_only()
     {

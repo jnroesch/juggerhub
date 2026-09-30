@@ -374,4 +374,78 @@ public sealed class ChatInquiryTests : ChatTestSupport
         Assert.Contains(page.GetProperty("items").EnumerateArray(),
             m => m.GetProperty("body").GetString() == "pre-cancel question");
     }
+
+    // --- GH #400: archiving keeps the roster it finds, and nobody who left it ------
+
+    /// <summary>
+    /// An admin who read an inquiry has a state row for it. Demoted, they lose the live thread — and
+    /// archiving it must not give it back, which it did while that row still read as membership.
+    /// </summary>
+    [Fact]
+    public async Task A_demoted_admin_does_not_get_a_team_inquiry_back_when_the_team_is_deleted()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (nia, niaId, _) = await NewUserAsync();
+        var (pat, _, _) = await NewUserAsync();
+        var (teamId, slug) = await CreateTeamAsync(ada);
+        await AddTeamMemberAsync(teamId, niaId, TeamRole.Admin);
+
+        var (_, conversationId, firstMessageId) = await ContactTeamAsync(pat, teamId, "can I join a training?");
+        await MarkReadAsync(nia, conversationId, firstMessageId);
+
+        // Demoted by the route the app uses; Nia stays on the team but the thread is admins-only.
+        var demote = await ada.PatchAsJsonAsync($"/api/v1/teams/{slug}/members/{niaId}/role", new { role = "Member" });
+        Assert.True(demote.IsSuccessStatusCode, $"demote failed: {(int)demote.StatusCode}");
+        await AssertShutOutAsync(nia, conversationId);
+
+        await SendAsync(pat, conversationId, "asked after Nia was demoted");
+
+        var delete = await ada.DeleteAsync($"/api/v1/teams/{slug}");
+        Assert.True(delete.IsSuccessStatusCode, $"team delete failed: {(int)delete.StatusCode}");
+
+        await AssertShutOutAsync(nia, conversationId);
+
+        // The requester and the admin who was still one both keep the archived thread.
+        foreach (var reader in new[] { pat, ada })
+        {
+            var page = await GetMessagesAsync(reader, conversationId);
+            Assert.Contains(page.GetProperty("items").EnumerateArray(),
+                m => m.GetProperty("body").GetString() == "asked after Nia was demoted");
+        }
+    }
+
+    /// <summary>The event variant: a former event admin, and cancellation instead of a delete.</summary>
+    [Fact]
+    public async Task A_former_event_admin_does_not_get_an_event_inquiry_back_when_the_event_is_cancelled()
+    {
+        var (ada, adaId, _) = await NewUserAsync();
+        var (nia, niaId, _) = await NewUserAsync();
+        var (pat, _, _) = await NewUserAsync();
+        var eventId = await SeedEventAsync(adaId);
+        await AddEventAdminAsync(eventId, niaId);
+
+        var (_, conversationId, firstMessageId) = await ContactEventAsync(pat, eventId, "is there parking?");
+        await MarkReadAsync(nia, conversationId, firstMessageId);
+
+        // Removed as an admin by the route the app uses.
+        var remove = await ada.DeleteAsync($"/api/v1/events/{eventId}/admins/{niaId}");
+        Assert.Equal(HttpStatusCode.NoContent, remove.StatusCode);
+        await AssertShutOutAsync(nia, conversationId);
+        await SendAsync(pat, conversationId, "asked after Nia stopped being an admin");
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var events = scope.ServiceProvider.GetRequiredService<IEventService>();
+            Assert.Equal(CancelEventStatus.Cancelled, await events.CancelAsync(eventId, adaId));
+        }
+
+        await AssertShutOutAsync(nia, conversationId);
+
+        foreach (var reader in new[] { pat, ada })
+        {
+            var page = await GetMessagesAsync(reader, conversationId);
+            Assert.Contains(page.GetProperty("items").EnumerateArray(),
+                m => m.GetProperty("body").GetString() == "asked after Nia stopped being an admin");
+        }
+    }
 }
