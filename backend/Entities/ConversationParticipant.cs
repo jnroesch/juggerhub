@@ -47,8 +47,14 @@ public sealed class ConversationParticipant : BaseEntity
     /// When the player left a <see cref="ConversationKind.Group"/>. The row is kept rather than deleted
     /// so their past messages keep an attributable sender and the thread stays coherent for everyone
     /// else; a row with a non-null LeftDate fails the membership check, so the leaver reads nothing.
-    /// Always null for the other kinds — Direct/Team/Party cannot be left (spec FR-026).
+    /// Null for the other kinds while they are live — Direct/Team/Party cannot be left (spec FR-026).
     /// </summary>
+    /// <remarks>
+    /// The one other writer is archival (GH #400). Archiving a team, party or inquiry chat turns its
+    /// participant rows from state into the membership, so it sets this on every row whose player is
+    /// not in the roster at that moment — someone who opened the chat and later left the team or crew.
+    /// Without that, their leftover state row would read as membership of the archived chat.
+    /// </remarks>
     public DateTime? LeftDate { get; set; }
 
     public Conversation Conversation { get; set; } = null!;
