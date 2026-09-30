@@ -247,7 +247,8 @@ public sealed class AdminUserService : IAdminUserService
         if (revokeSessions)
         {
             // New sign-ins/refreshes are already refused by status; this ends live
-            // sessions within the access token's lifetime.
+            // sessions within the access token's lifetime — open hub connections
+            // included, which close when their token expires (#402).
             await _refreshTokens.RevokeAllForUserAsync(user.Id, action == AdminAccountAction.Ban ? "banned" : "suspended", ct);
         }
 

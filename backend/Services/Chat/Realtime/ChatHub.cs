@@ -11,7 +11,9 @@ namespace JuggerHub.Services.Chat.Realtime;
 /// the REST API (the browser sends the cookie on the same-origin WebSocket handshake). On connect the
 /// connection joins a group named <c>user:{subject}</c> derived from the <em>validated</em> token —
 /// never from client input — so a client can only ever receive its own stream. There are no
-/// client-invokable server methods: the hub is push-only (server → client).
+/// client-invokable server methods: the hub is push-only (server → client). The token is checked at
+/// the handshake only, so the connection is closed when it expires and the client reconnects with a
+/// renewed session (#402 — see the <c>MapHub</c> calls in <c>Program.cs</c>).
 /// </summary>
 /// <remarks>
 /// <para>

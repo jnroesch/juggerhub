@@ -29,6 +29,7 @@ using JuggerHub.Security.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Http.Connections;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -644,18 +645,32 @@ if (app.Environment.IsDevelopment())
 app.UseAuthentication();
 app.UseAuthorization();
 
+// A hub admits a connection by the rule it closes one by: a token past its expiry is refused at the
+// handshake, not accepted for the validator's clock skew (#402). After authorization, because it
+// reads the ticket that step resolved.
+app.UseMiddleware<HubTokenExpiryMiddleware>();
+
 // Rate limiting (feature 019) must come AFTER authentication: the chat policies partition on the
 // authenticated user id, which does not exist yet earlier in the pipeline.
 app.UseRateLimiter();
 
 app.MapControllers();
 
+// A hub connection ends when the access token it was made with expires (#402). The token is only
+// validated at the handshake; without this an open socket stays in its user's group for as long as
+// the tab is open — past sign-out, a password reset, a suspension or a ban, all of which end a
+// session by revoking refresh tokens and rely on the access token running out. The client renews its
+// session and reconnects (HubSessionService on the frontend); an account that cannot renew stays out.
+// Pass it to every MapHub: HubSessionExpiryTests walks the mapped hubs, so one added without it fails.
+static void EndWithTheSession(HttpConnectionDispatcherOptions options) =>
+    options.CloseOnAuthenticationExpiration = true;
+
 // Real-time notifications hub (feature 010). Same-origin JWT cookie authenticates the handshake.
-app.MapHub<NotificationHub>("/hubs/notifications");
+app.MapHub<NotificationHub>("/hubs/notifications", EndWithTheSession);
 
 // Real-time chat hub (feature 019). Same auth, same push-only per-user-group design; fan-out crosses
 // replicas via the Redis backplane registered above.
-app.MapHub<JuggerHub.Services.Chat.Realtime.ChatHub>("/hubs/chat");
+app.MapHub<JuggerHub.Services.Chat.Realtime.ChatHub>("/hubs/chat", EndWithTheSession);
 
 app.Run();
 

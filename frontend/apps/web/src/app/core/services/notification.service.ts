@@ -5,6 +5,7 @@ import { Observable, tap } from 'rxjs';
 import { AppNotification, PagedResult, UnreadCount } from '../models/notification.models';
 import { AuthService } from './auth.service';
 import { IndefiniteHubRetryPolicy } from './hub-reconnect.policy';
+import { HubSessionService } from './hub-session.service';
 
 /**
  * In-app notifications client (feature 010). Owns the app-wide unread badge and the Alerts inbox
@@ -20,6 +21,7 @@ import { IndefiniteHubRetryPolicy } from './hub-reconnect.policy';
 export class NotificationService {
   private readonly http = inject(HttpClient);
   private readonly auth = inject(AuthService);
+  private readonly hubSession = inject(HubSessionService);
   private readonly base = '/api/v1/notifications';
 
   private readonly _unread = signal(0);
@@ -36,6 +38,13 @@ export class NotificationService {
 
   private hub?: HubConnection;
   private connecting = false;
+  /**
+   * Whether the Alerts list has been loaded in this session. Not "holds any alerts": a loaded list
+   * can be empty, and that is exactly the one an alert raised during a reconnect must reach.
+   */
+  private inboxLoaded = false;
+  /** How often the list has been loaded from scratch. A catch-up only merges into the list it asked for. */
+  private listLoads = 0;
 
   constructor() {
     // Follow auth state: connect + seed when signed in, tear down + clear on sign-out.
@@ -45,6 +54,7 @@ export class NotificationService {
         void this.connect();
       } else {
         this.disconnect();
+        this.inboxLoaded = false;
         this._items.set([]);
         this._total.set(0);
         this._unread.set(0);
@@ -64,6 +74,8 @@ export class NotificationService {
         tap((page) => {
           this._items.set(page.items);
           this._total.set(page.totalCount);
+          this.inboxLoaded = true;
+          this.listLoads++;
         }),
       );
   }
@@ -140,30 +152,27 @@ export class NotificationService {
     this.connecting = true;
 
     try {
-      const { HubConnectionBuilder, LogLevel } = await import('@microsoft/signalr');
+      const signalR = await import('@microsoft/signalr');
 
       // Sign-out may have raced the dynamic import — bail if we're no longer authenticated.
       if (!this.auth.isAuthenticated()) {
         return;
       }
 
-      const hub = new HubConnectionBuilder()
-        .withUrl('/hubs/notifications') // same-origin: the httpOnly auth cookie rides the handshake
+      const hub = new signalR.HubConnectionBuilder()
+        // Same-origin: the httpOnly auth cookie rides the handshake. The server ends the connection
+        // when that cookie's token expires, so the handshake renews the session when it is refused
+        // (GH #402) — see HubSessionService.
+        .withUrl('/hubs/notifications', { httpClient: this.hubSession.createHttpClient(signalR) })
         // Indefinite backoff rather than the default schedule, which gives up permanently after
         // ~42s and silently stops delivering (feature 028, FR-012).
         .withAutomaticReconnect(new IndefiniteHubRetryPolicy())
-        .configureLogging(LogLevel.Warning)
+        .configureLogging(signalR.LogLevel.Warning)
         .build();
 
       hub.on('notificationCreated', (n: AppNotification) => this.onCreated(n));
       hub.on('unreadCountChanged', (count: number) => this._unread.set(count));
-      hub.onreconnected(() => {
-        this.refreshUnread();
-        // A short outage may have missed creates; re-seed the newest page if the inbox is loaded.
-        if (this._items().length > 0) {
-          this.loadFirstPage().subscribe({ error: () => undefined });
-        }
-      });
+      hub.onreconnected(() => this.onReconnected());
 
       this.hub = hub;
       await hub.start().catch(() => {
@@ -179,6 +188,86 @@ export class NotificationService {
   private disconnect(): void {
     this.hub?.stop().catch(() => undefined);
     this.hub = undefined;
+  }
+
+  /**
+   * Back after the socket was down: re-seed what it would have carried.
+   *
+   * **It has to be invisible.** A reconnect is routine, not an outage: the server ends every
+   * connection when the access token it was made with expires (GH #402), so this runs about four
+   * times an hour in every open tab — including under someone reading the Alerts list.
+   */
+  private onReconnected(): void {
+    this.refreshUnread();
+    if (this.inboxLoaded) {
+      this.catchUpInbox();
+    }
+  }
+
+  /**
+   * Bring the loaded inbox up to date from the newest page, keeping what was paged in below it.
+   *
+   * Deliberately NOT {@link loadFirstPage}, which this used to call: that replaces the list with
+   * the newest page, so everything the reader had loaded further down disappeared under them.
+   *
+   * The newest page is the truth for its own range — down to the oldest alert it shares with the
+   * list. That range is taken from the server as it is (new alerts in, removed ones out, read and
+   * resolved states current); what the list holds below it stays. With nothing in common, or
+   * nothing held below, the page simply is the list, as before.
+   *
+   * One thing the page cannot know: an alert pushed over the new socket while this answer was on
+   * its way. It is newer than the page, so it stays on top rather than being taken for a removal.
+   */
+  private catchUpInbox(): void {
+    const askedAs = this.auth.currentUser()?.id;
+    const loads = this.listLoads;
+    const heldWhenAsked = new Set(this._items().map((i) => i.id));
+
+    this.http
+      .get<PagedResult<AppNotification>>(this.base, { params: new HttpParams().set('skip', 0).set('take', 20) })
+      .subscribe({
+        next: (page) => {
+          // An answer belongs to the account that asked. Signed out while it was on its way, or
+          // signed in as someone else: an anonymous client holds nothing, and nobody holds
+          // another account's alerts.
+          if (!askedAs || this.auth.currentUser()?.id !== askedAs) {
+            return;
+          }
+
+          // The list was loaded again while this answer was on its way. That list is as current
+          // as the answer, and it is no longer the list the answer was asked for.
+          if (this.listLoads !== loads) {
+            return;
+          }
+
+          // From here the list is the one that was held when asking, plus only two kinds of
+          // addition: alerts pushed meanwhile, which go on top, and a page of older ones, which
+          // goes at the end. So what sits above the first alert it already held — everything, if
+          // it held none — arrived meanwhile.
+          const held = this._items();
+          const inPage = new Set(page.items.map((i) => i.id));
+          const firstOld = held.findIndex((i) => heldWhenAsked.has(i.id));
+          const arrivedMeanwhile = (firstOld < 0 ? held : held.slice(0, firstOld)).filter((i) => !inPage.has(i.id));
+          const asItWas = firstOld < 0 ? [] : held.slice(firstOld);
+
+          // The oldest alert the page shares with the list as it was marks the end of the page's
+          // range. With nothing held below it, the page simply is the list.
+          let lastShared = page.items.length - 1;
+          while (lastShared >= 0 && !heldWhenAsked.has(page.items[lastShared].id)) {
+            lastShared--;
+          }
+
+          const below =
+            lastShared < 0
+              ? []
+              : asItWas.slice(asItWas.findIndex((i) => i.id === page.items[lastShared].id) + 1);
+          const range = below.length > 0 ? page.items.slice(0, lastShared + 1) : page.items;
+
+          this._items.set([...arrivedMeanwhile, ...range, ...below]);
+          this._total.set(page.totalCount + arrivedMeanwhile.length);
+        },
+        error: () => undefined,
+      });
   }
 
   private onCreated(n: AppNotification): void {
