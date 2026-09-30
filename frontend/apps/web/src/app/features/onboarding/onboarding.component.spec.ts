@@ -948,6 +948,24 @@ describe('OnboardingComponent', () => {
       expect((el(fixture, 'onboarding-invite-accept') as HTMLButtonElement).disabled).toBe(false);
     });
 
+    it('a carried invite that was addressed to another account says so, not "try again" (GH #401)', () => {
+      const fixture = createWithInvite(USABLE);
+      const comp = goToTeamStep(fixture);
+
+      comp.acceptInvite(TOKEN, 'berlin-jugger');
+      httpMock
+        .expectOne(`/api/v1/invitations/${TOKEN}/accept`)
+        .flush({ title: 'Invite not found', detail: 'Server wording, never shown' }, { status: 404, statusText: 'Not Found' });
+      fixture.detectChanges();
+
+      const note = el(fixture, 'onboarding-invite-error')?.textContent ?? '';
+      expect(note).toContain("This invite can't be used with this account.");
+      expect(note).not.toContain("couldn't join");
+      expect(note).not.toContain('Server wording');
+      // Still never a trap: the step and its primary action are untouched.
+      expect(comp.step()).toBe('team');
+    });
+
     it('a team the player already belongs to shows no Accept and is not an error', () => {
       const fixture = createWithInvite(USABLE, [], ['berlin-jugger']);
       goToTeamStep(fixture);

@@ -28,6 +28,12 @@ export class PartyInviteAcceptComponent implements OnInit {
   protected readonly notFound = signal(false);
   protected readonly acting = signal(false);
   protected readonly error = signal<string | null>(null);
+  /**
+   * GH #401: the preview was usable, yet accepting or declining answered "no such invitation". A
+   * targeted invitation does that for every account but its recipient's, so the page says which
+   * account to use instead of showing the server's wording.
+   */
+  protected readonly otherAccount = signal(false);
 
   private token = '';
 
@@ -51,6 +57,7 @@ export class PartyInviteAcceptComponent implements OnInit {
     }
     this.acting.set(true);
     this.error.set(null);
+    this.otherAccount.set(false);
     this.parties.acceptInvite(this.token).subscribe({
       next: (r) => this.router.navigate(['/parties', r.partyId]),
       error: (err) => this.handleAuthOr(err),
@@ -62,6 +69,8 @@ export class PartyInviteAcceptComponent implements OnInit {
       return;
     }
     this.acting.set(true);
+    this.error.set(null);
+    this.otherAccount.set(false);
     this.parties.declineInvite(this.token).subscribe({
       next: () => this.router.navigate(['/']),
       error: (err) => this.handleAuthOr(err),
@@ -72,6 +81,10 @@ export class PartyInviteAcceptComponent implements OnInit {
     this.acting.set(false);
     if (err instanceof HttpErrorResponse && err.status === 401) {
       this.router.navigate(['/sign-in'], { queryParams: { returnUrl: `/party-invite/${this.token}` } });
+      return;
+    }
+    if (err instanceof HttpErrorResponse && err.status === 404) {
+      this.otherAccount.set(true);
       return;
     }
     if (err instanceof HttpErrorResponse) {

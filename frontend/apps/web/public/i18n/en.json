@@ -21,7 +21,8 @@
     "tryAgain": "Try again",
     "seeAll": "See all",
     "accept": "Accept",
-    "decline": "Decline"
+    "decline": "Decline",
+    "inviteOtherAccount": "This invite can't be used with this account. If it was sent to another account of yours, sign in with that one."
   },
   "address": {
     "optional": "(optional)",

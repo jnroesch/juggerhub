@@ -1,7 +1,7 @@
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { TranslocoPipe } from '@jsverse/transloco';
-import { ButtonDirective, CardComponent, LegalLinksComponent, LoadingComponent } from '../../../shared/ui';
+import { AlertComponent, ButtonDirective, CardComponent, LegalLinksComponent, LoadingComponent } from '../../../shared/ui';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { InvitePreview } from '../../../core/models/event.models';
@@ -14,7 +14,7 @@ import { EventService } from '../../../core/services/event.service';
  */
 @Component({
   selector: 'jh-event-invite-accept',
-  imports: [CardComponent, LegalLinksComponent, TranslocoDatePipe, ButtonDirective, LoadingComponent, TranslocoPipe],
+  imports: [AlertComponent, CardComponent, LegalLinksComponent, TranslocoDatePipe, ButtonDirective, LoadingComponent, TranslocoPipe],
   templateUrl: './event-invite-accept.component.html',
   styleUrl: './event-invite-accept.component.css',
 })
@@ -27,6 +27,12 @@ export class EventInviteAcceptComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly notFound = signal(false);
   protected readonly acting = signal(false);
+  /**
+   * GH #401: the preview was usable, yet accepting or declining answered "no such invitation". A
+   * targeted invitation does that for every account but its recipient's, so the page says which
+   * account to use.
+   */
+  protected readonly otherAccount = signal(false);
 
   private token = '';
 
@@ -49,6 +55,7 @@ export class EventInviteAcceptComponent implements OnInit {
       return;
     }
     this.acting.set(true);
+    this.otherAccount.set(false);
     this.events.acceptInvite(this.token).subscribe({
       next: (r) => this.router.navigate(['/events', r.eventId]),
       error: (err) => this.handleAuthOr(err),
@@ -60,17 +67,23 @@ export class EventInviteAcceptComponent implements OnInit {
       return;
     }
     this.acting.set(true);
+    this.otherAccount.set(false);
     this.events.declineInvite(this.token).subscribe({
       next: () => this.router.navigate(['/']),
       error: (err) => this.handleAuthOr(err),
     });
   }
 
-  /** On 401, send to sign-in and return to this invite; otherwise stop acting. */
+  /**
+   * On 401, send to sign-in and return to this invite; on 404, the invitation is not this
+   * account's (GH #401); otherwise stop acting.
+   */
   private handleAuthOr(err: unknown): void {
     this.acting.set(false);
     if (err instanceof HttpErrorResponse && err.status === 401) {
       this.router.navigate(['/sign-in'], { queryParams: { returnUrl: `/event-invite/${this.token}` } });
+    } else if (err instanceof HttpErrorResponse && err.status === 404) {
+      this.otherAccount.set(true);
     }
   }
 }

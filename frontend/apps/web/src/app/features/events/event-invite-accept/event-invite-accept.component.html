@@ -13,6 +13,9 @@
 
       @switch (p.state) {
         @case ('Usable') {
+          @if (otherAccount()) {
+            <jh-alert tone="info" class="mt-md" data-testid="invite-other-account">{{ 'common.inviteOtherAccount' | transloco }}</jh-alert>
+          }
           <div class="mt-lg space-y-xs">
             <button type="button" (click)="accept()" [disabled]="acting()" data-testid="invite-accept"
               jhButton class="w-full">{{ 'events.inviteAccept.acceptHelp' | transloco }}</button>
