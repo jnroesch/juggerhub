@@ -162,6 +162,92 @@ public sealed class ChatArchiveTests : ChatTestSupport
         Assert.Equal(0, row.GetProperty("unreadCount").GetInt32());
     }
 
+    /// <summary>
+    /// <b>GH #400, the race.</b> A request to mark a chat read checks access first and writes its state
+    /// row second. The player can be removed in between; if the chat is then archived while that row
+    /// is still being written, archiving must wait for it and close it. The row is written under a
+    /// share lock on the conversation, which archiving takes before it reads the rows.
+    /// </summary>
+    [Fact]
+    public async Task Archiving_waits_for_a_state_row_being_written_and_closes_it()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (ben, benId, _) = await NewUserAsync();
+        var (teamId, slug) = await CreateTeamAsync(ada);
+        await AddTeamMemberAsync(teamId, benId);
+        var conversationId = await TeamChatIdAsync(ben, teamId);
+
+        // Ben's request passed its access check a moment ago; by now he has been removed.
+        await RemoveTeamMemberAsync(teamId, benId);
+
+        using var writerScope = Factory.Services.CreateScope();
+        var writerDb = writerScope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var guard = writerScope.ServiceProvider.GetRequiredService<ChatGuard>();
+
+        // Wrapped because the provider is configured with EnableRetryOnFailure, which refuses
+        // user-initiated transactions outside an execution strategy. Nothing here is transient, so
+        // the delegate runs once.
+        await writerDb.Database.CreateExecutionStrategy().ExecuteAsync(async () =>
+        {
+            // The state row, written and not yet committed.
+            await using var tx = await writerDb.Database.BeginTransactionAsync();
+            Assert.NotNull(await guard.EnsureParticipantStateAsync(conversationId, benId));
+
+            var deleting = ada.DeleteAsync($"/api/v1/teams/{slug}");
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            // If this ever fails the archive ran past the row being written: it read the rows without
+            // Ben's, and nothing below would be exercising the lock.
+            Assert.False(deleting.IsCompleted, "Archiving should wait for the state row being written.");
+
+            await tx.CommitAsync();
+            var delete = await deleting;
+            Assert.True(delete.IsSuccessStatusCode, $"team delete failed: {(int)delete.StatusCode}");
+        });
+
+        using (var scope = Factory.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            var row = await db.ConversationParticipants.AsNoTracking()
+                .SingleAsync(p => p.ConversationId == conversationId && p.UserId == benId);
+            Assert.NotNull(row.LeftDate);
+        }
+
+        await AssertShutOutAsync(ben, conversationId);
+    }
+
+    /// <summary>
+    /// The other order of the same race: the chat was archived first. A state row written now would be
+    /// a new member of the archived chat, so none is written — and marking read or muting, which are
+    /// what write one, answer as for a conversation that is not the caller's.
+    /// </summary>
+    [Fact]
+    public async Task No_state_row_is_written_for_an_archived_chat()
+    {
+        var (ada, _, _) = await NewUserAsync();
+        var (ben, benId, _) = await NewUserAsync();
+        var (teamId, slug) = await CreateTeamAsync(ada);
+        await AddTeamMemberAsync(teamId, benId);
+
+        // Ben sees the chat but never reads it, so he has no state row. Then he is removed.
+        var conversationId = await TeamChatIdAsync(ben, teamId);
+        await RemoveTeamMemberAsync(teamId, benId);
+
+        var delete = await ada.DeleteAsync($"/api/v1/teams/{slug}");
+        Assert.True(delete.IsSuccessStatusCode, $"team delete failed: {(int)delete.StatusCode}");
+
+        using var scope = Factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var guard = scope.ServiceProvider.GetRequiredService<ChatGuard>();
+
+        // What the second half of Ben's request would do, had its access check run before all this.
+        Assert.Null(await guard.EnsureParticipantStateAsync(conversationId, benId));
+        Assert.False(await db.ConversationParticipants.AsNoTracking()
+            .AnyAsync(p => p.ConversationId == conversationId && p.UserId == benId));
+
+        await AssertShutOutAsync(ben, conversationId);
+    }
+
     [Fact]
     public async Task An_archived_chat_is_read_only()
     {

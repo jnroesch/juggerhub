@@ -570,8 +570,18 @@ public sealed class ChatGuard
     /// so archival — the point at which rows <em>become</em> the membership — must close the rows of
     /// everyone outside the roster (<c>ChatConversationService.ArchiveConversationAsync</c>, GH #400).
     /// </para>
+    /// <para>
+    /// <b>Returns null when there is no row and the conversation is archived</b>, and the caller must
+    /// answer as for a conversation that is not theirs. A new row in an archived chat would be a new
+    /// member of it. This is reachable: the caller's access check ran a moment ago, and the player
+    /// may have been removed and the chat archived since. Hence the lock — the row is inserted under
+    /// a share lock on the conversation row, and archival takes that row exclusively before it reads
+    /// the rows. Either this insert commits first and archival sees the row (and closes it, if its
+    /// player has left the roster), or archival commits first and this inserts nothing. Without the
+    /// lock the insert could land after archival had read the rows and stay open.
+    /// </para>
     /// </remarks>
-    public async Task<ConversationParticipant> EnsureParticipantStateAsync(
+    public async Task<ConversationParticipant?> EnsureParticipantStateAsync(
         Guid conversationId,
         Guid userId,
         CancellationToken ct = default)
@@ -582,6 +592,54 @@ public sealed class ChatGuard
         if (existing is not null)
         {
             return existing;
+        }
+
+        if (_db.Database.CurrentTransaction is not null)
+        {
+            return await InsertStateWhileLiveAsync(conversationId, userId, ct);
+        }
+
+        // Connection resiliency (feature 028): a transaction of our own has to run inside the
+        // execution strategy, as one retriable unit.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        return await strategy.ExecuteAsync(async () =>
+        {
+            // A rollback does not undo the change tracker, so a replay must not find the previous
+            // attempt's row still staged. Only this pair's row: the caller's tracker is not ours to clear.
+            foreach (var stale in _db.ChangeTracker.Entries<ConversationParticipant>()
+                .Where(e => e.Entity.ConversationId == conversationId && e.Entity.UserId == userId)
+                .ToList())
+            {
+                stale.State = EntityState.Detached;
+            }
+
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            var row = await InsertStateWhileLiveAsync(conversationId, userId, ct);
+            await tx.CommitAsync(ct);
+            return row;
+        });
+    }
+
+    /// <summary>
+    /// The insert half of <see cref="EnsureParticipantStateAsync"/>. Runs inside a transaction, which
+    /// is what holds the share lock until the new row is committed.
+    /// </summary>
+    private async Task<ConversationParticipant?> InsertStateWhileLiveAsync(
+        Guid conversationId,
+        Guid userId,
+        CancellationToken ct)
+    {
+        // FOR SHARE, not FOR KEY SHARE: the insert's own foreign-key check takes the weaker lock, and
+        // that one does not conflict with the lock archival holds.
+        await _db.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT 1 FROM \"Conversations\" WHERE \"Id\" = {conversationId} FOR SHARE", ct);
+
+        // Read after the lock, so an archive that was in flight has committed and is visible here.
+        var live = await _db.Conversations.AsNoTracking()
+            .AnyAsync(c => c.Id == conversationId && c.State != ConversationState.Archived, ct);
+        if (!live)
+        {
+            return null;
         }
 
         var row = new ConversationParticipant
@@ -602,7 +660,8 @@ public sealed class ChatGuard
         catch (DbUpdateException)
         {
             // Two of the player's own tabs raced to materialise the same state row; the unique index
-            // on (ConversationId, UserId) caught it. Re-read the winner.
+            // on (ConversationId, UserId) caught it. Re-read the winner. (EF saves under a savepoint
+            // inside a transaction and has rolled back to it, so the transaction is still usable.)
             _db.Entry(row).State = EntityState.Detached;
             return await _db.ConversationParticipants
                 .FirstAsync(p => p.ConversationId == conversationId && p.UserId == userId, ct);

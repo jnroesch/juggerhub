@@ -796,7 +796,12 @@ public sealed class ChatConversationService : IChatConversationService
             return ChatResult.Fail(ChatOutcome.Invalid, "Unknown message.");
         }
 
+        // Null: the chat was archived since the access check above, and without the caller (GH #400).
         var state = await _guard.EnsureParticipantStateAsync(conversationId, callerId, ct);
+        if (state is null)
+        {
+            return ChatResult.Fail(ChatOutcome.NotFound);
+        }
 
         // Never move backwards: a slow request from a stale tab must not resurrect messages the player
         // has already read on another device.
@@ -1000,7 +1005,12 @@ public sealed class ChatConversationService : IChatConversationService
             return ChatResult.Fail(ChatOutcome.NotFound);
         }
 
+        // Null: the chat was archived since the access check above, and without the caller (GH #400).
         var state = await _guard.EnsureParticipantStateAsync(conversationId, callerId, ct);
+        if (state is null)
+        {
+            return ChatResult.Fail(ChatOutcome.NotFound);
+        }
 
         if (isMuted is { } m)
         {
@@ -1204,9 +1214,55 @@ public sealed class ChatConversationService : IChatConversationService
     /// sets the state, so there is no moment at which the conversation is archived and still open
     /// to them.
     /// </para>
+    /// <para>
+    /// <b>It runs in a transaction that first locks the conversation row.</b> A state row can be
+    /// inserted by a request whose access check passed just before its player was removed
+    /// (<see cref="ChatGuard.EnsureParticipantStateAsync"/>). That insert holds a share lock on the
+    /// conversation row, so taking the row here waits for any insert in flight, and the rows read
+    /// afterwards include it; an insert that arrives later finds the conversation archived and adds
+    /// nothing. Read the rows before the lock and such a row is missed and stays open.
+    /// </para>
     /// </remarks>
     private async Task ArchiveConversationAsync(Guid conversationId, CancellationToken ct)
     {
+        // A party disband calls this inside its own transaction (and its own execution strategy).
+        if (_db.Database.CurrentTransaction is not null)
+        {
+            await ArchiveLockedAsync(conversationId, ct);
+            return;
+        }
+
+        // Connection resiliency (feature 028): a transaction of our own has to run inside the
+        // execution strategy, as one retriable unit.
+        var strategy = _db.Database.CreateExecutionStrategy();
+        await strategy.ExecuteAsync(async () =>
+        {
+            // A rollback does not undo the change tracker: a replay would find the conversation
+            // already marked archived in memory and return without saving anything. Only this
+            // conversation's entities are dropped — the caller's tracker is not ours to clear.
+            foreach (var stale in _db.ChangeTracker.Entries()
+                .Where(e => (e.Entity is Conversation c && c.Id == conversationId)
+                    || (e.Entity is ConversationParticipant p && p.ConversationId == conversationId))
+                .ToList())
+            {
+                stale.State = EntityState.Detached;
+            }
+
+            await using var tx = await _db.Database.BeginTransactionAsync(ct);
+            await ArchiveLockedAsync(conversationId, ct);
+            await tx.CommitAsync(ct);
+        });
+    }
+
+    /// <summary>The body of <see cref="ArchiveConversationAsync"/>; must run inside a transaction.</summary>
+    private async Task ArchiveLockedAsync(Guid conversationId, CancellationToken ct)
+    {
+        // FOR NO KEY UPDATE is what the update below takes anyway; taking it first is the point.
+        // It conflicts with the share lock a state-row insert holds, and not with the key-share
+        // lock of a foreign-key check, so nothing else waits on it that did not before.
+        await _db.Database.ExecuteSqlInterpolatedAsync(
+            $"SELECT 1 FROM \"Conversations\" WHERE \"Id\" = {conversationId} FOR NO KEY UPDATE", ct);
+
         var conversation = await _db.Conversations.FirstAsync(c => c.Id == conversationId, ct);
         if (conversation.State == ConversationState.Archived)
         {

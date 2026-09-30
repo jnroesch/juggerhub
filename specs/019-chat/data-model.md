@@ -81,6 +81,14 @@ public enum ChatSystemEvent { Joined = 0, Left = 1, Removed = 2, GroupCreated = 
   > they left. The snapshot is now the roster **exactly**: rows outside it are closed in the same
   > save that sets `State`. Chats archived before this fix cannot be repaired from the data — the
   > roster is gone, and a former member's row looks the same as a then-current member's.
+  >
+  > **The two writers are serialised on the conversation row.** A state row is inserted by a request
+  > whose access check already passed; its player can be removed and the chat archived before the
+  > insert lands. So `EnsureParticipantStateAsync` inserts under `FOR SHARE` on the conversation row
+  > and inserts **nothing** once the chat is archived (it returns null; mark-read and mute/hide then
+  > answer 404), and archival runs in a transaction that takes the row `FOR NO KEY UPDATE` **before**
+  > it reads the participant rows. An insert in flight is waited for and then seen; a later one finds
+  > the chat archived.
 - **R4** — `LastMessageDate` is denormalised **only** to keep the inbox's ORDER BY off a correlated
   subquery over `ChatMessages`. It is a cache of `MAX(ChatMessages.CreatedDate)`, never authoritative
   for ordering *within* a conversation (that is `Id`, always).
