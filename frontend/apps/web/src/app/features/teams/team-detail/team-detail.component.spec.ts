@@ -783,6 +783,52 @@ describe('TeamDetailComponent — the join confirmation (GH #392)', () => {
     expect(el(fixture, 'confirm-dialog')).toBeNull();
     expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
   });
+
+  it('shows the team afresh when a request sent on an earlier visit lands after the page came back', () => {
+    // CodeRabbit on PR #398: the old answer is not acted on, but the request did go in. The page
+    // loaded before it landed, so it still offers to send one.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('NonMember', route);
+    const sending = new Subject<void>();
+    service['requestToJoin'].mockReturnValue(sending);
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    expect(el(fixture, 'request-to-join')).not.toBeNull();
+    const loads = service['getPublicDetail'].mock.calls.length;
+    service['getPublicDetail'].mockReturnValue(of(detail('Requested')));
+
+    sending.next();
+    fixture.detectChanges();
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+    expect(el(fixture, 'requested')).not.toBeNull();
+    expect(el(fixture, 'request-to-join')).toBeNull();
+  });
+
+  it('shows the team afresh when a withdrawal from an earlier visit lands after the page came back', () => {
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('Requested', route);
+    const withdrawing = new Subject<void>();
+    service['cancelJoinRequest'].mockReturnValue(withdrawing);
+
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    const loads = service['getPublicDetail'].mock.calls.length;
+    service['getPublicDetail'].mockReturnValue(of(detail('NonMember')));
+
+    withdrawing.next();
+    fixture.detectChanges();
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+    expect(el(fixture, 'request-to-join')).not.toBeNull();
+  });
 });
 
 /**
@@ -1238,6 +1284,30 @@ describe('TeamDetailComponent — removing a teammate asks first (feature 064)',
     expect(dialog(fixture)).not.toBeNull();
     expect(el<HTMLButtonElement>(fixture, '[data-testid="confirm-dialog-confirm"]')?.disabled).toBe(true);
     expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+  });
+
+  it('shows the roster afresh when a removal from an earlier visit lands after the page came back', () => {
+    // CodeRabbit on PR #398: the old answer is not acted on, but the teammate is gone. The page loaded
+    // before the removal landed and still lists them.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render(route);
+    const removing = new Subject<void>();
+    service['removeMember'].mockReturnValue(removing);
+
+    askToRemove(fixture);
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    route.next(convertToParamMap({ slug: 'rheinfeuer' }));
+    fixture.detectChanges();
+    const loads = service['getPublicDetail'].mock.calls.length;
+    const rosters = service['getMembers'].mock.calls.length;
+
+    removing.next();
+    fixture.detectChanges();
+
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads + 1);
+    expect(service['getMembers']).toHaveBeenCalledTimes(rosters + 1);
+    expect(dialog(fixture)).toBeNull();
   });
 
   it('keeps the question open on any other failure, in our words, and confirming again retries', () => {

@@ -358,6 +358,19 @@ export class TeamDetailComponent {
     }
   }
 
+  /**
+   * A call from a visit that is over has succeeded. Its answer is not acted on, but the team did
+   * change. If the page is on that team again, what it shows may be older than the change (it loaded
+   * before the call landed), so it is shown afresh. Not while a newer call is under way: a reload
+   * would take its question off the screen, and its own answer reloads the page (asking and
+   * withdrawing twice are both fine by the server).
+   */
+  private showAfreshAfterLateSuccess(slug: string): void {
+    if (this.slug() === slug && !this.requestBusy() && !this.removeBusy()) {
+      this.load();
+    }
+  }
+
   /** Zoneless: what to focus exists only after the next render (GH #344's lesson — not an effect). */
   private focusAfterRender(selector: string): void {
     afterNextRender(() => this.focus(selector), { injector: this.injector });
@@ -373,10 +386,13 @@ export class TeamDetailComponent {
     this.requestBusy.set(true);
     this.requestError.set(null);
     const visit = this.visit;
-    this.teams.requestToJoin(this.slug()).subscribe({
+    const slug = this.slug();
+    this.teams.requestToJoin(slug).subscribe({
       next: () => {
         if (this.visit !== visit) {
-          return; // the page moved on meanwhile (even if it came back); this answer is not about it
+          // The page moved on meanwhile (even if it came back); this answer is not acted on.
+          this.showAfreshAfterLateSuccess(slug);
+          return;
         }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
@@ -419,10 +435,13 @@ export class TeamDetailComponent {
     this.requestBusy.set(true);
     this.requestError.set(null);
     const visit = this.visit;
-    this.teams.cancelJoinRequest(this.slug()).subscribe({
+    const slug = this.slug();
+    this.teams.cancelJoinRequest(slug).subscribe({
       next: () => {
         if (this.visit !== visit) {
-          return; // the page moved on meanwhile (even if it came back); this answer is not about it
+          // The page moved on meanwhile (even if it came back); this answer is not acted on.
+          this.showAfreshAfterLateSuccess(slug);
+          return;
         }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
@@ -531,10 +550,13 @@ export class TeamDetailComponent {
     this.removeBusy.set(true);
     this.removeError.set(null);
     const visit = this.visit;
-    this.teams.removeMember(this.slug(), member.userId).subscribe({
+    const slug = this.slug();
+    this.teams.removeMember(slug, member.userId).subscribe({
       next: () => {
         if (this.visit !== visit) {
-          return; // the page moved on meanwhile (even if it came back); this answer is not about it
+          // The page moved on meanwhile (even if it came back); this answer is not acted on.
+          this.showAfreshAfterLateSuccess(slug);
+          return;
         }
         this.removeBusy.set(false);
         this.removing.set(null);
