@@ -4,13 +4,23 @@
 
 Presentational. The host renders it inside `@if` while a confirmation is pending and owns the call.
 
+> **Amended by GH #392**: the two older confirmations now ask through this component too — the news
+> post's delete dialog (features 057/059, inside `jh-news-post`) and the team page's join / withdraw
+> confirmation (feature 009). The second destroys nothing, so the acting answer's look became an
+> input, `confirmVariant` (default `danger`). Two things the browser walk found were fixed in the
+> component, for every host: it has no box of its own (`display: contents` — in a news post's row the
+> open dialog pushed the ⋯ button aside), and it takes the focus off the page as it is created, before
+> it is in the page (asked for by a menu item that its menu then removes, the answers used to grow in
+> from nothing — measured on this feature's roster *Remove* as well).
+
 | Input | Type | Meaning |
 |-------|------|---------|
 | `heading` | string (translated) | dialog title, `aria-labelledby` |
 | `body` | string (translated) | explanation, `aria-describedby` |
 | `keepLabel` | string | the safe answer (focused on open) |
-| `confirmLabel` | string | the destructive answer (`variant="danger"`) |
-| `busyLabel` | string | the destructive answer's label while `busy` |
+| `confirmLabel` | string | the answer that acts |
+| `confirmVariant` | `ButtonVariant` | how the acting answer looks; `danger` unless the host says otherwise (GH #392) |
+| `busyLabel` | string | the acting answer's label while `busy`; falls back to `confirmLabel` |
 | `busy` | boolean | disables both answers and ignores Escape |
 | `error` | string \| null (translated) | one `role="alert"` line under the body |
 
