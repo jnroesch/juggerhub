@@ -43,6 +43,8 @@ export class NotificationService {
    * can be empty, and that is exactly the one an alert raised during a reconnect must reach.
    */
   private inboxLoaded = false;
+  /** How often the list has been loaded from scratch. A catch-up only merges into the list it asked for. */
+  private listLoads = 0;
 
   constructor() {
     // Follow auth state: connect + seed when signed in, tear down + clear on sign-out.
@@ -73,6 +75,7 @@ export class NotificationService {
           this._items.set(page.items);
           this._total.set(page.totalCount);
           this.inboxLoaded = true;
+          this.listLoads++;
         }),
       );
   }
@@ -217,6 +220,7 @@ export class NotificationService {
    */
   private catchUpInbox(): void {
     const askedAs = this.auth.currentUser()?.id;
+    const loads = this.listLoads;
     const heldWhenAsked = new Set(this._items().map((i) => i.id));
 
     this.http
@@ -230,22 +234,33 @@ export class NotificationService {
             return;
           }
 
+          // The list was loaded again while this answer was on its way. That list is as current
+          // as the answer, and it is no longer the list the answer was asked for.
+          if (this.listLoads !== loads) {
+            return;
+          }
+
+          // From here the list is the one that was held when asking, plus only two kinds of
+          // addition: alerts pushed meanwhile, which go on top, and a page of older ones, which
+          // goes at the end. So what sits above the first alert it already held — everything, if
+          // it held none — arrived meanwhile.
           const held = this._items();
           const inPage = new Set(page.items.map((i) => i.id));
           const firstOld = held.findIndex((i) => heldWhenAsked.has(i.id));
-          const arrivedMeanwhile = held.slice(0, Math.max(firstOld, 0)).filter((i) => !inPage.has(i.id));
+          const arrivedMeanwhile = (firstOld < 0 ? held : held.slice(0, firstOld)).filter((i) => !inPage.has(i.id));
+          const asItWas = firstOld < 0 ? [] : held.slice(firstOld);
 
-          // Everything else is compared with the page. Set apart first, so nothing can end up in
-          // the list twice — a repeated id would give the template's `track` duplicate keys.
-          const rest = held.filter((i) => !arrivedMeanwhile.includes(i));
-          const known = new Set(rest.map((i) => i.id));
+          // The oldest alert the page shares with the list as it was marks the end of the page's
+          // range. With nothing held below it, the page simply is the list.
           let lastShared = page.items.length - 1;
-          while (lastShared >= 0 && !known.has(page.items[lastShared].id)) {
+          while (lastShared >= 0 && !heldWhenAsked.has(page.items[lastShared].id)) {
             lastShared--;
           }
 
           const below =
-            lastShared < 0 ? [] : rest.slice(rest.findIndex((i) => i.id === page.items[lastShared].id) + 1);
+            lastShared < 0
+              ? []
+              : asItWas.slice(asItWas.findIndex((i) => i.id === page.items[lastShared].id) + 1);
           const range = below.length > 0 ? page.items.slice(0, lastShared + 1) : page.items;
 
           this._items.set([...arrivedMeanwhile, ...range, ...below]);

@@ -22,9 +22,14 @@ describe('NotificationService', () => {
 
   const FIRST_PAGE = '/api/v1/notifications?skip=0&take=20';
 
-  /** `alert(7)` is older than `alert(8)`; the list and every page are newest-first. */
+  /** `alert(7)` is a minute older than `alert(8)`; the list and every page are newest-first. */
   const alert = (n: number, over: Partial<AppNotification> = {}): AppNotification =>
-    ({ id: `n${String(n).padStart(2, '0')}`, isRead: false, ...over }) as AppNotification;
+    ({
+      id: `n${String(n).padStart(2, '0')}`,
+      createdDate: new Date(Date.UTC(2026, 8, 30, 12, n)).toISOString(),
+      isRead: false,
+      ...over,
+    }) as AppNotification;
 
   /** Alerts `from` down to `to`, newest first. */
   const alerts = (from: number, to: number): AppNotification[] =>
@@ -182,6 +187,52 @@ describe('NotificationService', () => {
 
     expect(ids()).toEqual(['n01']);
     expect(service.total()).toBe(1);
+  });
+
+  it('keeps an alert pushed into an empty list while the answer was on its way', () => {
+    service.loadFirstPage().subscribe();
+    httpMock.expectOne(FIRST_PAGE).flush({ items: [], totalCount: 0, skip: 0, take: 20 });
+
+    reconnect();
+    const catchUp = httpMock.expectOne(FIRST_PAGE);
+    service['onCreated'](alert(1));
+    // The server had read the (still empty) list before the alert was raised.
+    catchUp.flush({ items: [], totalCount: 0, skip: 0, take: 20 });
+
+    expect(ids()).toEqual(['n01']);
+    expect(service.total()).toBe(1);
+  });
+
+  it('leaves a list alone that was loaded again while the answer was on its way', () => {
+    loadTwoPages();
+
+    reconnect();
+    const catchUp = httpMock.expectOne(FIRST_PAGE);
+    // The reader opens Alerts again before the catch-up is answered.
+    service.loadFirstPage().subscribe();
+    httpMock.expectOne(FIRST_PAGE).flush({ items: alerts(60, 41), totalCount: 60, skip: 0, take: 20 });
+    catchUp.flush({ items: alerts(59, 40), totalCount: 59, skip: 0, take: 20 });
+
+    // The fresh list is as current as the answer, and is not the list the answer was asked for:
+    // merging the two would put n40 above alerts that are newer than it.
+    expect(ids()).toEqual(alerts(60, 41).map((a) => a.id));
+    expect(service.total()).toBe(60);
+  });
+
+  it('keeps a page of older alerts that was loaded while the answer was on its way', () => {
+    service.loadFirstPage().subscribe();
+    httpMock.expectOne(FIRST_PAGE).flush({ items: alerts(25, 6), totalCount: 25, skip: 0, take: 20 });
+
+    reconnect();
+    const catchUp = httpMock.expectOne(FIRST_PAGE);
+    service.loadMore().subscribe();
+    httpMock
+      .expectOne('/api/v1/notifications?skip=20&take=20')
+      .flush({ items: alerts(5, 1), totalCount: 25, skip: 20, take: 20 });
+    // n24 was withdrawn, so the newest twenty now reach down to n05 — which "load more" also brought.
+    catchUp.flush({ items: [alert(25), ...alerts(23, 5)], totalCount: 24, skip: 0, take: 20 });
+
+    expect(ids()).toEqual(['n25', ...alerts(23, 1).map((a) => a.id)]);
   });
 
   it('fetches nothing for an inbox that was never opened', () => {

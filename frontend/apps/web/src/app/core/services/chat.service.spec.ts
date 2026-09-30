@@ -597,6 +597,63 @@ describe('ChatService', () => {
       expect(service.messages().map((m) => m.id)).toEqual(['m8', 'm9', 'm99']);
     });
 
+    it('does not let a live arrival hide what was missed before it', () => {
+      reconnect();
+      const catchUp = httpMock.expectOne('/api/v1/chat/conversations/c1/messages');
+      // m5 lands over the new socket; m3 and m4 were sent while the old one was down.
+      service['onMessageCreated']('c1', message({ id: 'm5', body: 'live' }));
+      httpMock.match('/api/v1/chat/conversations?skip=0&take=20').forEach((r) => r.flush({ items: [], totalCount: 0, skip: 0, take: 20 }));
+      catchUp.flush({
+        items: [message({ id: 'm5' }), message({ id: 'm4' }), message({ id: 'm3' }), message({ id: 'm2' }), message({ id: 'm1' })],
+        nextBefore: null,
+      });
+
+      // Anchoring on the newest message both sides know would have stopped at m5 and added nothing.
+      expect(service.messages().map((m) => m.id)).toEqual(['m1', 'm2', 'm3', 'm4', 'm5']);
+    });
+
+    it('keeps history that was paged in while the answer was on its way, in order', () => {
+      reconnect();
+      const catchUp = httpMock.expectOne('/api/v1/chat/conversations/c1/messages');
+      service.loadOlder('c1').subscribe();
+      httpMock
+        .expectOne('/api/v1/chat/conversations/c1/messages?before=m1')
+        .flush({ items: [message({ id: 'm0', body: 'older' })], nextBefore: null });
+      catchUp.flush({ items: [message({ id: 'm3' }), message({ id: 'm2' }), message({ id: 'm1' })], nextBefore: 'm1' });
+
+      expect(service.messages().map((m) => m.id)).toEqual(['m0', 'm1', 'm2', 'm3']);
+      expect(service.hasMoreHistory()).toBe(false);
+    });
+
+    it('starts again cleanly even if history was paged in meanwhile', () => {
+      reconnect();
+      const catchUp = httpMock.expectOne('/api/v1/chat/conversations/c1/messages');
+      service.loadOlder('c1').subscribe();
+      httpMock
+        .expectOne('/api/v1/chat/conversations/c1/messages?before=m1')
+        .flush({ items: [message({ id: 'm0', body: 'older' })], nextBefore: null });
+      catchUp.flush({ items: [message({ id: 'm9' }), message({ id: 'm8' })], nextBefore: 'm8' });
+
+      // m0 belongs to the old thread, which is gone: oldest-first, and the page's own cursor.
+      expect(service.messages().map((m) => m.id)).toEqual(['m8', 'm9']);
+      expect(service.hasMoreHistory()).toBe(true);
+    });
+
+    it('drops a page of the old history that answers after the thread was started again', () => {
+      reconnect();
+      const catchUp = httpMock.expectOne('/api/v1/chat/conversations/c1/messages');
+      service.loadOlder('c1').subscribe();
+      const stale = httpMock.expectOne('/api/v1/chat/conversations/c1/messages?before=m1');
+      catchUp.flush({ items: [message({ id: 'm9' }), message({ id: 'm8' })], nextBefore: 'm8' });
+
+      stale.flush({ items: [message({ id: 'm0', body: 'older' })], nextBefore: null });
+
+      // In front of m8 it would be a hole in the thread, and its cursor would end the history there.
+      expect(service.messages().map((m) => m.id)).toEqual(['m8', 'm9']);
+      expect(service.hasMoreHistory()).toBe(true);
+      expect(service.loadingOlder()).toBe(false);
+    });
+
     it('drops an answer that was asked for by another account', () => {
       reconnect();
       const stale = httpMock.expectOne('/api/v1/chat/conversations/c1/messages');

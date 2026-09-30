@@ -30,6 +30,12 @@ const TYPING_DEBOUNCE_MS = 3000;
 const TYPING_EXPIRY_MS = 5000;
 
 /**
+ * Thread order. Message ids are UUIDv7 and arrive as lowercase strings, so comparing the strings
+ * compares their timestamps — the same order the server pages history in.
+ */
+const byId = (a: ChatMessage, b: ChatMessage): number => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+
+/**
  * Chat client (feature 019). Owns the Chat nav badge, the inbox and the open conversation as signals,
  * seeded and paged over REST and kept live by a SignalR connection to `/hubs/chat`.
  *
@@ -87,6 +93,11 @@ export class ChatService {
    * empty, and that is exactly the one a first conversation started during a reconnect must reach.
    */
   private inboxLoaded = false;
+  /**
+   * Counts the threads this service has held: it moves on whenever the thread is replaced rather
+   * than extended. A page of older history is only put in front of the thread that asked for it.
+   */
+  private threadEpoch = 0;
   private lastTypingSentAt = 0;
   /** The conversation whose read was held back because the tab was hidden — see {@link markReadToLatest}. */
   private deferredReadId: string | null = null;
@@ -271,6 +282,7 @@ export class ChatService {
     this._nextBefore.set(null);
     // Switching conversations while a history page is in flight must not leave the guard stuck: the
     // response that would have cleared it is discarded below, because it belongs to the old thread.
+    this.threadEpoch++;
     this._loadingOlder.set(false);
 
     return this.http.get<MessagePage>(`${this.base}/conversations/${conversationId}/messages`).pipe(
@@ -306,21 +318,24 @@ export class ChatService {
         params = params.set('before', before);
       }
 
+      const epoch = this.threadEpoch;
       this._loadingOlder.set(true);
 
       return this.http
         .get<MessagePage>(`${this.base}/conversations/${conversationId}/messages`, { params })
         .pipe(
           tap((page) => {
-            // A page for a conversation that is no longer open belongs to nothing on screen.
-            if (this._openId() !== conversationId) {
+            // A page asked for by a thread that has since been replaced — another conversation was
+            // opened, this one was started again from its newest page, or the member signed out —
+            // belongs to nothing on screen: its cursor was the old thread's.
+            if (this.threadEpoch !== epoch || this._openId() !== conversationId) {
               return;
             }
             this.prependOlder(page.items);
             this._nextBefore.set(page.nextBefore);
           }),
           finalize(() => {
-            if (this._openId() === conversationId) {
+            if (this.threadEpoch === epoch) {
               this._loadingOlder.set(false);
             }
           }),
@@ -576,10 +591,17 @@ export class ChatService {
    * "open" here after the reader has left Chat for another page, so a reconnect would mark read a
    * conversation that is not on screen, clearing a badge for messages nobody saw.
    *
-   * So: what arrived is appended, what is already held is refreshed in place (a message withdrawn
+   * So: what arrived is merged in, what is already held is refreshed in place (a message withdrawn
    * meanwhile becomes its tombstone, a receipt moves to read), and nothing is marked read. If the
-   * thread is on screen, its component treats the appended messages exactly as live arrivals —
+   * thread is on screen, its component treats the added messages exactly as live arrivals —
    * read at once for a reader at the bottom, behind the divider for one scrolled up.
+   *
+   * **The merge is by id, not by position.** While the answer is on its way the thread keeps
+   * changing — a message lands over the new socket, the reader sends one, a page of history comes
+   * in at the front — and any of those can also be in the answer, or not. Message ids are UUIDv7
+   * and the server pages by them (they are the history cursor), so id order *is* thread order:
+   * the two are united by id and sorted, and no interleaving can put a message in the wrong place
+   * or hide one behind another.
    */
   private catchUpThread(conversationId: string): void {
     const askedAs = this.auth.currentUser()?.id;
@@ -597,41 +619,36 @@ export class ChatService {
           return;
         }
 
-        // The API pages newest-first (keyset); the thread renders oldest-first.
-        const newest = [...page.items].reverse();
         const held = this._messages();
-        const known = new Set(held.map((m) => m.id));
-        let lastShared = newest.length - 1;
-        while (lastShared >= 0 && !known.has(newest[lastShared].id)) {
-          lastShared--;
-        }
+        const inPage = new Map(page.items.map((m) => [m.id, m]));
 
-        if (lastShared < 0) {
-          // Nothing in common: the thread was still empty, or more than a page arrived while away
-          // and what is held no longer joins up with it. Start again from the newest page rather
-          // than show a thread with a hole in it — keeping only what landed over the new socket
-          // while this answer was on its way, which is newer than the page and not in it.
-          const inPage = new Set(newest.map((m) => m.id));
-          const arrivedMeanwhile = held.filter((m) => !heldWhenAsked.has(m.id) && !inPage.has(m.id));
-          this._messages.set([...newest, ...arrivedMeanwhile]);
-          this._nextBefore.set(page.nextBefore);
+        // Does the page reach back to the thread as it was when this was asked? Only that counts:
+        // a message that landed live meanwhile can be in the page while everything between it and
+        // the old thread is still missing.
+        if (held.some((m) => heldWhenAsked.has(m.id) && inPage.has(m.id))) {
+          const merged = new Map(held.map((m) => [m.id, m]));
+          for (const m of page.items) {
+            merged.set(m.id, m);
+          }
+          this._messages.set([...merged.values()].sort(byId));
           return;
         }
 
-        // What the page holds past the last message both know goes in right behind that message.
-        // Anything the thread holds after it is not in the page, so it is newer than the page: it
-        // was sent or arrived while this answer was on its way, and stays last.
-        const current = new Map(newest.map((m) => [m.id, m]));
-        const anchor = held.findIndex((m) => m.id === newest[lastShared].id);
-        this._messages.set([
-          ...held.slice(0, anchor + 1).map((m) => current.get(m.id) ?? m),
-          ...newest.slice(lastShared + 1),
-          ...held.slice(anchor + 1),
-        ]);
+        // It does not: the thread was still empty, or more than a page arrived while away. Start
+        // again from the newest page rather than show a thread with a hole in it. What the thread
+        // holds that is newer than the page — sent or received after the server read it — stays;
+        // everything older goes, with the cursor that belonged to it.
+        const newestId = page.items[0].id; // the API pages newest-first
+        this._messages.set([...page.items].reverse().concat(held.filter((m) => m.id > newestId)));
+        this._nextBefore.set(page.nextBefore);
+        // A page of the old history still on its way must not be put in front of the new thread.
+        this.threadEpoch++;
+        this._loadingOlder.set(false);
       },
       error: () => undefined,
     });
   }
+
 
   private onMessageCreated(conversationId: string, message: ChatMessage): void {
     if (this._openId() === conversationId) {
