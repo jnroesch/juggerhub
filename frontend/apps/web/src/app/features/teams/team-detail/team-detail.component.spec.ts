@@ -683,6 +683,71 @@ describe('TeamDetailComponent — the join confirmation (GH #392)', () => {
     expect(el(fixture, 'confirm-dialog')).toBeNull();
     expect(service['requestToJoin']).not.toHaveBeenCalled();
   });
+
+  it('shows the focus ring on both places it sends the focus to', () => {
+    // CodeRabbit on PR #398: a target that takes the focus without showing it leaves a keyboard user
+    // not knowing where they are. `focus-visible`, like every control: a mouse user gets no ring.
+    const ring = ['focus-visible:ring-2', 'focus-visible:ring-focus'];
+    const sent = render('NonMember');
+    service['requestToJoin'].mockReturnValue(of(undefined));
+    service['getPublicDetail'].mockReturnValue(of(detail('Requested')));
+    click(sent, 'request-to-join');
+    click(sent, 'confirm-dialog-confirm');
+    expect(document.activeElement).toBe(el(sent, 'requested'));
+    expect(Array.from(el(sent, 'requested')?.classList ?? [])).toEqual(expect.arrayContaining(ring));
+
+    const refused = render('NonMember');
+    service['requestToJoin'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 409 })));
+    click(refused, 'request-to-join');
+    click(refused, 'confirm-dialog-confirm');
+    expect(document.activeElement).toBe(el(refused, 'request-error'));
+    expect(Array.from(el(refused, 'request-error')?.classList ?? [])).toEqual(expect.arrayContaining(ring));
+  });
+
+  it('drops an answer that arrives after the page moved to another team', () => {
+    // CodeRabbit on PR #398: the component is reused from team to team, and an answer about the team
+    // the page left would reload this one, move the focus on it, or pin a failure note to it.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('NonMember', route);
+    const sending = new Subject<void>();
+    service['requestToJoin'].mockReturnValue(sending);
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    fixture.detectChanges();
+    const loads = service['getPublicDetail'].mock.calls.length;
+    // The request on its way was the other team's: this page's own button is not held by it.
+    expect(el<HTMLButtonElement>(fixture, 'request-to-join')?.disabled).toBe(false);
+    const focusedBefore = document.activeElement;
+
+    sending.error(new HttpErrorResponse({ status: 500 }));
+    fixture.detectChanges();
+
+    expect(el(fixture, 'request-error')).toBeNull();
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+    expect(document.activeElement).toBe(focusedBefore);
+  });
+
+  it('drops a late withdrawal answer the same way', () => {
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('Requested', route);
+    const withdrawing = new Subject<void>();
+    service['cancelJoinRequest'].mockReturnValue(withdrawing);
+
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    fixture.detectChanges();
+    const loads = service['getPublicDetail'].mock.calls.length;
+
+    withdrawing.next();
+    fixture.detectChanges();
+
+    // No reload of the team the page is now on, and its own withdraw button is not held.
+    expect(service['getPublicDetail']).toHaveBeenCalledTimes(loads);
+    expect(el<HTMLButtonElement>(fixture, 'cancel-request')?.disabled).toBe(false);
+  });
 });
 
 /**

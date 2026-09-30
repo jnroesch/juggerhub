@@ -52,8 +52,9 @@
           } @else if (canRequest()) {
             <button type="button" jhButton [disabled]="requestBusy()" data-testid="request-to-join" (click)="askConfirm('join')">{{ 'teams.detail.requestToJoin' | transloco }}</button>
           } @else if (requested()) {
-            <!-- tabindex -1: where focus lands once a request is sent (the button that asked is gone). -->
-            <span tabindex="-1" class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted outline-none" data-testid="requested">
+            <!-- tabindex -1: where focus lands once a request is sent (the button that asked is gone). It
+                 wears the ring every control wears, so a keyboard user sees where they are. -->
+            <span tabindex="-1" class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted outline-none focus-visible:ring-2 focus-visible:ring-focus" data-testid="requested">
               <jh-icon name="check" size="sm" />
               {{ 'teams.detail.requested' | transloco }}
             </span>
@@ -68,7 +69,8 @@
       <p class="mt-sm rounded-md bg-danger-bg px-sm py-xs text-body-sm text-danger-fg" role="alert">{{ e }}</p>
     }
     @if (requestError(); as key) {
-      <jh-alert class="mt-sm outline-none" tabindex="-1" data-testid="request-error">{{ key | transloco }}</jh-alert>
+      <!-- tabindex -1: where focus lands when the button that asked went with a reload. Ringed like a control. -->
+      <jh-alert class="mt-sm outline-none focus-visible:ring-2 focus-visible:ring-focus" tabindex="-1" data-testid="request-error">{{ key | transloco }}</jh-alert>
     }
     <!-- Feature 060 — outside every member-only block: it explains why the member card just went away. -->
     @if (teamChatNotice(); as key) {

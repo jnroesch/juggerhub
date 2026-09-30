@@ -154,8 +154,10 @@ export class TeamDetailComponent {
       this.answerError.set(null);
       this.requestError.set(null);
       // A join confirmation left open was asked about the PREVIOUS team: here it would ask, unprompted,
-      // about this one.
+      // about this one. A request still on its way belongs to that team too: its answer is dropped
+      // when it arrives (see requestToJoin), so the busy flag it would have cleared is cleared here.
       this.confirmIntent.set(null);
+      this.requestBusy.set(false);
       // Feature 060 — likewise for the team chat's notes.
       this.teamChatNotice.set(null);
       this.teamChatError.set(null);
@@ -362,8 +364,12 @@ export class TeamDetailComponent {
     }
     this.requestBusy.set(true);
     this.requestError.set(null);
-    this.teams.requestToJoin(this.slug()).subscribe({
+    const slug = this.slug();
+    this.teams.requestToJoin(slug).subscribe({
       next: () => {
+        if (this.slug() !== slug) {
+          return; // the page moved to another team meanwhile; this answer is not about it
+        }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
         // relation → Requested. The dialog and the button that asked are gone; land on the line that
@@ -371,6 +377,9 @@ export class TeamDetailComponent {
         this.load(() => this.focus('[data-testid="requested"]'));
       },
       error: (err) => {
+        if (this.slug() !== slug) {
+          return;
+        }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
         const status = err instanceof HttpErrorResponse ? err.status : 0;
@@ -401,14 +410,21 @@ export class TeamDetailComponent {
     }
     this.requestBusy.set(true);
     this.requestError.set(null);
-    this.teams.cancelJoinRequest(this.slug()).subscribe({
+    const slug = this.slug();
+    this.teams.cancelJoinRequest(slug).subscribe({
       next: () => {
+        if (this.slug() !== slug) {
+          return; // the page moved to another team meanwhile; this answer is not about it
+        }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
         // relation → NonMember: the page offers the request again, and focus lands there.
         this.load(() => this.focus(REQUEST_BUTTON));
       },
       error: () => {
+        if (this.slug() !== slug) {
+          return;
+        }
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
         this.requestError.set('teams.detail.cancelFailed');
