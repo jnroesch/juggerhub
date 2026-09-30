@@ -1,6 +1,6 @@
 import { TranslocoDatePipe } from '@jsverse/transloco-locale';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostListener, Injector, afterNextRender, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, Injector, afterNextRender, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { TranslocoPipe, TranslocoService } from '@jsverse/transloco';
@@ -153,6 +153,9 @@ export class TeamDetailComponent {
       this.joinNotice.set(null);
       this.answerError.set(null);
       this.requestError.set(null);
+      // A join confirmation left open was asked about the PREVIOUS team: here it would ask, unprompted,
+      // about this one.
+      this.confirmIntent.set(null);
       // Feature 060 — likewise for the team chat's notes.
       this.teamChatNotice.set(null);
       this.teamChatError.set(null);
@@ -295,6 +298,28 @@ export class TeamDetailComponent {
     });
   }
 
+  /** The confirmation's wording, by what it is asking about. Translation keys. */
+  protected readonly confirmCopy = computed(() => {
+    switch (this.confirmIntent()) {
+      case 'join':
+        return {
+          title: 'teams.detail.confirmJoinTitle',
+          body: 'teams.detail.confirmJoinBody',
+          keep: 'teams.detail.dismiss',
+          confirm: 'teams.detail.confirmJoinSubmit',
+        };
+      case 'cancel':
+        return {
+          title: 'teams.detail.confirmCancelTitle',
+          body: 'teams.detail.confirmCancelBody',
+          keep: 'teams.detail.keepRequest',
+          confirm: 'teams.detail.confirmCancelSubmit',
+        };
+      default:
+        return null;
+    }
+  });
+
   /** Open the confirmation modal for a join action (feature 009 — guards accidental clicks). */
   protected askConfirm(intent: 'join' | 'cancel'): void {
     if (this.requestBusy()) {
@@ -303,8 +328,15 @@ export class TeamDetailComponent {
     this.confirmIntent.set(intent);
   }
 
+  /** The dialog's safe answer, or Escape. It asks neither while the request is under way. */
   protected dismissConfirm(): void {
+    const intent = this.confirmIntent();
+    if (!intent || this.requestBusy()) {
+      return;
+    }
     this.confirmIntent.set(null);
+    // Back to the button that asked, or a keyboard user is left on the page body.
+    this.focusAfterRender(intent === 'join' ? REQUEST_BUTTON : CANCEL_BUTTON);
   }
 
   /** Run the action the confirmation modal is gating. */
@@ -316,11 +348,9 @@ export class TeamDetailComponent {
     }
   }
 
-  @HostListener('document:keydown.escape')
-  protected onEscape(): void {
-    if (this.confirmIntent()) {
-      this.dismissConfirm();
-    }
+  /** Zoneless: what to focus exists only after the next render (GH #344's lesson — not an effect). */
+  private focusAfterRender(selector: string): void {
+    afterNextRender(() => this.focus(selector), { injector: this.injector });
   }
 
   /** Feature 058 — the player's own request failed. A translation key, so a language switch re-renders it. */
@@ -336,7 +366,9 @@ export class TeamDetailComponent {
       next: () => {
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
-        this.load(); // relation → Requested
+        // relation → Requested. The dialog and the button that asked are gone; land on the line that
+        // says the request is in, once the reloaded page is on screen.
+        this.load(() => this.focus('[data-testid="requested"]'));
       },
       error: (err) => {
         this.requestBusy.set(false);
@@ -352,7 +384,11 @@ export class TeamDetailComponent {
               : 'teams.detail.requestFailed',
         );
         if (status === 409) {
-          this.load(); // they are on the team after all: show the page as a member sees it
+          // They are on the team after all: show the page as a member sees it. The button that asked
+          // goes with that, so focus lands on the note that says why.
+          this.load(() => this.focus('[data-testid="request-error"]'));
+        } else {
+          this.focusAfterRender(REQUEST_BUTTON);
         }
       },
     });
@@ -369,12 +405,14 @@ export class TeamDetailComponent {
       next: () => {
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
-        this.load(); // relation → NonMember
+        // relation → NonMember: the page offers the request again, and focus lands there.
+        this.load(() => this.focus(REQUEST_BUTTON));
       },
       error: () => {
         this.requestBusy.set(false);
         this.confirmIntent.set(null);
         this.requestError.set('teams.detail.cancelFailed');
+        this.focusAfterRender(CANCEL_BUTTON);
       },
     });
   }
@@ -539,6 +577,10 @@ export class TeamDetailComponent {
   /** Public roster rows for the non-member view. */
   protected readonly publicRoster = computed<PublicMember[]>(() => this.pub()?.roster ?? []);
 }
+
+/** The header's two join actions: each opens the confirmation, and takes the focus back when it closes. */
+const REQUEST_BUTTON = '[data-testid="request-to-join"]';
+const CANCEL_BUTTON = '[data-testid="cancel-request"]';
 
 /**
  * A join-request answer came back 404: the request no longer waits (feature 058). Branch on the

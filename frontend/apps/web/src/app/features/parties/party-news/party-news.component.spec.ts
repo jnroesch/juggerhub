@@ -103,11 +103,11 @@ describe('PartyNewsComponent', () => {
     service['deleteNews'].mockReturnValue(of(undefined));
     click('[data-news-menu-trigger="p1"]');
     click('[data-testid="news-delete"]');
-    const dialog = el('[data-testid="news-delete-confirm"]')?.textContent ?? '';
+    const dialog = el('[data-testid="confirm-dialog"]')?.textContent ?? '';
     expect(dialog).toContain('together with its alerts');
     expect(dialog).toContain('Anyone who got it by email keeps their copy.');
 
-    click('[data-testid="news-delete-submit"]');
+    click('[data-testid="confirm-dialog-confirm"]');
 
     expect(service['deleteNews']).toHaveBeenCalledWith('party-1', 'p1');
     expect(bodies()).toEqual(['Bring water.']);
@@ -120,7 +120,7 @@ describe('PartyNewsComponent', () => {
     click('[data-news-menu-trigger="p1"]');
     click('[data-testid="news-delete"]');
 
-    click('[data-testid="news-delete-submit"]');
+    click('[data-testid="confirm-dialog-confirm"]');
 
     expect(bodies()).toEqual(['Stays.']);
     expect(el('[data-testid="news-notice"]')?.textContent?.trim()).toBe('This post no longer exists.');

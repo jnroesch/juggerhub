@@ -98,9 +98,9 @@ describe('EventNewsFeedComponent', () => {
     service.deleteNews.mockReturnValue(of(undefined));
     click('[data-news-menu-trigger="p1"]');
     click('[data-testid="news-delete"]');
-    expect(el('[data-testid="news-delete-confirm"]')?.textContent).toContain("It disappears from the event page and from everyone's Home.");
+    expect(el('[data-testid="confirm-dialog"]')?.textContent).toContain("It disappears from the event page and from everyone's Home.");
 
-    click('[data-testid="news-delete-submit"]');
+    click('[data-testid="confirm-dialog-confirm"]');
 
     expect(service.deleteNews).toHaveBeenCalledWith('e1', 'p1');
     expect(fixture.componentInstance.news().map((n) => n.id)).toEqual(['p2']);
@@ -113,7 +113,7 @@ describe('EventNewsFeedComponent', () => {
     click('[data-news-menu-trigger="p2"]');
     click('[data-testid="news-delete"]');
 
-    click('[data-testid="news-delete-submit"]');
+    click('[data-testid="confirm-dialog-confirm"]');
 
     expect(fixture.componentInstance.news().map((n) => n.id)).toEqual(['p1']);
     expect(el('[data-testid="news-notice"]')?.textContent?.trim()).toBe('This post no longer exists.');

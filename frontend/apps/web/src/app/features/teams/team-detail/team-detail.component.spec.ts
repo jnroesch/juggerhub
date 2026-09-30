@@ -290,10 +290,10 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
 
     openDeleteDialog(fixture, 'p1');
 
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')?.getAttribute('aria-modal')).toBe('true');
-    expect(document.activeElement).toBe(el(fixture, '[data-testid="news-delete-keep"]'));
-    click(fixture, '[data-testid="news-delete-keep"]');
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog"]')?.getAttribute('aria-modal')).toBe('true');
+    expect(document.activeElement).toBe(el(fixture, '[data-testid="confirm-dialog-keep"]'));
+    click(fixture, '[data-testid="confirm-dialog-keep"]');
+    expect(el(fixture, '[data-testid="confirm-dialog"]')).toBeNull();
     expect(service['deleteNews']).not.toHaveBeenCalled();
     expect(bodies(fixture)).toEqual(['One.']);
   });
@@ -303,10 +303,10 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     service['deleteNews'].mockReturnValue(of(undefined));
 
     openDeleteDialog(fixture, 'p1');
-    click(fixture, '[data-testid="news-delete-submit"]');
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
 
     expect(service['deleteNews']).toHaveBeenCalledWith('rheinfeuer', 'p1');
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog"]')).toBeNull();
     expect(bodies(fixture)).toEqual(['Stays.']);
     expect(document.activeElement).toBe(el(fixture, '#team-news-heading'));
   });
@@ -316,9 +316,9 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     service['deleteNews'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 404 })));
 
     openDeleteDialog(fixture, 'p1');
-    click(fixture, '[data-testid="news-delete-submit"]');
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
 
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog"]')).toBeNull();
     expect(bodies(fixture)).toEqual([]);
     expect(el(fixture, '[data-testid="news-notice"]')?.textContent?.trim()).toBe('This post no longer exists.');
   });
@@ -328,10 +328,10 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     service['deleteNews'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 503 })));
 
     openDeleteDialog(fixture, 'p1');
-    click(fixture, '[data-testid="news-delete-submit"]');
+    click(fixture, '[data-testid="confirm-dialog-confirm"]');
 
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')).not.toBeNull();
-    expect(el(fixture, '[data-testid="news-delete-error"]')?.textContent?.trim()).toBe("We couldn't delete the post. Try again.");
+    expect(el(fixture, '[data-testid="confirm-dialog"]')).not.toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog-error"]')?.textContent?.trim()).toBe("We couldn't delete the post. Try again.");
     expect(bodies(fixture)).toEqual(['Still here.']);
   });
 
@@ -355,7 +355,7 @@ describe('TeamDetailComponent — editing and deleting news (feature 057)', () =
     document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
     fixture.detectChanges();
 
-    expect(el(fixture, '[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el(fixture, '[data-testid="confirm-dialog"]')).toBeNull();
     expect(document.activeElement).toBe(el(fixture, '[data-news-menu-trigger="p1"]'));
     expect(service['deleteNews']).not.toHaveBeenCalled();
   });
@@ -484,7 +484,7 @@ describe('TeamDetailComponent — asking to join fails (feature 058)', () => {
     );
     (fixture.nativeElement.querySelector('[data-testid="request-to-join"]') as HTMLElement).click();
     fixture.detectChanges();
-    (fixture.nativeElement.querySelector('[data-testid="join-confirm-submit"]') as HTMLElement).click();
+    (fixture.nativeElement.querySelector('[data-testid="confirm-dialog-confirm"]') as HTMLElement).click();
     fixture.detectChanges();
     return (fixture.nativeElement.querySelector('[data-testid="request-error"]') as HTMLElement | null)?.textContent?.trim();
   }
@@ -500,11 +500,188 @@ describe('TeamDetailComponent — asking to join fails (feature 058)', () => {
     const fixture = render();
     expect(ask(fixture, 409)).toBe("You're already on this team.");
     expect(service['getPublicDetail']).toHaveBeenCalledTimes(2);
+    // The button that asked went with the reload; focus is on the note that says why (GH #392).
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('[data-testid="request-error"]'));
   });
 
   it('says anything else plainly, in its own words', () => {
     const fixture = render();
     expect(ask(fixture, 500)).toBe("We couldn't send your request just now.");
+    // The dialog closed; focus is back on the button that asked, not on the page body (GH #392).
+    expect(fixture.nativeElement.querySelector('[data-testid="confirm-dialog"]')).toBeNull();
+    expect(document.activeElement).toBe(fixture.nativeElement.querySelector('[data-testid="request-to-join"]'));
+  });
+});
+
+/**
+ * GH #392 — the join / withdraw confirmation (feature 009) asks through the shared dialog. What that
+ * buys, and what only the page can get wrong: the safe answer has the focus, nothing is sent twice,
+ * and focus goes somewhere sensible when the dialog closes — it never falls to the page body.
+ */
+describe('TeamDetailComponent — the join confirmation (GH #392)', () => {
+  let service: Record<string, jest.Mock>;
+
+  function render(
+    relation: TeamViewerRelation,
+    paramMap: Observable<ParamMap> = of(convertToParamMap({ slug: 'rheinfeuer' })),
+  ): ComponentFixture<TeamDetailComponent> {
+    TestBed.resetTestingModule();
+    service = {
+      getPublicDetail: jest.fn().mockReturnValue(of(detail(relation))),
+      logoUrl: jest.fn().mockReturnValue('/api/v1/teams/rheinfeuer/logo'),
+      requestToJoin: jest.fn(),
+      cancelJoinRequest: jest.fn(),
+    };
+    TestBed.configureTestingModule({
+      imports: [TeamDetailComponent, translocoTestingModule()],
+      providers: [
+        provideRouter([]),
+        ...translocoLocaleTestingProviders(),
+        { provide: TeamService, useValue: service },
+        { provide: PartyService, useValue: { getTeamPartyRequests: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: ResultsService, useValue: { getTeamPlacements: jest.fn().mockReturnValue(of(page([]))) } },
+        { provide: AuthService, useValue: { currentUser: () => ({ id: ME }) } },
+        { provide: ChatService, useValue: { openTeamChat: jest.fn() } },
+        { provide: ActivatedRoute, useValue: { paramMap } },
+      ],
+    });
+    const fixture = TestBed.createComponent(TeamDetailComponent);
+    fixture.detectChanges();
+    return fixture;
+  }
+
+  const el = <T extends HTMLElement = HTMLElement>(fixture: ComponentFixture<TeamDetailComponent>, testId: string): T | null =>
+    fixture.nativeElement.querySelector(`[data-testid="${testId}"]`);
+
+  function click(fixture: ComponentFixture<TeamDetailComponent>, testId: string): void {
+    const target = el(fixture, testId);
+    if (!target) {
+      throw new Error(`Nothing matches ${testId}`);
+    }
+    target.click();
+    fixture.detectChanges();
+  }
+
+  function escape(fixture: ComponentFixture<TeamDetailComponent>): void {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+    fixture.detectChanges();
+  }
+
+  it('asks by name, with the focus on the safe answer and a primary — not a red — acting answer', () => {
+    const fixture = render('NonMember');
+
+    click(fixture, 'request-to-join');
+
+    const dialog = el(fixture, 'confirm-dialog');
+    expect(dialog?.getAttribute('aria-modal')).toBe('true');
+    expect(dialog?.textContent).toContain('Request to join Rheinfeuer?');
+    expect(el(fixture, 'confirm-dialog-keep')?.textContent?.trim()).toBe('Not now');
+    expect(document.activeElement).toBe(el(fixture, 'confirm-dialog-keep'));
+    const send = el(fixture, 'confirm-dialog-confirm');
+    expect(send?.textContent?.trim()).toBe('Send request');
+    expect(send?.classList).toContain('bg-brand-strong');
+    expect(send?.classList).not.toContain('text-danger-fg');
+    // Both answers are touch targets: the default 44px size, not the 36px small one.
+    expect(send?.classList).toContain('min-h-11');
+    expect(service['requestToJoin']).not.toHaveBeenCalled();
+  });
+
+  it('sends nothing on Not now or on Escape, and hands focus back to the button that asked', () => {
+    const fixture = render('NonMember');
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-keep');
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(document.activeElement).toBe(el(fixture, 'request-to-join'));
+
+    click(fixture, 'request-to-join');
+    escape(fixture);
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(document.activeElement).toBe(el(fixture, 'request-to-join'));
+
+    expect(service['requestToJoin']).not.toHaveBeenCalled();
+  });
+
+  it('sends the request once, takes no other answer meanwhile, then lands on the line that says it is in', () => {
+    const fixture = render('NonMember');
+    const sending = new Subject<void>();
+    service['requestToJoin'].mockReturnValue(sending);
+    // The reload answers later, as it does over a network: focus must wait for the page, not fire
+    // into the loading line that stands in for it.
+    const reload = new Subject<TeamPublicDetail>();
+    service['getPublicDetail'].mockReturnValueOnce(reload);
+
+    click(fixture, 'request-to-join');
+    click(fixture, 'confirm-dialog-confirm');
+    el(fixture, 'confirm-dialog-confirm')?.click();
+    escape(fixture);
+
+    expect(service['requestToJoin']).toHaveBeenCalledTimes(1);
+    expect(el(fixture, 'confirm-dialog')).not.toBeNull();
+    expect(el<HTMLButtonElement>(fixture, 'confirm-dialog-keep')?.disabled).toBe(true);
+
+    sending.next();
+    fixture.detectChanges();
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    reload.next(detail('Requested'));
+    fixture.detectChanges();
+
+    expect(el(fixture, 'requested')).not.toBeNull();
+    expect(document.activeElement).toBe(el(fixture, 'requested'));
+  });
+
+  it('asks before withdrawing, keeps the request on Keep request, and hands focus back', () => {
+    const fixture = render('Requested');
+
+    click(fixture, 'cancel-request');
+
+    expect(el(fixture, 'confirm-dialog')?.textContent).toContain('Withdraw your request?');
+    expect(document.activeElement).toBe(el(fixture, 'confirm-dialog-keep'));
+    click(fixture, 'confirm-dialog-keep');
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(service['cancelJoinRequest']).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(el(fixture, 'cancel-request'));
+  });
+
+  it('withdraws on confirm and lands on the button that offers the request again', () => {
+    const fixture = render('Requested');
+    service['cancelJoinRequest'].mockReturnValue(of(undefined));
+    service['getPublicDetail'].mockReturnValue(of(detail('NonMember')));
+
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+
+    expect(service['cancelJoinRequest']).toHaveBeenCalledWith('rheinfeuer');
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(document.activeElement).toBe(el(fixture, 'request-to-join'));
+  });
+
+  it('says a withdrawal failed at the top of the page, with the focus back on the button that asked', () => {
+    const fixture = render('Requested');
+    service['cancelJoinRequest'].mockReturnValue(throwError(() => new HttpErrorResponse({ status: 500 })));
+
+    click(fixture, 'cancel-request');
+    click(fixture, 'confirm-dialog-confirm');
+
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(el(fixture, 'request-error')?.textContent?.trim()).toBe("We couldn't withdraw your request just now.");
+    expect(document.activeElement).toBe(el(fixture, 'cancel-request'));
+  });
+
+  it('drops an open question when the page moves to another team', () => {
+    // The component is reused from team to team: the question would otherwise ask, unprompted,
+    // about the team the page moved to.
+    const route = new BehaviorSubject<ParamMap>(convertToParamMap({ slug: 'rheinfeuer' }));
+    const fixture = render('NonMember', route);
+
+    click(fixture, 'request-to-join');
+    expect(el(fixture, 'confirm-dialog')).not.toBeNull();
+
+    route.next(convertToParamMap({ slug: 'nordlicht' }));
+    fixture.detectChanges();
+
+    expect(el(fixture, 'confirm-dialog')).toBeNull();
+    expect(service['requestToJoin']).not.toHaveBeenCalled();
   });
 });
 

@@ -52,7 +52,8 @@
           } @else if (canRequest()) {
             <button type="button" jhButton [disabled]="requestBusy()" data-testid="request-to-join" (click)="askConfirm('join')">{{ 'teams.detail.requestToJoin' | transloco }}</button>
           } @else if (requested()) {
-            <span class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted" data-testid="requested">
+            <!-- tabindex -1: where focus lands once a request is sent (the button that asked is gone). -->
+            <span tabindex="-1" class="inline-flex min-h-[44px] items-center gap-1 rounded-md border border-border-strong bg-surface-sunken px-lg py-xs font-medium text-muted outline-none" data-testid="requested">
               <jh-icon name="check" size="sm" />
               {{ 'teams.detail.requested' | transloco }}
             </span>
@@ -67,7 +68,7 @@
       <p class="mt-sm rounded-md bg-danger-bg px-sm py-xs text-body-sm text-danger-fg" role="alert">{{ e }}</p>
     }
     @if (requestError(); as key) {
-      <jh-alert class="mt-sm" data-testid="request-error">{{ key | transloco }}</jh-alert>
+      <jh-alert class="mt-sm outline-none" tabindex="-1" data-testid="request-error">{{ key | transloco }}</jh-alert>
     }
     <!-- Feature 060 — outside every member-only block: it explains why the member card just went away. -->
     @if (teamChatNotice(); as key) {
@@ -387,25 +388,19 @@
       />
     }
 
-    <!-- Join / cancel confirmation (feature 009 — guards accidental clicks) -->
-    @if (confirmIntent(); as intent) {
-      <div class="fixed inset-0 z-50 flex items-end justify-center bg-surface-inverse/40 p-0 sm:items-center sm:p-md" role="presentation">
-        <div class="w-full max-w-container-sm overflow-hidden rounded-t-xl bg-surface-card shadow-xl sm:rounded-xl"
-          role="dialog" aria-modal="true" [attr.aria-label]="(intent === 'join' ? 'teams.detail.confirmJoinTitle' : 'teams.detail.confirmCancelTitle') | transloco:{ name: team.name }"
-          data-testid="join-confirm">
-          <div class="border-b border-border-muted px-md py-sm">
-            <h3 class="text-body-lg font-semibold text-heading">{{ (intent === 'join' ? 'teams.detail.confirmJoinTitle' : 'teams.detail.confirmCancelTitle') | transloco:{ name: team.name } }}</h3>
-          </div>
-          <div class="px-md py-md">
-            <p class="text-body-sm text-body">{{ (intent === 'join' ? 'teams.detail.confirmJoinBody' : 'teams.detail.confirmCancelBody') | transloco:{ name: team.name } }}</p>
-          </div>
-          <div class="flex items-center justify-end gap-sm border-t border-border-muted px-md py-sm">
-            <button type="button" (click)="dismissConfirm()" jhButton variant="secondary" size="sm">{{ (intent === 'join' ? 'teams.detail.dismiss' : 'teams.detail.keepRequest') | transloco }}</button>
-            <button type="button" (click)="confirmAction()" [disabled]="requestBusy()" data-testid="join-confirm-submit"
-              jhButton size="sm">{{ (intent === 'join' ? 'teams.detail.confirmJoinSubmit' : 'teams.detail.confirmCancelSubmit') | transloco }}</button>
-          </div>
-        </div>
-      </div>
+    <!-- Join / cancel confirmation (feature 009 — guards accidental clicks), through the shared dialog
+         (GH #392). Neither answer destroys anything, so the acting one stays the primary button. -->
+    @if (confirmCopy(); as copy) {
+      <jh-confirm-dialog
+        [heading]="copy.title | transloco: { name: team.name }"
+        [body]="copy.body | transloco: { name: team.name }"
+        [keepLabel]="copy.keep | transloco"
+        [confirmLabel]="copy.confirm | transloco"
+        confirmVariant="primary"
+        [busy]="requestBusy()"
+        (confirmed)="confirmAction()"
+        (dismissed)="dismissConfirm()"
+      />
     }
 
   }

@@ -30,6 +30,24 @@ class HostComponent {
   dismissed = 0;
 }
 
+/** A page asking a question whose answer destroys nothing (GH #392): asking to join a team. */
+@Component({
+  imports: [ConfirmDialogComponent],
+  template: `
+    <jh-confirm-dialog
+      heading="Request to join Rheinfeuer?"
+      body="The team's admins will see your request and can approve it."
+      keepLabel="Not now"
+      confirmLabel="Send request"
+      confirmVariant="primary"
+      [busy]="busy()"
+    />
+  `,
+})
+class JoinHostComponent {
+  readonly busy = signal(false);
+}
+
 /**
  * Feature 064 — the confirmation every destructive action on the team and party pages asks through.
  * The focus and keyboard rules are the point: they are what a hand-copied dialog gets wrong.
@@ -149,5 +167,44 @@ describe('ConfirmDialogComponent', () => {
     // DESIGN.md's 44px touch target (the 063 lesson): `sm` would put both answers below it.
     expect(keep().classList).toContain('min-h-11');
     expect(confirm().classList).toContain('min-h-11');
+  });
+
+  it('draws the acting answer as destructive unless the host says otherwise', () => {
+    expect(confirm().classList).toContain('text-danger-fg');
+  });
+
+});
+
+/**
+ * GH #392 — a question whose answer destroys nothing (asking to join a team) goes through the same
+ * dialog. Only the acting answer's look is the host's to choose; every rule above still holds.
+ */
+describe('ConfirmDialogComponent — a question that destroys nothing', () => {
+  let fixture: ComponentFixture<JoinHostComponent>;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({ imports: [JoinHostComponent] });
+    fixture = TestBed.createComponent(JoinHostComponent);
+    fixture.detectChanges();
+  });
+
+  const button = (testId: string) => fixture.nativeElement.querySelector(`[data-testid="${testId}"]`) as HTMLButtonElement;
+
+  it('draws the acting answer in the variant its host chose, at the same size', () => {
+    const confirm = button('confirm-dialog-confirm');
+
+    expect(confirm.classList).toContain('bg-brand-strong');
+    expect(confirm.classList).not.toContain('text-danger-fg');
+    expect(confirm.classList).toContain('min-h-11');
+  });
+
+  it('still opens on the safe answer, and keeps the acting label while busy when no busy label is given', () => {
+    expect(document.activeElement).toBe(button('confirm-dialog-keep'));
+
+    fixture.componentInstance.busy.set(true);
+    fixture.detectChanges();
+
+    expect(button('confirm-dialog-confirm').disabled).toBe(true);
+    expect(button('confirm-dialog-confirm').textContent?.trim()).toBe('Send request');
   });
 });

@@ -188,14 +188,14 @@ describe('NewsPostComponent', () => {
   it('asks before deleting, with the safe answer focused, and Keep changes nothing', () => {
     openDeleteDialog('p1');
 
-    const dialog = el('[data-testid="news-delete-confirm"]');
+    const dialog = el('[data-testid="confirm-dialog"]');
     expect(dialog?.getAttribute('aria-modal')).toBe('true');
     expect(dialog?.textContent).toContain("It disappears for the whole crew, together with its alerts.");
-    expect(document.activeElement).toBe(el('[data-testid="news-delete-keep"]'));
+    expect(document.activeElement).toBe(el('[data-testid="confirm-dialog-keep"]'));
 
-    click('[data-testid="news-delete-keep"]');
+    click('[data-testid="confirm-dialog-keep"]');
 
-    expect(el('[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el('[data-testid="confirm-dialog"]')).toBeNull();
     expect(host.remove).not.toHaveBeenCalled();
     expect(document.activeElement).toBe(trigger('p1'));
   });
@@ -204,11 +204,11 @@ describe('NewsPostComponent', () => {
     host.remove.mockReturnValue(of(undefined));
     openDeleteDialog('p1');
 
-    click('[data-testid="news-delete-submit"]');
+    click('[data-testid="confirm-dialog-confirm"]');
 
     expect(host.remove).toHaveBeenCalledWith('p1');
     expect(host.removals).toEqual([{ id: 'p1', gone: false }]);
-    expect(el('[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el('[data-testid="confirm-dialog"]')).toBeNull();
     expect(displays()).toEqual(['Bring water.']);
   });
 
@@ -216,17 +216,17 @@ describe('NewsPostComponent', () => {
     host.remove.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 503 })));
     openDeleteDialog('p1');
 
-    click('[data-testid="news-delete-submit"]');
+    click('[data-testid="confirm-dialog-confirm"]');
 
-    expect(el('[data-testid="news-delete-confirm"]')).not.toBeNull();
-    expect(el('[data-testid="news-delete-error"]')?.textContent?.trim()).toBe("We couldn't delete the post. Try again.");
+    expect(el('[data-testid="confirm-dialog"]')).not.toBeNull();
+    expect(el('[data-testid="confirm-dialog-error"]')?.textContent?.trim()).toBe("We couldn't delete the post. Try again.");
     expect(host.removals).toEqual([]);
 
     host.remove.mockReturnValueOnce(throwError(() => new HttpErrorResponse({ status: 404 })));
-    click('[data-testid="news-delete-submit"]');
+    click('[data-testid="confirm-dialog-confirm"]');
 
     expect(host.removals).toEqual([{ id: 'p1', gone: true }]);
-    expect(el('[data-testid="news-delete-confirm"]')).toBeNull();
+    expect(el('[data-testid="confirm-dialog"]')).toBeNull();
   });
 
   it('locks every menu while a post is being edited, and releases them after', () => {
