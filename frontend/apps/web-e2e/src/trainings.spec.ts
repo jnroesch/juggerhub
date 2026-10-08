@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 import { registerAndEnter } from './support/auth';
 import { pickCity } from './support/city';
 import { createTeam } from './support/team';
+import { dateInput } from './support/dates';
 
 /**
  * Feature 042 end-to-end: a team admin schedules an in-person training with a structured address.
@@ -31,7 +32,7 @@ test('create an in-person training with a structured address', async ({ page, re
   await page.getByTestId('training-next-1').click();
 
   // 2. Step 2 — when.
-  await page.getByTestId('training-start-date').fill('2026-11-14');
+  await page.getByTestId('training-start-date').fill(dateInput(37));
   await page.getByTestId('training-next-2').click();
 
   // 3. Step 3 — where. In person is the default; Continue stays blocked until the whole
@@ -88,7 +89,7 @@ test('a virtual training asks for no address at all', async ({ page, request }) 
   await page.getByTestId('training-oneoff').click();
   await page.getByTestId('training-name').fill('E2E virtual training');
   await page.getByTestId('training-next-1').click();
-  await page.getByTestId('training-start-date').fill('2026-11-21');
+  await page.getByTestId('training-start-date').fill(dateInput(44));
   await page.getByTestId('training-next-2').click();
 
   // Switching to virtual removes the address group entirely — it is not merely disabled (FR-003).
