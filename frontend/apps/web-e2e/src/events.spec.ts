@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { registerAndEnter, toPath } from './support/auth';
 import { clearCity, pickCity } from './support/city';
+import { dateTimeInput } from './support/dates';
 
 /**
  * Feature 006 end-to-end: an organiser creates an event through the guided wizard,
@@ -19,8 +20,8 @@ test('create via wizard → view → sign up (2nd user) → post news → cancel
   await orgPage.getByTestId('event-name').fill('E2E Open Day');
   await orgPage.getByTestId('event-description').fill('An end-to-end test event.');
   await orgPage.getByTestId('event-next').click(); // → when
-  await orgPage.getByTestId('event-starts').fill('2026-10-01T10:00');
-  await orgPage.getByTestId('event-ends').fill('2026-10-01T16:00');
+  await orgPage.getByTestId('event-starts').fill(dateTimeInput(30, '10:00'));
+  await orgPage.getByTestId('event-ends').fill(dateTimeInput(30, '16:00'));
   await orgPage.getByTestId('event-next').click(); // → where
   await orgPage.getByTestId('loc-virtual').click();
   await orgPage.getByTestId('event-link').fill('https://zoom.us/j/999');
@@ -86,8 +87,8 @@ test('an organiser moves a published event to another city', async ({ page, requ
   await page.getByTestId('event-name').fill('E2E Relocation Cup');
   await page.getByTestId('event-description').fill('An event that moves.');
   await page.getByTestId('event-next').click(); // → when
-  await page.getByTestId('event-starts').fill('2026-10-01T10:00');
-  await page.getByTestId('event-ends').fill('2026-10-01T16:00');
+  await page.getByTestId('event-starts').fill(dateTimeInput(30, '10:00'));
+  await page.getByTestId('event-ends').fill(dateTimeInput(30, '16:00'));
   await page.getByTestId('event-next').click(); // → where (in person is the default)
 
   // The step stays blocked until the whole address is there — a street alone is not one.
