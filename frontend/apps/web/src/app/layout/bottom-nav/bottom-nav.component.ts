@@ -51,5 +51,29 @@ export class BottomNavComponent {
     return isActiveDestination(id, this.url(), this.mySlugs());
   }
 
+  /**
+   * How a tab's label behaves below `narrow` (240px — see `tailwind.config.js`): the current
+   * destination keeps its words, the other four are read out but not drawn (GH #473).
+   *
+   * Five labels do not fit in the 187px a 375px phone lays out at 200% browser zoom — German
+   * needs 211px of them and Spanish 226px, so the bar pushed the whole page sideways. Of the
+   * ways out this is the owner's call (2026-10-25). The alternatives each cost more: hyphenating
+   * them fits but takes the bar from 75px to 96px, past the `pb-[76px]` every page reserves for
+   * it and the same literal in `chat-shell.component.css`; letting the bar scroll its own tabs
+   * puts a destination behind a swipe; and truncating a nav item is what DESIGN.md calls a broken
+   * nav item.
+   *
+   * **`sr-only`, never `hidden`.** The label *is* the tab's accessible name — there is no
+   * `aria-label` on these links — so `display: none` would leave a screen reader five anonymous
+   * icons. `sr-only` withdraws it from the page and leaves the name intact.
+   *
+   * On a route that is none of the five (`/account`, an event, another team's page) no
+   * destination is current, so the bar is icon-only there. That is this rule read literally
+   * rather than an oversight: there is no current label to keep.
+   */
+  protected labelClass(id: NavId): string {
+    return this.active(id) ? '' : 'narrow:sr-only';
+  }
+
   private readonly mySlugs = computed(() => this.membership.teams().map((t) => t.slug));
 }
