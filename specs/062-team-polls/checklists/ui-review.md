@@ -204,4 +204,4 @@ answered, and a closed one. 20 automated checks, all passing, and every screensh
 **Pre-existing, not this change**
 
 - At 200% zoom on a 375px viewport the **top bar's avatar menu** runs 45px past the viewport,
-  on every route (`/`, `/browse/teams` too, 58px). Filed separately.
+  on every route (`/`, `/browse/teams` too, 58px). Filed as GH #473.
