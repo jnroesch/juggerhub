@@ -23,6 +23,12 @@ variable "node_vm_size" {
   type = string
 }
 
+# The SYSTEM pool's size. Separate from node_vm_size because AKS does not support B-series VMs
+# for system node pools; see the root variables for the documentation and the known deviation.
+variable "system_node_vm_size" {
+  type = string
+}
+
 # Applied to BOTH pools. See the root variables for the cache-size ceiling that Ephemeral imposes.
 variable "node_os_disk_type" {
   type = string

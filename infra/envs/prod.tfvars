@@ -6,6 +6,7 @@ location = "westeurope"
 
 # Cluster — larger nodes, autoscaling user pool.
 node_vm_size          = "Standard_D2s_v3"
+system_node_vm_size   = "Standard_D2s_v3"
 system_node_count     = 1
 user_node_min         = 2
 user_node_max         = 4

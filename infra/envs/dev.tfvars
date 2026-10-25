@@ -4,18 +4,23 @@
 
 location = "westeurope"
 
-# Cluster — small, single node, no autoscaling. Standard_B2ms is burstable and carries the same
-# 2 vCPU / 8 GiB as Standard_D2s_v3 for roughly 20% less. Measured Dev load is 10% CPU on both
-# nodes, far below the burst baseline, so credits accumulate instead of draining.
+# Cluster — small, single node, no autoscaling.
+#
+# The USER pool is Standard_B2ms: burstable, the same 2 vCPU / 8 GiB as Standard_D2s_v3 for
+# roughly 20% less. Measured Dev load is 10% CPU on both nodes, far below the burst baseline, so
+# credits accumulate instead of draining.
+#
+# The SYSTEM pool is NOT, and cannot be: AKS does not support B-series VMs for system node pools.
 node_vm_size          = "Standard_B2ms"
+system_node_vm_size   = "Standard_D2s_v3"
 system_node_count     = 1
 user_node_min         = 1
 user_node_max         = 1
 enable_user_autoscale = false
 
 # Ephemeral OS disks cost nothing, where the Managed ones they replace billed a P10 per node.
-# 30 GiB is Standard_B2ms's CACHE SIZE and therefore the ceiling here — not a number to carry
-# over to a different VM size.
+# An Ephemeral disk cannot exceed its VM size's cache, and one value covers both pools, so this
+# is the SMALLER of the two caches: Standard_B2ms has 30 GiB, Standard_D2s_v3 has 50 GiB.
 node_os_disk_type    = "Ephemeral"
 node_os_disk_size_gb = 30
 

@@ -44,7 +44,25 @@ variable "kubernetes_version" {
   default     = null
 }
 
+# The USER pool's size. The system pool has its own, below, because the two pools do not accept
+# the same sizes — see system_node_vm_size.
 variable "node_vm_size" {
+  type    = string
+  default = "Standard_D2s_v3"
+}
+
+# The SYSTEM pool's size, deliberately separate from node_vm_size.
+#
+# ⚠ AKS DOES NOT SUPPORT B-SERIES VMs FOR SYSTEM NODE POOLS. Microsoft documents it under the
+# system-pool restrictions, and the reason is reliable scheduling of the kube-system pods plus
+# poor behaviour during pool updates. A B-series size reached this pool through a single shared
+# variable once; the split is what stops it happening again.
+#   https://learn.microsoft.com/en-us/azure/aks/use-system-pools
+#
+# The same list also asks for at least 4 vCPUs / 4 GB and at least two nodes. This cluster has
+# run a single 2-vCPU system node since 015 and works, so that is a KNOWN DEVIATION carried
+# deliberately on cost grounds, not an oversight — raise it before Prod serves real traffic.
+variable "system_node_vm_size" {
   type    = string
   default = "Standard_D2s_v3"
 }

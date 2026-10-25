@@ -11,7 +11,7 @@ resource "azurerm_kubernetes_cluster" "this" {
   # System pool: tainted (CriticalAddonsOnly) so app workloads land on the user pool.
   default_node_pool {
     name                         = "system"
-    vm_size                      = var.node_vm_size
+    vm_size                      = var.system_node_vm_size
     os_disk_type                 = var.node_os_disk_type
     os_disk_size_gb              = var.node_os_disk_size_gb
     node_count                   = var.system_node_count
