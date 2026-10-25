@@ -95,7 +95,7 @@
             <button
               type="button"
               class="relative block min-h-11 w-full overflow-hidden rounded-md border bg-surface-card px-md py-sm text-left transition-colors duration-fast hover:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus disabled:cursor-wait"
-              [class.border-border-accent]="chosen"
+              [class.border-border-strong]="chosen"
               [class.border-border-default]="!chosen"
               [attr.aria-pressed]="chosen"
               [disabled]="busy()"
@@ -105,7 +105,7 @@
               <ng-container *ngTemplateOutlet="optionBody; context: { $implicit: o, chosen: chosen }" />
             </button>
           } @else {
-            <div class="relative min-h-11 overflow-hidden rounded-md border px-md py-sm" [class.border-border-accent]="chosen" [class.border-border-muted]="!chosen" data-testid="poll-option-result">
+            <div class="relative min-h-11 overflow-hidden rounded-md border px-md py-sm" [class.border-border-strong]="chosen" [class.border-border-muted]="!chosen" data-testid="poll-option-result">
               <ng-container *ngTemplateOutlet="optionBody; context: { $implicit: o, chosen: chosen }" />
             </div>
           }
@@ -126,20 +126,36 @@
 
     <ng-template #optionBody let-o let-chosen="chosen">
       @if (p.resultsVisible) {
-        <!-- The share of those who answered. Decoration: the number beside it says the same in words. -->
-        <span aria-hidden="true" class="absolute inset-y-0 left-0 bg-surface-accent-soft" [style.width.%]="share(o)"></span>
+        <!-- The share of the LEADING option, so the top result fills its row whatever the spread
+             is, and a tie fills every row it ties on (GH #416). Decoration: the count beside it
+             says the same in words, and the "x of y answered" line carries the share of the team. -->
+        <span aria-hidden="true" class="absolute inset-y-0 left-0 bg-surface-accent-soft" [style.width.%]="share(o)" data-testid="poll-bar"></span>
       }
       <span class="relative flex items-start justify-between gap-sm">
         <span class="flex min-w-0 items-start gap-xs">
-          @if (chosen) {
-            <jh-icon name="check" size="sm" class="mt-0.5 shrink-0 text-brand-strong" />
-            <span class="sr-only">{{ 'teams.polls.yourAnswer' | transloco }}:</span>
-          }
-          <span class="min-w-0 break-words text-body-sm text-body">{{ o.text }}</span>
+          <!-- Every row carries a marker, so the rows line up and the one that is mine is a shape
+               rather than a colour (DESIGN.md: a marker that carries state is an icon, and one list
+               has one kind of marker). In a several-answer poll it is also the box's ticked state. -->
+          <jh-icon [name]="chosen ? 'check' : 'circle'" size="sm" class="mt-0.5 shrink-0" [class.text-secondary-strong]="chosen" [class.text-muted]="!chosen" />
+          <span class="min-w-0">
+            <span class="block break-words text-body-sm text-body">{{ o.text }}</span>
+            <!-- In visible words, never by colour alone: coral means "result" in this card, so what
+                 is mine says so (GH #416). A box ticked but not sent yet says that instead. -->
+            @if (chosen) {
+              <span class="mt-3xs block break-words text-caption text-secondary-strong" data-testid="poll-mine">
+                {{ (isSaved(o) ? 'teams.polls.yourAnswer' : 'teams.polls.notSavedYet') | transloco }}
+              </span>
+            }
+          </span>
         </span>
         @if (o.count !== null) {
-          <span class="shrink-0 font-mono text-body-sm text-muted" data-testid="poll-count">
+          <!-- The leading count carries weight, not a colour; the bar behind it is the other half. -->
+          <span class="shrink-0 font-mono text-body-sm" [class.font-semibold]="isLeading(o)" [class.text-body]="isLeading(o)" [class.text-muted]="!isLeading(o)" data-testid="poll-count">
             <span class="sr-only">{{ 'teams.polls.countSr' | transloco }} </span>{{ o.count }}
+            @if (isLeading(o)) {
+              <!-- The bar is aria-hidden and weight is not announced, so the lead is said in words. -->
+              <span class="sr-only"> · {{ 'teams.polls.mostAnswers' | transloco }}</span>
+            }
           </span>
         }
       </span>
