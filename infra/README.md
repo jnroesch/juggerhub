@@ -95,30 +95,50 @@ Full validation steps: [`../specs/015-hosting/quickstart.md`](../specs/015-hosti
 
 ### Email deliverability — SPF / DKIM / DMARC (operator, manual)
 
-Transactional mail is sent through **Resend** as `JuggerHub <hello@juggerhub.com>`
-(`email_from_address`). Terraform does **not** manage the sending domain's DNS — only the
-app's A record — so the records that make mail authenticate live at the registrar and must be
-added by hand. **This is the single biggest cause of mail landing in spam.** If it is skipped,
-every message fails SPF/DKIM/DMARC and Gmail/Yahoo/Outlook route it to junk regardless of what
-the application does.
+Terraform does **not** manage the sending domain's DNS — only the app's A record. The records
+that make mail authenticate live in **Cloudflare** (`juggerhub.com` is on Cloudflare
+nameservers) and are added by hand, so a change there leaves no diff and no review trail.
+**Skipping them is the single biggest cause of mail landing in spam.** Every message then
+fails SPF/DKIM/DMARC and Gmail/Yahoo/Outlook route it to junk regardless of what the
+application does.
+
+**The domain has two independent sending paths, and DMARC covers a domain, not a path:**
+
+| Path | From header | Authenticates via |
+| --- | --- | --- |
+| Transactional (Resend → Amazon SES) | `JuggerHub <hello@juggerhub.com>` (`email_from_address`) | DKIM `resend._domainkey` (`d=juggerhub.com`, aligned) + SPF on the `send.juggerhub.com` Return-Path |
+| Human replies (Namecheap Private Email) | the same `hello@juggerhub.com` mailbox | DKIM `privateemail._domainkey` + apex SPF `include:spf.privateemail.com` |
 
 One-time setup:
 
-1. In the Resend dashboard, add and verify the domain `juggerhub.com`. Resend shows the exact
-   records to publish — typically an **SPF** `TXT` (`v=spf1 include:…resend… ~all`), a **DKIM**
-   `TXT` on a Resend-provided selector (e.g. `resend._domainkey`), and often a return-path
-   `CNAME`. Publish each at the registrar verbatim.
-2. Publish a **DMARC** policy `TXT` at `_dmarc.juggerhub.com`, starting soft, e.g.
-   `v=DMARC1; p=none; rua=mailto:hello@juggerhub.com`. Tighten to `p=quarantine` / `p=reject`
-   once the aggregate reports show only legitimate mail passing.
-3. Confirm the domain reads **Verified** in Resend (all rows green).
+1. In the Resend dashboard, add and verify the domain `juggerhub.com`, and publish the records
+   it shows verbatim in Cloudflare — a **DKIM** `TXT` on its selector (`resend._domainkey`),
+   plus SPF and the return-path records on the `send.` subdomain. Confirm the domain reads
+   **Verified** in Resend (all rows green).
+2. In the Private Email subscription's Manage page, use **Show DKIM** and publish that `TXT` in
+   Cloudflare too. The selector is `privateemail._domainkey` for subscriptions bought on or
+   after 2026-06-02 and `default._domainkey` before that.
+3. Publish a **DMARC** policy `TXT` at `_dmarc.juggerhub.com`, starting soft:
+   `v=DMARC1; p=none; sp=reject; np=reject; rua=mailto:hello@juggerhub.com`. `sp`/`np` are safe
+   at full strength from day one — nothing legitimately sends with a subdomain in the From
+   header — so only the apex `p=` is a staged decision.
+
+> **⚠ Do not step the apex `p=` past `none` on the strength of clean aggregate reports alone.**
+> At this volume the reports contain almost nothing but SES records, so they are silent about
+> the path most likely to break: replies from the `hello@` mailbox. Without step 2 those pass
+> on **SPF alone**, and SPF does not survive forwarding — under `p=quarantine`/`reject` a
+> forwarded reply has nothing left to carry alignment and goes to spam. Step 2 is the
+> precondition for enforcement, not an optional extra. Keep `rua=` when enforcing: it is the
+> only signal that enforcement is not silently burying mail.
 
 Verify from any machine (not from inside the app):
 
 ```bash
 dig +short TXT juggerhub.com                    # SPF present, one v=spf1 record
 dig +short TXT _dmarc.juggerhub.com             # DMARC present
-dig +short TXT resend._domainkey.juggerhub.com  # DKIM key present (selector per Resend)
+dig +short TXT resend._domainkey.juggerhub.com        # Resend DKIM key present
+dig +short TXT privateemail._domainkey.juggerhub.com  # mailbox DKIM key present
+dig +short TXT _smtp._tls.juggerhub.com               # TLS-RPT present
 ```
 
 The application-side deliverability hardening (a `text/plain` alternative, a `List-Unsubscribe`
