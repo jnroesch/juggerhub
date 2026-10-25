@@ -34,6 +34,8 @@ module "aks" {
   subnet_id                = module.network.subnet_id
   kubernetes_version       = var.kubernetes_version
   node_vm_size             = var.node_vm_size
+  node_os_disk_type        = var.node_os_disk_type
+  node_os_disk_size_gb     = var.node_os_disk_size_gb
   system_node_count        = var.system_node_count
   user_node_min            = var.user_node_min
   user_node_max            = var.user_node_max

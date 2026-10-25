@@ -12,6 +12,8 @@ resource "azurerm_kubernetes_cluster" "this" {
   default_node_pool {
     name                         = "system"
     vm_size                      = var.node_vm_size
+    os_disk_type                 = var.node_os_disk_type
+    os_disk_size_gb              = var.node_os_disk_size_gb
     node_count                   = var.system_node_count
     vnet_subnet_id               = var.subnet_id
     only_critical_addons_enabled = true
@@ -78,8 +80,16 @@ resource "azurerm_kubernetes_cluster_node_pool" "user" {
   name                  = "user"
   kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
   vm_size               = var.node_vm_size
+  os_disk_type          = var.node_os_disk_type
+  os_disk_size_gb       = var.node_os_disk_size_gb
   vnet_subnet_id        = var.subnet_id
   orchestrator_version  = var.kubernetes_version
+
+  # vm_size and os_disk_type are ForceNew on a node pool. Without this name, changing either
+  # DESTROYS this pool and then creates it — the cluster is left with no user nodes, and the
+  # Postgres PVC is detached, for as long as the create takes. With it, AKS cycles through a
+  # temporary pool instead. The system pool has carried the equivalent since it was written.
+  temporary_name_for_rotation = "usertmp"
 
   auto_scaling_enabled = var.enable_user_autoscale
   node_count           = var.enable_user_autoscale ? null : var.user_node_min

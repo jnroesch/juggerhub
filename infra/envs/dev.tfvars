@@ -4,12 +4,20 @@
 
 location = "westeurope"
 
-# Cluster — small, single node, no autoscaling.
-node_vm_size          = "Standard_D2s_v3"
+# Cluster — small, single node, no autoscaling. Standard_B2ms is burstable and carries the same
+# 2 vCPU / 8 GiB as Standard_D2s_v3 for roughly 20% less. Measured Dev load is 10% CPU on both
+# nodes, far below the burst baseline, so credits accumulate instead of draining.
+node_vm_size          = "Standard_B2ms"
 system_node_count     = 1
 user_node_min         = 1
 user_node_max         = 1
 enable_user_autoscale = false
+
+# Ephemeral OS disks cost nothing, where the Managed ones they replace billed a P10 per node.
+# 30 GiB is Standard_B2ms's CACHE SIZE and therefore the ceiling here — not a number to carry
+# over to a different VM size.
+node_os_disk_type    = "Ephemeral"
+node_os_disk_size_gb = 30
 
 # Workloads — one of each.
 backend_replicas   = 1

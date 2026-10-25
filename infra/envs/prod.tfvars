@@ -11,6 +11,14 @@ user_node_min         = 2
 user_node_max         = 4
 enable_user_autoscale = true
 
+# OS disks. Prod is NOT YET DEPLOYED, which makes these the cheapest two values in the file to
+# get right and the most expensive to leave: a Managed OS disk bills a P10 per node (~EUR 19 a
+# month, so EUR 56-93 at 2-4 user nodes), an Ephemeral one is free, and changing os_disk_type
+# after the first apply rotates every pool. Held at the historical values until that is decided.
+# Standard_D2s_v3's cache is 50 GiB, so switching to "Ephemeral" here pairs with 50, not Dev's 30.
+node_os_disk_type    = "Managed"
+node_os_disk_size_gb = 128
+
 # Workloads — HA-oriented: multiple backend replicas + HPA.
 backend_replicas         = 2
 frontend_replicas        = 2

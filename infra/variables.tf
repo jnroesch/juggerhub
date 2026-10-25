@@ -49,6 +49,31 @@ variable "node_vm_size" {
   default = "Standard_D2s_v3"
 }
 
+# OS disk for both node pools. "Ephemeral" places it on the VM's cache disk and costs nothing;
+# a "Managed" OS disk is billed as a separate premium disk per node (a P10 at ~EUR 19/month on
+# the sizes used here) for as long as the node exists. Nothing on an AKS node's OS disk is worth
+# paying to keep — an image upgrade reimages the node and the billing detail shows exactly that
+# happening three times in one month.
+#
+# ⚠ node_os_disk_size_gb MUST NOT EXCEED THE VM SIZE'S CACHE DISK, or an Ephemeral pool cannot be
+# created at all. Check before changing node_vm_size:
+#   az vm list-skus --location westeurope --size <size> --resource-type virtualMachines \
+#     --query "[].capabilities[?name=='EphemeralOSDiskSupported'||name=='CachedDiskBytes']"
+# Measured: Standard_B2ms = 30 GiB, Standard_B2s = 30 GiB, Standard_D2s_v3 = 50 GiB. The whole
+# Dasv5 / Dasv6 / Dlsv6 family reports EphemeralOSDiskSupported = false — cheaper per hour than
+# D2s_v3, and then it bills a managed disk per node, which more than cancels the difference.
+#
+# Defaults are the pre-existing behaviour, so an environment that sets neither is unchanged.
+variable "node_os_disk_type" {
+  type    = string
+  default = "Managed"
+}
+
+variable "node_os_disk_size_gb" {
+  type    = number
+  default = 128
+}
+
 variable "system_node_count" {
   type    = number
   default = 1
