@@ -18,9 +18,18 @@ location = "westeurope"
 # P10 at ~EUR 19 is ~EUR 74, against Standard_D2s_v3 at ~EUR 77 with a free Ephemeral disk. Three
 # euros is not worth per-pool disk-type inputs and a slower reimage.
 #
-# Neither `terraform validate` nor `terraform plan` can catch a subscription allow-list, and
-# `az vm list-skus --size <size>` reports the size as fully available because it answers for the
-# REGION. Check `restrictions[].reasonCode` on that same query, or read the RP's error.
+# Neither `terraform validate` nor `terraform plan` can catch a subscription allow-list — only the
+# resource provider enforces it, at apply time, so CI goes green either way. `az vm list-skus`
+# does know, but NOT in its capabilities: those answer for the REGION. The answer is in
+# `restrictions[]`, and the `type` field is what matters —
+#
+#   az vm list-skus --location westeurope --size <size> --resource-type virtualMachines \
+#     --query "[].restrictions[?type=='Location'].reasonCode" -o tsv
+#
+# A `type: "Location"` entry means the size is unusable here. `type: "Zone"` entries only narrow
+# which zones, and reading those as a veto gives a false positive: Standard_D2s_v3 — what both
+# pools actually run on — carries a Zone restriction for zones 2 and 3 on this subscription while
+# being perfectly deployable. (Worth remembering if Prod is ever made zone-redundant.)
 node_vm_size          = "Standard_D2s_v3"
 system_node_vm_size   = "Standard_D2s_v3"
 system_node_count     = 1
