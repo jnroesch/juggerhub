@@ -4,14 +4,24 @@
 
 location = "westeurope"
 
-# Cluster — small, single node, no autoscaling.
+# Cluster — small, single node, no autoscaling. Both pools are Standard_D2s_v3.
 #
-# The USER pool is Standard_B2ms: burstable, the same 2 vCPU / 8 GiB as Standard_D2s_v3 for
-# roughly 20% less. Measured Dev load is 10% CPU on both nodes, far below the burst baseline, so
-# credits accumulate instead of draining.
+# ⚠ DO NOT PUT A BURSTABLE SIZE HERE. It was tried and the AKS resource provider refused the
+# apply with HTTP 400:
 #
-# The SYSTEM pool is NOT, and cannot be: AKS does not support B-series VMs for system node pools.
-node_vm_size          = "Standard_B2ms"
+#   The VM size of Standard_B2ms is not allowed in your subscription in location 'westeurope'.
+#
+# This subscription's allow-list carries only the **v2** B-series (b2als_v2, b2as_v2, b2ls_v2,
+# b2s_v2), never the original Bv1 sizes — and no v2 B-series has a local temp disk, so none of
+# them supports an Ephemeral OS disk. Burstable and Ephemeral are therefore mutually exclusive
+# here, and the arithmetic says Ephemeral wins: Standard_B2as_v2 at ~EUR 55/month plus a managed
+# P10 at ~EUR 19 is ~EUR 74, against Standard_D2s_v3 at ~EUR 77 with a free Ephemeral disk. Three
+# euros is not worth per-pool disk-type inputs and a slower reimage.
+#
+# Neither `terraform validate` nor `terraform plan` can catch a subscription allow-list, and
+# `az vm list-skus --size <size>` reports the size as fully available because it answers for the
+# REGION. Check `restrictions[].reasonCode` on that same query, or read the RP's error.
+node_vm_size          = "Standard_D2s_v3"
 system_node_vm_size   = "Standard_D2s_v3"
 system_node_count     = 1
 user_node_min         = 1
@@ -19,15 +29,14 @@ user_node_max         = 1
 enable_user_autoscale = false
 
 # Ephemeral OS disks cost nothing, where the Managed ones they replace billed a P10 per node.
+# Already applied to the system pool; this is the user pool catching up.
 #
-# An Ephemeral disk cannot exceed the local storage it is placed on, and one value covers both
-# pools, so this is the SMALLER of the two CACHES: Standard_B2ms has 30 GiB, Standard_D2s_v3
-# has 50 GiB.
+# An Ephemeral disk cannot exceed the local storage it is placed on. Standard_D2s_v3 uses CACHE
+# placement with 50 GiB available (`az vm list-skus` reports it as CachedDiskBytes), so 30 GiB
+# fits with room left. Kept at 30 rather than raised to 50 because the cache is shared: an
+# Ephemeral OS disk consumes what it sits on, and Prod's premium Postgres disk wants some of it.
 #
-# ⚠ The cache is NOT the temp disk. B2ms has 16 GiB of temp, and reading the ceiling against
-# that number says a 30 GiB disk cannot fit — it can: B-series and Dsv3 are older series that
-# use CACHE placement, which `az vm list-skus` reports as CachedDiskBytes, and that is the
-# capacity the OS disk must fit within.
+# ⚠ The cache is NOT the temp disk, which is a different and smaller capacity (16 GiB here).
 node_os_disk_type    = "Ephemeral"
 node_os_disk_size_gb = 30
 
