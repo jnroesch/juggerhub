@@ -11,13 +11,17 @@ user_node_min         = 2
 user_node_max         = 4
 enable_user_autoscale = true
 
-# OS disks. Prod is NOT YET DEPLOYED, which makes these the cheapest two values in the file to
-# get right and the most expensive to leave: a Managed OS disk bills a P10 per node (~EUR 19 a
-# month, so EUR 56-93 at 2-4 user nodes), an Ephemeral one is free, and changing os_disk_type
-# after the first apply rotates every pool. Held at the historical values until that is decided.
-# Standard_D2s_v3's cache is 50 GiB, so switching to "Ephemeral" here pairs with 50, not Dev's 30.
-node_os_disk_type    = "Managed"
-node_os_disk_size_gb = 128
+# OS disks — Ephemeral, same as Dev. Prod is not yet deployed, so it is born with them and never
+# has to rotate every pool to get there: a Managed OS disk bills a premium disk per node for as
+# long as the node exists (~EUR 19 a month, so EUR 56-93 at 1 system + 2-4 user nodes), and an
+# Ephemeral one is free because it sits on cache the VM is already paid for.
+#
+# 30 GiB, not Standard_D2s_v3's full 50 GiB cache, for two reasons: it keeps one number across
+# both environments, and an Ephemeral OS disk consumes the cache it sits on, so taking all of it
+# would leave none for the premium Postgres disk's read cache. 30 is well above AKS's minimum and
+# far more than the image footprint. Raise it toward 50 only with a reason.
+node_os_disk_type    = "Ephemeral"
+node_os_disk_size_gb = 30
 
 # Workloads — HA-oriented: multiple backend replicas + HPA.
 backend_replicas         = 2
