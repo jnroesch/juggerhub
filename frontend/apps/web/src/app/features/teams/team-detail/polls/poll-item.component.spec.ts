@@ -131,6 +131,111 @@ describe('PollItemComponent', () => {
     expect(api.withdraw).toHaveBeenCalledWith('rheinfeuer', 'p1');
   });
 
+  /**
+   * GH #416. A bar is the option's share of the LEADING option, not of the members who answered:
+   * the top result fills its row however far the answers have spread, and nothing but the top
+   * result fills it. The width is the only thing on screen that says which option leads, so these
+   * pin it per case.
+   */
+  describe('the result bars', () => {
+    const widths = (): (string | undefined)[] => all('[data-testid="poll-bar"]').map((b) => b.style.width);
+
+    it('fills every row of a tie at the top', () => {
+      // The reported case: two members, one answer each, nothing says they are both the top result.
+      expect(widths()).toEqual(['100%', '100%']);
+    });
+
+    it('fills the leader and scales the rest to it', () => {
+      set(poll({ answeredCount: 4, options: [
+        { id: 'o1', text: 'Thursday works', count: 3, voters: null },
+        { id: 'o2', text: 'Stay on Tuesday', count: 1, voters: null },
+      ] }));
+      expect(widths()).toEqual(['100%', '33%']);
+    });
+
+    it('draws no bar while nobody has answered', () => {
+      set(poll({ answeredCount: 0, options: [
+        { id: 'o1', text: 'Thursday works', count: 0, voters: [] },
+        { id: 'o2', text: 'Stay on Tuesday', count: 0, voters: [] },
+      ] }));
+      expect(widths()).toEqual(['0%', '0%']);
+      // Nothing leads when nothing was answered.
+      expect(all('[data-testid="poll-count"]').some((c) => c.className.includes('font-semibold'))).toBe(false);
+    });
+
+    it('scales a several-answer poll the same way, so no bar runs past the row', () => {
+      // Two options of three answers each plus one: scaled to those who answered this was 100%/133%.
+      set(poll({ allowsMultiple: true, answeredCount: 3, options: [
+        { id: 'o1', text: 'Thursday works', count: 3, voters: null },
+        { id: 'o2', text: 'Stay on Tuesday', count: 4, voters: null },
+      ] }));
+      expect(widths()).toEqual(['75%', '100%']);
+    });
+
+    it('shows no bar at all while the result is hidden', () => {
+      set(poll({ resultsVisible: false, options: [
+        { id: 'o1', text: 'Thursday works', count: null, voters: null },
+        { id: 'o2', text: 'Stay on Tuesday', count: null, voters: null },
+      ] }));
+      expect(all('[data-testid="poll-bar"]')).toHaveLength(0);
+    });
+  });
+
+  /**
+   * GH #416. "Mine" and "leading" are two different things and must read as two different things:
+   * the one I chose says so in words, and the lead is carried by the bar and the count's weight.
+   */
+  describe('my own answer against the leading one', () => {
+    it('names my answer in visible words, not in a colour', () => {
+      set(poll({ myOptionIds: ['o2'] }));
+
+      const mine = all('[data-testid="poll-mine"]');
+      expect(mine).toHaveLength(1);
+      expect(mine[0].textContent?.trim()).toBe('Your answer');
+      expect(mine[0].className).not.toContain('sr-only');
+      // The accent means "result" in this card: nothing on my row borrows it.
+      const rows = all('[data-testid="poll-option"]');
+      expect(rows[1].className).not.toContain('border-border-accent');
+    });
+
+    it('marks every row, chosen or not, so the lead is the only emphasis left', () => {
+      set(poll({ myOptionIds: ['o2'] }));
+      const markers = all('[data-testid="poll-option"] jh-icon');
+      expect(markers).toHaveLength(2);
+      expect(markers[0].querySelector('svg circle')).not.toBeNull();
+      expect(markers[1].querySelector('svg path')).not.toBeNull();
+    });
+
+    it('gives weight to the leading count and nothing to the others', () => {
+      set(poll({ myOptionIds: ['o2'], answeredCount: 4, options: [
+        { id: 'o1', text: 'Thursday works', count: 3, voters: null },
+        { id: 'o2', text: 'Stay on Tuesday', count: 1, voters: null },
+      ] }));
+
+      const counts = all('[data-testid="poll-count"]');
+      expect(counts[0].className).toContain('font-semibold');
+      expect(counts[0].textContent).toContain('Most answers');
+      expect(counts[1].className).not.toContain('font-semibold');
+      expect(counts[1].textContent).not.toContain('Most answers');
+    });
+
+    it('calls a ticked box in a several-answer poll unsaved until it is sent', () => {
+      set(poll({ allowsMultiple: true, myOptionIds: ['o1'] }));
+
+      expect(all('[data-testid="poll-mine"]').map((m) => m.textContent?.trim())).toEqual(['Your answer']);
+      click(all('[data-testid="poll-option"]')[1]);
+      expect(all('[data-testid="poll-mine"]').map((m) => m.textContent?.trim())).toEqual(['Your answer', 'Not saved yet']);
+    });
+
+    it('still marks my answer when there is no result to show', () => {
+      set(poll({ resultsVisible: false, myOptionIds: ['o1'], options: [
+        { id: 'o1', text: 'Thursday works', count: null, voters: null },
+        { id: 'o2', text: 'Stay on Tuesday', count: null, voters: null },
+      ] }));
+      expect(all('[data-testid="poll-mine"]')).toHaveLength(1);
+    });
+  });
+
   it('shows counts and names only where the server sent them', () => {
     expect(all('[data-testid="poll-count"]')).toHaveLength(2);
     expect(all('[data-testid="poll-voters"]').map((v) => v.textContent)).toEqual([

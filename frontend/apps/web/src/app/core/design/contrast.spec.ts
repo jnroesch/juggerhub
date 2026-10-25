@@ -70,6 +70,13 @@ const PAGE_SURFACES = ['surface-card', 'surface-raised', 'surface-page', 'surfac
  */
 const ALL_LIGHT_SURFACES = [...PAGE_SURFACES, 'surface-muted'];
 
+/**
+ * The soft accent tint, listed where a token is actually set on it: a poll's result bar is a
+ * `surface-accent-soft` fill with the option, its count and the "your answer" label drawn over it
+ * (GH #416), so those three foregrounds have to clear the tint as well as the card behind it.
+ */
+const ACCENT_TINT = 'surface-accent-soft';
+
 /** Every flat fill that carries `text-on-accent`. */
 const SOLID_FILLS = [
   'brand-strong',
@@ -90,13 +97,14 @@ const SOLID_FILLS = [
  */
 const FOREGROUNDS: { token: string; on: string[] }[] = [
   { token: 'heading', on: ALL_LIGHT_SURFACES },
-  { token: 'body', on: ALL_LIGHT_SURFACES },
-  { token: 'muted', on: ALL_LIGHT_SURFACES },
+  { token: 'body', on: [...ALL_LIGHT_SURFACES, ACCENT_TINT] },
+  { token: 'muted', on: [...ALL_LIGHT_SURFACES, ACCENT_TINT] },
   { token: 'link', on: PAGE_SURFACES },
   { token: 'link-hover', on: PAGE_SURFACES },
-  // Coral and sage as text, each also on its own soft tint.
-  { token: 'brand-strong', on: [...PAGE_SURFACES, 'surface-accent-soft'] },
-  { token: 'secondary-strong', on: [...PAGE_SURFACES, 'surface-secondary-soft'] },
+  // Coral and sage as text, each also on its own soft tint — and sage on the accent tint too,
+  // because that is where a poll draws "your answer" over the result bar (GH #416).
+  { token: 'brand-strong', on: [...PAGE_SURFACES, ACCENT_TINT] },
+  { token: 'secondary-strong', on: [...PAGE_SURFACES, 'surface-secondary-soft', ACCENT_TINT] },
   // Status text, each also inside its own banner.
   { token: 'success-fg', on: [...PAGE_SURFACES, 'success-bg'] },
   { token: 'danger-fg', on: [...PAGE_SURFACES, 'danger-bg'] },

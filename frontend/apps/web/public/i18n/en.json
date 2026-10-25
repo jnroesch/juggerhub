@@ -326,6 +326,8 @@
       "anonymousNotice": "Nobody sees who chose what.",
       "resultsHiddenHint": "You'll see the result once you've answered.",
       "yourAnswer": "Your answer",
+      "notSavedYet": "Not saved yet",
+      "mostAnswers": "Most answers",
       "chosenBy": "Chosen by",
       "countSr": "Votes:",
       "notAnswered": "Not answered yet",

@@ -19,7 +19,7 @@ The walk made 43 automated checks: overflow at 375px on every screen, touch-targ
 
 ## Color & tokens
 
-- [x] CHK001 Semantic aliases only: `surface-card`, `surface-accent-soft` (the result bar), `border-border-accent` (the chosen option), `border-border-default`, `text-body`, `text-muted`, `text-heading`, `text-danger-fg`, `bg-surface-inverse/40` (the dialog scrim, as in `jh-news-post`). No raw scale steps.
+- [x] CHK001 Semantic aliases only: `surface-card`, `surface-accent-soft` (the result bar), `border-border-strong` (the chosen option — `border-border-accent` until GH #416), `border-border-default`, `text-body`, `text-muted`, `text-heading`, `text-danger-fg`, `bg-surface-inverse/40` (the dialog scrim, as in `jh-news-post`). No raw scale steps.
 - [x] CHK002 **One coral CTA per view.** *Umfrage starten* and the editor's submit are `secondary`; *News posten* remains the page's coral button. **Flagged for the owner:** the editor's three two-way choices use the selected state of the team-type segmented control (`bg-brand-strong`), copied unchanged from team settings and the creation wizard. It is a state, not a call to action, but three coral segments in one form is heavy. If that control's selected state should be sage (DESIGN.md: "toggles … sage"), it is a change to the shared pattern, not to this feature.
 - [x] CHK003 No lemon.
 - [x] CHK004 Status uses paired tokens:
@@ -87,7 +87,7 @@ The walk made 43 automated checks: overflow at 375px on every screen, touch-targ
 ## Accessibility
 
 - [x] CHK025 Text uses `text-body`/`text-muted`/`text-heading` on `surface-card`. The result bar is `surface-accent-soft` *behind* body text, the pairing `jh-card`'s soft surfaces already use.
-- [x] CHK026 The chosen option is never colour alone: a `check` icon plus sr-only "Deine Antwort", and `aria-pressed`. Hidden results say so in words. Closed carries a chip.
+- [x] CHK026 The chosen option is never colour alone: a `check` icon plus **visible** "Deine Antwort" (sr-only until GH #416), and `aria-pressed`. Hidden results say so in words. Closed carries a chip.
 - [x] CHK027 Keyboard access:
   - options are `<button aria-pressed>` in a `role="group"` named by the question;
   - the menu has `aria-haspopup`/`aria-expanded`/`role="menu"` and closes on Escape and on an outside click (its own wrapper);
@@ -138,3 +138,70 @@ The walk made 43 automated checks: overflow at 375px on every screen, touch-targ
 **Pre-existing, not this feature:**
 - `font-mono` falls back to the platform font (#339).
 - The native `datetime-local` placeholder follows the browser's UI locale, not the page's.
+
+---
+
+## Amendment — GH #416, the result bars and "your answer" (2026-10-25)
+
+The card's result reading changed after the owner reported two things in one poll: a bar was
+the option's share of the *members who answered*, so a tie at the top looked like "half" and
+the leader shrank every time an answer landed somewhere else; and the only emphasis on the
+screen — a coral border and a coral tick — marked **your own** answer, in a card where coral
+also fills the bars. A bar is now the option's share of the **leading** option, and "mine" is
+said in visible words with a neutral border, so the accent colour means one thing here.
+
+**Surfaces**: `poll-item.component.html` — the option rows, open and closed.
+
+**How verified**: the diff, 26 component specs, and a browser walk on the rebuilt Docker stack
+in German (`locale: de-DE`) at 375px, 768px and 1280px over six seeded polls — a tie at the
+top, a clear leader that is not mine, a several-answer poll, hidden results, one nobody
+answered, and a closed one. 20 automated checks, all passing, and every screenshot looked at.
+
+- [x] CHK001 `border-border-strong` replaces `border-border-accent` on the chosen option, and
+      the marker takes `text-secondary-strong` / `text-muted`. All semantic, no raw steps.
+- [x] CHK002 Still no coral CTA added. Coral now appears **only** as the result bar
+      (`surface-accent-soft`), which is DESIGN.md's "progress fill" role; sage carries the
+      toggle state, which is DESIGN.md's "toggles" role.
+- [x] CHK007 Counts stay `font-mono`. The leading count is the same colour one step darker
+      (`text-body`) at `font-semibold` — weight, per DESIGN.md's "below `text-body`, hierarchy
+      is size and weight".
+- [x] CHK009 The "Deine Antwort" line is `caption` (12px), the floor, never below it.
+- [x] CHK011 Option rows keep `min-h-11`; the second line only makes them taller. Measured at
+      all three widths: no row under 44px.
+- [x] CHK023 The marker is the icon system's `check` / `circle` at `sm` (16px), never a glyph.
+- [x] CHK025 `text-secondary-strong` on `surface-accent-soft` is 5.8:1 — the pairing is now
+      declared in `contrast.spec.ts`, which previously listed sage only on its own tint.
+- [x] CHK026 **The point of the change.** "Mine" is a shape (`check` vs `circle`) plus the
+      words *Deine Antwort*; the lead is the bar's width plus the count's weight, and an
+      sr-only *· Die meisten Antworten* so it is not width-only for a screen reader. Neither
+      is carried by colour.
+- [x] CHK030 German at 375px: *Noch nicht gespeichert* under an 80-character option wraps
+      inside the row. No clipping at 375, 768 or 1280.
+- [x] CHK032 At 200% zoom on a 375px viewport the first run **clipped** the new label by 14px
+      — `break-words` was added to it, and the re-run is clean.
+- [x] CHK035 Every row carries a marker, so the option text starts at one x position and the
+      rows line up — DESIGN.md's "one list, one kind of marker".
+
+**Feature-specific**
+
+- [x] CHK043 **A full bar means "nothing got more", in every kind of poll.** Scaled to the
+      leader, a several-answer poll reads like a one-answer poll; scaled to those who answered,
+      a full bar meant two different things and could overflow the row.
+- [x] CHK044 **Nothing leads until something is answered.** All counts 0 ⇒ no bar, no weight.
+- [x] CHK045 **Hidden results stay hidden.** No counts ⇒ no bar and no leader; the mark on my
+      answer stands on its own, which is all there is in that row.
+- [x] CHK046 **A ticked box that is not saved says so.** In a several-answer poll the mark
+      still shows an unsaved selection, and the words read *Noch nicht gespeichert* rather
+      than claiming an answer the server does not have.
+
+**Decided here, not by the issue**
+
+- **No percentage beside the count.** The bar is relative to the leader, so a percentage would
+  have to be the share of those who answered — the number the bar stopped showing — and two
+  scales in one row is what the issue was about. The count and the "N von M haben geantwortet"
+  line carry the absolute numbers (the issue left this open).
+
+**Pre-existing, not this change**
+
+- At 200% zoom on a 375px viewport the **top bar's avatar menu** runs 45px past the viewport,
+  on every route (`/`, `/browse/teams` too, 58px). Filed separately.

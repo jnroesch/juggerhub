@@ -101,10 +101,32 @@ export class PollItemComponent {
     return this.poll().allowsMultiple ? this.selection().has(option.id) : this.poll().myOptionIds.includes(option.id);
   }
 
-  /** How much of the bar an option fills: its share of the members who answered. */
+  /** The answer the server has recorded for this viewer — not the boxes ticked since (GH #416). */
+  protected isSaved(option: TeamPollOption): boolean {
+    return this.poll().myOptionIds.includes(option.id);
+  }
+
+  /**
+   * The most answers any one option got, or 0 while the result is hidden or nobody has answered.
+   * Worked out from the counts this viewer was already sent, so it reveals nothing new (GH #416).
+   */
+  private readonly highestCount = computed(() => this.poll().options.reduce((highest, o) => Math.max(highest, o.count ?? 0), 0));
+
+  /**
+   * How much of the bar an option fills: its share of the LEADING option, not of the members who
+   * answered (GH #416). Scaled to the team, the leader shrank as the answers spread — ten options
+   * with one answer each drew ten bars of 10%, and a tie at the top looked like "half". Scaled to
+   * the leader, a full row means "nothing got more" in a one-answer and a several-answer poll
+   * alike, and the count beside it carries the absolute number.
+   */
   protected share(option: TeamPollOption): number {
-    const answered = this.poll().answeredCount;
-    return option.count === null || answered === 0 ? 0 : Math.round((option.count / answered) * 100);
+    const highest = this.highestCount();
+    return option.count === null || highest === 0 ? 0 : Math.round((option.count / highest) * 100);
+  }
+
+  /** This option got the most answers. True for every option of a tie, false while all are 0. */
+  protected isLeading(option: TeamPollOption): boolean {
+    return option.count !== null && option.count > 0 && option.count === this.highestCount();
   }
 
   protected names(people: TeamPollPerson[]): TeamPollPerson[] {
