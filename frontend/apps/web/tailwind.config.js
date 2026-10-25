@@ -249,6 +249,35 @@ module.exports = {
         success: 'var(--green-5)',
         danger: 'var(--red-5)',
       }),
+      /*
+       * The one width below which the app's own chrome stops fitting (GH #473).
+       *
+       * Every other breakpoint here is Tailwind's: `min-width`, mobile-first,
+       * "there is now room for more". This one is the opposite — a `max-width`
+       * floor, "there is no longer room for all of it" — and it exists because
+       * a reader on a 375px phone who turns browser zoom up to 200% is laying
+       * out at an effective **187px**, narrower than any device ships. At that
+       * width the top bar (16 + 139 brand + 12 + 36 avatar + 16 = 219px) and
+       * the bottom tab bar (211px in German, 226px in Spanish) both run past
+       * the viewport, so every route scrolled sideways.
+       *
+       * 240px is the number because the real floor is 226px — the widest the
+       * tab bar gets, in Spanish — and 240 is the round step above it with a
+       * little room to spare. `max` is inclusive, so the rules fire at 240 and
+       * below; both bars would still have fitted at exactly 240, which is the
+       * margin being spent on purpose. It also sits clear of the narrowest
+       * viewport the product can actually meet — the Galaxy Fold's 280px cover
+       * screen — so nothing a device reports ever crosses it.
+       *
+       * It is deliberately NOT a general-purpose step. Two rules use it, both
+       * in the shell: the brand wordmark withdraws (`top-nav`, and the public
+       * bar in `shell`), and the bottom tab bar keeps only the current
+       * destination's label (`bottom-nav`). A page that reaches for it has an
+       * overflow of its own to fix instead.
+       */
+      screens: {
+        narrow: { max: '240px' },
+      },
       spacing: {
         /*
          * `3xs` (2px) is the half-step below the 4px base — pill padding and

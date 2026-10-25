@@ -1,3 +1,10 @@
+<!--
+  Below `narrow` (240px) only the current destination keeps its label — see `labelClass()` for
+  why, and `tailwind.config.js` for the width. `narrow:justify-start` is what that costs: with
+  one tab carrying a label and four not, `justify-center` centred each tab's contents in its own
+  box and left the five icons scattered over 10px of height. Top-aligning them puts every icon on
+  one line and hangs the single label beneath its own.
+-->
 <nav
   class="bottom-nav fixed inset-x-0 bottom-0 z-30 flex items-stretch border-t border-border-default bg-surface-card md:hidden"
   [attr.aria-label]="'nav.primary' | transloco"
@@ -5,37 +12,37 @@
 >
   <a
     routerLink="/"
-    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast"
+    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast narrow:justify-start"
     [class]="active('home') ? 'text-brand-strong font-semibold' : 'text-muted'"
     [attr.aria-current]="active('home') ? 'page' : null"
     data-testid="tab-home"
   >
     <jh-icon name="house" size="lg" />
-    {{ 'nav.home' | transloco }}
+    <span [class]="labelClass('home')">{{ 'nav.home' | transloco }}</span>
   </a>
   <a
     routerLink="/browse"
-    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast"
+    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast narrow:justify-start"
     [class]="active('browse') ? 'text-brand-strong font-semibold' : 'text-muted'"
     [attr.aria-current]="active('browse') ? 'page' : null"
     data-testid="tab-browse"
   >
     <jh-icon name="search" size="lg" />
-    {{ 'nav.browse' | transloco }}
+    <span [class]="labelClass('browse')">{{ 'nav.browse' | transloco }}</span>
   </a>
   <a
     [routerLink]="myTeamHref()"
-    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast"
+    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast narrow:justify-start"
     [class]="active('my-team') ? 'text-brand-strong font-semibold' : 'text-muted'"
     [attr.aria-current]="active('my-team') ? 'page' : null"
     data-testid="tab-my-team"
   >
     <jh-icon name="users" size="lg" />
-    {{ 'nav.myTeam' | transloco }}
+    <span [class]="labelClass('my-team')">{{ 'nav.myTeam' | transloco }}</span>
   </a>
   <a
     routerLink="/chat"
-    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast"
+    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast narrow:justify-start"
     [class]="active('chat') ? 'text-brand-strong font-semibold' : 'text-muted'"
     [attr.aria-current]="active('chat') ? 'page' : null"
     data-testid="tab-chat"
@@ -51,11 +58,11 @@
         >{{ badge }}</span>
       }
     </span>
-    {{ 'nav.chat' | transloco }}
+    <span [class]="labelClass('chat')">{{ 'nav.chat' | transloco }}</span>
   </a>
   <a
     routerLink="/alerts"
-    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast"
+    class="flex flex-1 flex-col items-center justify-center gap-0.5 py-xs text-caption transition-colors duration-fast narrow:justify-start"
     [class]="active('alerts') ? 'text-brand-strong font-semibold' : 'text-muted'"
     [attr.aria-current]="active('alerts') ? 'page' : null"
     data-testid="tab-alerts"
@@ -71,6 +78,6 @@
         >{{ badge }}</span>
       }
     </span>
-    {{ 'nav.alerts' | transloco }}
+    <span [class]="labelClass('alerts')">{{ 'nav.alerts' | transloco }}</span>
   </a>
 </nav>

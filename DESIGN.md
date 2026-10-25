@@ -419,8 +419,19 @@ rejects the whole class.
   and at `md`** (768px, where stacked cards become a grid and a German column
   header has the least room it will ever have), because that is where every
   overflow this product has shipped was found. `responsive.spec.ts` asserts the
-  no-overflow half at 375 / 768 / 1280 in German; truncation and clipped text
-  need eyes, so they stay with the walk.
+  no-overflow half at 320 / 375 / 768 / 1280 in German; truncation and clipped
+  text need eyes, so they stay with the walk.
+- **`narrow` (≤ 240px) is the floor, and it belongs to the shell.** Every other
+  breakpoint is Tailwind's — `min-width`, mobile-first, *there is room for more*.
+  This one is the opposite, and it exists because a reader on a 375px phone at
+  200% browser zoom lays out at an effective **187px**, narrower than any device
+  ships. There the top bar and the bottom tab bar stop fitting and push every
+  route sideways (GH #473), so two things give way: the **brand wordmark
+  withdraws**, and the **bottom tab bar keeps only the current destination's
+  label** — `sr-only`, never `hidden`, because that label is the tab's only
+  accessible name. Both are chrome giving up decoration, which is the only thing
+  chrome may do: a page that reaches for `narrow` has an overflow of its own to
+  fix instead.
 
 ## Navigation: back links
 
