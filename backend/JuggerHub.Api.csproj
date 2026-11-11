@@ -67,7 +67,7 @@
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="10.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.13" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.13" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.StackExchangeRedis" Version="10.0.15" />
     <!-- Pin Microsoft.OpenApi above the transitive 2.0.0 that AspNetCore.OpenApi 10.0.10
          drags in, which is vulnerable to GHSA-v5pm-xwqc-g5wc (circular-schema DoS,
          fixed in 2.7.5). Must stay on the 2.x major: AspNetCore.OpenApi 10.x (net10.0)
