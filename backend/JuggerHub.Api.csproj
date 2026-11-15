@@ -60,7 +60,7 @@
          MailKit then MimeKit and predates this reference. This package pulls it only on its
          net451/netstandard2.0 assets, which .NET 10 never resolves.) -->
     <PackageReference Include="Lib.Net.Http.WebPush" Version="3.3.1" />
-    <PackageReference Include="MailKit" Version="4.18.2" />
+    <PackageReference Include="MailKit" Version="5.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.13" />
     <!-- GH #250: the Data Protection key ring lives in Postgres so every replica shares it and it
          survives restarts. First-party, same release train as the other AspNetCore packages. -->
