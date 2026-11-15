@@ -78,7 +78,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.13" />
     <!-- Outbound HTTP resilience (feature 028 / constitution Principle VII). This is Polly v8
          packaged as a DelegatingHandler; every typed client opts in via AddJuggerHubResilience. -->
-    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.11.0" />
+    <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="11.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.13">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
